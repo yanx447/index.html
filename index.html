@@ -1,15 +1,22 @@
-<!DOCTYPE html><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html>
 <html lang="ka">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>ჩემი სიყვარული 💘</title>
+  <meta name="description" content="პატარა საიტი შენთვის, მარი 💘" />
+  <meta name="theme-color" content="#ff9a9e" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❤️</text></svg>" />
 
   <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
 
   <!-- Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
 
   <style>
     * {
@@ -28,6 +35,7 @@
       animation: bgMove 12s ease infinite;
       font-family: "Poppins", sans-serif;
       overflow: hidden;
+      padding: 16px;
     }
 
     @keyframes bgMove {
@@ -88,7 +96,6 @@
     }
 
     .buttons {
-      position: relative;
       height: auto;
       display: flex;
       gap: 16px;
@@ -103,13 +110,19 @@
       font-size: 16px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: left 0.2s ease, top 0.2s ease, transform 0.25s ease, box-shadow 0.25s ease;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
       position: relative;
+      font-family: inherit;
     }
 
     button:active {
       transform: scale(0.94);
+    }
+
+    button:focus-visible {
+      outline: 3px solid #ff4d6d;
+      outline-offset: 3px;
     }
 
     #yes {
@@ -126,6 +139,11 @@
     #no {
       background: rgba(255,255,255,0.9);
       color: #777;
+    }
+
+    #no.escaping {
+      position: absolute;
+      z-index: 5;
     }
 
     .hint {
@@ -243,6 +261,14 @@
         font-size: 14px;
       }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
   </style>
 </head>
 
@@ -253,29 +279,29 @@
     <h2>მარი,<br>გახდები ჩემი სიყვარული სამუდამოდ?</h2>
 
     <div class="buttons">
-      <button id="yes">კი 💖</button>
-      <button id="no">არა 🙈</button>
+      <button id="yes" type="button">კი 💖</button>
+      <button id="no" type="button">არა 🙈</button>
     </div>
 
     <div class="hint">ჩვენი სიყვარულის ისტორია "არას" არ იცნობს ✨</div>
   </div>
 
-  <div id="successModal" class="modal">
+  <div id="successModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
       <div style="font-size: 50px; margin-bottom: 15px;">💘</div>
-      <h3>ჩემო სიყვარულო 💕</h3>
+      <h3 id="modalTitle">ჩემო სიყვარულო 💕</h3>
       <p>მინდა მოგილოცო ჩვენი დღე ამ პატარა საიტით რომელიც შენთვის შევქმენი 🌹💖</p>
       <p>მინდა სულ გახსოვდეს თუ როგორ მიყვარხარ, როგორ მაბედნიერებ, როგორ მავსებ სითბოთი თუ სიყვარულით..</p>
       <p>ჩემთის საუკეთესო რამ ხარ რაც ოდესმე გადამხდენია და დღესაც კი ხდება და ასე გაგრძელდება მომვალშიც..</p>
       <p>მიყვარხარ და ბედნიერი ვარ შენთან.. 💘💝💕</p>
       <p style="margin-top: 12px; font-style: italic; color: #dd6b7b;">მადლობა თითოელი წამისთვის</p>
-      <button class="modal-close" onclick="closeModal()">დახურვა</button>
+      <button class="modal-close" type="button" onclick="closeModal()">დახურვა</button>
     </div>
   </div>
 
   <!-- Sounds -->
-  <audio id="hoverSound" src="https://assets.mixkit.co/sfx/preview/mixkit-cartoon-voice-laugh-343.mp3"></audio>
-  <audio id="yesSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+  <audio id="hoverSound" src="https://assets.mixkit.co/sfx/preview/mixkit-cartoon-voice-laugh-343.mp3" preload="none"></audio>
+  <audio id="yesSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="none"></audio>
 
   <script>
     const noBtn = document.getElementById("no");
@@ -283,16 +309,31 @@
     const card = document.querySelector(".card");
     const hoverSound = document.getElementById("hoverSound");
     const yesSound = document.getElementById("yesSound");
+    const modal = document.getElementById("successModal");
 
-    noBtn.addEventListener("mouseenter", handleButtonEscape);
-    noBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      handleButtonEscape();
-    });
+    function playSafely(audio) {
+      audio.currentTime = 0;
+      const p = audio.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {});
+      }
+    }
 
     function handleButtonEscape() {
-      hoverSound.currentTime = 0;
-      hoverSound.play();
+      playSafely(hoverSound);
+
+      // First escape: switch from static flex layout to free positioning
+      // inside the card, anchored at its current on-screen spot (no jump).
+      if (!noBtn.classList.contains("escaping")) {
+        const startRect = noBtn.getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
+        noBtn.classList.add("escaping");
+        noBtn.style.left = (startRect.left - cardRect.left) + "px";
+        noBtn.style.top = (startRect.top - cardRect.top) + "px";
+        // Force layout so the browser registers the anchor position
+        // before we jump to a new random spot.
+        void noBtn.offsetWidth;
+      }
 
       const cardRect = card.getBoundingClientRect();
       const btnRect = noBtn.getBoundingClientRect();
@@ -304,14 +345,26 @@
       noBtn.style.top = Math.random() * maxY + "px";
     }
 
-    yesBtn.addEventListener("click", () => {
-      yesSound.play();
+    noBtn.addEventListener("mouseenter", handleButtonEscape);
+    noBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      handleButtonEscape();
+    });
+    noBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      handleButtonEscape();
+    }, { passive: false });
 
-      confetti({
-        particleCount: 260,
-        spread: 120,
-        origin: { y: 0.65 }
-      });
+    yesBtn.addEventListener("click", () => {
+      playSafely(yesSound);
+
+      if (typeof confetti === "function") {
+        confetti({
+          particleCount: 260,
+          spread: 120,
+          origin: { y: 0.65 }
+        });
+      }
 
       setTimeout(() => {
         showModal();
@@ -319,17 +372,23 @@
     });
 
     function showModal() {
-      const modal = document.getElementById("successModal");
       modal.classList.add("show");
+      document.getElementById("modalTitle").focus();
     }
 
     function closeModal() {
-      const modal = document.getElementById("successModal");
       modal.classList.remove("show");
+      yesBtn.focus();
     }
 
-    document.getElementById("successModal").addEventListener("click", (e) => {
+    modal.addEventListener("click", (e) => {
       if (e.target.id === "successModal") {
+        closeModal();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.classList.contains("show")) {
         closeModal();
       }
     });
@@ -347,7 +406,10 @@
       setTimeout(() => heart.remove(), 8000);
     }
 
-    setInterval(createHeart, 380);
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!prefersReducedMotion) {
+      setInterval(createHeart, 380);
+    }
   </script>
 
 </body>
