@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ფანდურის ტიუნერი</title>
+<meta name="description" content="ზუსტი ტიუნერი სამსიმიანი ქართული ფანდურისთვის — A · C♯ · E">
+<meta name="theme-color" content="#120d0a">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ფანდური">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&family=Noto+Serif+Georgian:wght@500;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="js/main.js"></script>
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="top">
+    <button class="brand" id="brand" type="button" aria-label="ფანდური — წყობის პარამეტრები">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M16 2.5c-5.6 1.2-8.6 6.4-8.6 13.2 0 5.9 2.5 9.4 6 10.8V30h5.2v-3.5c3.5-1.4 6-4.9 6-10.8 0-6.8-3-12-8.6-13.2z" fill="url(#bmG)"/>
+        <g fill="#d4a655"><circle cx="4.2" cy="9" r="2.6"/><circle cx="4.2" cy="16.5" r="2.6"/><circle cx="27.8" cy="12.7" r="2.6"/></g>
+        <path d="M14.6 26.5V14M16 26.5V20M17.4 26.5V14" stroke="#f2e9da" stroke-opacity=".7" stroke-width=".7"/>
+        <defs><linearGradient id="bmG" x1="0" x2="1"><stop offset="0" stop-color="#3b2415"/><stop offset=".5" stop-color="#6a4326"/><stop offset="1" stop-color="#3b2415"/></linearGradient></defs>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">ფანდური</span>
+        <span class="brand-preset" id="presetLabel">A · C♯ · E</span>
+      </span>
+    </button>
+    <div class="top-actions">
+      <button class="icon-btn" id="meterToggle" type="button" aria-label="ჩვენების რეჟიმი: ისარი">
+        <svg class="ico-needle" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M12 16l3.5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="16" r="1.4" fill="currentColor"/></svg>
+        <svg class="ico-strobe" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="3" y="6" width="3" height="4" rx=".6"/><rect x="9" y="6" width="3" height="4" rx=".6"/><rect x="15" y="6" width="3" height="4" rx=".6"/><rect x="5.5" y="12" width="2" height="3" rx=".5"/><rect x="10" y="12" width="2" height="3" rx=".5"/><rect x="14.5" y="12" width="2" height="3" rx=".5"/><rect x="19" y="12" width="2" height="3" rx=".5"/></g><path d="M12 4v16" stroke="currentColor" stroke-width="1" opacity=".6"/></svg>
+      </button>
+      <button class="icon-btn" id="openSettings" type="button" aria-label="პარამეტრები" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="instrument" id="instrument" aria-label="ტიუნერი">
+    <div class="meter" id="meter" data-view="needle">
+      <div class="meter-glass" aria-hidden="true"></div>
+      <svg id="gauge" class="gauge" viewBox="0 0 360 208" aria-hidden="true"></svg>
+      <canvas id="strobe" class="strobe" hidden aria-hidden="true"></canvas>
+      <div class="readout" id="readout">
+        <div class="note" id="note" aria-hidden="true"><span class="note-main" id="noteMain">A</span><span class="note-oct" id="noteOct">3</span></div>
+        <div class="note-ka" id="noteKa">ლა · სიმი 1</div>
+      </div>
+      <p class="sr-only" id="srReading" aria-live="polite"></p>
+    </div>
+
+    <dl class="stats pro-only" id="stats">
+      <div><dt>სიხშირე</dt><dd id="hz">—</dd></div>
+      <div class="stat-c"><dt>ცენტი</dt><dd id="cents">—</dd></div>
+      <div><dt>სამიზნე</dt><dd id="target">220.00</dd></div>
+    </dl>
+
+    <div class="instruction" id="instruction" data-tone="neutral">
+      <span class="ins-ico" id="insIco" aria-hidden="true"></span>
+      <span class="ins-text" id="insText">ჩართე მიკროფონი და ჩამოკარი სიმს</span>
+    </div>
+    <div class="substatus" id="substatus"></div>
+    <canvas class="trace pro-only" id="trace" aria-hidden="true"></canvas>
+  </section>
+
+  <section class="stage" id="stage">
+    <svg id="head" class="head" viewBox="0 0 320 360" role="group" aria-label="ფანდურის თავი — შეეხე მომჭერს სიმის ასარჩევად"></svg>
+    <div class="complete" id="complete" hidden role="alert">
+      <div class="complete-card">
+        <svg class="complete-check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" pathLength="100"/><path d="M20 33l8 8 16-17" pathLength="100"/></svg>
+        <strong>ფანდური აწყობილია</strong>
+        <span>სამივე სიმი ზუსტ წყობაშია</span>
+        <button type="button" id="completeOk" class="btn-ghost">კარგი</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="modes" id="modes" role="radiogroup" aria-label="რეჟიმი">
+    <span class="modes-thumb" aria-hidden="true"></span>
+    <button type="button" role="radio" data-mode="auto">ავტო</button>
+    <button type="button" role="radio" data-mode="manual">ხელით</button>
+    <button type="button" role="radio" data-mode="guided">აწყობა</button>
+  </div>
+
+  <nav class="dock" aria-label="მართვა">
+    <button class="dock-btn" id="refBtn" type="button" aria-label="ეტალონური ბგერა">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+      <span id="refLbl">ეტალონი</span>
+    </button>
+    <button class="mic" id="micBtn" type="button" aria-pressed="false">
+      <span class="mic-ring" aria-hidden="true"></span>
+      <svg class="mic-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="3" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>
+      <span class="mic-level" id="micLevel" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="mic-lbl" id="micLbl">მიკროფონი</span>
+    </button>
+    <button class="dock-btn" id="chordBtn" type="button" aria-label="სამივე სიმის ერთად მოსმენა">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7 4v13M12 4v13M17 4v13"/><circle cx="5.3" cy="17.5" r="2.2"/><circle cx="10.3" cy="17.5" r="2.2"/><circle cx="15.3" cy="17.5" r="2.2"/></svg>
+      <span>აკორდი</span>
+    </button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<section class="sheet" id="settings" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-hidden="true">
+  <header class="sheet-head">
+    <span class="grab" aria-hidden="true"></span>
+    <h2 id="settingsTitle">პარამეტრები</h2>
+    <button class="icon-btn" type="button" data-close aria-label="დახურვა">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+    </button>
+  </header>
+  <div class="sheet-body">
+    <section class="group">
+      <h3>წყობა</h3>
+      <div class="card">
+        <div class="field">
+          <div class="field-row"><span class="lab">პრესეტი</span><span class="val" id="presetName">ფანდური</span></div>
+          <div class="preset-notes" id="presetNotes"></div>
+        </div>
+        <div class="field">
+          <div class="field-row"><span class="lab">ტრანსპოზიცია</span><span class="val" id="transVal">0</span></div>
+          <div class="stepper">
+            <button type="button" id="tDown" aria-label="ნახევარტონით დაბლა">−</button>
+            <output id="transNotes" aria-live="polite">A · C♯ · E</output>
+            <button type="button" id="tUp" aria-label="ნახევარტონით მაღლა">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-row"><span class="lab">ოქტავა</span><span class="val" id="octVal">A3 · C♯4 · E4</span></div>
+          <div class="seg" data-key="octave" role="radiogroup" aria-label="ოქტავა">
+            <button type="button" role="radio" data-v="-1">დაბალი</button><button type="button" role="radio" data-v="0">სტანდარტი</button><button type="button" role="radio" data-v="1">მაღალი</button>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-row"><label class="lab" for="a4">კალიბრაცია A4</label><span class="val" id="a4Val">440 ჰც</span></div>
+          <div class="slider-row">
+            <button type="button" class="nudge" data-a4="-0.5" aria-label="0.5 ჰერცით დაბლა">−</button>
+            <input type="range" id="a4" min="430" max="450" step="0.5" value="440">
+            <button type="button" class="nudge" data-a4="0.5" aria-label="0.5 ჰერცით მაღლა">+</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="group">
+      <h3>ამოცნობა</h3>
+      <div class="card">
+        <div class="field field-switch">
+          <div><span class="lab" id="autoSensLab">ავტომატური მგრძნობელობა</span><p>ზომავს ოთახის ხმაურს და თავად არჩევს ზღვარს.</p></div>
+          <button type="button" class="switch" id="autoSens" role="switch" aria-labelledby="autoSensLab"><span></span></button>
+        </div>
+        <div class="field" id="sensField">
+          <div class="field-row"><label class="lab" for="sens">მგრძნობელობა (ხელით)</label><span class="val" id="sensVal">6</span></div>
+          <input type="range" id="sens" min="1" max="10" step="1" value="6">
+        </div>
+        <div class="field">
+          <div class="field-row"><span class="lab">„აწყობილის“ ზღვარი</span><span class="val" id="tolVal">±3 ცენტი</span></div>
+          <div class="seg" data-key="tol" role="radiogroup" aria-label="სიზუსტე">
+            <button type="button" role="radio" data-v="2">±2 ¢</button><button type="button" role="radio" data-v="3">±3 ¢</button><button type="button" role="radio" data-v="5">±5 ¢</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="group">
+      <h3>ჩვენება</h3>
+      <div class="card">
+        <div class="field">
+          <div class="field-row"><span class="lab">მაჩვენებელი</span></div>
+          <div class="seg" data-key="meter" role="radiogroup" aria-label="მაჩვენებელი">
+            <button type="button" role="radio" data-v="needle">ისარი</button><button type="button" role="radio" data-v="strobe">სტრობი</button>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-row"><span class="lab">ინტერფეისი</span></div>
+          <div class="seg" data-key="ui" role="radiogroup" aria-label="ინტერფეისი">
+            <button type="button" role="radio" data-v="simple">მარტივი</button><button type="button" role="radio" data-v="pro">პროფესიული</button>
+          </div>
+          <p>მარტივი ჩვენება მალავს ჰერცებს, ცენტებს და ისტორიას.</p>
+        </div>
+        <div class="field field-switch">
+          <div><span class="lab" id="motionLab">მოძრაობის ეფექტები</span><p>სიღრმე და პარალაქსი შეხებისას.</p></div>
+          <button type="button" class="switch" id="motion" role="switch" aria-labelledby="motionLab"><span></span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="group">
+      <h3>ხმა</h3>
+      <div class="card">
+        <div class="field">
+          <div class="field-row"><label class="lab" for="refVolume">ეტალონის ხმა</label><span class="val" id="refVolVal">75%</span></div>
+          <input type="range" id="refVolume" min="0" max="1" step="0.05" value="0.75">
+        </div>
+        <div class="field field-switch" id="hapticsField">
+          <div><span class="lab" id="hapticsLab">ვიბრაცია აწყობისას</span><p id="hapticsNote">მოკლე ბიძგი, როცა სიმი აეწყობა.</p></div>
+          <button type="button" class="switch" id="haptics" role="switch" aria-labelledby="hapticsLab"><span></span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="group">
+      <h3>სისტემა</h3>
+      <div class="card">
+        <div class="field">
+          <button type="button" class="btn-row" id="resetStatus">აწყობის სტატუსის გასუფთავება</button>
+        </div>
+        <div class="field">
+          <button type="button" class="btn-row danger" id="resetSettings">პარამეტრების დაბრუნება საწყისზე</button>
+        </div>
+      </div>
+      <p class="about">ხმა მუშავდება მხოლოდ შენს მოწყობილობაზე — არსად იგზავნება და არ ინახება. ვერსია 2.0</p>
+    </section>
+  </div>
+</section>
+
+<section class="sheet sheet-sm" id="micSheet" role="dialog" aria-modal="true" aria-labelledby="micTitle" aria-hidden="true">
+  <span class="grab" aria-hidden="true"></span>
+  <div class="mic-art" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="9" y="3" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg>
+  </div>
+  <h2 id="micTitle">მიკროფონზე წვდომა</h2>
+  <p id="micText">ტიუნერს სჭირდება მიკროფონი მხოლოდ ფანდურის ხმის დასადგენად.</p>
+  <p class="fine" id="micFine">ხმა არსად იგზავნება და არ ინახება.</p>
+  <div class="sheet-actions">
+    <button type="button" class="btn-primary" id="micGo">მიკროფონის ჩართვა</button>
+    <button type="button" class="btn-ghost" id="micCancel">არა ახლა</button>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<aside class="diag" id="diag" hidden aria-label="დიაგნოსტიკა"><pre></pre></aside>
+<noscript><p class="noscript">ტიუნერს სჭირდება JavaScript.</p></noscript>
+</body>
+</html>
