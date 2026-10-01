@@ -1,0 +1,45 @@
+name: Sami Simi — iOS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sami-simi/**'
+      - '!sami-simi/**.md'
+      - '!sami-simi/store/**'
+      - '!sami-simi/docs/**'
+      - '.github/workflows/ios.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ios
+  cancel-in-progress: true
+
+jobs:
+  build:
+    defaults:
+      run:
+        working-directory: sami-simi
+    # Compiles the iOS app for the simulator (no Apple account needed) so every change is
+    # verified. Signed App Store builds are made by Codemagic (codemagic.yaml) or Xcode.
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install
+        run: npm install --no-audit --no-fund
+
+      - name: Native project
+        run: bash scripts/native-setup.sh ios
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+
+      - name: Build for simulator
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -40

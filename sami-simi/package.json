@@ -1,0 +1,23 @@
+{
+  "name": "sami-simi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sami Simi — a precise tuner for the three-string Georgian panduri (A · C♯ · E).",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/run-tests.mjs",
+    "serve": "python3 -m http.server 8080",
+    "android": "bash scripts/native-setup.sh android && npx cap open android",
+    "ios": "bash scripts/native-setup.sh ios && npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/haptics": "^7.0.0",
+    "@capacitor/ios": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0"
+  }
+}

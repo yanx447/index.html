@@ -1,0 +1,16 @@
+{
+  "appId": "com.samisimi.tuner",
+  "appName": "Sami Simi",
+  "webDir": "app",
+  "backgroundColor": "#120d0a",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#120d0a",
+    "scrollEnabled": false,
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "android": {
+    "backgroundColor": "#120d0a",
+    "adjustMarginsForEdgeToEdge": "auto"
+  }
+}

@@ -1,0 +1,33 @@
+# Codemagic (codemagic.io) — builds the signed iOS app and uploads it to TestFlight / App Store
+# Connect without needing a Mac. One-time setup is described in docs/LAUNCH.md (step 4).
+workflows:
+  ios-testflight:
+    name: iOS → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Sami Simi ASC Key
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.samisimi.tuner
+      node: 22
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install
+        script: cd sami-simi && npm install --no-audit --no-fund
+      - name: Engine tests
+        script: cd sami-simi && npm test
+      - name: Native project
+        script: cd sami-simi && BUILD_NUMBER=$PROJECT_BUILD_NUMBER bash scripts/native-setup.sh ios
+      - name: Code signing
+        script: cd sami-simi && xcode-project use-profiles
+      - name: Build IPA
+        script: cd sami-simi && xcode-project build-ipa --workspace ios/App/App.xcworkspace --scheme App
+    artifacts:
+      - sami-simi/build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
