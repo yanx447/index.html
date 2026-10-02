@@ -234,9 +234,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .head .hs-light { transform: translate(calc(var(--px) * -5px), calc(var(--py) * -4px)); transition: transform .6s var(--ease); }
 .head .hs-focus { transition: transform .5s var(--ease), opacity .4s; opacity: .95; }
-.head .hs-wire { stroke: #b19c76; stroke-width: 1.35; fill: none; transition: stroke .3s; }
-.head .hs-spec { stroke: rgba(255, 248, 230, .35); stroke-width: .45; }
-.head .hs-glow { stroke: var(--brass); stroke-width: 7; stroke-opacity: 0; fill: none; stroke-linecap: round; transition: stroke-opacity .35s; }
+.head .hs-wire { stroke: #ddd5c4; stroke-width: 2.3; fill: none; stroke-linecap: round; transition: stroke .3s; }
+.head .hs-spec { stroke: rgba(255, 252, 240, .55); stroke-width: .7; }
+.head .hs-glow { stroke: var(--brass); stroke-width: 9; stroke-opacity: 0; fill: none; stroke-linecap: round; transition: stroke-opacity .35s; }
 .head .hs-string.active .hs-wire { stroke: var(--brass-hi); }
 .head .hs-string.active .hs-glow { stroke-opacity: .14; }
 .head .hs-peg { cursor: pointer; }

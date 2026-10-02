@@ -11,9 +11,10 @@ const RAIL_X = 32.5, RAIL_W = 31, RAIL_Y = 12, RAIL_H = 236, D = 24;
 const SLOT_HALF = 17;
 const NUT_Y = -156;
 const NECK_LEN = 300;
-const NUT_X = [-11, 0, 11];                 // A, C♯, E
+const NUT_X = [-33, 0, 33];                 // A, C♯, E — outer strings run close to the fingerboard edges
+const END_X = [-35, 0, 35];                 // slight spread further down the neck
 const ROLLER_Y = [8, 60, -44];              // A middle, C♯ top, E bottom
-const WRAP_X = [-7, 5, 10];
+const WRAP_X = [-10, 2, 10];
 const SIDE = [1, -1, -1];                   // A right, C♯ + E left
 const FRET_SCALE = 400;
 const FRETS = [2, 4, 5, 7, 9, 10, 12];
@@ -185,17 +186,17 @@ export class Headstock3D {
 
     // strings: head segment (nut → roller) + neck segment
     this.strings = [0, 1, 2].map((i) => {
-      const mat = new THREE.MeshStandardMaterial({ color: 0xdcd5c6, metalness: 1, roughness: 0.32, emissive: 0x000000 });
-      const a = new THREE.Vector3(NUT_X[i], NUT_Y + 3, 20.5), b = new THREE.Vector3(WRAP_X[i], ROLLER_Y[i], 3.8);
+      const mat = new THREE.MeshPhysicalMaterial({ color: 0xeee8dc, metalness: 0, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.25, sheen: 0.4, emissive: 0x000000 });
+      const a = new THREE.Vector3(NUT_X[i], NUT_Y + 3, 21), b = new THREE.Vector3(WRAP_X[i], ROLLER_Y[i], 4.6);
       const seg = (p, q) => {
         const len = p.distanceTo(q);
-        const m = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, len, 6), mat);
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, len, 10), mat);
         m.position.copy(p).add(q).multiplyScalar(0.5);
         m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), q.clone().sub(p).normalize());
         this.model.add(m); return m;
       };
       seg(a, b);
-      const neck = seg(new THREE.Vector3(NUT_X[i], NUT_Y + 3, 20.5), new THREE.Vector3(NUT_X[i], NUT_Y - NECK_LEN + 6, 18.5));
+      const neck = seg(new THREE.Vector3(NUT_X[i], NUT_Y + 3, 21), new THREE.Vector3(END_X[i], NUT_Y - NECK_LEN + 6, 19));
       return { mat, neck, baseX: NUT_X[i] };
     });
 

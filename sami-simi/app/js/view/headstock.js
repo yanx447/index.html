@@ -12,9 +12,9 @@ const KC = 54;                                      // key centre distance from 
 const RAIL_L = [102, 133], RAIL_R = [167, 198];   // x ranges of the two rails
 const SLOT = [133, 167];
 const NUT_Y = 356;
-const NUT_X = [139, 150, 161];                     // A, C♯, E
+const NUT_X = [117, 150, 183];                     // A, C♯, E — outer strings near the nut ends
 const ROLLER_Y = [192, 140, 244];                  // A (middle), C♯ (top), E (bottom)
-const WRAP_X = [143, 155, 160];                    // where each string meets its roller
+const WRAP_X = [140, 152, 160];                    // where each string meets its roller
 
 // key centres (tap targets). string index → side and height
 export const PEGS = [
