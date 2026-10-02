@@ -210,6 +210,7 @@ export class Headstock3D {
     });
 
     this.model.position.y = 70;   // pivot sits between the rollers and the nut
+    this.modelYTarget = 70;
   }
 
   bind() {
@@ -291,6 +292,44 @@ export class Headstock3D {
     this.kick();
   }
 
+  /** Finger positions for a chord: { frets:[a,b,c], barre } */
+  showChord(f) {
+    this.clearChord();
+    const g = this.chordGroup = new THREE.Group();
+    this.model.add(g);
+    const fretY = (n) => (n <= 0 ? NUT_Y : NUT_Y - 4 - SCALE_LEN * (1 - Math.pow(2, -n / 12)));
+    const strX = (i, y) => NUT_X[i] + (END_X[i] - NUT_X[i]) * ((NUT_Y - y) / NECK_LEN);
+    const dotMat = new THREE.MeshStandardMaterial({ color: 0xf3e4c0, emissive: 0x6a4a12, roughness: 0.35 });
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x8cc084 });
+    const ys = [];
+    if (f.barre && f.frets.filter((x) => x === f.barre).length >= 2) {
+      const y = (fretY(f.barre - 1) + fretY(f.barre)) / 2;
+      const bar = new THREE.Mesh(new THREE.CylinderGeometry(5.2, 5.2, 84, 20), new THREE.MeshStandardMaterial({ color: 0xd4a655, emissive: 0x3a2508, roughness: 0.35, transparent: true, opacity: 0.9 }));
+      bar.rotation.z = Math.PI / 2; bar.position.set(0, y, 25); g.add(bar); ys.push(y);
+    }
+    f.frets.forEach((n, i) => {
+      if (n === 0) {
+        const r = new THREE.Mesh(new THREE.TorusGeometry(5.5, 1.4, 10, 28), ringMat);
+        r.position.set(NUT_X[i], NUT_Y + 16, 22); g.add(r); ys.push(NUT_Y);
+        return;
+      }
+      if (f.barre && n === f.barre && f.frets.filter((x) => x === f.barre).length >= 2) return;
+      const y = (fretY(n - 1) + fretY(n)) / 2;
+      const d = new THREE.Mesh(new THREE.SphereGeometry(7, 24, 16), dotMat);
+      d.scale.z = 0.6; d.position.set(strX(i, y), y, 24); g.add(d); ys.push(y);
+    });
+    const mid = ys.reduce((a, b) => a + b, 0) / ys.length;
+    this.modelYTarget = -mid;
+    this.target = { yaw: -0.18, pitch: 0.12, zoom: 1.25 };
+    this.kick();
+  }
+
+  clearChord() {
+    if (this.chordGroup) { this.model.remove(this.chordGroup); this.chordGroup = null; }
+    if (this.modelYTarget !== 70) { this.modelYTarget = 70; this.target = { yaw: -0.42, pitch: 0.1, zoom: 1 }; }
+    this.kick();
+  }
+
   kick() { this.dirty = true; if (this.running && !this.raf) this.raf = requestAnimationFrame((t) => this.frame(t)); }
   start() { this.running = true; this.resize(); this.kick(); }
   stop() { this.running = false; if (this.raf) cancelAnimationFrame(this.raf); this.raf = 0; }
@@ -311,6 +350,9 @@ export class Headstock3D {
       this.yaw += (tw - this.yaw) * 0.14; this.pitch += (this.target.pitch - this.pitch) * 0.14; this.zoom += (this.target.zoom - this.zoom) * 0.14;
       if (Math.abs(tw - this.yaw) + Math.abs(this.target.pitch - this.pitch) + Math.abs(this.target.zoom - this.zoom) < 0.002) this.target = { yaw: null, pitch: null, zoom: null };
       busy = true;
+    }
+    if (this.modelYTarget != null && Math.abs(this.model.position.y - this.modelYTarget) > 0.2) {
+      this.model.position.y += (this.modelYTarget - this.model.position.y) * 0.14; busy = true;
     }
     // vibrating active string (real signal level)
     const lv = this.state.level;

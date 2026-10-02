@@ -13,6 +13,7 @@ import { Headstock } from './view/headstock.js';
 import { Trace } from './view/trace.js';
 import { Diagnostics } from './view/diagnostics.js';
 import { t, setLang, lang, noteName, applyStatic } from './i18n.js';
+import { makeTr } from './tools/ui.js';
 
 const WINDOW = 4096;
 const SITE_URL = 'https://yanx447.github.io/index.html/sami-simi/';
@@ -29,7 +30,7 @@ const canVibrate = !!nativeHaptics || 'vibrate' in navigator;
 let S = loadSettings();
 const model = new TuningModel(S);
 const tracker = new PitchTracker();
-const input = new AudioInput(WINDOW);
+const input = new AudioInput(8192); // detector uses the last 4096 samples; chord recognition the full 8192
 const reference = new ReferenceEngine();
 let detector = null;
 
@@ -48,7 +49,8 @@ let wakeLock = null;
 let lastDet = null;
 let micState = 'off';
 let lastLevel = 0;
-let viewer = null, viewerOpen = false;
+let viewer = null, viewerOpen = false, viewerChord = null;
+let toolOpen = false;
 
 // ─── views ────────────────────────────────────────────────────────────────────────────
 const meterEl = $('#meter');
@@ -379,7 +381,7 @@ function advanceGuided() {
 // ─── analysis loop ───────────────────────────────────────────────────────────────────
 function analysisTick() {
   analysisTimer = setTimeout(analysisTick, ANALYSIS_MS);
-  if (!running || !input.active) return;
+  if (!running || !input.active || toolOpen) return;
   const now = performance.now();
   const t0 = now;
   let snap;
@@ -643,6 +645,12 @@ function syncViewer() {
     active: current, done, level: running ? lastLevel : 0,
     labels: model.strings.map((s) => (simple ? noteName(s) : s.latin)),
   });
+  if (viewerChord) {
+    viewer.sync({ active: -1, done: [false, false, false], level: 0, labels: model.strings.map((s) => (simple ? noteName(s) : s.latin)) });
+    $('#v3dNote').textContent = viewerChord; $('#v3dNote').dataset.band = ''; $('#v3dNote').classList.remove('ghost');
+    $('#v3dIns').dataset.tone = 'neutral'; $('#v3dIns').textContent = t('v3d.chord');
+    return;
+  }
   $('#v3dNote').textContent = el.noteMain.textContent + (el.noteOct.textContent ? el.noteOct.textContent : '');
   $('#v3dNote').dataset.band = meterEl.dataset.band || '';
   $('#v3dNote').classList.toggle('ghost', meterEl.dataset.state !== 'live');
@@ -652,7 +660,8 @@ function syncViewer() {
   ins.lastChild.textContent = el.insText.textContent;
 }
 
-async function openViewer() {
+async function openViewer(chord) {
+  viewerChord = chord ? chord.name : null;
   const v = $('#viewer');
   v.hidden = false;
   requestAnimationFrame(() => v.classList.add('open'));
@@ -670,6 +679,7 @@ async function openViewer() {
     $('#v3dLoading').hidden = true;
   }
   viewer.start();
+  if (chord) viewer.showChord(chord.f); else viewer.clearChord();
   syncViewer();
   setTimeout(() => $('#v3dClose').focus({ preventScroll: true }), 50);
 }
@@ -681,7 +691,97 @@ function closeViewer() {
   $('#app').removeAttribute('aria-hidden');
   if (viewer) viewer.stop();
   setTimeout(() => { if (!viewerOpen) v.hidden = true; }, 320);
-  $('#open3d').focus({ preventScroll: true });
+  if (!toolOpen) $('#open3d').focus({ preventScroll: true });
+  viewerChord = null;
+}
+
+
+// ─── tools (lazy-loaded pages) ─────────────────────────────────────────────────────
+const TOOLS = [
+  { id: 'chords', file: 'chords', icon: '<path d="M7 4v16M12 4v16M17 4v16M4 8h16M4 13h16"/><circle cx="12" cy="10.5" r="1.6" fill="currentColor"/><circle cx="7" cy="15.5" r="1.6" fill="currentColor"/>' },
+  { id: 'chordrec', file: 'chordrec', icon: '<path d="M4 18V6M8 18V10M12 18V4M16 18v-7M20 18V8"/>' },
+  { id: 'metronome', file: 'metronome', icon: '<path d="M9 3h6l3 18H6z"/><path d="M12 15l5-9"/>' },
+  { id: 'ear', file: 'ear', icon: '<path d="M7 10a5 5 0 1 1 10 0c0 3-2.5 3.5-3 6a3 3 0 0 1-5.5 1"/><path d="M10 10a2 2 0 1 1 4 0"/>' },
+  { id: 'play', file: 'playalong', icon: '<circle cx="7" cy="17" r="2.5"/><circle cx="17" cy="15" r="2.5"/><path d="M9.5 17V6l10-2v11"/>' },
+  { id: 'newstring', file: 'newstring', icon: '<path d="M5 20L19 4"/><path d="M14 4h5v5"/><circle cx="6" cy="18" r="2"/>' },
+  { id: 'recorder', file: 'recorder', icon: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/>' },
+  { id: 'songs', file: 'songs', icon: '<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 15h6M9 7h4"/>' },
+  { id: 'share', file: 'share', icon: '<circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/>' },
+];
+const toolCache = {};
+let activeTool = null, toolMicUsers = 0, toolStartedMic = false, toolWake = null;
+
+function renderToolsHub() {
+  $('#toolsGrid').innerHTML = TOOLS.map((x) => `<button type="button" class="tool-tile" data-tool="${x.id}">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${x.icon}</svg>
+      <strong>${t('tool.' + x.id)}</strong><span>${t('tool.' + x.id + '.d')}</span></button>`).join('');
+}
+
+const ctx = {
+  tr: makeTr(lang), lang, t, get S() { return S; }, model, siteUrl: SITE_URL,
+  audio: () => audioContext(), resume: () => resumeContext(),
+  toast: (m) => toast(m), haptic: (p) => haptic(p),
+  refBusy: () => reference.busy,
+  detector: (sr) => new PitchDetector(sr, { windowSize: WINDOW }),
+  playNotes(notes, strum, when = 0) {
+    notes.forEach((m, i) => {
+      const f = S.a4 * Math.pow(2, (m - 69) / 12);
+      let si = 0, bd = 1e9; model.strings.forEach((s, k) => { const d = Math.abs(m - s.midi); if (d < bd) { bd = d; si = k; } });
+      reference.play(f, si, when + (strum ? i * 0.055 : 0), strum ? 0.62 : 1);
+    });
+  },
+  show3DChord(f, name) { openViewer({ f, name }); },
+  async mic() {
+    if (!input.active) {
+      const sup = micSupport();
+      if (sup !== 'ok') { showMicSheet(sup); return null; }
+      try { await input.start(); } catch (e) { showMicSheet(e.code || 'unknown'); return null; }
+      S.micPrimed = true; persist(); toolStartedMic = true;
+    }
+    toolMicUsers++;
+    return { sampleRate: input.sampleRate, stream: input.stream, read: () => input.read() };
+  },
+  releaseMic() {
+    toolMicUsers = Math.max(0, toolMicUsers - 1);
+    if (!toolMicUsers && toolStartedMic && !running) { input.stop(); toolStartedMic = false; }
+  },
+  async keepAwake(on) {
+    try { if (on && 'wakeLock' in navigator) toolWake = await navigator.wakeLock.request('screen'); else if (toolWake) { toolWake.release(); toolWake = null; } } catch (e) { /* not granted */ }
+  },
+};
+
+async function openTool(id, opts) {
+  closeSheet();
+  const def = TOOLS.find((x) => x.id === id); if (!def) return;
+  if (activeTool) closeTool(true);
+  const page = $('#page');
+  page.hidden = false; requestAnimationFrame(() => page.classList.add('open'));
+  $('#app').setAttribute('aria-hidden', 'true');
+  toolOpen = true;
+  if (running) { head.setSignal(-1, 0); gauge.set(null, 'idle', false); }
+  let tool = toolCache[id];
+  if (!tool) {
+    $('#pageBody').innerHTML = `<p class="viewer-loading">${t('v3d.loading')}</p>`;
+    const mod = await import(`./tools/${def.file}.js`);
+    tool = toolCache[id] = mod.create(ctx);
+  }
+  activeTool = { id, tool };
+  $('#pageTitle').textContent = tool.title();
+  $('#pageBody').replaceChildren(tool.el);
+  $('#pageBody').scrollTop = 0;
+  tool.open(opts || {});
+  setTimeout(() => $('#pageBack').focus({ preventScroll: true }), 60);
+}
+
+function closeTool(instant) {
+  if (!activeTool) return;
+  activeTool.tool.close();
+  activeTool = null;
+  const page = $('#page');
+  page.classList.remove('open');
+  $('#app').removeAttribute('aria-hidden');
+  toolOpen = false;
+  setTimeout(() => { if (!activeTool) page.hidden = true; }, instant ? 0 : 300);
 }
 
 // ─── parallax ────────────────────────────────────────────────────────────────────────
@@ -724,10 +824,13 @@ function bind() {
     reference.play(model.strings[current].freq, current); markRefPlaying();
   });
   $('#chordBtn').addEventListener('click', () => { reference.stop(); reference.playChord(model.strings); markRefPlaying(); });
-  $('#open3d').addEventListener('click', openViewer);
+  $('#open3d').addEventListener('click', () => openViewer());
+  $('#openTools').addEventListener('click', () => { renderToolsHub(); openSheet('#toolsSheet'); });
+  $('#toolsGrid').addEventListener('click', (e) => { const b = e.target.closest('[data-tool]'); if (b) openTool(b.dataset.tool); });
+  $('#pageBack').addEventListener('click', () => closeTool());
   $('#v3dClose').addEventListener('click', closeViewer);
   $('#v3dReset').addEventListener('click', () => viewer && viewer.reset());
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && viewerOpen) closeViewer(); });
+  document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; if (viewerOpen) closeViewer(); else if (activeTool) closeTool(); });
   $('#meterToggle').addEventListener('click', () => { setMeterView(S.meter === 'needle' ? 'strobe' : 'needle'); persist(); renderSettings(); });
   $('#openSettings').addEventListener('click', () => openSheet('#settings'));
   $('#brand').addEventListener('click', () => { if (!brandLong) openSheet('#settings'); brandLong = false; });
@@ -775,6 +878,7 @@ function applyLanguage() {
   updateInstruction(true);
   renderSub();
   syncViewer();
+  if (activeTool) { $('#pageTitle').textContent = activeTool.tool.title(); activeTool.tool.open({}); }
 }
 
 // ─── boot ────────────────────────────────────────────────────────────────────────────
@@ -788,6 +892,14 @@ showIdleNote();
 updateInstruction(true);
 requestRender();
 requestAnimationFrame(() => document.body.classList.add('ready'));
+
+// deep links: ?chord=Am opens the chord page, ?tool=metronome opens a tool
+{
+  const qs = new URLSearchParams(location.search);
+  const ch = qs.get('chord'), tl = qs.get('tool');
+  if (ch) import('./music.js').then(({ parseChord }) => { const p = parseChord(ch); if (p) openTool('chords', { chord: p }); });
+  else if (tl) openTool(tl);
+}
 
 if (NATIVE) {
   $('#privacyLink').href = SITE_URL + 'privacy.html';
