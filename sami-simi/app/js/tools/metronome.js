@@ -33,13 +33,26 @@ export function create(ctx) {
   function buffers() {
     const ac = ctx.audio();
     const key = st.sound + ac.sampleRate;
-    if (bufs[key]) return bufs[key];
-    const mk = (data) => { const b = ac.createBuffer(1, data.length, ac.sampleRate); b.getChannelData(0).set(data); return b; };
+    const mk = (data) => { const b = ac.createBuffer(1, data.length, ac.sampleRate); b.getChannelData(0).set(data); return { buffer: b, rate: 1 }; };
     let set;
     if (st.sound === 'panduri') {
       const s = ctx.model.strings;
-      set = [mk(renderPluck(s[0].freq, ac.sampleRate, { stringIndex: 0, duration: 0.45 })), mk(renderPluck(s[1].freq, ac.sampleRate, { stringIndex: 1, duration: 0.45 })), mk(renderPluck(s[2].freq * 2, ac.sampleRate, { stringIndex: 2, duration: 0.45 }))];
+      const notes = [[s[0].freq, 0], [s[1].freq, 1], [s[2].freq * 2, 2]];
+      const real = notes.map(([f, i]) => ctx.voice && ctx.voice(f, i));
+      if (real.every(Boolean)) {
+        // a short slice of the recorded pluck with a quick fade, so beats don't smear together
+        const k2 = 'real' + key; if (bufs[k2]) return bufs[k2];
+        return (bufs[k2] = real.map((v) => {
+          const sr = v.buffer.sampleRate, n = Math.min(v.buffer.length, Math.floor(0.45 * v.rate * sr)), fade = Math.floor(0.12 * v.rate * sr);
+          const d = v.buffer.getChannelData(0).slice(0, n);
+          for (let i = n - fade; i < n; i++) d[i] *= (n - i) / fade;
+          const b = ac.createBuffer(1, n, sr); b.getChannelData(0).set(d); return { buffer: b, rate: v.rate };
+        }));
+      }
+      if (bufs[key]) return bufs[key];
+      set = notes.map(([f, i]) => mk(renderPluck(f, ac.sampleRate, { stringIndex: i, duration: 0.45 })));
     } else {
+      if (bufs[key]) return bufs[key];
       const click = (f, len) => { const n = Math.floor(ac.sampleRate * len), d = new Float32Array(n); for (let i = 0; i < n; i++) { const t = i / ac.sampleRate; d[i] = Math.sin(2 * Math.PI * f * t) * Math.exp(-t * 60) * 0.8; } return d; };
       set = [mk(click(1100, 0.06)), mk(click(1500, 0.06)), mk(click(2000, 0.07))];
     }
@@ -54,7 +67,7 @@ export function create(ctx) {
     while (nextTime < ac.currentTime + 0.12) {
       const acc = pattern[beat % pattern.length];
       const src = ac.createBufferSource(); const g = ac.createGain();
-      src.buffer = b[acc]; g.gain.value = (acc === 2 ? 0.9 : acc === 1 ? 0.65 : 0.45) * (ctx.S.refVolume || 0.75);
+      src.buffer = b[acc].buffer; src.playbackRate.value = b[acc].rate; g.gain.value = (acc === 2 ? 0.9 : acc === 1 ? 0.65 : 0.45) * (ctx.S.refVolume || 0.75);
       src.connect(g).connect(ac.destination); src.start(nextTime);
       queue.push({ t: nextTime, i: beat % pattern.length });
       nextTime += spb; beat++;

@@ -1,4 +1,4 @@
-// Panduri pluck, modelled on recordings of a real panduri (A3 · C♯4 · E4, phone microphone).
+// Fallback panduri pluck, modelled on recordings of a real panduri (A3 · C♯4 · E4, phone microphone).
 // Additive synthesis: every harmonic has its own level and a two-stage decay
 // (fast drop right after the pluck, then a quieter, longer ring), as measured from the recordings:
 //   level G (dB re. H1), share of the fast stage a, fast time-constant τ1 (s), slow τ2 (s).
@@ -82,6 +82,17 @@ export function renderPluck(freq, sr, { stringIndex = 0, duration = 2.8, seed = 
   return out;
 }
 
+// Real panduri plucks (A3 · C♯4 · E4 recorded on the author's instrument), pitch-corrected so
+// the fundamental sits exactly on A4 = 440 Hz equal temperament, lightly de-noised.
+// Other pitches (A4 calibration, transposition, fretted notes) are played by resampling the
+// nearest recording. If the files cannot be loaded or decoded, the additive model above is used.
+const SAMPLES = [
+  { file: 'panduri-a3.mp3', midi: 57 },
+  { file: 'panduri-cs4.mp3', midi: 61 },
+  { file: 'panduri-e4.mp3', midi: 64 },
+];
+const midiFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
+
 export class ReferenceEngine {
   constructor() {
     this.cache = new Map();
@@ -89,6 +100,36 @@ export class ReferenceEngine {
     this.busyUntil = 0;
     this.sources = new Set();
     this.duration = 2.8;
+    this.samples = null;   // [{ buffer, freq }] once decoded
+    this.loading = null;
+  }
+
+  /** Decode the recorded plucks (idempotent). Safe before any user gesture. */
+  load() {
+    if (this.loading) return this.loading;
+    const OAC = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
+    if (!OAC || typeof fetch !== 'function') return (this.loading = Promise.resolve(null));
+    const dec = new OAC(1, 1, 48000);
+    this.loading = Promise.all(SAMPLES.map(async (s) => {
+      const res = await fetch(new URL(`../audio/${s.file}`, import.meta.url));
+      if (!res.ok) throw new Error(res.status);
+      const data = await res.arrayBuffer();
+      const buffer = await new Promise((ok, bad) => { const p = dec.decodeAudioData(data, ok, bad); if (p && p.catch) p.catch(bad); });
+      return { buffer, freq: midiFreq(s.midi) };
+    })).then((list) => (this.samples = list)).catch(() => null);
+    return this.loading;
+  }
+
+  /** The recorded pluck to use for a pitch: { buffer, rate } — or null (use the model). */
+  voice(freq, stringIndex = 0) {
+    const sm = this.samples;
+    if (!sm) return null;
+    const d = sm.map((s) => 12 * Math.log2(freq / s.freq));
+    const own = sm[stringIndex] ? stringIndex : -1;
+    // keep the string's own recording when the shift is moderate (it keeps that string's colour)
+    let i = own >= 0 && d[own] >= -3 && d[own] <= 8 ? own : 0;
+    if (i !== own) for (let k = 1; k < sm.length; k++) if (Math.abs(d[k]) < Math.abs(d[i])) i = k;
+    return { buffer: sm[i].buffer, rate: freq / sm[i].freq };
   }
 
   buffer(freq, stringIndex) {
@@ -108,16 +149,20 @@ export class ReferenceEngine {
   play(freq, stringIndex = 0, when = 0, gain = 1) {
     const ctx = audioContext();
     resumeContext();
+    if (!this.samples) this.load();
     const src = ctx.createBufferSource();
     const g = ctx.createGain();
-    src.buffer = this.buffer(freq, stringIndex);
+    const v = this.voice(freq, stringIndex);
+    let dur;
+    if (v) { src.buffer = v.buffer; src.playbackRate.value = v.rate; dur = v.buffer.duration / v.rate; }
+    else { src.buffer = this.buffer(freq, stringIndex); dur = this.duration; }
     g.gain.value = this.volume * gain;
     src.connect(g).connect(ctx.destination);
     src.start(ctx.currentTime + when);
     this.sources.add(src);
     src.onended = () => { this.sources.delete(src); try { g.disconnect(); } catch (e) { /* noop */ } };
     // the tuner ignores the microphone while the reference sounds (+ room tail)
-    this.busyUntil = Math.max(this.busyUntil, performance.now() + (when + this.duration) * 1000 + 200);
+    this.busyUntil = Math.max(this.busyUntil, performance.now() + (when + dur) * 1000 + 200);
   }
 
   playChord(strings) {

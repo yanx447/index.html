@@ -32,6 +32,7 @@ const model = new TuningModel(S);
 const tracker = new PitchTracker();
 const input = new AudioInput(8192); // detector uses the last 4096 samples; chord recognition the full 8192
 const reference = new ReferenceEngine();
+reference.load(); // decode the recorded plucks in the background
 let detector = null;
 
 const done = [false, false, false];
@@ -722,6 +723,7 @@ const ctx = {
   audio: () => audioContext(), resume: () => resumeContext(),
   toast: (m) => toast(m), haptic: (p) => haptic(p),
   refBusy: () => reference.busy,
+  voice: (f, si) => reference.voice(f, si),
   detector: (sr) => new PitchDetector(sr, { windowSize: WINDOW }),
   playNotes(notes, strum, when = 0) {
     notes.forEach((m, i) => {
