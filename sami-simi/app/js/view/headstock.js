@@ -137,7 +137,7 @@ export class Headstock {
     <g class="hs-body" mask="url(#hsNeckMask)">
       <!-- fingerboard + frets -->
       <rect x="${l0 + 8}" y="${NUT_Y}" width="${r1 - l0 - 16}" height="${H - NUT_Y}" fill="url(#hsBoard)"/>
-      <g stroke="#c9a15e" stroke-width="1.6" stroke-opacity=".85"><line x1="${l0 + 8}" y1="${NUT_Y + 44}" x2="${r1 - 8}" y2="${NUT_Y + 44}"/></g>
+      <g stroke="#c9a15e" stroke-width="1.6" stroke-opacity=".85">${[1, 2].map((n) => { const y = (NUT_Y + 6 + 1000 * (1 - Math.pow(2, -n / 12))).toFixed(1); return `<line x1="${l0 + 8}" y1="${y}" x2="${r1 - 8}" y2="${y}"/>`; }).join('')}</g>
       <!-- slot (open, dark) -->
       <rect x="${SLOT[0]}" y="78" width="${SLOT[1] - SLOT[0]}" height="${NUT_Y - 78}" fill="url(#hsSlotFill)"/>
       <!-- rails -->

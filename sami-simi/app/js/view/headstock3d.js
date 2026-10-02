@@ -10,14 +10,15 @@ import * as THREE from '../../vendor/three-lite.js';
 const RAIL_X = 32.5, RAIL_W = 31, RAIL_Y = 12, RAIL_H = 236, D = 24;
 const SLOT_HALF = 17;
 const NUT_Y = -156;
-const NECK_LEN = 300;
+const NECK_LEN = 540;
 const NUT_X = [-33, 0, 33];                 // A, C♯, E — outer strings run close to the fingerboard edges
-const END_X = [-35, 0, 35];                 // slight spread further down the neck
+const END_X = [-36, 0, 36];                 // slight spread further down the neck
 const ROLLER_Y = [8, 60, -44];              // A middle, C♯ top, E bottom
 const WRAP_X = [-10, 2, 10];
 const SIDE = [1, -1, -1];                   // A right, C♯ + E left
-const FRET_SCALE = 400;
-const FRETS = [2, 4, 5, 7, 9, 10, 12];
+// chromatic (12-TET) frets like a modern panduri: fret n sits at L·(1 − 2^(−n/12)) from the nut
+const SCALE_LEN = 1000;
+const FRETS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 function rng(seed) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
 
@@ -96,6 +97,13 @@ export class Headstock3D {
     const maple = woodTexture(THREE, '#dcc5a0', '#9c7b52', '#f3e3c6', 3);
     const mahog = woodTexture(THREE, '#6e3122', '#33140d', '#8e4a34', 7);
     const rose = woodTexture(THREE, '#2a1610', '#120805', '#4a2a1c', 11);
+    // laminated neck back: maple sides, mahogany centre stripe (as on the real instrument)
+    const nc = document.createElement('canvas'); nc.width = 512; nc.height = 1024;
+    const ng = nc.getContext('2d');
+    ng.drawImage(maple.image, 0, 0, 512, 1024);
+    ng.drawImage(mahog.image, 0, 0, 256, 1024, 186, 0, 140, 1024);
+    ng.fillStyle = 'rgba(0,0,0,.25)'; ng.fillRect(184, 0, 2, 1024); ng.fillRect(326, 0, 2, 1024);
+    const neckTex = new THREE.CanvasTexture(nc); neckTex.colorSpace = THREE.SRGBColorSpace; neckTex.anisotropy = 8;
     const capMaple = maple.clone(); capMaple.repeat.set(1 / 110, 1 / 220); capMaple.needsUpdate = true;
     const throatTex = mahog.clone(); throatTex.repeat.set(1 / 110, 1 / 160); throatTex.needsUpdate = true;
     return {
@@ -103,6 +111,7 @@ export class Headstock3D {
       capMaple: new THREE.MeshStandardMaterial({ map: capMaple, roughness: 0.55, envMapIntensity: 0.6 }),
       mahog: new THREE.MeshStandardMaterial({ map: mahog, roughness: 0.5, envMapIntensity: 0.6 }),
       throat: new THREE.MeshStandardMaterial({ map: throatTex, roughness: 0.5, envMapIntensity: 0.6 }),
+      neck: new THREE.MeshStandardMaterial({ map: neckTex, roughness: 0.5, envMapIntensity: 0.6 }),
       rose: new THREE.MeshStandardMaterial({ map: rose, roughness: 0.62, envMapIntensity: 0.4 }),
       slot: new THREE.MeshStandardMaterial({ color: 0x3a1a12, roughness: 0.8 }),
       gold: new THREE.MeshStandardMaterial({ color: 0xd9a84e, metalness: 1, roughness: 0.28 }),
@@ -144,13 +153,13 @@ export class Headstock3D {
     const ramp = add(new THREE.BoxGeometry(SLOT_HALF * 2 - 2, 36, 3), M.slot, 0, -114, 0); ramp.rotation.x = -0.62;
 
     // neck: rounded back + fingerboard + frets + nut
-    const neckBack = add(new THREE.CylinderGeometry(42, 40, NECK_LEN, 40, 1, true, Math.PI / 2, Math.PI), M.mahog, 0, NUT_Y - NECK_LEN / 2, 9);
+    const neckBack = add(new THREE.CylinderGeometry(42, 40, NECK_LEN, 48, 1, true, Math.PI / 2, Math.PI), M.neck, 0, NUT_Y - NECK_LEN / 2, 9);
     neckBack.scale.z = 0.62;
     const endCap = add(new THREE.CircleGeometry(40, 32, Math.PI, Math.PI), M.mahog, 0, NUT_Y - NECK_LEN, 9);
     endCap.rotation.x = Math.PI / 2; endCap.scale.y = 0.62; endCap.material = M.mahog;
     add(new THREE.BoxGeometry(84, NECK_LEN, 6), M.rose, 0, NUT_Y - NECK_LEN / 2, 12);
     for (const n of FRETS) {
-      const y = NUT_Y - 4 - FRET_SCALE * (1 - Math.pow(2, -n / 12));
+      const y = NUT_Y - 4 - SCALE_LEN * (1 - Math.pow(2, -n / 12));
       const f = add(new THREE.CylinderGeometry(0.9, 0.9, 82, 8), M.fret, 0, y, 15.2); f.rotation.z = Math.PI / 2;
     }
     add(new THREE.BoxGeometry(86, 8, 9), M.bone, 0, NUT_Y, 16);
