@@ -1,6 +1,6 @@
 {
   "name": "sami-simi",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "Sami Simi — a precise tuner for the three-string Georgian panduri (A · C♯ · E).",
   "type": "module",

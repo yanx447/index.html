@@ -231,6 +231,48 @@ console.log('\nGuidance wording');
   ok(t(2.5).dir === 0, 'within tolerance → აწყობილია');
 }
 
+console.log('\nInharmonic partials (measured on a real panduri: H3 −17¢ on C♯4, H2 +6¢ / H3 −25¢ on E4)');
+{
+  // per-harmonic [cents offset, relative amplitude] taken from 1-second spectra of phone recordings
+  const real = [
+    { s: 1, p: [[0, 1], [3, 0.35], [-19, 0.6], [-5, 0.25], [1, 0.15]] },
+    { s: 2, p: [[0, 1], [13, 0.6], [-18, 0.3], [-2, 0.25], [0, 0.12]] },
+    { s: 0, p: [[0, 1], [5, 0.35], [-13, 0.55], [3, 0.2], [6, 0.4]] },
+  ];
+  for (const { s, p } of real) {
+    for (const off of [0, -8, 8]) {
+      const buf = new Float32Array(SR * 2.6); addNoise(buf, 0.0008);
+      const f = cents(S[s].freq, off), n0 = SR;
+      for (let i = 0; i < SR * 1.5; i++) {
+        const t = i / SR; let v = 0;
+        p.forEach(([c, a], h) => { v += a * Math.exp(-t * (1.6 + h)) * Math.sin(2 * Math.PI * (h + 1) * f * Math.pow(2, c / 1200) * t); });
+        buf[n0 + i] += 0.2 * v * Math.min(1, t / 0.002);
+      }
+      const fr = run(buf, S, { mode: 'manual', selected: s });
+      const v = lastValid(fr, 1300, 2300);
+      ok(v && Math.abs(v.cents - off) < 1, `${S[s].latin}${S[s].octave} ${off >= 0 ? '+' : ''}${off}¢ with real-instrument partials`, v ? `measured ${v.cents.toFixed(2)}¢` : 'no reading');
+    }
+  }
+}
+
+console.log('\nChord recognition (panduri-voiced chords, overtones must not count as notes)');
+{
+  const music = await import('../app/js/music.js');
+  const sp = new music.Spectrum(8192), T = S.map((s) => s.midi);
+  let good = 0, total = 0; const miss = [];
+  for (const name of ['A', 'D', 'E', 'Em', 'F#m', 'Bm', 'C#m', 'G', 'C', 'Am', 'Dm', 'B', 'F', 'A7', 'E7', 'D7', 'Asus4']) {
+    const p = music.parseChord(name), f = music.fingering(p.root, p.q, T), want = music.chordName(p.root, p.q, 'en').short;
+    const buf = new Float32Array(SR * 2);
+    f.notes.forEach((m, i) => { const y = renderPluck(440 * 2 ** ((m - 69) / 12), SR, { stringIndex: i, duration: 1.9, seed: i + 3 }); const o = Math.floor(i * 0.02 * SR); for (let k = 0; k < y.length && k + o < buf.length; k++) buf[k + o] += y[k] * 0.3; });
+    for (const t of [0.2, 0.5, 0.9, 1.4]) {
+      const e = Math.floor(t * SR), prof = music.noteProfile(sp.compute(buf.subarray(e - 8192, e)), SR / 8192, 440, T);
+      const m = music.matchChord(prof.chroma, prof.bass), got = music.chordName(m.root, m.q, 'en').short;
+      total++; if (got === want) good++; else miss.push(`${want}@${t}s→${got}`);
+    }
+  }
+  ok(good / total >= 0.95, 'chords recognised while ringing', `${good}/${total}${miss.length ? '  missed: ' + miss.join(', ') : ''}`);
+}
+
 console.log('\nReference tone pitch');
 for (const sr of [48000, 44100]) {
   const det = new PitchDetector(sr);

@@ -1,21 +1,18 @@
-// Procedural Panduri pluck — extended Karplus–Strong.
-//  • excitation: filtered noise burst with pick-position comb (plucked near the soundboard)
-//  • loop: frequency-dependent loss + first-order allpass fractional delay → exact pitch
-//  • per-string timbre (brightness, pluck position, sustain)
-//  • small-body resonances (three band-pass modes) mixed with the dry string
+// Panduri pluck, modelled on recordings of a real panduri (A3 · C♯4 · E4, phone microphone).
+// Additive synthesis: every harmonic has its own level and a two-stage decay
+// (fast drop right after the pluck, then a quieter, longer ring), as measured from the recordings:
+//   level G (dB re. H1), share of the fast stage a, fast time-constant τ1 (s), slow τ2 (s).
+// On top: the short pitch glide of a freshly plucked string and a soft fingertip/pick click.
+// Partials are kept exactly harmonic so the reference is a clean, unambiguous target pitch.
 // Rendered once per note and cached; no audio files needed.
 
 import { audioContext, resumeContext } from './audio-input.js';
 
-const STRING_VOICING = [
-  { bright: 0.47, pick: 0.17, t60: 3.1, soft: 0.55 }, // string 1 (A) — warmest
-  { bright: 0.45, pick: 0.15, t60: 2.8, soft: 0.5 },
-  { bright: 0.43, pick: 0.13, t60: 2.5, soft: 0.45 }, // string 3 (E) — brightest
-];
-const BODY_MODES = [
-  { f: 235, q: 6, g: 0.34 },
-  { f: 540, q: 4.5, g: 0.22 },
-  { f: 1480, q: 2.5, g: 0.12 },
+//            H1                    H2                    H3                    H4                    H5                   H6                   H7                   H8
+const VOICES = [
+  { glide: 0.006, click: 0.10, h: [[0, .99, .066, 1.25], [-25.8, .88, .17, .75], [-22.5, .98, .26, 1.56], [-29.7, .94, .13, .74], [-18, 1, .098, 1], [-24.6, 1, .098, 1], [-29.8, 1, .13, 1], [-28, 1, .137, 1]] }, // A
+  { glide: 0.0025, click: 0.08, h: [[0, .99, .173, 2.5], [-16.5, .44, .15, .5], [-18.7, .82, .34, .75], [-28.8, .99, .25, 2], [-21.5, 1, .23, 1], [-28.4, .99, .18, 2], [-36.3, .99, .28, 2], [-24.8, 1, .12, 1]] },     // C♯
+  { glide: 0.0025, click: 0.08, h: [[0, .97, .082, .73], [-13.5, .79, .078, .63], [-22, 1, .21, 1], [-21.3, 1, .14, 1], [-27.9, 1, .16, 1], [-25.2, 1, .22, 1], [-26.2, 1, .16, 1], [-18.6, 1, .10, 3]] },        // E
 ];
 
 function mulberry32(a) {
@@ -27,79 +24,62 @@ function mulberry32(a) {
   };
 }
 
-function bandpass(input, sr, f, q) {
-  const w = (2 * Math.PI * f) / sr, alpha = Math.sin(w) / (2 * q), cw = Math.cos(w);
-  const a0 = 1 + alpha;
-  const b0 = alpha / a0, b2 = -alpha / a0, a1 = (-2 * cw) / a0, a2 = (1 - alpha) / a0;
-  const out = new Float32Array(input.length);
-  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-  for (let i = 0; i < input.length; i++) {
-    const x = input[i];
-    const y = b0 * x + b2 * x2 - a1 * y1 - a2 * y2;
-    x2 = x1; x1 = x; y2 = y1; y1 = y;
-    out[i] = y;
-  }
-  return out;
-}
-
 /** Pure renderer — returns a Float32Array (tested in Node for pitch accuracy). */
-export function renderPluck(freq, sr, { stringIndex = 0, duration = 3.2, seed = 7 } = {}) {
-  const v = STRING_VOICING[Math.min(stringIndex, STRING_VOICING.length - 1)];
+export function renderPluck(freq, sr, { stringIndex = 0, duration = 2.8, seed = 7 } = {}) {
+  const v = VOICES[Math.min(Math.max(0, stringIndex), VOICES.length - 1)];
   const n = Math.floor(sr * duration);
+  const out = new Float32Array(n);
+  const nyq = sr * 0.45;
+
+  // partial table: measured H1..H8, then a gently falling, fast-decaying extension
+  const parts = v.h.slice();
+  for (let k = parts.length + 1; k <= 16; k++) parts.push([parts[7][0] - 3.5 * (k - 8), 1, Math.max(0.035, 0.11 - 0.006 * (k - 8)), 1]);
+
+  const phase = new Float64Array(parts.length);
   const rnd = mulberry32(seed + stringIndex * 101);
+  for (let k = 0; k < parts.length; k++) phase[k] = rnd() * 0.3; // near-coherent start, like a real pluck
+  const amp = parts.map((p) => Math.pow(10, p[0] / 20));
+  const d1 = parts.map((p) => Math.exp(-1 / (p[2] * sr))), d2 = parts.map((p) => Math.exp(-1 / (p[3] * sr)));
+  const e1 = parts.map((p, k) => amp[k] * p[1]), e2 = parts.map((p, k) => amp[k] * (1 - p[1]));
+  const glideDecay = Math.exp(-1 / (0.05 * sr));
+  let glide = v.glide;
+  const TWO_PI = 2 * Math.PI;
 
-  // loop delay must equal sr/freq: N (delay line) + S (loss filter) + frac (allpass)
-  const S = v.bright;
-  const P = sr / freq;
-  let N = Math.floor(P - S - 0.1);
-  let frac = P - S - N;
-  if (frac < 0.1) { N -= 1; frac += 1; }
-  const C = (1 - frac) / (1 + frac);
-  const g = Math.pow(10, -3 / (v.t60 * freq)); // per-period loss for the requested T60
-
-  // excitation: one period of soft-filtered noise with pick-position comb
-  const exc = new Float32Array(N);
-  let lp = 0;
-  for (let i = 0; i < N; i++) { lp += (rnd() * 2 - 1 - lp) * (1 - v.soft); exc[i] = lp; }
-  const pd = Math.max(1, Math.round(v.pick * N));
-  const exc2 = new Float32Array(N);
-  let mean = 0;
-  for (let i = 0; i < N; i++) { exc2[i] = exc[i] - (i >= pd ? exc[i - pd] : 0); mean += exc2[i]; }
-  mean /= N;
-  for (let i = 0; i < N; i++) exc2[i] -= mean;
-
-  const dl = new Float32Array(N);
-  const dry = new Float32Array(n);
-  let idx = 0, prev = 0, apIn = 0, apOut = 0;
   for (let i = 0; i < n; i++) {
-    const out = dl[idx];
-    const lf = g * ((1 - S) * out + S * prev);
-    prev = out;
-    const ap = C * lf + apIn - C * apOut;
-    apIn = lf; apOut = ap;
-    dl[idx] = ap + (i < N ? exc2[i] : 0);
-    idx = idx + 1 === N ? 0 : idx + 1;
-    dry[i] = out;
+    const f = freq * (1 + glide);
+    glide *= glideDecay;
+    let s = 0;
+    for (let k = 0; k < parts.length; k++) {
+      const hf = f * (k + 1);
+      if (hf > nyq) break;
+      phase[k] += hf / sr;
+      if (phase[k] > 1) phase[k] -= 1;
+      s += (e1[k] + e2[k]) * Math.sin(TWO_PI * phase[k]);
+      e1[k] *= d1[k]; e2[k] *= d2[k];
+    }
+    out[i] = s;
   }
 
-  const mix = new Float32Array(n);
-  for (let i = 0; i < n; i++) mix[i] = dry[i] * 0.78;
-  for (const m of BODY_MODES) {
-    const b = bandpass(dry, sr, m.f, m.q);
-    for (let i = 0; i < n; i++) mix[i] += b[i] * m.g;
+  // fingertip/pick click: ~6 ms of band-limited noise at the onset
+  const clickN = Math.floor(sr * 0.006);
+  let lp = 0, prev = 0;
+  for (let i = 0; i < clickN; i++) {
+    lp += (rnd() * 2 - 1 - lp) * 0.35;
+    const hp = lp - prev; prev = lp;
+    out[i] += hp * v.click * 4 * (1 - i / clickN) * (1 - i / clickN);
   }
 
-  // envelope: 1.5 ms attack, 150 ms release at the end, normalise
-  const att = Math.floor(sr * 0.0015), rel = Math.floor(sr * 0.15);
+  // envelope: 1.5 ms attack, 120 ms release at the end, normalise
+  const att = Math.floor(sr * 0.0015), rel = Math.floor(sr * 0.12);
   let peak = 0;
   for (let i = 0; i < n; i++) {
-    if (i < att) mix[i] *= i / att;
-    if (i > n - rel) mix[i] *= (n - i) / rel;
-    const a = Math.abs(mix[i]); if (a > peak) peak = a;
+    if (i < att) out[i] *= i / att;
+    if (i > n - rel) out[i] *= (n - i) / rel;
+    const a = Math.abs(out[i]); if (a > peak) peak = a;
   }
   const norm = peak > 0 ? 0.9 / peak : 1;
-  for (let i = 0; i < n; i++) mix[i] *= norm;
-  return mix;
+  for (let i = 0; i < n; i++) out[i] *= norm;
+  return out;
 }
 
 export class ReferenceEngine {
@@ -108,7 +88,7 @@ export class ReferenceEngine {
     this.volume = 0.75;
     this.busyUntil = 0;
     this.sources = new Set();
-    this.duration = 3.2;
+    this.duration = 2.8;
   }
 
   buffer(freq, stringIndex) {

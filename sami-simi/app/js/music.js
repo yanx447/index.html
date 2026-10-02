@@ -84,10 +84,9 @@ export function position(midi, tuning, maxFret = 12) {
 // ── chroma / chord recognition ────────────────────────────────────────────────────────────
 const TEMPLATES = [];
 for (let r = 0; r < 12; r++) for (const q of QUALITIES) {
-  if (q.id === 'sus4') continue;
   const v = new Float64Array(12);
   q.iv.forEach((iv, k) => { v[pc(r + iv)] = k === 0 ? 1.15 : 1; });
-  TEMPLATES.push({ root: r, q: q.id, v, n: q.iv.length });
+  TEMPLATES.push({ root: r, q: q.id, v, n: q.iv.length, pen: q.id === 'sus4' ? 0.03 : q.iv.length === 4 ? 0.04 : 0 });
 }
 
 /**
@@ -113,15 +112,75 @@ export function chroma(mags, binHz, a4 = 440, fMin = 75, fMax = 1400) {
   return out;
 }
 
+/**
+ * Harmonic-aware pitch-class profile. Plain chroma counts every partial as a note — on a real
+ * panduri the strong 3rd partial of C♯4 (a G♯) turned an open A chord into C♯m. Here notes are
+ * picked one by one (strongest harmonic series first) and each note's partials are removed before
+ * the next, so overtones are not mistaken for notes. Partials are matched within ±45¢ because
+ * real panduri partials are inharmonic (measured up to −25¢).
+ * @param tuning MIDI notes of the open strings (candidates are limited to the instrument's range)
+ * @returns {{chroma: Float64Array, notes: {midi:number, f:number, s:number}[]}}
+ */
+export function noteProfile(mags, binHz, a4 = 440, tuning = [57, 61, 64], maxNotes = tuning.length) {
+  // spectral peaks with parabolic interpolation
+  const pf = [], pa = [];
+  let top = 0;
+  const i0 = Math.max(2, Math.floor(70 / binHz)), i1 = Math.min(mags.length - 2, Math.ceil(2600 / binHz));
+  for (let i = i0; i <= i1; i++) if (mags[i] > top) top = mags[i];
+  if (!(top > 0)) return { chroma: new Float64Array(12), notes: [] };
+  const thr = top * 0.01;
+  for (let i = i0; i <= i1; i++) {
+    const m = mags[i];
+    if (m < thr || m <= mags[i - 1] || m < mags[i + 1]) continue;
+    const a = mags[i - 1], c = mags[i + 1], den = a - 2 * m + c, d = den ? (0.5 * (a - c)) / den : 0;
+    pf.push((i + d) * binHz); pa.push(m);
+  }
+  const amp = Float64Array.from(pa);
+  const lo = Math.min(...tuning) - 1, hi = Math.max(...tuning) + 15;
+  const near = (f) => { // strongest remaining peak within ±45 cents of f
+    let best = -1;
+    for (let j = 0; j < pf.length; j++) {
+      if (Math.abs(1200 * Math.log2(pf[j] / f)) <= 45 && (best < 0 || amp[j] > amp[best])) best = j;
+    }
+    return best;
+  };
+  const notes = [];
+  let first = 0;
+  for (let n = 0; n < maxNotes; n++) {
+    let bestM = -1, bestS = 0, bestF = 0;
+    for (let midi = lo; midi <= hi; midi++) {
+      const f = a4 * Math.pow(2, (midi - 69) / 12);
+      const j1 = near(f);
+      if (j1 < 0 || amp[j1] < top * 0.02) continue;          // a played note has a real fundamental
+      let s = amp[j1];
+      for (let h = 2; h <= 6; h++) { const j = near(h * pf[j1]); if (j >= 0) s += amp[j] / Math.pow(h, 0.7); }
+      if (s > bestS) { bestS = s; bestM = midi; bestF = pf[j1]; }
+    }
+    if (bestM < 0 || (first && bestS < first * 0.05)) break;
+    if (!first) first = bestS;
+    notes.push({ midi: bestM, f: bestF, s: bestS });
+    // remove this note's partials (fundamental fully, overtones mostly — they may be shared)
+    for (let h = 1; h <= 8; h++) { const j = near(h * bestF); if (j >= 0) amp[j] *= h === 1 ? 0 : 0.15; }
+  }
+  // presence, not loudness: a quiet low string is as much part of the chord as a loud one
+  const ch = new Float64Array(12);
+  for (const nt of notes) ch[pc(nt.midi)] += Math.pow(nt.s / first, 0.25);
+  let sum = 0; for (let k = 0; k < 12; k++) sum += ch[k];
+  if (sum > 0) for (let k = 0; k < 12; k++) ch[k] /= sum;
+  let bass = -1, lowest = Infinity;
+  for (const nt of notes) if (nt.midi < lowest) { lowest = nt.midi; bass = pc(nt.midi); }
+  return { chroma: ch, notes, bass };
+}
+
 /** Best matching chord for a chroma vector. Returns { root, q, score, second }. */
-export function matchChord(ch) {
+export function matchChord(ch, bass = -1) {
   let best = null, second = null;
   for (const t of TEMPLATES) {
     let dot = 0, nt = 0;
     for (let k = 0; k < 12; k++) { dot += ch[k] * t.v[k]; nt += t.v[k] * t.v[k]; }
     // penalise energy outside the chord
     let out = 0; for (let k = 0; k < 12; k++) if (!t.v[k]) out += ch[k];
-    const score = dot / Math.sqrt(nt) - 0.6 * out - (t.n === 4 ? 0.04 : 0);
+    const score = dot / Math.sqrt(nt) - 0.6 * out - t.pen + (t.root === bass ? 0.03 : 0);
     if (!best || score > best.score) { second = best; best = { root: t.root, q: t.q, score }; }
     else if (!second || score > second.score) second = { root: t.root, q: t.q, score };
   }

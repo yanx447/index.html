@@ -9,8 +9,9 @@
 //  • sub-sample parabolic interpolation and a periodicity score used for confidence
 
 export class PitchDetector {
-  constructor(sampleRate, { windowSize = 4096, minFreq = 60, maxFreq = 1100 } = {}) {
+  constructor(sampleRate, { windowSize = 4096, minFreq = 60, maxFreq = 1100, refine = true } = {}) {
     this.sr = sampleRate;
+    this.refine = refine;
     this.W = windowSize;
     this.minLag = Math.max(2, Math.floor(sampleRate / maxFreq));
     this.maxLag = Math.min(Math.ceil(sampleRate / minFreq), (windowSize >> 1) + (windowSize >> 2));
@@ -42,7 +43,7 @@ export class PitchDetector {
       this.sin[k] = Math.sin((2 * Math.PI * k) / n);
     }
 
-    this.result = { freq: 0, clarity: 0, periodicity: 0, rms: 0, peak: 0, lag: 0, octaveCorrected: false };
+    this.result = { freq: 0, mpmFreq: 0, clarity: 0, periodicity: 0, rms: 0, peak: 0, lag: 0, octaveCorrected: false };
   }
 
   fft(re, im) {
@@ -107,7 +108,7 @@ export class PitchDetector {
     }
     res.rms = Math.sqrt(sum2 / W);
     res.peak = pk;
-    res.freq = 0; res.clarity = 0; res.periodicity = 0; res.lag = 0; res.octaveCorrected = false;
+    res.freq = 0; res.mpmFreq = 0; res.clarity = 0; res.periodicity = 0; res.lag = 0; res.octaveCorrected = false;
     if (res.rms < 1e-6) return res;
 
     // autocorrelation via |FFT|² → IFFT (zero-padded, so it is linear, not circular)
@@ -201,6 +202,66 @@ export class PitchDetector {
     } else {
       res.periodicity = res.clarity;
     }
+
+    // 4) fundamental refinement. The NSDF period is a compromise between all partials; a real
+    //    panduri has noticeably inharmonic partials (recordings: C♯4 H3 −17¢, E4 H3 −25¢), which
+    //    can pull that compromise by >10¢. Tuners measure the fundamental, so — when H1 is clearly
+    //    present — re-measure it directly as the peak of the windowed spectrum near the MPM pitch.
+    if (this.refine) {
+      const f1 = this.refineFundamental(res.freq);
+      if (f1 > 0) { res.mpmFreq = res.freq; res.freq = f1; res.lag = this.sr / f1; }
+    }
     return res;
+  }
+
+  /** |DTFT| of the Hann-windowed frame at frequency f (Goertzel). */
+  mag(f) {
+    const x = this.xw, W = this.W;
+    const c = 2 * Math.cos((2 * Math.PI * f) / this.sr);
+    let s1 = 0, s2 = 0;
+    for (let i = 0; i < W; i++) { const s0 = x[i] + c * s1 - s2; s2 = s1; s1 = s0; }
+    return Math.sqrt(Math.max(0, s1 * s1 + s2 * s2 - c * s1 * s2));
+  }
+
+  /** Peak of |X(f)| within ±spanCents of f (grid + golden-section). Returns [freq, mag, atEdge]. */
+  spectralPeak(f, spanCents, out) {
+    const steps = 8, k = Math.pow(2, 1 / 1200);
+    let best = -1, bestC = 0;
+    for (let i = -steps; i <= steps; i++) {
+      const cc = (i / steps) * spanCents, m = this.mag(f * Math.pow(k, cc));
+      if (m > best) { best = m; bestC = cc; }
+    }
+    const step = spanCents / steps;
+    let a = bestC - step, b = bestC + step;
+    const g = 0.6180339887;
+    let c1 = b - g * (b - a), c2 = a + g * (b - a);
+    let m1 = this.mag(f * Math.pow(k, c1)), m2 = this.mag(f * Math.pow(k, c2));
+    for (let it = 0; it < 18; it++) {
+      if (m1 > m2) { b = c2; c2 = c1; m2 = m1; c1 = b - g * (b - a); m1 = this.mag(f * Math.pow(k, c1)); }
+      else { a = c1; c1 = c2; m1 = m2; c2 = a + g * (b - a); m2 = this.mag(f * Math.pow(k, c2)); }
+    }
+    const cc = 0.5 * (a + b);
+    out[0] = f * Math.pow(k, cc); out[1] = Math.max(m1, m2); out[2] = Math.abs(cc) > spanCents - step * 0.5 ? 1 : 0;
+    return out;
+  }
+
+  refineFundamental(f) {
+    const W = this.W;
+    if (!this.hann) {
+      this.hann = new Float64Array(W); this.xw = new Float64Array(W);
+      for (let i = 0; i < W; i++) this.hann[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (W - 1));
+      this._pk = new Float64Array(3);
+    }
+    // need ≥ ~6 periods in the window for a well-separated H1 lobe
+    if (f * W / this.sr < 6) return 0;
+    for (let i = 0; i < W; i++) this.xw[i] = this.x[i] * this.hann[i];
+    const p = this.spectralPeak(f, 45, this._pk);
+    if (p[2]) return 0;                       // no local maximum near the MPM pitch
+    const f1 = p[0], m1 = p[1];
+    // fundamental must be a real component, not a weak residue under strong harmonics
+    let mh = 0;
+    for (let h = 2; h <= 4; h++) { const m = this.mag(h * f1); if (m > mh) mh = m; }
+    if (m1 < 0.12 * mh) return 0;
+    return f1;
   }
 }
