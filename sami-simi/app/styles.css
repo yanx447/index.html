@@ -228,7 +228,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* ─────────── headstock stage ─────────── */
 .stage { position: relative; flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; padding-block: 4px; }
 .head {
-  height: 100%; max-height: 340px; width: auto; max-width: 100%; overflow: visible;
+  height: 100%; max-height: 400px; width: auto; max-width: 100%; overflow: visible;
   transform: translate3d(calc(var(--px) * 3px), calc(var(--py) * 2px), 0);
   transition: transform .6s var(--ease);
 }
@@ -243,8 +243,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .head .hs-thumb { transition: transform .5s var(--ease-spring); }
 .head .hs-thumb-edge { stroke: rgba(0, 0, 0, .55); stroke-width: 1.2; }
 .head .hs-peg.active .hs-thumb-edge { stroke: var(--brass); stroke-width: 2; }
-.head .hs-lbl { font: 700 22px var(--f-display); fill: var(--ivory); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-.head .hs-sub { font: 600 10.5px var(--f-ui); fill: var(--ivory-2); opacity: .8; text-anchor: middle; pointer-events: none; letter-spacing: .02em; }
+.head .hs-lbl { font: 700 21px var(--f-display); fill: var(--ivory); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.head .hs-sub { font: 600 11px var(--f-ui); fill: var(--ivory-2); opacity: .8; text-anchor: middle; pointer-events: none; letter-spacing: .02em; }
 .head .hs-peg.active .hs-lbl { fill: var(--brass-hi); }
 .head .hs-dir { fill: none; stroke: var(--amber); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 5 6; opacity: 0; transition: opacity .25s; }
 .head .hs-peg.dir .hs-dir { opacity: .95; animation: dirFlow .75s linear infinite; }

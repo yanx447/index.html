@@ -1,53 +1,61 @@
-// Panduri headstock (SVG). Pegs: 2 C♯ upper-left (middle string), 1 A left below it, 3 E alone on the right, between them in height.
-// Static geometry is built once; per-frame work is limited to the active string's vibration path.
+// Panduri headstock (SVG), modelled on a real slotted panduri head:
+//  • light maple side rails with an open slot, cap block with a mahogany centre stripe
+//  • three brass rollers across the slot — top: C♯, middle: A, bottom: E
+//  • geared tuners: C♯ and E on the left rail, A on the right rail
+//  • mahogany throat with carved shoulders, bone nut, rosewood fingerboard with frets
+// Strings at the nut, left → right: A, C♯ (middle), E. Each runs up the slot to its roller.
+// Static geometry is built once; per-frame work is limited to the active string's vibration.
 
-const NS = 'http://www.w3.org/2000/svg';
-const W = 320, H = 360, CX = 160;
-const NUT_Y = 262;
-const NUT_X = [148, 160, 172];
+const W = 300, H = 416, CX = 150;
+const KS = 1.2;                                     // tuner key scale
+const KC = 54;                                      // key centre distance from the rail edge
+const RAIL_L = [102, 133], RAIL_R = [167, 198];   // x ranges of the two rails
+const SLOT = [133, 167];
+const NUT_Y = 356;
+const NUT_X = [139, 150, 161];                     // A, C♯, E
+const ROLLER_Y = [192, 140, 244];                  // A (middle), C♯ (top), E (bottom)
+const WRAP_X = [143, 155, 160];                    // where each string meets its roller
+
+// key centres (tap targets). string index → side and height
 export const PEGS = [
-  { post: [120, 150], knob: [46, 150], side: -1 },  // 1 — A   (left, below C♯)
-  { post: [130, 78], knob: [46, 78], side: -1 },    // 2 — C♯  (upper left, middle string)
-  { post: [190, 112], knob: [274, 112], side: 1 },  // 3 — E   (alone on the right, level between C♯ and A)
+  { knob: [242, ROLLER_Y[0]], side: 1 },   // 1 — A  (right)
+  { knob: [58, ROLLER_Y[1]], side: -1 },   // 2 — C♯ (left, top)
+  { knob: [58, ROLLER_Y[2]], side: -1 },   // 3 — E  (left, bottom)
 ];
-
-const HEAD = 'M136 360 L136 276 C100 262 76 222 76 158 C76 84 108 30 160 18 C212 30 244 84 244 158 C244 222 220 262 184 276 L184 360 Z';
-const FACE = 'M160 38 C122 48 99 94 99 158 C99 204 115 236 140 250 L180 250 C205 236 221 204 221 158 C221 94 198 48 160 38 Z';
 
 function rng(seed) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
 
-function grainPaths() {
-  const r = rng(29);
+function grain(x0, x1, y0, y1, n, seed, dark) {
+  const r = rng(seed);
   let out = '';
-  for (let i = 0; i < 34; i++) {
-    const x0 = 70 + i * 5.4 + (r() - 0.5) * 3;
-    const ph = r() * 6.28, amp = 0.6 + r() * 1.6;
+  for (let i = 0; i < n; i++) {
+    const x = x0 + ((i + 0.5) / n) * (x1 - x0) + (r() - 0.5) * 1.5;
+    const ph = r() * 6.28, amp = 0.3 + r() * 0.8;
     let d = '';
-    for (let y = 10; y <= H; y += 10) {
-      const w = y < 150 ? 0.32 + (0.68 * (y - 10)) / 140 : 1 - (0.62 * (y - 150)) / 210;
-      const x = CX + (x0 - CX) * w + Math.sin(y * 0.045 + ph) * amp;
-      d += (y === 10 ? 'M' : 'L') + x.toFixed(1) + ' ' + y;
-    }
-    const dark = r() > 0.35;
-    out += `<path d="${d}" stroke="${dark ? 'rgba(18,9,3,.42)' : 'rgba(196,140,90,.16)'}" stroke-width="${(0.5 + r() * 1.1).toFixed(2)}" fill="none"/>`;
-  }
-  // a few darker figure streaks
-  for (let i = 0; i < 5; i++) {
-    const x0 = 95 + r() * 130, y0 = 60 + r() * 170, len = 30 + r() * 50;
-    out += `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} q ${((r() - 0.5) * 8).toFixed(1)} ${(len / 2).toFixed(1)} ${((r() - 0.5) * 4).toFixed(1)} ${len.toFixed(1)}" stroke="rgba(12,6,2,.28)" stroke-width="${(2 + r() * 3).toFixed(1)}" stroke-linecap="round" fill="none"/>`;
+    for (let y = y0; y <= y1; y += 8) d += (y === y0 ? 'M' : 'L') + (x + Math.sin(y * 0.06 + ph) * amp).toFixed(1) + ' ' + y;
+    out += `<path d="${d}" stroke="${dark}" stroke-opacity="${(0.08 + r() * 0.16).toFixed(2)}" stroke-width="${(0.4 + r() * 0.8).toFixed(2)}" fill="none"/>`;
   }
   return out;
 }
 
-// right-facing peg thumb piece, centred on (0,0); mirrored for left pegs
-const THUMB = 'M-24 -9 C-17 -10 -12 -29 5 -31 C23 -32 32 -17 32 0 C32 17 23 32 5 31 C-12 29 -17 10 -24 9 Z';
+// right-facing tuner key, origin at the rail edge; mirrored for the left rail
+function tunerKey() {
+  return `
+    <rect x="-1" y="-15" width="9" height="30" rx="2" fill="url(#hsGold)"/>
+    <circle cx="9" cy="0" r="8.5" fill="url(#hsGold)" stroke="rgba(60,40,10,.6)" stroke-width=".8"/>
+    <circle cx="9" cy="0" r="4.2" fill="url(#hsCap)"/>
+    <rect x="15" y="-3.2" width="10" height="6.4" rx="1.5" fill="url(#hsGoldV)"/>
+    <path class="hs-key" d="M22 -9 C28 -17 40 -21 52 -20 C63 -19 68 -10 68 0 C68 10 63 19 52 20 C40 21 28 17 22 9 Z" fill="url(#hsKey)"/>
+    <path d="M30 -13 C40 -18 54 -18 61 -11" stroke="rgba(255,255,255,.18)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path class="hs-thumb-edge" d="M22 -9 C28 -17 40 -21 52 -20 C63 -19 68 -10 68 0 C68 10 63 19 52 20 C40 21 28 17 22 9 Z" fill="none"/>`;
+}
 
 export class Headstock {
   constructor(svg, { onPick } = {}) {
     this.svg = svg;
     this.onPick = onPick;
     this.active = -1;
-    this.vib = [0, 0, 0];      // current visual amplitude
+    this.vib = [0, 0, 0];
     this.vibTarget = [0, 0, 0];
     this.t = 0;
     this.done = [false, false, false];
@@ -55,82 +63,105 @@ export class Headstock {
   }
 
   build() {
-    const pegs = PEGS.map((p, i) => this.pegMarkup(p, i)).join('');
-    const slots = PEGS.map((p) => {
-      const [px, py] = p.post, edge = p.side < 0 ? 82 : 238;
-      const x0 = Math.min(px, edge) - (p.side < 0 ? 0 : 6), x1 = Math.max(px, edge) + (p.side < 0 ? 6 : 0);
-      return `<rect x="${x0}" y="${py - 7}" width="${x1 - x0}" height="14" rx="7" fill="url(#hsSlot)"/>
-        <rect x="${x0 + 2}" y="${py - 3.5}" width="${x1 - x0 - 4}" height="7" rx="3.5" fill="url(#hsShaft)"/>
-        <g stroke="rgba(230,205,150,.55)" stroke-width=".8">${[-4, 0, 4].map((o) => `<line x1="${px + o - 1.5}" y1="${py - 3.5}" x2="${px + o + 1.5}" y2="${py + 3.5}"/>`).join('')}</g>
-        <circle cx="${px}" cy="${py}" r="5.2" fill="url(#hsPost)" stroke="rgba(0,0,0,.55)" stroke-width="1"/>`;
-    }).join('');
+    const [l0, l1] = RAIL_L, [r0, r1] = RAIL_R;
+    // mahogany throat with carved shoulders, joined to the rails
+    const THROAT = `M${l0 - 6} 300 C${l0 - 12} 304 ${l0 - 12} 314 ${l0 - 4} 318 C${l0 + 2} 322 ${l0 + 4} 330 ${l0 + 6} 344
+      L${l0 + 8} ${NUT_Y + 2} L${r1 - 8} ${NUT_Y + 2} L${r1 - 6} 344 C${r1 - 4} 330 ${r1 - 2} 322 ${r1 + 4} 318
+      C${r1 + 12} 314 ${r1 + 12} 304 ${r1 + 6} 300 Z`;
 
-    const strings = PEGS.map((p, i) => {
-      const [px, py] = p.post, nx = NUT_X[i];
+    const rollers = ROLLER_Y.map((y) => `
+      <rect x="${SLOT[0] - 2}" y="${y - 4.2}" width="${SLOT[1] - SLOT[0] + 4}" height="8.4" rx="3" fill="url(#hsGoldV)"/>
+      <rect x="${SLOT[0] - 2}" y="${y - 1.4}" width="${SLOT[1] - SLOT[0] + 4}" height="1.2" fill="rgba(255,248,220,.55)"/>
+      <rect x="${SLOT[0]}" y="${y - 6}" width="4" height="12" rx="1.2" fill="#ece4d4"/>
+      <rect x="${SLOT[1] - 4}" y="${y - 6}" width="4" height="12" rx="1.2" fill="#ece4d4"/>`).join('');
+
+    const strings = [0, 1, 2].map((i) => {
+      const nx = NUT_X[i], wx = WRAP_X[i], wy = ROLLER_Y[i];
+      const wraps = [-2, 0, 2].map((o) => `<line x1="${wx + o - 1.2}" y1="${wy - 4}" x2="${wx + o + 1.2}" y2="${wy + 4}" stroke="rgba(235,225,205,.85)" stroke-width=".9"/>`).join('');
       return `<g class="hs-string" id="hsS${i}">
-        <line class="hs-glow" x1="${nx}" y1="${NUT_Y}" x2="${px}" y2="${py}"/>
-        <path class="hs-glow" id="hsGN${i}" d="M${nx} ${NUT_Y} L${nx} ${H}"/>
-        <line class="hs-wire" x1="${nx}" y1="${NUT_Y}" x2="${px}" y2="${py}"/>
-        <path class="hs-wire" id="hsN${i}" d="M${nx} ${NUT_Y} L${nx} ${H}"/>
-        <line class="hs-spec" x1="${nx - 0.4}" y1="${NUT_Y}" x2="${px - 0.4}" y2="${py}"/>
+        <line class="hs-glow" x1="${nx}" y1="${NUT_Y}" x2="${wx}" y2="${wy}"/>
+        <path class="hs-glow" id="hsGN${i}" d="M${nx} ${NUT_Y + 6} L${nx} ${H}"/>
+        <line class="hs-wire" x1="${nx}" y1="${NUT_Y}" x2="${wx}" y2="${wy}"/>
+        <path class="hs-wire" id="hsN${i}" d="M${nx} ${NUT_Y + 6} L${nx} ${H}"/>
+        <line class="hs-spec" x1="${nx - 0.35}" y1="${NUT_Y}" x2="${wx - 0.35}" y2="${wy}"/>
+        ${wraps}
       </g>`;
     }).join('');
 
+    const pegs = PEGS.map((p, i) => this.pegMarkup(p, i)).join('');
+
+    this.svg.setAttribute('viewBox', `0 8 ${W} ${H - 8}`);
     this.svg.innerHTML = `
     <defs>
-      <linearGradient id="hsWood" x1="0" x2="1" y1="0" y2="0">
-        <stop offset="0" stop-color="#2a170c"/><stop offset=".22" stop-color="#4a2c17"/><stop offset=".5" stop-color="#5d3920"/>
-        <stop offset=".78" stop-color="#462915"/><stop offset="1" stop-color="#26150b"/>
+      <linearGradient id="hsMaple" x1="0" x2="1">
+        <stop offset="0" stop-color="#b99a72"/><stop offset=".35" stop-color="#e2cda9"/><stop offset=".7" stop-color="#d6bd96"/><stop offset="1" stop-color="#a8885f"/>
       </linearGradient>
-      <linearGradient id="hsFace" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0" stop-color="#3a2212"/><stop offset=".6" stop-color="#301c0f"/><stop offset="1" stop-color="#27160b"/>
+      <linearGradient id="hsMapleTop" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#ead8b8"/><stop offset="1" stop-color="#cdb28a"/>
       </linearGradient>
+      <linearGradient id="hsMahog" x1="0" x2="1">
+        <stop offset="0" stop-color="#4a1f16"/><stop offset=".4" stop-color="#7a3a2a"/><stop offset=".65" stop-color="#6c3224"/><stop offset="1" stop-color="#3e1912"/>
+      </linearGradient>
+      <linearGradient id="hsBoard" x1="0" x2="1">
+        <stop offset="0" stop-color="#1c0f0a"/><stop offset=".5" stop-color="#2e1a12"/><stop offset="1" stop-color="#180c08"/>
+      </linearGradient>
+      <linearGradient id="hsSlotFill" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#0b0705"/><stop offset=".85" stop-color="#140c08"/><stop offset="1" stop-color="#2a140d"/>
+      </linearGradient>
+      <linearGradient id="hsGold" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="#f6dc96"/><stop offset=".5" stop-color="#c9973e"/><stop offset="1" stop-color="#7d5a1f"/>
+      </linearGradient>
+      <linearGradient id="hsGoldV" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#f8e2a6"/><stop offset=".45" stop-color="#d2a04a"/><stop offset="1" stop-color="#6e4e18"/>
+      </linearGradient>
+      <radialGradient id="hsCap" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#fff2c4"/><stop offset=".6" stop-color="#d6a952"/><stop offset="1" stop-color="#8a6526"/></radialGradient>
+      <radialGradient id="hsKey" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="#3a3532"/><stop offset=".55" stop-color="#151311"/><stop offset="1" stop-color="#050404"/></radialGradient>
+      <linearGradient id="hsNut" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fbf5e6"/><stop offset="1" stop-color="#cdbf9f"/></linearGradient>
       <linearGradient id="hsLight" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#fff1d6" stop-opacity=".16"/><stop offset=".45" stop-color="#fff1d6" stop-opacity="0"/>
-        <stop offset="1" stop-color="#000" stop-opacity=".38"/>
+        <stop offset="0" stop-color="#fff6e0" stop-opacity=".18"/><stop offset=".5" stop-color="#fff6e0" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/>
       </linearGradient>
-      <linearGradient id="hsRim" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#e7b27a" stop-opacity=".55"/><stop offset=".5" stop-color="#8a5a34" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity=".4"/>
-      </linearGradient>
-      <linearGradient id="hsNeckFade" x1="0" x2="0" y1="0" y2="1">
-        <stop offset=".8" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
-      </linearGradient>
-      <mask id="hsNeckMask" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}">
-        <rect x="0" y="0" width="${W}" height="${H}" fill="url(#hsNeckFade)"/>
-      </mask>
-      <linearGradient id="hsSlot" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0c0603"/><stop offset="1" stop-color="#1e1109"/></linearGradient>
-      <linearGradient id="hsShaft" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7a5334"/><stop offset=".5" stop-color="#4a2f1b"/><stop offset="1" stop-color="#2a190d"/></linearGradient>
-      <radialGradient id="hsPost" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#fbe3a8"/><stop offset=".5" stop-color="#c9953f"/><stop offset="1" stop-color="#6b4c1f"/></radialGradient>
-      <linearGradient id="hsNut" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fbf4e4"/><stop offset="1" stop-color="#cbbd9f"/></linearGradient>
-      <radialGradient id="hsPeg" cx=".38" cy=".3" r=".85">
-        <stop offset="0" stop-color="#7a5234"/><stop offset=".45" stop-color="#4a2e1a"/><stop offset="1" stop-color="#1f120a"/>
-      </radialGradient>
-      <linearGradient id="hsCollar" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f7e9c8"/><stop offset=".5" stop-color="#c8b48e"/><stop offset="1" stop-color="#7c6b4f"/></linearGradient>
-      <radialGradient id="hsFocus"><stop offset="0" stop-color="#d4a655" stop-opacity=".34"/><stop offset=".6" stop-color="#d4a655" stop-opacity=".08"/><stop offset="1" stop-color="#d4a655" stop-opacity="0"/></radialGradient>
-      <filter id="hsBlur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="7"/></filter>
-      <filter id="hsBlurS" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3"/></filter>
-      <clipPath id="hsClip"><path d="${HEAD}"/></clipPath>
+      <linearGradient id="hsFade" x1="0" x2="0" y1="0" y2="1"><stop offset=".86" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <mask id="hsNeckMask" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="url(#hsFade)"/></mask>
+      <radialGradient id="hsFocus"><stop offset="0" stop-color="#d4a655" stop-opacity=".36"/><stop offset=".6" stop-color="#d4a655" stop-opacity=".08"/><stop offset="1" stop-color="#d4a655" stop-opacity="0"/></radialGradient>
+      <clipPath id="hsHeadClip">
+        <rect x="${l0}" y="70" width="${l1 - l0}" height="236"/><rect x="${r0}" y="70" width="${r1 - r0}" height="236"/>
+        <rect x="${l0 - 6}" y="16" width="${r1 - l0 + 12}" height="84" rx="12"/><path d="${THROAT}"/>
+      </clipPath>
+      <filter id="hsBlur" x="-150%" y="-50%" width="400%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+      <filter id="hsBlurS" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
     </defs>
 
-    <ellipse cx="${CX + 6}" cy="170" rx="98" ry="150" fill="#000" opacity=".55" filter="url(#hsBlur)"/>
-    <circle id="hsFocusGlow" class="hs-focus" r="58" fill="url(#hsFocus)" cx="0" cy="0"/>
+    <ellipse class="hs-shadow" cx="${CX + 6}" cy="215" rx="56" ry="170" fill="#000" opacity=".5" filter="url(#hsBlur)"/>
+    <circle id="hsFocusGlow" class="hs-focus" r="56" fill="url(#hsFocus)" cx="0" cy="0"/>
 
-    <g class="hs-body">
-      <g mask="url(#hsNeckMask)">
-        <path d="${HEAD}" fill="url(#hsWood)"/>
-        <g clip-path="url(#hsClip)">${grainPaths()}</g>
-        <path d="${FACE}" fill="url(#hsFace)" opacity=".92"/>
-        <path d="${FACE}" fill="none" stroke="rgba(0,0,0,.5)" stroke-width="3"/>
-        <path d="${FACE}" fill="none" stroke="rgba(255,214,160,.07)" stroke-width="1" transform="translate(.8 1.2)"/>
-        <g class="hs-light"><path d="${HEAD}" fill="url(#hsLight)"/></g>
-        <path d="${HEAD}" fill="none" stroke="url(#hsRim)" stroke-width="1.6"/>
-        <g stroke="#c9a15e" stroke-opacity=".75" stroke-width="1.4">
-          <line x1="137" y1="312" x2="183" y2="312"/><line x1="137" y1="352" x2="183" y2="352"/>
-        </g>
-      </g>
-      ${slots}
-      <rect x="133" y="${NUT_Y - 5}" width="54" height="9" rx="2" fill="url(#hsNut)"/>
-      <rect x="133" y="${NUT_Y + 4}" width="54" height="2" fill="rgba(0,0,0,.45)"/>
+    <g class="hs-body" mask="url(#hsNeckMask)">
+      <!-- fingerboard + frets -->
+      <rect x="${l0 + 8}" y="${NUT_Y}" width="${r1 - l0 - 16}" height="${H - NUT_Y}" fill="url(#hsBoard)"/>
+      <g stroke="#c9a15e" stroke-width="1.6" stroke-opacity=".85"><line x1="${l0 + 8}" y1="${NUT_Y + 44}" x2="${r1 - 8}" y2="${NUT_Y + 44}"/></g>
+      <!-- slot (open, dark) -->
+      <rect x="${SLOT[0]}" y="78" width="${SLOT[1] - SLOT[0]}" height="${NUT_Y - 78}" fill="url(#hsSlotFill)"/>
+      <!-- rails -->
+      <rect x="${l0}" y="70" width="${l1 - l0}" height="236" rx="3" fill="url(#hsMaple)"/>
+      <rect x="${r0}" y="70" width="${r1 - r0}" height="236" rx="3" fill="url(#hsMaple)"/>
+      <g>${grain(l0 + 2, l1 - 2, 72, 304, 7, 11, '#6b4a2a')}${grain(r0 + 2, r1 - 2, 72, 304, 7, 23, '#6b4a2a')}</g>
+      <rect x="${l1 - 2}" y="70" width="2" height="236" fill="rgba(0,0,0,.35)"/>
+      <rect x="${r0}" y="70" width="2" height="236" fill="rgba(0,0,0,.35)"/>
+      <!-- throat (mahogany) with ramp into the slot -->
+      <path d="${THROAT}" fill="url(#hsMahog)"/>
+      <path d="M${SLOT[0]} 300 L${SLOT[1]} 300 L${SLOT[1] - 2} 330 L${SLOT[0] + 2} 330 Z" fill="#2a120c"/>
+      <path d="M${SLOT[0] + 2} 330 L${SLOT[1] - 2} 330 L${SLOT[1] - 1} ${NUT_Y} L${SLOT[0] + 1} ${NUT_Y} Z" fill="#46201a"/>
+      <g>${grain(l0 - 4, r1 + 4, 300, NUT_Y, 12, 37, '#1d0a06')}</g>
+      <!-- nut -->
+      <rect x="${l0 + 4}" y="${NUT_Y - 4}" width="${r1 - l0 - 8}" height="10" rx="3" fill="url(#hsNut)"/>
+      <rect x="${l0 + 6}" y="${NUT_Y + 6}" width="${r1 - l0 - 12}" height="2" fill="rgba(0,0,0,.45)"/>
+      <!-- cap block: maple with mahogany stripe, overhanging -->
+      <path d="M${l0 - 6} 92 L${l0 - 6} 30 Q${l0 - 6} 16 ${l0 + 8} 16 L${r1 - 8} 16 Q${r1 + 6} 16 ${r1 + 6} 30 L${r1 + 6} 92 Q${r1 + 6} 100 ${r1 - 2} 100 L${l0 + 2} 100 Q${l0 - 6} 100 ${l0 - 6} 92 Z" fill="url(#hsMapleTop)"/>
+      <rect x="${CX - 15}" y="16" width="30" height="84" fill="url(#hsMahog)"/>
+      <g>${grain(l0 - 4, CX - 16, 18, 98, 6, 41, '#6b4a2a')}${grain(CX + 16, r1 + 4, 18, 98, 6, 43, '#6b4a2a')}${grain(CX - 14, CX + 14, 18, 98, 5, 47, '#1d0a06')}</g>
+      <path d="M${l0 - 6} 92 Q${l0 - 6} 100 ${l0 + 2} 100 L${r1 - 2} 100 Q${r1 + 6} 100 ${r1 + 6} 92 L${r1 + 6} 86 L${l0 - 6} 86 Z" fill="rgba(0,0,0,.22)"/>
+      <rect x="${SLOT[0]}" y="100" width="${SLOT[1] - SLOT[0]}" height="10" fill="rgba(0,0,0,.45)"/>
+      <g class="hs-light" clip-path="url(#hsHeadClip)"><rect x="${l0 - 12}" y="10" width="${r1 - l0 + 24}" height="${NUT_Y - 4}" fill="url(#hsLight)"/></g>
+      ${rollers}
       ${strings}
     </g>
     <g class="hs-pegs">${pegs}</g>`;
@@ -147,22 +178,18 @@ export class Headstock {
 
   pegMarkup(p, i) {
     const [kx, ky] = p.knob, s = p.side;
-    const tx = kx + s * 5; // text sits on the broad part of the thumb
+    const edge = s > 0 ? RAIL_R[1] : RAIL_L[0];       // rail outer edge
+    const lx = edge + s * (KC + 2);                     // label centre on the black key
     return `<g class="hs-peg" id="hsP${i}" role="button" tabindex="0">
-      <rect x="${kx - 44}" y="${ky - 44}" width="88" height="88" fill="transparent"/>
-      <ellipse cx="${kx + 3}" cy="${ky + 7}" rx="30" ry="30" fill="#000" opacity=".6" filter="url(#hsBlurS)"/>
+      <rect x="${Math.min(edge, edge + s * 96)}" y="${ky - 38}" width="96" height="76" fill="transparent"/>
+      <ellipse cx="${edge + s * KC}" cy="${ky + 7}" rx="30" ry="21" fill="#000" opacity=".55" filter="url(#hsBlurS)"/>
       <path class="hs-dir" id="hsD${i}" d=""/>
-      <circle class="hs-ring" cx="${kx}" cy="${ky}" r="39" pathLength="100"/>
-      <g class="hs-thumb" transform="translate(${kx} ${ky}) scale(${s} 1)">
-        <rect x="-31" y="-8" width="9" height="16" rx="2.5" fill="url(#hsCollar)"/>
-        <path d="${THUMB}" fill="url(#hsPeg)" class="hs-thumb-body"/>
-        <path d="M-6 -24 C8 -28 22 -22 26 -8" fill="none" stroke="rgba(255,226,180,.28)" stroke-width="2" stroke-linecap="round"/>
-        <path d="${THUMB}" fill="none" class="hs-thumb-edge"/>
-      </g>
-      <text class="hs-lbl" id="hsL${i}" x="${tx}" y="${ky - 3}"></text>
-      <text class="hs-sub" id="hsSub${i}" x="${tx}" y="${ky + 15}"></text>
-      <g class="hs-badge" transform="translate(${kx + s * 26} ${ky - 27})">
-        <circle r="9.5"/><path d="M-4.2 0.3 L-1.2 3.3 L4.6 -3" fill="none"/>
+      <ellipse class="hs-ring" cx="${edge + s * KC}" cy="${ky}" rx="40" ry="32" pathLength="100"/>
+      <g transform="translate(${edge} ${ky}) scale(${s * KS} ${KS})">${tunerKey()}</g>
+      <text class="hs-lbl" id="hsL${i}" x="${lx}" y="${ky}"></text>
+      <text class="hs-sub" id="hsSub${i}" x="${edge + s * KC}" y="${ky + 39}"></text>
+      <g class="hs-badge" transform="translate(${edge + s * 84} ${ky - 23})">
+        <circle r="9"/><path d="M-4 0.3 L-1.1 3.2 L4.4 -2.8" fill="none"/>
       </g>
     </g>`;
   }
@@ -184,8 +211,9 @@ export class Headstock {
     this.active = i;
     this.pegEls.forEach((el, k) => el.classList.toggle('active', k === i));
     this.strEls.forEach((el, k) => el.classList.toggle('active', k === i));
-    const [x, y] = PEGS[i].knob;
-    this.focus.style.transform = `translate(${x}px, ${y}px)`;
+    const p = PEGS[i];
+    const edge = p.side > 0 ? RAIL_R[1] : RAIL_L[0];
+    this.focus.style.transform = `translate(${edge + p.side * KC}px, ${p.knob[1]}px)`;
   }
 
   setDone(done, justDone = -1) {
@@ -210,14 +238,15 @@ export class Headstock {
       const on = k === i && dir !== 0;
       el.classList.toggle('dir', on);
       if (!on) return;
-      const key = dir;
-      if (el._dirKey === key) return;
-      el._dirKey = key;
-      const [kx, ky] = PEGS[k].knob, s = PEGS[k].side, r = 45;
-      const base = s > 0 ? 0 : 180; // outer side of the peg
-      const a0 = base + (dir > 0 ? 38 : -38) * (s > 0 ? 1 : -1);
-      const a1 = base - (dir > 0 ? 38 : -38) * (s > 0 ? 1 : -1);
-      const P = (a) => [kx + r * Math.cos((a * Math.PI) / 180), ky + r * Math.sin((a * Math.PI) / 180)];
+      if (el._dirKey === dir) return;
+      el._dirKey = dir;
+      const p = PEGS[k], s = p.side;
+      const edge = s > 0 ? RAIL_R[1] : RAIL_L[0];
+      const kx = edge + s * KC, ky = p.knob[1], r = 46;
+      const base = s > 0 ? 0 : 180;                 // outer side of the key
+      const a0 = base + (dir > 0 ? 40 : -40) * (s > 0 ? 1 : -1);
+      const a1 = base - (dir > 0 ? 40 : -40) * (s > 0 ? 1 : -1);
+      const P = (a) => [kx + r * Math.cos((a * Math.PI) / 180), ky + r * 0.85 * Math.sin((a * Math.PI) / 180)];
       const [x0, y0] = P(a0), [x1, y1] = P(a1);
       const sweep = a1 > a0 ? 1 : 0;
       const [xb, yb] = P(a1 + (a1 > a0 ? -9 : 9));
@@ -225,8 +254,7 @@ export class Headstock {
       const h1 = [x1 - 7 * Math.cos(ang - 0.5), y1 - 7 * Math.sin(ang - 0.5)];
       const h2 = [x1 - 7 * Math.cos(ang + 0.5), y1 - 7 * Math.sin(ang + 0.5)];
       this.svg.querySelector('#hsD' + k).setAttribute('d',
-        `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 0 ${sweep} ${x1.toFixed(1)} ${y1.toFixed(1)} M${h1[0].toFixed(1)} ${h1[1].toFixed(1)} L${x1.toFixed(1)} ${y1.toFixed(1)} L${h2[0].toFixed(1)} ${h2[1].toFixed(1)}`);
-      el.classList.toggle('up', dir > 0);
+        `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${(r * 0.85).toFixed(1)} 0 0 ${sweep} ${x1.toFixed(1)} ${y1.toFixed(1)} M${h1[0].toFixed(1)} ${h1[1].toFixed(1)} L${x1.toFixed(1)} ${y1.toFixed(1)} L${h2[0].toFixed(1)} ${h2[1].toFixed(1)}`);
     });
   }
 
@@ -243,9 +271,9 @@ export class Headstock {
       this.vib[k] += (tgt - this.vib[k]) * Math.min(1, dt * (tgt > this.vib[k] ? 25 : 5));
       const a = this.vib[k];
       if (a > 0.004 || this.neckEls[k]._v) {
-        const amp = a * 2.4 * Math.sin(this.t * 2 * Math.PI * 11 + k);
-        const x = NUT_X[k];
-        const d = a > 0.004 ? `M${x} ${NUT_Y} Q${(x + amp).toFixed(2)} ${(NUT_Y + H) / 2 + 30} ${x} ${H + 60}` : `M${x} ${NUT_Y} L${x} ${H}`;
+        const amp = a * 1.8 * Math.sin(this.t * 2 * Math.PI * 11 + k);
+        const x = NUT_X[k], y0 = NUT_Y + 6;
+        const d = a > 0.004 ? `M${x} ${y0} Q${(x + amp).toFixed(2)} ${(y0 + H) / 2 + 40} ${x} ${H + 80}` : `M${x} ${y0} L${x} ${H}`;
         this.neckEls[k][0].setAttribute('d', d); this.neckEls[k][1].setAttribute('d', d);
         this.neckEls[k]._v = a > 0.004;
         if (a > 0.004) busy = true;

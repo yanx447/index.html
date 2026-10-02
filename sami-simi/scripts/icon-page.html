@@ -1,0 +1,19 @@
+<!doctype html><html><head><style>
+html,body{margin:0;background:transparent}
+#wrap{width:1024px;height:1024px;display:grid;place-items:center;background:radial-gradient(70% 60% at 50% 30%,#4a2f1a 0%,#1a120c 60%,#120d0a 100%)}
+#wrap.clear{background:transparent}
+svg{height:var(--h,960px);width:auto;overflow:visible}
+.hs-lbl,.hs-sub,.hs-badge,.hs-ring,.hs-dir,.hs-focus{display:none}
+.hs-wire{stroke:#e3cf9e;stroke-width:1.4;fill:none}.hs-spec{stroke:rgba(255,248,230,.4);stroke-width:.45}.hs-glow{stroke:none}
+.hs-thumb-edge{stroke:rgba(0,0,0,.55);stroke-width:1.2}
+.hs-shadow{display:none}
+</style></head><body><div id="wrap"><svg id="head" viewBox="0 8 300 408"></svg></div>
+<script type="module">
+import { Headstock } from '/sami-simi/app/js/view/headstock.js';
+const p=new URLSearchParams(location.search);
+if(p.get('clear'))document.getElementById('wrap').classList.add('clear');
+document.documentElement.style.setProperty('--h',(p.get('h')||960)+'px');
+new Headstock(document.getElementById('head'));
+document.getElementById('head').setAttribute('viewBox', p.get('vb')||'0 8 300 330');
+window.done=true;
+</script></body></html>
