@@ -273,6 +273,19 @@ console.log('\nChord recognition (panduri-voiced chords, overtones must not coun
   ok(good / total >= 0.95, 'chords recognised while ringing', `${good}/${total}${miss.length ? '  missed: ' + miss.join(', ') : ''}`);
 }
 
+console.log('\nAll three at once (one strum, each string measured)');
+{
+  const music = await import('../app/js/music.js');
+  for (const offs of [[6, -3, -9], [0, 0, 0], [-12, 8, 3]]) {
+    const buf = new Float32Array(SR * 2.4); addNoise(buf, 0.0008);
+    S.forEach((s, i) => { const y = renderPluck(cents(s.freq, offs[i]), SR, { stringIndex: i, duration: 2.2, seed: i + 9 }); const o = Math.floor(i * 0.03 * SR); for (let k = 0; k < y.length && k + o < buf.length; k++) buf[k + o] += y[k] * 0.3; });
+    const per = [[], [], []];
+    for (let t = 0.6; t < 2.0; t += 0.05) { const e = Math.floor(t * SR); music.strumCheck(buf.subarray(e - 16384, e), SR, S.map((s) => s.freq), { n: 16384 }).forEach((q, i) => q.cents != null && per[i].push(q.cents)); }
+    const got = per.map((a) => a.sort((p, q) => p - q)[a.length >> 1]);
+    ok(got.every((g, i) => Math.abs(g - offs[i]) < 1), `strum ${offs.map((o) => (o >= 0 ? '+' : '') + o + '¢').join(' ')}`, `measured ${got.map((g) => g.toFixed(1)).join(' / ')}`);
+  }
+}
+
 console.log('\nReference tone pitch');
 for (const sr of [48000, 44100]) {
   const det = new PitchDetector(sr);

@@ -72,7 +72,7 @@ export function fingering(rootPc, qid, tuning) {
 }
 
 /** Where to play a note (MIDI) on the panduri with the lowest fret. */
-export function position(midi, tuning, maxFret = 12) {
+export function position(midi, tuning, maxFret = 17) {
   let best = null;
   tuning.forEach((t, s) => {
     const f = midi - t;
@@ -210,4 +210,42 @@ export class Spectrum {
     for (let i = 0; i < n / 2; i++) this.mag[i] = Math.hypot(re[i], im[i]);
     return this.mag;
   }
+}
+
+// ── open-string check from one strum ───────────────────────────────────────────────────
+/**
+ * Measures each open string's fundamental in a strummed chord. The open strings of the panduri
+ * (A3 · C♯4 · E4) have well-separated fundamentals, so each one is located as the peak of the
+ * Hann-windowed spectrum (Goertzel + golden-section search) within ±spanCents of its target.
+ * @param x      time-domain frame (the last `n` samples are used)
+ * @param freqs  target frequencies of the open strings
+ * @returns [{ cents, level }] per string — cents null when the string is not heard
+ */
+export function strumCheck(x, sr, freqs, { n = 8192, spanCents = 90 } = {}) {
+  const N = Math.min(n, x.length), off = x.length - N;
+  const w = new Float64Array(N);
+  let mean = 0; for (let i = 0; i < N; i++) mean += x[off + i]; mean /= N;
+  for (let i = 0; i < N; i++) w[i] = (x[off + i] - mean) * (0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1)));
+  const mag = (f) => {
+    const c = 2 * Math.cos((2 * Math.PI * f) / sr); let s1 = 0, s2 = 0;
+    for (let i = 0; i < N; i++) { const s0 = w[i] + c * s1 - s2; s2 = s1; s1 = s0; }
+    return Math.sqrt(Math.max(0, s1 * s1 + s2 * s2 - c * s1 * s2)) / N;
+  };
+  const k = Math.pow(2, 1 / 1200);
+  const res = freqs.map((f) => {
+    const steps = 18; let best = -1, bc = 0;
+    for (let i = -steps; i <= steps; i++) { const cc = (i / steps) * spanCents, m = mag(f * Math.pow(k, cc)); if (m > best) { best = m; bc = cc; } }
+    const st = spanCents / steps; let a = bc - st, b = bc + st;
+    const g = 0.6180339887; let c1 = b - g * (b - a), c2 = a + g * (b - a), m1 = mag(f * Math.pow(k, c1)), m2 = mag(f * Math.pow(k, c2));
+    for (let it = 0; it < 18; it++) {
+      if (m1 > m2) { b = c2; c2 = c1; m2 = m1; c1 = b - g * (b - a); m1 = mag(f * Math.pow(k, c1)); }
+      else { a = c1; c1 = c2; m1 = m2; c2 = a + g * (b - a); m2 = mag(f * Math.pow(k, c2)); }
+    }
+    const cents = 0.5 * (a + b), edge = Math.abs(bc) >= spanCents - st * 0.5;
+    // noise reference: the spectrum half-way between this string and its neighbours' range
+    const floor = 0.5 * (mag(f * Math.pow(k, -160)) + mag(f * Math.pow(k, 160)));
+    return { cents: edge ? null : cents, level: Math.max(m1, m2), floor };
+  });
+  const top = Math.max(...res.map((r) => r.level));
+  return res.map((r) => ({ cents: r.cents != null && r.level > top * 0.03 && r.level > r.floor * 4 ? r.cents : null, level: r.level }));
 }

@@ -10,7 +10,7 @@ import * as THREE from '../../vendor/three-lite.js';
 const RAIL_X = 32.5, RAIL_W = 31, RAIL_Y = 12, RAIL_H = 236, D = 24;
 const SLOT_HALF = 17;
 const NUT_Y = -156;
-const NECK_LEN = 540;
+const NECK_LEN = 680;                      // fingerboard runs past the 17th fret
 const NUT_X = [-33, 0, 33];                 // A, C♯, E — outer strings run close to the fingerboard edges
 const END_X = [-36, 0, 36];                 // slight spread further down the neck
 const ROLLER_Y = [8, 60, -44];              // A middle, C♯ top, E bottom
@@ -18,7 +18,7 @@ const WRAP_X = [-10, 2, 10];
 const SIDE = [1, -1, -1];                   // A right, C♯ + E left
 // chromatic (12-TET) frets like a modern panduri: fret n sits at L·(1 − 2^(−n/12)) from the nut
 const SCALE_LEN = 1000;
-const FRETS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const FRETS = Array.from({ length: 17 }, (_, i) => i + 1); // the panduri has 17 frets
 
 function rng(seed) { return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
 
@@ -235,7 +235,7 @@ export class Headstock3D {
         this.vy = dx * 0.0095; this.vp = dy * 0.007;
       } else if (pts.size === 2) {
         const [a, b] = [...pts.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y);
-        this.zoom = Math.max(0.55, Math.min(2.6, zoom0 * (d / (pinch0 || d))));
+        this.zoom = Math.max(0.42, Math.min(2.6, zoom0 * (d / (pinch0 || d))));
         moved += 10;
       }
       this.kick();
@@ -253,7 +253,7 @@ export class Headstock3D {
     };
     c.addEventListener('pointerup', up);
     c.addEventListener('pointercancel', up);
-    c.addEventListener('wheel', (e) => { e.preventDefault(); this.zoom = Math.max(0.55, Math.min(2.6, this.zoom * Math.exp(-e.deltaY * 0.0015))); this.kick(); }, { passive: false });
+    c.addEventListener('wheel', (e) => { e.preventDefault(); this.zoom = Math.max(0.42, Math.min(2.6, this.zoom * Math.exp(-e.deltaY * 0.0015))); this.kick(); }, { passive: false });
     this.ro = new ResizeObserver(() => { this.resize(); this.kick(); });
     this.ro.observe(c);
   }
@@ -351,8 +351,11 @@ export class Headstock3D {
       if (Math.abs(tw - this.yaw) + Math.abs(this.target.pitch - this.pitch) + Math.abs(this.target.zoom - this.zoom) < 0.002) this.target = { yaw: null, pitch: null, zoom: null };
       busy = true;
     }
-    if (this.modelYTarget != null && Math.abs(this.model.position.y - this.modelYTarget) > 0.2) {
-      this.model.position.y += (this.modelYTarget - this.model.position.y) * 0.14; busy = true;
+    // zooming out slides the view down the neck, so all 17 frets come into frame
+    const pull = this.chordGroup ? 0 : Math.max(0, Math.min(1, (1 - this.zoom) / 0.55)) * 360;
+    const yT = this.modelYTarget == null ? null : this.modelYTarget + pull;
+    if (yT != null && Math.abs(this.model.position.y - yT) > 0.2) {
+      this.model.position.y += (yT - this.model.position.y) * 0.14; busy = true;
     }
     // vibrating active string (real signal level)
     const lv = this.state.level;

@@ -30,7 +30,7 @@ const canVibrate = !!nativeHaptics || 'vibrate' in navigator;
 let S = loadSettings();
 const model = new TuningModel(S);
 const tracker = new PitchTracker();
-const input = new AudioInput(8192); // detector uses the last 4096 samples; chord recognition the full 8192
+const input = new AudioInput(16384); // detector uses the last 4096 samples, chord recognition 8192, the all-strings check 16384
 const reference = new ReferenceEngine();
 reference.load(); // decode the recorded plucks in the background
 let detector = null;
@@ -699,6 +699,7 @@ function closeViewer() {
 
 // ─── tools (lazy-loaded pages) ─────────────────────────────────────────────────────
 const TOOLS = [
+  { id: 'strumtune', file: 'strumtune', icon: '<path d="M6 4v16M12 4v16M18 4v16"/><path d="M3 13c3-2 6 2 9 0s6-2 9 0"/>' },
   { id: 'chords', file: 'chords', icon: '<path d="M7 4v16M12 4v16M17 4v16M4 8h16M4 13h16"/><circle cx="12" cy="10.5" r="1.6" fill="currentColor"/><circle cx="7" cy="15.5" r="1.6" fill="currentColor"/>' },
   { id: 'chordrec', file: 'chordrec', icon: '<path d="M4 18V6M8 18V10M12 18V4M16 18v-7M20 18V8"/>' },
   { id: 'metronome', file: 'metronome', icon: '<path d="M9 3h6l3 18H6z"/><path d="M12 15l5-9"/>' },

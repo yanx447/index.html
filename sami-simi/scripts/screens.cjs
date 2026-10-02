@@ -20,7 +20,7 @@ const isInTune = () => { const s = window.__panduri.tracker.snap; return s.state
 const isLive = () => { const s = window.__panduri.tracker.snap; return (s.state === 'valid' || s.state === 'intune') && Math.abs(s.cents) > 2; };
 
 async function session(wav, w, h, dpr, settings) {
-  const b = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${wav}`] });
+  const b = await chromium.launch({ executablePath: process.env.CHROMIUM || undefined, args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-audio-capture=${wav}`] });
   const c = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, permissions: ['microphone'], hasTouch: true, isMobile: true });
   const p = await c.newPage();
   await p.goto(base);

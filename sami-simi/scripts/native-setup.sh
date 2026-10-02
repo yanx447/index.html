@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 PLATFORM="${1:-all}"
 VERSION_NAME="$(node -p "require('./package.json').version")"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
-MIC_TEXT="Sami Simi listens to your panduri through the microphone to measure its pitch. Sound is analysed on the device and is never recorded or sent."
+MIC_TEXT="Sami Simi listens to your panduri to measure its pitch and recognise chords. Sound is analysed on your device and is never sent anywhere. It is recorded only when you choose to make a recording, which stays on your device."
 
 if [[ "$PLATFORM" == "android" || "$PLATFORM" == "all" ]]; then
   [ -d android ] || npx cap add android

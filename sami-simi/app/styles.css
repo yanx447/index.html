@@ -664,3 +664,25 @@ textarea.txt { resize: vertical; line-height: 1.6; }
 .qr svg { width: 100%; height: auto; display: block; }
 .qr-url { font: 500 12px var(--f-num); color: var(--mute); word-break: break-all; text-align: center; user-select: text; -webkit-user-select: text; }
 @media (max-width: 380px) { .chord-body { grid-template-columns: 120px 1fr; } .chord-grid { grid-template-columns: repeat(4, 1fr); } .rec-detail { grid-template-columns: 1fr; } }
+
+/* ── all three at once ─────────────────────────────────────────────── */
+.st-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 6px 0 4px; }
+.st-col { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 6px 12px; border-radius: var(--r-l); background: var(--well); border: 1px solid var(--hair); transition: border-color .3s var(--ease), opacity .3s var(--ease); }
+.st-col strong { font: 600 22px var(--f-display); color: var(--ivory); }
+.st-gauge { position: relative; width: 14px; height: 150px; border-radius: 7px; background: linear-gradient(180deg, rgba(217,120,90,.18), rgba(242,233,218,.05) 40%, rgba(242,233,218,.05) 60%, rgba(217,120,90,.18)); }
+.st-gauge .zone { position: absolute; left: -3px; right: -3px; top: 46%; height: 8%; border-radius: 4px; background: rgba(140,192,132,.28); }
+.st-gauge i { position: absolute; left: -9px; right: -9px; height: 4px; margin-top: -2px; border-radius: 2px; background: var(--ivory); box-shadow: 0 0 10px rgba(242,233,218,.35); transition: top .35s var(--ease); }
+.st-col.idle .st-gauge i, .st-col.na .st-gauge i { opacity: 0; }
+.st-c { font: 600 17px var(--f-num); color: var(--ivory-2); min-height: 22px; }
+.st-w { font: 500 13px var(--f-ui); color: var(--mute); min-height: 18px; text-align: center; }
+.st-col.live { opacity: .7; }
+.st-col.ok { border-color: rgba(140,192,132,.45); } .st-col.ok .st-w, .st-col.ok .st-c { color: var(--green); } .st-col.ok .st-gauge i { background: var(--green); }
+.st-col.warn { border-color: rgba(217,162,74,.45); } .st-col.warn .st-w { color: var(--amber); } .st-col.warn .st-gauge i { background: var(--amber); }
+.st-col.bad { border-color: rgba(217,120,90,.5); } .st-col.bad .st-w { color: var(--red); } .st-col.bad .st-gauge i { background: var(--red); }
+.st-status { text-align: center; font: 500 15px var(--f-ui); color: var(--ivory-2); min-height: 22px; margin: 8px 0 14px; }
+
+/* 3D viewer: keep the note/chord name and hint readable over the light headstock */
+.viewer-top { background: linear-gradient(180deg, rgba(18,13,10,.92) 0%, rgba(18,13,10,.7) 62%, rgba(18,13,10,0) 100%); padding-bottom: 26px; }
+.v3d-note { text-shadow: 0 2px 14px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.6); }
+.viewer::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(0deg, rgba(18,13,10,.85), rgba(18,13,10,0)); pointer-events: none; }
+.viewer-hint { z-index: 1; }

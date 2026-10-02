@@ -34,6 +34,12 @@ CAP = {
                'en': ('Guided, string by string', 'For beginners: A, then C♯, then E')},
  '5-settings':{'ka': ('შენს ფანდურზე მორგებული', 'ტრანსპოზიცია, ოქტავა, A4 კალიბრაცია'),
                'en': ('Made for your panduri', 'Transpose, octave and A4 calibration')},
+ '6-strum':   {'ka': ('სამივე სიმი ერთად', 'ერთი ჩამოკვრა — და ჩანს, რომელი სიმი ააწყო'),
+               'en': ('All three at once', 'One strum shows which string to fix')},
+ '7-chord3d': {'ka': ('აკორდები 3D ტარზე', '17 ლადი, 360°-ით ბრუნვა'),
+               'en': ('Chords on a 3D neck', '17 frets, turn it all the way round')},
+ '8-tools':   {'ka': ('ტიუნერზე მეტი', 'მეტრონომი, აკორდის ამოცნობა, სიმღერები, ჩანაწერები'),
+               'en': ('More than a tuner', 'Metronome, chord recognition, songs, recordings')},
 }
 
 def rounded(im, r):

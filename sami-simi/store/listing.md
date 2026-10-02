@@ -25,28 +25,30 @@ Character limits are noted in brackets. All texts are counted to fit.
 - KA: `ქართული ფანდურის ტიუნერი`
 
 **Promotional text [170]**
-- EN: `Pluck a string and see exactly which way to turn the peg. Traditional A · C♯ · E tuning, strobe mode and guided tuning for beginners.`
-- KA: `ჩამოკარი სიმი და ნახე, საით დაატრიალო მომჭერი. ტრადიციული წყობა ლა · დო♯ · მი, სტრობ-რეჟიმი და ნაბიჯ-ნაბიჯ აწყობა დამწყებთათვის.`
+- EN: `Tune by plucking one string or strumming all three. Chords on a 3D neck, chord recognition, a metronome and reference tones recorded from a real panduri.`
+- KA: `ააწყე ერთი სიმით ან სამივე ერთად. აკორდები 3D ტარზე, აკორდის ამოცნობა, მეტრონომი და ნამდვილი ფანდურიდან ჩაწერილი ბგერა.`
 
 **Keywords [100]**
-- EN: `panduri,georgian,tuner,folk,strobe,tuning,string,instrument,georgia,chromatic,pitch`
-- KA: `ფანდური,ტიუნერი,წყობა,აწყობა,ხალხური,ქართული,სიმი,ინსტრუმენტი,სტრობი,ლა,მი`
+- EN: `panduri,georgian,tuner,chords,metronome,folk,strobe,tuning,string,georgia,pitch,ear training`
+- KA: `ფანდური,ტიუნერი,წყობა,აწყობა,აკორდები,მეტრონომი,ხალხური,ქართული,სიმი,სტრობი`
 
 **App Privacy (nutrition label):** choose **“Data Not Collected”**.
 
-**Microphone purpose string:** already set in the app — *“Sami Simi listens to your panduri through the microphone to measure its pitch. Sound is analysed on the device and is never recorded or sent.”*
+**Microphone purpose string:** already set in the app — *“Sami Simi listens to your panduri to measure its pitch and recognise chords. Sound is analysed on your device and is never sent anywhere. It is recorded only when you choose to make a recording, which stays on your device.”*
+
+“Data Not Collected” stays correct: recordings, songs and settings never leave the device, and Apple counts data as collected only when it is sent off the device.
 
 **Encryption:** the app declares `ITSAppUsesNonExemptEncryption = NO`, so there is no export-compliance questionnaire.
 
 ## Google Play
 
 **Short description [80]**
-- EN: `Precise tuner for the three-string Georgian panduri — A · C♯ · E, strobe, guided`
-- KA: `ზუსტი ტიუნერი სამსიმიანი ქართული ფანდურისთვის — ლა · დო♯ · მი, სტრობი`
+- EN: `Tuner, chords & metronome for the Georgian panduri — A · C♯ · E`
+- KA: `ტიუნერი, აკორდები და მეტრონომი ქართული ფანდურისთვის — ლა · დო♯ · მი`
 
 **Data safety:**
 - “Does your app collect or share user data?” → **No**.
-- The microphone audio is processed on the device in real time and never leaves it. Under Google’s rules this does not count as “collected”.
+- The microphone audio is processed on the device in real time and never leaves it. Recordings the user makes stay on the device. Under Google’s rules neither counts as “collected”.
 
 **Content rating questionnaire:** category *Utility / Productivity / Communication / Other*. Answer **No** to every question.
 
@@ -60,15 +62,22 @@ Sami Simi is a tuner made for one instrument: the three-string Georgian panduri.
 Pluck a string and the tuner tells you which string it is, how many cents it is off, and which way to turn the peg — “Tighten slightly”, “Loosen a bit more”, “Perfectly in tune”. The traditional tuning is built in: string 1 — A (220 Hz), string 2 — C♯ (277.18 Hz), string 3 — E (329.63 Hz).
 
 PRECISE
-• Pitch engine designed for plucked strings: it ignores the pick attack, rejects overtones and octave mistakes, and holds the last steady reading as the note fades.
+• Pitch engine tuned on a real panduri: it measures the true fundamental even when the overtones are out of tune, ignores the pick attack and octave mistakes, and holds the last steady reading as the note fades.
 • Fine scale around zero, so the last few cents are easy to see.
 • Strobe mode for fine tuning — the bands stop when the string is exactly in tune.
 
-EASY
+FAST
+• All three at once: strum the open strings once and see which string to tighten or loosen.
 • Auto mode recognises the string you play.
 • Guided tuning for beginners: A, then C♯, then E — it moves on by itself.
-• Simple view without hertz or cents for those who just want “tighten / loosen”.
-• Reference tones that sound like a plucked panduri, plus a chord button to hear all three strings.
+• Reference tones recorded from a real panduri, plus a chord button to hear all three strings.
+
+PLAY
+• Chords on a 17-fret 3D neck you can turn all the way round.
+• Chord recognition: strum and the app names the chord and checks each string.
+• Metronome with a panduri sound, ear training and play-along exercises.
+• Your songbook with chords — tap a chord to see and hear it, transpose with one tap.
+• Record your playing and see how in tune you were.
 
 YOURS
 • Transpose the whole tuning, change the octave, calibrate A4 from 430 to 450 Hz.
@@ -76,7 +85,7 @@ YOURS
 • Works offline — at rehearsal, in the village, on stage.
 
 PRIVATE
-Sound is analysed on your phone only. No recordings, no account, no ads, no tracking.
+Sound is analysed on your phone only. Your recordings, songs and settings stay on your device. No account, no ads, no tracking.
 ```
 
 ## Full description — Georgian [4000]
@@ -87,15 +96,22 @@ Sound is analysed on your phone only. No recordings, no account, no ads, no trac
 ჩამოკარი სიმი და ტიუნერი გეტყვის, რომელი სიმია, რამდენი ცენტით გადაცდა და საით დაატრიალო მომჭერი — „ოდნავ მოუჭირე“, „კიდევ ცოტათი მოუშვი“, „ზუსტად აწყობილია“. ტრადიციული წყობა უკვე ჩაშენებულია: სიმი 1 — ლა (220 ჰც), სიმი 2 — დო♯ (277.18 ჰც), სიმი 3 — მი (329.63 ჰც).
 
 ზუსტი
-• ჩამოკრული სიმისთვის შექმნილი ძრავა: არ ერევა ჩამოკვრის ხმაური, ობერტონები და ოქტავის შეცდომები; როცა ბგერა ქრება, ბოლო სტაბილურ ჩვენებას ინარჩუნებს.
+• ძრავა ნამდვილ ფანდურზეა გამართული: ძირითად ტონს ზომავს მაშინაც, როცა ობერტონები აცდენილია; არ ერევა ჩამოკვრის ხმაური და ოქტავის შეცდომები; როცა ბგერა ქრება, ბოლო სტაბილურ ჩვენებას ინარჩუნებს.
 • ნულთან შკალა უფრო წვრილია — ბოლო ცენტები კარგად ჩანს.
 • სტრობ-რეჟიმი წვრილი აწყობისთვის — ზოლები ჩერდება, როცა სიმი ზუსტადაა აწყობილი.
 
-მარტივი
+სწრაფი
+• სამივე სიმი ერთად: ერთხელ ჩამოკარი ღია სიმები და ნახე, რომელი უნდა მოუჭირო ან მოუშვა.
 • „ავტო“ რეჟიმი თავად ცნობს, რომელ სიმს უკრავ.
 • ნაბიჯ-ნაბიჯ აწყობა დამწყებთათვის: ჯერ ლა, მერე დო♯, ბოლოს მი.
-• მარტივი ჩვენება ჰერცების და ცენტების გარეშე — მხოლოდ „მოუჭირე / მოუშვი“.
-• ეტალონური ბგერა, რომელიც ჩამოკრულ ფანდურის სიმს ჰგავს, და აკორდი სამივე სიმის მოსასმენად.
+• ეტალონური ბგერა ნამდვილი ფანდურიდანაა ჩაწერილი; აკორდით სამივე სიმს ერთად მოისმენ.
+
+დაკვრა
+• აკორდები 17-ლადიან 3D ტარზე, რომელსაც ყველა მხრიდან დაატრიალებ.
+• აკორდის ამოცნობა: ჩამოკარი და აპი გეტყვის, რა აკორდია, და თითო სიმს შეამოწმებს.
+• მეტრონომი ფანდურის ხმით, სმენის ვარჯიში და ნოტებზე დაკვრის სავარჯიშოები.
+• შენი სიმღერები აკორდებით — შეეხე აკორდს, რომ ნახო და მოისმინო; ტრანსპოზიცია ერთი შეხებით.
+• ჩაიწერე დაკვრა და ნახე, რამდენად აწყობილად უკრავდი.
 
 შენზე მორგებული
 • მთელი წყობის ტრანსპოზიცია, ოქტავის შეცვლა, A4 კალიბრაცია 430–450 ჰც.
@@ -103,7 +119,7 @@ Sound is analysed on your phone only. No recordings, no account, no ads, no trac
 • მუშაობს ინტერნეტის გარეშე — რეპეტიციაზე, სოფელში, სცენაზე.
 
 კონფიდენციალური
-ხმა მუშავდება მხოლოდ შენს ტელეფონში. არც ჩანაწერი, არც ანგარიში, არც რეკლამა.
+ხმა მუშავდება მხოლოდ შენს ტელეფონში. ჩანაწერები, სიმღერები და პარამეტრები შენთან რჩება. არც ანგარიში, არც რეკლამა.
 ```
 
 ## Graphics (in this folder)
@@ -118,3 +134,6 @@ Sound is analysed on your phone only. No recordings, no account, no ads, no trac
 | `../assets/store/play-icon-512.png` | Google Play icon |
 
 Use the `ka` screenshots for the Georgian listing and the `en` ones for the English listing.
+There are 8 per device and language: Google Play accepts up to 8, the App Store up to 10. Suggested upload order: 1 (tighten), 6 (all three at once), 7 (chords on 3D neck), 2 (in tune), 3 (strobe), 4 (guided), 8 (tools), 5 (settings).
+
+To regenerate: serve the repo root, then `node scripts/screens.cjs <url>/sami-simi/app/ store/screens-raw tune.wav guided.wav`, `node scripts/screens-tools.cjs <url>/sami-simi/app/ store/screens-raw strum.wav`, `python3 scripts/frame.py`.
