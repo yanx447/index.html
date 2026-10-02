@@ -76,7 +76,11 @@
   </section>
 
   <section class="stage" id="stage">
-    <svg id="head" class="head" viewBox="0 8 300 408" role="group" data-i18n-aria="aria.head"></svg>
+    <svg id="head" class="head" viewBox="10 12 280 396" role="group" data-i18n-aria="aria.head"></svg>
+    <button type="button" class="stage-3d" id="open3d" data-i18n-aria="aria.open3d">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7.5 4.2v9.6L12 21l-7.5-4.2V7.2z"/><path d="M12 12l7.5-4.8M12 12L4.5 7.2M12 12v9"/></svg>
+      <span>360°</span>
+    </button>
     <div class="complete" id="complete" hidden role="alert">
       <div class="complete-card">
         <svg class="complete-check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" pathLength="100"/><path d="M20 33l8 8 16-17" pathLength="100"/></svg>
@@ -226,7 +230,7 @@
         <div class="field"><a class="btn-row link" id="privacyLink" href="../privacy.html" target="_blank" rel="noopener" data-i18n="set.privacy">კონფიდენციალურობა</a></div>
         <div class="field"><a class="btn-row link" id="supportLink" href="../support.html" target="_blank" rel="noopener" data-i18n="set.support">დახმარება</a></div>
       </div>
-      <p class="about"><span data-i18n="set.about"></span> <span id="version">v1.0.1</span></p>
+      <p class="about"><span data-i18n="set.about"></span> <span id="version">v1.1.0</span></p>
     </section>
   </div>
 </section>
@@ -243,6 +247,24 @@
     <button type="button" class="btn-primary" id="micGo"></button>
     <button type="button" class="btn-ghost" id="micCancel"></button>
   </div>
+</section>
+
+<section class="viewer" id="viewer" hidden role="dialog" aria-modal="true" data-i18n-aria="v3d.title">
+  <canvas id="v3d" class="v3d" aria-hidden="true"></canvas>
+  <header class="viewer-top">
+    <button type="button" class="icon-btn" id="v3dClose" data-i18n-aria="aria.close">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+    </button>
+    <div class="viewer-read">
+      <span class="v3d-note" id="v3dNote">A3</span>
+      <span class="instruction v3d-ins" id="v3dIns" data-tone="neutral"></span>
+    </div>
+    <button type="button" class="icon-btn" id="v3dReset" data-i18n-aria="aria.reset3d">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>
+    </button>
+  </header>
+  <p class="viewer-hint" data-i18n="v3d.hint"></p>
+  <p class="viewer-loading" id="v3dLoading" hidden data-i18n="v3d.loading"></p>
 </section>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

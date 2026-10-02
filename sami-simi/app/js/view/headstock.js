@@ -90,7 +90,7 @@ export class Headstock {
 
     const pegs = PEGS.map((p, i) => this.pegMarkup(p, i)).join('');
 
-    this.svg.setAttribute('viewBox', `0 8 ${W} ${H - 8}`);
+    this.svg.setAttribute('viewBox', `10 12 ${W - 20} ${H - 20}`);
     this.svg.innerHTML = `
     <defs>
       <linearGradient id="hsMaple" x1="0" x2="1">

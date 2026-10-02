@@ -259,6 +259,39 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .head .hs-peg.confirm .hs-badge { animation: badgeIn .55s var(--ease-spring) .35s 1 both; }
 @keyframes badgeIn { from { opacity: 0; scale: .4; } to { opacity: 1; scale: 1; } }
 
+/* 360° button on the stage */
+.stage-3d {
+  position: absolute; right: 0; top: 6px; z-index: 2;
+  display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: 12px;
+  font: 600 13px var(--f-num); color: var(--ivory-2);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--hair-2); box-shadow: var(--lift);
+}
+.stage-3d svg { width: 18px; height: 18px; color: var(--brass); }
+.stage-3d:active { transform: scale(.96); }
+
+/* 3D viewer */
+.viewer {
+  position: fixed; inset: 0; z-index: 25; display: flex; flex-direction: column;
+  background: radial-gradient(90% 60% at 50% 35%, #2c1d12 0%, #140e0a 60%, var(--bg) 100%);
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  opacity: 0; transform: scale(.98); transition: opacity .3s var(--ease), transform .3s var(--ease);
+}
+.viewer.open { opacity: 1; transform: none; }
+.v3d { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
+.viewer-top { position: relative; z-index: 1; display: grid; grid-template-columns: 44px 1fr 44px; align-items: start; gap: 10px; padding: 10px 16px; pointer-events: none; }
+.viewer-top > * { pointer-events: auto; }
+.viewer-read { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; pointer-events: none !important; }
+.v3d-note { font: 700 40px/1 var(--f-display); color: var(--ivory); transition: color .3s, opacity .3s; }
+.v3d-note.ghost { opacity: .35; }
+.v3d-note[data-band="excellent"] { color: var(--green); }
+.v3d-note[data-band="close"] { color: var(--green-2); }
+.v3d-note[data-band="adjust"] { color: var(--amber); }
+.v3d-note[data-band="out"] { color: var(--red); }
+.v3d-ins { margin: 0; font-size: 14px; min-height: 36px; }
+.v3d-ins svg { width: 16px; height: 16px; }
+.viewer-hint { text-shadow: 0 1px 6px rgba(0,0,0,.9); position: absolute; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); margin: 0; text-align: center; font-size: 12.5px; color: var(--mute); pointer-events: none; }
+.viewer-loading { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--ivory-2); pointer-events: none; }
+
 /* completion moment */
 .complete { position: absolute; inset: 0; display: grid; place-items: center; z-index: 3; animation: fadeIn .4s var(--ease) 1; }
 .complete-card {

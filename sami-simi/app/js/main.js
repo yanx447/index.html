@@ -47,6 +47,8 @@ let lastNumWrite = 0;
 let wakeLock = null;
 let lastDet = null;
 let micState = 'off';
+let lastLevel = 0;
+let viewer = null, viewerOpen = false;
 
 // ─── views ────────────────────────────────────────────────────────────────────────────
 const meterEl = $('#meter');
@@ -115,6 +117,7 @@ function isIdle() {
 
 // ─── strings & modes ─────────────────────────────────────────────────────────────────
 function setCurrent(i) {
+  queueMicrotask(syncViewer);
   if (i === current && head.active === i) return;
   current = i;
   head.setActive(i);
@@ -163,6 +166,7 @@ function nextUndone(from = 0) {
 
 // ─── done / completion ───────────────────────────────────────────────────────────────
 function resetDone() {
+  queueMicrotask(syncViewer);
   done.fill(false);
   completeShown = false;
   $('#complete').hidden = true;
@@ -170,6 +174,7 @@ function resetDone() {
 }
 
 function markDone(i) {
+  queueMicrotask(syncViewer);
   done[i] = true;
   head.setDone(done, i);
   haptic(18);
@@ -341,6 +346,7 @@ function onSnapshot(snap, now) {
   head.setDirection(current, live && st !== State.IN_TUNE ? (snap.cents < 0 ? 1 : -1) : 0);
   const lvl = hasReading && st !== State.HOLD ? Math.min(1, Math.max(0, Math.log10(snap.rms / (snap.gate || 1e-4)) / 1.4)) : 0;
   head.setSignal(current, lvl);
+  lastLevel = lvl;
 
   // mic level bars (real RMS)
   const L = running ? Math.min(1, Math.max(0, (20 * Math.log10(snap.rms + 1e-9) + 62) / 50)) : 0;
@@ -354,6 +360,7 @@ function onSnapshot(snap, now) {
   else if (live && (snap.octaveOffset || Math.abs(snap.cents) > 250)) renderSub();
 
   diag.update(snap, lastDet, { mode: S.mode, autoSens: S.autoSens, sampleRate: running ? input.sampleRate : 0, target: model.strings[current].freq });
+  syncViewer();
   requestRender();
 }
 
@@ -627,6 +634,56 @@ function bindSettings() {
   };
 }
 
+
+// ─── 3D view (lazy-loaded) ──────────────────────────────────────────────────────────
+function syncViewer() {
+  if (!viewerOpen || !viewer) return;
+  const simple = S.ui === 'simple';
+  viewer.sync({
+    active: current, done, level: running ? lastLevel : 0,
+    labels: model.strings.map((s) => (simple ? noteName(s) : s.latin)),
+  });
+  $('#v3dNote').textContent = el.noteMain.textContent + (el.noteOct.textContent ? el.noteOct.textContent : '');
+  $('#v3dNote').dataset.band = meterEl.dataset.band || '';
+  $('#v3dNote').classList.toggle('ghost', meterEl.dataset.state !== 'live');
+  const ins = $('#v3dIns');
+  ins.dataset.tone = el.ins.dataset.tone;
+  ins.innerHTML = el.insIco.innerHTML + '<span></span>';
+  ins.lastChild.textContent = el.insText.textContent;
+}
+
+async function openViewer() {
+  const v = $('#viewer');
+  v.hidden = false;
+  requestAnimationFrame(() => v.classList.add('open'));
+  viewerOpen = true;
+  $('#app').setAttribute('aria-hidden', 'true');
+  if (!viewer) {
+    $('#v3dLoading').hidden = false;
+    try {
+      const { Headstock3D } = await import('./view/headstock3d.js');
+      viewer = new Headstock3D($('#v3d'), { onPick: (i) => pickString(i) });
+    } catch (e) {
+      $('#v3dLoading').textContent = t('v3d.nogl');
+      return;
+    }
+    $('#v3dLoading').hidden = true;
+  }
+  viewer.start();
+  syncViewer();
+  setTimeout(() => $('#v3dClose').focus({ preventScroll: true }), 50);
+}
+
+function closeViewer() {
+  const v = $('#viewer');
+  v.classList.remove('open');
+  viewerOpen = false;
+  $('#app').removeAttribute('aria-hidden');
+  if (viewer) viewer.stop();
+  setTimeout(() => { if (!viewerOpen) v.hidden = true; }, 320);
+  $('#open3d').focus({ preventScroll: true });
+}
+
 // ─── parallax ────────────────────────────────────────────────────────────────────────
 let pxRaf = 0, pxX = 0, pxY = 0;
 function onPointerMove(e) {
@@ -667,6 +724,10 @@ function bind() {
     reference.play(model.strings[current].freq, current); markRefPlaying();
   });
   $('#chordBtn').addEventListener('click', () => { reference.stop(); reference.playChord(model.strings); markRefPlaying(); });
+  $('#open3d').addEventListener('click', openViewer);
+  $('#v3dClose').addEventListener('click', closeViewer);
+  $('#v3dReset').addEventListener('click', () => viewer && viewer.reset());
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && viewerOpen) closeViewer(); });
   $('#meterToggle').addEventListener('click', () => { setMeterView(S.meter === 'needle' ? 'strobe' : 'needle'); persist(); renderSettings(); });
   $('#openSettings').addEventListener('click', () => openSheet('#settings'));
   $('#brand').addEventListener('click', () => { if (!brandLong) openSheet('#settings'); brandLong = false; });
@@ -713,6 +774,7 @@ function applyLanguage() {
   if (!running || isIdle()) showIdleNote();
   updateInstruction(true);
   renderSub();
+  syncViewer();
 }
 
 // ─── boot ────────────────────────────────────────────────────────────────────────────

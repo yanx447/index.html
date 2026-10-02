@@ -1,7 +1,7 @@
 // Service worker — offline app shell. Bump VERSION on every release; the old cache is dropped.
 // Nothing here touches microphone permissions: those stay with the browser.
 
-const VERSION = 'sami-simi-v1.0.1';
+const VERSION = 'sami-simi-v1.1.0';
 const SHELL = [
   './',
   './index.html',
@@ -19,6 +19,8 @@ const SHELL = [
   './js/view/meter.js',
   './js/view/strobe.js',
   './js/view/headstock.js',
+  './js/view/headstock3d.js',
+  './vendor/three-lite.js',
   './js/view/trace.js',
   './js/view/diagnostics.js',
   './fonts/NotoSansGeorgian.woff',
