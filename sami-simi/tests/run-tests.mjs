@@ -286,6 +286,43 @@ console.log('\nAll three at once (one strum, each string measured)');
   }
 }
 
+console.log('\nAccidentally changed settings');
+{
+  const { tuningChanges, recommended, StandardWatch } = await import('../app/js/drift.js');
+  const { DEFAULTS } = await import('../app/js/settings.js');
+  const base = { ...DEFAULTS };
+  ok(tuningChanges(base).length === 0, 'recommended settings: no notice');
+  const messy = { ...base, transpose: 2, a4: 445, lang: 'en', ui: 'simple', meter: 'strobe' };
+  ok(tuningChanges(messy).map((c) => c.key).join() === 'transpose,a4', 'notice lists only tuning changes', tuningChanges(messy).map((c) => c.key).join());
+  const r = recommended(messy);
+  ok(r.transpose === 0 && r.a4 === 440 && r.lang === 'en' && r.ui === 'simple' && r.meter === 'strobe', 'restore keeps language and view');
+  ok(tuningChanges(recommended({ ...base, autoSens: false, sens: 2, refVolume: 0 })).length === 0, 'restore fixes deaf sensitivity and silent reference');
+  ok(tuningChanges({ ...base, autoSens: false, sens: 7 }).length === 0, 'normal manual sensitivity is not flagged');
+
+  // stream real plucks through detector + tracker and feed the watch exactly like the app
+  const watchRun = (settings, plucks) => {
+    const m = new TuningModel(settings);
+    const buf = new Float32Array(SR * (1 + plucks.length * 1.6)); addNoise(buf, 0.0008);
+    plucks.forEach((f, k) => pluck(buf, 1 + k * 1.6, f));
+    const det = new PitchDetector(SR), tr = new PitchTracker(), w = new StandardWatch();
+    tr.configure({ strings: m.strings, mode: 'auto', selected: 0, autoSens: true, sens: 6, tol: 3 }); tr.begin(0);
+    for (let e = 4096; e <= buf.length; e += SR / 30) {
+      const i = Math.floor(e), s = tr.update(det.analyze(buf.subarray(i - 4096, i), tr.prior), (i / SR) * 1000);
+      if ((s.state === 'valid' || s.state === 'intune' || s.state === 'unstable') && w.push(s.rawFreq, m.strings.map((x) => x.freq))) return (i / SR);
+    }
+    return null;
+  };
+  const std = [220, 277.1826, 329.6276];
+  const t1 = watchRun({ ...base, transpose: 2 }, std);
+  ok(t1 != null && t1 < 4.5, 'standard panduri + transposed settings → restored automatically', t1 ? `after ${t1.toFixed(1)} s` : 'not detected');
+  const t2 = watchRun({ ...base, octave: 1 }, [220, 220]);
+  ok(t2 == null, 'octave change alone is not mistaken (octave-folded targets still match)', t2 ? 'fired' : 'no false alarm');
+  const t3 = watchRun({ ...base, transpose: 2 }, std.map((f) => f * Math.pow(2, 2 / 12)));
+  ok(t3 == null, 'panduri really tuned up 2 semitones → no false alarm');
+  const t4 = watchRun({ ...base, a4: 442 }, std);
+  ok(t4 == null, 'small A4 change (442 Hz) → notice only, no automatic change');
+}
+
 console.log('\nReference tone pitch');
 for (const sr of [48000, 44100]) {
   const det = new PitchDetector(sr);

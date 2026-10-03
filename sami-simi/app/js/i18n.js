@@ -59,6 +59,11 @@ const DICT = {
     'toast.micEnded': 'მიკროფონი გაითიშა (მაგ. ზარის გამო). ჩართე ხელახლა.',
     'toast.statusReset': 'აწყობის სტატუსი გასუფთავდა',
     'toast.settingsReset': 'პარამეტრები დაბრუნდა საწყისზე',
+    'drift.title': 'პარამეტრები შეცვლილია', 'drift.restore': 'რეკომენდირებული', 'drift.dismiss': 'დატოვე ასე',
+    'drift.presetId': 'წყობა: {v}', 'drift.transpose': 'ტრანსპოზიცია {v}', 'drift.octave': 'ოქტავა: {v}', 'drift.a4': 'A4 = {v} ჰც',
+    'drift.sens': 'მგრძნობელობა ძალიან დაბალია', 'drift.refVolume': 'ეტალონის ხმა თითქმის გამორთულია',
+    'drift.restored': 'რეკომენდირებული პარამეტრები დაბრუნდა', 'drift.detected': 'შენი ფანდური სტანდარტულადაა აწყობილი — რეკომენდირებული პარამეტრები დავაბრუნე',
+    'drift.undo': 'გაუქმება', 'set.recommended': 'რეკომენდირებული პარამეტრები', 'set.recommendedNote': 'წყობა ლა · დო♯ · მი, A4 = 440 ჰც. ენა და ხედი არ შეიცვლება.',
     'toast.diagOn': 'დიაგნოსტიკა ჩართულია', 'toast.diagOff': 'დიაგნოსტიკა გამორთულია',
     'announce.done': 'ფანდური აწყობილია', 'announce.string': '{note} აწყობილია',
 
@@ -172,6 +177,11 @@ const DICT = {
     'toast.micEnded': 'Microphone stopped (for example by a call). Turn it on again.',
     'toast.statusReset': 'Tuning status cleared',
     'toast.settingsReset': 'Settings restored to defaults',
+    'drift.title': 'Settings changed', 'drift.restore': 'Recommended', 'drift.dismiss': 'Keep as is',
+    'drift.presetId': 'Tuning: {v}', 'drift.transpose': 'Transpose {v}', 'drift.octave': 'Octave: {v}', 'drift.a4': 'A4 = {v} Hz',
+    'drift.sens': 'Sensitivity very low', 'drift.refVolume': 'Reference tone almost silent',
+    'drift.restored': 'Recommended settings restored', 'drift.detected': 'Your panduri is in standard tuning — recommended settings restored',
+    'drift.undo': 'Undo', 'set.recommended': 'Recommended settings', 'set.recommendedNote': 'A · C♯ · E tuning, A4 = 440 Hz. Language and view stay as they are.',
     'toast.diagOn': 'Diagnostics on', 'toast.diagOff': 'Diagnostics off',
     'announce.done': 'Panduri is in tune', 'announce.string': '{note} is in tune',
 

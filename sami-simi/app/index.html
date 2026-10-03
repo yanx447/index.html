@@ -39,6 +39,7 @@
       </span>
     </button>
     <div class="top-actions">
+      <button class="icon-btn lang-btn" id="langBtn" type="button" aria-label="Language · ენა"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"/></svg><span id="langBtnTxt">EN</span></button>
       <button class="icon-btn" id="openTools" type="button" data-i18n-aria="tool.title" aria-haspopup="dialog">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>
       </button>
@@ -50,7 +51,14 @@
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
       </button>
     </div>
+    <div class="drift" id="drift" hidden role="status" aria-live="polite">
+      <svg class="drift-ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"/><path d="M10.3 3.9L2.6 17.5a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <div class="drift-txt"><strong id="driftTitle"></strong><span id="driftList"></span></div>
+      <button type="button" class="drift-go" id="driftGo"></button>
+      <button type="button" class="drift-x" id="driftX"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
   </header>
+
 
   <section class="instrument" id="instrument" data-i18n-aria="aria.instrument">
     <div class="meter" id="meter" data-view="needle">
@@ -130,6 +138,10 @@
     </button>
   </header>
   <div class="sheet-body">
+    <button type="button" class="recommend" id="recommendBtn">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>
+      <span><strong data-i18n="set.recommended">რეკომენდირებული პარამეტრები</strong><small data-i18n="set.recommendedNote"></small></span>
+    </button>
     <section class="group">
       <h3 data-i18n="set.g.tuning">წყობა</h3>
       <div class="card">
@@ -233,7 +245,7 @@
         <div class="field"><a class="btn-row link" id="privacyLink" href="../privacy.html" target="_blank" rel="noopener" data-i18n="set.privacy">კონფიდენციალურობა</a></div>
         <div class="field"><a class="btn-row link" id="supportLink" href="../support.html" target="_blank" rel="noopener" data-i18n="set.support">დახმარება</a></div>
       </div>
-      <p class="about"><span data-i18n="set.about"></span> <span id="version">v1.4.0</span></p>
+      <p class="about"><span data-i18n="set.about"></span> <span id="version">v1.5.0</span></p>
     </section>
   </div>
 </section>

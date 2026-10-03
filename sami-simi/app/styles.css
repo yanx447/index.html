@@ -686,3 +686,41 @@ textarea.txt { resize: vertical; line-height: 1.6; }
 .v3d-note { text-shadow: 0 2px 14px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.6); }
 .viewer::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(0deg, rgba(18,13,10,.85), rgba(18,13,10,0)); pointer-events: none; }
 .viewer-hint { z-index: 1; }
+
+/* ── language button (header) ─────────────────────────────────────── */
+.lang-btn { display: flex; align-items: center; width: auto; padding: 0 10px 0 8px; gap: 5px; font: 700 13px var(--f-ui); letter-spacing: .02em; color: var(--ivory-2); }
+.lang-btn svg { width: 17px; height: 17px; flex: none; }
+
+/* ── changed-settings notice ──────────────────────────────────────── */
+.top { position: relative; }
+.drift { position: absolute; z-index: 10; left: 0; right: 0; top: calc(100% + 2px); display: grid; grid-template-columns: 20px 1fr auto; grid-template-areas: 'ico txt x' 'ico go x'; align-items: center; column-gap: 10px; row-gap: 8px; padding: 11px 6px 11px 12px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background-color: rgba(30,22,16,.92) !important; border-radius: var(--r-m); background-image: linear-gradient(180deg, rgba(217,162,74,.16), rgba(217,162,74,.08)); border: 1px solid rgba(217,162,74,.42); box-shadow: 0 8px 24px rgba(0,0,0,.35); animation: drift-in .45s var(--ease) both; }
+.drift[hidden] { display: none; }
+.drift.ok { background-image: linear-gradient(180deg, rgba(140,192,132,.16), rgba(140,192,132,.07)); border-color: rgba(140,192,132,.45); }
+.drift-ico { grid-area: ico; align-self: start; margin-top: 1px; width: 20px; height: 20px; color: var(--amber); }
+.drift.ok .drift-ico { color: var(--green); }
+.drift-txt { grid-area: txt; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.drift-txt strong { font: 600 13.5px var(--f-ui); color: var(--ivory); }
+.drift-txt span { font: 500 12px/1.35 var(--f-ui); color: var(--ivory-2); }
+.drift-go { grid-area: go; justify-self: start; height: 34px; padding: 0 12px; border-radius: 10px; font: 700 13px var(--f-ui); color: #1b120a; background: linear-gradient(180deg, var(--brass-hi), var(--brass)); box-shadow: var(--lift); white-space: nowrap; }
+.drift.ok .drift-go { color: var(--ivory); background: rgba(242,233,218,.08); box-shadow: none; border: 1px solid var(--hair-2); }
+.drift-x { grid-area: x; align-self: start; width: 30px; height: 30px; display: grid; place-items: center; color: var(--mute); border-radius: 8px; }
+.drift-x svg { width: 15px; height: 15px; }
+@keyframes drift-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* ── recommended settings (top of the settings sheet) ─────────────── */
+.recommend { display: flex; align-items: center; gap: 12px; width: 100%; margin: 4px 0 18px; padding: 14px 14px; border-radius: var(--r-l); text-align: left; color: var(--ivory); background: linear-gradient(180deg, rgba(212,166,85,.16), rgba(212,166,85,.07)); border: 1px solid rgba(212,166,85,.4); }
+.recommend svg { width: 24px; height: 24px; flex: none; color: var(--brass-hi); }
+.recommend span { display: flex; flex-direction: column; gap: 2px; }
+.recommend strong { font: 600 15px var(--f-ui); }
+.recommend small { font: 500 12.5px/1.35 var(--f-ui); color: var(--mute); }
+
+/* narrow phones: keep the header on one line */
+.brand-name, .brand-preset { white-space: nowrap; }
+@media (max-width: 400px) {
+  .top { gap: 8px; }
+  .top-actions { gap: 6px; }
+  .top .icon-btn { width: 40px; height: 40px; }
+  .top .lang-btn { width: auto; padding: 0 9px; }
+  .lang-btn svg { display: none; }
+}
+@media (max-width: 350px) { .brand-text { display: none; } }

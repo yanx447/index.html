@@ -14,6 +14,7 @@ import { Trace } from './view/trace.js';
 import { Diagnostics } from './view/diagnostics.js';
 import { t, setLang, lang, noteName, applyStatic } from './i18n.js';
 import { makeTr } from './tools/ui.js';
+import { tuningChanges, changeSignature, recommended, StandardWatch } from './drift.js';
 
 const WINDOW = 4096;
 const SITE_URL = 'https://yanx447.github.io/index.html/sami-simi/';
@@ -315,6 +316,8 @@ function onSnapshot(snap, now) {
     else if (now - outOfTuneSince > 900) { done[snap.stringIndex] = false; completeShown = false; head.setDone(done); renderSub(); }
   } else outOfTuneSince = 0;
 
+  if (live || st === State.UNSTABLE) watchStandard(snap);
+
   // meter + strobe
   if (live) {
     gauge.set(snap.cents, 'live', st === State.IN_TUNE);
@@ -568,6 +571,73 @@ function renderSettings() {
   setSwitch('#haptics', S.haptics && canVibrate);
   $('#haptics').disabled = !canVibrate;
   $('#hapticsNote').textContent = t(canVibrate ? 'set.hapticsNote' : 'set.hapticsNone');
+  renderDrift();
+}
+
+// ─── accidentally changed settings ───────────────────────────────────────────────────
+// A notice on the main screen whenever settings that affect tuning differ from the
+// recommended ones; one tap restores them. If the panduri is clearly in standard tuning
+// while the settings say otherwise, they are restored automatically (with Undo).
+const DRIFT_OK_KEY = 'sami-simi:drift-ok';
+let driftOk = ''; try { driftOk = localStorage.getItem(DRIFT_OK_KEY) || ''; } catch (e) { /* ignore */ }
+let driftUndo = null, driftUndoTimer = 0, driftAuto = false, driftSig = null;
+const standardWatch = new StandardWatch();
+
+function driftValue(c) {
+  if (c.key === 'presetId') return t('preset.' + c.value);
+  if (c.key === 'transpose') return t('set.semitones', { n: (c.value > 0 ? '+' : '−') + Math.abs(c.value) });
+  if (c.key === 'octave') return t(c.value < 0 ? 'set.oct.low' : 'set.oct.high');
+  if (c.key === 'a4') return c.value % 1 ? c.value.toFixed(1) : String(c.value);
+  return '';
+}
+function renderDrift() {
+  const bar = $('#drift'); if (!bar) return;
+  const sig = changeSignature(S);
+  if (sig !== driftSig) { driftSig = sig; standardWatch.reset(); }
+  if (driftUndo) {
+    bar.hidden = false; bar.classList.add('ok');
+    $('#driftTitle').textContent = t(driftAuto ? 'drift.detected' : 'drift.restored');
+    $('#driftList').textContent = '';
+    $('#driftGo').textContent = t('drift.undo');
+    $('#driftX').setAttribute('aria-label', t('aria.close'));
+    return;
+  }
+  const ch = tuningChanges(S);
+  bar.classList.remove('ok');
+  if (!ch.length || sig === driftOk) { bar.hidden = true; return; }
+  bar.hidden = false;
+  $('#driftTitle').textContent = t('drift.title');
+  $('#driftList').textContent = ch.map((c) => t('drift.' + c.key, { v: driftValue(c) })).join(' · ');
+  $('#driftGo').textContent = t('drift.restore');
+  $('#driftX').setAttribute('aria-label', t('drift.dismiss'));
+}
+function restoreRecommended(auto) {
+  const prev = { ...S };
+  S = recommended(S); persist();
+  resetDone(); current = S.mode === 'auto' ? current : S.selected;
+  applyAll();
+  driftUndo = prev; driftAuto = auto;
+  clearTimeout(driftUndoTimer);
+  driftUndoTimer = setTimeout(() => { driftUndo = null; renderDrift(); }, auto ? 12000 : 8000);
+  renderDrift();
+  haptic([12, 50, 12]);
+}
+function driftAction() {
+  if (driftUndo) { // undo: the player meant it — don't nag about this combination again
+    S = driftUndo; driftUndo = null; clearTimeout(driftUndoTimer);
+    driftOk = changeSignature(S); try { localStorage.setItem(DRIFT_OK_KEY, driftOk); } catch (e) { /* ignore */ }
+    persist(); resetDone(); applyAll(); return;
+  }
+  restoreRecommended(false);
+}
+function driftDismiss() {
+  if (driftUndo) { driftUndo = null; clearTimeout(driftUndoTimer); renderDrift(); return; }
+  driftOk = changeSignature(S); try { localStorage.setItem(DRIFT_OK_KEY, driftOk); } catch (e) { /* ignore */ }
+  renderDrift();
+}
+function watchStandard(snap) {
+  if (!driftSig || driftSig === driftOk || driftUndo) return;
+  if (standardWatch.push(snap.rawFreq, model.strings.map((x) => x.freq))) restoreRecommended(true);
 }
 function setSwitch(sel, v) { $(sel).setAttribute('aria-checked', String(!!v)); }
 
@@ -836,6 +906,10 @@ function bind() {
   document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; if (viewerOpen) closeViewer(); else if (activeTool) closeTool(); });
   $('#meterToggle').addEventListener('click', () => { setMeterView(S.meter === 'needle' ? 'strobe' : 'needle'); persist(); renderSettings(); });
   $('#openSettings').addEventListener('click', () => openSheet('#settings'));
+  $('#langBtn').addEventListener('click', () => { S.lang = lang() === 'ka' ? 'en' : 'ka'; persist(); applyLanguage(); });
+  $('#driftGo').addEventListener('click', driftAction);
+  $('#driftX').addEventListener('click', driftDismiss);
+  $('#recommendBtn').addEventListener('click', () => { const was = tuningChanges(S).length; restoreRecommended(false); if (!was) toast(t('drift.restored')); closeSheet(); });
   $('#brand').addEventListener('click', () => { if (!brandLong) openSheet('#settings'); brandLong = false; });
   $('#scrim').addEventListener('click', closeSheet);
   document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', closeSheet));
@@ -870,9 +944,16 @@ function bind() {
 }
 let brandLong = false;
 
+function renderLangBtn() {
+  const ka = lang() === 'ka';
+  $('#langBtnTxt').textContent = ka ? 'EN' : 'ქა';
+  $('#langBtn').setAttribute('aria-label', ka ? 'Switch to English' : 'ქართულზე გადართვა');
+  $('#langBtn').setAttribute('lang', ka ? 'en' : 'ka');
+}
 function applyLanguage() {
   setLang(S.lang);
   applyStatic();
+  renderLangBtn();
   setMicUI(micState);
   el.refLbl.textContent = t(el.ref.classList.contains('playing') ? 'dock.refStop' : 'dock.ref');
   lastNoteKey = '';
@@ -888,6 +969,7 @@ function applyLanguage() {
 bind();
 setLang(S.lang);
 applyStatic();
+renderLangBtn();
 setMicUI('off');
 applyAll();
 setCurrent(S.mode === 'auto' ? 0 : S.selected);
