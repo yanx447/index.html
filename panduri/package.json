@@ -1,0 +1,19 @@
+{
+  "name": "panduri-learning",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Panduri Learning — learn the Georgian three-string panduri on your real instrument; the app listens through the microphone.",
+  "scripts": {
+    "android": "bash scripts/native-setup.sh android && npx cap open android",
+    "ios": "bash scripts/native-setup.sh ios && npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0"
+  }
+}

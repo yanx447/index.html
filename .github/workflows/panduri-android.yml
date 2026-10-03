@@ -1,0 +1,64 @@
+name: Panduri Learning — Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'panduri/**'
+      - '!panduri/**.md'
+      - '.github/workflows/panduri-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: panduri-android
+  cancel-in-progress: true
+
+jobs:
+  build:
+    defaults:
+      run:
+        working-directory: panduri
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install
+        run: npm install --no-audit --no-fund
+
+      - name: Native project
+        run: bash scripts/native-setup.sh android
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+
+      - name: APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../Panduri.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: panduri-android-${{ github.run_number }}
+          path: panduri/Panduri.apk
+
+      - name: Publish download (GitHub Release "panduri-android-latest")
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete panduri-android-latest --yes --cleanup-tag || true
+          gh release create panduri-android-latest Panduri.apk --prerelease \
+            --title "ფანდური — Android #${{ github.run_number }}" \
+            --notes "Panduri Learning for Android (v$(node -p "require('./package.json').version"), build ${{ github.run_number }}). Open this page on your Android phone, download Panduri.apk and install it (allow installs from this source when asked)."
