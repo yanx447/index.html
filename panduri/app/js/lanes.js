@@ -11,7 +11,7 @@
 PD.Lanes = function (canvas, opt) {
   opt = opt || {};
   const ctx = canvas.getContext('2d'), E = PD.engine, S = E.S, TH = PD.theory;
-  const G = { W: 1, H: 1 }, self = { mirror: false, rhythm: !!opt.rhythm, G };
+  const G = { W: 1, H: 1 }, self = { mirror: false, rhythm: !!opt.rhythm, song: !!opt.song, G };
   const fx = {};   // per step: { hit, wrong, grade, gradeT }
   let dpr = 1, count = 0, countT = 0;
   const FONT = "'Noto Sans Georgian', system-ui, sans-serif";
@@ -27,7 +27,8 @@ PD.Lanes = function (canvas, opt) {
     G.px = Math.round(Math.max(64, Math.min(170, W * .2)));
     G.beats = W < 520 ? 4 : W < 900 ? 5.5 : 7;
     G.ppb = Math.max(56, (W - G.px - 16) / G.beats);
-    if (self.rhythm) { G.cy = H * .46; G.R = Math.max(20, Math.min(46, H * .2, G.ppb * .36)); }
+    if (self.song) { G.beats = W < 520 ? 6 : W < 900 ? 8 : 10; G.ppb = Math.max(40, (W - G.px - 16) / G.beats); G.cy = H * .5; G.bh = Math.max(64, Math.min(150, H * .56)); }
+    else if (self.rhythm) { G.cy = H * .46; G.R = Math.max(20, Math.min(46, H * .2, G.ppb * .36)); }
     else {
       const top = 10, bot = H - 10, gap = (bot - top) / 3;
       G.lane = { 3: top + gap * .5, 2: top + gap * 1.5, 1: top + gap * 2.5 }; G.gap = gap;
@@ -138,11 +139,71 @@ PD.Lanes = function (canvas, opt) {
     }
   }
 
+
+  /* ---------- song: chord blocks per bar, stroke arrows inside, section names above ---------- */
+  const CHC = ['#C9773F', '#8E3B22', '#D9A25B', '#6E8B5A', '#B4573A', '#A3814F'];
+  const chordCol = {};
+  function ccol(n) { if (!chordCol[n]) chordCol[n] = CHC[Object.keys(chordCol).length % CHC.length]; return chordCol[n]; }
+  function drawSong(tm) {
+    const now = E.visualNow(), px = PX(), bpb = E.bpb(), cy = G.cy, bh = G.bh, y0 = cy - bh / 2;
+    const v0 = now - 2, v1 = now + G.beats + 1;
+    // listen sections and section names
+    (S.lesson.sections || []).forEach(sc => {
+      if (sc.to < v0 || sc.from > v1) return;
+      const xa = X(sc.from), xb = X(sc.to);
+      if (sc.kind === 'listen') { const l = Math.min(xa, xb), w = Math.abs(xb - xa); ctx.fillStyle = 'rgba(255,236,210,.05)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(l + 2, y0, w - 4, bh, 14) : ctx.rect(l, y0, w, bh); ctx.fill();
+        const lx = Math.max(Math.min(xa, xb) + 16, px + 16); if (lx < Math.max(xa, xb) - 40) { ctx.fillStyle = 'rgba(255,236,210,.55)'; ctx.font = '600 14px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('♪ ' + tr('p.listenPart'), lx, cy); } }
+      // section names: upcoming ones at their start; the current one pinned at the play line until the next name arrives
+      const nm = PD.i18n.pick(sc.name), nextX = X(sc.to);
+      if (!self.mirror && Math.abs(xb - xa) > 30) {
+        let lx = xa >= px ? xa + 4 : px + 6;
+        if (xa < px && nextX - lx < 150) lx = null;
+        if (lx != null) { ctx.fillStyle = 'rgba(255,236,210,.62)'; ctx.font = '600 11px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(nm, lx, y0 - 6); }
+      }
+    });
+    // chord blocks: consecutive steps with the same chord inside one bar
+    const runs = []; let cur = null;
+    for (let i = 0; i < S.steps.length; i++) {
+      const st = S.steps[i]; if (st.t + st.d < v0) continue; if (st.t > v1) break;
+      const bar = Math.floor(st.t / bpb + 1e-6);
+      if (cur && cur.name === st.name && cur.bar === bar) { cur.to = st.t + st.d; cur.steps.push(st); }
+      else { cur = { name: st.name, bar, from: st.t, to: st.t + st.d, steps: [st] }; runs.push(cur); }
+    }
+    runs.forEach(r => {
+      const xa = X(r.from), xb = X(r.to), l = Math.min(xa, xb) + 2, w = Math.abs(xb - xa) - 4, col = ccol(r.name);
+      const past = r.to <= now, active = r.from <= now + 1e-6 && r.to > now;
+      ctx.save(); ctx.globalAlpha = past ? .35 : 1;
+      const g = ctx.createLinearGradient(0, y0, 0, y0 + bh); g.addColorStop(0, hexA(col, active ? .55 : .32)); g.addColorStop(1, hexA(col, active ? .28 : .14));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(l, y0, w, bh, 14) : ctx.rect(l, y0, w, bh); ctx.fill();
+      ctx.strokeStyle = hexA(col, active ? .95 : .5); ctx.lineWidth = active ? 2 : 1.2; ctx.stroke();
+      // chord name: stays readable at the play line while its block passes
+      const nxp = self.mirror ? Math.min(xa, px - 8) - 4 : Math.max(l + 10, Math.min(px + 10, l + w - 40));
+      ctx.fillStyle = '#FFF4E6'; ctx.font = '700 ' + Math.round(Math.min(30, bh * .28)) + 'px ' + FONT; ctx.textAlign = self.mirror ? 'right' : 'left'; ctx.textBaseline = 'top';
+      if (w > 24) ctx.fillText(r.name, nxp, y0 + 8);
+      // strokes
+      r.steps.forEach(st => {
+        const x = X(st.t), f = fx[st.i] || {}, res = S.res[st.i] || {}, up = st.st === 'up';
+        const sp = Math.max(8, G.ppb * st.d);
+        let c = st.acc ? ACC : '#FFF4E6', a = 1, s2 = Math.min(st.acc ? bh * .2 : bh * .15, sp * (st.acc ? .62 : .5)), w2 = Math.min(st.acc ? 4.2 : 2.6, sp * .22);
+        if (f.hit && tm - f.hit < 260) { const k = (tm - f.hit) / 260; s2 *= 1 + .35 * (1 - k); c = '#FFFFFF'; }
+        else if (res.ok) a = .55; else if (res.missed) { c = '#FF8A7D'; a = .6; }
+        ctx.globalAlpha = (past ? .35 : 1) * a;
+        arrow(x, y0 + bh * .66, up, s2, c, w2);
+      });
+      ctx.restore();
+    });
+    // play line
+    const pg = ctx.createLinearGradient(0, 0, 0, G.H); pg.addColorStop(0, 'rgba(255,240,220,0)'); pg.addColorStop(.15, 'rgba(255,240,220,.7)'); pg.addColorStop(.85, 'rgba(255,240,220,.7)'); pg.addColorStop(1, 'rgba(255,240,220,0)');
+    ctx.fillStyle = 'rgba(240,180,101,.10)'; ctx.fillRect(px - 12, 0, 24, G.H); ctx.fillStyle = pg; ctx.fillRect(px - 1, 0, 2, G.H);
+    // beat dots under the blocks
+    for (let b = Math.max(0, Math.floor(v0)); b <= v1; b++) { const x = X(b); ctx.fillStyle = b % bpb === 0 ? 'rgba(255,236,210,.45)' : 'rgba(255,236,210,.18)'; ctx.beginPath(); ctx.arc(x, y0 + bh + 10, b % bpb === 0 ? 3 : 2, 0, 7); ctx.fill(); }
+  }
+
   function draw() {
     const t = performance.now();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, G.W, G.H);
     if (!S.lesson) return;
-    if (self.rhythm) drawRhythm(t); else drawNotes(t);
+    if (self.song) drawSong(t); else if (self.rhythm) drawRhythm(t); else drawNotes(t);
     if (countT && t - countT < 900) { const k = (t - countT) / 900; ctx.save(); ctx.globalAlpha = 1 - k * .7; text(count > 0 ? String(count) : tr('ci.start'), G.W / 2, G.H / 2, count > 0 ? Math.min(96, G.H * .5) : Math.min(48, G.H * .25), '#FFFFFF', 700); ctx.restore(); }
   }
 

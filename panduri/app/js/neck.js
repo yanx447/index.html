@@ -14,7 +14,7 @@
 PD.Neck = function (canvas, opt) {
   opt = opt || {};
   const ctx = canvas.getContext('2d'), TH = PD.theory;
-  const self = { mirror: false, frets: opt.frets || 0, still: !!opt.still };
+  const self = { mirror: false, frets: opt.frets || 0, still: !!opt.still, sticky: !!opt.sticky };
   const G = { W: 1, H: 1 };
   let dpr = 1, bmp = null, bmpKey = '';
   const strings = { 1: { amp: 0, ph: 0, stop: 0 }, 2: { amp: 0, ph: 0, stop: 0 }, 3: { amp: 0, ph: 0, stop: 0 } };
@@ -122,18 +122,31 @@ PD.Neck = function (canvas, opt) {
   const fcol = fi => PD.fingers.on && fi ? PD.fingers.color(fi) : '#ECE9E3';
   const fink = fi => PD.fingers.on && fi ? PD.fingers.ink(fi) : '#121317';
   /** notes: [{s, f, fi}] — the place(s) to press now; next: the following step (ghosted) */
+  let sig = '';
   function setTarget(notes, next) {
-    const t = now();
+    const t = now(), sg = (notes || []).map(n => n.s + ':' + n.f + ':' + (n.fi || 0)).join('|');
+    ghosts = (next || []).filter(n => n.f > 0 && !(notes || []).some(m => m.s === n.s && m.f === n.f)).map(n => ({ s: n.s, f: n.f, fi: n.fi || 0, t }));
+    if (self.sticky && sg && sg === sig && markers.some(m => m.state !== 'leave')) return;   // the same shape again (e.g. strokes of one chord): keep it in place
+    sig = sg;
     markers.forEach(m => { if (m.state !== 'confirm') { m.state = 'leave'; m.t = t; } });
     openGlow = {};
+    // one finger on several strings at the same fret = a barre (drawn as one bar across those strings)
+    const groups = {};
+    (notes || []).forEach(n => { if (n.f > 0 && n.fi) (groups[n.fi + ':' + n.f] = groups[n.fi + ':' + n.f] || []).push(n); });
     (notes || []).forEach(n => {
-      if (n.f > 0) markers.push({ s: n.s, f: n.f, fi: n.fi || 0, state: 'approach', t, born: t });
-      else openGlow[n.s] = t;
+      if (n.f > 0) {
+        const gr = n.fi ? groups[n.fi + ':' + n.f] : null;
+        if (gr && gr.length > 1) { if (gr[0] !== n) return; const ss = gr.map(x => x.s); markers.push({ s: Math.min(...ss), s2: Math.max(...ss), f: n.f, fi: n.fi, barre: true, state: 'approach', t, born: t }); return; }
+        markers.push({ s: n.s, f: n.f, fi: n.fi || 0, state: 'approach', t, born: t });
+      } else openGlow[n.s] = t;
     });
-    ghosts = (next || []).filter(n => n.f > 0 && !(notes || []).some(m => m.s === n.s && m.f === n.f)).map(n => ({ s: n.s, f: n.f, fi: n.fi || 0, t }));
     follow((notes || []).concat(next || []));
   }
-  function confirm() { const t = now(); markers.forEach(m => { if (m.state !== 'leave') { m.state = 'confirm'; m.t = t; } }); Object.keys(openGlow).forEach(s => { openGlow[s] = -t; }); }
+  function confirm() {
+    const t = now();
+    if (self.sticky) { markers.forEach(m => { if (m.state !== 'leave') m.pulse = t; }); Object.keys(openGlow).forEach(s => { if (openGlow[s] > 0) openGlow['p' + s] = t; }); return; }
+    markers.forEach(m => { if (m.state !== 'leave') { m.state = 'confirm'; m.t = t; } }); Object.keys(openGlow).forEach(s => { openGlow[s] = -t; });
+  }
   function wrong() { const t = now(); markers.forEach(m => { if (m.state !== 'leave' && m.state !== 'confirm') m.shake = t; }); Object.keys(openGlow).forEach(s => { openGlow['x' + s] = t; }); }
   function pluck(s, f, amp) { const st = strings[s]; if (!st) return; st.amp = amp || 1; st.stop = f > 0 ? contactU(f) + 4 : 0; st.ph = 0; }
   function clear() { markers = []; ghosts = []; openGlow = {}; }
@@ -170,7 +183,7 @@ PD.Neck = function (canvas, opt) {
     if (m.state === 'approach') {
       const k = age / 260, e = easeOut(k); a = e; sc = 1.28 - .28 * e; dy = -R * 1.5 * (1 - e); shadow = .55 * e;
       if (k >= 1) { const p = clamp((age - 260) / 110, 0, 1); sc = 1 - .1 * Math.sin(p * Math.PI); if (p >= 1) { m.state = 'hold'; m.t = t; } }
-    } else if (m.state === 'hold') { const b = (Math.sin(age / 360) + 1) / 2; ring = R * (1.38 + .14 * b); ringA = .28 + .12 * b; sc = .96; }
+    } else if (m.state === 'hold') { const b = (Math.sin(age / 360) + 1) / 2; ring = m.barre ? 0 : R * (1.38 + .14 * b); ringA = .28 + .12 * b; sc = .96; }
     else if (m.state === 'confirm') { const k = age / 420; ring = R * (1.1 + 1.4 * easeOut(k)); ringA = .9 * (1 - k); sc = 1 + .08 * Math.sin(Math.min(1, k * 2) * Math.PI); a = 1 - clamp((k - .35) / .65, 0, 1); if (k >= 1) done = true; }
     else if (m.state === 'leave') { const k = age / 160; a = 1 - k; if (k >= 1) done = true; }
     if (done) return false;
@@ -178,9 +191,20 @@ PD.Neck = function (canvas, opt) {
     const x = cx + sx, y = cy0 + dy, col = fcol(m.fi);
     ctx.save(); ctx.globalAlpha = clamp(a, 0, 1);
     // fingertip contact shadow on the wood
-    ctx.fillStyle = 'rgba(0,0,0,' + (shadow * .6).toFixed(3) + ')'; ctx.beginPath(); ctx.ellipse(cx + sx + 1.5, cy0 + R * .32, R * 1.02, R * .62, 0, 0, 7); ctx.fill();
+    if (!m.barre) { ctx.fillStyle = 'rgba(0,0,0,' + (shadow * .6).toFixed(3) + ')'; ctx.beginPath(); ctx.ellipse(cx + sx + 1.5, cy0 + R * .32, R * 1.02, R * .62, 0, 0, 7); ctx.fill(); }
     if (ring) { ctx.strokeStyle = m.state === 'confirm' ? 'rgba(255,255,255,' + ringA.toFixed(3) + ')' : hexA(col, ringA); ctx.lineWidth = m.state === 'confirm' ? 3 : 2; ctx.beginPath(); ctx.arc(x, y, ring, 0, 7); ctx.stroke(); }
-    const r = R * sc, gr = ctx.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r);
+    const r = R * sc;
+    if (m.pulse && t - m.pulse < 300) { const k = (t - m.pulse) / 300; ctx.strokeStyle = 'rgba(255,255,255,' + (.8 * (1 - k)).toFixed(3) + ')'; ctx.lineWidth = 2.5; ctx.beginPath(); if (m.barre) { const ya = Y(m.s2, contactU(m.f)), yb = Y(m.s, contactU(m.f)), y0 = Math.min(ya, yb), y1 = Math.max(ya, yb), e = r * (1.15 + .5 * k); ctx.roundRect ? ctx.roundRect(x - e, y0 - e + dy, e * 2, y1 - y0 + e * 2, e) : ctx.rect(x - e, y0 - e, e * 2, y1 - y0 + e * 2); } else ctx.arc(x, y, r * (1.15 + .6 * k), 0, 7); ctx.stroke(); }
+    if (m.barre) {
+      const ya = Y(m.s2, contactU(m.f)), yb = Y(m.s, contactU(m.f)), y0 = Math.min(ya, yb) + dy, y1 = Math.max(ya, yb) + dy, w2 = r * 1.7;
+      const gb = ctx.createLinearGradient(x - w2 / 2, 0, x + w2 / 2, 0); gb.addColorStop(0, mix(col, '#000000', .2)); gb.addColorStop(.35, mix(col, '#FFFFFF', .3)); gb.addColorStop(1, mix(col, '#000000', .25));
+      ctx.fillStyle = 'rgba(0,0,0,' + (shadow * .5).toFixed(3) + ')'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w2 / 2 + 2, y0 - r + 4, w2, y1 - y0 + r * 2, w2 / 2) : ctx.rect(x - w2 / 2, y0 - r, w2, y1 - y0 + r * 2); ctx.fill();
+      ctx.fillStyle = gb; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w2 / 2, y0 - r, w2, y1 - y0 + r * 2, w2 / 2) : ctx.rect(x - w2 / 2, y0 - r, w2, y1 - y0 + r * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; ctx.stroke();
+      ctx.fillStyle = fink(m.fi); ctx.font = '700 ' + Math.round(r * 1.05) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(m.fi), x, (y0 + y1) / 2 + r * .04);
+      ctx.restore(); return true;
+    }
+    const gr = ctx.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r);
     gr.addColorStop(0, mix(col, '#FFFFFF', .35)); gr.addColorStop(.65, col); gr.addColorStop(1, mix(col, '#000000', .28));
     ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; ctx.stroke();
@@ -223,10 +247,11 @@ PD.Neck = function (canvas, opt) {
       if (og > 0) glow = .75 + .25 * Math.sin((t - og) / 300);
       else if (og < 0) glow = Math.max(0, 1 - (t + og) / 420);
       if (openGlow['x' + s] && t - openGlow['x' + s] < 300) glow *= .4;
+      if (openGlow['p' + s] && t - openGlow['p' + s] < 260) glow = Math.min(1.6, glow + .8 * (1 - (t - openGlow['p' + s]) / 260));
       strokeString(s, .92, glow);
     }
     // open-string tag at the nut
-    Object.keys(openGlow).forEach(k => { if (k[0] === 'x') return; const og = openGlow[k]; const a = og > 0 ? 1 : Math.max(0, 1 - (t + og) / 420); if (a <= 0) { if (og < 0) delete openGlow[k]; return; }
+    Object.keys(openGlow).forEach(k => { if (k[0] === 'x' || k[0] === 'p') return; const og = openGlow[k]; const a = og > 0 ? 1 : Math.max(0, 1 - (t + og) / 420); if (a <= 0) { if (og < 0) delete openGlow[k]; return; }
       const s = +k, x = X(-7) + (self.mirror ? 2 : -2), y = Y(s, 0), r = Math.max(9, Math.min(13, G.boardH * .09));
       ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#F4F2EE'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.fillStyle = '#121317'; ctx.font = '700 ' + Math.round(r * 1.05) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('0', x, y + .5); ctx.restore(); });
     ghosts.forEach(drawGhost);

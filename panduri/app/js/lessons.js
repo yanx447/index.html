@@ -14,7 +14,7 @@ PD.lessons = (() => {
   const { id, chord, strum, sec } = PD.build;
   let PATHS = PD.curriculum.paths();
   /** learning stages an author can choose per lesson (result + next practice are always shown) */
-  const STAGES = ['intro', 'demo', 'watch', 'technique', 'guided', 'slow', 'wait', 'metro', 'loop', 'phrase', 'perform'];
+  const STAGES = ['intro', 'demo', 'watch', 'chords', 'technique', 'guided', 'slow', 'wait', 'metro', 'loop', 'phrase', 'perform'];
   function stagesOf(l) {
     if (Array.isArray(l.stages) && l.stages.length) return l.stages.filter(s => STAGES.includes(s));
     const out = [];
@@ -34,7 +34,9 @@ PD.lessons = (() => {
   PD.bus.on('curriculum', reloadCurriculum);
   function mergeUser() {
     const saved = PD.store.get(KEY, []);
-    saved.forEach(l => { if (!l || !l.id) return; const i = all.findIndex(x => x.id === l.id); const n = normalize(l); if (i >= 0) all[i] = n; else all.push(n); });
+    saved.forEach(l => { if (!l || !l.id) return; const i = all.findIndex(x => x.id === l.id);
+      if (i >= 0 && l.builtinUser && !(l.events && l.events.length) && all[i].events.length) return;   // an empty placeholder never hides a built-in song
+      const n = normalize(l); if (i >= 0) all[i] = n; else all.push(n); });
   }
   function normalize(l) {
     const o = Object.assign({ v: 2, level: 1, tuning: 'std', meter: [4, 4], sections: [], events: [] }, l);
@@ -98,11 +100,25 @@ PD.lessons = (() => {
     lesson(id) { return PD.store.get('prog.' + id, { stages: {}, best: null, mastery: 0, maxTempo: 0, last: 0, plays: 0, heat: {} }); },
     saveLesson(id, p) { PD.store.set('prog.' + id, p); },
     sessions() { return PD.store.get('sessions', []); },
-    addSession(s) { const a = P.sessions(); a.push(s); PD.store.set('sessions', a.slice(-400)); },
+    addSession(s) { const a = P.sessions(); a.push(s); PD.store.set('sessions', a.slice(-400)); PD.bus.emit('session', s); },
     favorites() { return PD.store.get('favorites', []); },
     toggleFav(id) { const f = P.favorites(), i = f.indexOf(id); if (i >= 0) f.splice(i, 1); else f.push(id); PD.store.set('favorites', f); return i < 0; }
   };
 
+  /** song: one strum per chord bar, in WAIT — the recording pauses until the chord is heard */
+  function songChanges(l) {
+    const out = Object.assign({}, l, { id: l.id + '~chords', derived: l.id, title: { ka: l.title.ka + ' · აკორდების ცვლა', en: l.title.en + ' · chord changes' }, user: false, stages: null, events: [] });
+    const bb = bpb(l); let last = -1;
+    steps(l).forEach(st => { const bar = Math.floor(st.t / bb + 1e-6); if (bar === last) return; last = bar; out.events.push(...chord(bar * bb, st.name, st.frets, st.fingers, 'down', bb, false, 'strum')); });
+    return normalize(out);
+  }
+  /** song: the song's rhythm pattern on its first chord, 8 bars, no recording */
+  function songRhythm(l) {
+    const ss = steps(l), bb = bpb(l), first = ss[0]; if (!first) return l;
+    const per = ss.filter(s => s.t < first.t + bb - 1e-6), ev = [];
+    for (let k = 0; k < 8; k++) per.forEach(s => ev.push(...chord(s.t - first.t + k * bb, s.name, s.frets, s.fingers, s.st, s.d, s.acc, 'strum')));
+    return normalize(Object.assign({}, l, { id: l.id + '~rhythm', derived: l.id, title: { ka: l.title.ka + ' · რიტმი', en: l.title.en + ' · rhythm' }, user: false, stems: null, stages: null, events: ev, sections: [] }));
+  }
   /** derived lesson: the same timing and stroke directions on open strings (rhythm stage) */
   function rhythmOf(l) {
     const out = Object.assign({}, l, { id: l.id + '~rhythm', derived: l.id, title: { ka: l.title.ka + ' · რიტმი', en: l.title.en + ' · rhythm' }, user: false, events: [] });
@@ -130,7 +146,7 @@ PD.lessons = (() => {
     return normalize({ id: 'tr-' + a.id + '-' + b.id, type: 'exercise', derived: 'chords', title: { ka: a.name + ' → ' + b.name, en: a.name + ' → ' + b.name }, bpm: bpm || 60, events: ev, sections: [sec(a.name + ' ↔ ' + b.name, a.name + ' ↔ ' + b.name, 0, 8), sec('×2', '×2', 8, 16)] });
   }
   return {
-    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, steps, rhythmOf, transition, normalize, bpb, end, autoSections, progress: P,
+    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, steps, rhythmOf, songChanges, songRhythm, transition, normalize, bpb, end, autoSections, progress: P,
     get: lid => all.find(l => l.id === lid) || (/^rhythm-/.test(lid || '') ? rhythmLesson(lid.slice(7)) : undefined),
     /** lessons generated from the teacher rhythms (not stored; rebuilt from curriculum data) */
     rhythmLessons: () => (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).map(r => fromRhythm(r)),

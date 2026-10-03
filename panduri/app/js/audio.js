@@ -93,21 +93,41 @@ PD.audio = (() => {
   }
   function setVol(k, v) { vol[k] = v; PD.store.set('vol', vol); if (!ctx) return; if (k === 'master') master.gain.value = v; else if (bus[k]) bus[k].gain.value = v; if (k === 'ref' && ref.el) ref.el.volume = Math.min(1, v); }
 
-  /* ---------- reference audio: <audio> with preservesPitch so tempo changes keep pitch ---------- */
+  /* ---------- reference audio: <audio> with preservesPitch so tempo changes keep pitch.
+     A song may carry stems (full mix · music only · vocals only); one plays at a time, all share one timeline. ---------- */
+  const mk = src => { const el = new Audio(src); el.preload = 'auto'; el.preservesPitch = true; el.mozPreservesPitch = true; el.webkitPreservesPitch = true; el.volume = Math.min(1, vol.ref); return el; };
   const ref = {
-    el: null, url: null, offset: 0, muted: false,
+    el: null, url: null, offset: 0, muted: false, stems: null, els: {}, blobs: {}, mix: PD.store.get('songMix', 'full'),
     async load(blobId, offset) {
       ref.unload(); if (!blobId) return false;
       const b = await PD.blobs.get(blobId); if (!b) return false;
-      ref.url = URL.createObjectURL(b); ref.el = new Audio(ref.url); ref.el.preload = 'auto'; ref.offset = offset || 0;
-      ref.el.preservesPitch = true; ref.el.mozPreservesPitch = true; ref.el.webkitPreservesPitch = true; ref.el.volume = Math.min(1, vol.ref);
+      ref.url = URL.createObjectURL(b); ref.el = mk(ref.url); ref.offset = offset || 0;
       return true;
     },
-    unload() { if (ref.el) { ref.el.pause(); ref.el = null; } if (ref.url) URL.revokeObjectURL(ref.url); ref.url = null; },
+    loadStems(stems, offset) { ref.unload(); ref.stems = stems; ref.offset = offset || 0; ref.use(ref.mix, true); return !!ref.el; },
+    /** switch the audible mix ('full' | 'music' | 'vocals' | 'off') without losing the position.
+        Files are read into memory (blob URLs) so seeking works on any server (no HTTP range requests needed). */
+    use(mix, quiet) {
+      if (!ref.stems) return;
+      const was = ref.el, t = was ? was.currentTime : 0, playing = was && !was.paused;
+      ref.mix = mix; if (!quiet) PD.store.set('songMix', mix);
+      if (was) was.pause();
+      const key = ref.stems[mix], src = key && PD.assets && PD.assets.media && PD.assets.media[key];
+      if (mix === 'off' || !src) { ref.el = null; return; }
+      const stems = ref.stems, attach = el => { if (ref.stems !== stems || ref.mix !== mix) return; ref.el = el; try { el.currentTime = t; } catch (_) {} if (playing) el.play().catch(() => {}); };
+      if (ref.els[mix]) return attach(ref.els[mix]);
+      ref.el = null;
+      if (/^(data|blob):/.test(src)) return attach(ref.els[mix] = mk(src));
+      (ref.blobs[src] ? Promise.resolve(ref.blobs[src]) : fetch(src).then(r => r.blob()).then(b => (ref.blobs[src] = URL.createObjectURL(b))))
+        .then(u => { if (!ref.els[mix]) ref.els[mix] = mk(u); attach(ref.els[mix]); }).catch(() => {});
+    },
+    get hasStems() { return !!ref.stems; },
+    get available() { return !!(ref.stems && PD.assets && PD.assets.media && PD.assets.media[ref.stems.full || ref.stems.music]); },
+    unload() { Object.values(ref.els).forEach(e => { try { e.pause(); } catch (_) {} }); ref.els = {}; if (ref.el) { ref.el.pause(); ref.el = null; } if (ref.url) URL.revokeObjectURL(ref.url); ref.url = null; ref.stems = null; },
     /** keep the media element aligned to the lesson transport (seconds of lesson time at 100%) */
     sync(lessonSec, rate, playing) {
       const el = ref.el; if (!el) return;
-      el.muted = ref.muted;
+      el.muted = ref.muted; el.volume = Math.min(1, vol.ref);
       if (!playing) { if (!el.paused) el.pause(); return; }
       el.playbackRate = Math.max(.25, Math.min(4, rate));
       const target = lessonSec + ref.offset;

@@ -84,6 +84,7 @@ PD.metronome = (() => {
 /* =================== NOTE & FRET TRAINER =================== */
 PD.trainer = (() => {
   const h = PD.h, ic = PD.ic, TH = PD.theory;
+  const FREE_TR = new Set(['open', 'f13', 'f15']);   // the rest of the trainer is premium
   const LEVELS = [
     { id: 'open', f: [0, 0], q: 'pos' }, { id: 'f13', f: [0, 3] }, { id: 'f15', f: [0, 5] }, { id: 'f17', f: [0, 7] }, { id: 'full', f: [0, 17] },
     { id: 'random', f: [0, 12] }, { id: 'speed', f: [0, 7], timed: 60 }, { id: 'ear', f: [0, 5], ear: true }];
@@ -107,7 +108,7 @@ PD.trainer = (() => {
     let cur = null, last = null, stats = { a: 0, c: 0, streak: 0 }, t0 = 0, timer = 0, wrongN = 0, startedAt = Date.now(), done = false;
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small', html: ic.back + '<span data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : PD.app.go('practice') }), h('h1', { 'data-t': 'tr.title', style: 'margin:0' })]),
       h('p', { class: 'muted', 'data-t': 'tr.lead' }));
-    const tabs = h('div', { class: 'chips-row', role: 'tablist' }, LEVELS.map(L => h('button', { class: 'chip', role: 'tab', 'aria-pressed': String(L.id === level), 'data-t': 'tl.' + L.id, onclick: () => { level = L.id; PD.store.set('tr.level', level); tabs.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.t === 'tl.' + level))); reset(); } })));
+    const tabs = h('div', { class: 'chips-row', role: 'tablist' }, LEVELS.map(L => h('button', { class: 'chip' + (FREE_TR.has(L.id) || PD.premium.active ? '' : ' locked'), role: 'tab', 'aria-pressed': String(L.id === level), 'data-t': 'tl.' + L.id, onclick: () => { if (!FREE_TR.has(L.id) && !PD.premium.active) return PD.premium.paywall('trainer.pro'); level = L.id; PD.store.set('tr.level', level); tabs.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.t === 'tl.' + level))); reset(); } })));
     const prompt = h('div', { class: 'tr-prompt' }), sub = h('div', { class: 'tr-sub' }), fb = h('div', { class: 'tr-fb', 'aria-live': 'polite' });
     const score = h('div', { class: 'tr-score mono' });
     const nv = h('div', { class: 'neckview' }), ncv = h('canvas'); nv.appendChild(ncv);

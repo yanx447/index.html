@@ -151,7 +151,7 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
     const ctx = PD.audio.ensure(); if (!ctx) return fail('noaudio');
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return fail(window.isSecureContext ? 'nomedia' : 'insecure');
     let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); }
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: !!st.aec, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); }
     catch (e) {
       if (e && (e.name === 'OverconstrainedError' || e.name === 'TypeError')) { try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e2) { return fail(errName(e2)); } }
       else return fail(errName(e));
@@ -189,7 +189,7 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
     try { if (st.sink) st.sink.disconnect(); } catch (_) {}
     if (st.stream) st.stream.getTracks().forEach(tr => tr.stop());
     Object.assign(st, { on: false, stream: null, src: null, node: null, sp: null, core: null, sink: null, win: null, level: 0 });
-    emit('state', status());
+    if (!st.swapping) emit('state', status());
   }
   function status() {
     const s = st.settings || {};
@@ -200,6 +200,9 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
     start, stop, status,
     on(k, f) { listeners[k].push(f); return () => { listeners[k] = listeners[k].filter(x => x !== f); }; },
     get active() { return st.on; },
+    /** echo cancellation: on while a backing track plays through the speaker, so the microphone hears the panduri, not the recording */
+    async setAEC(v, noRestart) { v = !!v; if (!!st.aec === v) return; st.aec = v; if (st.on && !noRestart) { st.swapping = true; stop(); try { await start(); } finally { st.swapping = false; } } },
+    get aec() { return !!st.aec; },
     get level() { return st.level; },
     get floor() { return st.floor; },
     /** expected chord frequencies (Hz) for the Goertzel check, or null */

@@ -73,9 +73,6 @@ PD.curriculum = (() => {
   B.push(L({ id: 'c-majors', type: 'exercise', path: 'chords', title: { ka: 'მაჟორი ბარეთი: A → D → E', en: 'Barre majors: A → D → E' }, bpm: 60,
     events: [].concat(chord(0, 'A', [0, 0, 0], [0, 0, 0], 'down', 4, true), chord(4, 'D', [5, 5, 5], [1, 1, 1], 'down', 4, true), chord(8, 'E', [7, 7, 7], [1, 1, 1], 'down', 4, true), chord(12, 'A', [0, 0, 0], [0, 0, 0], 'down', 4, true)),
     sections: [sec('A → D', 'A → D', 0, 8), sec('E → A', 'E → A', 8, 16)] }));
-  // The learner's own song: recorded in the app (no notes are invented here)
-  B.push(L({ id: 'bani-acharuli', type: 'song', path: 'songs', title: { ka: 'ბანი-აჭარული', en: 'Bani-Acharuli' }, bpm: 120, meter: [6, 8], grid: .5, user: true, builtinUser: true, demo: false, supplied: 'teacher (title + reference link)',
-    link: 'https://youtu.be/7kTu3Uai0kw?si=42oTnRz-BTrayIJY', desc: { ka: 'აჭარა · ბანის პარტია. ნოტები შენი დაკვრით იწერება.', en: 'Adjara · bass part. Notes are recorded from your playing.' } }));
 
   /* ---- CORE lessons: specified in the product brief (not invented pedagogy): open strings, one fretted note, one stroke pattern.
      They exist in every curriculum so the microphone flow can always be tried. ---- */
@@ -158,6 +155,33 @@ PD.curriculum = (() => {
   ].map(r => Object.assign({ timing: { bpm: 60, durations: r.strokes.map(() => 1), src: 'default' } }, r));
   const RH_KEY = 'rhythms.timing';   // teacher-edited timing overrides (stroke order/accents are never changed here)
   function rhythmsWithTiming(list) { const ov = PD.store.get(RH_KEY, {}); return list.map(r => ov[r.id] && ov[r.id].durations && ov[r.id].durations.length === r.strokes.length ? Object.assign({}, r, { timing: ov[r.id] }) : r); }
+
+  /* ---- SONGS with supplied recordings: chords from the teacher, chart timed to the recording (PD.SONGS) ---- */
+  function songLesson(id, title, desc) {
+    const S = PD.SONGS && PD.SONGS[id];
+    if (!S) return L({ id, type: 'song', title, desc, demo: false, events: [] });
+    const R = TEACHER_RHYTHMS.find(r => r.id === S.rhythm) || TEACHER_RHYTHMS[0];
+    const per = R.strokes.length, d = 1 / per, ev = [];
+    S.bars.forEach((c, i) => {
+      if (!c || !S.chords[c]) return;
+      const sh = S.chords[c];
+      for (let b = 0; b < S.beatsPerBar; b++) R.strokes.forEach((k, j) => ev.push(...chord(i * S.beatsPerBar + b + j * d, c, sh.frets, sh.fingers, k.direction, d, k.accent, 'strum')));
+    });
+    const NAMES = { listen: ['მოუსმინე', 'Listen'], inst: ['ინსტრუმენტული', 'Instrumental'], verse: ['მუხლი', 'Verse'] };
+    let vn = 0, inn = 0;
+    const secs = S.sections.map(([k, a, b], i) => {
+      const n = k === 'verse' ? ++vn : k === 'inst' ? ++inn : 0;
+      const nm = NAMES[k], first = i === 0, last = i === S.sections.length - 1;
+      const ka = k === 'listen' ? (first ? 'შესავალი (მოუსმინე)' : last ? 'დასასრული (მოუსმინე)' : 'ინსტრუმენტული სოლო (მოუსმინე)') : nm[0] + ' ' + n;
+      const en = k === 'listen' ? (first ? 'Intro (listen)' : last ? 'Ending (listen)' : 'Instrumental solo (listen)') : nm[1] + ' ' + n;
+      return Object.assign(sec(ka, en, a * S.beatsPerBar, b * S.beatsPerBar), { kind: k });
+    });
+    return L({ id, type: 'song', level: 1, demo: false, source: 'teacher chords + supplied recording', title, desc, bpm: S.bpm, meter: [S.beatsPerBar, 8], meterLabel: S.meterLabel,
+      song: id, stems: S.stems, refOffset: S.offset, chartSrc: S.chartSrc, rhythm: undefined, songRhythm: R.id, events: ev, sections: secs,
+      stages: ['demo', 'chords', 'technique', 'slow', 'perform'], technique: { kind: 'rhythm' }, skills: ['chords', 'strumming', 'accents', 'rhythm'] });
+  }
+  B.push(songLesson('bani-acharuli', { ka: 'ბანი-აჭარული', en: 'Bani-Acharuli' },
+    { ka: 'აკორდები Dm · B♭ · C, აჭარულის რიტმი (↓ · ↓> · ↑>). იკვრება ორიგინალ ჩანაწერთან ერთად — ვოკალით ან მის გარეშე.', en: 'Chords Dm · B♭ · C with the Acharuli rhythm (↓ · ↓> · ↑>). Played along with the original recording — with or without vocals.' }));
 
   const DEMO = { schema: 'panduri-curriculum', v: 1, meta: { title: { ka: 'სადემონსტრაციო მასალა', en: 'Demo material' }, author: null, verified: false, note: DEMO_NOTE }, lessons: B, paths: PATHS, chords: null };
   const KEY = 'curriculum.package';

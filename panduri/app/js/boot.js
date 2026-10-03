@@ -4,9 +4,13 @@
     document.documentElement.lang = PD.i18n.lang;
     const sp = document.getElementById('pd-splash'), spT = document.getElementById('pd-splash-t');
     if (spT) spT.textContent = PD.i18n.lang === 'en' ? 'Preparing…' : 'მზადდება…';
+    PD.cloud.boot();
+    PD.tv && PD.tv.init();
     PD.app.shell();
     PD.app.go('home', null, true);
-    if (!PD.store.get('onboarded', false)) PD.onboard.open();
+    // first thing: sign in (Google · Facebook · phone · e-mail), then the short onboarding
+    const afterAuth = () => { if (!PD.store.get('onboarded', false)) PD.onboard.open(); };
+    if (!PD.cloud.session && !PD.store.get('auth.skip', false)) PD.auth.gate(afterAuth); else afterAuth();
     window.addEventListener('keydown', e => { if (e.key === '?' && !PD.practice.active) PD.ui.toast(t('kbd.list'), 6000); });
     PD.bus.on('lessons', () => PD.pwa.persist());
     if (sp) requestAnimationFrame(() => { sp.style.opacity = '0'; setTimeout(() => sp.remove(), 300); });

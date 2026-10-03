@@ -42,6 +42,6 @@ PD.coach = (() => {
     const found = recent.map(analyze).filter(Boolean).sort((a, b) => b.score - a.score);
     return found[0] || null;
   }
-  function start(sug) { PD.practice.open(sug.lesson, { mode: 'practice', wait: false, drill: { a: sug.from, b: sug.to, ladder: sug.ladder } }, sug.lesson.id, 'phrase'); }
+  function start(sug) { if (!PD.premium.allows('coach')) return PD.premium.paywall('coach'); PD.practice.open(sug.lesson, { mode: 'practice', wait: false, drill: { a: sug.from, b: sug.to, ladder: sug.ladder } }, sug.lesson.id, 'phrase'); }
   return { analyze, today, start };
 })();

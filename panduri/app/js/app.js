@@ -79,7 +79,18 @@ PD.i18n.add({
 });
 
 PD.i18n.add({
-  'set.dev': ['დეველოპერი', 'Developer'], 'set.devTouch': ['შეხებით ტესტი (მიკროფონის გარეშე)', 'Touch test (without microphone)'],
+  'st.chords': ['აკორდების ცვლა', 'Chord changes'], 'std.chords': ['ტაქტში ერთი ჩაკვრა. ჩანაწერი ჩერდება და გელოდება, სანამ აკორდს სწორად არ აიღებ.', 'One strum per bar. The recording stops and waits until you play the chord.'],
+  'std.songDemo': ['მოუსმინე სიმღერას — აკორდები და რიტმი ეკრანზე მიჰყვება.', 'Listen to the song — chords and rhythm follow on screen.'],
+  'std.songRhythm': ['აჭარულის რიტმი Dm-ზე, მეტრონომით, წრეზე.', 'The Acharuli rhythm on Dm, with the metronome, looped.'],
+  'std.songSlow': ['ჩანაწერთან ერთად, 70% ტემპით — დრო ფასდება.', 'Along with the recording at 70% tempo — timing is scored.'],
+  'std.songFull': ['მთელი სიმღერა ორიგინალ ტემპში.', 'The whole song at the original tempo.'],
+  'sg.mix': ['ჩანაწერი', 'Recording'], 'mix.full': ['ვოკალით', 'With vocals'], 'mix.music': ['ვოკალის გარეშე', 'No vocals'], 'mix.vocals': ['მხოლოდ ვოკალი', 'Vocals only'], 'mix.off': ['გამორთული', 'Off'],
+  'sg.auto': ['აკორდების განლაგება ჩანაწერიდან ავტომატურად არის ამოცნობილი — მასწავლებელს შეუძლია ნებისმიერი ტაქტი სტუდიაში შეასწოროს.', 'Where each chord sounds was detected automatically from the recording — the teacher can correct any bar in the Studio.'],
+  'sg.shapes': ['აკორდები', 'Chords'], 'sg.bars': ['{n} ტაქტი', '{n} bars'], 'sg.parts': ['სიმღერის ნაწილები', 'Parts of the song'], 'sg.derived': ['შესამოწმებელია', 'to confirm'],
+  'sg.headphones': ['ჩანაწერთან ერთად დაკვრისას ყურსასმენი აჯობებს — მიკროფონი მაშინ მხოლოდ შენს ფანდურს გაიგებს.', 'When playing along with the recording, headphones work best — then the microphone hears only your panduri.']
+});
+PD.i18n.add({
+  'set.dev': ['დეველოპერი', 'Developer'], 'set.server': ['სერვერი (Supabase)', 'Server (Supabase)'], 'set.serverD': ['ჩასვი პროექტის URL და anon key — ანგარიშები, VIP და მიმოწერა ჩაირთვება.', 'Paste the project URL and anon key — accounts, VIP and messaging switch on.'], 'set.serverOn': ['დაკავშირებულია', 'Connected'], 'set.serverSave': ['შენახვა', 'Save'], 'set.devTouch': ['შეხებით ტესტი (მიკროფონის გარეშე)', 'Touch test (without microphone)'],
   'set.devTouchD': ['მხოლოდ შემოწმებისთვის: ტარზე შეხება ნოტად ითვლება. სწავლისას ეს არ გამოიყენება — ნოტს მხოლოდ ნამდვილი ფანდურის ხმა ასრულებს.', 'For testing only: tapping the neck counts as a note. Not used for learning — only the sound of a real panduri completes a note.']
 });
 PD.i18n.add({
@@ -91,7 +102,7 @@ PD.i18n.add({
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
   const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['practice', 'nav.practice', ic.pulse], ['profile', 'nav.profile', ic.user]];
-  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -123,12 +134,12 @@ PD.app = (() => {
     const main = $('main'); main.innerHTML = '';
     const top = TOP[route] || 'home';
     document.querySelectorAll('.navb').forEach(b => { if (b.dataset.go === top) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
-    const page = h('div', { class: 'page', id: 'page' }), wrap = h('div', { class: 'wrap' }); page.appendChild(wrap); main.appendChild(page);
+    const page = h('div', { class: 'page' + (fromPop ? '' : ' enter'), id: 'page' }), wrap = h('div', { class: 'wrap' }); page.appendChild(wrap); main.appendChild(page);
     PD.bus.emit('route', route);
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => PD.tools.tuner(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
     if (!fromPop) page.scrollTop = 0;
   }
@@ -158,8 +169,8 @@ PD.app = (() => {
   }
   /** cover artwork, generated from the lesson id and category (no stock images, no copyrighted art) */
   const ART = {
-    song: [['#FF8A5B', '#7A2E8E'], 'hills'], melody: [['#3FC1C9', '#2B3A8C'], 'waves'], solo: [['#FF5EA8', '#4B1D7A'], 'burst'],
-    rhythm: [['#FF6B5B', '#3A1C5C'], 'beats'], exercise: [['#8B7BFF', '#1E2A6B'], 'dots'], technique: [['#41D39A', '#13405A'], 'rings']
+    song: [['#F2B867', '#7A2A14'], 'hills'], melody: [['#E9D2A1', '#7B4A26'], 'waves'], solo: [['#E8875A', '#4A1A10'], 'burst'],
+    rhythm: [['#D9783F', '#3B1A0C'], 'beats'], exercise: [['#B9784A', '#2E1A0F'], 'dots'], technique: [['#C9A46A', '#3A2A18'], 'rings']
   };
   function seedOf(str) { let x = 7; for (const c of String(str)) x = (x * 31 + c.charCodeAt(0)) % 2147483647; return () => (x = (x * 16807) % 2147483647) / 2147483647; }
   function coverSVG(l) {
@@ -176,7 +187,7 @@ PD.app = (() => {
   function cover(l, big) { return h('div', { class: 'art' + (big ? ' big' : ''), html: coverSVG(l) }); }
   function durSec(l) { return LS.end(l) / (l.bpm / 60); }
   function meta(l) {
-    const p = [t('type.' + l.type), t('lvl.' + (l.level || 1)), l.bpm + ' BPM'];
+    const p = [t('type.' + l.type), t('lvl.' + (l.level || 1)), Math.round(l.bpm) + ' BPM'];
     if (l.events.length) p.push(PD.fmtTime(durSec(l))); else p.push(t('l.empty'));
     return p.join(' · ');
   }
@@ -234,11 +245,15 @@ PD.app = (() => {
   function home(w) {
     const prof = PD.account.profile, sk = streaks(), goal = PD.store.get('goalMin', 15), tm = todayMin();
     const name = (prof.name || '').trim().split(/\s+/)[0];
-    const ring = (v) => { const r = 15, c = 2 * Math.PI * r, k = Math.max(0, Math.min(1, v)); return '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4"/><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="url(#gr1)" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (c * k).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/><defs><linearGradient id="gr1"><stop offset="0" stop-color="#7C6CFF"/><stop offset="1" stop-color="#C17BFF"/></linearGradient></defs></svg>'; };
+    const ring = (v) => { const r = 15, c = 2 * Math.PI * r, k = Math.max(0, Math.min(1, v)); return '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4"/><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="url(#gr1)" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (c * k).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/><defs><linearGradient id="gr1"><stop offset="0" stop-color="#D99A50"/><stop offset="1" stop-color="#F6C987"/></linearGradient></defs></svg>'; };
     w.append(h('div', { class: 'hx-top' }, [
       h('div', { class: 'hx-hello' }, [h('h1', { text: name ? t('hx.hello', { n: name }) : t('gr.day') }), sk.cur ? h('span', { class: 'hx-streak', text: '🔥 ' + t('hm.streak', { n: sk.cur }) }) : null]),
+      h('button', { class: 'hx-lv', 'aria-label': t('lv.level', { n: PD.levels.level }), onclick: () => go('profile'), html: PD.levels.badge(44) }),
+      h('button', { class: 'hx-ic', 'aria-label': t('cm.title'), onclick: () => go('community'), html: PD.ic.chat || ic.user }),
       h('button', { class: 'avatar', 'aria-label': t('nav.profile'), onclick: () => go('profile'), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : ic.user })]));
     w.append(h('button', { class: 'hx-goal', onclick: () => go('daily') }, [h('span', { class: 'hx-ring', html: ring(tm / goal) }), h('div', { class: 'grow' }, [h('small', { 'data-t': 'hx.goal' }), h('b', { text: t('hx.goalV', { a: Math.min(tm, goal), b: goal }) })]), h('span', { class: 'chev', html: ic.chevron })]));
+    // the main way to learn: camera on, panduri in hand, the program on screen
+    w.append(h('button', { class: 'camcard', onclick: () => PD.camera.launcher() }, [h('span', { class: 'camcard-ic', html: PD.ic.camera }), h('div', { class: 'grow' }, [h('b', { 'data-t': 'cam.title' }), h('small', { 'data-t': 'cam.lead' })]), h('span', { class: 'chev', html: ic.chevron })]));
     // hero: continue learning
     const pa = primaryAction();
     if (pa) {
@@ -252,6 +267,8 @@ PD.app = (() => {
     const row = (k, items, more) => { if (!items.length) return; w.append(h('section', { class: 'hrow' }, [h('div', { class: 'hrow-h' }, [h('h2', { 'data-t': k }), more ? h('button', { class: 'linkbtn', 'data-t': 'hx.all', onclick: more }) : null]), h('div', { class: 'hrow-s' }, items.map(l => card(l)))])); };
     const all = LS.all.filter(visible);
     const rec = []; for (const p of LS.PATHS) for (const s2 of p.steps) { const l = s2.kind === 'lesson' ? LS.get(s2.id) : s2.kind === 'rhythm' ? LS.get('rhythm-' + s2.id) : null; if (l && l.events.length && LS.progress.lesson(l.id).mastery < .9 && !rec.includes(l) && (!pa || l !== pa.l)) rec.push(l); }
+    const LP = LS.PATHS.find(p2 => p2.id === PD.levels.program);
+    if (LP) w.append(h('button', { class: 'lvprog', onclick: () => go('learn', LP.id) }, [h('span', { html: PD.levels.badge(40) }), h('div', { class: 'grow' }, [h('small', { 'data-t': 'lv.program' }), h('b', { text: t('lv.level', { n: PD.levels.level }) + ' · ' + PD.i18n.pick(LP.title) })]), h('span', { class: 'chev', html: ic.chevron })]));
     row('hx.forYou', rec.slice(0, 6));
     row('hx.songs', all.filter(l => l.type === 'song'), () => { st.cat = 'song'; go('songs'); });
     row('hx.melodies', all.filter(l => l.type === 'melody'), () => { st.cat = 'melody'; go('songs'); });
@@ -284,9 +301,13 @@ PD.app = (() => {
     list();
   }
 
+  const PREMIUM_PATHS = new Set(['intermediate', 'advanced']);
+  const LOCK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   /* ---------- Learn: one visual path, Foundation → Beginner → Intermediate → Advanced ---------- */
   function learn(w) {
     w.append(h('div', {}, [h('h1', { 'data-t': 'ln.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'ln.lead' })]));
+    const lp = PD.levels.progress, LPn = LS.PATHS.find(p2 => p2.id === PD.levels.program);
+    w.append(h('section', { class: 'lvcard' }, [h('span', { class: 'lvcard-b', html: PD.levels.badge(56) }), h('div', { class: 'grow' }, [h('b', { text: t('lv.level', { n: lp.level }) + ' · ' + PD.levels.tierName() }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(lp.pct * 100) + '%' })]), h('small', { text: (LPn ? t('lv.programD', { p: PD.i18n.pick(LPn.title) }) + ' · ' : '') + t('lv.toNext', { n: lp.need - lp.into }) })])]));
     const TOOL = { tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets };
     let curSet = false, focusEl = null;
     LS.PATHS.forEach((p, pi) => {
@@ -298,9 +319,10 @@ PD.app = (() => {
         const l = s2.kind === 'lesson' ? LS.get(s2.id) : s2.kind === 'rhythm' ? LS.get('rhythm-' + s2.id) : null;
         const thumb = l ? h('div', { class: 'lp-th', html: coverSVG(l) }) : h('div', { class: 'lp-th tool' + (need ? ' need' : ''), html: need ? '…' : (TOOL[s2.kind] || ic.learn) });
         const meta2 = need ? t('ln.awaiting') : l ? t('lvl.' + (l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : '') + (l.demo ? ' · ' + t('demo.badge') : '') : t('ln.tool');
-        const li = h('li', { class: 'lp-s' + (done ? ' done' : '') + (cur ? ' cur' : '') + (need ? ' need' : '') }, [
+        const locked = PREMIUM_PATHS.has(p.id) && !PD.premium.active && !need;
+        const li = h('li', { class: 'lp-s' + (done ? ' done' : '') + (cur ? ' cur' : '') + (need ? ' need' : '') + (locked ? ' locked' : '') }, [
           h('span', { class: 'lp-dot', html: done ? ic.check : '' }),
-          h(need ? 'div' : 'button', need ? { class: 'lp-c' } : { class: 'lp-c', onclick: () => stepGo(s2) }, [thumb, h('div', { class: 'lp-tx' }, [h('b', { text: stepTitle(s2) }), h('small', { text: meta2 })]), cur ? h('span', { class: 'lp-go', 'data-t': 'home.start' }) : null])]);
+          h(need ? 'div' : 'button', need ? { class: 'lp-c' } : { class: 'lp-c', onclick: () => locked ? PD.premium.paywall('paths.advanced') : stepGo(s2) }, [thumb, h('div', { class: 'lp-tx' }, [h('b', { text: stepTitle(s2) }), h('small', { text: meta2 })]), locked ? h('span', { class: 'lp-lock', html: LOCK }) : cur ? h('span', { class: 'lp-go', 'data-t': 'home.start' }) : null])]);
         if (cur) focusEl = li;
         path.appendChild(li);
       });
@@ -335,7 +357,7 @@ PD.app = (() => {
     w.append(h('div', { class: 'lx-hero' }, [h('div', { class: 'lx-art', html: coverSVG(l) }),
       h('div', { class: 'lx-bar' }, [h('button', { class: 'pz-ic lx-ic', 'aria-label': t('back'), html: ic.back, onclick: () => history.length > 1 ? history.back() : go('songs') }), h('span', { class: 'spacer' }), favBtn(l, LS.progress.favorites().includes(l.id))])]));
     w.append(h('div', { class: 'lx-head' }, [h('h1', { text: PD.i18n.pick(l.title) }),
-      h('div', { class: 'lx-meta' }, [h('span', { class: 'lx-lv lv' + (l.level || 1), text: t('lvl.' + (l.level || 1)) }), h('span', { text: t('type.' + l.type) }), has ? h('span', { text: PD.fmtTime(durSec(l)) }) : null, h('span', { text: l.bpm + ' BPM' }), l.demo ? h('span', { class: 'tag demo', title: t('demo.badgeD'), text: t('demo.badge') }) : null]),
+      h('div', { class: 'lx-meta' }, [h('span', { class: 'lx-lv lv' + (l.level || 1), text: t('lvl.' + (l.level || 1)) }), h('span', { text: t('type.' + l.type) }), has ? h('span', { text: PD.fmtTime(durSec(l)) }) : null, h('span', { text: Math.round(l.bpm) + ' BPM' }), l.demo ? h('span', { class: 'tag demo', title: t('demo.badgeD'), text: t('demo.badge') }) : null]),
       l.desc ? h('p', { class: 'fg2', text: PD.i18n.pick(l.desc) }) : null,
       sk.length ? h('div', { class: 'lx-skills' }, sk.map(k => h('span', { text: t('sk.' + k) }))) : null,
       p.plays ? h('div', { class: 'lx-prog' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + m + '%' })]), h('span', { text: m + '%' })]) : null]));
@@ -344,6 +366,7 @@ PD.app = (() => {
     if (l.user) chips.append(h('button', { class: 'btn small', html: PD.ic.mic + '<span data-t="les.record"></span>', onclick: () => PD.practice.record(l) }));
     if (PD.store.get('author', false)) chips.append(h('button', { class: 'btn small', html: ic.edit + '<span data-t="les.edit"></span>', onclick: () => PD.studio.open(l.id) }));
     if (!has) { w.append(chips, h('div', { class: 'empty', text: t('les.noNotes') })); return; }
+    if (l.song) return songPage(w, l, p, chips);
     const firstUndone = stages.find(s => !(stagePct(p, s) >= 80)) || 'wait';
     w.append(h('div', { class: 'ls-actions lx-actions' }, [
       h('button', { class: 'btn primary big', 'data-t': 'ls.learnBtn', onclick: () => startStage(l, p.resume && stages.includes(p.resume.stage) ? p.resume.stage : firstUndone === 'demo' || firstUndone === 'intro' ? 'wait' : firstUndone, p.resume ? p.resume.beat : 0) }),
@@ -369,6 +392,56 @@ PD.app = (() => {
     w.append(h('h3', { 'data-t': 'ls.sections', style: 'margin-top:4px' }), list);
     if (p.lastResult) w.append(h('p', { class: 'muted', style: 'font-size:13px', text: t('st.result') + ': ' + PD.practice.summary(p.lastResult) }));
   }
+  /** a chord shape as a small fretboard picture (E on top, A at the bottom, like the practice neck) */
+  function chordSVG(sh) {
+    const W = 150, H = 92, x0 = 22, fw = 30, ys = { 3: 22, 2: 46, 1: 70 }, maxF = Math.max(4, ...sh.frets);
+    let g = '<svg viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true"><rect x="' + x0 + '" y="10" width="' + (fw * maxF) + '" height="72" rx="4" fill="#4A1C0E"/>';
+    g += '<rect x="' + (x0 - 4) + '" y="8" width="5" height="76" rx="1.5" fill="#EFE5D0"/>';
+    for (let f = 1; f <= maxF; f++) g += '<line x1="' + (x0 + f * fw) + '" x2="' + (x0 + f * fw) + '" y1="10" y2="82" stroke="#C9C1B3" stroke-width="2"/>';
+    [1, 2, 3].forEach(s2 => { g += '<line x1="' + (x0 - 6) + '" x2="' + (x0 + fw * maxF) + '" y1="' + ys[s2] + '" y2="' + ys[s2] + '" stroke="#F1E7D4" stroke-width="' + (s2 === 1 ? 2.6 : s2 === 2 ? 2.2 : 1.8) + '"/><text x="4" y="' + (ys[s2] + 4) + '" fill="#C9B49B" font-size="11" font-weight="600">' + TH.stringName(s2) + '</text>'; });
+    const byF = {}; sh.frets.forEach((f, i) => { if (f > 0) (byF[f + ':' + sh.fingers[i]] = byF[f + ':' + sh.fingers[i]] || []).push(i + 1); });
+    Object.keys(byF).forEach(k => { const [f, fi] = k.split(':').map(Number), ss = byF[k], cx = x0 + (f - .5) * fw, col = PD.fingers.color(fi), ink = PD.fingers.ink(fi);
+      const ya = Math.min(...ss.map(q => ys[q])), yb = Math.max(...ss.map(q => ys[q]));
+      g += '<rect x="' + (cx - 10) + '" y="' + (ya - 10) + '" width="20" height="' + (yb - ya + 20) + '" rx="10" fill="' + col + '" stroke="rgba(255,255,255,.6)"/><text x="' + cx + '" y="' + ((ya + yb) / 2 + 4) + '" fill="' + ink + '" font-size="12" font-weight="700" text-anchor="middle">' + (fi || '') + '</text>'; });
+    sh.frets.forEach((f, i) => { if (f === 0) g += '<circle cx="' + (x0 - 12) + '" cy="' + ys[i + 1] + '" r="5" fill="none" stroke="#F1E7D4" stroke-width="1.8"/>'; });
+    return g + '</svg>';
+  }
+  /** song page: recording mix · the chords · five steps (listen → chord changes → rhythm → slow → full) · sections */
+  function songPage(w, l, p, chips) {
+    const SD = PD.SONGS[l.song], stages = LS.stagesOf(l);
+    const DESC = { demo: 'std.songDemo', chords: 'std.chords', technique: 'std.songRhythm', slow: 'std.songSlow', perform: 'std.songFull' };
+    const NAME = { demo: 'st.listen', chords: 'st.chords', technique: 'st.rhythm', slow: 'st.slow', perform: 'st.perform' };
+    const next = stages.find(s2 => !(stagePct(p, s2) >= 80)) || 'perform';
+    w.append(h('div', { class: 'ls-actions lx-actions' }, [
+      h('button', { class: 'btn primary big', text: t(p.plays ? 'hx.go' : 'home.start') + ' · ' + t(NAME[next]), onclick: () => startStage(l, next) }),
+      h('button', { class: 'btn', 'data-t': 'st.slow', onclick: () => startStage(l, 'slow') }),
+      h('button', { class: 'btn', 'data-t': 'ls.fullBtn', onclick: () => startStage(l, 'perform') }),
+      h('button', { class: 'btn camb', html: ic.camera + '<span data-t="cam.title"></span>', onclick: () => PD.camera.launcher() })]), chips);
+    // recording mix
+    const cur = PD.store.get('songMix', 'full');
+    const mix = h('div', { class: 'seg', role: 'group', 'aria-label': t('sg.mix') }, ['full', 'music', 'vocals'].map(m => h('button', { 'aria-pressed': String(cur === m), 'data-t': 'mix.' + m, onclick: e => { PD.store.set('songMix', m); PD.audio.ref.mix = m; mix.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
+    w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.mix' }), mix, h('small', { class: 'muted', 'data-t': 'sg.headphones' })]));
+    // chords
+    w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.shapes' }), h('div', { class: 'chd-row' }, Object.keys(SD.chords).map(n => { const sh = SD.chords[n]; return h('div', { class: 'chd' }, [h('b', { text: n }), h('div', { html: chordSVG(sh) }), h('small', { class: 'muted', text: sh.frets.map((f, i) => TH.stringName(i + 1) + ' ' + f).join(' · ') + (sh.src === 'derived' ? ' · ' + t('sg.derived') : '') })]); })),
+      h('small', { class: 'muted', 'data-t': 'sg.auto' })]));
+    // steps
+    const list = h('div', { class: 'list' });
+    stages.forEach((s2, i) => {
+      const pct = stagePct(p, s2), done = pct >= 80;
+      const body = h('div', { class: 'body' }, [h('b', { 'data-t': NAME[s2] }), h('p', { 'data-t': DESC[s2] })]);
+      if (pct != null) body.append(h('div', { class: 'row', style: 'max-width:240px' }, [h('div', { class: 'bar', style: 'flex:1' }, [h('i', { style: 'width:' + pct + '%' })]), h('span', { class: 'mono muted', style: 'font-size:11px', text: pct + '%' })]));
+      list.appendChild(h('div', { class: 'step' + (s2 === next ? ' cur' : '') }, [h('span', { class: 'num' + (done ? ' done' : ''), text: done ? '✓' : String(i + 1) }), body, h('button', { class: 'btn small' + (s2 === next ? ' primary' : ''), 'data-t': 'home.start', onclick: () => startStage(l, s2) })]));
+    });
+    w.append(h('h3', { 'data-t': 'ls.sections' }), list);
+    // sections of the song: play along from here (looped)
+    const secs = h('div', { class: 'sx-secs' }, l.sections.map(sc => {
+      const bars = Math.round((sc.to - sc.from) / LS.bpb(l)), chs = [...new Set(LS.steps(l).filter(x => x.t >= sc.from && x.t < sc.to).map(x => x.name))];
+      return h('button', { class: 'sx-sec' + (sc.kind === 'listen' ? ' listen' : ''), onclick: () => PD.practice.open(l, sc.kind === 'listen' ? { autoplay: true, tempo: 1, wait: false, mode: 'learn', resumeBeat: sc.from } : { wait: false, tempo: .7, mode: 'practice', loop: { a: sc.from, b: sc.to, on: true } }, l.id, 'phrase') }, [
+        h('b', { text: PD.i18n.pick(sc.name) }), h('small', { text: PD.fmtTime((sc.from / (l.bpm / 60)) + (l.refOffset || 0)) + ' · ' + t('sg.bars', { n: bars }) + (chs.length ? ' · ' + chs.join(' · ') : '') })]);
+    }));
+    w.append(h('h3', { 'data-t': 'sg.parts' }), secs);
+    if (p.lastResult) w.append(h('p', { class: 'muted', style: 'font-size:13px', text: t('st.result') + ': ' + PD.practice.summary(p.lastResult) }));
+  }
   function introSheet(l) {
     PD.ui.sheet((box, close) => {
       box.append(h('h2', { text: PD.i18n.pick(l.title) }));
@@ -388,6 +461,15 @@ PD.app = (() => {
       watch: { autoplay: true, tempo: .7, wait: false, mode: 'learn' }, metro: { wait: false, tempo: l.metro ? 1 : .8, mode: 'practice', metro: true },
       loop: { wait: false, tempo: .7, mode: 'practice', loop: { a: 0, b: LS.end(l), on: true } } }[s] || { wait: true, tempo: .7 };
     if (resumeBeat > 0) o.resumeBeat = resumeBeat;
+    if (l.song) {
+      // songs with a recording: listen · chord changes (WAIT, the recording pauses for you) · the rhythm alone · play along slow · full song
+      const firstPlay = (l.sections.find(x => x.kind !== 'listen') || { from: 0 }).from;
+      if (s === 'chords') return PD.practice.open(LS.songChanges(l), { wait: true, tempo: 1, mode: 'learn', resumeBeat: resumeBeat || firstPlay }, l.id, s);
+      if (s === 'technique') return PD.practice.open(LS.songRhythm(l), { wait: false, tempo: .6, mode: 'practice', metro: true, loop: { a: 0, b: LS.bpb(l) * 4, on: true } }, l.id, s);
+      if (s === 'slow') return PD.practice.open(l, { wait: false, tempo: .7, mode: 'practice', resumeBeat: resumeBeat || firstPlay }, l.id, s);
+      if (s === 'perform') return PD.practice.open(l, { wait: false, tempo: 1, mode: 'perform' }, l.id, s);
+      if (s === 'demo') return PD.practice.open(l, { autoplay: true, tempo: 1, wait: false, mode: 'learn' }, l.id, s);
+    }
     if (s === 'technique') {
       const tq = l.technique || { kind: 'rhythm' };
       if (tq.kind === 'section' && tq.from != null) return PD.practice.open(l, { wait: true, tempo: tq.tempo || .6, mode: 'learn', drill: { a: tq.from, b: tq.to } }, l.id, s);
@@ -428,15 +510,26 @@ PD.app = (() => {
   function profile(w) {
     const prof = PD.account.profile, sk = streaks(), sess = PD.account.session;
     const photo = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async e => { const f = e.target.files[0]; if (!f) return; const url = await shrink(f); PD.account.setProfile({ avatar: url }); render(); } });
-    const name = h('input', { class: 'input name-in', value: prof.name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { PD.account.setProfile({ name: e.target.value.trim() }); } });
+    const name = h('input', { class: 'input name-in', value: prof.name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { const v = e.target.value.trim(); PD.account.setProfile({ name: v }); if (v && PD.cloud.session) PD.cloud.db.update('profiles', { id: 'eq.' + PD.cloud.uid }, { display_name: v }).then(() => PD.cloud.loadProfile()).catch(() => {}); } });
     w.append(h('div', { class: 'pf-head' }, [h('button', { class: 'avatar big', 'aria-label': t('pf.photo'), title: t('pf.photo'), onclick: () => photo.click(), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : prof.name ? PD.esc(prof.name.charAt(0).toUpperCase()) : ic.user }), photo,
       h('div', { class: 'pf-id' }, [name, h('span', { class: 'muted', text: t('pr.level') + ': ' + levelName() + ' · ' + t('hm.streak', { n: sk.cur }) + ' · ' + t('pr.longest') + ' ' + t('pr.days', { n: sk.longest }) })])]));
     const goalSeg = h('div', { class: 'seg', role: 'group', 'aria-label': t('pf.goal') }, [5, 10, 15, 20, 30].map(m => h('button', { 'aria-pressed': String(PD.store.get('goalMin', 15) === m), text: t('dl.min', { n: m }), onclick: e => { PD.store.set('goalMin', m); goalSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
     w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.goal' }), goalSeg]));
+    // level · XP
+    const lp = PD.levels.progress;
+    w.append(h('section', { class: 'lvcard' }, [h('span', { class: 'lvcard-b', html: PD.levels.badge(64) }), h('div', { class: 'grow' }, [h('b', { text: t('lv.level', { n: lp.level }) + ' · ' + PD.levels.tierName() }),
+      h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(lp.pct * 100) + '%' })]), h('small', { text: t('lv.xp', { a: lp.into, b: lp.need }) + ' · ' + t('lv.toNext', { n: lp.need - lp.into }) })]),
+      h('button', { class: 'btn small', 'data-t': 'lv.program', onclick: () => go('learn', PD.levels.program) })]));
+    // premium / VIP
+    const PM = PD.premium;
+    w.append(h('button', { class: 'pmcard' + (PM.active ? ' on' : ''), onclick: () => PM.paywall() }, [h('span', { class: 'pmcard-ic', html: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z" fill="currentColor"/></svg>' }),
+      h('div', { class: 'grow' }, [h('b', { text: PM.vip ? t('pm.vip') : t('pm.title') }), h('small', { text: PM.active ? PM.status() : t('pm.lead') })]), h('span', { class: 'chev', html: ic.chevron })]));
+    const C = PD.cloud, cp = C.profile, who = C.session ? (cp && (cp.email || cp.phone)) || (C.user && (C.user.email || C.user.phone)) || '' : '';
     w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.account' }), h('div', { class: 'list' }, [
-      h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { text: sess && sess.email ? t('au.signedIn', { e: sess.email }) : t('pf.guest') }), h('small', { 'data-t': 'acct.noBackend' })]), h('button', { class: 'btn small', 'data-t': 'pf.signin', onclick: () => PD.auth.open('signin') })]),
-      h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'au.sync' }), h('small', { text: PD.account.remote.configured ? '' : t('au.syncOff') })])]),
-      h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'au.subscription' }), h('small', { 'data-t': 'au.subOff' })])]),
+      h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { text: C.session ? t('au.signedIn', { e: who }) : t('pf.guest') }), h('small', { text: C.session ? t('au.syncOn') : (C.configured ? t('au.guestD') : t('au.syncOff')) })]),
+        C.session ? h('button', { class: 'btn small', 'data-t': 'au.signout', onclick: () => PD.ui.confirm(t('au.signout') + '?', async () => { await C.auth.signOut(); PD.store.set('auth.skip', false); render(); }) }) : h('button', { class: 'btn small primary', 'data-t': 'pf.signin', onclick: () => PD.auth.open() })]),
+      C.isAdmin ? h('button', { class: 'li', onclick: () => PM.admin() }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'ad.title' }), h('small', { 'data-t': 'ad.lead' })]), h('span', { html: ic.chevron, class: 'chev' })]) : null,
+      h('button', { class: 'li', onclick: () => go('community') }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'cm.title' }), h('small', { 'data-t': 'cm.lead' })]), h('span', { html: ic.chevron, class: 'chev' })]),
       h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'acct.export' })]), h('span', { class: 'row', style: 'gap:6px' }, [
         h('button', { class: 'btn small', html: ic.dl + '<span data-t="acct.export"></span>', onclick: () => PD.ui.download('panduri-data.json', JSON.stringify({ schema: 'panduri-data', v: 1, data: PD.store.exportAll() }, null, 1)) }),
         h('button', { class: 'btn small', html: ic.ul + '<span data-t="acct.import"></span>', onclick: async () => { const f = await PD.ui.pickFile('application/json'); if (!f) return; try { const o = JSON.parse(await f.text()); PD.store.importAll(o.data || o); PD.ui.toast(t('toast.imported')); setTimeout(() => location.reload(), 600); } catch (e) { PD.ui.toast('JSON: ' + e.message); } } })])])])]));
@@ -548,6 +641,7 @@ PD.app = (() => {
       row('set.hc', null, toggle('hc', false, v => document.documentElement.classList.toggle('hc', v))),
       row('set.colorblind', null, toggle('fingerSymbols', false)),
       row('set.haptics', null, toggle('haptics', true)),
+      row('set.remote', t('set.remoteD'), toggle('remoteNav', PD.tv.isTV)),
       row('set.keys', t('kbd.help'), null)]));
     const tsel = h('select', { class: 'input', 'aria-label': t('set.tuning'), onchange: e => TH.setTuning(e.target.value) }); TH.TUNINGS.forEach(tu => { const o = h('option', { value: tu.id, text: PD.i18n.pick(tu.name) }); if (tu.id === TH.tuning.id) o.selected = true; tsel.appendChild(o); });
     w.append(sect('set.panduri', [row('set.tuning', TH.tuning.strings.map(m => TH.name(m)).join(' · '), tsel), row('set.a4', null, range(TH.a4(), 430, 450, 1, v => PD.store.set('a4', v), v => v + ' Hz')), row('set.samples', t('set.samplesD', { n: PD.samples.count }), null)]));
@@ -559,8 +653,12 @@ PD.app = (() => {
       row('set.install', t('set.installD'), null),
       row('set.wipe', t('set.wipeD'), h('button', { class: 'btn small', style: 'color:var(--fix)', 'data-t': 'delete', onclick: () => PD.ui.confirm(t('set.wipeD'), () => { PD.store.keys().forEach(k => PD.store.del(k)); location.reload(); }) }))]));
     w.append(sect('set.author', [row('set.author', t('set.authorD'), toggle('author', false))]));
-    w.append(sect('set.dev', [row('set.devTouch', t('set.devTouchD'), toggle('devTouch', false))]));
+    const cc = PD.cloud.config(), su = h('input', { class: 'input', placeholder: 'https://xxxx.supabase.co', value: cc.url, 'aria-label': 'Supabase URL' }), sk2 = h('input', { class: 'input', placeholder: 'anon public key', value: cc.key ? cc.key.slice(0, 12) + '…' : '', 'aria-label': 'Supabase key' });
+    sk2.onfocus = () => { if (/…$/.test(sk2.value)) sk2.value = ''; };
+    w.append(sect('set.dev', [row('set.devTouch', t('set.devTouchD'), toggle('devTouch', false)),
+      h('div', { class: 'li', style: 'flex-wrap:wrap' }, [h('div', { class: 'grow', style: 'min-width:220px' }, [h('span', { 'data-t': 'set.server' }), h('small', { text: PD.cloud.configured ? t('set.serverOn') : t('set.serverD') })]),
+        h('div', { style: 'display:flex;flex-direction:column;gap:6px;flex:1 1 260px' }, [su, sk2, h('button', { class: 'btn small', 'data-t': 'set.serverSave', onclick: () => { PD.cloud.setConfig({ url: su.value, key: /…$/.test(sk2.value) ? cc.key : sk2.value }); location.reload(); } })])])]));
   }
 
-  return { shell, go, render, glyph, meta, lessonRow, startStage, get route() { return route; }, get param() { return param; } };
+  return { shell, go, render, glyph, meta, lessonRow, startStage, coverSVG, get route() { return route; }, get param() { return param; } };
 })();

@@ -25,6 +25,7 @@ PD.i18n.add({
   'h.okEarly': ['სწორი ნოტია — ოდნავ ადრე დაუკარი.', 'Right note — a little early.'],
   'h.okLate': ['{n} სწორია, ცოტა გვიან დაუკარი.', '{n} is right, a little late.'],
   'h.chordPart': ['აკორდში {n}/3 ბგერა დადასტურდა — შეამოწმე {s} სიმი.', '{n}/3 chord tones confirmed — check the {s} string.'],
+  'h.chordCheck': ['შეამოწმე აკორდი — {c}', 'Check the chord — {c}'],
   'h.chordNo': ['აკორდი ვერ დადასტურდა — შეამოწმე თითები და ჩამოკარი სამივე სიმი.', 'Chord not confirmed — check your fingers and strum all three strings.'],
   'h.dir': ['დრო სწორია, მიმართულება: {d}', 'Timing is right; direction should be {d}'],
   'h.chordTouch': ['აკორდისთვის გამოიყენე ↓ / ↑ ღილაკი', 'Use the ↓ / ↑ buttons for chords'],
@@ -98,7 +99,7 @@ PD.engine = (() => {
     S.finished = false; S.now = 0; S.cur = 0; S.waiting = false; S.ci = null; S.autoplay = false; S.stepMode = false; S.heatBars = {}; S.streak = 0; S.bestStreak = 0; S.extra = 0; S.onStr = [];
     if (opts) configure(opts);
     reanchor(); PD.audio.ref.unload(); PD.media.load(lesson); PD.samples.preload(lesson); S.tempoDowns = {};
-    if (lesson.refAudio) PD.audio.ref.load(lesson.refAudio, lesson.refOffset || 0);
+    if (lesson.stems) PD.audio.ref.loadStems(lesson.stems, lesson.refOffset || 0); else if (lesson.refAudio) PD.audio.ref.load(lesson.refAudio, lesson.refOffset || 0);
     emit('load', lesson); emit('state');
   }
   function configure(o) {
@@ -200,7 +201,8 @@ PD.engine = (() => {
   function autoPass() {
     let st = S.steps[S.cur];
     while (st && S.now >= st.t) {
-      if (st.kind === 'note') PD.audio.note(st.notes[0].s, st.notes[0].f, { vel: st.acc ? .85 : .65 });
+      const rec = S.lesson.stems && PD.audio.ref.el;   // a song with its recording: the recording is the sound
+      if (rec) {} else if (st.kind === 'note') PD.audio.note(st.notes[0].s, st.notes[0].f, { vel: st.acc ? .85 : .65 });
       else PD.audio.strum(st.frets, st.st, { vel: st.acc ? 1 : .55, gap: st.acc ? .011 : .02 });   // accent: stronger attack
       S.res[st.i].ok = true; emit('hit', { st, r: { res: 'ok', auto: true } }); S.cur++; st = S.steps[S.cur];
     }
@@ -229,12 +231,18 @@ PD.engine = (() => {
     if (!st) {
       if (inp.src === 'touch' && inp.kind !== 'onset') hint('h.early', null, 'info', 1200);
       // continuous strum lessons: a stroke between written strokes is an extra stroke (counted, briefly noted)
-      if (inp.src === 'mic' && inp.kind === 'onset' && !waitEff() && S.steps.some(x => x.kind === 'strum')) { S.extra = (S.extra || 0) + 1; emit('extra', inp); if (!S.lastExtraHint || performance.now() - S.lastExtraHint > 2500) { S.lastExtraHint = performance.now(); hint('h.extra', null, 'almost', 1200); } }
+      if (inp.src === 'mic' && inp.kind === 'onset' && !waitEff() && (S.lesson.song || S.steps.some(x => x.kind === 'strum'))) { S.extra = (S.extra || 0) + 1; emit('extra', inp); if (!S.lastExtraHint || performance.now() - S.lastExtraHint > 2500) { S.lastExtraHint = performance.now(); hint('h.extra', null, 'almost', 1200); } }
+      return;
+    }
+    const songFlow = S.lesson.song && !waitEff() && st.kind === 'chord';   // playing along with a recording: strokes are timed by onset, the chord is checked alongside
+    if (songFlow && inp.src === 'mic' && inp.kind === 'chord') {
+      const n = (inp.present || []).filter(Boolean).length; S.chordSeen = { i: st.i, n };
+      if (n < 2 && (!S.lastChordHint || performance.now() - S.lastChordHint > 2600)) { S.lastChordHint = performance.now(); hint('h.chordCheck', { c: st.name }, 'almost', 1800); }
       return;
     }
     if (inp.src === 'mic' && inp.kind === 'note' && st.kind !== 'note') return;   // chords are judged by the chord detector
     if (inp.src === 'mic' && inp.kind === 'chord' && (st.kind !== 'chord' || (inp.t - (S.lastAcceptT || -9)) < .14)) return;
-    if (inp.src === 'mic' && inp.kind === 'onset' && st.kind !== 'strum') return;
+    if (inp.src === 'mic' && inp.kind === 'onset' && st.kind !== 'strum' && !songFlow) return;
     const r = judge(st, inp), res = S.res[st.i];
     if (r.res === 'unsure') {
       // a low-confidence read is never a mistake. In continuous play the onset still tells us the timing.
@@ -325,7 +333,7 @@ PD.engine = (() => {
     maybeSuggest(bar);
   }
   function maybeSuggest(bar) {
-    if (S.drill || S.loop.on || S.mode === 'perform' || S.suggestedBars[bar]) return;
+    if (S.drill || S.loop.on || S.mode === 'perform' || S.suggestedBars[bar] || (S.lesson && S.lesson.song)) return;
     const h = S.heatBars, n = (h[bar] || 0) + (h[bar - 1] || 0);
     if (n >= 3) {
       S.suggestedBars[bar] = 1;
@@ -459,7 +467,9 @@ PD.engine = (() => {
     endPass();
     const r = results(), id = S.lesson.id, p = LS.progress.lesson(id);
     p.plays++; p.last = Date.now();
+    const wasM = (p.mastery || 0) >= .9;
     p.mastery = p.mastery ? p.mastery * .6 + r.firstTry * .4 : r.firstTry;
+    if (!wasM && p.mastery >= .9 && S.input === 'mic') setTimeout(() => PD.bus.emit('mastered', S.lesson.id), 0);
     if (!r.waited && r.firstTry >= .85) p.maxTempo = Math.max(p.maxTempo || 0, r.tempoPct);
     if (!p.best || r.firstTry > p.best.firstTry) p.best = { firstTry: r.firstTry, timing: r.timing, date: Date.now() };
     p.heat = r.heat; p.stages = p.stages || {};
@@ -473,7 +483,7 @@ PD.engine = (() => {
     LS.progress.saveLesson(id, p);
     // problem frets: wrong attempts by (string, fret)
     const probs = {}; S.steps.forEach(s => { const rr = S.res[s.i]; if (rr.attempts > 1 || rr.missed) s.notes.forEach(nn => { const k = nn.s + ':' + nn.f; probs[k] = (probs[k] || 0) + 1; }); });
-    LS.progress.addSession({ id, date: Date.now(), dur: S.startedAt ? Math.round((Date.now() - S.startedAt) / 1000) : 0, firstTry: r.firstTry, pitch: r.input === 'mic' ? r.pitchAcc : null, pitchSpread: r.pitchSpread, timing: r.timing, consistency: r.consistency, bpm: r.tempo, tempo: r.tempoPct, mode: S.mode, waited: r.waited, probs, correct: r.correct, notes: r.notes, accAcc: r.accAcc, rhythm: !!S.lesson.rhythm || S.steps.every(x => x.kind === 'strum'), type: S.lesson.type });
+    LS.progress.addSession({ id, date: Date.now(), dur: S.startedAt ? Math.round((Date.now() - S.startedAt) / 1000) : 0, firstTry: r.firstTry, pitch: r.input === 'mic' ? r.pitchAcc : null, pitchSpread: r.pitchSpread, timing: r.timing, consistency: r.consistency, bpm: r.tempo, tempo: r.tempoPct, mode: S.mode, waited: r.waited, probs, correct: r.correct, notes: r.notes, accAcc: r.accAcc, input: r.input, rhythm: !!S.lesson.rhythm || S.steps.every(x => x.kind === 'strum'), type: S.lesson.type });
     S.startedAt = 0;
     emit('end', r);
   }

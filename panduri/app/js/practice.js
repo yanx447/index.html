@@ -27,6 +27,7 @@ PD.i18n.add({
   'ws.autopause': ['აპი ფონზე გადავიდა — პაუზა', 'App went to the background — paused'],
   'ws.noRef': ['ამ გაკვეთილს საცნობარო ჩანაწერი არ აქვს', 'This lesson has no reference recording'],
   'ws.micFirst': ['მიკროფონი რატომ?', 'Why the microphone?'], 'ws.micAllow': ['ჩართვა', 'Turn on'],
+  'ws.micWhy2': ['მიკროფონით პროგრამა გისმენს: რომელ ნოტს და აკორდს უკრავ და რა დროს.', 'With the microphone the app hears which note and chord you play, and when.'],
   'ws.micLocal': ['ხმა მხოლოდ ამ მოწყობილობაზე მუშავდება. არაფერი იწერება და არსად იგზავნება. გამორთვისას მიკროფონი სრულად თავისუფლდება.', 'Audio is analysed only on this device. Nothing is recorded or sent anywhere. Turning it off fully releases the microphone.'],
   'ws.micTips': ['მოათავსე ტელეფონი ფანდურიდან 30–60 სმ-ზე. ყურსასმენი აჯობებს — დინამიკის ხმა შეიძლება მიკროფონმა გაიგოს.', 'Place the phone 30–60 cm from the panduri. Headphones help — speaker sound can leak into the mic.'],
   'ws.no3d': ['3D ამ მოწყობილობაზე მიუწვდომელია — 2D ხედი რჩება.', '3D is not available on this device — staying in 2D.'],
@@ -80,7 +81,7 @@ PD.i18n.add({
   'p.loopPhrase': ['ეს ფრაზა', 'This phrase'], 'p.loopBar': ['ეს ტაქტი', 'This bar'], 'p.loopMistake': ['ბოლო შეცდომა', 'Last mistake'], 'p.loopOff': ['გამეორების გამორთვა', 'Stop repeating'],
   'p.showMe': ['მომასმენინე ეს ნოტი', 'Let me hear this note'], 'p.names': ['ნოტების სახელები', 'Note names'], 'p.mic': ['მიკროფონი და ოთახი', 'Microphone and room'], 'p.video': ['მასწავლებლის ვიდეო', 'Teacher video'],
   'p.lefty': ['მარცხენა ხელისთვის', 'Left-handed'], 'p.sound': ['ხმები', 'Sounds'], 'p.accent': ['აქცენტი', 'accent'], 'p.dev': ['DEV · შეხებით ტესტი', 'DEV · touch test'],
-  'p.loopOn': ['მეორდება', 'Repeating'], 'p.drill': ['ვარჯიში', 'Drill']
+  'p.loopOn': ['მეორდება', 'Repeating'], 'p.barre': ['ბარე · თითი {n}', 'barre · finger {n}'], 'p.listenPart': ['მოუსმინე', 'Listen'], 'p.noRec': ['ჩანაწერი ამ ვერსიაში არ არის ჩატვირთული — მეტრონომით დაუკარი.', 'The recording is not included in this build — play with the metronome.'], 'p.drill': ['ვარჯიში', 'Drill']
 });
 PD.practice = (() => {
   const E = PD.engine, S = E.S, TH = PD.theory, LS = PD.lessons, h = PD.h, ic = PD.ic;
@@ -107,7 +108,7 @@ PD.practice = (() => {
     };
     if (PD.store.get('micExplained', false)) return go();
     PD.ui.sheet((box, close) => {
-      box.append(h('h2', { 'data-t': 'ws.micFirst' }), h('p', { class: 'fg2', 'data-t': 'mic.why' }), h('p', { class: 'fg2', 'data-t': 'ws.micLocal' }), h('p', { class: 'muted', 'data-t': 'ws.micTips' }),
+      box.append(h('h2', { 'data-t': 'ws.micFirst' }), h('p', { class: 'fg2', 'data-t': 'ws.micWhy2' }), h('p', { class: 'fg2', 'data-t': 'ws.micLocal' }), h('p', { class: 'muted', 'data-t': 'ws.micTips' }),
         h('div', { class: 'row' }, [h('button', { class: 'btn primary', 'data-t': 'ws.micAllow', onclick: () => { PD.store.set('micExplained', true); close(); go(); } }), h('button', { class: 'btn', 'data-t': 'cancel', onclick: () => { close(); cb && cb(false); } })]));
     });
   }
@@ -138,7 +139,8 @@ PD.practice = (() => {
     const bPause = h('button', { class: 'pz-ic', 'aria-label': t('ws.pause'), html: ic.pause, onclick: () => togglePause() });
     const bMore = h('button', { class: 'pz-ic', 'aria-label': t('p.more'), html: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>', onclick: () => more() });
     const progI = h('i'), progN = h('span', { class: 'pz-pn' }), chip = h('span', { class: 'pz-chip', hidden: true });
-    const top = h('header', { class: 'pz-top' }, [bBack, h('div', { class: 'pz-title' }, [h('b', { text: PD.i18n.pick(lesson.title) }), chip]), bPause, bMore]);
+    const bMix = lesson.stems ? h('button', { class: 'pz-mix', onclick: () => cycleMix() }) : null;
+    const top = h('header', { class: 'pz-top' }, [bBack, h('div', { class: 'pz-title' }, [h('b', { text: PD.i18n.pick(lesson.title) }), chip]), bMix, bPause, bMore].filter(Boolean));
     const prog = h('div', { class: 'pz-prog' }, [h('div', { class: 'pz-bar' }, [progI]), progN]);
     /* lanes */
     const cvL = h('canvas', { class: 'pz-cv', 'aria-hidden': 'true' });
@@ -162,12 +164,24 @@ PD.practice = (() => {
     const vidEl = h('div', { class: 'pz-vid', hidden: true });
     const recBar = h('div', { class: 'pz-rec', hidden: !w.rec });
     root.append(top, prog, stage0, bottom, recBar, vidEl);
+    /* camera: the learner's own mirror picture behind the lesson (never recorded or sent) */
+    const CAM = !!opts.camera || PD.camera.take();
+    let camV = null, frameEl = null;
+    if (CAM && !w.rec) {
+      root.classList.add('cam'); if (mirror) root.classList.add('lefty');
+      camV = h('video', { class: 'pz-camv' + (PD.camera.facing === 'user' ? ' mirror' : ''), playsinline: '', muted: '', autoplay: '' });
+      frameEl = h('div', { class: 'pz-frame', 'aria-hidden': 'true', html: PD.camera.frameSVG(mirror) + '<span>' + PD.esc(t('cam.frame')) + '</span>' });
+      root.prepend(camV); stage0.appendChild(frameEl);
+      w.camT0 = performance.now();
+      PD.camera.attach(camV).then(ok => { if (!ok) { root.classList.remove('cam'); camV.remove(); frameEl.remove(); camV = frameEl = null; } });
+      w.cam = true;
+    }
     document.body.appendChild(root); document.body.style.overflow = 'hidden';
     PD.i18n.apply(root); w.root = root;
 
     /* renderers */
-    const lanes = PD.Lanes(cvL, { rhythm: RHYTHM }); lanes.mirror = mirror;
-    const neck = PD.Neck(cvN, { onTap: (s, f) => { if (!devTouch()) return; PD.audio.ensure(); PD.audio.note(s, f, { vel: .6 }); E.input({ kind: 'note', src: 'touch', midi: TH.midi(s, f), s, f, conf: 1, t: PD.audio.now() }); } }); neck.mirror = mirror;
+    const lanes = PD.Lanes(cvL, { rhythm: RHYTHM, song: !!lesson.song }); lanes.mirror = mirror;
+    const neck = PD.Neck(cvN, { sticky: !!lesson.song, onTap: (s, f) => { if (!devTouch()) return; PD.audio.ensure(); PD.audio.note(s, f, { vel: .6 }); E.input({ kind: 'note', src: 'touch', midi: TH.midi(s, f), s, f, conf: 1, t: PD.audio.now() }); } }); neck.mirror = mirror;
     w.neck = neck; w.lanes = lanes;
     const relayout = () => { lanes.layout(); neck.layout(); w.sig = ''; };
 
@@ -193,13 +207,25 @@ PD.practice = (() => {
       else if (err) card.append(h('p', { class: 'pz-warn', text: PD.ui.micError(err) }));
       card.append(h('button', { class: 'btn primary big', html: ic.mic + '<span data-t="gate.on"></span>', onclick: () => micOn((ok, e) => { if (ok) { gate(); afterMic(); } else gate(e || 'failed'); }) }),
         h('button', { class: 'btn quiet', 'data-t': 'p.listenFirst', onclick: () => startWatch() }));
+      if (lesson.stems) card.append(h('small', { class: 'pz-tip', 'data-t': 'sg.headphones' }));
       gateEl.appendChild(card); PD.i18n.apply(gateEl);
     }
     function afterMic() {
       if (!PD.detector.calib.date) PD.ui.toast(t('gate.calib'), 5000);
       else { const L = Math.round((PD.detector.calib.latencyMs || 0) + (PD.detector.procLatencyMs || 0)); if (L > 120) PD.ui.toast(t('gate.lat', { n: L }), 6000); }
+      if (lesson.stems && !PD.store.get('tip.headphones', false)) { PD.store.set('tip.headphones', true); setTimeout(() => PD.ui.toast(t('sg.headphones'), 6000), 5200); }
       if (!w.rec && !S.playing) setTimeout(() => { if (W === w) E.play(); }, 350);
     }
+    /* recording mix (songs): with vocals · no vocals · vocals only · off. While the recording plays through the speaker, echo cancellation keeps it out of the microphone. */
+    const MIXES = ['full', 'music', 'vocals', 'off'];
+    function mixLabel() { return t('mix.' + (PD.audio.ref.mix || 'full')); }
+    function cycleMix() { const i = MIXES.indexOf(PD.audio.ref.mix); setMix(MIXES[(i + 1) % MIXES.length]); }
+    function setMix(m) { PD.audio.ref.use(m); if (bMix) bMix.textContent = '♪ ' + mixLabel(); PD.detector.setAEC(m !== 'off'); }
+    if (lesson.stems) {
+      if (!PD.audio.ref.available) PD.ui.toast(t('p.noRec'), 5000);
+      bMix.textContent = '♪ ' + mixLabel(); PD.detector.setAEC(PD.audio.ref.mix !== 'off');
+    }
+    w.mixSheet = () => PD.ui.sheet((box, close) => { box.append(h('h2', { 'data-t': 'sg.mix' }), ...MIXES.map(m => h('button', { class: 'opt', 'aria-pressed': String(PD.audio.ref.mix === m), onclick: () => { setMix(m); close(); }, html: '<span><b data-t="mix.' + m + '"></b></span><span class="mono">' + (PD.audio.ref.mix === m ? '✓' : '') + '</span>' }))); });
     function startWatch() { w.watch = true; gateEl.hidden = true; E.configure({ autoplay: true, wait: false }); S.autoplay = true; E.seek(0); E.play(); sync(true); }
     function yourTurn() {
       w.watch = false; S.autoplay = false; E.configure({ autoplay: false, wait: opts.wait != null ? !!opts.wait : true }); E.seek(0); lanes.reset();
@@ -286,6 +312,14 @@ PD.practice = (() => {
         pSub.append(chipEl('', PD.esc(n.f === 0 ? t('p.openStr') : t('p.fret', { f: n.f }))));
         if (n.f > 0 && n.fi && A.fingers) pSub.append(chipEl('fing', '<i style="background:' + PD.fingers.color(n.fi) + '"></i>' + PD.esc(t('p.finger', { n: PD.fingers.label(n.fi), name: PD.fingers.name(n.fi) }))));
         if (n.f === 0) pSub.append(chipEl('dim', PD.esc(TH.name(m))));
+      } else if (st.kind === 'chord' && lesson.song) {
+        pBig.textContent = st.name || '';
+        pSub.append(chipEl('', PD.esc(st.notes.map(n => TH.stringName(n.s) + ' ' + n.f).join(' · '))));
+        const fl = st.notes.filter(n => n.f > 0 && n.fi), bar = fl.length > 1 && fl.every(n => n.fi === fl[0].fi && n.f === fl[0].f);
+        if (bar) pSub.append(chipEl('fing', '<i style="background:' + PD.fingers.color(fl[0].fi) + '"></i>' + PD.esc(t('p.barre', { n: fl[0].fi }))));
+        const nxc = S.steps.slice(S.cur + 1).find(x => x.name !== st.name);
+        if (nxc && nxc.t - st.t <= E.bpb() * 1.01) pSub.append(chipEl('dim', '→ ' + PD.esc(nxc.name)));
+        if (st.acc) pSub.append(chipEl('acc', PD.esc(t('p.accent'))));
       } else if (st.kind === 'chord') {
         pBig.textContent = t('p.chord', { n: st.name || '' });
         st.notes.forEach(n => pSub.append(chipEl(n.f > 0 && n.fi ? 'fing' : '', (n.f > 0 && n.fi ? '<i style="background:' + PD.fingers.color(n.fi) + '"></i>' : '') + PD.esc(TH.stringName(n.s) + ' · ' + (n.f > 0 ? n.f : 0)))));
@@ -304,9 +338,12 @@ PD.practice = (() => {
       stroke.className = 'pz-stroke' + (up ? ' up' : ' down') + (acc ? ' acc' : '');
       stroke.innerHTML = PD.practice.strokeSVG(up) + '<span class="pz-sa">' + (up ? '↑' : '↓') + '</span><span class="pz-sl">' + PD.esc(t(up ? 'w.up' : 'w.down')) + (acc ? ' · ' + PD.esc(t('p.accent')) : '') + '</span>';
     }
+    /** the frame guide: shown while the learner sits down (first seconds), when stopped or counting in, or always if chosen */
+    function frameOn() { if (frameEl) { const v = !S.playing || !!S.ci || PD.store.get('cam.frame', false) || performance.now() - (w.camT0 || 0) < 8000; if (v !== w.frameV) { w.frameV = v; frameEl.classList.toggle('on', v); } } }
     function sync(force) {
       if (!W) return;
       bPause.innerHTML = S.playing ? ic.pause : ic.play; bPause.setAttribute('aria-label', t(S.playing ? 'ws.pause' : 'ws.play'));
+      frameOn();
       const md = modeOf(); chip.hidden = md === 'wait' && !S.loop.on && !S.drill; chip.textContent = S.drill ? t('p.drill') : S.loop.on ? t('p.loopOn') : t('pm.' + md);
       micState();
       if (force) w.sig = '';
@@ -374,15 +411,18 @@ PD.practice = (() => {
           row('p.speed', E.bpm() + ' BPM', tempoSheet),
           row('p.mode', t('pm.' + modeOf()), modeSheet),
           row('p.loop', S.loop.on ? t('p.loopOn') : '', loopSheet),
+          lesson.stems ? row('sg.mix', mixLabel(), () => w.mixSheet()) : null,
           row('p.showMe', null, () => { PD.audio.ensure(); E.showMe(); }),
           row('p.mic', PD.detector.active ? t('mic.on') : t('mic.off'), micSheet),
           lesson.media && lesson.media.length ? row('p.video', null, () => toggleVideo()) : null,
+          camV ? tg('cam.toggleFrame', () => PD.store.get('cam.frame', false), v => { PD.store.set('cam.frame', v); sync(); }) : null,
+          camV ? row('cam.flip', null, () => PD.camera.flip(camV).then(() => camV.classList.toggle('mirror', PD.camera.facing === 'user'))) : null,
           tg('ws.metro', () => S.metro, v => E.setMetro(v)),
           tg('ws.countIn', () => S.countIn, v => E.setCountIn(v)),
           tg('p.names', () => PD.store.get('showNames', null) !== false, v => PD.store.set('showNames', v)),
           tg('set.fingerColors', () => PD.fingers.on, v => PD.store.set('fingerColors', v)),
           tg('set.fingerSymbols', () => PD.fingers.symbols, v => PD.store.set('fingerSymbols', v)),
-          tg('p.lefty', () => neck.mirror, v => { neck.mirror = lanes.mirror = v; PD.store.set('lefty', v); })].filter(Boolean)),
+          tg('p.lefty', () => neck.mirror, v => { neck.mirror = lanes.mirror = v; PD.store.set('lefty', v); root.classList.toggle('lefty', v); if (frameEl) frameEl.innerHTML = PD.camera.frameSVG(v) + '<span>' + PD.esc(t('cam.frame')) + '</span>'; })].filter(Boolean)),
           h('button', { class: 'btn', 'data-t': 'done', onclick: close }));
       });
     }
@@ -399,7 +439,7 @@ PD.practice = (() => {
         if (w.watch) { const b = h('div', { class: 'pz-over' }, [h('div', { class: 'pz-card' }, [h('h2', { 'data-t': 'ws.listenDone' }), h('button', { class: 'btn primary big', 'data-t': 'p.yourTurn', onclick: () => { b.remove(); yourTurn(); } }), h('button', { class: 'btn quiet', 'data-t': 'p.exit', onclick: () => close() })])]); stage0.appendChild(b); PD.i18n.apply(b); }
         return;
       }
-      if (stage) { p.stages = p.stages || {}; p.stages[stage] = Math.max(p.stages[stage] || 0, Math.round(r.firstTry * 100)); }
+      if (stage) { p.stages = p.stages || {}; const was = p.stages[stage] || 0; p.stages[stage] = Math.max(was, Math.round(r.firstTry * 100)); if (was < 80 && p.stages[stage] >= 80 && r.input === 'mic') PD.bus.emit('stageDone', stage); }
       p.lastResult = { firstTry: r.firstTry, pitchAcc: r.input === 'mic' ? r.pitchAcc : null, timing: r.timing, tempoPct: r.tempoPct, waited: r.waited, date: Date.now() };
       LS.progress.saveLesson(id, p);
       results(r);
@@ -464,10 +504,12 @@ PD.practice = (() => {
       if ((fN++ & 1) === 0) {
         const e = Math.max(1, E.endBeat()), x = Math.round(Math.min(1, E.visualNow() / e) * 100);
         if (x !== w.px) { w.px = x; progI.style.width = x + '%'; progN.textContent = x + '%'; }
+        if ((fN & 31) === 0) frameOn();
         if (PD.detector.active) { lvl *= .9; micBars.childNodes.forEach((b, k) => { b.style.transform = 'scaleY(' + (.25 + Math.min(1, lvl * (1.3 - k * .18) + Math.sin(tm / (140 + k * 40)) * .04) * .75).toFixed(2) + ')'; }); }
       }
     }
     w.cleanup = () => {
+      if (w.cam) PD.camera.stop();
       cancelAnimationFrame(w.raf); document.removeEventListener('keydown', onKey); ro.disconnect();
       offs.forEach(f => { try { f && f(); } catch (_) {} }); neck.destroy();
       S.autoDemo = prevAutoDemo; S.metro = w.prevMetro;
@@ -485,6 +527,7 @@ PD.practice = (() => {
     if (!w.rec && S.lesson && w.stage) { const p = LS.progress.lesson(w.srcId); if (S.finished || S.now < .01) delete p.resume; else p.resume = { stage: w.stage, beat: S.lesson.id === w.srcId ? S.now : 0, at: Date.now() }; p.lastStage = w.stage; LS.progress.saveLesson(w.srcId, p); }
     E.stop(); if (S.drill) S.drill = null;
     PD.audio.ref.unload && PD.audio.ref.unload(); PD.media.unload();
+    PD.detector.setAEC(false, true);
     if (PD.detector.active && !PD.store.get('micStay', false)) PD.detector.stop();   // leaving practice releases the microphone
     w.cleanup && w.cleanup(); w.root.remove(); document.body.style.overflow = '';
     W = null;

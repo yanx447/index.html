@@ -2,15 +2,15 @@
   "appId": "com.yanx.panduri",
   "appName": "ფანდური",
   "webDir": "app",
-  "backgroundColor": "#0B0C10",
+  "backgroundColor": "#130C07",
   "ios": {
     "contentInset": "never",
-    "backgroundColor": "#0B0C10",
+    "backgroundColor": "#130C07",
     "scrollEnabled": false,
     "limitsNavigationsToAppBoundDomains": false
   },
   "android": {
-    "backgroundColor": "#0B0C10",
+    "backgroundColor": "#130C07",
     "adjustMarginsForEdgeToEdge": "auto"
   }
 }
