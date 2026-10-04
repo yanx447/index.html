@@ -323,6 +323,30 @@ console.log('\nAccidentally changed settings');
   ok(t4 == null, 'small A4 change (442 Hz) → notice only, no automatic change');
 }
 
+console.log('\nAll chords in all positions (17 frets)');
+{
+  const music = await import('../app/js/music.js');
+  const T = S.map((s) => s.midi);
+  let bad = [], total = 0, few = [];
+  for (const q of ['maj', 'min', '7', 'm7', 'sus4', 'dim']) for (let r = 0; r < 12; r++) {
+    const list = music.voicings(r, q, T), tones = music.quality(q).iv.map((i) => music.pc(r + i));
+    total += list.length;
+    if ((q === 'maj' || q === 'min') && list.length < 3) few.push(music.chordName(r, q).short);
+    for (const v of list) {
+      const used = v.frets.filter((x) => x > 0);
+      const okNotes = v.notes.every((m, i) => m === T[i] + v.frets[i] && tones.includes(music.pc(m)));
+      const okHand = v.frets.every((x) => x >= 0 && x <= 17) && (!used.length || Math.max(...used) - Math.min(...used) <= 3);
+      if (!okNotes || !okHand) bad.push(music.chordName(r, q).short + '[' + v.frets + ']');
+    }
+    const std = music.fingering(r, q, T).frets.join();
+    if ((q === 'maj' || q === 'min') && !list.some((v) => v.frets.join() === std)) bad.push('standard ' + music.chordName(r, q).short + ' missing');
+  }
+  ok(!bad.length, 'every position has only chord tones and fits the hand', bad.length ? bad.slice(0, 5).join(', ') : `${total} positions checked`);
+  ok(!few.length, 'every major and minor chord has ≥ 3 positions', few.join(', '));
+  const a = music.voicings(9, 'maj', T).map((v) => v.frets.join());
+  ok(['0,0,0', '4,3,5', '7,8,9', '12,12,12', '16,15,17'].every((x) => a.includes(x)), 'A major: open, both inversions, octave barré and up to fret 17', a.join(' | '));
+}
+
 console.log('\nReference tone pitch');
 for (const sr of [48000, 44100]) {
   const det = new PitchDetector(sr);

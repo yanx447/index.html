@@ -71,6 +71,36 @@ export function fingering(rootPc, qid, tuning) {
   function done(f, barre) { return { frets: f, notes: f.map((x, i) => tuning[i] + x), barre }; }
 }
 
+/**
+ * Every playable position of a chord on the neck (up to `maxFret`).
+ * A position puts one chord tone on each string, covers the essential tones (all three for a
+ * triad; root, 3rd and 7th for a seventh chord) and fits the hand: fretted notes within a
+ * 4-fret span; open strings only together with low frets (≤ 5).
+ * Returns [{ frets, notes, barre, low, inv }] sorted up the neck, where `inv` is the chord
+ * tone in the bass (0 root, 1 third, 2 fifth, 3 seventh) and `low` the lowest fret used.
+ */
+export function voicings(rootPc, qid, tuning, maxFret = 17) {
+  const q = quality(qid);
+  const tones = q.iv.map((i) => pc(rootPc + i));
+  const must = q.iv.length === 4 ? [0, 1, 3] : [0, 1, 2];
+  const per = tuning.map((t) => { const a = []; for (let f = 0; f <= maxFret; f++) if (tones.includes(pc(t + f))) a.push(f); return a; });
+  const out = [];
+  for (const a of per[0]) for (const b of per[1]) for (const c of per[2]) {
+    const f = [a, b, c];
+    const notes = f.map((x, i) => tuning[i] + x);
+    const pcs = notes.map(pc);
+    if (!must.every((k) => pcs.includes(tones[k]))) continue;
+    const used = f.filter((x) => x > 0);
+    const lo = used.length ? Math.min(...used) : 0, hi = used.length ? Math.max(...used) : 0;
+    if (hi - lo > 3) continue;
+    if (used.length < 3 && hi > 5) continue;
+    const barre = used.length >= 2 && f.filter((x) => x === lo).length >= 2 ? lo : null;
+    out.push({ frets: f, notes, barre, low: used.length === 3 ? lo : 0, inv: tones.indexOf(pcs[0]) });
+  }
+  // up the neck; at the same place prefer the smaller stretch
+  return out.sort((x, y) => x.low - y.low || Math.max(...x.frets) - Math.max(...y.frets) || x.frets[0] - y.frets[0]);
+}
+
 /** Where to play a note (MIDI) on the panduri with the lowest fret. */
 export function position(midi, tuning, maxFret = 17) {
   let best = null;
