@@ -20,6 +20,11 @@ PD.i18n.add({
   'ce.minD': ['მინორი: შუა (C♯) სიმი ერთი ლადით დაბლა — მესამე საფეხური ნახევარი ტონით ეცემა.', 'Minor: the middle (C♯) string one fret lower — the third drops a semitone.'],
   'ce.demo': ['ბგერები ინსტრუმენტის აწყობიდან არის გამოთვლილი. თითების ნომრები სადემონსტრაციოა — მასწავლებლის მიერ არ არის დამოწმებული.', 'Pitches are computed from the instrument tuning. Finger numbers are demo — not verified by the teacher.'],
   'ce.openD': ['ღია სიმები — A მაჟორი.', 'Open strings — A major.'], 'ce.none': ['ვერ მოიძებნა', 'Nothing found'],
+  'ce.all': ['ყველა', 'All'], 'ce.root': ['ტონიკა (მთავარი ბგერა)', 'Root'], 'ce.type': ['აკორდის სახე', 'Chord type'], 'ce.pos': ['პოზიცია', 'Position'], 'ce.posN': ['{n} ლადი', 'fret {n}'], 'ce.open': ['ღია', 'open'],
+  'ce.computed': ['ბგერები და თითები გამოთვლილია ფანდურის აწყობიდან (A · C♯ · E). მასწავლებელს შეუძლია შეცვალოს Author Studio-ში.', 'Notes and fingers are computed from the tuning (A · C♯ · E). The teacher can change them in Author Studio.'],
+  'ce.teacher': ['ეს ფორმა მასწავლებლისაა.', 'This shape is the teacher\'s.'], 'ce.song': ['ამ ფორმით იკვრება „ბანი-აჭარულში“.', 'This shape is used in “Bani-Acharuli”.'],
+  'ce.roles': ['ბგერების როლი', 'What each note is'], 'ce.count': ['{n} აკორდი', '{n} chords'],
+  'ce.R': ['ტონიკა', 'root'], 'ce.i2': ['სეკუნდა/ნონა', '2nd/9th'], 'ce.i3m': ['პატ. ტერცია', 'minor 3rd'], 'ce.i3': ['დიდი ტერცია', 'major 3rd'], 'ce.i4': ['კვარტა', '4th'], 'ce.i5d': ['შემც. კვინტა', 'dim. 5th'], 'ce.i5': ['კვინტა', '5th'], 'ce.i5a': ['გად. კვინტა', 'aug. 5th'], 'ce.i6': ['სექსტა', '6th'], 'ce.i7m': ['პატ. სეპტიმა', 'minor 7th'], 'ce.i7': ['დიდი სეპტიმა', 'major 7th'],
   'fx.title': ['ტარის მკვლევარი', 'Fretboard explorer'], 'fx.names': ['სახელები', 'Names'], 'fx.ka': ['ქართ.', 'Georgian'], 'fx.oct': ['ოქტავა', 'Octave'], 'fx.none': ['არაფერი', 'None'],
   'fx.scale': ['გამა', 'Scale'], 'fx.root': ['ტონიკა', 'Root'], 'sc.none': ['არა', 'None'], 'sc.major': ['მაჟორი', 'Major'], 'sc.minor': ['ნატურალური მინორი', 'Natural minor'], 'sc.penta': ['მაჟორული პენტატონიკა', 'Major pentatonic'], 'sc.mpenta': ['მინორული პენტატონიკა', 'Minor pentatonic'],
   'fx.same': ['იგივე ბგერა: {p}', 'Same pitch: {p}'], 'fx.find': ['იპოვე ეს ნოტი', 'Find this note'], 'fx.findGo': ['თამაშის დაწყება', 'Start game'], 'fx.findStop': ['დასრულება', 'Stop'],
@@ -145,42 +150,67 @@ PD.tools = (() => {
     return s + '</svg>';
   }
   function chords(w, param) {
-    const own = scope();
+    const own = scope(), TT = PD.theory;
     header(w, 'ce.title');
-    const all = PD.curriculum.chords(); let cur = all.find(c => c.id === param) || all[0], q = '';
-    const search = h('input', { class: 'input', type: 'search', 'data-t-ph': 'ce.search', 'aria-label': t('ce.search'), oninput: e => { q = e.target.value.trim().toLowerCase(); grid(); } });
-    const g = h('div', { class: 'cgrid', role: 'listbox', 'aria-label': t('ce.title') });
-    const detail = h('div', { style: 'display:flex;flex-direction:column;gap:14px' });
+    const all = PD.curriculum.chords();
+    let cur = all.find(c => c.id === param) || all.find(c => c.name === 'Dm') || all[0], vi = 0, q = '';
+    let fRoot = PD.store.get('ce.root', -1), fType = PD.store.get('ce.type', 'basic');
+    const vo = () => (cur.voicings && cur.voicings[vi]) || cur;
     // the same neck and finger markers as the lessons, showing one still chord
     const nv = h('div', { class: 'neckview' }), ncv = h('canvas', { 'aria-label': t('ce.title') }); nv.appendChild(ncv);
-    const view = PD.Neck(ncv, { frets: 7 }); view.mirror = PD.store.get('lefty', false);
+    const view = PD.Neck(ncv, { frets: 12 }); view.mirror = PD.store.get('lefty', false);
     let raf = 0; const loop = () => { raf = requestAnimationFrame(loop); if (!document.hidden && !PD.practice.active) view.draw(); };
     requestAnimationFrame(() => { view.layout(); raf = requestAnimationFrame(loop); }); own(() => { cancelAnimationFrame(raf); view.destroy(); });
-    const ro = new ResizeObserver(() => { view.layout(); show && preview(cur); }); ro.observe(nv); own(() => ro.disconnect());
-    const preview = c => view.setTarget(c.frets.map((f, k) => ({ s: k + 1, f, fi: c.fingers[k] || 0 })), []);
-    const layout = h('div', { style: 'display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:24px', class: 'ce-l' }, [h('div', { style: 'display:flex;flex-direction:column;gap:12px' }, [search, g]), h('div', { style: 'display:flex;flex-direction:column;gap:14px' }, [detail])]);
+    const ro = new ResizeObserver(() => { view.layout(); preview(); }); ro.observe(nv); own(() => ro.disconnect());
+    const preview = () => { const v = vo(); view.setTarget(v.frets.map((f, k) => ({ s: k + 1, f, fi: v.fingers[k] || 0 })), []); };
+    const search = h('input', { class: 'input', type: 'search', 'data-t-ph': 'ce.search', 'aria-label': t('ce.search'), oninput: e => { q = e.target.value.trim().toLowerCase().replace('#', '♯'); grid(); } });
+    const chipRow = (items, get, set) => h('div', { class: 'ce-chips', role: 'group' }, items.map(([v, label]) => h('button', { class: 'chip', 'aria-pressed': String(get() === v), text: label, onclick: e => { set(v); e.currentTarget.parentNode.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); grid(); } })));
+    const rootRow = chipRow([[-1, t('ce.all')]].concat(TT.ROOTS.map((r, i) => [i, r])), () => fRoot, v => { fRoot = v; PD.store.set('ce.root', v); });
+    const typeRow = chipRow([['basic', t('ce.maj') + ' · ' + t('ce.min')], ['all', t('ce.all')]].concat(TT.CHORD_TYPES.map(T => [T.k, T.k === '' ? 'maj' : T.k])), () => fType, v => { fType = v; PD.store.set('ce.type', v); });
+    const count = h('small', { class: 'muted' });
+    const g = h('div', { class: 'cgrid', role: 'listbox', 'aria-label': t('ce.title') });
+    const detail = h('div', { class: 'ce-detail' });
+    const left = h('div', { class: 'ce-side' }, [h('span', { class: 'kicker', 'data-t': 'ce.root' }), rootRow, h('span', { class: 'kicker', 'data-t': 'ce.type' }), typeRow, search, count, g]);
+    const layout = h('div', { class: 'ce-l' }, [left, detail]);
     w.append(nv, layout);
-    const mq = matchMedia('(max-width:900px)'); const fit = () => { layout.style.gridTemplateColumns = mq.matches ? '1fr' : 'minmax(0,1fr) minmax(0,1.3fr)'; }; fit(); mq.addEventListener('change', fit); own(() => mq.removeEventListener('change', fit));
+    function match(c) {
+      if (q) { const n = c.name.toLowerCase(), k = (c.ka || '').toLowerCase(); return n.includes(q) || n.replace('♭', 'b').replace('♯', '#').includes(q) || k.includes(q); }
+      if (fRoot >= 0 && c.root !== fRoot) return false;
+      if (fType === 'basic') return c.q === '' || c.q === 'm' || c.q == null;
+      return fType === 'all' || c.q === fType;
+    }
     function grid() {
       g.innerHTML = '';
-      const list = all.filter(c => !q || c.name.toLowerCase().includes(q) || c.name.toLowerCase().replace('♯', '#').includes(q));
-      if (!list.length) g.appendChild(h('span', { class: 'muted', 'data-t': 'ce.none', text: t('ce.none') }));
-      list.forEach(c => g.appendChild(h('button', { role: 'option', 'aria-selected': String(c === cur), 'aria-pressed': String(c === cur), text: c.name + (c.frets[0] >= 12 ? ' ·12' : ''), onclick: () => { cur = c; grid(); show(); } })));
+      const list = all.filter(match);
+      count.textContent = t('ce.count', { n: list.length });
+      if (!list.length) g.appendChild(h('span', { class: 'muted', text: t('ce.none') }));
+      list.forEach(c => g.appendChild(h('button', { role: 'option', 'aria-selected': String(c === cur), 'aria-pressed': String(c === cur), text: c.name, onclick: () => { cur = c; vi = 0; grid(); show(); } })));
     }
+    const ROLE = { 0: 'ce.R', 1: 'ce.i2', 2: 'ce.i2', 3: 'ce.i3m', 4: 'ce.i3', 5: 'ce.i4', 6: 'ce.i5d', 7: 'ce.i5', 8: 'ce.i5a', 9: 'ce.i6', 10: 'ce.i7m', 11: 'ce.i7' };
     function show() {
       detail.innerHTML = '';
-      const ms = c => c.frets.map((f, i) => TH.midi(i + 1, f));
-      const i = all.indexOf(cur), other = h('select', { class: 'input', 'aria-label': t('ce.to') }, all.filter(c => c !== cur).map(c => h('option', { value: c.id, text: c.name })));
-      const desc = cur.frets.every(f => f === 0) ? t('ce.openD') : cur.kind === 'maj' ? t('ce.majD') : t('ce.minD');
+      const v = vo(), ms = v.frets.map((f, i) => TT.midi(i + 1, f)), T = TT.CHORD_TYPES.find(x => x.k === cur.q);
+      const fl = cur.root != null && TT.prefersFlat(cur.root, cur.q), nm = m => fl ? TT.nameFlat(m) : TT.name(m), nmKa = m => fl ? TT.nameKaFlat(m) : TT.nameKa(m);
+      const list = all.filter(match), i = Math.max(0, list.indexOf(cur));
+      const other = h('select', { class: 'input', 'aria-label': t('ce.to') }, all.filter(c => c !== cur && (c.q === '' || c.q === 'm' || c.q == null)).map(c => h('option', { value: c.id, text: c.name })));
+      const posSeg = cur.voicings && cur.voicings.length > 1 ? h('div', { class: 'seg', role: 'group', 'aria-label': t('ce.pos') }, cur.voicings.map((x, k) => h('button', { 'aria-pressed': String(k === vi), text: x.pos ? t('ce.posN', { n: x.pos }) : t('ce.open'), onclick: () => { vi = k; show(); } }))) : null;
+      const src = cur.src === 'teacher' && vi === 0 ? 'ce.teacher' : cur.src === 'song' && vi === 0 ? 'ce.song' : cur.demo ? 'ce.demo' : 'ce.computed';
       detail.append(
-        h('div', { class: 'row' }, [h('button', { class: 'btn icon small', 'aria-label': t('prev'), text: '‹', onclick: () => { cur = all[(i - 1 + all.length) % all.length]; grid(); show(); } }), h('h2', { text: cur.name, style: 'margin:0;min-width:70px;text-align:center' }), h('button', { class: 'btn icon small', 'aria-label': t('next'), text: '›', onclick: () => { cur = all[(i + 1) % all.length]; grid(); show(); } }), h('span', { class: 'tag', text: t(cur.kind === 'maj' ? 'ce.maj' : 'ce.min') }), h('span', { class: 'mono muted', text: cur.frets.join('-') })]),
-        h('p', { class: 'fg2', text: desc }),
-        ...(cur.demo ? [h('p', { class: 'notice', text: t('ce.demo') })] : []),
-        h('div', { class: 'kv' }, [h('span', { 'data-t': 'ce.notes', text: t('ce.notes') }), h('b', { text: ms(cur).map(m => TH.name(m) + ' (' + TH.nameKa(m) + ')').join(' · ') }), h('span', { text: t('ce.fingers') }), h('b', { text: cur.fingers.map(f => f || '0').join(' · ') })]),
-        h('div', { class: 'row' }, [h('button', { class: 'btn primary', text: t('ce.play'), onclick: () => { PD.audio.ensure(); PD.audio.strum(cur.frets, 'down', { gap: .03 }); cur.frets.forEach((f, k) => view.pluck(k + 1, f)); } }),
-          ...[1, 2, 3].map(s => h('button', { class: 'btn small', style: 'color:' + SCOL[s], text: t('ce.string', { s: TH.stringName(s) }), onclick: () => { PD.audio.ensure(); PD.audio.note(s, cur.frets[s - 1]); view.pluck(s, cur.frets[s - 1]); } }))]),
-        h('div', { class: 'row' }, [other, h('button', { class: 'btn', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(cur, b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })]));
-      preview(cur);
+        h('div', { class: 'row' }, [h('button', { class: 'btn icon small', 'aria-label': t('prev'), text: '‹', onclick: () => { cur = list[(i - 1 + list.length) % list.length] || cur; vi = 0; grid(); show(); } }),
+          h('div', { class: 'ce-name' }, [h('h2', { text: cur.name }), h('small', { text: cur.ka || '' })]),
+          h('button', { class: 'btn icon small', 'aria-label': t('next'), text: '›', onclick: () => { cur = list[(i + 1) % list.length] || cur; vi = 0; grid(); show(); } }), h('span', { class: 'mono muted', text: v.frets.join('-') })]),
+        T ? h('p', { class: 'fg2', text: PD.i18n.pick({ ka: T.d[0], en: T.d[1] }) }) : h('p', { class: 'fg2', text: v.frets.every(f => f === 0) ? t('ce.openD') : cur.kind === 'maj' ? t('ce.majD') : t('ce.minD') }),
+        posSeg,
+        h('div', { class: 'ce-roles' }, [h('span', { class: 'kicker', 'data-t': 'ce.roles' }), h('div', { class: 'ce-rl' }, ms.map((m, k) => {
+          const iv = cur.root != null ? ((TT.pc(m) - cur.root) % 12 + 12) % 12 : null;
+          return h('div', { class: 'ce-r', style: '--c:' + SCOL[k + 1] }, [h('small', { text: TT.stringName(k + 1) + ' · ' + (v.frets[k] ? t('ce.posN', { n: v.frets[k] }) : t('ce.open')) }), h('b', { text: nm(m) }), h('span', { text: nmKa(m) + (iv != null ? ' · ' + t(ROLE[iv]) : '') })]);
+        }))]),
+        h('div', { class: 'kv' }, [h('span', { 'data-t': 'ce.fingers', text: t('ce.fingers') }), h('b', { text: v.fingers.map(f => f || '0').join(' · ') + (v.barre ? ' · ბარე' : '') })]),
+        h('div', { class: 'row' }, [h('button', { class: 'btn primary', text: t('ce.play'), onclick: () => { PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); v.frets.forEach((f, k) => view.pluck(k + 1, f)); } }),
+          ...[1, 2, 3].map(sn => h('button', { class: 'btn small', style: 'color:' + SCOL[sn], text: t('ce.string', { s: TT.stringName(sn) }), onclick: () => { PD.audio.ensure(); PD.audio.note(sn, v.frets[sn - 1]); view.pluck(sn, v.frets[sn - 1]); } }))]),
+        h('div', { class: 'row' }, [other, h('button', { class: 'btn', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })]),
+        h('p', { class: 'notice', text: t(src) }));
+      preview();
     }
     grid(); show();
   }

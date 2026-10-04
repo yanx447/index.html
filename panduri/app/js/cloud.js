@@ -131,7 +131,7 @@ PD.cloud = (() => {
     emit();
   }
   /** progress backup: newest copy wins as a whole; practice sessions are merged */
-  const PKEYS = k => /^(prog\.|sessions$|favorites$|xp$|goalMin$|lefty$|selfLevel$|goals$|daily\.|trainer\.srs$|lessons\.user$)/.test(k);
+  const PKEYS = k => /^(prog\.|sessions$|favorites$|xp$|goalMin$|lefty$|selfLevel$|goals$|daily\.|trainer\.srs$|lessons\.user$|theory\.done$)/.test(k);
   function snapshot() { const o = {}; PD.store.keys().filter(PKEYS).forEach(k => { o[k] = PD.store.get(k, null); }); return o; }
   async function syncProgress() {
     if (!S) return;

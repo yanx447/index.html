@@ -7,6 +7,10 @@
    secondary (control bar, settings sheet).
    ===================================================================== */
 PD.i18n.add({
+  'sy.title': ['მეტრონომი და მუსიკა', 'Metronome and music'], 'sy.ms': ['მწ', 'ms'], 'sy.zero': ['ზუსტად', 'in sync'],
+  'sy.lead': ['თუ მეტრონომის დარტყმა მუსიკის დარტყმას არ ემთხვევა (ზოგ ტელეფონზე ან Bluetooth ყურსასმენით), აქ გაასწორე ყურით.', 'If the metronome click does not land on the music\'s beat (some phones, Bluetooth headphones), line them up here by ear.'],
+  'sy.late': ['მეტრონომი გვიანობს', 'Metronome is late'], 'sy.early': ['მეტრონომი ადრეა', 'Metronome is early'], 'sy.reset': ['ნული', 'Reset'],
+  'sy.tip': ['ჩართე მეტრონომი, მოუსმინე 2–3 წამს და აჭირე, სანამ დარტყმა და მუსიკა ერთად არ ჟღერს. პარამეტრი ამ მოწყობილობაზე ინახება.', 'Turn the metronome on, listen for 2–3 seconds and tap until the click and the music sound together. Saved on this device.'],
   'ws.learn': ['სწავლა', 'Learn'], 'ws.practice': ['ვარჯიში', 'Practice'], 'ws.perform': ['შესრულება', 'Perform'],
   'ws.wait': ['ლოდინი', 'WAIT'], 'ws.step': ['ნაბიჯით', 'Step'], 'ws.autoPause': ['ავტოპაუზა', 'Auto-pause'],
   'ws.touch': ['შეხება', 'Touch'], 'ws.mic': ['მიკროფონი', 'Mic'],
@@ -403,6 +407,22 @@ PD.practice = (() => {
         if (S.loop.on || S.loop.a != null) box.append(b('p.loopOff', () => E.clearLoop()));
       });
     }
+    /* recording ↔ metronome: phones delay the music and the click differently; the learner moves the music by ear */
+    const leadLabel = () => { const v = PD.store.get('refLead', 0) || 0; return v ? (v > 0 ? '+' : '') + v + ' ' + t('sy.ms') : t('sy.zero'); };
+    function syncSheet() {
+      PD.ui.sheet((box, close) => {
+        const val = h('b', { class: 'sy-val' }), set = d => { const v = d === 0 ? 0 : Math.max(-400, Math.min(400, (PD.store.get('refLead', 0) || 0) + d)); PD.store.set('refLead', v); val.textContent = leadLabel(); };
+        val.textContent = leadLabel();
+        box.append(h('h2', { 'data-t': 'sy.title' }), h('p', { class: 'fg2', 'data-t': 'sy.lead' }), val,
+          h('div', { class: 'sy-row' }, [
+            h('button', { class: 'btn', onclick: () => set(-20) }, [h('b', { text: '−20' }), h('small', { 'data-t': 'sy.late' })]),
+            h('button', { class: 'btn', onclick: () => set(20) }, [h('b', { text: '+20' }), h('small', { 'data-t': 'sy.early' })])]),
+          h('div', { class: 'row' }, [h('button', { class: 'btn small', text: '−5', onclick: () => set(-5) }), h('button', { class: 'btn small', text: '+5', onclick: () => set(5) }), h('button', { class: 'btn small quiet', 'data-t': 'sy.reset', onclick: () => set(0) }),
+            h('button', { class: 'btn small primary', 'data-t': 'done', onclick: close })]),
+          h('small', { class: 'muted', 'data-t': 'sy.tip' }));
+        PD.i18n.apply(box);
+      });
+    }
     function more() {
       PD.ui.sheet((box, close) => {
         const row = (k, val, fn) => h('button', { class: 'li pz-li', onclick: () => { close(); fn(); } }, [h('span', { class: 'grow', 'data-t': k }), val ? h('span', { class: 'muted', text: val }) : null, h('span', { class: 'chev', html: ic.chevron })]);
@@ -412,6 +432,7 @@ PD.practice = (() => {
           row('p.mode', t('pm.' + modeOf()), modeSheet),
           row('p.loop', S.loop.on ? t('p.loopOn') : '', loopSheet),
           lesson.stems ? row('sg.mix', mixLabel(), () => w.mixSheet()) : null,
+          lesson.stems ? row('sy.title', leadLabel(), syncSheet) : null,
           row('p.showMe', null, () => { PD.audio.ensure(); E.showMe(); }),
           row('p.mic', PD.detector.active ? t('mic.on') : t('mic.off'), micSheet),
           lesson.media && lesson.media.length ? row('p.video', null, () => toggleVideo()) : null,

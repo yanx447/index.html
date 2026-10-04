@@ -99,7 +99,8 @@ PD.engine = (() => {
     S.finished = false; S.now = 0; S.cur = 0; S.waiting = false; S.ci = null; S.autoplay = false; S.stepMode = false; S.heatBars = {}; S.streak = 0; S.bestStreak = 0; S.extra = 0; S.onStr = [];
     if (opts) configure(opts);
     reanchor(); PD.audio.ref.unload(); PD.media.load(lesson); PD.samples.preload(lesson); S.tempoDowns = {};
-    if (lesson.stems) PD.audio.ref.loadStems(lesson.stems, lesson.refOffset || 0); else if (lesson.refAudio) PD.audio.ref.load(lesson.refAudio, lesson.refOffset || 0);
+    PD.audio.ref.setTempo(lesson.bpm);
+    if (lesson.stems) PD.audio.ref.loadStems(lesson.stems, lesson.refOffset || 0, lesson.beatMap, lesson.bpm); else if (lesson.refAudio) PD.audio.ref.load(lesson.refAudio, lesson.refOffset || 0);
     emit('load', lesson); emit('state');
   }
   function configure(o) {
@@ -128,7 +129,7 @@ PD.engine = (() => {
     emit('state');
   }
   function startCountIn() {
-    const n = bpb() === 6 ? 6 : bpb(), sp = 60 / bpm(), t0 = clock() + .12;
+    const n = S.lesson.countIn || (bpb() === 6 ? 6 : bpb()), sp = 60 / bpm(), t0 = clock() + .12;
     S.ci = { t0, n, sp, shown: -1 };
     const times = []; for (let i = 0; i < n; i++) { const tt = t0 + i * sp; if (S.metro || S.rec) PD.audio.click(tt, i === 0); times.push(tt); }
     PD.detector.guard(times);
@@ -147,7 +148,7 @@ PD.engine = (() => {
       if (now >= S.ci.t0 + S.ci.n * S.ci.sp) { S.anchorTime = S.ci.t0 + S.ci.n * S.ci.sp; S.anchorBeat = S.now; S.nextClick = Math.ceil(S.now - 1e-6); S.ci = null; emit('count', 0); }
       return;
     }
-    if (!S.playing) { PD.audio.ref.sync(0, 1, false); PD.media.sync(S.now / (S.lesson.bpm / 60), 1, false); return; }
+    if (!S.playing) { PD.audio.ref.sync(S.now, bpm(), false); PD.media.sync(S.now / (S.lesson.bpm / 60), 1, false); return; }
     if (!S.waiting) {
       const speed = S.stepMode && !S.waiting ? 2.5 : 1;
       let next = S.anchorBeat + (now - S.anchorTime) * bps() * speed;
@@ -160,7 +161,7 @@ PD.engine = (() => {
       else if (!S.rec && S.now >= endBeat() && S.cur >= S.steps.length) finish();
     }
     const live = S.playing && !S.waiting && !S.ci;
-    PD.audio.ref.sync(S.now / (S.lesson.bpm / 60), bpm() / S.lesson.bpm, live);
+    PD.audio.ref.sync(S.now, bpm(), live);
     PD.media.sync(S.now / (S.lesson.bpm / 60), bpm() / S.lesson.bpm, live);
   }
   function scheduleClicks() {

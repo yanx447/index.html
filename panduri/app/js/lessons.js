@@ -47,6 +47,12 @@ PD.lessons = (() => {
     return o;
   }
   function bpb(l) { return l.meter ? l.meter[0] : 4; }
+  /** where beat b of a lesson sounds in its recording (s): the song's beat map, or a fixed tempo + offset */
+  function timeOf(l, b) {
+    const m = l.beatMap;
+    if (m && m.length > 1) { const k = Math.max(0, Math.min(m.length - 2, Math.floor(b))); return m[k] + (b - k) * (m[k + 1] - m[k]); }
+    return b * 60 / l.bpm + (l.refOffset || 0);
+  }
   function end(l) { return l.events.length ? Math.max(...l.events.map(e => e.t + e.d)) : bpb(l); }
   function autoSections(l) {
     const b = bpb(l), n = Math.max(1, Math.ceil(end(l) / b - 1e-6)), out = [];
@@ -108,8 +114,10 @@ PD.lessons = (() => {
   /** song: one strum per chord bar, in WAIT — the recording pauses until the chord is heard */
   function songChanges(l) {
     const out = Object.assign({}, l, { id: l.id + '~chords', derived: l.id, title: { ka: l.title.ka + ' · აკორდების ცვლა', en: l.title.en + ' · chord changes' }, user: false, stages: null, events: [] });
-    const bb = bpb(l); let last = -1;
-    steps(l).forEach(st => { const bar = Math.floor(st.t / bb + 1e-6); if (bar === last) return; last = bar; out.events.push(...chord(bar * bb, st.name, st.frets, st.fingers, 'down', bb, false, 'strum')); });
+    // one step per chord change: the recording plays until the next chord, then waits for it
+    const runs = []; let cur = null;
+    steps(l).forEach(st => { if (cur && cur.name === st.name && st.t <= cur.end + 1e-6) { cur.end = st.t + st.d; return; } cur = { name: st.name, t: st.t, end: st.t + st.d, frets: st.frets, fingers: st.fingers }; runs.push(cur); });
+    runs.forEach(r => out.events.push(...chord(r.t, r.name, r.frets, r.fingers, 'down', r.end - r.t, false, 'strum')));
     return normalize(out);
   }
   /** song: the song's rhythm pattern on its first chord, 8 bars, no recording */
@@ -117,7 +125,7 @@ PD.lessons = (() => {
     const ss = steps(l), bb = bpb(l), first = ss[0]; if (!first) return l;
     const per = ss.filter(s => s.t < first.t + bb - 1e-6), ev = [];
     for (let k = 0; k < 8; k++) per.forEach(s => ev.push(...chord(s.t - first.t + k * bb, s.name, s.frets, s.fingers, s.st, s.d, s.acc, 'strum')));
-    return normalize(Object.assign({}, l, { id: l.id + '~rhythm', derived: l.id, title: { ka: l.title.ka + ' · რიტმი', en: l.title.en + ' · rhythm' }, user: false, stems: null, stages: null, events: ev, sections: [] }));
+    return normalize(Object.assign({}, l, { id: l.id + '~rhythm', derived: l.id, title: { ka: l.title.ka + ' · რიტმი', en: l.title.en + ' · rhythm' }, user: false, stems: null, beatMap: null, stages: null, events: ev, sections: [] }));
   }
   /** derived lesson: the same timing and stroke directions on open strings (rhythm stage) */
   function rhythmOf(l) {
@@ -146,7 +154,7 @@ PD.lessons = (() => {
     return normalize({ id: 'tr-' + a.id + '-' + b.id, type: 'exercise', derived: 'chords', title: { ka: a.name + ' → ' + b.name, en: a.name + ' → ' + b.name }, bpm: bpm || 60, events: ev, sections: [sec(a.name + ' ↔ ' + b.name, a.name + ' ↔ ' + b.name, 0, 8), sec('×2', '×2', 8, 16)] });
   }
   return {
-    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, steps, rhythmOf, songChanges, songRhythm, transition, normalize, bpb, end, autoSections, progress: P,
+    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, steps, rhythmOf, songChanges, songRhythm, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
     get: lid => all.find(l => l.id === lid) || (/^rhythm-/.test(lid || '') ? rhythmLesson(lid.slice(7)) : undefined),
     /** lessons generated from the teacher rhythms (not stored; rebuilt from curriculum data) */
     rhythmLessons: () => (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).map(r => fromRhythm(r)),

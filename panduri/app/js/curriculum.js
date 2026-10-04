@@ -105,6 +105,7 @@ PD.curriculum = (() => {
       { kind: 'tour', title: { ka: 'ფანდურის გაცნობა', en: 'Meet the panduri' } },
       NEED('როგორ დავიჭიროთ ფანდური', 'How to hold the panduri'),
       { kind: 'tuner', title: { ka: 'სამი სიმი: აწყობა A · C♯ · E', en: 'Three strings: tuning A · C♯ · E' } },
+      { kind: 'theory', title: { ka: 'მუსიკის თეორია: ნოტები', en: 'Music theory: notes' } },
       { kind: 'lesson', id: 'poc-three' }, { kind: 'lesson', id: 'rh-down' }, { kind: 'lesson', id: 'rh-up' }, { kind: 'lesson', id: 'poc-fret' }, { kind: 'lesson', id: 'poc-rhythm' }] },
     { id: 'beginner', level: 'beginner', title: { ka: 'დამწყები', en: 'Beginner' }, steps: [
       { kind: 'trainer', title: { ka: 'ნოტები და ლადები', en: 'Notes and frets' } }, { kind: 'lesson', id: 'lh-fingers' }, { kind: 'lesson', id: 'm1' }, { kind: 'lesson', id: 'rh-alt' },
@@ -128,7 +129,18 @@ PD.curriculum = (() => {
   ];
 
 
-  /* chord library (DEMO): pitch content computed from the tuning; the finger numbers are placeholders */
+  /* chord library: every root × chord type computed from the tuning (PD.theory); shapes the teacher gave win */
+  function library() {
+    const lib = PD.theory.chordLibrary().map(c => Object.assign({}, c));
+    Object.values(PD.SONGS || {}).forEach(S => Object.entries(S.chords || {}).forEach(([n, sh]) => {
+      const c = lib.find(x => x.name === n); if (!c) return;
+      const same = v => v.frets.join() === sh.frets.join(), v0 = { frets: sh.frets, fingers: sh.fingers, barre: new Set(sh.fingers.filter(Boolean)).size === 1 && sh.fingers.filter(Boolean).length > 1, pos: sh.frets.some(f => f > 0) ? Math.min(...sh.frets.filter(f => f > 0)) : 0 };
+      c.voicings = [v0].concat(c.voicings.filter(v => !same(v))).slice(0, 3);
+      Object.assign(c, { frets: v0.frets, fingers: v0.fingers, barre: v0.barre, src: sh.src === 'teacher' ? 'teacher' : 'song' });
+    }));
+    return lib;
+  }
+  /* (old) demo chord list — kept for reference, no longer used */
   function demoChords() {
     const out = [], NN = PD.theory.NN, root0 = 57;
     for (let n = 0; n <= 12; n++) {
@@ -162,26 +174,28 @@ PD.curriculum = (() => {
     if (!S) return L({ id, type: 'song', title, desc, demo: false, events: [] });
     const R = TEACHER_RHYTHMS.find(r => r.id === S.rhythm) || TEACHER_RHYTHMS[0];
     const per = R.strokes.length, d = 1 / per, ev = [];
-    S.bars.forEach((c, i) => {
-      if (!c || !S.chords[c]) return;
+    // one beat of the lesson = one rhythm (↓ ↓ ↑). The chord of every rhythm comes from the teacher's cycle.
+    const n = S.beats ? S.beats.length - 1 : (S.bars || []).length * S.beatsPerBar;
+    for (let r = 0; r < n; r++) {
+      const c = S.cycle ? S.cycle[r % S.cycle.length] : S.bars[Math.floor(r / S.beatsPerBar)];
+      if (!c || !S.chords[c]) continue;
       const sh = S.chords[c];
-      for (let b = 0; b < S.beatsPerBar; b++) R.strokes.forEach((k, j) => ev.push(...chord(i * S.beatsPerBar + b + j * d, c, sh.frets, sh.fingers, k.direction, d, k.accent, 'strum')));
-    });
-    const NAMES = { listen: ['მოუსმინე', 'Listen'], inst: ['ინსტრუმენტული', 'Instrumental'], verse: ['მუხლი', 'Verse'] };
+      R.strokes.forEach((k, j) => ev.push(...chord(r + j * d, c, sh.frets, sh.fingers, k.direction, d, k.accent, 'strum')));
+    }
+    const NAMES = { intro: ['შესავალი', 'Intro'], verse: ['მუხლი', 'Verse'], inst: ['ინსტრუმენტული', 'Instrumental'], outro: ['დასასრული', 'Ending'], listen: ['მოუსმინე', 'Listen'] };
     let vn = 0, inn = 0;
-    const secs = S.sections.map(([k, a, b], i) => {
-      const n = k === 'verse' ? ++vn : k === 'inst' ? ++inn : 0;
-      const nm = NAMES[k], first = i === 0, last = i === S.sections.length - 1;
-      const ka = k === 'listen' ? (first ? 'შესავალი (მოუსმინე)' : last ? 'დასასრული (მოუსმინე)' : 'ინსტრუმენტული სოლო (მოუსმინე)') : nm[0] + ' ' + n;
-      const en = k === 'listen' ? (first ? 'Intro (listen)' : last ? 'Ending (listen)' : 'Instrumental solo (listen)') : nm[1] + ' ' + n;
-      return Object.assign(sec(ka, en, a * S.beatsPerBar, b * S.beatsPerBar), { kind: k });
+    const scale = S.beats ? 1 : S.beatsPerBar;   // new data: sections in rhythms; old data: in bars
+    const secs = S.sections.map(([k, a, b]) => {
+      const num = k === 'verse' ? ++vn : k === 'inst' ? ++inn : 0, nm = NAMES[k] || NAMES.inst;
+      return Object.assign(sec(nm[0] + (num ? ' ' + num : ''), nm[1] + (num ? ' ' + num : ''), a * scale, b * scale), { kind: k });
     });
     return L({ id, type: 'song', level: 1, demo: false, source: 'teacher chords + supplied recording', title, desc, bpm: S.bpm, meter: [S.beatsPerBar, 8], meterLabel: S.meterLabel,
-      song: id, stems: S.stems, refOffset: S.offset, chartSrc: S.chartSrc, rhythm: undefined, songRhythm: R.id, events: ev, sections: secs,
+      song: id, stems: S.stems, refOffset: S.beats ? 0 : S.offset, beatMap: S.beats || null, countIn: S.countIn || 0, cycle: S.cycle || null,
+      chartSrc: S.chartSrc, rhythm: undefined, songRhythm: R.id, events: ev, sections: secs,
       stages: ['demo', 'chords', 'technique', 'slow', 'perform'], technique: { kind: 'rhythm' }, skills: ['chords', 'strumming', 'accents', 'rhythm'] });
   }
   B.push(songLesson('bani-acharuli', { ka: 'ბანი-აჭარული', en: 'Bani-Acharuli' },
-    { ka: 'აკორდები Dm · B♭ · C, აჭარულის რიტმი (↓ · ↓> · ↑>). იკვრება ორიგინალ ჩანაწერთან ერთად — ვოკალით ან მის გარეშე.', en: 'Chords Dm · B♭ · C with the Acharuli rhythm (↓ · ↓> · ↑>). Played along with the original recording — with or without vocals.' }));
+    { ka: 'Dm (2 რითმი) · B♭ (1 რითმი) · C (1 რითმი) — მთელ სიმღერაში მეორდება. რითმი: ჩაკვრა · ჩაკვრა · ამოკვრა (აჭარული). იკვრება ორიგინალ ჩანაწერთან ერთად — ვოკალით ან მის გარეშე.', en: 'Dm (2 rhythms) · B♭ (1 rhythm) · C (1 rhythm), repeated through the whole song. Rhythm: down · down · up (Acharuli). Played along with the original recording — with or without vocals.' }));
 
   const DEMO = { schema: 'panduri-curriculum', v: 1, meta: { title: { ka: 'სადემონსტრაციო მასალა', en: 'Demo material' }, author: null, verified: false, note: DEMO_NOTE }, lessons: B, paths: PATHS, chords: null };
   const KEY = 'curriculum.package';
@@ -199,8 +213,8 @@ PD.curriculum = (() => {
     /** teacher rhythms (a package may carry its own list; the teacher-supplied four are the default) */
     rhythms() { const a = active(); return rhythmsWithTiming(a.rhythms && a.rhythms.length ? a.rhythms : TEACHER_RHYTHMS); },
     setRhythmTiming(id, timing) { const ov = PD.store.get(RH_KEY, {}); ov[id] = Object.assign({}, timing, { src: 'teacher' }); PD.store.set(RH_KEY, ov); PD.bus.emit('rhythms'); },
-    chords() { const a = active(); return (a.chords && a.chords.length) ? a.chords : demoChords(); },
-    get chordsAreDemo() { const a = active(); return !(a.chords && a.chords.length) || a.chords.some(c => c.demo); },
+    chords() { const a = active(); return (a.chords && a.chords.length) ? a.chords : library(); },
+    get chordsAreDemo() { const a = active(); return !!(a.chords && a.chords.some(c => c.demo)); },
     /** replace the whole curriculum with a teacher package (validated) */
     install(pkg) {
       if (!pkg || pkg.schema !== 'panduri-curriculum' || !Array.isArray(pkg.lessons)) throw new Error('not a panduri-curriculum package');

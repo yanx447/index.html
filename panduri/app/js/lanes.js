@@ -180,6 +180,9 @@ PD.Lanes = function (canvas, opt) {
       const nxp = self.mirror ? Math.min(xa, px - 8) - 4 : Math.max(l + 10, Math.min(px + 10, l + w - 40));
       ctx.fillStyle = '#FFF4E6'; ctx.font = '700 ' + Math.round(Math.min(30, bh * .28)) + 'px ' + FONT; ctx.textAlign = self.mirror ? 'right' : 'left'; ctx.textBaseline = 'top';
       if (w > 24) ctx.fillText(r.name, nxp, y0 + 8);
+      // a faint line between rhythms inside one chord (Dm = 2 rhythms)
+      ctx.strokeStyle = 'rgba(255,236,210,.18)'; ctx.lineWidth = 1;
+      for (let k = Math.floor(r.from) + 1; k < r.to - 1e-6; k++) { const xk = X(k) - (self.mirror ? -1 : 1) * G.ppb * .08; ctx.beginPath(); ctx.moveTo(xk, y0 + bh * .42); ctx.lineTo(xk, y0 + bh * .9); ctx.stroke(); }
       // strokes
       r.steps.forEach(st => {
         const x = X(st.t), f = fx[st.i] || {}, res = S.res[st.i] || {}, up = st.st === 'up';

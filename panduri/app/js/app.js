@@ -79,13 +79,15 @@ PD.i18n.add({
 });
 
 PD.i18n.add({
-  'st.chords': ['აკორდების ცვლა', 'Chord changes'], 'std.chords': ['ტაქტში ერთი ჩაკვრა. ჩანაწერი ჩერდება და გელოდება, სანამ აკორდს სწორად არ აიღებ.', 'One strum per bar. The recording stops and waits until you play the chord.'],
+  'st.chords': ['აკორდების ცვლა', 'Chord changes'], 'std.chords': ['ყოველ ახალ აკორდზე ერთი ჩაკვრა. ჩანაწერი ჩერდება და გელოდება, სანამ აკორდს სწორად არ აიღებ.', 'One strum on every new chord. The recording stops and waits until you play the chord correctly.'],
   'std.songDemo': ['მოუსმინე სიმღერას — აკორდები და რიტმი ეკრანზე მიჰყვება.', 'Listen to the song — chords and rhythm follow on screen.'],
   'std.songRhythm': ['აჭარულის რიტმი Dm-ზე, მეტრონომით, წრეზე.', 'The Acharuli rhythm on Dm, with the metronome, looped.'],
   'std.songSlow': ['ჩანაწერთან ერთად, 70% ტემპით — დრო ფასდება.', 'Along with the recording at 70% tempo — timing is scored.'],
   'std.songFull': ['მთელი სიმღერა ორიგინალ ტემპში.', 'The whole song at the original tempo.'],
   'sg.mix': ['ჩანაწერი', 'Recording'], 'mix.full': ['ვოკალით', 'With vocals'], 'mix.music': ['ვოკალის გარეშე', 'No vocals'], 'mix.vocals': ['მხოლოდ ვოკალი', 'Vocals only'], 'mix.off': ['გამორთული', 'Off'],
-  'sg.auto': ['აკორდების განლაგება ჩანაწერიდან ავტომატურად არის ამოცნობილი — მასწავლებელს შეუძლია ნებისმიერი ტაქტი სტუდიაში შეასწოროს.', 'Where each chord sounds was detected automatically from the recording — the teacher can correct any bar in the Studio.'],
+  'sg.auto': ['აკორდები და მათი თანმიმდევრობა მასწავლებლისაა. დრო აღებულია ჩანაწერიდან: აპი მიჰყვება ცოცხალი შესრულების ყველა დარტყმას, ამიტომ მეტრონომი და აკორდები მუსიკას ემთხვევა.', 'Chords and their order are the teacher\'s. Timing comes from the recording: the app follows every beat of the live performance, so the metronome and chords match the music.'],
+  'sg.cycle': ['თანმიმდევრობა — მთელ სიმღერაში მეორდება', 'Progression — repeats through the whole song'], 'sg.rhythms': ['{n} რითმი', '{n} rhythm'], 'sg.oneRhythm': ['1 რითმი = ჩაკვრა · ჩაკვრა · ამოკვრა', '1 rhythm = down · down · up'],
+  'sg.cycles': ['{n} წრე', '{n} cycles'],
   'sg.shapes': ['აკორდები', 'Chords'], 'sg.bars': ['{n} ტაქტი', '{n} bars'], 'sg.parts': ['სიმღერის ნაწილები', 'Parts of the song'], 'sg.derived': ['შესამოწმებელია', 'to confirm'],
   'sg.headphones': ['ჩანაწერთან ერთად დაკვრისას ყურსასმენი აჯობებს — მიკროფონი მაშინ მხოლოდ შენს ფანდურს გაიგებს.', 'When playing along with the recording, headphones work best — then the microphone hears only your panduri.']
 });
@@ -97,12 +99,12 @@ PD.i18n.add({
   'hx.hello': ['გამარჯობა, {n}', 'Hello, {n}'], 'hx.goal': ['დღევანდელი მიზანი', "Today's goal"], 'hx.goalV': ['{a} / {b} წუთი', '{a} / {b} min'],
   'hx.continue': ['გააგრძელე სწავლა', 'Continue learning'], 'hx.start': ['დაიწყე აქედან', 'Start here'], 'hx.go': ['გაგრძელება', 'Continue'], 'hx.all': ['ყველა', 'All'],
   'hx.forYou': ['შენთვის', 'For you'], 'hx.songs': ['სიმღერები', 'Songs'], 'hx.melodies': ['მელოდიები', 'Melodies'], 'hx.rhythms': ['რიტმები', 'Rhythms'], 'hx.exercises': ['სავარჯიშოები', 'Exercises'], 'hx.recent': ['ბოლოს ნავარჯიშები', 'Recently practised'],
-  'ln.tool': ['ხელსაწყო', 'Tool']
+  'ln.tool': ['ხელსაწყო', 'Tool'], 'ln.theory': ['თეორია · {d}/{n} თავი', 'Theory · {d}/{n} chapters']
 });
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
   const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['practice', 'nav.practice', ic.pulse], ['profile', 'nav.profile', ic.user]];
-  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -139,7 +141,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => PD.tools.tuner(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
     if (!fromPop) page.scrollTop = 0;
   }
@@ -228,7 +230,7 @@ PD.app = (() => {
     for (const p of LS.PATHS) for (const s of p.steps) { if (s.kind !== 'lesson') continue; const l = LS.get(s.id); if (!l || !l.events.length) continue; const pr = LS.progress.lesson(l.id); if (pr.mastery < .9) { out.push(l); break; } }
     return out;
   }
-  function stepDone(s) { if (s.kind === 'lesson') return LS.progress.lesson(s.id).mastery >= .9; if (s.kind === 'rhythm') return LS.progress.lesson('rhythm-' + s.id).mastery >= .9; if (s.kind === 'needs') return false; return !!PD.store.get('seen.' + s.kind, false); }
+  function stepDone(s) { if (s.kind === 'theory') return PD.theoryBook.progress() >= .8; if (s.kind === 'lesson') return LS.progress.lesson(s.id).mastery >= .9; if (s.kind === 'rhythm') return LS.progress.lesson('rhythm-' + s.id).mastery >= .9; if (s.kind === 'needs') return false; return !!PD.store.get('seen.' + s.kind, false); }
   function levelName() { const ps = LS.PATHS; let lv = ps[0]; for (const p of ps) { lv = p; if (p.steps.some(s => s.kind !== 'needs' && !stepDone(s))) break; } return lv && lv.level ? t('lv.' + lv.level) : PD.i18n.pick(lv.title); }
   const todayMin = () => Math.round(LS.progress.sessions().filter(s => new Date(s.date).toDateString() === new Date().toDateString()).reduce((a, s) => a + (s.dur || 0), 0) / 60);
 
@@ -308,7 +310,7 @@ PD.app = (() => {
     w.append(h('div', {}, [h('h1', { 'data-t': 'ln.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'ln.lead' })]));
     const lp = PD.levels.progress, LPn = LS.PATHS.find(p2 => p2.id === PD.levels.program);
     w.append(h('section', { class: 'lvcard' }, [h('span', { class: 'lvcard-b', html: PD.levels.badge(56) }), h('div', { class: 'grow' }, [h('b', { text: t('lv.level', { n: lp.level }) + ' · ' + PD.levels.tierName() }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(lp.pct * 100) + '%' })]), h('small', { text: (LPn ? t('lv.programD', { p: PD.i18n.pick(LPn.title) }) + ' · ' : '') + t('lv.toNext', { n: lp.need - lp.into }) })])]));
-    const TOOL = { tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets };
+    const TOOL = { tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord };
     let curSet = false, focusEl = null;
     LS.PATHS.forEach((p, pi) => {
       const real = p.steps.filter(s2 => s2.kind !== 'needs'), d = real.filter(stepDone).length;
@@ -318,7 +320,7 @@ PD.app = (() => {
         const done = stepDone(s2), need = s2.kind === 'needs', cur = !need && !done && !curSet; if (cur) curSet = true;
         const l = s2.kind === 'lesson' ? LS.get(s2.id) : s2.kind === 'rhythm' ? LS.get('rhythm-' + s2.id) : null;
         const thumb = l ? h('div', { class: 'lp-th', html: coverSVG(l) }) : h('div', { class: 'lp-th tool' + (need ? ' need' : ''), html: need ? '…' : (TOOL[s2.kind] || ic.learn) });
-        const meta2 = need ? t('ln.awaiting') : l ? t('lvl.' + (l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : '') + (l.demo ? ' · ' + t('demo.badge') : '') : t('ln.tool');
+        const meta2 = need ? t('ln.awaiting') : l ? t('lvl.' + (l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : '') + (l.demo ? ' · ' + t('demo.badge') : '') : s2.kind === 'theory' ? t('ln.theory', { n: PD.theoryBook.CHAPTERS.length, d: Math.round(PD.theoryBook.progress() * PD.theoryBook.CHAPTERS.length) }) : t('ln.tool');
         const locked = PREMIUM_PATHS.has(p.id) && !PD.premium.active && !need;
         const li = h('li', { class: 'lp-s' + (done ? ' done' : '') + (cur ? ' cur' : '') + (need ? ' need' : '') + (locked ? ' locked' : '') }, [
           h('span', { class: 'lp-dot', html: done ? ic.check : '' }),
@@ -336,7 +338,7 @@ PD.app = (() => {
     if (s.kind === 'lesson') return go('lesson', s.id);
     if (s.kind === 'rhythm') return go('rhythm', s.id);
     PD.store.set('seen.' + s.kind, true);
-    if (s.kind === 'tour') go('explore', 'tour'); else if (s.kind === 'tuner') go('tuner'); else if (s.kind === 'chords') go('chords'); else if (s.kind === 'fretboard') go('fretboard'); else if (s.kind === 'trainer') go('trainer');
+    if (s.kind === 'theory') go('theory'); else if (s.kind === 'tour') go('explore', 'tour'); else if (s.kind === 'tuner') go('tuner'); else if (s.kind === 'chords') go('chords'); else if (s.kind === 'fretboard') go('fretboard'); else if (s.kind === 'trainer') go('trainer');
   }
   function stepChip(s) {
     if (s.kind === 'needs') return h('span', { class: 'schip need', title: t('ln.awaiting'), text: PD.i18n.pick(s.title) });
@@ -424,6 +426,15 @@ PD.app = (() => {
     // chords
     w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.shapes' }), h('div', { class: 'chd-row' }, Object.keys(SD.chords).map(n => { const sh = SD.chords[n]; return h('div', { class: 'chd' }, [h('b', { text: n }), h('div', { html: chordSVG(sh) }), h('small', { class: 'muted', text: sh.frets.map((f, i) => TH.stringName(i + 1) + ' ' + f).join(' · ') + (sh.src === 'derived' ? ' · ' + t('sg.derived') : '') })]); })),
       h('small', { class: 'muted', 'data-t': 'sg.auto' })]));
+    // the progression: chord · how many rhythms · the strokes of one rhythm
+    if (l.cycle) {
+      const runs = []; l.cycle.forEach(c => { const r = runs[runs.length - 1]; if (r && r.c === c) r.n++; else runs.push({ c, n: 1 }); });
+      const R = (LS.rhythmsAll ? LS.rhythmsAll() : PD.curriculum.rhythms()).find(r => r.id === l.songRhythm), strokes = R ? R.strokes : [];
+      const one = () => h('span', { class: 'cy-st' }, strokes.map(k => h('i', { class: (k.accent ? 'acc ' : '') + k.direction, text: k.direction === 'up' ? '↑' : '↓' })));
+      w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.cycle' }),
+        h('div', { class: 'cy' }, runs.map(r => h('div', { class: 'cy-c', style: 'flex:' + r.n }, [h('b', { text: r.c }), h('small', { text: t('sg.rhythms', { n: r.n }) }), h('div', { class: 'cy-rs' }, Array.from({ length: r.n }, one))]))),
+        h('small', { class: 'muted', 'data-t': 'sg.oneRhythm' })]));
+    }
     // steps
     const list = h('div', { class: 'list' });
     stages.forEach((s2, i) => {
@@ -437,7 +448,7 @@ PD.app = (() => {
     const secs = h('div', { class: 'sx-secs' }, l.sections.map(sc => {
       const bars = Math.round((sc.to - sc.from) / LS.bpb(l)), chs = [...new Set(LS.steps(l).filter(x => x.t >= sc.from && x.t < sc.to).map(x => x.name))];
       return h('button', { class: 'sx-sec' + (sc.kind === 'listen' ? ' listen' : ''), onclick: () => PD.practice.open(l, sc.kind === 'listen' ? { autoplay: true, tempo: 1, wait: false, mode: 'learn', resumeBeat: sc.from } : { wait: false, tempo: .7, mode: 'practice', loop: { a: sc.from, b: sc.to, on: true } }, l.id, 'phrase') }, [
-        h('b', { text: PD.i18n.pick(sc.name) }), h('small', { text: PD.fmtTime((sc.from / (l.bpm / 60)) + (l.refOffset || 0)) + ' · ' + t('sg.bars', { n: bars }) + (chs.length ? ' · ' + chs.join(' · ') : '') })]);
+        h('b', { text: PD.i18n.pick(sc.name) }), h('small', { text: PD.fmtTime(Math.max(0, LS.timeOf(l, sc.from))) + ' · ' + (l.cycle ? t('sg.cycles', { n: Math.round((sc.to - sc.from) / l.cycle.length) }) : t('sg.bars', { n: bars })) + (chs.length ? ' · ' + chs.join(' · ') : '') })]);
     }));
     w.append(h('h3', { 'data-t': 'sg.parts' }), secs);
     if (p.lastResult) w.append(h('p', { class: 'muted', style: 'font-size:13px', text: t('st.result') + ': ' + PD.practice.summary(p.lastResult) }));
@@ -493,7 +504,7 @@ PD.app = (() => {
       h('div', { class: 'steps-line', style: 'max-width:360px' }, plan.map(x => h('i', { class: x.done ? 'done' : '' }))), h('span', { class: 'muted', style: 'font-size:13px', text: plan.map(x => t(x.key)).join(' · ') }),
       h('div', { class: 'row', style: 'margin-top:8px' }, [h('button', { class: 'btn primary', 'data-t': dn === plan.length ? 'dl.done' : 'home.start', onclick: () => nextSeg ? PD.daily.start(nextSeg) : go('daily') }), h('button', { class: 'btn quiet', 'data-t': 'learn.open', onclick: () => go('daily') })])]));
     const tool = (r, icon, k, d) => h('button', { class: 'card path tool', onclick: () => go(r) }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]);
-    const items = [['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
+    const items = [['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
     w.append(h('div', { class: 'paths' }, items.map(x => tool(...x))));
     if (PD.store.get('author', false)) w.append(h('div', { class: 'paths' }, [['studio', ic.edit, 'tools.studio', 'tools.studioD'], ['at:instrument', ic.frets, 'sd.instrument', 'at.instrument'], ['at:curriculum', ic.learn, 'sd.curriculum', 'at.curD'], ['at:samples', ic.mic, 'sd.samples', 'set.samples']].map(([r, icon, k, d]) => h('button', { class: 'card path tool', onclick: () => r === 'studio' ? PD.studio.open(null) : PD.authorTools[r.slice(3)]() }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]))));
   }

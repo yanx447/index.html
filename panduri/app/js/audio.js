@@ -97,14 +97,16 @@ PD.audio = (() => {
      A song may carry stems (full mix · music only · vocals only); one plays at a time, all share one timeline. ---------- */
   const mk = src => { const el = new Audio(src); el.preload = 'auto'; el.preservesPitch = true; el.mozPreservesPitch = true; el.webkitPreservesPitch = true; el.volume = Math.min(1, vol.ref); return el; };
   const ref = {
-    el: null, url: null, offset: 0, muted: false, stems: null, els: {}, blobs: {}, mix: PD.store.get('songMix', 'full'),
+    el: null, url: null, offset: 0, muted: false, stems: null, els: {}, blobs: {}, mix: PD.store.get('songMix', 'full'), map: null, bpm0: 60, err: 0,
     async load(blobId, offset) {
       ref.unload(); if (!blobId) return false;
       const b = await PD.blobs.get(blobId); if (!b) return false;
-      ref.url = URL.createObjectURL(b); ref.el = mk(ref.url); ref.offset = offset || 0;
+      ref.url = URL.createObjectURL(b); ref.el = mk(ref.url); ref.offset = offset || 0; ref.map = null;
       return true;
     },
-    loadStems(stems, offset) { ref.unload(); ref.stems = stems; ref.offset = offset || 0; ref.use(ref.mix, true); return !!ref.el; },
+    /** map = the time (s) in the recording where every beat starts (live recordings drift); bpm0 = the lesson's nominal tempo */
+    loadStems(stems, offset, map, bpm0) { ref.unload(); ref.stems = stems; ref.offset = offset || 0; ref.map = map && map.length > 1 ? map : null; if (bpm0) ref.bpm0 = bpm0; ref.use(ref.mix, true); return !!ref.el; },
+    setTempo(bpm0) { if (bpm0) ref.bpm0 = bpm0; },
     /** switch the audible mix ('full' | 'music' | 'vocals' | 'off') without losing the position.
         Files are read into memory (blob URLs) so seeking works on any server (no HTTP range requests needed). */
     use(mix, quiet) {
@@ -124,16 +126,35 @@ PD.audio = (() => {
     get hasStems() { return !!ref.stems; },
     get available() { return !!(ref.stems && PD.assets && PD.assets.media && PD.assets.media[ref.stems.full || ref.stems.music]); },
     unload() { Object.values(ref.els).forEach(e => { try { e.pause(); } catch (_) {} }); ref.els = {}; if (ref.el) { ref.el.pause(); ref.el = null; } if (ref.url) URL.revokeObjectURL(ref.url); ref.url = null; ref.stems = null; },
-    /** keep the media element aligned to the lesson transport (seconds of lesson time at 100%) */
-    sync(lessonSec, rate, playing) {
+    /** where beat b sounds in the recording, and how many recording seconds one beat lasts there */
+    at(b) {
+      const m = ref.map;
+      if (m) { const k = Math.max(0, Math.min(m.length - 2, Math.floor(b))), sl = m[k + 1] - m[k]; return { t: m[k] + (b - k) * sl, slope: sl }; }
+      const sl = 60 / ref.bpm0; return { t: b * sl + ref.offset, slope: sl };
+    },
+    /** keep the recording locked to the lesson transport (beat position, current tempo).
+        Small differences are steered away with a gentle speed change (pitch preserved) instead of jumps,
+        so the metronome, the chart and the music stay together; only a large gap (> 0.25 s) seeks. */
+    sync(beat, bpmNow, playing) {
       const el = ref.el; if (!el) return;
       el.muted = ref.muted; el.volume = Math.min(1, vol.ref);
-      if (!playing) { if (!el.paused) el.pause(); return; }
-      el.playbackRate = Math.max(.25, Math.min(4, rate));
-      const target = lessonSec + ref.offset;
-      if (target < 0) { if (!el.paused) el.pause(); return; }
-      if (Math.abs(el.currentTime - target) > .12) { try { el.currentTime = target; } catch (_) {} }
-      if (el.paused) el.play().catch(() => {});
+      if (!playing) { if (!el.paused) el.pause(); ref.err = 0; return; }
+      const bps = (bpmNow || ref.bpm0) / 60, lead = (PD.store.get('refLead', 0) || 0) / 1000;   // + = the recording sounds earlier
+      const p = ref.at(beat + lead * bps), base = Math.max(.25, Math.min(4, p.slope * bps));
+      if (p.t < 0) { if (!el.paused) el.pause(); return; }
+      // starting: media elements begin a little late; the device's start delay is learned and pre-compensated
+      if (el.paused) { const lag = PD.store.get('refStartLag', .08); try { el.currentTime = p.t + lag * base; } catch (_) {} el.playbackRate = base; ref.err = 0; ref.started = performance.now(); ref.learned = false; el.play().catch(() => {}); return; }
+      const err = el.currentTime - p.t;          // + = the recording is ahead of the transport
+      if (Math.abs(err) > .25) { try { el.currentTime = p.t; } catch (_) {} el.playbackRate = base; ref.err = 0; return; }
+      if (!ref.learned && ref.started && performance.now() - ref.started > 500) {
+        ref.learned = true; const lag = PD.store.get('refStartLag', .08);
+        PD.store.set('refStartLag', Math.max(0, Math.min(.4, lag - err * .7)));
+      }
+      ref.err = ref.err * .75 + err * .25;
+      const big = Math.abs(ref.err) > .04;
+      const corr = Math.abs(ref.err) < .005 ? 0 : Math.max(big ? -.15 : -.05, Math.min(big ? .15 : .05, -ref.err * (big ? 2.5 : 1.5)));
+      const rate = Math.max(.25, Math.min(4, base * (1 + corr)));
+      if (Math.abs(rate - el.playbackRate) > .002) el.playbackRate = rate;
     }
   };
 
