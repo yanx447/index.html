@@ -3,7 +3,7 @@
    Teacher media: served from the 'pd-media-*' cache ONLY when the learner explicitly downloaded it;
    large audio/video is never cached silently. Old shell caches are deleted on activate;
    learner data (localStorage / IndexedDB) is never touched. */
-const VERSION = 'b1d814a88c';
+const VERSION = 'ee91018836';
 const SHELL_CACHE = 'pd-shell-' + VERSION;
 const SHELL = ["./", "index.html", "app.css", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "js/core.js", "js/instrument.js", "js/theory.js", "js/geom.js", "js/songdata.js", "js/curriculum.js", "js/lessons.js", "js/audio.js", "js/samples.js", "js/media.js", "js/detector.js", "js/engine.js", "js/coach.js", "js/ui.js", "js/cloud.js", "js/auth.js", "js/premium.js", "js/tv.js", "js/rhythms.js", "js/neck.js", "js/lanes.js", "js/trainers.js", "js/three3d.js", "js/practice.js", "js/camera.js", "js/community.js", "js/tools.js", "js/studio.js", "js/authortools.js", "js/onboard.js", "js/pwa.js", "js/app.js", "js/boot.js", "js/assets.js", "js/config.js"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL_CACHE).then(c => c.addAll(SHELL))); });

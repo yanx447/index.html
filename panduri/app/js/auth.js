@@ -81,6 +81,9 @@ PD.auth = (() => {
           opts.noGuest ? null : h('button', { class: 'ag-guest', 'data-t': 'au.guest', onclick: () => { PD.store.set('auth.skip', true); finish(false); } }),
           opts.noGuest ? null : h('small', { class: 'ag-fine', 'data-t': 'au.guestD' }),
           h('small', { class: 'ag-fine', 'data-t': 'au.terms' })].filter(Boolean)));
+        // show only the sign-in methods that are switched on in the server
+        const showOnly = v => { if (!v) return; ['google', 'facebook', 'phone'].forEach(k => { const b = card.querySelector('.ag-btn.' + k); if (b) b.hidden = !v[k]; }); };
+        if (C.configured) { showOnly(C.knownProviders); C.providers().then(showOnly).catch(() => {}); }
         card.prepend(h('button', { class: 'ag-lang', text: PD.i18n.lang === 'ka' ? 'EN' : 'ქარ', onclick: () => { PD.i18n.set(PD.i18n.lang === 'ka' ? 'en' : 'ka'); render(); } }));
         if (opts.closable) card.prepend(h('button', { class: 'ag-x', 'aria-label': t('close'), html: PD.ic.close, onclick: () => finish(false) }));
       } else if (view === 'signin' || view === 'signup') {

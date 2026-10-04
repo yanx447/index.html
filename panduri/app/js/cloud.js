@@ -194,6 +194,13 @@ PD.cloud = (() => {
     get profile() { return profile; },
     get isAdmin() { return !!(profile && profile.role === 'admin'); },
     get native() { return native(); },
+    /** which sign-in methods are switched on in the server (cached; last known value first) */
+    async providers() {
+      const j = await http('/auth/v1/settings', { auth: false });
+      const ex = (j && j.external) || {}; const v = { email: ex.email !== false, phone: !!ex.phone, google: !!ex.google, facebook: !!ex.facebook };
+      PD.store.set('auth.providers', v); return v;
+    },
+    get knownProviders() { return PD.store.get('auth.providers', null); },
     config: conf,
     setConfig(c) { PD.store.set(CFG, c && (c.url || c.key) ? { url: (c.url || '').trim(), key: (c.key || '').trim() } : null); emit(); },
     on(f) { listeners.add(f); return () => listeners.delete(f); }
