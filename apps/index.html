@@ -105,6 +105,14 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 22px; justify-content: 
 footer nav { display: flex; flex-wrap: wrap; gap: 8px 18px; }
 footer a { text-decoration: none; color: var(--ink-2); }
 footer a:hover { color: var(--ink); }
+/* embedded inside studioplus.ge: no header/footer/hero, page background from the host */
+html.embed body { background: transparent; }
+html.embed .top, html.embed footer, html.embed .hero { display: none; }
+html.embed .apps { padding-top: 0; }
+html.embed .wrap { width: 100%; }
+html.embed .section { padding-top: 34px; }
+html.embed .embed-lang { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.embed-lang { display: none; }
 :focus-visible { outline: 2px solid var(--red-2); outline-offset: 2px; border-radius: 10px; }
 </style>
 </head>
@@ -139,6 +147,7 @@ footer a:hover { color: var(--ink); }
     </div>
   </section>
 
+  <div class="wrap embed-lang"><div class="lang" role="group" aria-label="Language / ენა"><button type="button" data-l="ka" aria-pressed="true">ქა</button><button type="button" data-l="en" aria-pressed="false">EN</button></div></div>
   <div class="wrap apps">
     <!-- Sami Simi -->
     <article class="app" data-app="samisimi">
@@ -257,10 +266,20 @@ footer a:hover { color: var(--ink); }
 <script type="module">
 import qrcode from '../sami-simi/app/vendor/qrcode.js';
 
-// language: saved choice → browser language → Georgian
+const qs = new URLSearchParams(location.search);
+const EMBED = qs.has('embed') && window.parent !== window;
 const root = document.documentElement;
+if (EMBED) {
+  root.classList.add('embed');
+  // links leave the frame (downloads and the web apps open as normal pages)
+  document.querySelectorAll('a[href]').forEach((a) => { a.target = '_top'; }); // downloads too: a file response never replaces the page
+  const send = () => window.parent.postMessage({ type: 'studioplus-apps:height', height: Math.ceil(document.querySelector('main').getBoundingClientRect().bottom + window.scrollY + 8) }, '*');
+  new ResizeObserver(send).observe(document.body); window.addEventListener('load', send); send();
+}
+
+// language: ?lang= → saved choice → browser language → Georgian
 const saved = (() => { try { return localStorage.getItem('studioplus-apps:lang'); } catch (e) { return null; } })();
-const initial = saved || (/^ka\b/i.test(navigator.language || '') ? 'ka' : (navigator.language ? 'en' : 'ka'));
+const initial = (['ka', 'en'].includes(qs.get('lang')) && qs.get('lang')) || saved || (/^ka\b/i.test(navigator.language || '') ? 'ka' : (navigator.language ? 'en' : 'ka'));
 function setLang(l) {
   root.lang = l;
   document.querySelectorAll('.lang button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.l === l)));
