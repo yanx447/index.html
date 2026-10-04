@@ -18,9 +18,9 @@ Learn the Georgian three-string panduri on your **real instrument**: the app sho
    (each needs its own client id/secret from Google Cloud / Meta for Developers).
 4. Authentication → URL Configuration → Redirect URLs: add
    `https://yanx447.github.io/index.html/panduri/app/` and `com.yanx.panduri://auth`.
-5. Project Settings → API: copy the **Project URL** and the **anon public** key into [`app/js/config.js`](app/js/config.js)
-   (`supabaseUrl`, `supabaseKey`) and commit. The Android app is rebuilt automatically.
-   Never put the `service_role` key in the app.
+5. Copy the **Project URL** and the **publishable key** (`sb_publishable_…`, Settings → API Keys; the older
+   "anon public" key works too) into [`app/js/config.js`](app/js/config.js) (`supabaseUrl`, `supabaseKey`) and commit.
+   The Android app is rebuilt automatically. Never put a secret / `service_role` key in the app.
 6. Sign up in the app with your own account, then in the SQL Editor run
    `update public.profiles set role = 'admin' where email = 'your@email';`
    — Profile → Administration now lets you give or remove VIP (1 month, 1 year, forever) and make other admins.

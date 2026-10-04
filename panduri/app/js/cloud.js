@@ -32,7 +32,10 @@ PD.cloud = (() => {
     const c = conf(); if (!c.url || !c.key) throw err('no-backend');
     if (opt.auth !== false && S && S.expires_at && S.expires_at - 60 < Date.now() / 1000) await refresh().catch(() => {});
     const headers = Object.assign({ apikey: c.key, 'Content-Type': 'application/json' }, opt.headers || {});
-    headers.Authorization = 'Bearer ' + (opt.auth !== false && S ? S.access_token : c.key);
+    // signed in: the member's token. Not signed in: the legacy anon key is a JWT and goes here too; the newer
+    // "publishable" key (sb_publishable_…) is not a JWT and travels only in the apikey header.
+    if (opt.auth !== false && S) headers.Authorization = 'Bearer ' + S.access_token;
+    else if (/^eyJ/.test(c.key)) headers.Authorization = 'Bearer ' + c.key;
     let r;
     try { r = await fetch(c.url + path, { method: opt.method || 'GET', headers, body: opt.body != null ? JSON.stringify(opt.body) : undefined }); }
     catch (e) { throw err('offline'); }
@@ -72,7 +75,9 @@ PD.cloud = (() => {
       if (native() && P && P.Browser) { await P.Browser.open({ url }); return 'pending'; }
       location.assign(url); return 'pending';
     },
-    async signOut() { try { await http('/auth/v1/logout', { method: 'POST' }); } catch (_) {} setSession(null); }
+    async signOut() { try { await http('/auth/v1/logout', { method: 'POST' }); } catch (_) {} setSession(null); PD.store.set('account.mode', 'local'); },
+    /** delete the account and everything stored with it on the server (progress on this device stays) */
+    async deleteAccount() { await http('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {} }); setSession(null); PD.store.set('account.mode', 'local'); }
   };
   /** returning from Google/Facebook (web: URL fragment; app: deep link) */
   function consumeRedirect(href) {

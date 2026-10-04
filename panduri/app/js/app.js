@@ -528,6 +528,8 @@ PD.app = (() => {
     w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.account' }), h('div', { class: 'list' }, [
       h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { text: C.session ? t('au.signedIn', { e: who }) : t('pf.guest') }), h('small', { text: C.session ? t('au.syncOn') : (C.configured ? t('au.guestD') : t('au.syncOff')) })]),
         C.session ? h('button', { class: 'btn small', 'data-t': 'au.signout', onclick: () => PD.ui.confirm(t('au.signout') + '?', async () => { await C.auth.signOut(); PD.store.set('auth.skip', false); render(); }) }) : h('button', { class: 'btn small primary', 'data-t': 'pf.signin', onclick: () => PD.auth.open() })]),
+      C.session ? h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'au.delete' }), h('small', { 'data-t': 'au.deleteD' })]),
+        h('button', { class: 'btn small quiet danger', 'data-t': 'au.deleteGo', onclick: () => PD.ui.confirm(t('au.deleteQ'), async () => { try { await C.auth.deleteAccount(); PD.ui.toast(t('au.deleted'), 5000); render(); } catch (e) { PD.ui.toast((e && e.message) || String(e), 6000); } }) })]) : null,
       C.isAdmin ? h('button', { class: 'li', onclick: () => PM.admin() }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'ad.title' }), h('small', { 'data-t': 'ad.lead' })]), h('span', { html: ic.chevron, class: 'chev' })]) : null,
       h('button', { class: 'li', onclick: () => go('community') }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'cm.title' }), h('small', { 'data-t': 'cm.lead' })]), h('span', { html: ic.chevron, class: 'chev' })]),
       h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'acct.export' })]), h('span', { class: 'row', style: 'gap:6px' }, [

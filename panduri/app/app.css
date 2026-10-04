@@ -1041,3 +1041,4 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
   .ag-card.home .ag-logo{width:64px;height:108px}.ag-card.home h1{font-size:30px}
   .ag-card.home .ag-list{margin-top:0}.ag-card.home .ag-btn{min-height:48px}
 }
+.btn.danger{color:#FF9A8E}

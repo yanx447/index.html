@@ -6,6 +6,8 @@
    so, and "continue without an account" keeps progress on this device.
    ===================================================================== */
 PD.i18n.add({
+  'au.delete': ['ანგარიშის წაშლა', 'Delete account'], 'au.deleteD': ['სერვერიდან სამუდამოდ წაიშლება ანგარიში, მიმოწერა, კითხვები და პროგრესის ასლი. ამ მოწყობილობაზე პროგრესი დარჩება.', 'Permanently removes the account, messages, questions and the progress backup from the server. Progress on this device stays.'],
+  'au.deleteGo': ['წაშლა', 'Delete'], 'au.deleteQ': ['ნამდვილად წავშალო ანგარიში? ამის დაბრუნება შეუძლებელია.', 'Really delete the account? This cannot be undone.'], 'au.deleted': ['ანგარიში წაიშალა.', 'The account was deleted.'],
   'au.signin': ['შესვლა', 'Sign in'], 'au.signup': ['ანგარიშის შექმნა', 'Create account'], 'au.email': ['ელფოსტა', 'Email'], 'au.password': ['პაროლი', 'Password'], 'au.name': ['სახელი', 'Name'],
   'au.forgot': ['დაგავიწყდა პაროლი?', 'Forgot password?'], 'au.reset': ['პაროლის აღდგენა', 'Reset password'], 'au.resetD': ['ელფოსტაზე გამოგიგზავნით ბმულს ახალი პაროლისთვის.', 'We will email you a link to set a new password.'], 'au.send': ['გაგზავნა', 'Send'],
   'au.sent': ['გაიგზავნა — შეამოწმე ელფოსტა.', 'Sent — check your email.'],
