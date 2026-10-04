@@ -85,8 +85,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete android-latest --yes --cleanup-tag || true
-          FILES="SamiSimi-test.apk"
-          [ -f SamiSimi.apk ] && FILES="$FILES SamiSimi.apk"
+          # SamiSimi.apk is the public download (studioplus.ge apps page links to it):
+          # release-signed when the keystore secrets exist, otherwise the test build.
+          [ -f SamiSimi.apk ] || cp SamiSimi-test.apk SamiSimi.apk
+          FILES="SamiSimi.apk SamiSimi-test.apk"
           gh release create android-latest $FILES --prerelease \
             --title "Android test build #${{ github.run_number }}" \
             --notes "Latest Android build of Sami Simi (v$(node -p "require('./package.json').version"), build ${{ github.run_number }}). Download the APK on an Android phone and install it (allow installs from this source when asked)."

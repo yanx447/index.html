@@ -22,6 +22,8 @@ jobs:
       run:
         working-directory: panduri
     runs-on: ubuntu-latest
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,12 +44,29 @@ jobs:
         env:
           BUILD_NUMBER: ${{ github.run_number }}
 
-      - name: APK
+      - name: APK (test build — used only until the Studio Plus signing key is set up)
+        if: env.HAS_KEYSTORE != 'true'
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
           cp app/build/outputs/apk/debug/app-debug.apk ../Panduri.apk
+
+      - name: APK signed with the Studio Plus release key (same key for every build → updates install over each other)
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/release.jks" -Pandroid.injected.signing.store.password="$KS_PASS" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" -Pandroid.injected.signing.key.password="$KEY_PASS"
+          cp app/build/outputs/apk/release/app-release.apk ../Panduri.apk
 
       - uses: actions/upload-artifact@v4
         with:

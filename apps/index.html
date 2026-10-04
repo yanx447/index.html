@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>აპლიკაციები — Studio Plus+</title>
+<meta name="description" content="Studio Plus+-ის უფასო აპლიკაციები ქართული ფანდურისთვის: სამი სიმი (ტიუნერი) და ფანდური (სასწავლო აპი). Free apps for the Georgian panduri.">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="Studio Plus+ · აპლიკაციები / Apps">
+<meta property="og:description" content="სამი სიმი — ფანდურის ტიუნერი · ფანდური — ისწავლე დაკვრა. Android APK და ვებ-ვერსია.">
+<meta property="og:image" content="https://yanx447.github.io/index.html/sami-simi/app/icons/icon-512.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a'/%3E%3Cg stroke='%23e3262f' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M9 6v20M16 6v20M23 6v20'/%3E%3C/g%3E%3Cg fill='%23f4efe8'%3E%3Crect x='5.5' y='17' width='7' height='4' rx='1.4'/%3E%3Crect x='12.5' y='9' width='7' height='4' rx='1.4'/%3E%3Crect x='19.5' y='13' width='7' height='4' rx='1.4'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+@font-face { font-family: "Noto Sans Georgian"; src: url("../sami-simi/app/fonts/NotoSansGeorgian.woff") format("woff"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Noto Serif Georgian"; src: url("../sami-simi/app/fonts/NotoSerifGeorgian.woff") format("woff"); font-weight: 100 900; font-display: swap; }
+
+:root {
+  --bg: #0a0a0a; --bg-2: #111010; --card: #141212; --card-2: #1a1716;
+  --line: rgba(244,239,232,.09); --line-2: rgba(244,239,232,.16);
+  --ink: #f4efe8; --ink-2: #cfc6ba; --mute: #8f867b;
+  --red: #e3262f; --red-2: #ff4b52; --red-dim: rgba(227,38,47,.14);
+  --ok: #7fc28a;
+  --sans: "Noto Sans Georgian", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif: "Noto Serif Georgian", Georgia, serif;
+  --r: 18px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.wrap { width: min(1080px, 100% - 32px); margin-inline: auto; }
+[hidden] { display: none !important; }
+html[lang="ka"] [lang="en"]:not(html), html[lang="en"] [lang="ka"]:not(html) { display: none !important; }
+
+/* header */
+.top { position: sticky; top: 0; z-index: 10; background: rgba(10,10,10,.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 62px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 800 19px/1 var(--serif); letter-spacing: .01em; }
+.brand svg { width: 30px; height: 30px; }
+.brand b { color: var(--red); font-weight: 800; }
+.top-actions { display: flex; align-items: center; gap: 8px; }
+.lang { display: flex; padding: 3px; border-radius: 11px; background: var(--card); border: 1px solid var(--line); }
+.lang button { min-width: 40px; height: 32px; padding: 0 8px; border-radius: 8px; font: 700 13px var(--sans); color: var(--mute); }
+.lang button[aria-pressed="true"] { color: var(--ink); background: var(--card-2); box-shadow: inset 0 0 0 1px var(--line-2); }
+.home { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line); font: 600 13.5px var(--sans); text-decoration: none; color: var(--ink-2); }
+.home svg { width: 15px; height: 15px; }
+@media (max-width: 420px) { .home span { display: none; } .home { width: 38px; justify-content: center; padding: 0; } }
+
+/* hero */
+.hero { padding: 56px 0 28px; position: relative; overflow: hidden; }
+.hero::before { content: ""; position: absolute; inset: -40% -20% auto; height: 520px; background: radial-gradient(closest-side, rgba(227,38,47,.22), transparent 70%); pointer-events: none; }
+.eyebrow { position: relative; display: inline-flex; align-items: center; gap: 8px; font: 700 12.5px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--red-2); }
+.eyebrow::before { content: ""; width: 22px; height: 2px; background: var(--red); border-radius: 2px; }
+.hero h1 { position: relative; margin: 12px 0 10px; font: 800 clamp(34px, 7vw, 56px)/1.08 var(--serif); letter-spacing: -.01em; }
+.hero p { position: relative; max-width: 620px; margin: 0; font-size: 17.5px; color: var(--ink-2); }
+.badges { position: relative; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.badge { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px; border-radius: 99px; background: var(--card); border: 1px solid var(--line); font: 600 13px var(--sans); color: var(--ink-2); }
+.badge i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+
+/* app cards */
+.apps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 470px), 1fr)); gap: 18px; padding: 18px 0 8px; }
+.app { display: flex; flex-direction: column; gap: 18px; padding: 22px; border-radius: 24px; background: linear-gradient(180deg, var(--card-2), var(--card)); border: 1px solid var(--line); }
+.app-head { display: flex; gap: 16px; align-items: center; }
+.app-head img { width: 76px; height: 76px; border-radius: 19px; flex: none; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.app h2 { margin: 0; font: 800 25px/1.15 var(--serif); }
+.app h2 small { display: block; margin-top: 3px; font: 600 13.5px var(--sans); color: var(--mute); letter-spacing: .01em; }
+.app > p { margin: 0; color: var(--ink-2); }
+.feats { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.feats li { position: relative; padding-left: 22px; font-size: 15px; color: var(--ink-2); }
+.feats li::before { content: ""; position: absolute; left: 3px; top: .62em; width: 8px; height: 8px; border-radius: 2px; background: var(--red); transform: rotate(45deg); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 500 13px var(--sans); color: var(--mute); min-height: 20px; }
+.meta b { color: var(--ink-2); font-weight: 600; }
+.actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; margin-top: auto; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 52px; padding: 0 18px; border-radius: 14px; font: 700 15.5px/1.25 var(--sans); text-decoration: none; text-align: center; }
+.btn svg { width: 19px; height: 19px; flex: none; }
+.btn-red { color: #fff; background: linear-gradient(180deg, var(--red-2), var(--red)); box-shadow: 0 10px 28px rgba(227,38,47,.28), inset 0 1px 0 rgba(255,255,255,.18); }
+.btn-red:active { transform: translateY(1px); }
+.btn-line { color: var(--ink); border: 1px solid var(--line-2); background: rgba(244,239,232,.03); }
+.btn-sq { width: 52px; padding: 0; }
+.row2 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 10px; }
+.qr-box { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 14px; border-radius: 16px; background: #fff; color: #111; }
+.qr-box svg { width: 128px; height: 128px; flex: none; }
+.qr-box p { margin: 0; font: 600 14px/1.45 var(--sans); }
+.qr-box small { display: block; margin-top: 4px; font-weight: 500; color: #555; }
+.note { margin: 0; font-size: 13px; color: var(--mute); }
+
+/* guides */
+.section { padding: 46px 0 6px; }
+.section h2 { margin: 0 0 6px; font: 800 28px/1.2 var(--serif); }
+.section > .wrap > p { margin: 0 0 20px; color: var(--ink-2); max-width: 660px; }
+.guides { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 18px; }
+.guide { padding: 22px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); }
+.guide h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font: 700 18px var(--sans); }
+.guide h3 svg { width: 22px; height: 22px; color: var(--red-2); }
+.steps { counter-reset: s; list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.steps li { counter-increment: s; position: relative; padding-left: 40px; font-size: 15px; color: var(--ink-2); }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: -2px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 9px; background: var(--red-dim); color: var(--red-2); font: 800 14px var(--sans); }
+.steps b { color: var(--ink); }
+.callout { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: rgba(244,239,232,.04); border: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); }
+
+footer { margin-top: 56px; padding: 26px 0 calc(26px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--mute); font-size: 13.5px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 22px; justify-content: space-between; align-items: center; }
+footer nav { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+footer a { text-decoration: none; color: var(--ink-2); }
+footer a:hover { color: var(--ink); }
+:focus-visible { outline: 2px solid var(--red-2); outline-offset: 2px; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="https://studioplus.ge" aria-label="Studio Plus+">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#141212"/><g stroke="#e3262f" stroke-width="2.4" stroke-linecap="round"><path d="M9 6v20M16 6v20M23 6v20"/></g><g fill="#f4efe8"><rect x="5.5" y="17" width="7" height="4" rx="1.4"/><rect x="12.5" y="9" width="7" height="4" rx="1.4"/><rect x="19.5" y="13" width="7" height="4" rx="1.4"/></g></svg>
+      <span lang="ka">სტუდიო<b>+</b></span><span lang="en">Studio Plus<b>+</b></span>
+    </a>
+    <div class="top-actions">
+      <div class="lang" role="group" aria-label="Language / ენა"><button type="button" data-l="ka" aria-pressed="true">ქა</button><button type="button" data-l="en" aria-pressed="false">EN</button></div>
+      <a class="home" href="https://studioplus.ge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span lang="ka">studioplus.ge</span><span lang="en">studioplus.ge</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow"><span lang="ka">აპლიკაციები</span><span lang="en">Apps</span></span>
+      <h1><span lang="ka">ფანდურის აპები სტუდიო+-ისგან</span><span lang="en">Panduri apps from Studio Plus+</span></h1>
+      <p lang="ka">ააწყე ფანდური, ისწავლე აკორდები და დაკვრა — უფასოდ. ჩამოტვირთე Android-ისთვის ან გახსენი პირდაპირ ბრაუზერში.</p>
+      <p lang="en">Tune your panduri, learn chords and how to play — for free. Download for Android or open them right in your browser.</p>
+      <div class="badges">
+        <span class="badge"><i></i><span lang="ka">უფასო</span><span lang="en">Free</span></span>
+        <span class="badge">Android · APK</span>
+        <span class="badge"><span lang="ka">iPhone — ბრაუზერიდან</span><span lang="en">iPhone — from the browser</span></span>
+        <span class="badge"><span lang="ka">ქართული · English</span><span lang="en">Georgian · English</span></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap apps">
+    <!-- Sami Simi -->
+    <article class="app" data-app="samisimi">
+      <div class="app-head">
+        <img src="../sami-simi/app/icons/icon-192.png" alt="" width="76" height="76">
+        <h2><span lang="ka">სამი სიმი</span><span lang="en">Sami Simi</span><small lang="ka">ფანდურის ტიუნერი</small><small lang="en">Panduri tuner</small></h2>
+      </div>
+      <p lang="ka">ზუსტი ტიუნერი სამსიმიანი ქართული ფანდურისთვის — ლა · დო♯ · მი. ჩამოკარი სიმი და ნახე, საით დაატრიალო მომჭერი.</p>
+      <p lang="en">A precise tuner for the three-string Georgian panduri — A · C♯ · E. Pluck a string and see which way to turn the peg.</p>
+      <ul class="feats">
+        <li lang="ka">ერთი სიმით ან სამივე ერთად, ერთი ჩამოკვრით</li><li lang="en">One string at a time, or all three with one strum</li>
+        <li lang="ka">ყველა აკორდი ყველა პოზიციაში, 17-ლადიან 3D ტარზე</li><li lang="en">Every chord in every position on a 17-fret 3D neck</li>
+        <li lang="ka">ეტალონური ბგერა ნამდვილი ფანდურიდან, მეტრონომი, აკორდის ამოცნობა</li><li lang="en">Reference tones from a real panduri, metronome, chord recognition</li>
+        <li lang="ka">მუშაობს ინტერნეტის გარეშე</li><li lang="en">Works offline</li>
+      </ul>
+      <div class="meta" data-meta></div>
+      <div class="actions">
+        <a class="btn btn-red" data-apk href="https://github.com/yanx447/index.html/releases/download/android-latest/SamiSimi.apk" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg>
+          <span lang="ka">ჩამოტვირთე APK</span><span lang="en">Download APK</span>
+        </a>
+        <button type="button" class="btn btn-line btn-sq" data-qr aria-label="QR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2"/></svg></button>
+        <div class="row2">
+          <a class="btn btn-line" href="../sami-simi/app/"><span lang="ka">გახსენი ბრაუზერში</span><span lang="en">Open in browser</span></a>
+          <a class="btn btn-line" href="../sami-simi/"><span lang="ka">მეტი აპზე</span><span lang="en">About the app</span></a>
+        </div>
+        <div class="qr-box" hidden></div>
+      </div>
+    </article>
+
+    <!-- Panduri Learning -->
+    <article class="app" data-app="panduri">
+      <div class="app-head">
+        <img src="../panduri/app/icons/icon-192.png" alt="" width="76" height="76">
+        <h2><span lang="ka">ფანდური</span><span lang="en">Panduri</span><small lang="ka">ისწავლე დაკვრა</small><small lang="en">Learn to play</small></h2>
+      </div>
+      <p lang="ka">ისწავლე ფანდურზე დაკვრა შენს ნამდვილ ინსტრუმენტზე: აპი გაჩვენებს, რა დაუკრა, დაგელოდება და მიკროფონით გისმენს.</p>
+      <p lang="en">Learn the panduri on your real instrument: the app shows what to play, waits for you and listens through the microphone.</p>
+      <ul class="feats">
+        <li lang="ka">გაკვეთილები, რომლებიც შენს დაკვრას ელოდება</li><li lang="en">Lessons that wait for you to play</li>
+        <li lang="ka">მასწავლებლის ვიდეო და კამერის რეჟიმი</li><li lang="en">Teacher video and camera mode</li>
+        <li lang="ka">ტიუნერი, აკორდები და 3D ინსტრუმენტი</li><li lang="en">Tuner, chords and a 3D instrument</li>
+        <li lang="ka">ტელეფონზე, პლანშეტზე და Android TV-ზე</li><li lang="en">Phones, tablets and Android TV</li>
+      </ul>
+      <div class="meta" data-meta></div>
+      <div class="actions">
+        <a class="btn btn-red" data-apk href="https://github.com/yanx447/index.html/releases/download/panduri-android-latest/Panduri.apk" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg>
+          <span lang="ka">ჩამოტვირთე APK</span><span lang="en">Download APK</span>
+        </a>
+        <button type="button" class="btn btn-line btn-sq" data-qr aria-label="QR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2"/></svg></button>
+        <div class="row2">
+          <a class="btn btn-line" href="../panduri/app/"><span lang="ka">გახსენი ბრაუზერში</span><span lang="en">Open in browser</span></a>
+        </div>
+        <div class="qr-box" hidden></div>
+      </div>
+    </article>
+  </div>
+
+  <section class="section" id="install">
+    <div class="wrap">
+      <h2><span lang="ka">როგორ დავაყენო</span><span lang="en">How to install</span></h2>
+      <p lang="ka">აპები ჯერ Google Play-სა და App Store-ზე არ არის, ამიტომ Android-ზე პირდაპირ ფაილით ყენდება, iPhone-ზე კი ბრაუზერიდან.</p>
+      <p lang="en">The apps aren’t on Google Play or the App Store yet, so on Android you install the file directly, and on iPhone you add them from the browser.</p>
+      <div class="guides">
+        <div class="guide">
+          <h3><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.2 9h9.6c.7 0 1.2.5 1.2 1.2v6.6c0 .7-.5 1.2-1.2 1.2H16v2.3a1.2 1.2 0 1 1-2.4 0V18h-3.2v2.3a1.2 1.2 0 1 1-2.4 0V18h-.8c-.7 0-1.2-.5-1.2-1.2v-6.6C6 9.5 6.5 9 7.2 9zM4.2 9.4a1.2 1.2 0 0 1 1.2 1.2v4.8a1.2 1.2 0 1 1-2.4 0v-4.8c0-.7.5-1.2 1.2-1.2zm15.6 0a1.2 1.2 0 0 1 1.2 1.2v4.8a1.2 1.2 0 1 1-2.4 0v-4.8c0-.7.5-1.2 1.2-1.2zM8.4 3.2l1 1.6A6 6 0 0 1 12 4.3c.9 0 1.8.2 2.6.5l1-1.6a.4.4 0 0 1 .6.4l-.9 1.6A5.5 5.5 0 0 1 18 8.2H6a5.5 5.5 0 0 1 2.7-3l-.9-1.6a.4.4 0 0 1 .6-.4zM9.6 6.2a.7.7 0 1 0 0 1.4.7.7 0 0 0 0-1.4zm4.8 0a.7.7 0 1 0 0 1.4.7.7 0 0 0 0-1.4z"/></svg>Android</h3>
+          <ol class="steps" lang="ka">
+            <li>დააჭირე <b>„ჩამოტვირთე APK“</b>. ფაილი (.apk) ჩამოიტვირთება.</li>
+            <li>გახსენი ჩამოტვირთული ფაილი შეტყობინებიდან ან „ჩამოტვირთვების“ საქაღალდიდან.</li>
+            <li>თუ ტელეფონი ნებართვას გთხოვს, ჩართე <b>„ამ წყაროდან დაყენების ნება“</b> და დაბრუნდი.</li>
+            <li>დააჭირე <b>„დაყენება“</b>. აპი ტელეფონის მთავარ ეკრანზე გამოჩნდება.</li>
+          </ol>
+          <ol class="steps" lang="en">
+            <li>Tap <b>“Download APK”</b>. The file (.apk) downloads.</li>
+            <li>Open the downloaded file from the notification or your Downloads folder.</li>
+            <li>If the phone asks, turn on <b>“Allow from this source”</b> and go back.</li>
+            <li>Tap <b>“Install”</b>. The app appears on your home screen.</li>
+          </ol>
+          <div class="callout" lang="ka">Google Play Protect-მა შეიძლება გაგაფრთხილოს, რომ აპი უცნობია. ეს ჩვეულებრივია Play Store-ის გარეთ დაყენებისას. აირჩიე <b>„მაინც დაყენება“</b>. ახალი ვერსიისთვის უბრალოდ ხელახლა ჩამოტვირთე და დააყენე.</div>
+          <div class="callout" lang="en">Google Play Protect may warn that the app is unknown. That’s normal for installs outside the Play Store — choose <b>“Install anyway”</b>. To update, just download and install again.</div>
+        </div>
+        <div class="guide">
+          <h3><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.2-2.8.8-3.5.8-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.7zM14.2 5.8c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.8 1 .1 2.1-.5 2.7-1.2z"/></svg>iPhone · iPad</h3>
+          <ol class="steps" lang="ka">
+            <li>გახსენი აპი <b>Safari-ში</b>: დააჭირე <b>„გახსენი ბრაუზერში“</b>.</li>
+            <li>ქვედა ზოლში დააჭირე <b>გაზიარების</b> ღილაკს (კვადრატი ისრით).</li>
+            <li>აირჩიე <b>„მთავარ ეკრანზე დამატება“</b> და შემდეგ <b>„დამატება“</b>.</li>
+            <li>აპი მთავარ ეკრანზე გამოჩნდება და ინტერნეტის გარეშეც იმუშავებს.</li>
+          </ol>
+          <ol class="steps" lang="en">
+            <li>Open the app in <b>Safari</b>: tap <b>“Open in browser”</b>.</li>
+            <li>Tap the <b>Share</b> button (square with an arrow) in the toolbar.</li>
+            <li>Choose <b>“Add to Home Screen”</b>, then <b>“Add”</b>.</li>
+            <li>The app appears on your home screen and works offline too.</li>
+          </ol>
+          <div class="callout" lang="ka">App Store-ის ვერსია მზადდება.</div>
+          <div class="callout" lang="en">An App Store version is on the way.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 <span lang="ka">სტუდიო+</span><span lang="en">Studio Plus+</span> · <span lang="ka">ბათუმი</span><span lang="en">Batumi</span></span>
+    <nav>
+      <a href="https://studioplus.ge">studioplus.ge</a>
+      <a href="../sami-simi/privacy.html"><span lang="ka">კონფიდენციალურობა — სამი სიმი</span><span lang="en">Privacy — Sami Simi</span></a>
+      <a href="../sami-simi/support.html"><span lang="ka">დახმარება</span><span lang="en">Support</span></a>
+    </nav>
+  </div>
+</footer>
+
+<script type="module">
+import qrcode from '../sami-simi/app/vendor/qrcode.js';
+
+// language: saved choice → browser language → Georgian
+const root = document.documentElement;
+const saved = (() => { try { return localStorage.getItem('studioplus-apps:lang'); } catch (e) { return null; } })();
+const initial = saved || (/^ka\b/i.test(navigator.language || '') ? 'ka' : (navigator.language ? 'en' : 'ka'));
+function setLang(l) {
+  root.lang = l;
+  document.querySelectorAll('.lang button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.l === l)));
+  document.title = l === 'ka' ? 'აპლიკაციები — სტუდიო+' : 'Apps — Studio Plus+';
+  try { localStorage.setItem('studioplus-apps:lang', l); } catch (e) { /* private mode */ }
+  document.querySelectorAll('[data-meta]').forEach((m) => m.dataset.info && renderMeta(m, JSON.parse(m.dataset.info)));
+}
+document.querySelectorAll('.lang button').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.l)));
+setLang(initial);
+
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+// live version, size and date of each APK from the GitHub release
+const RELEASES = { samisimi: ['android-latest', 'SamiSimi.apk'], panduri: ['panduri-android-latest', 'Panduri.apk'] };
+function renderMeta(m, info) {
+  const ka = root.lang === 'ka';
+  const d = new Date(info.date);
+  const KA_M = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
+  const date = ka ? `${d.getDate()} ${KA_M[d.getMonth()]}, ${d.getFullYear()}` : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  m.innerHTML = [
+    info.version && `<span>${ka ? 'ვერსია' : 'Version'} <b>${info.version}</b></span>`,
+    `<span>APK · <b>${(info.size / 1048576).toFixed(1)} ${ka ? 'მბ' : 'MB'}</b></span>`,
+    `<span>${ka ? 'განახლდა' : 'Updated'} <b>${date}</b></span>`,
+    `<span>Android 6+</span>`,
+  ].filter(Boolean).join('');
+}
+for (const card of document.querySelectorAll('[data-app]')) {
+  const [tag, file] = RELEASES[card.dataset.app];
+  fetch(`https://api.github.com/repos/yanx447/index.html/releases/tags/${tag}`)
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((rel) => {
+      const a = rel.assets.find((x) => x.name === file);
+      if (!a) return;
+      if (!IOS) card.querySelector('[data-apk]').href = a.browser_download_url;
+      const v = /v(\d+\.\d+\.\d+)/.exec(rel.body || '');
+      const info = { version: v && v[1], size: a.size, date: a.updated_at || rel.published_at };
+      const m = card.querySelector('[data-meta]'); m.dataset.info = JSON.stringify(info); renderMeta(m, info);
+    })
+    .catch(() => { /* offline or rate-limited: the static link still works */ });
+}
+
+// QR for visitors on a computer: scan with the phone to download there
+document.querySelectorAll('[data-qr]').forEach((b) => b.addEventListener('click', () => {
+  const card = b.closest('[data-app]'), box = card.querySelector('.qr-box');
+  if (!box.hidden) { box.hidden = true; return; }
+  const url = card.querySelector('[data-apk]').href;
+  const q = qrcode(0, 'M'); q.addData(url); q.make();
+  box.innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }) +
+    `<p><span lang="ka">დაასკანერე Android ტელეფონის კამერით — ფაილი პირდაპირ ტელეფონზე ჩამოიტვირთება.</span><span lang="en">Scan with your Android phone’s camera — the file downloads straight to the phone.</span><small>${url.replace('https://', '')}</small></p>`;
+  box.hidden = false;
+}));
+
+// on iPhone/iPad the APK can't be installed: point to the browser version instead
+if (IOS) {
+  document.querySelectorAll('[data-apk]').forEach((a) => {
+    const web = a.closest('[data-app]').querySelector('.row2 a');
+    a.href = web.getAttribute('href'); a.removeAttribute('download');
+    a.innerHTML = '<span lang="ka">გახსენი iPhone-ზე</span><span lang="en">Open on iPhone</span>';
+    a.closest('[data-app]').querySelector('[data-qr]').hidden = true;
+    a.parentElement.style.gridTemplateColumns = '1fr';
+  });
+}
+</script>
+</body>
+</html>
