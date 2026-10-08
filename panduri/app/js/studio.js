@@ -28,7 +28,7 @@ PD.i18n.add({
   'sd.side': ['გაკვეთილი', 'Lesson'],
   'sd.stages': ['სწავლის ეტაპები', 'Learning stages'], 'sd.stagesD': ['მონიშნე მხოლოდ ის ეტაპები, რომლებსაც ამ გაკვეთილისთვის პედაგოგიური აზრი აქვს.', 'Tick only the stages that make teaching sense for this lesson.'],
   'sd.intro': ['შესავალი (ქართ.)', 'Introduction (Georgian)'], 'sd.introEn': ['შესავალი (ინგლ.)', 'Introduction (English)'],
-  'sd.tech': ['ცალკე ტექნიკა', 'Isolated technique'], 'sd.techRhythm': ['მხოლოდ დარტყმები (ღია სიმებზე)', 'Strokes only (open strings)'], 'sd.techSection': ['მონაკვეთი', 'Section'],
+  'sd.techIso': ['ცალკე ტექნიკა', 'Isolated technique'], 'sd.techRhythm': ['მხოლოდ დარტყმები (ღია სიმებზე)', 'Strokes only (open strings)'], 'sd.techSection': ['მონაკვეთი', 'Section'],
   'sd.media': ['მასწავლებლის ვიდეო', 'Teacher video'], 'sd.mediaAdd': ['ვიდეოს დამატება', 'Add video'], 'sd.mediaUrl': ['ან ბმული (URL)', 'or a link (URL)'], 'sd.mediaOff': ['ვიდეოს დრო, როცა გაკვეთილი იწყება (წმ)', 'Video time when the lesson starts (s)'],
   'sd.verified': ['მასწავლებლის მიერ დამოწმებული', 'Verified by the teacher'], 'sd.verifiedD': ['ჩართვისას „დემო“ ნიშანი იხსნება.', 'Removes the “Demo” label.'],
   'sd.instrument': ['ინსტრუმენტი', 'Instrument'], 'sd.curriculum': ['კურიკულუმი', 'Curriculum'], 'sd.samples': ['ნიმუშები', 'Samples'], 'sd.zoom': ['მასშტაბი', 'Zoom'], 'sd.noAuthor': ['სტუდია პარამეტრებში ჩაირთვება (ავტორის რეჟიმი).', 'Turn on author mode in Settings to use the Studio.']
@@ -96,6 +96,9 @@ PD.studio = (() => {
     const main = h('div', { class: 'st-main' }, [tools, gridEl, foot]);
     root.append(top, h('div', { class: 'st-body' }, [side, main, insp]));
     document.body.appendChild(root); document.body.style.overflow = 'hidden';
+    // Back closes the studio (asking first when there are unsaved changes)
+    const onBack = () => { if (ST !== st) return; if (st.dirty) { st.lid = PD.layers.push(onBack); PD.ui.confirm(t('sd.dirty'), () => { st.dirty = false; close(); }); } else close(); };
+    st.lid = PD.layers.push(onBack);
     PD.i18n.apply(root);
     st.root = root;
     const ctx = cv.getContext('2d');
@@ -147,7 +150,7 @@ PD.studio = (() => {
       side.append(h('b', { text: t('sd.stages') }), h('p', { class: 'muted', style: 'font-size:12px', text: t('sd.stagesD') }), stBox,
         fld('sd.intro', h('textarea', { class: 'input', text: l.intro.ka || '', oninput: e => { l.intro.ka = e.target.value; st.dirty = true; } })),
         fld('sd.introEn', h('textarea', { class: 'input', text: l.intro.en || '', oninput: e => { l.intro.en = e.target.value; st.dirty = true; } })),
-        fld('sd.tech', techSel),
+        fld('sd.techIso', techSel),
         h('label', { class: 'row', style: 'gap:8px' }, [ver, h('span', { text: t('sd.verified') })]), h('p', { class: 'muted', style: 'font-size:12px', text: t('sd.verifiedD') }));
       // teacher video per camera angle
       l.media = l.media || [];
@@ -394,7 +397,7 @@ PD.studio = (() => {
   }
   function close(force) {
     const st = ST; if (!st) return;
-    const doIt = () => { st.cleanup(); st.root.remove(); document.body.style.overflow = ''; ST = null; if (force !== true && PD.app) PD.app.render(); };
+    const doIt = () => { st.cleanup(); st.root.remove(); document.body.style.overflow = ''; ST = null; PD.layers.done(st.lid); if (force !== true && PD.app) PD.app.render(); };
     if (force !== true && st.dirty) return PD.ui.confirm(t('sd.dirty'), doIt);
     doIt();
   }

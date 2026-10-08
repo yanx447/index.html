@@ -33,7 +33,21 @@ PD.theory = (() => {
     nameFlat(m) { const r = Math.round(m); return api.NN_FLAT[api.pc(r)] + (Math.floor(r / 12) - 1); },
     nameKaFlat(m) { return api.NN_KA_FLAT[api.pc(m)]; },
     /** chords whose notes are normally written with flats (F, B♭, E♭, A♭, D♭ and the minor keys D, G, C, F …) */
-    prefersFlat(root, q) { return [1, 3, 5, 8, 10].includes(root) || (/^m(?!aj)|dim|♭5/.test(q || '') && [0, 2, 5, 7].includes(root)); },
+    prefersFlat(root, q) { return [3, 5, 8, 10].includes(root) || (/^m(?!aj)|dim|♭5/.test(q || '') && [0, 2, 5, 7].includes(root)); },
+    /** a chord tone spelled from the root's letter: C♯7 = C♯ · E♯ · G♯ · B, C♯m = C♯ · E · G♯, Cdim7 = C · E♭ · G♭ · B𝄫.
+        root = index into ROOTS (as the chord is named), q = chord type key */
+    spell(m, root, q) {
+      const LET = ['C', 'D', 'E', 'F', 'G', 'A', 'B'], LPC = [0, 2, 4, 5, 7, 9, 11], KA = ['დო', 'რე', 'მი', 'ფა', 'სოლ', 'ლა', 'სი'];
+      const rn = api.ROOTS[root], L0 = LET.indexOf(rn[0]), r = Math.round(m), iv = ((api.pc(r) - root) % 12 + 12) % 12; q = q || '';
+      let deg = [0, 1, 1, 2, 2, 3, 4, 4, 4, 5, 6, 6][iv];
+      if (iv === 6 && !/dim|♭5/.test(q)) deg = 3;        // ♯4 (outside diminished chords)
+      if (iv === 8 && !/aug/.test(q)) deg = 5;           // ♭6
+      if (iv === 9 && q === 'dim7') deg = 6;             // 𝄫7
+      if (iv === 3 && /add9|sus2/.test(q)) deg = 2;
+      const li = (L0 + deg) % 7, acc = ((api.pc(r) - LPC[li] + 18) % 12) - 6;
+      const sign = ['𝄫', '♭', '', '♯', '𝄪'][acc + 2] != null ? ['𝄫', '♭', '', '♯', '𝄪'][acc + 2] : '?';
+      return { name: LET[li] + sign + (Math.floor((r - acc) / 12) - 1), ka: KA[li] + sign };
+    },
     a4() { return PD.store.get('a4', 440); },
     freq(m) { return api.a4() * Math.pow(2, (m - 69) / 12); },
     midiOf(f) { return 69 + 12 * Math.log2(f / api.a4()); },

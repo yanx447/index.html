@@ -681,7 +681,7 @@ button.li:hover{background:rgba(240,232,220,.02)}
 .pz-bar{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
 .pz-bar i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,#D99A50,#F6C987);transition:width .3s var(--ease)}
 .pz-pn{font-size:13px;font-weight:600;min-width:40px;text-align:right;color:var(--fg2);font-variant-numeric:tabular-nums}
-.pz-stage{position:relative;display:grid;grid-template-rows:minmax(0,1fr) auto minmax(0,1.12fr);min-height:0;max-width:1180px;width:100%;margin:0 auto}
+.pz-stage{position:relative;display:grid;grid-template-rows:minmax(0,1fr) 92px minmax(0,1.12fr);min-height:0;max-width:1180px;width:100%;margin:0 auto}
 .pz-lanes,.pz-neck{position:relative;min-height:0}
 .pz-cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:manipulation}
 .pz-prompt{text-align:center;padding:4px 16px 2px;min-height:76px;display:flex;flex-direction:column;justify-content:center}
@@ -728,17 +728,17 @@ button.li:hover{background:rgba(240,232,220,.02)}
 .pz-rec[hidden]{display:none}
 .pz-li{display:flex!important;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);color:inherit;min-height:52px;font:inherit}
 .pz-li .grow{flex:1}.pz-li input{width:20px;height:20px}
-.pz.rhythm .pz-stage{grid-template-rows:minmax(0,1.5fr) auto minmax(0,.62fr)}
+.pz.rhythm .pz-stage{grid-template-rows:minmax(0,1.5fr) 92px minmax(0,.62fr)}
 .pz.rhythm .pz-stroke svg{width:80px;height:62px}.pz.rhythm .pz-stroke .pz-sa{font-size:36px}
 .rh-guide{display:flex;align-items:center;justify-content:center;gap:8px;min-height:120px;color:var(--fg)}
 .rh-guide svg{width:96px;height:72px}.rh-guide .pz-sa{font-size:40px}
-@media (min-width:900px){ .pz-big{font-size:40px} .pz-stage{grid-template-rows:minmax(0,1fr) auto minmax(0,1.2fr)} }
+@media (min-width:900px){ .pz-big{font-size:40px} .pz-stage{grid-template-rows:minmax(0,1fr) 108px minmax(0,1.2fr)} }
 @media (max-height:520px) and (orientation:landscape){
   .pz-top{padding-top:2px}.pz-ic{width:38px;height:38px}
   .pz-prog{padding-bottom:0}
   .pz-prompt{min-height:0;flex-direction:row;align-items:center;justify-content:center;gap:12px;padding:0 16px}
   .pz-big{font-size:22px}.pz-sub{margin-top:0;min-height:0}
-  .pz-stage{grid-template-rows:minmax(0,1fr) auto minmax(0,1.25fr)}
+  .pz-stage{grid-template-rows:minmax(0,1fr) 58px minmax(0,1.25fr)}
   .pz-bot{padding-top:2px;padding-bottom:calc(6px + var(--safe-b))}.pz-stroke{min-height:40px}.pz-stroke svg{width:60px;height:30px}
 }
 
@@ -1075,3 +1075,19 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .tb-body>*{min-width:0;max-width:100%}.tb-body .row{flex-wrap:wrap}.tb-tw,.tb-art{max-width:100%}.tb-t td{word-break:normal;overflow-wrap:anywhere}
 .tb-nav>.btn:first-child{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;justify-content:flex-start}.tb-nav>.btn.primary{flex-shrink:0}
 .tb-h{color:var(--fg);font-weight:700}
+
+/* practice: the prompt row has a fixed height (set on .pz-stage rows), so the lanes and the neck never move while the strokes run */
+.pz-prompt{min-height:0;height:100%;overflow:hidden;justify-content:center}
+.pz-prompt .pz-sub{max-height:54px;overflow:hidden}
+/* the bottom bar keeps one height whatever the labels say (no layout shift while playing) */
+.pz-bot{height:calc(70px + var(--safe-b));box-sizing:border-box}
+.pz-stroke{flex-shrink:0;max-width:52%}.pz-stroke .pz-sl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pz-mic{max-height:52px;overflow:hidden}.pz-mt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media (max-height:520px) and (orientation:landscape){.pz-bot{height:calc(52px + var(--safe-b))}}
+.pz-recpill{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 18px;border-radius:22px;background:rgba(20,12,7,.85);border:1px solid rgba(233,165,90,.4);color:#FFE2BA;font-weight:600;font-size:14px;z-index:3;white-space:nowrap}.pz-recpill[hidden]{display:none}
+.pz-turn{flex:0 1 auto;display:inline-flex;align-items:center;gap:8px;min-height:46px;max-width:min(70%,460px);padding:6px 18px 6px 14px;border-radius:23px;border:1px solid rgba(246,201,135,.6);background:linear-gradient(180deg,#F6C987,#E9A55A);color:#24140A;font-weight:700;font-size:15px;line-height:1.15;text-align:left;min-width:0}.pz-turn svg{width:16px;height:16px;flex-shrink:0}.pz-turn[hidden],.pz-mic[hidden]{display:none}
+@media (max-width:480px){.pz-mix{min-width:40px;padding:0 11px;font-size:15px}.pz-mix .pz-mixl{display:none}.pz-title{flex-direction:column;align-items:flex-start;justify-content:center;gap:1px}.pz-title b{font-size:15.5px;max-width:100%}.pz-chip{font-size:10.5px;padding:1px 7px}}
+.sheet>*{flex-shrink:0}
+.lx-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.lx-actions .btn{white-space:normal;line-height:1.15;text-align:center;padding:6px 12px;min-width:0}
+.fb .cell:focus{outline:none}.fb .cell:focus-visible circle,.fb .cell:focus-visible rect{stroke:#FFD79A;stroke-width:3}
+.pz.cam .pz-prompt{height:auto;max-height:100%}.pz.cam .pz-prompt .pz-sub{max-height:none}   /* camera: a compact card over the picture (its size never moves the other rows) */

@@ -11,6 +11,7 @@
     // first thing: sign in (Google · Facebook · phone · e-mail), then the short onboarding
     const afterAuth = () => { if (!PD.store.get('onboarded', false)) PD.onboard.open(); };
     if (!PD.cloud.session && !PD.store.get('auth.skip', false)) PD.auth.gate(afterAuth); else afterAuth();
+    if (PD.cloud.takeRecovery()) setTimeout(() => PD.auth.newPassword(), 300);   // came from the password-reset e-mail
     window.addEventListener('keydown', e => { if (e.key === '?' && !PD.practice.active) PD.ui.toast(t('kbd.list'), 6000); });
     PD.bus.on('lessons', () => PD.pwa.persist());
     if (sp) requestAnimationFrame(() => { sp.style.opacity = '0'; setTimeout(() => sp.remove(), 300); });

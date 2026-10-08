@@ -154,6 +154,8 @@ PD.lessons = (() => {
     return normalize({ id: 'tr-' + a.id + '-' + b.id, type: 'exercise', derived: 'chords', title: { ka: a.name + ' → ' + b.name, en: a.name + ' → ' + b.name }, bpm: bpm || 60, events: ev, sections: [sec(a.name + ' ↔ ' + b.name, a.name + ' ↔ ' + b.name, 0, 8), sec('×2', '×2', 8, 16)] });
   }
   return {
+    /** rebuild the list (built-in + the learner's own) after the stored lessons changed, e.g. after a sync */
+    reload: reloadCurriculum,
     all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, steps, rhythmOf, songChanges, songRhythm, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
     get: lid => all.find(l => l.id === lid) || (/^rhythm-/.test(lid || '') ? rhythmLesson(lid.slice(7)) : undefined),
     /** lessons generated from the teacher rhythms (not stored; rebuilt from curriculum data) */

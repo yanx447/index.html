@@ -6,10 +6,10 @@
    ===================================================================== */
 PD.i18n.add({ 'pwa.update': ['ახალი ვერსია მზადაა', 'A new version is ready'], 'pwa.reload': ['განახლება', 'Update'] });
 PD.pwa = (() => {
-  let waiting = null;
+  let waiting = null, asked = false;
   function offer(reg) {
     waiting = reg.waiting; if (!waiting) return;
-    const bar = PD.h('div', { class: 'toast', role: 'status', style: 'display:flex;gap:12px;align-items:center' }, [PD.h('span', { text: t('pwa.update') }), PD.h('button', { class: 'btn small primary', text: t('pwa.reload'), onclick: () => { waiting.postMessage({ type: 'skipWaiting' }); } })]);
+    const bar = PD.h('div', { class: 'toast', role: 'status', style: 'display:flex;gap:12px;align-items:center' }, [PD.h('span', { text: t('pwa.update') }), PD.h('button', { class: 'btn small primary', text: t('pwa.reload'), onclick: () => { asked = true; waiting.postMessage({ type: 'skipWaiting' }); } })]);
     document.body.appendChild(bar);
   }
   function register() {
@@ -21,7 +21,8 @@ PD.pwa = (() => {
         if (reg.waiting) offer(reg);
         reg.addEventListener('updatefound', () => { const nw = reg.installing; if (nw) nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) offer(reg); }); });
       }).catch(() => {});
-      let reloaded = false; navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloaded) { reloaded = true; location.reload(); } });
+      // reload only for an update the learner asked for — never during the first visit (the first install also takes control of the page)
+      let reloaded = false; navigator.serviceWorker.addEventListener('controllerchange', () => { if (asked && !reloaded) { reloaded = true; location.reload(); } });
     } catch (_) {}
   }
   /** ask the browser not to evict the learner's data */

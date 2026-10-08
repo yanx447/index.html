@@ -104,6 +104,38 @@ PD.fingers = (() => {
   };
 })();
 
+/* ---------- Back closes the top layer ----------
+   Every overlay (sheet, practice screen, studio, sign-in, call) adds one history entry. The browser's or
+   Android's Back then closes the overlay instead of changing the page behind it. An overlay closed by its
+   own button leaves its entry behind; that entry is reused by the next overlay or page, or stepped over. */
+PD.layers = (() => {
+  const stack = []; let seq = 0, skip = 0;
+  const here = () => history.state && history.state.layer;
+  const dangling = () => { const c = here(); return !!c && !stack.some(x => x.id === c); };
+  function push(close) {
+    const id = seq = Math.max(seq + 1, Date.now()), st = Object.assign({}, history.state || {}, { layer: id });
+    try { (dangling() ? history.replaceState : history.pushState).call(history, st, ''); } catch (_) {}
+    stack.push({ id, close }); return id;
+  }
+  function done(id) {
+    const i = stack.findIndex(x => x.id === id); if (i >= 0) stack.splice(i, 1);
+    // closed by its own button: take its entry back out — unless the next overlay or page has already reused it
+    if (here() === id) setTimeout(() => { if (here() === id && dangling()) { skip++; history.back(); } }, 0);
+  }
+  /** popstate: close the overlays above the entry we arrived at. true = handled (the page stays) */
+  function onPop(e) {
+    const to = (e.state && e.state.layer) || 0;
+    if (skip) { skip--; if (to && dangling()) { skip++; history.back(); } return true; }   // our own clean-up step
+    let n = 0;
+    for (let i = stack.length - 1; i >= 0; i--) if (stack[i].id > to) { const L = stack.splice(i, 1)[0]; n++; try { L.close(true); } catch (err) { console.error(err); } }
+    if (to && dangling()) { if (n) skip++; history.back(); return true; }   // a left-over overlay entry: step over it
+    return n > 0;
+  }
+  /** a hardware Back (TV remote, Android): the top overlay first, then the page history */
+  function back() { if (stack.length || dangling() || history.length > 1) { history.back(); return true; } return false; }
+  return { push, done, onPop, back, dangling, get depth() { return stack.length; } };
+})();
+
 PD.ui = (() => {
   const $ = PD.$;
   let toastT = 0;
@@ -116,8 +148,9 @@ PD.ui = (() => {
     const back = PD.h('div', { class: 'sheet-back', role: 'presentation' }), box = PD.h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true' });
     back.appendChild(box); document.body.appendChild(back);
     const prev = document.activeElement;
-    let cleanup = null;
-    const close = () => { back.remove(); document.removeEventListener('keydown', esc, true); if (typeof cleanup === 'function') try { cleanup(); } catch (_) {} if (opts && opts.onClose) opts.onClose(); if (prev && prev.focus) prev.focus(); };
+    let cleanup = null, closed = false, lid = 0;
+    const close = fromBack => { if (closed) return; closed = true; if (fromBack !== true) PD.layers.done(lid); back.remove(); document.removeEventListener('keydown', esc, true); if (typeof cleanup === 'function') try { cleanup(); } catch (_) {} if (opts && opts.onClose) opts.onClose(); if (prev && prev.focus && prev.isConnected) prev.focus(); };
+    lid = PD.layers.push(close);
     const esc = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
     document.addEventListener('keydown', esc, true);
     back.addEventListener('click', e => { if (e.target === back) close(); });

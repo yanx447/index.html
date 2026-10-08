@@ -15,7 +15,7 @@ PD.i18n.add({
   'tu.name': ['სახელი', 'Name'], 'tu.level': ['შემავალი სიგნალი', 'Input level'], 'tu.locked': ['დაფიქსირდა', 'Locked'],
   'ce.title': ['აკორდები', 'Chords'], 'ce.search': ['მოძებნე აკორდი (A, Bm, …)', 'Search chord (A, Bm, …)'], 'ce.maj': ['მაჟორი', 'Major'], 'ce.min': ['მინორი', 'Minor'],
   'ce.play': ['▶ ჩამოკვრა', '▶ Strum'], 'ce.string': ['▶ {s} სიმი', '▶ {s} string'], 'ce.trans': ['გადასვლის სავარჯიშო', 'Transition exercise'],
-  'ce.to': ['მეორე აკორდი', 'Second chord'], 'ce.notes': ['ბგერები', 'Notes'], 'ce.fingers': ['თითები', 'Fingers'],
+  'ce.to': ['მეორე აკორდი', 'Second chord'], 'ce.notes': ['ბგერები', 'Notes'], 'ce.fingers': ['თითები', 'Fingers'], 'ce.barre': ['ბარე', 'barre'],
   'ce.majD': ['A · C♯ · E აწყობა თავად მაჟორული სამხმოვანებაა: ყველა სიმი ერთ ლადზე (ბარე) მაჟორს იძლევა.', 'A · C♯ · E is itself a major triad: all strings on one fret (barre) give a major chord.'],
   'ce.minD': ['მინორი: შუა (C♯) სიმი ერთი ლადით დაბლა — მესამე საფეხური ნახევარი ტონით ეცემა.', 'Minor: the middle (C♯) string one fret lower — the third drops a semitone.'],
   'ce.demo': ['ბგერები ინსტრუმენტის აწყობიდან არის გამოთვლილი. თითების ნომრები სადემონსტრაციოა — მასწავლებლის მიერ არ არის დამოწმებული.', 'Pitches are computed from the instrument tuning. Finger numbers are demo — not verified by the teacher.'],
@@ -190,7 +190,7 @@ PD.tools = (() => {
     function show() {
       detail.innerHTML = '';
       const v = vo(), ms = v.frets.map((f, i) => TT.midi(i + 1, f)), T = TT.CHORD_TYPES.find(x => x.k === cur.q);
-      const fl = cur.root != null && TT.prefersFlat(cur.root, cur.q), nm = m => fl ? TT.nameFlat(m) : TT.name(m), nmKa = m => fl ? TT.nameKaFlat(m) : TT.nameKa(m);
+      const q0 = cur.q != null ? cur.q : cur.kind === 'min' ? 'm' : '', nm = m => cur.root != null ? TT.spell(m, cur.root, q0).name : TT.name(m), nmKa = m => cur.root != null ? TT.spell(m, cur.root, q0).ka : TT.nameKa(m);   // spelled from the root letter
       const list = all.filter(match), i = Math.max(0, list.indexOf(cur));
       const other = h('select', { class: 'input', 'aria-label': t('ce.to') }, all.filter(c => c !== cur && (c.q === '' || c.q === 'm' || c.q == null)).map(c => h('option', { value: c.id, text: c.name })));
       const posSeg = cur.voicings && cur.voicings.length > 1 ? h('div', { class: 'seg', role: 'group', 'aria-label': t('ce.pos') }, cur.voicings.map((x, k) => h('button', { 'aria-pressed': String(k === vi), text: x.pos ? t('ce.posN', { n: x.pos }) : t('ce.open'), onclick: () => { vi = k; show(); } }))) : null;
@@ -205,7 +205,7 @@ PD.tools = (() => {
           const iv = cur.root != null ? ((TT.pc(m) - cur.root) % 12 + 12) % 12 : null;
           return h('div', { class: 'ce-r', style: '--c:' + SCOL[k + 1] }, [h('small', { text: TT.stringName(k + 1) + ' · ' + (v.frets[k] ? t('ce.posN', { n: v.frets[k] }) : t('ce.open')) }), h('b', { text: nm(m) }), h('span', { text: nmKa(m) + (iv != null ? ' · ' + t(ROLE[iv]) : '') })]);
         }))]),
-        h('div', { class: 'kv' }, [h('span', { 'data-t': 'ce.fingers', text: t('ce.fingers') }), h('b', { text: v.fingers.map(f => f || '0').join(' · ') + (v.barre ? ' · ბარე' : '') })]),
+        h('div', { class: 'kv' }, [h('span', { 'data-t': 'ce.fingers', text: t('ce.fingers') }), h('b', { text: v.fingers.map(f => f || '0').join(' · ') + (v.barre ? ' · ' + t('ce.barre') : '') })]),
         h('div', { class: 'row' }, [h('button', { class: 'btn primary', text: t('ce.play'), onclick: () => { PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); v.frets.forEach((f, k) => view.pluck(k + 1, f)); } }),
           ...[1, 2, 3].map(sn => h('button', { class: 'btn small', style: 'color:' + SCOL[sn], text: t('ce.string', { s: TT.stringName(sn) }), onclick: () => { PD.audio.ensure(); PD.audio.note(sn, v.frets[sn - 1]); view.pluck(sn, v.frets[sn - 1]); } }))]),
         h('div', { class: 'row' }, [other, h('button', { class: 'btn', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })]),
@@ -245,14 +245,18 @@ PD.tools = (() => {
         const fill = isSel ? SCOL[st] : same ? 'rgba(214,161,90,.85)' : isRoot ? '#D6A15A' : inScale ? 'rgba(242,232,218,.85)' : 'rgba(20,14,10,.75)';
         const txt = label === 'names' ? TH.pcName(m) : label === 'ka' ? TH.nameKa(m) : label === 'oct' ? TH.name(m) : '';
         const show = label !== 'none' || inScale || same || isSel;
-        if (show) s += '<g class="cell" data-s="' + st + '" data-f="' + f + '" role="gridcell" tabindex="-1" aria-label="' + PD.esc(TH.name(m) + ' ' + TH.stringName(st) + ' ' + f) + '"><circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="15" fill="' + fill + '" stroke="' + (inScale || isSel || same ? 'none' : 'rgba(242,232,218,.2)') + '"/>' + (txt ? '<text x="' + cx(f) + '" y="' + (yS(st) + 4) + '" fill="' + (inScale || isRoot || isSel || same ? '#140D08' : '#F2E8DA') + '" font-size="' + (txt.length > 3 ? 9 : 11) + '" text-anchor="middle" font-family="IBM Plex Mono" pointer-events="none">' + PD.esc(txt) + '</text>' : '') + (isRoot ? '<circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="18" fill="none" stroke="#D6A15A" stroke-width="1.5"/>' : '') + '</g>';
-        else s += '<g class="cell" data-s="' + st + '" data-f="' + f + '"><rect x="' + (cx(f) - 15) + '" y="' + (yS(st) - 15) + '" width="30" height="30" fill="transparent"/></g>';
+        if (show) s += '<g class="cell" data-s="' + st + '" data-f="' + f + '" role="button" tabindex="0" aria-label="' + PD.esc(TH.name(m) + ' ' + TH.stringName(st) + ' ' + f) + '"><circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="15" fill="' + fill + '" stroke="' + (inScale || isSel || same ? 'none' : 'rgba(242,232,218,.2)') + '"/>' + (txt ? '<text x="' + cx(f) + '" y="' + (yS(st) + 4) + '" fill="' + (inScale || isRoot || isSel || same ? '#140D08' : '#F2E8DA') + '" font-size="' + (txt.length > 3 ? 9 : 11) + '" text-anchor="middle" font-family="IBM Plex Mono" pointer-events="none">' + PD.esc(txt) + '</text>' : '') + (isRoot ? '<circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="18" fill="none" stroke="#D6A15A" stroke-width="1.5"/>' : '') + '</g>';
+        else s += '<g class="cell" data-s="' + st + '" data-f="' + f + '" role="button" tabindex="0" aria-label="' + PD.esc(TH.stringName(st) + ' ' + f) + '"><rect x="' + (cx(f) - 15) + '" y="' + (yS(st) - 15) + '" width="30" height="30" fill="transparent"/></g>';
       } });
       fb.innerHTML = s + '</svg>';
     }
+    // keyboard and TV remote: every cell is a button (Enter / Space / OK)
+    fb.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('.cell')) { e.preventDefault(); e.target.closest('.cell').dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
     fb.addEventListener('click', e => {
       const c = e.target.closest('.cell'); if (!c) return;
-      const s = +c.dataset.s, f = +c.dataset.f, m = TH.midi(s, f);
+      const s = +c.dataset.s, f = +c.dataset.f, m = TH.midi(s, f), kb = document.activeElement === c;
+      const refocus = () => { if (kb) { const n = fb.querySelector('.cell[data-s="' + s + '"][data-f="' + f + '"]'); if (n) n.focus({ preventScroll: true }); } };
+      setTimeout(refocus, 0);
       PD.audio.ensure(); PD.audio.note(s, f, { vel: .7 });
       if (game) return guess(m, s, f);
       sel = { s, f }; draw();
@@ -306,7 +310,7 @@ PD.tools = (() => {
     views.append(tgl('x3.rotate', () => rot, v => { rot = v; R.autoRot = v; }), tgl('x3.labels', () => showLabels, v => { showLabels = v; tags.hidden = !v; }));
     const syncViews = v => views.querySelectorAll('[data-v]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
     syncViews(R.view); own(PD.bus.on('r3d.view', syncViews));
-    const tagEls = R.PARTS.map(p => { const el = h('button', { class: 'ptag', 'aria-pressed': 'false', text: t('p.' + p.id), onclick: () => pick(p.id) }); tags.appendChild(el); return el; });
+    const tagEls = R.PARTS.map(p => { const el = h('button', { class: 'ptag', 'aria-pressed': 'false', text: t('x3p.' + p.id), onclick: () => pick(p.id) }); tags.appendChild(el); return el; });
     own(PD.bus.on('r3d.frame', ({ project }) => {
       if (!showLabels || !host.isConnected) return;
       R.PARTS.forEach((p, i) => { const q = project(p.p), el = tagEls[i]; const vis = q[2] < 1 && q[0] > 0 && q[1] > 0 && q[0] < host.clientWidth && q[1] < host.clientHeight; el.style.display = vis ? '' : 'none'; if (vis) el.style.transform = 'translate(' + Math.round(q[0] + 8) + 'px,' + Math.round(q[1] - 14) + 'px)'; });
@@ -314,7 +318,7 @@ PD.tools = (() => {
     function pick(id, keepView) {
       active = id; tagEls.forEach((el, i) => el.setAttribute('aria-pressed', String(R.PARTS[i].id === id)));
       if (!keepView) R.focusPart(id);
-      infoEl.hidden = false; infoEl.innerHTML = ''; infoEl.append(h('b', { text: t('p.' + id) }), h('p', { text: t('pi.' + id), style: 'margin-top:4px' }), h('button', { class: 'btn small quiet', style: 'margin-top:8px', 'data-t': 'close', text: t('close'), onclick: () => { infoEl.hidden = true; active = null; tagEls.forEach(el => el.setAttribute('aria-pressed', 'false')); } }));
+      infoEl.hidden = false; infoEl.innerHTML = ''; infoEl.append(h('b', { text: t('x3p.' + id) }), h('p', { text: t('pi.' + id), style: 'margin-top:4px' }), h('button', { class: 'btn small quiet', style: 'margin-top:8px', 'data-t': 'close', text: t('close'), onclick: () => { infoEl.hidden = true; active = null; tagEls.forEach(el => el.setAttribute('aria-pressed', 'false')); } }));
     }
     own(PD.bus.on('r3d.tapEmpty', part => { if (part) pick(part, true); }));
     own(PD.bus.on('r3d.tap', p => { PD.audio.ensure(); PD.audio.note(p.s, p.f, { vel: .7 }); R.showNote(p.s, p.f); const m = TH.midi(p.s, p.f); infoEl.hidden = false; infoEl.innerHTML = ''; infoEl.append(h('b', { text: t('x3.note', { n: TH.name(m) + ' · ' + TH.nameKa(m), s: TH.stringName(p.s), f: p.f }) })); }));
@@ -328,7 +332,7 @@ PD.tools = (() => {
       if (st.act) st.act();
       tagEls.forEach((el, j) => el.setAttribute('aria-pressed', String(R.PARTS[j].id === st.part)));
       infoEl.hidden = false; infoEl.innerHTML = '';
-      infoEl.append(...[h('span', { class: 'kicker', text: t('x3.tour') + ' · ' + t('x3.step', { a: i + 1, b: TOUR.length }) }), st.part ? h('b', { text: t('p.' + st.part), style: 'display:block;margin-top:4px' }) : null,
+      infoEl.append(...[h('span', { class: 'kicker', text: t('x3.tour') + ' · ' + t('x3.step', { a: i + 1, b: TOUR.length }) }), st.part ? h('b', { text: t('x3p.' + st.part), style: 'display:block;margin-top:4px' }) : null,
         h('p', { text: st.k ? t(st.k) : t('pi.' + st.part), style: 'margin-top:4px' }),
         h('div', { class: 'row', style: 'margin-top:8px' }, [i ? h('button', { class: 'btn small', text: t('prev'), onclick: () => tour(i - 1) }) : null, i < TOUR.length - 1 ? h('button', { class: 'btn small primary', text: t('next'), onclick: () => tour(i + 1) }) : h('button', { class: 'btn small primary', text: t('done'), onclick: () => { infoEl.hidden = true; PD.store.set('seen.tour', true); } })])].filter(Boolean));
     }

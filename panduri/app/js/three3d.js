@@ -10,8 +10,8 @@
    string 1 (A) at -x, string 3 (E) at +x (front view).
    ===================================================================== */
 PD.i18n.add({
-  'p.body': ['ტანი', 'Body'], 'p.top': ['დეკა', 'Soundboard'], 'p.neck': ['ტარი', 'Neck'], 'p.fret': ['ლადი', 'Fret'], 'p.string': ['სიმი', 'String'],
-  'p.nut': ['ნულოვანი ლადი', 'Nut'], 'p.bridge': ['ხიდი', 'Bridge'], 'p.hole': ['სახმო ხვრელი', 'Sound hole'], 'p.head': ['თავი', 'Headstock'], 'p.tuners': ['მექანიკა', 'Tuners'],
+  'x3p.body': ['ტანი', 'Body'], 'x3p.top': ['დეკა', 'Soundboard'], 'x3p.neck': ['ტარი', 'Neck'], 'x3p.fret': ['ლადი', 'Fret'], 'x3p.string': ['სიმი', 'String'],
+  'x3p.nut': ['ნულოვანი ლადი', 'Nut'], 'x3p.bridge': ['ხიდი', 'Bridge'], 'x3p.hole': ['სახმო ხვრელი', 'Sound hole'], 'x3p.head': ['თავი', 'Headstock'], 'x3p.tuners': ['მექანიკა', 'Tuners'],
   'pi.body': ['ამოთლილი, ღრმა ზურგი — მუქი, პრიალა. ჰაერი შიგნით ჟღერადობას აძლიერებს.', 'A deep carved back with a dark gloss finish. The air inside amplifies the sound.'],
   'pi.top': ['ღია ფერის დეკა — სწორი, ვერტიკალური ბოჭკოთი. სიმების რხევა ხიდიდან დეკაზე გადადის და ის ჟღერს.', 'The pale soundboard, with straight vertical grain. String vibration passes through the bridge into it and it radiates the sound.'],
   'pi.neck': ['გრძელი, ვიწრო ტარი წითელ-ყავისფერი ლადფიცრით და ყვითელი მარკერებით 3·5·7·9·12·15 ლადებზე.', 'A long narrow neck with a red-brown fingerboard and yellow markers at frets 3·5·7·9·12·15.'],

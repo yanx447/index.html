@@ -25,8 +25,9 @@ PD.store = (() => {
     set(k, v) { const s = JSON.stringify(v); if (ok) { try { localStorage.setItem(NS + k, s); return; } catch (_) {} } mem[k] = s; },
     del(k) { try { if (ok) localStorage.removeItem(NS + k); } catch (_) {} delete mem[k]; },
     keys() { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith(NS)) out.push(k.slice(NS.length)); } } catch (_) { return Object.keys(mem); } return out; },
-    exportAll() { const o = {}; this.keys().forEach(k => { o[k] = this.get(k); }); return o; },
-    importAll(o) { Object.keys(o || {}).forEach(k => this.set(k, o[k])); }
+    /** sign-in tokens, the server address and the cached account record never go into a data file, and never come from one */
+    exportAll() { const o = {}; this.keys().filter(k => !/^(cloud\.|auth\.|stash\.)/.test(k)).forEach(k => { o[k] = this.get(k); }); return o; },
+    importAll(o) { Object.keys(o || {}).filter(k => !/^(cloud\.|auth\.|stash\.)/.test(k) && k !== 'progress.owner').forEach(k => this.set(k, o[k])); }
   };
 })();
 

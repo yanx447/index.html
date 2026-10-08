@@ -216,6 +216,8 @@ PD.Lanes = function (canvas, opt) {
     wrong(i) { fx[i] = Object.assign(fx[i] || {}, { wrong: performance.now() }); },
     miss(i) { fx[i] = Object.assign(fx[i] || {}, { grade: 'miss', gradeT: performance.now() }); },
     reset() { Object.keys(fx).forEach(k => delete fx[k]); },
+    /** forget hit/miss marks for steps at or after beat b (after a seek or loop jump) */
+    resetFrom(b) { S.steps.forEach((st, i) => { if (st.t >= b - 1e-6) delete fx[i]; }); },
     count(k) { count = k; countT = performance.now(); }
   });
   return self;

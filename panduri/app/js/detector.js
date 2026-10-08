@@ -36,7 +36,7 @@ class PDCore {
     if (r > thr && (rise || trans) && t - this.lastOn > 0.07) {
       if (this.pend) this.flushOnset();
       this.lastOn = t; this.pend = { t: t, pre: this.env, peak: r, n: 0 }; this.sounding = true; this.lowN = 0;
-      if (this.expect) this.chordAt = t + 0.06;
+      if (this.expect) { this.chordAt = t + 0.06; this.chordExp = this.expect; }   // judged against the chord expected when the stroke happened
     }
     // onset strength = peak level over the first ~48 ms above what was already sounding (accent measure)
     if (this.pend) { if (r > this.pend.peak) this.pend.peak = r; if (++this.pend.n >= 9) this.flushOnset(); }
@@ -45,7 +45,7 @@ class PDCore {
     this.env = this.env * 0.75 + r * 0.25; this.hfEnv = this.hfEnv * 0.8 + hr * 0.2;
     this.fc = (this.fc + 1) % 2;
     if (this.fc === 0 && r > thr * 0.6 && this.filled > (this.W + this.tauMax) * this.dec + 8) { const p = this.yin(); this.post({ type: 'pitch', t: t, f: p.f, conf: p.c, rms: r }); }
-    if (this.chordAt > 0 && t >= this.chordAt) { this.chordAt = -1; this.post(Object.assign({ type: 'chord', t: t }, this.goertzel())); }
+    if (this.chordAt > 0 && t >= this.chordAt) { this.chordAt = -1; if (this.chordExp) this.post(Object.assign({ type: 'chord', t: t, exp: this.chordExp }, this.goertzel(this.chordExp))); }
     if ((this.lv = (this.lv + 1) % 3) === 0) { this.post({ type: 'level', t: t, rms: r, floor: this.floor, thr: thr, peak: this.peak }); this.peak = 0; }
   }
   flushOnset() { const p = this.pend; this.pend = null; this.post({ type: 'onset', t: p.t, rms: p.peak, strength: Math.max(0, p.peak - p.pre * 0.85) }); }
@@ -65,8 +65,8 @@ class PDCore {
     const a = d[tau - 1], b = d[tau], c = d[tau + 1], den = a - 2 * b + c, sh = den ? 0.5 * (a - c) / den : 0;
     return { f: this.fs / (tau + sh), c: Math.max(0, Math.min(1, 1 - b)) };
   }
-  goertzel() {
-    const ex = this.expect, n = 4096, N = this.N, g = this.g; let p = (this.w - n + N) % N;
+  goertzel(ex) {
+    ex = ex || this.expect; const n = 4096, N = this.N, g = this.g; let p = (this.w - n + N) % N;
     for (let i = 0; i < n; i++) { g[i] = this.buf[p] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1))); p = (p + 1) % N; }
     const pw = f => { const w = 2 * Math.PI * f / this.sr, cw = 2 * Math.cos(w); let s1 = 0, s2 = 0; for (let i = 0; i < n; i++) { const s0 = g[i] + cw * s1 - s2; s2 = s1; s1 = s0; } return s1 * s1 + s2 * s2 - cw * s1 * s2; };
     const db = ex.map(f => { const sig = pw(f) + 0.5 * pw(2 * f), noise = (pw(f * 0.943) + pw(f * 1.06)) / 2 + 1e-9; return 10 * Math.log10(sig / noise); });
@@ -82,8 +82,17 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
 
   const st = {
     on: false, stream: null, src: null, node: null, sink: null, sp: null, core: null, mode: '', settings: null,
-    level: 0, floor: 0, err: '', win: null, guards: [], guardOn: true, recent: [], selfPlay: [], lastOnsetT: -9, proc: [], peaks: [], lastClip: 0
+    level: 0, floor: 0, err: '', win: null, guards: [], guardOn: PD.store.get('clickGuard', true) !== false, recent: [], selfPlay: [], lastOnsetT: -9, proc: [], peaks: [], lastClip: 0,
+    expect: null, starting: null, cancel: false
   };
+  /** time from a sound leaving the speaker to the microphone hearing it (calibrated, else a typical value) */
+  const roundTrip = () => (calib.latencyMs ? calib.latencyMs / 1000 : ((PD.audio.outLatency || 0) + .02));
+  /** is a sound heard at input time t one of our own (metronome click, demo, example)? */
+  function ours(t, midi) {
+    const L = roundTrip(), now = PD.audio.now();
+    st.selfPlay = st.selfPlay.filter(x => x.t1 + L > now - .5);
+    return st.selfPlay.some(x => t >= x.t0 + L - .05 && t <= x.t1 + L && (midi == null || x.midis.some(q => Math.abs(q - midi) < .4)));
+  }
   const deviceKey = () => 'calib.' + PD.device.key;
   let calib = PD.store.get(deviceKey(), { noise: 0, sens: 60, latencyMs: 0, openCents: null, date: 0, room: 'normal' });
   const listeners = { note: [], pitch: [], onset: [], level: [], chord: [], state: [], release: [], input: [] };
@@ -109,25 +118,30 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
       if (st.win && m.t >= st.win.t0 + 0.022 && m.t <= st.win.t0 + 0.2 && m.f > 0) st.win.frames.push(m);
       if (st.win && m.t >= st.win.t0 + 0.13) finish(); return;
     }
-    if (m.type === 'release') { if (st.lastOnsetT > 0) emit('release', { t: m.t - calib.latencyMs / 1000, dur: m.t - st.lastOnsetT }); return; }
+    if (m.type === 'release') { if (st.win) finish();   // a short note has ended: report it now, not at the next pluck
+      if (st.lastOnsetT > 0) emit('release', { t: m.t - calib.latencyMs / 1000, dur: m.t - st.lastOnsetT }); return; }
     if (m.type === 'onset') {
       // an onset on top of our own metronome click is held, not dropped: it counts only if pitched instrument sound follows
-      const guarded = st.guardOn && st.guards.some(g => Math.abs(g - m.t) < 0.04);
+      const L = roundTrip(), guarded = st.guardOn && st.guards.some(g => Math.abs(g + L - m.t) < 0.05 || Math.abs(g - m.t) < 0.04);
+      const self = ours(m.t);   // the app's own example strum / note: never the learner
       const ctx = PD.audio.ctx; if (ctx) { st.proc.push(ctx.currentTime - m.t); if (st.proc.length > 30) st.proc.shift(); }
       if (st.win) finish();
       st.lastOnsetT = m.t;
       // pitch frames that arrived before this (slightly delayed) onset message still belong to the note
-      st.win = { t0: m.t, rms: m.rms, strength: m.strength, guarded, frames: st.recent.filter(f => f.t >= m.t + 0.022 && f.t <= m.t + 0.2 && f.f > 0) };
+      st.win = { t0: m.t, rms: m.rms, strength: m.strength, guarded, self, frames: st.recent.filter(f => f.t >= m.t + 0.022 && f.t <= m.t + 0.2 && f.f > 0) };
       st.peaks.push(m.rms); if (st.peaks.length > 8) st.peaks.shift();
       if (st.peaks.length >= 4 && Math.max(...st.peaks.slice(-4)) < gateFor().gate * 3.2) emit('input', { kind: 'quiet' });
-      if (!guarded) emit('onset', { t: m.t - calib.latencyMs / 1000, rms: m.rms, strength: m.strength || m.rms });
+      if (!guarded && !self) emit('onset', { t: m.t - calib.latencyMs / 1000, rms: m.rms, strength: m.strength || m.rms });
       if (st.win.frames.length && st.win.frames[st.win.frames.length - 1].t >= m.t + 0.13) finish();
+      else { const w0 = st.win; clearTimeout(st.winT); st.winT = setTimeout(() => { if (st.win === w0) finish(); }, 280); }   // soft notes: no later pitch frame may come
       return;
     }
-    if (m.type === 'chord') { emit('chord', { t: m.t, db: m.db, present: m.present }); }
+    // the chord check runs 60 ms after the stroke; report the stroke's own time
+    if (m.type === 'chord') { const t0 = m.t - .06; if (ours(t0)) return; emit('chord', { t: t0 - calib.latencyMs / 1000, db: m.db, present: m.present, exp: m.exp }); }
   }
   function finish() {
     const w = st.win; st.win = null; if (!w) return;
+    if (w.self) return;
     if (w.guarded) {   // was it the click, or a stroke played exactly on the beat?
       const pitched = w.frames.filter(f => f.conf >= 0.5 && f.f >= 95 && f.f <= 1150).length;
       if (pitched < 2) return;
@@ -141,13 +155,18 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
     const conf = Math.max(0, Math.min(1, yc * agree * Math.min(1, good.length / 3)));
     const midi = PD.theory.midiOf(med);
     // our own playback (demonstrations) is not the learner's panduri
-    const now = PD.audio.now(); st.selfPlay = st.selfPlay.filter(x => x.t1 > now - .5);
-    if (st.selfPlay.some(x => w.t0 >= x.t0 - .03 && w.t0 <= x.t1 && x.midis.some(q => Math.abs(q - midi) < .4))) return;
+    if (ours(w.t0, midi)) return;
     emit('note', { t: w.t0 - calib.latencyMs / 1000, f: med, midi, cents: (midi - Math.round(midi)) * 100, conf, unsure: conf < 0.55, rms: w.rms });
   }
 
-  async function start() {
-    if (st.on) return { ok: true };
+  function start() {
+    if (st.on) return Promise.resolve({ ok: true });
+    if (st.starting) return st.starting;
+    st.cancel = false;
+    st.starting = start0().finally(() => { st.starting = null; });
+    return st.starting;
+  }
+  async function start0() {
     const ctx = PD.audio.ensure(); if (!ctx) return fail('noaudio');
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return fail(window.isSecureContext ? 'nomedia' : 'insecure');
     let stream;
@@ -156,6 +175,7 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
       if (e && (e.name === 'OverconstrainedError' || e.name === 'TypeError')) { try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e2) { return fail(errName(e2)); } }
       else return fail(errName(e));
     }
+    if (st.cancel) { stream.getTracks().forEach(tr => tr.stop()); st.cancel = false; return { ok: false, err: 'cancelled' }; }
     st.stream = stream; const tr = stream.getAudioTracks()[0];
     st.settings = tr && tr.getSettings ? tr.getSettings() : {};
     if (tr) tr.onended = () => { stop(); st.err = 'ended'; emit('state', status()); };
@@ -176,13 +196,15 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
       st.sp.onaudioprocess = ev => st.core.push(ev.inputBuffer.getChannelData(0), ctx.currentTime);
       st.src.connect(st.sp); st.sp.connect(st.sink); st.mode = 'script';
     }
-    st.on = true; st.err = ''; cfg(Object.assign(gateFor(), calib.noise ? { floor: calib.noise } : {}));
+    if (st.cancel) { st.on = true; st.cancel = false; stop(); return { ok: false, err: 'cancelled' }; }
+    st.on = true; st.err = ''; cfg(Object.assign(gateFor(), calib.noise ? { floor: calib.noise } : {}, { expect: st.expect }));
     emit('state', status()); return { ok: true };
   }
   function errName(e) { const n = e && e.name; return n === 'NotAllowedError' || n === 'SecurityError' ? 'denied' : n === 'NotFoundError' ? 'notfound' : n === 'NotReadableError' ? 'busy' : 'failed'; }
   function fail(code) { st.err = code; emit('state', status()); return { ok: false, err: code }; }
   /** fully release the microphone */
   function stop() {
+    if (st.starting && !st.on) st.cancel = true;   // a start still waiting for permission is abandoned
     try { if (st.src) st.src.disconnect(); } catch (_) {}
     try { if (st.node) { st.node.port.onmessage = null; st.node.disconnect(); } } catch (_) {}
     try { if (st.sp) { st.sp.onaudioprocess = null; st.sp.disconnect(); } } catch (_) {}
@@ -206,10 +228,11 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
     get level() { return st.level; },
     get floor() { return st.floor; },
     /** expected chord frequencies (Hz) for the Goertzel check, or null */
-    expect(freqs) { cfg({ expect: freqs && freqs.length ? freqs : null }); },
+    expect(freqs) { st.expect = freqs && freqs.length ? freqs : null; cfg({ expect: st.expect }); },
     /** audio times of our own metronome clicks so they are not mistaken for plucks */
-    guard(times) { const n = PD.audio.now(); st.guards = st.guards.filter(x => x > n - 0.2).concat(times || []); },
+    guard(times) { const n = PD.audio.now(); st.guards = st.guards.filter(x => x > n - .4 - roundTrip()).concat(times || []); },
     set guardOn(v) { st.guardOn = !!v; },
+    get guardOn() { return st.guardOn; },
     get calib() { return calib; },
     /** the app is about to play these pitches itself (demo / show me): do not mistake them for the learner */
     selfPlay(midis, t0, dur) { st.selfPlay.push({ midis, t0, t1: t0 + (dur || 1.2) }); },

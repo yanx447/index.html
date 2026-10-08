@@ -7,10 +7,7 @@
    secondary (control bar, settings sheet).
    ===================================================================== */
 PD.i18n.add({
-  'sy.title': ['მეტრონომი და მუსიკა', 'Metronome and music'], 'sy.ms': ['მწ', 'ms'], 'sy.zero': ['ზუსტად', 'in sync'],
-  'sy.lead': ['თუ მეტრონომის დარტყმა მუსიკის დარტყმას არ ემთხვევა (ზოგ ტელეფონზე ან Bluetooth ყურსასმენით), აქ გაასწორე ყურით.', 'If the metronome click does not land on the music\'s beat (some phones, Bluetooth headphones), line them up here by ear.'],
-  'sy.late': ['მეტრონომი გვიანობს', 'Metronome is late'], 'sy.early': ['მეტრონომი ადრეა', 'Metronome is early'], 'sy.reset': ['ნული', 'Reset'],
-  'sy.tip': ['ჩართე მეტრონომი, მოუსმინე 2–3 წამს და აჭირე, სანამ დარტყმა და მუსიკა ერთად არ ჟღერს. პარამეტრი ამ მოწყობილობაზე ინახება.', 'Turn the metronome on, listen for 2–3 seconds and tap until the click and the music sound together. Saved on this device.'],
+  'p.recLoad': ['ჩანაწერი იტვირთება…', 'Loading the recording…'], 'p.recStretch': ['ნელი ვერსია მზადდება… {p}%', 'Preparing the slower version… {p}%'],
   'ws.learn': ['სწავლა', 'Learn'], 'ws.practice': ['ვარჯიში', 'Practice'], 'ws.perform': ['შესრულება', 'Perform'],
   'ws.wait': ['ლოდინი', 'WAIT'], 'ws.step': ['ნაბიჯით', 'Step'], 'ws.autoPause': ['ავტოპაუზა', 'Auto-pause'],
   'ws.touch': ['შეხება', 'Touch'], 'ws.mic': ['მიკროფონი', 'Mic'],
@@ -50,7 +47,8 @@ PD.i18n.add({
   'r.toLesson': ['გაკვეთილზე', 'Back to lesson'], 'r.bars': ['ტაქტები', 'Bars'],
   'r.h2': ['ათვისებული', 'Mastered'], 'r.h1': ['არასტაბილური', 'Inconsistent'], 'r.h0': ['სავარჯიშო', 'Needs practice'], 'r.hn': ['არ დაკრულა', 'Not played'],
   'r.sum': ['პირველივე ცდით {f}% · ტემპი {t}%', 'First try {f}% · tempo {t}%'], 'r.sumT': [' · დრო {p}%', ' · timing {p}%'],
-  'kbd.list': ['Space — დაკვრა/პაუზა · R — თავიდან · L — წრე · M — მეტრონომი · W — ლოდინი · ← → — ტაქტი · ↑ ↓ — ტემპი · S — მაჩვენე · D/U — ↓/↑ · Esc — დახურვა', 'Space — play/pause · R — restart · L — loop · M — metronome · W — wait · ← → — bar · ↑ ↓ — tempo · S — show me · D/U — ↓/↑ · Esc — close']
+  'kbd.list': ['გაკვეთილში: Space — დაკვრა/პაუზა · R — თავიდან · L — ფრაზის გამეორება · M — მეტრონომი · W — ლოდინი · ← → — ტაქტი · ↑ ↓ — ტემპი · S — მომასმენინე · Esc — დახურვა', 'In a lesson: Space — play/pause · R — restart · L — repeat phrase · M — metronome · W — wait · ← → — bar · ↑ ↓ — tempo · S — let me hear it · Esc — close'],
+  'kbd.metro': ['მეტრონომი: {v}', 'Metronome: {v}'], 'kbd.on': ['ჩართული', 'on'], 'kbd.off': ['გამორთული', 'off']
 });
 
 PD.i18n.add({
@@ -66,7 +64,7 @@ PD.i18n.add({
   'gate.denied': ['მიკროფონზე წვდომა უარყოფილია.', 'Microphone access was denied.'],
   'gate.how': ['ჩართვა: Safari — Settings › Safari › Microphone › Allow. Chrome — მისამართის ზოლში 🔒 › Microphone › Allow. შემდეგ განაახლე გვერდი.', 'To allow it: Safari — Settings › Safari › Microphone › Allow. Chrome — 🔒 in the address bar › Microphone › Allow. Then reload the page.'],
   'ci.start': ['დაიწყე', 'Start'],
-  'g.early': ['ადრე', 'early'], 'g.late': ['გვიან', 'late'], 'g.perfect': ['ზუსტი', 'perfect'], 'g.good': ['კარგი', 'good'],
+  'g.early': ['ადრე', 'early'], 'g.late': ['გვიან', 'late'], 'g.perfect': ['ზუსტი', 'perfect'], 'g.good': ['კარგი', 'good'], 'g.miss': ['გამოტოვე', 'missed'],
   'r.accuracy': ['სიზუსტე', 'Accuracy'], 'r.correct': ['სწორი ნოტები', 'Correct notes'], 'r.streak': ['საუკეთესო სერია', 'Best streak'], 'r.areas': ['გასაუმჯობესებელი', 'Areas to improve'],
   'r.errors': ['სად მოხდა შეცდომები', 'Where the mistakes were'], 'gate.lat': ['დაყოვნება მაღალია ({n} მწ) — დრო შეიძლება არაზუსტად შეფასდეს. სცადე ყურსასმენის გარეშე ან გაიმეორე კალიბრაცია (⚙ → მიკროფონი).', 'Latency is high ({n} ms) — timing may be judged inaccurately. Try without Bluetooth headphones or recalibrate (⚙ → Microphone).'], 'r.tgraph': ['დრო ყოველ დარტყმაზე (მწ)', 'Timing on every stroke (ms)'], 'r.retry': ['რთული მონაკვეთის გამეორება', 'Retry difficult section'], 'r.continue': ['გაგრძელება', 'Continue'],
   'r.aSection': ['„{s}“ — ყველაზე სუსტი მონაკვეთი', '“{s}” — the weakest section'], 'r.aLate': ['ხშირად აგვიანებ — ფოკუსი დარტყმის დროზე', 'Often late — focus on the moment of the stroke'], 'r.aEarly': ['ხშირად ასწრებ — დაელოდე ხაზს', 'Often early — wait for the line'],
@@ -130,6 +128,7 @@ PD.practice = (() => {
 
   /* ---------- the screen ---------- */
   function open(lesson, opts, srcId, stage, rec) {
+    if (!rec && !PD.premium.canOpen(srcId || lesson.id)) { PD.premium.paywall(PD.premium.featureOf(srcId || lesson.id)); return null; }
     if (W) close(true);
     opts = Object.assign({}, opts || {});
     const offs = [], prevAutoDemo = S.autoDemo;
@@ -137,18 +136,21 @@ PD.practice = (() => {
     const steps0 = LS.steps(lesson), RHYTHM = steps0.length > 0 && steps0.every(s => s.kind === 'strum');
     const mirror = PD.store.get('lefty', false);
 
-    const root = h('div', { class: 'pz' + (RHYTHM ? ' rhythm' : ''), role: 'application', 'aria-label': PD.i18n.pick(lesson.title) });
+    const root = h('div', { class: 'pz' + (RHYTHM ? ' rhythm' : ''), role: 'dialog', 'aria-modal': 'true', 'aria-label': PD.i18n.pick(lesson.title) });
     /* header: back · title · pause · more ; progress */
     const bBack = h('button', { class: 'pz-ic', 'aria-label': t('ws.close'), html: ic.back, onclick: () => close() });
     const bPause = h('button', { class: 'pz-ic', 'aria-label': t('ws.pause'), html: ic.pause, onclick: () => togglePause() });
     const bMore = h('button', { class: 'pz-ic', 'aria-label': t('p.more'), html: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>', onclick: () => more() });
     const progI = h('i'), progN = h('span', { class: 'pz-pn' }), chip = h('span', { class: 'pz-chip', hidden: true });
-    const bMix = lesson.stems ? h('button', { class: 'pz-mix', onclick: () => cycleMix() }) : null;
+    const narrow = () => window.matchMedia && matchMedia('(max-width: 480px)').matches;   // phones: the mix button is just ♪ and opens the choice
+    const bMix = lesson.stems ? h('button', { class: 'pz-mix', onclick: () => narrow() ? w.mixSheet() : cycleMix() }) : null;
     const top = h('header', { class: 'pz-top' }, [bBack, h('div', { class: 'pz-title' }, [h('b', { text: PD.i18n.pick(lesson.title) }), chip]), bMix, bPause, bMore].filter(Boolean));
     const prog = h('div', { class: 'pz-prog' }, [h('div', { class: 'pz-bar' }, [progI]), progN]);
     /* lanes */
     const cvL = h('canvas', { class: 'pz-cv', 'aria-hidden': 'true' });
-    const lanesBox = h('div', { class: 'pz-lanes' }, [cvL]);
+    const recPill = h('div', { class: 'pz-recpill', hidden: true, role: 'status', 'aria-live': 'polite' });
+    const bTurn = h('button', { class: 'pz-turn', hidden: true, html: ic.play + '<span data-t="p.yourTurn"></span>', onclick: () => yourTurn() });
+    const lanesBox = h('div', { class: 'pz-lanes' }, [cvL, recPill]);
     /* prompt: what to play · where · finger */
     const pBig = h('div', { class: 'pz-big' }), pSub = h('div', { class: 'pz-sub' });
     const prompt = h('div', { class: 'pz-prompt', role: 'status', 'aria-live': 'polite' }, [pBig, pSub]);
@@ -161,7 +163,7 @@ PD.practice = (() => {
     const micBars = h('span', { class: 'pz-bars' }, [h('i'), h('i'), h('i'), h('i')]);
     const micTxt = h('span', { class: 'pz-mt' });
     const micRow = h('button', { class: 'pz-mic', onclick: () => micSheet() }, [h('span', { class: 'pz-mi', html: ic.mic }), micBars, micTxt]);
-    const bottom = h('div', { class: 'pz-bot' }, [stroke, micRow]);
+    const bottom = h('div', { class: 'pz-bot' }, [stroke, micRow, bTurn]);   // while the app plays (listen), "Now you play" takes the microphone row's place
     /* overlays */
     const gateEl = h('div', { class: 'pz-over', hidden: true });
     const stage0 = h('div', { class: 'pz-stage' }, [lanesBox, prompt, neckBox, gateEl]);
@@ -180,7 +182,10 @@ PD.practice = (() => {
       PD.camera.attach(camV).then(ok => { if (!ok) { root.classList.remove('cam'); camV.remove(); frameEl.remove(); camV = frameEl = null; } });
       w.cam = true;
     }
+    w.prevFocus = document.activeElement;
+    w.inerted = [...document.body.children].filter(el => !el.inert && el.tagName !== 'SCRIPT' && el.id !== 'toast' && !el.classList.contains('sheet-back')); w.inerted.forEach(el => { el.inert = true; });   // the page behind cannot be reached (Enter on a hidden button, Tab, screen readers)
     document.body.appendChild(root); document.body.style.overflow = 'hidden';
+    w.lid = PD.layers.push(() => { if (W === w) close(); });   // Back (browser, Android, TV) closes the lesson screen, not the page behind it
     PD.i18n.apply(root); w.root = root;
 
     /* renderers */
@@ -194,12 +199,14 @@ PD.practice = (() => {
       if (opts.autoDemo != null) S.autoDemo = !!opts.autoDemo;
       if (opts.metro) S.metro = true;
       if (opts.loop) setTimeout(() => { S.loop = Object.assign({}, opts.loop); S.smartTempo = true; E.seek(opts.loop.a || 0); }, 20);
-      if (opts.drill) setTimeout(() => E.drill(opts.drill.a, opts.drill.b, opts.drill.ladder ? { ladder: opts.drill.ladder, wait: !!opts.wait } : { tempo: Math.max(.4, (opts.tempo || .7) - .1), wait: true }), 60);
+      if (opts.drill) setTimeout(() => { if (W === w) E.drill(opts.drill.a, opts.drill.b, Object.assign(opts.drill.ladder ? { ladder: opts.drill.ladder, wait: !!opts.wait } : { tempo: Math.max(.4, (opts.tempo || .7) - .1), wait: true }, { noPlay: needGate() })); }, 60);
       else if (opts.resumeBeat > 0) setTimeout(() => E.seek(Math.floor(opts.resumeBeat / E.bpb()) * E.bpb()), 30);
     } else { E.load(lesson, { mode: 'learn', wait: false, tempo: .7 }); S.steps = []; S.res = []; }
     S.input = 'mic';
+    S.mayPlay = () => W !== w || !needGate();
 
     /* ---------- microphone gate: the real panduri is the input ---------- */
+    function needGate() { return !w.rec && !w.watch && !PD.detector.active && !devTouch(); }
     function gate(err) {
       const need = !w.watch && !PD.detector.active && !devTouch();
       gateEl.hidden = !need; gateEl.innerHTML = '';
@@ -213,6 +220,7 @@ PD.practice = (() => {
         h('button', { class: 'btn quiet', 'data-t': 'p.listenFirst', onclick: () => startWatch() }));
       if (lesson.stems) card.append(h('small', { class: 'pz-tip', 'data-t': 'sg.headphones' }));
       gateEl.appendChild(card); PD.i18n.apply(gateEl);
+      if (!document.querySelector('.sheet-back')) try { card.querySelector('.btn.primary').focus({ preventScroll: true }); } catch (_) {}
     }
     function afterMic() {
       if (!PD.detector.calib.date) PD.ui.toast(t('gate.calib'), 5000);
@@ -224,16 +232,25 @@ PD.practice = (() => {
     const MIXES = ['full', 'music', 'vocals', 'off'];
     function mixLabel() { return t('mix.' + (PD.audio.ref.mix || 'full')); }
     function cycleMix() { const i = MIXES.indexOf(PD.audio.ref.mix); setMix(MIXES[(i + 1) % MIXES.length]); }
-    function setMix(m) { PD.audio.ref.use(m); if (bMix) bMix.textContent = '♪ ' + mixLabel(); PD.detector.setAEC(m !== 'off'); }
+    function mixBtn() { if (!bMix) return; bMix.innerHTML = '♪<span class="pz-mixl"> ' + PD.esc(mixLabel()) + '</span>'; bMix.setAttribute('aria-label', t('sg.mix') + ': ' + mixLabel()); }
+    function setMix(m) { PD.audio.ref.use(m); mixBtn(); PD.detector.setAEC(m !== 'off'); }
     if (lesson.stems) {
       if (!PD.audio.ref.available) PD.ui.toast(t('p.noRec'), 5000);
-      bMix.textContent = '♪ ' + mixLabel(); PD.detector.setAEC(PD.audio.ref.mix !== 'off');
+      mixBtn(); PD.detector.setAEC(PD.audio.ref.mix !== 'off');
     }
-    w.mixSheet = () => PD.ui.sheet((box, close) => { box.append(h('h2', { 'data-t': 'sg.mix' }), ...MIXES.map(m => h('button', { class: 'opt', 'aria-pressed': String(PD.audio.ref.mix === m), onclick: () => { setMix(m); close(); }, html: '<span><b data-t="mix.' + m + '"></b></span><span class="mono">' + (PD.audio.ref.mix === m ? '✓' : '') + '</span>' }))); });
-    function startWatch() { w.watch = true; gateEl.hidden = true; E.configure({ autoplay: true, wait: false }); S.autoplay = true; E.seek(0); E.play(); sync(true); }
+    w.mixSheet = () => (hold(), PD.ui.sheet((box, close) => { box.append(h('h2', { 'data-t': 'sg.mix' }), ...MIXES.map(m => h('button', { class: 'opt', 'aria-pressed': String(PD.audio.ref.mix === m), onclick: () => { setMix(m); close(); }, html: '<span><b data-t="mix.' + m + '"></b></span><span class="mono">' + (PD.audio.ref.mix === m ? '✓' : '') + '</span>' }))); }));
+    const startBeat = () => S.loop.on ? S.loop.a : lesson.song ? ((lesson.sections || []).find(x => x.kind !== 'listen') || { from: 0 }).from : 0;
+    function startWatch() { if (!w.watch) w.pre = { wait: S.wait, mode: S.mode, tempo: S.tempo, bpm: S.bpmOverride, step: S.stepMode }; w.watch = true; gateEl.hidden = true; closePause(); E.configure({ autoplay: true, wait: false, stepMode: false }); S.autoplay = true; E.seek(S.loop.on ? S.loop.a : 0); E.play(); sync(true); }
+    /** "Now you play": after a listen stage the learner starts gently (WAIT, 70 %; a song: play-along at 70 %);
+        after "Listen first" the stage's own settings come back */
     function yourTurn() {
-      w.watch = false; S.autoplay = false; E.configure({ autoplay: false, wait: opts.wait != null ? !!opts.wait : true }); E.seek(0); lanes.reset();
+      w.watch = false; S.autoplay = false; closePause();
+      const pre = w.pre; w.pre = null;
+      const base = opts.autoplay ? (lesson.song ? { wait: false, mode: 'practice', tempo: .7, stepMode: false } : { wait: true, mode: 'learn', tempo: .7, stepMode: false })
+        : pre ? { wait: pre.wait, mode: pre.mode, tempo: pre.tempo, stepMode: pre.step } : { wait: opts.wait != null ? !!opts.wait : true, mode: opts.mode || 'learn', tempo: opts.tempo || .7 };
+      E.stop(); E.configure(Object.assign({ autoplay: false }, base)); if (pre && pre.bpm) E.setBpm(pre.bpm); E.seek(startBeat()); lanes.reset();
       if (PD.detector.active || devTouch()) E.play(); else gate();
+      sync(true);
     }
 
     /* ---------- pause ---------- */
@@ -242,15 +259,17 @@ PD.practice = (() => {
       if (S.playing) { E.stop(); pauseCard(); } else { closePause(); E.play(); }
     }
     let pauseEl = null;
-    function pauseCard() {
+    function pauseCard(why) {
       closePause();
-      pauseEl = h('div', { class: 'pz-over' }, [h('div', { class: 'pz-card' }, [h('h2', { 'data-t': 'p.paused' }),
+      pauseEl = h('div', { class: 'pz-over' }, [h('div', { class: 'pz-card' }, [h('h2', { 'data-t': 'p.paused' }), why ? h('p', { class: 'muted', 'data-t': why }) : null,
         h('button', { class: 'btn primary big', 'data-t': 'p.resume', onclick: () => { closePause(); E.play(); } }),
         h('button', { class: 'btn', 'data-t': 'p.restart', onclick: () => { closePause(); lanes.reset(); E.restart(); } }),
-        h('button', { class: 'btn quiet', 'data-t': 'p.exit', onclick: () => close() })])]);
+        h('button', { class: 'btn quiet', 'data-t': 'p.exit', onclick: () => close() })].filter(Boolean))]);
       stage0.appendChild(pauseEl); PD.i18n.apply(pauseEl);
     }
     function closePause() { if (pauseEl) { pauseEl.remove(); pauseEl = null; } }
+    /** a settings sheet opened during playback pauses it first (nothing is judged behind the sheet) */
+    function hold() { if (S.playing && gateEl.hidden) { E.stop(); pauseCard(); } }
 
     /* ---------- live feedback (no popups) ---------- */
     let hintT = 0, hintOn = false;
@@ -268,7 +287,7 @@ PD.practice = (() => {
     offs.push(E.on('hint', m => { if (QUIET.has(m.key)) return; say(t(m.key, m.vars), m.cls, m.ms || 2400); }));
     offs.push(E.on('count', k => { lanes.count(k); }));
     offs.push(E.on('state', () => sync()));
-    offs.push(E.on('seek', () => { w.sig = ''; }));
+    offs.push(E.on('seek', b => { w.sig = ''; lanes.resetFrom(b); }));
     offs.push(E.on('hit', e => {
       const r = S.res[e.st.i] || {};
       lanes.hit(e.st.i, !E.waitEff() || e.st.wait === false ? r.grade : null);
@@ -296,6 +315,10 @@ PD.practice = (() => {
     }));
     offs.push(E.on('demo', st => { if (st.kind === 'note') neck.pluck(st.notes[0].s, st.notes[0].f); }));
     offs.push(E.on('end', r => onEnd(r)));
+    offs.push(E.on('autopause', () => { if (gateEl.hidden) pauseCard('ws.autopause'); }));
+    // the song recording is being decoded (or stretched for this tempo): say so instead of an unexplained pause
+    const recMsg = () => { const R = PD.audio.ref, on = S.loadingRef && R.state !== 'ready' && R.state !== 'error'; recPill.hidden = !on; if (on) recPill.textContent = '♪ ' + (R.state === 'stretching' ? t('p.recStretch', { p: Math.round(R.progress * 100) }) : t('p.recLoad')); };
+    offs.push(E.on('loadingRef', recMsg)); offs.push(PD.bus.on('refstate', () => recMsg()));
     let lastIn = 0;
     offs.push(PD.detector.on('input', m => { if (performance.now() - lastIn < 6000 || !S.playing) return; lastIn = performance.now(); say(t(m.kind === 'clip' ? 'h.clip' : 'h.quiet'), 'almost', 2600); }));
     let lvl = 0;
@@ -303,7 +326,17 @@ PD.practice = (() => {
     offs.push(PD.detector.on('state', () => { gate(); micState(true); }));
 
     /* ---------- the current step → prompt, neck targets, stroke guide ---------- */
-    function stepSig() { const st = S.steps[S.cur]; return (st ? S.cur : 'end') + ':' + PD.i18n.lang + ':' + E.assist() + ':' + PD.fingers.on + PD.fingers.symbols + ':' + (S.playing ? 1 : 0) + (S.ci ? 'c' : ''); }
+    /** what the prompt and the neck show; in a song this is the chord (it changes only when the chord changes),
+        so the screen stays still while the strokes run — strokes and accents live in the stroke guide */
+    function runStart(i) { const st = S.steps[i]; while (i > 0 && S.steps[i - 1].name === st.name && S.steps[i - 1].kind === st.kind && S.steps[i - 1].t + S.steps[i - 1].d >= S.steps[i].t - 1e-6) i--; return i; }
+    function stepSig() { const st = S.steps[S.cur]; const k = !st ? 'end' : lesson.song && st.kind === 'chord' ? 'r' + runStart(S.cur) : S.cur; return k + ':' + PD.i18n.lang + ':' + E.assist() + ':' + PD.fingers.on + PD.fingers.symbols + ':' + (S.playing ? 1 : 0) + (S.ci ? 'c' : ''); }
+    function strokeSig() { const st = S.steps[S.cur]; return st ? S.cur + ':' + PD.i18n.lang : 'end'; }
+    function drawStroke() {
+      const st = S.steps[S.cur]; if (!st) { stroke.innerHTML = ''; return; }
+      const up = st.st === 'up', acc = !!st.acc;
+      stroke.className = 'pz-stroke' + (up ? ' up' : ' down') + (acc ? ' acc' : '');
+      stroke.innerHTML = PD.practice.strokeSVG(up) + '<span class="pz-sa">' + (up ? '↑' : '↓') + '</span><span class="pz-sl">' + PD.esc(t(up ? 'w.up' : 'w.down')) + (acc ? ' · ' + PD.esc(t('p.accent')) : '') + '</span>';
+    }
     function step() {
       const st = S.steps[S.cur], nx = S.steps[S.cur + 1], A = E.flags();
       if (!st) { pBig.textContent = S.steps.length ? t('p.done') : ''; pSub.innerHTML = ''; neck.setTarget([], []); stroke.innerHTML = ''; return; }
@@ -323,32 +356,31 @@ PD.practice = (() => {
         if (bar) pSub.append(chipEl('fing', '<i style="background:' + PD.fingers.color(fl[0].fi) + '"></i>' + PD.esc(t('p.barre', { n: fl[0].fi }))));
         const nxc = S.steps.slice(S.cur + 1).find(x => x.name !== st.name);
         if (nxc && nxc.t - st.t <= E.bpb() * 1.01) pSub.append(chipEl('dim', '→ ' + PD.esc(nxc.name)));
-        if (st.acc) pSub.append(chipEl('acc', PD.esc(t('p.accent'))));
       } else if (st.kind === 'chord') {
         pBig.textContent = t('p.chord', { n: st.name || '' });
         st.notes.forEach(n => pSub.append(chipEl(n.f > 0 && n.fi ? 'fing' : '', (n.f > 0 && n.fi ? '<i style="background:' + PD.fingers.color(n.fi) + '"></i>' : '') + PD.esc(TH.stringName(n.s) + ' · ' + (n.f > 0 ? n.f : 0)))));
       } else {
         pBig.textContent = (st.st === 'up' ? '↑ ' : '↓ ') + t(st.st === 'up' ? 'w.up' : 'w.down');
-        if (st.acc) pSub.append(chipEl('acc', PD.esc(t('p.accent'))));
+        const ac = chipEl('acc', PD.esc(t('p.accent'))); if (!st.acc) ac.style.visibility = 'hidden'; pSub.append(ac);   // keeps its place, so nothing moves
         if (st.notes.some(n => n.f > 0)) st.notes.forEach(n => pSub.append(chipEl('', PD.esc(TH.stringName(n.s) + ' · ' + n.f))));
       }
-      prompt.classList.toggle('acc', !!st.acc);
+      prompt.classList.toggle('acc', !!st.acc && !(lesson.song && st.kind === 'chord'));
       // neck: where to press now; the next place is ghosted
       const tgt = A.frets === false ? [] : st.notes.map(n => ({ s: n.s, f: n.f, fi: A.fingers ? n.fi : 0 }));
       const nxt = !nx || !A.ghost ? [] : nx.notes.map(n => ({ s: n.s, f: n.f, fi: A.fingers ? n.fi : 0 }));
       neck.setTarget(st.kind === 'strum' && !st.notes.some(n => n.f > 0) ? [] : tgt, nxt);
-      // stroke guide
-      const up = st.st === 'up', acc = !!st.acc;
-      stroke.className = 'pz-stroke' + (up ? ' up' : ' down') + (acc ? ' acc' : '');
-      stroke.innerHTML = PD.practice.strokeSVG(up) + '<span class="pz-sa">' + (up ? '↑' : '↓') + '</span><span class="pz-sl">' + PD.esc(t(up ? 'w.up' : 'w.down')) + (acc ? ' · ' + PD.esc(t('p.accent')) : '') + '</span>';
+      drawStroke(); w.ssig = strokeSig();
     }
     /** the frame guide: shown while the learner sits down (first seconds), when stopped or counting in, or always if chosen */
     function frameOn() { if (frameEl) { const v = !S.playing || !!S.ci || PD.store.get('cam.frame', false) || performance.now() - (w.camT0 || 0) < 8000; if (v !== w.frameV) { w.frameV = v; frameEl.classList.toggle('on', v); } } }
     function sync(force) {
       if (!W) return;
+      if (S.playing && needGate()) { E.stop(); gate(); return; }
+      if (S.playing && pauseEl) closePause();
+      bTurn.hidden = !w.watch || !!w.rec; micRow.hidden = !bTurn.hidden;
       bPause.innerHTML = S.playing ? ic.pause : ic.play; bPause.setAttribute('aria-label', t(S.playing ? 'ws.pause' : 'ws.play'));
       frameOn();
-      const md = modeOf(); chip.hidden = md === 'wait' && !S.loop.on && !S.drill; chip.textContent = S.drill ? t('p.drill') : S.loop.on ? t('p.loopOn') : t('pm.' + md);
+      const md = modeOf(); chip.hidden = !w.watch && md === 'wait' && !S.loop.on && !S.drill; chip.textContent = w.watch ? t('p.listenPart') : S.drill ? t('p.drill') : S.loop.on ? t('p.loopOn') : t('pm.' + md);
       micState();
       if (force) w.sig = '';
     }
@@ -370,7 +402,7 @@ PD.practice = (() => {
 
     /* ---------- sheets ---------- */
     function micSheet() {
-      PD.ui.sheet((box, close) => {
+      hold(); PD.ui.sheet((box, close) => {
         const on = PD.detector.active, c = PD.detector.calib;
         box.append(h('h2', { 'data-t': 'p.mic' }));
         const meter = h('div', { class: 'bar', style: 'height:4px' }, [h('i', { style: 'width:0;transition:width .06s' })]);
@@ -384,7 +416,7 @@ PD.practice = (() => {
       });
     }
     function tempoSheet() {
-      PD.ui.sheet((box, close) => {
+      hold(); PD.ui.sheet((box, close) => {
         const val = h('b', { class: 'mono', style: 'font-size:28px;font-weight:500' });
         const upd = () => { val.textContent = E.bpm() + ' BPM · ' + Math.round(E.bpm() / lesson.bpm * 100) + '%'; rng.value = String(E.bpm()); seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(!S.bpmOverride && Math.abs(S.tempo * 100 - +b.dataset.p) < 1))); };
         const rng = h('input', { type: 'range', min: '20', max: String(Math.max(200, lesson.bpm * 1.3 | 0)), step: '1', 'aria-label': t('ws.customBpm'), oninput: e => { E.setBpm(+e.target.value); upd(); } });
@@ -395,36 +427,20 @@ PD.practice = (() => {
       });
     }
     function modeSheet() {
-      PD.ui.sheet((box, close) => {
+      hold(); PD.ui.sheet((box, close) => {
         box.append(h('h2', { 'data-t': 'p.mode' }));
-        MODES.forEach(m => box.append(h('button', { class: 'opt', 'aria-pressed': String(modeOf() === m), onclick: () => { setMode(m); close(); lanes.reset(); sync(true); }, html: '<span><b data-t="pm.' + m + '"></b><small data-t="pmd.' + m + '"></small></span><span class="mono">' + (modeOf() === m ? '✓' : '') + '</span>' })));
+        MODES.forEach(m => box.append(h('button', { class: 'opt', 'aria-pressed': String(modeOf() === m), onclick: () => { const wasWatch = w.watch; if (wasWatch) { w.watch = false; S.autoplay = false; E.stop(); } setMode(m); close(); lanes.reset(); if (wasWatch) { E.seek(startBeat()); gate(); } sync(true); }, html: '<span><b data-t="pm.' + m + '"></b><small data-t="pmd.' + m + '"></small></span><span class="mono">' + (modeOf() === m ? '✓' : '') + '</span>' })));
       });
     }
     function loopSheet() {
-      PD.ui.sheet((box, close) => {
+      hold(); PD.ui.sheet((box, close) => {
         const b = (k, fn) => h('button', { class: 'opt', onclick: () => { close(); fn(); sync(true); }, html: '<span><b data-t="' + k + '"></b></span>' });
         box.append(h('h2', { 'data-t': 'p.loop' }), b('p.loopPhrase', () => E.repeatPhrase()), b('p.loopBar', () => E.repeatMeasure()), b('p.loopMistake', () => { if (!E.repeatMistake()) PD.ui.toast(t('ws.noMistake')); }));
-        if (S.loop.on || S.loop.a != null) box.append(b('p.loopOff', () => E.clearLoop()));
-      });
-    }
-    /* recording ↔ metronome: phones delay the music and the click differently; the learner moves the music by ear */
-    const leadLabel = () => { const v = PD.store.get('refLead', 0) || 0; return v ? (v > 0 ? '+' : '') + v + ' ' + t('sy.ms') : t('sy.zero'); };
-    function syncSheet() {
-      PD.ui.sheet((box, close) => {
-        const val = h('b', { class: 'sy-val' }), set = d => { const v = d === 0 ? 0 : Math.max(-400, Math.min(400, (PD.store.get('refLead', 0) || 0) + d)); PD.store.set('refLead', v); val.textContent = leadLabel(); };
-        val.textContent = leadLabel();
-        box.append(h('h2', { 'data-t': 'sy.title' }), h('p', { class: 'fg2', 'data-t': 'sy.lead' }), val,
-          h('div', { class: 'sy-row' }, [
-            h('button', { class: 'btn', onclick: () => set(-20) }, [h('b', { text: '−20' }), h('small', { 'data-t': 'sy.late' })]),
-            h('button', { class: 'btn', onclick: () => set(20) }, [h('b', { text: '+20' }), h('small', { 'data-t': 'sy.early' })])]),
-          h('div', { class: 'row' }, [h('button', { class: 'btn small', text: '−5', onclick: () => set(-5) }), h('button', { class: 'btn small', text: '+5', onclick: () => set(5) }), h('button', { class: 'btn small quiet', 'data-t': 'sy.reset', onclick: () => set(0) }),
-            h('button', { class: 'btn small primary', 'data-t': 'done', onclick: close })]),
-          h('small', { class: 'muted', 'data-t': 'sy.tip' }));
-        PD.i18n.apply(box);
+        if (S.loop.on || S.loop.a != null || S.drill) box.append(b('p.loopOff', () => S.drill ? E.endDrill() : E.clearLoop()));   // a drill ends completely (its tempo, WAIT and mode come back)
       });
     }
     function more() {
-      PD.ui.sheet((box, close) => {
+      hold(); PD.ui.sheet((box, close) => {
         const row = (k, val, fn) => h('button', { class: 'li pz-li', onclick: () => { close(); fn(); } }, [h('span', { class: 'grow', 'data-t': k }), val ? h('span', { class: 'muted', text: val }) : null, h('span', { class: 'chev', html: ic.chevron })]);
         const tg = (k, get, set) => { const c = h('input', { type: 'checkbox', 'aria-label': t(k) }); c.checked = !!get(); c.onchange = () => { set(c.checked); w.sig = ''; }; return h('label', { class: 'li pz-li' }, [h('span', { class: 'grow', 'data-t': k }), c]); };
         box.append(h('h2', { text: PD.i18n.pick(lesson.title) }), h('div', { class: 'list' }, [
@@ -432,7 +448,6 @@ PD.practice = (() => {
           row('p.mode', t('pm.' + modeOf()), modeSheet),
           row('p.loop', S.loop.on ? t('p.loopOn') : '', loopSheet),
           lesson.stems ? row('sg.mix', mixLabel(), () => w.mixSheet()) : null,
-          lesson.stems ? row('sy.title', leadLabel(), syncSheet) : null,
           row('p.showMe', null, () => { PD.audio.ensure(); E.showMe(); }),
           row('p.mic', PD.detector.active ? t('mic.on') : t('mic.off'), micSheet),
           lesson.media && lesson.media.length ? row('p.video', null, () => toggleVideo()) : null,
@@ -440,7 +455,7 @@ PD.practice = (() => {
           camV ? row('cam.flip', null, () => PD.camera.flip(camV).then(() => camV.classList.toggle('mirror', PD.camera.facing === 'user'))) : null,
           tg('ws.metro', () => S.metro, v => E.setMetro(v)),
           tg('ws.countIn', () => S.countIn, v => E.setCountIn(v)),
-          tg('p.names', () => PD.store.get('showNames', null) !== false, v => PD.store.set('showNames', v)),
+          tg('p.names', () => !!E.flags().names, v => PD.store.set('showNames', v)),   // shows what the screen really does (the assistance level may hide names)
           tg('set.fingerColors', () => PD.fingers.on, v => PD.store.set('fingerColors', v)),
           tg('set.fingerSymbols', () => PD.fingers.symbols, v => PD.store.set('fingerSymbols', v)),
           tg('p.lefty', () => neck.mirror, v => { neck.mirror = lanes.mirror = v; PD.store.set('lefty', v); root.classList.toggle('lefty', v); if (frameEl) frameEl.innerHTML = PD.camera.frameSVG(v) + '<span>' + PD.esc(t('cam.frame')) + '</span>'; })].filter(Boolean)),
@@ -477,15 +492,22 @@ PD.practice = (() => {
         const grades = !r.waited && r.timing != null ? h('p', { class: 'muted', style: 'font-size:12.5px', text: t('r.grades', { p: r.grades.perfect, g: r.grades.good, e: r.grades.early, l: r.grades.late }) }) : null;
         // where the mistakes were: positions on the lesson timeline
         const eb = Math.max(1, E.endBeat()), line = h('div', { class: 'errline', role: 'img', 'aria-label': t('r.errors') }, [h('i', { class: 'track' })]);
-        (S.lesson.sections || []).forEach(sc => line.appendChild(h('span', { class: 'sec', style: 'left:' + (sc.from / eb * 100) + '%', text: PD.i18n.pick(sc.name) })));
-        r.errors.forEach(e => line.appendChild(h('b', { class: e.missed ? 'miss' : '', style: 'left:' + (e.t / eb * 100) + '%' })));
+        // section names only where there is room for them (a song has many short sections); the others are plain ticks
+        (S.lesson.sections || []).forEach(sc => line.appendChild(h('span', { class: 'sec', style: 'left:' + (sc.from / eb * 100) + '%', title: PD.i18n.pick(sc.name), text: PD.i18n.pick(sc.name) })));
+        requestAnimationFrame(() => { let lastR = -9; const Wd = line.clientWidth; line.querySelectorAll('.sec').forEach(sp => { const l = sp.offsetLeft, r = l + sp.offsetWidth; if (l < lastR + 6 || r > Wd + 1) sp.textContent = ''; else lastR = r; }); });
+        // one mark per small slice of the timeline (a long song can have hundreds of mistakes)
+        const bins = new Map(); r.errors.forEach(e => { const k = Math.min(119, Math.floor(e.t / eb * 120)); bins.set(k, (bins.get(k) || false) || !!e.missed); });
+        bins.forEach((miss, k) => line.appendChild(h('b', { class: miss ? 'miss' : '', style: 'left:' + ((k + .5) / 120 * 100) + '%' })));
         // timing graph: every note's offset from the beat (ms); bands = PERFECT / GOOD windows
         let tgraph = null;
         if (!r.waited && r.offsets && r.offsets.filter(o => o.off != null).length >= 3) {
-          const W = 440, H = 110, M = 200, n = r.offsets.length, x = i => 8 + i * (W - 16) / Math.max(1, n - 1), y = v => H / 2 - Math.max(-M, Math.min(M, v)) / M * (H / 2 - 6);
+          // a long piece: every point is the median of a group of strokes (at most 140 points across the graph)
+          let offs = r.offsets;
+          if (offs.length > 140) { const g = Math.ceil(offs.length / 140), out = []; for (let i = 0; i < offs.length; i += g) { const grp = offs.slice(i, i + g), v = grp.filter(o => !o.missed && o.off != null).map(o => o.off).sort((a, b) => a - b); out.push(v.length ? { off: v[Math.floor(v.length / 2)] } : { missed: true }); } offs = out; }
+          const W = 440, H = 110, M = 200, n = offs.length, x = i => 8 + i * (W - 16) / Math.max(1, n - 1), y = v => H / 2 - Math.max(-M, Math.min(M, v)) / M * (H / 2 - 6);
           let s = '<rect x="0" y="' + y(90) + '" width="' + W + '" height="' + (y(-90) - y(90)) + '" fill="rgba(147,207,166,.07)"/><rect x="0" y="' + y(40) + '" width="' + W + '" height="' + (y(-40) - y(40)) + '" fill="rgba(147,207,166,.10)"/><line x1="0" x2="' + W + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="rgba(240,232,220,.25)"/>';
           s += '<text x="4" y="11" fill="#8B847B" font-size="9" font-family="IBM Plex Mono">' + PD.esc(t('g.late')) + '</text><text x="4" y="' + (H - 3) + '" fill="#8B847B" font-size="9" font-family="IBM Plex Mono">' + PD.esc(t('g.early')) + '</text>';
-          r.offsets.forEach((o, i) => { if (o.missed || o.off == null) { s += '<text x="' + x(i) + '" y="' + (H / 2 + 3) + '" fill="#E39D88" font-size="10" text-anchor="middle">×</text>'; return; } const ms = o.off * 1000, a = Math.abs(ms); s += '<circle cx="' + x(i) + '" cy="' + y(ms) + '" r="3.5" fill="' + (a <= 40 ? '#93CFA6' : a <= 90 ? '#E2C06A' : '#E39D88') + '" stroke="#131418" stroke-width="1.5"><title>' + (i + 1) + ': ' + (ms >= 0 ? '+' : '') + Math.round(ms) + ' ms</title></circle>'; });
+          offs.forEach((o, i) => { if (o.missed || o.off == null) { s += '<text x="' + x(i) + '" y="' + (H / 2 + 3) + '" fill="#E39D88" font-size="10" text-anchor="middle">×</text>'; return; } const ms = o.off * 1000, a = Math.abs(ms); s += '<circle cx="' + x(i) + '" cy="' + y(ms) + '" r="3.5" fill="' + (a <= 40 ? '#93CFA6' : a <= 90 ? '#E2C06A' : '#E39D88') + '" stroke="#131418" stroke-width="1.5"><title>' + (i + 1) + ': ' + (ms >= 0 ? '+' : '') + Math.round(ms) + ' ms</title></circle>'; });
           tgraph = h('div', { class: 'tgraph', role: 'img', 'aria-label': t('r.tgraph'), html: '<svg viewBox="0 0 ' + W + ' ' + H + '">' + s + '</svg>' });
         }
         const areas = h('div', { class: 'list' }, r.areas.length ? r.areas.map(a => h('div', { class: 'li' }, [h('span', { text: t(a.key, a.vars) })])) : [h('div', { class: 'li muted', 'data-t': 'r.none' })]);
@@ -504,9 +526,16 @@ PD.practice = (() => {
     function onKey(e) {
       if (W !== w || e.target.closest('input, textarea, select') || document.querySelector('.sheet-back')) return;
       const k = e.key;
-      if (k === ' ') { e.preventDefault(); togglePause(); }
+      if (k === ' ') { if (e.target.closest && e.target.closest('button, a, [role=button]')) return; e.preventDefault(); togglePause(); }   // a focused button keeps its own Space
       else if (k === 'Escape') close();
-      else if (k === 'ArrowUp' || k === 'ArrowDown') { e.preventDefault(); E.setTempo(Math.max(.3, Math.min(1.5, Math.round((S.tempo + (k === 'ArrowUp' ? .05 : -.05)) * 100) / 100))); }
+      else if (k === 'ArrowUp' || k === 'ArrowDown') { e.preventDefault(); const d = k === 'ArrowUp' ? 1 : -1; if (S.bpmOverride) E.setBpm(E.bpm() + d * 5); else E.setTempo(Math.max(.3, Math.min(1.5, Math.round((S.tempo + d * .05) * 100) / 100))); }
+      else if (e.ctrlKey || e.metaKey || e.altKey) return;
+      else if (k === 'r' || k === 'R') { closePause(); lanes.reset(); if (needGate()) { E.seek(startBeat()); gate(); } else E.restart(); }
+      else if (k === 'l' || k === 'L') { if (S.drill) E.endDrill(); else if (S.loop.on) E.clearLoop(); else E.repeatPhrase(); sync(true); }
+      else if (k === 'm' || k === 'M') { E.setMetro(!S.metro); PD.ui.toast(t('kbd.metro', { v: t(S.metro ? 'kbd.on' : 'kbd.off') }), 1400); }
+      else if (k === 'w' || k === 'W') { setMode(modeOf() === 'wait' ? 'cont' : 'wait'); lanes.reset(); sync(true); }
+      else if (k === 'ArrowLeft' || k === 'ArrowRight') { e.preventDefault(); const B = E.bpb(), bar = Math.floor(S.now / B + 1e-6) + (k === 'ArrowRight' ? 1 : -1); E.seek(Math.max(0, bar) * B); }
+      else if (k === 's' || k === 'S') { PD.audio.ensure(); E.showMe(); }
       else if (devTouch() && (k === 'd' || k === 'u')) { PD.audio.ensure(); E.input({ kind: 'strum', src: 'touch', dir: k === 'u' ? 'up' : 'down', t: PD.audio.now() }); }
     }
     document.addEventListener('keydown', onKey);
@@ -520,7 +549,7 @@ PD.practice = (() => {
       w.raf = requestAnimationFrame(frame);
       if (document.hidden) return;
       if (fps30 && tm - (w.lastDraw || 0) < 30) return; w.lastDraw = tm;
-      const sg = stepSig(); if (sg !== w.sig) { w.sig = sg; step(); }
+      const sg = stepSig(); if (sg !== w.sig) { w.sig = sg; step(); } else { const ss = strokeSig(); if (ss !== w.ssig) { w.ssig = ss; drawStroke(); } }
       lanes.draw(); neck.draw();
       if ((fN++ & 1) === 0) {
         const e = Math.max(1, E.endBeat()), x = Math.round(Math.min(1, E.visualNow() / e) * 100);
@@ -533,9 +562,10 @@ PD.practice = (() => {
       if (w.cam) PD.camera.stop();
       cancelAnimationFrame(w.raf); document.removeEventListener('keydown', onKey); ro.disconnect();
       offs.forEach(f => { try { f && f(); } catch (_) {} }); neck.destroy();
-      S.autoDemo = prevAutoDemo; S.metro = w.prevMetro;
+      S.autoDemo = prevAutoDemo; S.metro = PD.store.get('metro', true);   // the learner's own metronome choice (a lesson may have switched it on just for itself)
     };
     requestAnimationFrame(() => { if (W !== w) return; relayout(); gate(); sync(true); w.raf = requestAnimationFrame(frame);
+      try { ((!gateEl.hidden && gateEl.querySelector('button')) || bPause).focus({ preventScroll: true }); } catch (_) {}
       if (!w.rec && opts.autoplay) startWatch();
       else if (!w.rec && (PD.detector.active || devTouch())) setTimeout(() => { if (W === w && !S.playing) E.play(); }, 450);
     });
@@ -546,13 +576,16 @@ PD.practice = (() => {
     const w = W; if (!w) return;
     if (S.rec) E.stopRecord(false);
     if (!w.rec && S.lesson && w.stage) { const p = LS.progress.lesson(w.srcId); if (S.finished || S.now < .01) delete p.resume; else p.resume = { stage: w.stage, beat: S.lesson.id === w.srcId ? S.now : 0, at: Date.now() }; p.lastStage = w.stage; LS.progress.saveLesson(w.srcId, p); }
-    E.stop(); if (S.drill) S.drill = null;
-    PD.audio.ref.unload && PD.audio.ref.unload(); PD.media.unload();
+    E.stop(); E.saveRun(); if (S.drill) S.drill = null;
+    PD.media.unload();
     PD.detector.setAEC(false, true);
-    if (PD.detector.active && !PD.store.get('micStay', false)) PD.detector.stop();   // leaving practice releases the microphone
+    if (!PD.store.get('micStay', false)) PD.detector.stop();   // leaving practice releases the microphone (also a pending request)
     w.cleanup && w.cleanup(); w.root.remove(); document.body.style.overflow = '';
-    W = null;
+    (w.inerted || []).forEach(el => { el.inert = false; });
+    W = null; S.mayPlay = null; E.unload(); PD.layers.done(w.lid);
     if (!silent && PD.app && PD.app.route === 'lesson') PD.app.render();
+    // focus goes back where it was; when the page was rebuilt, to its main action
+    try { const f = w.prevFocus && w.prevFocus.isConnected ? w.prevFocus : document.querySelector('#page .btn.primary') || document.querySelector('#main'); if (f && f.focus) f.focus({ preventScroll: true }); } catch (_) {}
   }
   function record(l) { return open(l, { wait: false }, l.id, null, true); }
   /** the right-hand motion: a curved sweep across the three strings (no drawn hand) */

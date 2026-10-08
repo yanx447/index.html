@@ -46,7 +46,7 @@ PD.calib = (() => {
     let step = 0; const res = { openCents: {} };
     const meter = h('div', { class: 'bar', style: 'height:10px' }, [h('i', { style: 'width:0;background:var(--ok);transition:width .06s' })]);
     offs.push(D.on('level', m => { meter.firstChild.style.width = Math.min(100, Math.sqrt(m.rms) * 260) + '%'; }));
-    const finish = () => { offs.forEach(f => f()); if (startedHere) D.stop(); D.guardOn = true; back.remove(); onDone && onDone(); if (PD.app && PD.app.route === 'settings') PD.app.render(); };
+    const finish = () => { offs.forEach(f => f()); if (startedHere) D.stop(); D.guardOn = PD.store.get('clickGuard', true) !== false; back.remove(); onDone && onDone(); if (PD.app && PD.app.route === 'settings') PD.app.render(); };
     const dots = () => h('div', { class: 'dots' }, [0, 1, 2, 3].map(i => h('i', { class: i <= step ? 'on' : '' })));
     const nav = (extra) => h('div', { class: 'row' }, [h('button', { class: 'btn', 'data-t': 'cancel', onclick: finish }), h('span', { class: 'spacer' }), ...(extra || []), h('button', { class: 'btn primary', 'data-t': step < 3 ? 'next' : 'cb.finish', onclick: () => { if (step < 3) { step++; render(); } else { D.setCalib(res.openCents && Object.keys(res.openCents).length ? { openCents: res.openCents } : {}); PD.ui.toast(t('cb.done')); finish(); } } })]);
     let stepOffs = [];
@@ -92,7 +92,7 @@ PD.calib = (() => {
         for (let i = 0; i < 6; i++) { const tt = t0 + i * sp; PD.audio.click(tt, true); clicks.push(tt); }
         const off = D.on('onset', m => { const raw = m.t + prev / 1000; const c = clicks.find(c => raw - c > 0 && raw - c < .4); if (c != null) hits.push(raw - c); });
         setTimeout(() => {
-          off(); D.guardOn = true; go.disabled = false;
+          off(); D.guardOn = PD.store.get('clickGuard', true) !== false; go.disabled = false;
           if (hits.length < 3) { out.textContent = t('cb.latFail'); return; }
           hits.sort((a, b) => a - b); const rt = hits[Math.floor(hits.length / 2)], v = Math.max(0, Math.round((rt - PD.audio.outLatency) * 1000));
           D.setCalib({ latencyMs: v }); man.value = String(v); out.textContent = t('cb.lat', { v }) + ' (' + hits.length + '/6)';

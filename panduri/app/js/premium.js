@@ -85,6 +85,16 @@ PD.premium = (() => {
   /** what premium unlocks (edit here) */
   const FEATURES = { 'paths.advanced': 'pm.f1', 'trainer.pro': 'pm.f2', 'coach': 'pm.f3', 'call': 'pm.f4', 'songs.more': 'pm.f5' };
   const FREE_SONGS = new Set(['bani-acharuli']);   // the first song stays free
+  const PREMIUM_PATHS = new Set(['intermediate', 'advanced']);
+  /** the one rule for every door into a lesson (Learn, Home, Songs, Rhythms, resume…): which premium feature it needs, or null */
+  function featureOf(id) {
+    if (!id || FREE_SONGS.has(id)) return null;
+    const LS = PD.lessons, l = LS.get(id), rid = /^rhythm-/.test(id) ? id.slice(7) : null;
+    const p = LS.PATHS.find(q => q.steps.some(s => (s.kind === 'lesson' && s.id === id) || (s.kind === 'rhythm' && s.id === rid)));
+    if (p && PREMIUM_PATHS.has(p.id)) return 'paths.advanced';
+    if (l && (l.type === 'song' || l.song) && !l.user) return 'songs.more';
+    return null;
+  }
   const until = () => { const p = C.profile; return p && p.vip_until ? new Date(p.vip_until) : null; };
   const api = {
     get active() { const u = until(); return !!(C.isAdmin || (u && u > new Date())); },
@@ -92,6 +102,8 @@ PD.premium = (() => {
     get until() { return until(); },
     allows(f) { return !FEATURES[f] || api.active; },
     songFree: id => FREE_SONGS.has(id),
+    featureOf, PREMIUM_PATHS,
+    canOpen: id => { const f = featureOf(id); return !f || api.allows(f); },
     /** run fn if allowed, otherwise show the paywall */
     require(f, fn) { if (api.allows(f)) return fn && fn(); paywall(f); },
     paywall: f => paywall(f),

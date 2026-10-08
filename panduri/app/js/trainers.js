@@ -105,7 +105,7 @@ PD.trainer = (() => {
   function page(w, param) {
     const own = PD.pageScope();
     let level = param && LEVELS.some(l => l.id === param) ? param : PD.store.get('tr.level', 'open');
-    let cur = null, last = null, stats = { a: 0, c: 0, streak: 0 }, t0 = 0, timer = 0, wrongN = 0, startedAt = Date.now(), done = false;
+    let cur = null, last = null, stats = { a: 0, c: 0, streak: 0 }, t0 = 0, timer = 0, wrongN = 0, startedAt = Date.now(), done = false, locked = false, micMine = false;
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small', html: ic.back + '<span data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : PD.app.go('practice') }), h('h1', { 'data-t': 'tr.title', style: 'margin:0' })]),
       h('p', { class: 'muted', 'data-t': 'tr.lead' }));
     const tabs = h('div', { class: 'chips-row', role: 'tablist' }, LEVELS.map(L => h('button', { class: 'chip' + (FREE_TR.has(L.id) || PD.premium.active ? '' : ' locked'), role: 'tab', 'aria-pressed': String(L.id === level), 'data-t': 'tl.' + L.id, onclick: () => { if (!FREE_TR.has(L.id) && !PD.premium.active) return PD.premium.paywall('trainer.pro'); level = L.id; PD.store.set('tr.level', level); tabs.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.t === 'tl.' + level))); reset(); } })));
@@ -113,7 +113,7 @@ PD.trainer = (() => {
     const score = h('div', { class: 'tr-score mono' });
     const nv = h('div', { class: 'neckview' }), ncv = h('canvas'); nv.appendChild(ncv);
     const view = PD.Neck(ncv, { onTap: (s, f) => { if (PD.store.get('devTouch', false)) answer(TH.midi(s, f), true); } }); view.mirror = PD.store.get('lefty', false);
-    const micBox = h('div', { class: 'mg-inline', hidden: true }, [h('span', { 'data-t': 'tr.needMic' }), h('button', { class: 'btn primary small', html: ic.mic + '<span data-t="gate.on"></span>', onclick: () => PD.practice.micOn(() => updMic()) })]);
+    const micBox = h('div', { class: 'mg-inline', hidden: true }, [h('span', { 'data-t': 'tr.needMic' }), h('button', { class: 'btn primary small', html: ic.mic + '<span data-t="gate.on"></span>', onclick: () => PD.practice.micOn(ok => { if (ok) micMine = true; updMic(); }) })]);
     const controls = h('div', { class: 'row' });
     w.append(tabs, h('section', { class: 'tr-card' }, [prompt, sub, fb, controls, micBox]), nv, h('div', { class: 'row', style: 'justify-content:space-between' }, [score, h('span', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'tr.srs' })]));
     let raf = 0;
@@ -137,7 +137,7 @@ PD.trainer = (() => {
       else { prompt.textContent = cur.f ? t('tr.playPos', { s: TH.stringName(cur.s), f: cur.f }) : t('tr.playOpen', { s: TH.stringName(cur.s) }); sub.textContent = ''; show(cur.s, cur.f); }
     }
     function answer(midi, touch) {
-      if (!cur || done) return;
+      if (!cur || done || locked) return;
       const L = LEVELS.find(x => x.id === level);
       if (L.timed && !t0) { t0 = performance.now(); timer = setInterval(tickTimer, 250); }
       stats.a++;
@@ -147,7 +147,8 @@ PD.trainer = (() => {
         fb.textContent = '✓ ' + t('tr.ok') + (cur.byName && !touch && TH.positions(cur.m).length > 1 ? ' · ' + t('tr.samePitch') : ''); fb.className = 'tr-fb ok'; view.confirm(); view.pluck(cur.s, cur.f);
         if (L.ear || cur.byName) show(cur.s, cur.f, true);
         if (PD.store.get('haptics', true) && navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
-        setTimeout(() => { if (!done) next(); updScore(); }, L.timed ? 350 : 900);
+        locked = true; const q = cur;
+        setTimeout(() => { if (cur !== q) return; locked = false; if (!done) next(); updScore(); }, L.timed ? 350 : 900);
       } else {
         stats.streak = 0; wrongN++; if (wrongN === 1) grade(cur.k, false);
         fb.textContent = t('tr.heard', { p: TH.name(Math.round(midi)), e: TH.name(cur.m) }); fb.className = 'tr-fb fix'; view.wrong();
@@ -157,10 +158,10 @@ PD.trainer = (() => {
     }
     function tickTimer() { const L = LEVELS.find(x => x.id === level), left = Math.max(0, L.timed - (performance.now() - t0) / 1000); updScore(left); if (left <= 0) { clearInterval(timer); done = true; prompt.textContent = t('tr.done', { c: stats.c }); sub.textContent = ''; fb.textContent = ''; controls.innerHTML = ''; controls.append(h('button', { class: 'btn primary', 'data-t': 'tr.start', onclick: reset })); PD.i18n.apply(controls); } }
     function updScore(left) { score.textContent = t('tr.score', { c: stats.c, a: stats.a }) + ' · ' + t('tr.streak', { n: stats.streak }) + (left != null ? ' · ' + t('tr.time', { s: Math.ceil(left) }) : ''); }
-    function reset() { clearInterval(timer); t0 = 0; done = false; stats = { a: 0, c: 0, streak: 0 }; updScore(); next(); }
+    function reset() { clearInterval(timer); t0 = 0; done = false; locked = false; stats = { a: 0, c: 0, streak: 0 }; updScore(); next(); }
     own(PD.detector.on('note', m => { if (m.unsure || m.conf < .6 || PD.practice.active) return; answer(m.midi, false); }));
     own(PD.detector.on('state', updMic));
-    own(() => { cancelAnimationFrame(raf); clearInterval(timer); view.destroy(); if (stats.a) PD.lessons.progress.addSession({ id: 'trainer:' + level, date: Date.now(), dur: Math.round((Date.now() - startedAt) / 1000), firstTry: stats.c / stats.a, pitch: stats.c / stats.a, timing: null, bpm: null, tempo: null, mode: 'trainer', waited: true, probs: {} }); if (stats.a && Date.now() - startedAt > 45e3) PD.daily.markActive(); });
+    own(() => { cancelAnimationFrame(raf); clearInterval(timer); view.destroy(); if (micMine && !PD.practice.active && !PD.store.get('micStay', false)) PD.detector.stop(); if (stats.a) PD.lessons.progress.addSession({ id: 'trainer:' + level, date: Date.now(), dur: Math.round((Date.now() - startedAt) / 1000), firstTry: stats.c / stats.a, pitch: stats.c / stats.a, timing: null, bpm: null, tempo: null, mode: 'trainer', waited: true, probs: {} }); if (stats.a && Date.now() - startedAt > 45e3) PD.daily.markActive(); });
     updMic(); reset();
   }
   return { page, LEVELS, weakest, srs };
@@ -169,22 +170,24 @@ PD.trainer = (() => {
 /* =================== DAILY PRACTICE =================== */
 PD.daily = (() => {
   const h = PD.h, LS = PD.lessons;
-  const today = () => new Date().toISOString().slice(0, 10);
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };   // the learner's local day
   const doneMap = () => PD.store.get('daily.' + today(), {});
   function plan() {
     const goal = PD.store.get('goalMin', 15), k = goal / 15, mins = m => Math.max(1, Math.round(m * k));
     const out = [];
-    out.push({ id: 'warm', key: 'dl.warm', min: mins(2), title: PD.i18n.pick(LS.get('poc-three').title), go: () => PD.app.startStage(LS.get('poc-three'), 'wait') });
+    const warm = LS.get('poc-three') || LS.all.find(l => l.type === 'melody' && l.events.length);
+    if (warm) out.push({ id: 'warm', key: 'dl.warm', min: mins(2), title: PD.i18n.pick(warm.title), go: () => PD.app.startStage(warm, 'wait') });
     // notes: the trainer level that matches the frets the learner gets wrong most
     const weak = PD.trainer.weakest(), maxF = weak.length ? Math.max(...weak.map(x => +x.split(':')[1])) : 3, lvl = maxF <= 0 ? 'open' : maxF <= 3 ? 'f13' : maxF <= 5 ? 'f15' : maxF <= 7 ? 'f17' : 'full';
     out.push({ id: 'notes', key: 'dl.notes', min: mins(3), title: t('tr.title') + ' · ' + t('tl.' + lvl), focus: weak.length ? weak.map(x => { const [s, f] = x.split(':'); return PD.theory.stringName(+s) + ' ' + f; }).join(', ') : null, go: () => PD.app.go('trainer', lvl) });
     // rhythm: the teacher rhythm practised least
     const rh = PD.curriculum.rhythms().map(r => ({ r, p: LS.progress.lesson('rhythm-' + r.id).plays || 0 })).sort((a, b) => a.p - b.p)[0];
-    out.push({ id: 'rhythm', key: 'dl.rhythm', min: mins(3), title: rh ? PD.i18n.pick(rh.r.name) : PD.i18n.pick(LS.get('poc-rhythm').title), go: () => rh ? PD.app.go('rhythm', rh.r.id) : PD.app.startStage(LS.get('poc-rhythm'), 'metro') });
+    const pr = LS.get('poc-rhythm');
+    if (rh || pr) out.push({ id: 'rhythm', key: 'dl.rhythm', min: mins(3), title: rh ? PD.i18n.pick(rh.r.name) : PD.i18n.pick(pr.title), go: () => rh ? PD.app.go('rhythm', rh.r.id) : PD.app.startStage(pr, 'metro') });
     // melody: the weakest bars from history, else the next melody on the path
     const sug = PD.coach.today();
     const mel = sug ? sug.lesson : LS.all.find(l => l.type === 'melody' && l.events.length && LS.progress.lesson(l.id).mastery < .9) || LS.get('m1');
-    out.push({ id: 'melody', key: 'dl.melody', min: mins(4), title: PD.i18n.pick(mel.title), focus: sug ? t(sug.key) + ' · ' + t('w.bars', { a: sug.barA, b: sug.barB }) : null, go: () => sug ? PD.coach.start(sug) : PD.app.go('lesson', mel.id) });
+    if (mel) out.push({ id: 'melody', key: 'dl.melody', min: mins(4), title: PD.i18n.pick(mel.title), focus: sug ? t(sug.key) + ' · ' + t('w.bars', { a: sug.barA, b: sug.barB }) : null, go: () => sug ? PD.coach.start(sug) : PD.app.go('lesson', mel.id) });
     const song = LS.all.filter(l => l.type === 'song' && l.events.length).sort((a, b) => LS.progress.lesson(b.id).last - LS.progress.lesson(a.id).last)[0];
     out.push({ id: 'song', key: 'dl.song', min: mins(3), title: song ? PD.i18n.pick(song.title) : t('dl.noSong'), go: song ? () => PD.app.go('lesson', song.id) : null });
     const dm = doneMap(); out.forEach(x => x.done = !!dm[x.id]);

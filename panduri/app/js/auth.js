@@ -22,6 +22,7 @@ PD.i18n.add({
   'au.syncOn': ['პროგრესი ანგარიშში ინახება', 'Progress is saved to your account'], 'au.subscription': ['გამოწერა', 'Subscription'], 'au.subOff': ['ამ ვერსიაში გადახდები არ არის', 'No payments in this build'],
   'au.welcome': ['ისწავლე ფანდური ნამდვილ ინსტრუმენტზე', 'Learn the panduri on a real instrument'], 'au.welcomeD': ['აპი გიჩვენებს, გისმენს და გელოდება.', 'The app shows you, listens and waits for you.'],
   'au.terms': ['შესვლით ეთანხმები, რომ შენი სახელი და დონე სხვა მოსწავლეებს გამოუჩნდეთ. ხმა და ვიდეო მხოლოდ შენს მოწყობილობაზე მუშავდება.', 'By signing in you agree that your name and level are visible to other learners. Sound and video are processed on your device only.'],
+  'au.newPw': ['ახალი პაროლი', 'New password'], 'au.newPwD': ['ბმულით შემოხვედი — დააყენე ახალი პაროლი შენი ანგარიშისთვის.', 'You came from the reset link — set a new password for your account.'], 'au.pwSave': ['შენახვა', 'Save'], 'au.pwSaved': ['პაროლი შეიცვალა', 'Password changed'],
   'au.back': ['უკან', 'Back'], 'au.show': ['ჩვენება', 'Show'], 'au.hide': ['დამალვა', 'Hide']
 });
 
@@ -55,7 +56,8 @@ PD.auth = (() => {
     document.body.appendChild(root);
     let view = 'home', email = '', phone = PD.store.get('auth.phone', '+995 '), busy = false, done = false;
     const off = C.on(() => { if (C.session) finish(true); });
-    function finish(ok) { if (done) return; done = true; off(); root.classList.add('out'); setTimeout(() => root.remove(), 260); onDone && onDone(ok); }
+    const lid = opts.closable ? PD.layers.push(() => finish(false)) : 0;   // opened from the app: Back closes it
+    function finish(ok) { if (done) return; done = true; off(); if (lid) PD.layers.done(lid); root.classList.add('out'); setTimeout(() => root.remove(), 260); onDone && onDone(ok); }
     const msgEl = () => h('p', { class: 'ag-msg', role: 'alert', hidden: true });
     async function run(btn, msg, fn) {
       if (busy) return; busy = true; msg.hidden = true; if (btn) btn.classList.add('busy');
@@ -82,7 +84,10 @@ PD.auth = (() => {
           opts.noGuest ? null : h('small', { class: 'ag-fine', 'data-t': 'au.guestD' }),
           h('small', { class: 'ag-fine', 'data-t': 'au.terms' })].filter(Boolean)));
         // show only the sign-in methods that are switched on in the server
-        const showOnly = v => { if (!v) return; ['google', 'facebook', 'phone'].forEach(k => { const b = card.querySelector('.ag-btn.' + k); if (b) b.hidden = !v[k]; }); };
+        // Google / Facebook need a real top-level page to come back to: not inside another site's frame, not from a local file
+        const noOAuth = window.top !== window || location.protocol === 'file:';
+        const showOnly = v => { if (!v) return; ['google', 'facebook', 'phone'].forEach(k => { const b = card.querySelector('.ag-btn.' + k); if (b) b.hidden = !v[k] || (noOAuth && k !== 'phone'); }); };
+        if (noOAuth) showOnly({ google: false, facebook: false, phone: true });
         if (C.configured) { showOnly(C.knownProviders); C.providers().then(showOnly).catch(() => {}); }
         card.prepend(h('button', { class: 'ag-lang', text: PD.i18n.lang === 'ka' ? 'EN' : 'ქარ', onclick: () => { PD.i18n.set(PD.i18n.lang === 'ka' ? 'en' : 'ka'); render(); } }));
         if (opts.closable) card.prepend(h('button', { class: 'ag-x', 'aria-label': t('close'), html: PD.ic.close, onclick: () => finish(false) }));
@@ -132,5 +137,18 @@ PD.auth = (() => {
     render();
     return { close: () => finish(false) };
   }
-  return { gate, open: () => gate(null, { closable: true }) };
+  /** after the password-reset link: the member is signed in by the link and sets a new password here */
+  function newPassword() {
+    PD.ui.sheet((box, close) => {
+      const pw = h('input', { class: 'input', type: 'password', autocomplete: 'new-password', placeholder: t('au.newPw'), 'aria-label': t('au.newPw') }), msg = h('p', { class: 'ag-msg', role: 'alert', hidden: true });
+      const go = h('button', { class: 'btn primary', 'data-t': 'au.pwSave', onclick: async () => {
+        if (pw.value.length < 8) { msg.hidden = false; msg.textContent = t('au.shortPw'); return; }
+        go.disabled = true; try { await C.auth.setPassword(pw.value); close(); PD.ui.toast(t('au.pwSaved'), 3000); } catch (e) { msg.hidden = false; msg.textContent = message(e); go.disabled = false; }
+      } });
+      box.append(h('h2', { 'data-t': 'au.newPw' }), h('p', { class: 'muted', 'data-t': 'au.newPwD' }), pw, msg, h('div', { class: 'row' }, [go, h('button', { class: 'btn quiet', 'data-t': 'cancel', onclick: close })]));
+      setTimeout(() => pw.focus(), 60);
+    });
+  }
+  PD.bus.on('recovery', () => newPassword());
+  return { gate, newPassword, open: () => gate(null, { closable: true }) };
 })();

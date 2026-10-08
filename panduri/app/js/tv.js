@@ -14,10 +14,12 @@ PD.tv = (() => {
     return document.body;
   }
   function visible(el) { const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth && getComputedStyle(el).visibility !== 'hidden'; }
+  /** focusable and drawn — also when scrolled out of view (the page scrolls to it) */
+  function shown(el) { if (el.closest('[inert],[hidden]')) return false; const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && getComputedStyle(el).visibility !== 'hidden'; }
   function move(dir) {
-    const root = layer(), all = [...root.querySelectorAll(SEL)].filter(visible);
+    const root = layer(), all = [...root.querySelectorAll(SEL)].filter(shown);
     const cur = document.activeElement && root.contains(document.activeElement) ? document.activeElement : null;
-    if (!cur) { const first = all.find(e => e.matches('.btn.primary')) || all[0]; if (first) { first.focus(); first.scrollIntoView({ block: 'nearest' }); } return; }
+    if (!cur) { const vis = all.filter(visible), first = vis.find(e => e.matches('.btn.primary')) || vis[0] || all[0]; if (first) { first.focus(); first.scrollIntoView({ block: 'nearest' }); } return; }
     const a = cur.getBoundingClientRect(), ax = a.left + a.width / 2, ay = a.top + a.height / 2;
     let best = null, bd = 1e9;
     all.forEach(el => {
@@ -30,6 +32,7 @@ PD.tv = (() => {
       if (d < bd) { bd = d; best = el; }
     });
     if (best) { best.focus({ preventScroll: true }); best.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); }
+    else if (dir === 'ArrowDown' || dir === 'ArrowUp') { const sc = root === document.body ? document.scrollingElement : root.querySelector('.sheet') || root; sc && sc.scrollBy({ top: (dir === 'ArrowDown' ? 1 : -1) * innerHeight * .5, behavior: 'smooth' }); }   // nothing more that way: show the rest of the page
   }
   function init() {
     if (isTV) document.documentElement.classList.add('tv');
@@ -38,13 +41,16 @@ PD.tv = (() => {
       const k = e.key, tag = (e.target && e.target.tagName) || '';
       if (/^Arrow/.test(k)) {
         if ((tag === 'INPUT' && !/checkbox|range|radio/.test(e.target.type)) || tag === 'TEXTAREA') return;
+        // the lesson screen and the studio have their own arrow keys (bars, tempo, moving notes) when no control is focused
+        const a = document.activeElement, idle = !a || a === document.body || !a.matches(SEL);
+        if (idle && !document.querySelector('.sheet-back') && (PD.practice.active || document.querySelector('.studio'))) return;
         if (tag === 'INPUT' && e.target.type === 'range' && (k === 'ArrowLeft' || k === 'ArrowRight')) return;
         e.preventDefault(); e.stopPropagation(); move(k);
       } else if (k === 'Backspace' || k === 'Escape' || k === 'GoBack' || k === 'BrowserBack') {
-        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-        const sb = document.querySelector('.sheet-back'); if (sb) { sb.click(); e.preventDefault(); return; }
-        if (PD.practice.active) { PD.practice.close(); e.preventDefault(); return; }
-        if (history.length > 1) { history.back(); e.preventDefault(); }
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        if (k === 'Escape' && (document.querySelector('.sheet-back') || PD.practice.active)) return;   // sheets and the lesson screen close themselves on Esc
+        if ((k === 'Escape' || k === 'Backspace') && document.querySelector('.studio') && !document.querySelector('.sheet-back')) return;   // the studio: Esc clears the selection, Backspace deletes notes
+        if (PD.layers.back()) e.preventDefault();   // the top layer first (via the same Back as the browser's)
       }
     }, true);
   }

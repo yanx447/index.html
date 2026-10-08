@@ -64,7 +64,29 @@ PD.engine = (() => {
   const waitEff = () => (S.wait || S.stepMode) && S.mode !== 'perform' && !S.rec && !S.autoplay;
   const endBeat = () => S.rec ? 1e9 : (S.steps.length ? Math.max(...S.steps.map(s => s.t + s.d)) : bpb());
   const reanchor = () => { S.anchorBeat = S.now; S.anchorTime = clock(); S.nextClick = Math.ceil(S.now - 1e-6); };
-  const beatAt = audioT => S.anchorBeat + (audioT - S.anchorTime) * bps() * (S.waiting ? 0 : 1);
+  /* ---------- time ↔ beats ----------
+     A song carries a beat map (the moment every beat sounds in its recording; live music drifts a little).
+     W(b) = song seconds (at 100 %) of beat b; without a map it is a straight line (steady tempo).
+     The transport moves through song seconds at speed rf(), so clicks, visuals, judging and the recording
+     all follow the same musical time. */
+  function W(b) {
+    const l = S.lesson, m = l && l.beatMap;
+    if (m && m.length > 1) { const n = m.length; if (b <= 0) return m[0] + b * (m[1] - m[0]); if (b >= n - 1) return m[n - 1] + (b - n + 1) * (m[n - 1] - m[n - 2]); const k = Math.floor(b); return m[k] + (b - k) * (m[k + 1] - m[k]); }
+    return (l && l.refOffset || 0) + b * 60 / (l ? l.bpm : 60);
+  }
+  function Wi(x) {
+    const l = S.lesson, m = l && l.beatMap;
+    if (m && m.length > 1) { const n = m.length; if (x <= m[0]) return (x - m[0]) / (m[1] - m[0]); if (x >= m[n - 1]) return n - 1 + (x - m[n - 1]) / (m[n - 1] - m[n - 2]); let lo = 0, hi = n - 1; while (hi - lo > 1) { const md = (lo + hi) >> 1; if (m[md] <= x) lo = md; else hi = md; } return lo + (x - m[lo]) / (m[lo + 1] - m[lo]); }
+    return (x - (l && l.refOffset || 0)) * (l ? l.bpm : 60) / 60;
+  }
+  /** speed: 1 = the lesson's own tempo (a song plays at exactly the chosen percentage) */
+  const rf = () => S.lesson && S.lesson.beatMap && !S.bpmOverride ? S.tempo : bpm() / S.lesson.bpm;
+  const beatOf = (t, sp) => Wi(W(S.anchorBeat) + (t - S.anchorTime) * rf() * (sp || 1));
+  const timeOf = (b, sp) => S.anchorTime + (W(b) - W(S.anchorBeat)) / (rf() * (sp || 1));
+  /** seconds between two beats at the current speed */
+  const secs = (b1, b2) => (W(b2) - W(b1)) / rf();
+  const beatAt = audioT => S.waiting ? S.anchorBeat : beatOf(audioT);
+  const MISS_GRACE = .22;   // a note is reported ~0.13 s after it starts; give the detector that time before calling it missed
 
   function hint(key, vars, cls, ms) { emit('hint', { key, vars, cls: cls || 'info', ms: ms || 0 }); }
 
@@ -96,11 +118,10 @@ PD.engine = (() => {
     S.lesson = lesson; S.steps = LS.steps(lesson);
     S.res = S.steps.map(() => ({ attempts: 0, ok: false, first: false, pitchOk: false, partial: 0, off: null, missed: false, dir: null, heard: [] }));
     S.loop = { a: null, b: null, on: false }; S.passes = []; S.pass = null; S.drill = null; S.suggestedBars = {}; S.bpmOverride = 0; S.lastWrong = -1; S.almostDir = [];
-    S.finished = false; S.now = 0; S.cur = 0; S.waiting = false; S.ci = null; S.autoplay = false; S.stepMode = false; S.heatBars = {}; S.streak = 0; S.bestStreak = 0; S.extra = 0; S.onStr = [];
+    S.finished = false; S.now = 0; S.cur = 0; S.waiting = false; S.ci = null; S.autoplay = false; S.startedAt = 0; S.loadingRef = 0; S.stepMode = false; S.heatBars = {}; S.streak = 0; S.bestStreak = 0; S.extra = 0; S.onStr = [];
     if (opts) configure(opts);
     reanchor(); PD.audio.ref.unload(); PD.media.load(lesson); PD.samples.preload(lesson); S.tempoDowns = {};
-    PD.audio.ref.setTempo(lesson.bpm);
-    if (lesson.stems) PD.audio.ref.loadStems(lesson.stems, lesson.refOffset || 0, lesson.beatMap, lesson.bpm); else if (lesson.refAudio) PD.audio.ref.load(lesson.refAudio, lesson.refOffset || 0);
+    if (lesson.stems) PD.audio.ref.loadStems(lesson.stems); else if (lesson.refAudio) PD.audio.ref.load(lesson.refAudio);
     emit('load', lesson); emit('state');
   }
   function configure(o) {
@@ -117,26 +138,38 @@ PD.engine = (() => {
     S.now = Math.max(0, Math.min(b, endBeat())); S.waiting = false; S.ci = null; S.demo = null;
     S.steps.forEach((s, i) => { if (s.t >= S.now - 1e-6) S.res[i] = { attempts: 0, ok: false, first: false, pitchOk: false, partial: 0, off: null, missed: false, dir: null, heard: [] }; });
     S.cur = S.steps.findIndex(s => s.t >= S.now - 1e-6); if (S.cur < 0) S.cur = S.steps.length;
-    reanchor(); emit('seek', S.now); emit('state');
+    reanchor(); expectFor(S.steps[S.cur]); emit('seek', S.now); emit('state');
   }
   function play() {
     if (!S.lesson) return;
+    if (S.mayPlay && !S.autoplay && !S.mayPlay()) { emit('state'); return; }   // the screen says no (e.g. the microphone is not on yet): nothing starts, not even the count-in
     PD.audio.ensure();
+    // a song recording must be decoded (and, for another tempo, stretched) before the music can start in step
+    const L = S.lesson, hasRec = (L.stems || L.refAudio) && !S.rec && !S.stepMode;
+    if (hasRec && !PD.audio.ref.ready(rf())) {
+      if (S.loadingRef) return;
+      const tok = S.loadingRef = Date.now(); emit('loadingRef', true);
+      PD.audio.ref.whenReady(rf()).then(() => { if (S.loadingRef !== tok) return; S.loadingRef = 0; emit('loadingRef', false); if (S.lesson === L && !S.playing) play(); });
+      return;
+    }
     if (S.finished || (!S.rec && S.now >= endBeat())) { seek(S.loop.on ? S.loop.a : 0); S.finished = false; }
     S.playing = true; if (!S.startedAt) S.startedAt = Date.now();
-    if (S.countIn && S.mode !== 'perform' && !S.stepMode || S.rec) startCountIn(); else reanchor();
+    if (S.countIn && !S.stepMode || S.rec) startCountIn(); else reanchor();
+    expectFor(S.steps[S.cur]);
     if (!S.pass) S.pass = { first: 0, total: 0, wrong: 0 };
     emit('state');
   }
   function startCountIn() {
-    const n = S.lesson.countIn || (bpb() === 6 ? 6 : bpb()), sp = 60 / bpm(), t0 = clock() + .12;
+    let n = S.lesson.countIn || bpb(); if (!(n >= 2 && n <= 6 && Number.isInteger(n))) n = 4;   // a whole bar, but never an odd or very long count
+    const sp = Math.max(.15, secs(S.now, S.now + 1)), t0 = clock() + .12;
     S.ci = { t0, n, sp, shown: -1 };
     const times = []; for (let i = 0; i < n; i++) { const tt = t0 + i * sp; if (S.metro || S.rec) PD.audio.click(tt, i === 0); times.push(tt); }
     PD.detector.guard(times);
   }
-  function stop() { S.playing = false; S.ci = null; emit('state'); }
+  function stop() { S.playing = false; S.ci = null; if (S.loadingRef) { S.loadingRef = 0; emit('loadingRef', false); } emit('state'); }
+  function endCountIn() { if (!S.ci) return; S.anchorTime = S.ci.t0 + S.ci.n * S.ci.sp; S.anchorBeat = S.now; S.nextClick = Math.ceil(S.now - 1e-6); S.ci = null; emit('count', 0); }
   function toggle() { S.playing ? stop() : play(); }
-  function restart() { seek(S.loop.on ? S.loop.a : 0); S.passes = []; S.pass = { first: 0, total: 0, wrong: 0 }; if (!S.playing) play(); }
+  function restart() { seek(S.loop.on ? S.loop.a : 0); S.passes = []; S.pass = { first: 0, total: 0, wrong: 0 }; S.extra = 0; S.streak = 0; S.bestStreak = 0; S.heatBars = {}; S.onStr = []; S.startedAt = 0; if (!S.playing) play(); }
 
   /* ---------- transport tick (timer-driven) ---------- */
   function tick() {
@@ -145,13 +178,16 @@ PD.engine = (() => {
     if (S.ci) {
       const k = Math.floor((now - S.ci.t0) / S.ci.sp);
       if (k !== S.ci.shown && k >= 0 && k < S.ci.n) { S.ci.shown = k; emit('count', k + 1); }
-      if (now >= S.ci.t0 + S.ci.n * S.ci.sp) { S.anchorTime = S.ci.t0 + S.ci.n * S.ci.sp; S.anchorBeat = S.now; S.nextClick = Math.ceil(S.now - 1e-6); S.ci = null; emit('count', 0); }
+      const end = S.ci.t0 + S.ci.n * S.ci.sp;
+      // the recording is scheduled to begin exactly where the count-in ends
+      PD.audio.ref.sync(W(S.now), end, rf(), !S.stepMode);
+      if (now >= end) endCountIn();
       return;
     }
-    if (!S.playing) { PD.audio.ref.sync(S.now, bpm(), false); PD.media.sync(S.now / (S.lesson.bpm / 60), 1, false); return; }
+    if (!S.playing) { PD.audio.ref.sync(0, 0, 1, false); PD.media.sync(S.now / (S.lesson.bpm / 60), 1, false); return; }
     if (!S.waiting) {
       const speed = S.stepMode && !S.waiting ? 2.5 : 1;
-      let next = S.anchorBeat + (now - S.anchorTime) * bps() * speed;
+      let next = beatOf(now, speed);
       const st = S.steps[S.cur];
       if (st && waitEff() && st.wait !== false && next >= st.t) { next = st.t; S.now = next; enterWait(st); }
       else S.now = next;
@@ -160,16 +196,16 @@ PD.engine = (() => {
       if (S.loop.on && S.loop.b != null && S.now >= S.loop.b) { endPass(); seek(S.loop.a); S.pass = { first: 0, total: 0, wrong: 0 }; }
       else if (!S.rec && S.now >= endBeat() && S.cur >= S.steps.length) finish();
     }
-    const live = S.playing && !S.waiting && !S.ci;
-    PD.audio.ref.sync(S.now, bpm(), live);
+    const live = S.playing && !S.waiting && !S.ci && !S.stepMode;
+    PD.audio.ref.sync(W(S.now), now, rf(), live);
     PD.media.sync(S.now / (S.lesson.bpm / 60), bpm() / S.lesson.bpm, live);
   }
   function scheduleClicks() {
     if (!S.metro && !S.rec) return;
-    const ahead = .12, limit = S.anchorBeat + (clock() + ahead - S.anchorTime) * bps();
+    const sp = S.stepMode ? 2.5 : 1, ahead = .12, limit = beatOf(clock() + ahead, sp);
     const st = S.steps[S.cur], stop = waitEff() && st ? st.t + 1e-6 : 1e9, times = [];
     while (S.nextClick != null && S.nextClick <= limit && S.nextClick <= stop) {
-      const at = S.anchorTime + (S.nextClick - S.anchorBeat) / bps();
+      const at = timeOf(S.nextClick, sp);
       if (at >= clock() - .01) { PD.audio.click(at, S.nextClick % bpb() === 0); times.push(at); }
       S.nextClick++;
     }
@@ -192,17 +228,20 @@ PD.engine = (() => {
   }
   function missPass() {
     let st = S.steps[S.cur];
-    while (st && (S.now - st.t) / bps() > LATE) {
+    while (st && secs(st.t, S.now) > LATE + MISS_GRACE) {
       if (S.autoPause) { S.now = st.t; S.waiting = true; S.anchorBeat = S.now; S.anchorTime = clock(); hint('h.missed', { e: label(st) }, 'fix', 4000); return; }
-      const r = S.res[st.i]; r.missed = true; r.attempts++; S.cur++; S.streak = 0; if (S.pass) { S.pass.total++; S.pass.wrong++; }
-      markWrong(st); emit('miss', st); st = S.steps[S.cur];
+      missOne(st); st = S.steps[S.cur];
     }
+  }
+  function missOne(st) {
+    const r = S.res[st.i]; r.missed = true; r.attempts++; S.cur++; S.streak = 0; if (S.pass) { S.pass.total++; S.pass.wrong++; }
+    markWrong(st); emit('miss', st); expectFor(S.steps[S.cur]);
   }
   /** listen mode: the app plays every step itself; nothing is scored */
   function autoPass() {
     let st = S.steps[S.cur];
     while (st && S.now >= st.t) {
-      const rec = S.lesson.stems && PD.audio.ref.el;   // a song with its recording: the recording is the sound
+      const rec = (S.lesson.stems || S.lesson.refAudio) && PD.audio.ref.key && !PD.audio.ref.error;   // a song with its recording: the recording is the sound
       if (rec) {} else if (st.kind === 'note') PD.audio.note(st.notes[0].s, st.notes[0].f, { vel: st.acc ? .85 : .65 });
       else PD.audio.strum(st.frets, st.st, { vel: st.acc ? 1 : .55, gap: st.acc ? .011 : .02 });   // accent: stronger attack
       S.res[st.i].ok = true; emit('hit', { st, r: { res: 'ok', auto: true } }); S.cur++; st = S.steps[S.cur];
@@ -211,14 +250,22 @@ PD.engine = (() => {
   function label(st) { return st.kind === 'note' ? TH.name(TH.midi(st.notes[0].s, st.notes[0].f)) + ' (' + TH.stringName(st.notes[0].s) + ' · ' + st.notes[0].f + ')' : (st.name || 'A') + ' ' + (st.st === 'up' ? '↑' : '↓'); }
 
   /* ---------- input + judging ---------- */
-  function target() {
+  function target(inp) {
     const st = S.steps[S.cur]; if (!st) return null;
     if (S.waiting) return st;
-    const dt = (st.t - S.now) / bps();
     // WAIT: the right note played a little ahead of the line is accepted (the timeline steps forward to it)
-    if (waitEff() && st.wait !== false) return dt <= Math.min(1.2, Math.max(EARLY, 1 / bps())) ? st : null;
-    if (dt <= EARLY && dt >= -LATE) return st;
-    return null;
+    if (waitEff() && st.wait !== false) { const dt = secs(S.now, st.t); return dt <= Math.min(1.2, Math.max(EARLY, secs(st.t - 1, st.t))) ? st : null; }
+    // continuous: judge by when the sound happened (events arrive a little after the sound), nearest step wins
+    const tb = inp && inp.t ? beatOf(inp.t) : S.now;
+    let best = -1, bd = 1e9;
+    for (let i = S.cur; i < S.steps.length; i++) {
+      const dt = secs(tb, S.steps[i].t);           // > 0: the step is still ahead of the sound
+      if (dt > EARLY) break;
+      if (dt >= -LATE && Math.abs(dt) < bd) { bd = Math.abs(dt); best = i; }
+    }
+    if (best < 0) return null;
+    while (S.cur < best) missOne(S.steps[S.cur]);   // steps skipped over were not played
+    return S.steps[best];
   }
   /** inp: {kind:'note'|'chord'|'strum'|'onset', src:'mic'|'touch', midi?, cents?, conf?, s?, f?, dir?, present?, t (audio time)} */
   function input(inp) {
@@ -227,8 +274,11 @@ PD.engine = (() => {
     emit('raw', inp);
     if (S.rec) { recordInput(inp); return; }
     if (!S.lesson || !S.playing) { if (inp.src === 'touch') hint('h.pressPlay', null, 'info', 1800); return; }
-    if (S.ci) return;
-    const st = target();
+    if (S.ci) { if (inp.t && inp.t >= S.ci.t0 + S.ci.n * S.ci.sp - EARLY) endCountIn(); else return; }   // a stroke just before the first beat counts
+    if (S.demo && inp.src === 'mic') return;   // the app is playing an example — that is not the learner
+    // playing along with a recording: the chord check belongs to the stroke it was measured on (that stroke has usually been counted already)
+    if (S.lesson.song && !waitEff() && inp.src === 'mic' && inp.kind === 'chord') { songChord(inp); return; }
+    const st = target(inp);
     if (!st) {
       if (inp.src === 'touch' && inp.kind !== 'onset') hint('h.early', null, 'info', 1200);
       // continuous strum lessons: a stroke between written strokes is an extra stroke (counted, briefly noted)
@@ -236,19 +286,14 @@ PD.engine = (() => {
       return;
     }
     const songFlow = S.lesson.song && !waitEff() && st.kind === 'chord';   // playing along with a recording: strokes are timed by onset, the chord is checked alongside
-    if (songFlow && inp.src === 'mic' && inp.kind === 'chord') {
-      const n = (inp.present || []).filter(Boolean).length; S.chordSeen = { i: st.i, n };
-      if (n < 2 && (!S.lastChordHint || performance.now() - S.lastChordHint > 2600)) { S.lastChordHint = performance.now(); hint('h.chordCheck', { c: st.name }, 'almost', 1800); }
-      return;
-    }
     if (inp.src === 'mic' && inp.kind === 'note' && st.kind !== 'note') return;   // chords are judged by the chord detector
     if (inp.src === 'mic' && inp.kind === 'chord' && (st.kind !== 'chord' || (inp.t - (S.lastAcceptT || -9)) < .14)) return;
     if (inp.src === 'mic' && inp.kind === 'onset' && st.kind !== 'strum' && !songFlow) return;
     const r = judge(st, inp), res = S.res[st.i];
     if (r.res === 'unsure') {
       // a low-confidence read is never a mistake. In continuous play the onset still tells us the timing.
-      if (!waitEff() && inp.src === 'mic' && inp.kind === 'note' && st.kind === 'note' && inp.t) {
-        res.unsure = true; res.off = (beatAt(inp.t) - st.t) / bps(); S.cur++; expectFor(S.steps[S.cur]);
+      if (!waitEff() && inp.src === 'mic' && inp.kind === 'note' && st.kind === 'note' && inp.t && (inp.conf || 0) > .2) {
+        res.unsure = true; res.off = secs(st.t, beatAt(inp.t)); S.cur = st.i + 1; expectFor(S.steps[S.cur]);
         hint('h.rhythmOnly', null, 'unsure', 1800); emit('unsure', { st }); return;
       }
       hint('h.unsure', null, 'unsure', 2200); emit('unsure', { st }); return;
@@ -260,7 +305,7 @@ PD.engine = (() => {
       S.lastAcceptT = inp.t || clock(); res.ok = true; res.pitchOk = r.pitchOk !== false; res.first = res.attempts === 1; res.partial = r.partial || 0;
       res.dir = r.dir == null ? null : r.dir;
       const timed = !waitEff() || st.wait === false;
-      res.off = timed ? (beat - st.t) / bps() : null; res.grade = grade(res.off); if (r.accOk != null) res.accOk = r.accOk;
+      res.off = timed ? secs(st.t, beat) : null; res.grade = grade(res.off); if (r.accOk != null) res.accOk = r.accOk;
       S.streak = res.first ? (S.streak || 0) + 1 : 0; S.bestStreak = Math.max(S.bestStreak || 0, S.streak || 0);
       if (S.pass) { S.pass.total++; if (res.first) S.pass.first++; }
       const prevSt = S.steps[st.i - 1], pf = prevSt && prevSt.kind === 'note' ? prevSt.notes[0].f : null, cf = st.kind === 'note' ? st.notes[0].f : null;
@@ -273,18 +318,28 @@ PD.engine = (() => {
       S.almostDir = [];
       S.lastHit = { i: st.i, at: performance.now() };
       emit('hit', { st, r });
-      if (S.waiting) { release(); if (PD.store.get('autoAdvance', true) === false && S.cur < S.steps.length) stop(); } else if (waitEff()) { S.cur++; expectFor(S.steps[S.cur]); } else { S.cur++; expectFor(S.steps[S.cur]); }
+      if (S.waiting) { release(); if (PD.store.get('autoAdvance', true) === false && S.cur < S.steps.length) stop(); } else { S.cur = st.i + 1; expectFor(S.steps[S.cur]); }
       return;
     }
     // wrong / almost
     S.lastWrong = st.i;
-    if (!waitEff() && r.res === 'almost' && r.advance) { res.ok = false; S.cur++; if (S.pass) { S.pass.total++; S.pass.wrong++; } }
+    if (!waitEff() && r.res === 'almost' && r.advance) { res.ok = false; S.cur = st.i + 1; expectFor(S.steps[S.cur]); if (S.pass) { S.pass.total++; S.pass.wrong++; } }
     if (S.pass) S.pass.wrong++;
     S.streak = 0;
     markWrong(st);
     if (r.dirC) { S.almostDir.push(r.dirC); if (S.almostDir.length >= 3 && S.almostDir.slice(-3).every(x => x === r.dirC)) { hint('h.tune', null, 'almost', 4000); S.almostDir = []; emit('wrong', { st, r }); return; } }
     hint(r.key, r.vars, r.res === 'almost' ? 'almost' : 'fix', 2600);
     emit('wrong', { st, r });
+  }
+  function songChord(inp) {
+    const tb = inp.t ? beatOf(inp.t) : S.now; let st = null, bd = 1e9;
+    for (let i = Math.max(0, S.cur - 4); i < Math.min(S.steps.length, S.cur + 2); i++) { const d = Math.abs(secs(tb, S.steps[i].t)); if (d < bd) { bd = d; st = S.steps[i]; } }
+    if (!st || st.kind !== 'chord' || bd > LATE + .08) return;
+    // the detector measured against the chord expected at the moment of the stroke; skip if that was another chord
+    const want = st.notes.map(n => Math.round(TH.freq(TH.midi(n.s, n.f)))).join(','), got = (inp.exp || []).map(Math.round).join(',');
+    if (inp.exp && want !== got) return;
+    const n = (inp.present || []).filter(Boolean).length; S.chordSeen = { i: st.i, n };
+    if (n < 2 && (!S.lastChordHint || performance.now() - S.lastChordHint > 2600)) { S.lastChordHint = performance.now(); hint('h.chordCheck', { c: st.name }, 'almost', 1800); }
   }
   function judge(st, inp) {
     const n0 = st.notes[0];
@@ -321,9 +376,9 @@ PD.engine = (() => {
       return { res: 'ok', pitchOk: null, dir: null, accOk };
     }
     if (inp.kind === 'chord') {
-      const pres = inp.present || [], n = pres.filter(Boolean).length;
-      if (n === 3) return { res: 'ok', pitchOk: true, partial: 1 };
-      if (n === 2) { const miss = pres.findIndex(p => !p); return { res: 'partial', pitchOk: true, partial: 2 / 3, vars: { n: 2, s: TH.stringName(st.notes[miss] ? st.notes[miss].s : miss + 1) } }; }
+      const pres = inp.present || [], n = pres.filter(Boolean).length, need = st.notes.length || 3;
+      if (n >= need) return { res: 'ok', pitchOk: true, partial: 1 };
+      if (need >= 3 && n === need - 1) { const miss = pres.findIndex(p => !p); return { res: 'partial', pitchOk: true, partial: n / need, vars: { n, s: TH.stringName(st.notes[miss] ? st.notes[miss].s : miss + 1) } }; }
       return { res: 'wrong', key: 'h.chordNo' };
     }
     return { res: 'unsure' };
@@ -355,7 +410,7 @@ PD.engine = (() => {
     if (st.kind === 'note') PD.audio.note(st.notes[0].s, st.notes[0].f, { when, vel: .7 });
     else PD.audio.strum(st.frets, st.st, { when, gap: st.acc ? .04 : .055, vel: st.acc ? 1 : .55 });
     emit('demo', st);
-    setTimeout(() => { if (S.demo && S.demo.i === st.i) { S.demo = null; hint('h.yourTurn', null, 'info', 1600); emit('state'); } }, 1500);
+    setTimeout(() => { if (S.demo && S.demo.i === st.i) { S.demo = null; hint('h.yourTurn', null, 'info', 1600); emit('state'); } }, 2300);
   }
 
   /* ---------- passes, drills, results ---------- */
@@ -390,16 +445,17 @@ PD.engine = (() => {
     }
   }
   function drill(a, b, opts) {
-    S.drill = { prev: { tempo: S.tempo, wait: S.wait, loop: Object.assign({}, S.loop), bpmOverride: S.bpmOverride }, goalTempo: S.tempo, a, b };
+    S.drill = { prev: { tempo: S.tempo, wait: S.wait, mode: S.mode, loop: Object.assign({}, S.loop), bpmOverride: S.bpmOverride }, goalTempo: S.tempo, a, b };
+    if (S.mode === 'perform') S.mode = opts && opts.wait ? 'learn' : 'practice';   // a drill is practice: waiting, help and a count-in
     if (opts && opts.ladder) { const L = opts.ladder; S.drill.ladder = { from: L.from, bpm: L.from, step: L.step || 6, to: L.to, thr: L.thr || 90, low: L.low || 70 }; S.bpmOverride = L.from; }
     else { S.tempo = opts && opts.tempo || Math.max(.4, S.tempo - .2); }
     if (opts && opts.wait) S.wait = true;
     S.loop = { a, b, on: true }; S.passes = []; seek(a); S.pass = { first: 0, total: 0, wrong: 0 };
-    emit('drill', S.drill); if (!S.playing) play();
+    emit('drill', S.drill); if (!S.playing && !(opts && opts.noPlay)) play();
   }
   function endDrill(done) {
     const d = S.drill; if (!d) return; S.drill = null;
-    S.tempo = d.prev.tempo; S.wait = d.prev.wait; S.loop = d.prev.loop; S.bpmOverride = d.prev.bpmOverride || 0; if (!S.loop.on) S.loop = { a: null, b: null, on: false };
+    S.tempo = d.prev.tempo; S.wait = d.prev.wait; if (d.prev.mode) S.mode = d.prev.mode; S.loop = d.prev.loop; S.bpmOverride = d.prev.bpmOverride || 0; if (!S.loop.on) S.loop = { a: null, b: null, on: false };
     if (done) hint('h.drillDone', null, 'ok', 3000);
     seek(0); emit('drill', null); emit('state');
   }
@@ -410,7 +466,7 @@ PD.engine = (() => {
   function sectionAt(b) { const ss = S.lesson.sections; return ss.find(x => b >= x.from && b < x.to) || ss[ss.length - 1] || { from: 0, to: endBeat(), name: { ka: '', en: '' } }; }
 
   function results() {
-    const steps = S.steps, res = S.res, n = Math.max(1, res.filter(r => !(r.unsure && !r.ok && !r.missed && r.attempts === 0)).length);
+    const steps = S.steps, res = S.res, n = Math.max(1, res.filter(r => r.attempts > 0 || r.missed || r.ok).length);   // only steps that were reached
     const judged = res.filter(r => r.attempts > 0 || r.missed);
     const firstTry = res.filter(r => r.first).length / n;
     const attempts = res.reduce((a, r) => a + r.attempts, 0) || 1;
@@ -426,7 +482,7 @@ PD.engine = (() => {
       const mean = offs.reduce((a, b) => a + b, 0) / offs.length; consistency = Math.sqrt(offs.reduce((a, o) => a + (o - mean) * (o - mean), 0) / offs.length);
       // rhythm: inter-onset intervals vs written intervals
       let ok = 0, tot = 0;
-      for (let i = 1; i < steps.length; i++) { const a = res[i - 1], b = res[i]; if (a.off == null || b.off == null) continue; const written = (steps[i].t - steps[i - 1].t) / bps(); const played = written + (b.off - a.off); tot++; if (Math.abs(played - written) <= Math.max(.06, written * .15)) ok++; }
+      for (let i = 1; i < steps.length; i++) { const a = res[i - 1], b = res[i]; if (a.off == null || b.off == null) continue; const written = secs(steps[i - 1].t, steps[i].t); const played = written + (b.off - a.off); tot++; if (Math.abs(played - written) <= Math.max(.06, written * .15)) ok++; }
       rhythm = tot ? ok / tot : null;
     }
     const missed = res.filter(r => r.missed).length, repeated = res.filter(r => r.attempts >= 3).length;
@@ -442,8 +498,8 @@ PD.engine = (() => {
       const f = rr.filter(r => r.first).length / rr.length;
       heat.push(f >= .9 ? 2 : f >= .6 ? 1 : 0);
     }
-    const secs = S.lesson.sections.map(sc => { const rr = steps.filter(s => s.t >= sc.from && s.t < sc.to).map(s => res[s.i]); return { sc, acc: rr.length ? rr.filter(r => r.first).length / rr.length : 1 }; });
-    const best = secs.slice().sort((a, b) => b.acc - a.acc)[0], worst = secs.slice().sort((a, b) => a.acc - b.acc)[0];
+    const secAcc = S.lesson.sections.map(sc => { const rr = steps.filter(s => s.t >= sc.from && s.t < sc.to).map(s => res[s.i]); return { sc, acc: rr.length ? rr.filter(r => r.first).length / rr.length : 1 }; });   // (not "secs": that is the beat→seconds function)
+    const best = secAcc.slice().sort((a, b) => b.acc - a.acc)[0], worst = secAcc.slice().sort((a, b) => a.acc - b.acc)[0];
     const unsure = res.filter(r => r.unsure).length;
     // pitch stability: spread (cents) of correctly identified mic notes around their target
     const devs = []; steps.forEach(s => { const r = res[s.i]; if (s.kind !== 'note' || !r.ok) return; const h = r.heard[r.heard.length - 1]; if (h && h.midi != null && h.conf != null && h.conf < 1) devs.push((h.midi - TH.midi(s.notes[0].s, s.notes[0].f)) * 100); });
@@ -460,13 +516,13 @@ PD.engine = (() => {
     const shifts = []; for (let i = 1; i < steps.length; i++) { const a = steps[i - 1], b = steps[i], rb = res[i]; if (a.kind === 'note' && b.kind === 'note' && a.notes[0].f !== b.notes[0].f && (rb.missed || rb.attempts > 1 || (rb.off != null && rb.off > GOOD))) shifts.push(a.notes[0].f + '→' + b.notes[0].f); }
     if (shifts.length) { const c = {}; shifts.forEach(x => c[x] = (c[x] || 0) + 1); const top = Object.keys(c).sort((x, y) => c[y] - c[x])[0]; areas.push({ key: 'r.aShift', vars: { t: top } }); }
     const offsets = steps.map(s => ({ t: s.t, off: res[s.i].off, missed: !!res[s.i].missed }));
-    return { offsets, grades, correct, bestStreak: S.bestStreak || 0, accAcc, extra: S.extra || 0, errors, areas, unsure, pitchSpread, firstTry, pitchAcc, timing, rhythm, consistency, median, early, late, missed, repeated, chordComp, dirAcc, heat, best, worst, tempo: bpm(), tempoPct: Math.round(bpm() / S.lesson.bpm * 100), waited: waitEff(), notes: steps.length, attempts, input: S.input };
+    return { offsets, grades, correct, bestStreak: S.bestStreak || 0, accAcc, extra: S.extra || 0, errors, areas, unsure, pitchSpread, firstTry, pitchAcc, timing, rhythm, consistency, median, early, late, missed, repeated, chordComp, dirAcc, heat, best, worst, tempo: bpm(), tempoPct: Math.round(bpm() / S.lesson.bpm * 100), waited: waitEff() && offs.length < 2, notes: steps.length, attempts, input: S.input };
   }
   function finish() {
     stop(); S.finished = true;
     if (S.autoplay) { emit('end', null); return; }
     endPass();
-    const r = results(), id = S.lesson.id, p = LS.progress.lesson(id);
+    const r = results(), id = S.lesson.id, p = LS.progress.lesson(id), sid = S.lesson.derived || id;
     p.plays++; p.last = Date.now();
     const wasM = (p.mastery || 0) >= .9;
     p.mastery = p.mastery ? p.mastery * .6 + r.firstTry * .4 : r.firstTry;
@@ -479,14 +535,23 @@ PD.engine = (() => {
     S.steps.forEach(s => { const rr = S.res[s.i], k = Math.floor(s.t / bb), o = bars[k] || (bars[k] = { n: 0, second: 0, miss: 0, offs: [], down: 0 }); if (!(rr.attempts || rr.missed || rr.ok)) return; o.n++; if (rr.attempts > 1 || (rr.ok && !rr.first)) o.second++; if (rr.missed) o.miss++; if (rr.off != null) { o.offs.push(+rr.off.toFixed(3)); if (o.offs.length > 40) o.offs.shift(); } });
     Object.keys(S.tempoDowns || {}).forEach(k => { const o = bars[k] || (bars[k] = { n: 0, second: 0, miss: 0, offs: [], down: 0 }); o.down += S.tempoDowns[k]; });
     p.bars = bars;
-    const stage = S.mode === 'perform' ? 'perform' : r.waited ? 'wait' : S.drill || S.loop.on ? 'phrase' : 'slow';
+    const stage = S.mode === 'perform' ? 'perform' : S.stepMode ? 'guided' : r.waited ? 'wait' : S.drill || S.loop.on ? 'phrase' : 'slow';
     p.stages[stage] = Math.max(p.stages[stage] || 0, Math.round(r.firstTry * 100));
     LS.progress.saveLesson(id, p);
     // problem frets: wrong attempts by (string, fret)
     const probs = {}; S.steps.forEach(s => { const rr = S.res[s.i]; if (rr.attempts > 1 || rr.missed) s.notes.forEach(nn => { const k = nn.s + ':' + nn.f; probs[k] = (probs[k] || 0) + 1; }); });
-    LS.progress.addSession({ id, date: Date.now(), dur: S.startedAt ? Math.round((Date.now() - S.startedAt) / 1000) : 0, firstTry: r.firstTry, pitch: r.input === 'mic' ? r.pitchAcc : null, pitchSpread: r.pitchSpread, timing: r.timing, consistency: r.consistency, bpm: r.tempo, tempo: r.tempoPct, mode: S.mode, waited: r.waited, probs, correct: r.correct, notes: r.notes, accAcc: r.accAcc, input: r.input, rhythm: !!S.lesson.rhythm || S.steps.every(x => x.kind === 'strum'), type: S.lesson.type });
+    LS.progress.addSession({ id: sid, date: Date.now(), dur: S.startedAt ? Math.round((Date.now() - S.startedAt) / 1000) : 0, firstTry: r.firstTry, pitch: r.input === 'mic' ? r.pitchAcc : null, pitchSpread: r.pitchSpread, timing: r.timing, consistency: r.consistency, bpm: r.tempo, tempo: r.tempoPct, mode: S.mode, waited: r.waited, probs, correct: r.correct, notes: r.notes, accAcc: r.accAcc, input: r.input, rhythm: !!S.lesson.rhythm || S.steps.every(x => x.kind === 'strum'), type: S.lesson.type });
     S.startedAt = 0;
     emit('end', r);
+  }
+
+  /** leaving before the end (loops, sections, drills): keep the practice time and what was played, without touching mastery */
+  function saveRun() {
+    if (!S.lesson || S.finished || S.autoplay || S.rec || !S.startedAt) return;
+    const judged = S.res.filter(r => r.attempts > 0 || r.missed).length; if (judged < 4) { S.startedAt = 0; return; }
+    const r = results(), id = S.lesson.derived || S.lesson.id;
+    LS.progress.addSession({ id, date: Date.now(), dur: Math.round((Date.now() - S.startedAt) / 1000), firstTry: r.firstTry, pitch: r.input === 'mic' ? r.pitchAcc : null, timing: r.timing, consistency: r.consistency, bpm: r.tempo, tempo: r.tempoPct, mode: S.mode, waited: r.waited, correct: r.correct, notes: judged, accAcc: r.accAcc, input: r.input, rhythm: !!S.lesson.rhythm || S.steps.every(x => x.kind === 'strum'), type: S.lesson.type, partial: true });
+    S.startedAt = 0;
   }
 
   /* ---------- recording a lesson from playing ---------- */
@@ -533,7 +598,7 @@ PD.engine = (() => {
 
   /* ---------- wiring to the detector ---------- */
   PD.detector.on('note', m => { if (S.input === 'mic') input(Object.assign({ kind: 'note', src: 'mic' }, m)); });
-  PD.detector.on('chord', m => { if (S.input === 'mic') input({ kind: 'chord', src: 'mic', present: m.present, t: m.t }); });
+  PD.detector.on('chord', m => { if (S.input === 'mic') input({ kind: 'chord', src: 'mic', present: m.present, t: m.t, exp: m.exp }); });
   PD.detector.on('onset', m => { if (S.input === 'mic') input({ kind: 'onset', src: 'mic', t: m.t, strength: m.strength }); });
   setInterval(tick, 8);
   document.addEventListener('visibilitychange', () => { if (document.hidden && S.playing && !S.rec) { stop(); emit('autopause'); } });
@@ -541,13 +606,15 @@ PD.engine = (() => {
   return {
     S, ASSIST, flags, load, configure, play, stop, toggle, restart, seek, input, showMe, drill, endDrill, repeatMeasure, repeatPhrase, repeatMistake, loopBars,
     results, record, undoRecord, stopRecord, quantize, sectionAt, label, assist, bpm, bps, bpb, endBeat, waitEff, tick,
-    beatAt, clock,
+    beatAt, clock, W, Wi, rf, secs, saveRun,
+    /** leave the lesson completely: nothing keeps running in the background */
+    unload() { stop(); S.lesson = null; S.steps = []; S.res = []; S.drill = null; S.demo = null; PD.audio.ref.unload(); PD.detector.expect(null); emit('state'); },
     on(k, f) { (listeners[k] = listeners[k] || []).push(f); return () => { listeners[k] = listeners[k].filter(x => x !== f); }; },
     /** frame-exact beat position derived from the same audio-clock anchor as the transport (visuals never drift from audio) */
     visualNow() {
       if (!S.lesson) return 0;
       if (!S.playing || S.waiting || S.ci) return S.now;
-      let b = S.anchorBeat + (clock() - S.anchorTime) * bps() * (S.stepMode ? 2.5 : 1);
+      let b = beatOf(clock(), S.stepMode ? 2.5 : 1);
       const st = S.steps[S.cur]; if (st && waitEff() && b > st.t) b = st.t;
       if (S.loop.on && S.loop.b != null) b = Math.min(b, S.loop.b);
       return Math.max(S.now, Math.min(b, S.now + .25));

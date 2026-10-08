@@ -15,7 +15,7 @@ PD.i18n.add({
   'cm.answer': ['პასუხი', 'Answer'], 'cm.noPosts': ['კითხვები ჯერ არ არის — დასვი პირველი.', 'No questions yet — ask the first one.'], 'cm.delete': ['წაშლა', 'Delete'], 'cm.err': ['ვერ მოხერხდა: {e}', 'Could not complete: {e}'], 'cm.now': ['ახლა', 'now'], 'cm.needName': ['სხვებმა რომ გიპოვონ და იცოდნენ ვინ წერს, ჩაწერე შენი სახელი.', 'So others can find you and know who is writing, add your name.'], 'cm.yourName': ['შენი სახელი', 'Your name'], 'cm.save': ['შენახვა', 'Save'],
   'cl.video': ['ვიდეო ზარი', 'Video call'], 'cl.calling': ['ირეკება…', 'Calling…'], 'cl.incoming': ['{n} გირეკავს', '{n} is calling'], 'cl.accept': ['პასუხი', 'Answer'], 'cl.decline': ['უარყოფა', 'Decline'],
   'cl.ended': ['ზარი დასრულდა', 'Call ended'], 'cl.busy': ['ხაზი დაკავებულია', 'The line is busy'], 'cl.noAnswer': ['არ უპასუხა', 'No answer'], 'cl.mute': ['მიკროფონი', 'Microphone'], 'cl.cam': ['კამერა', 'Camera'], 'cl.hang': ['დასრულება', 'Hang up'],
-  'cl.failed': ['დაკავშირება ვერ მოხერხდა — ზოგ ქსელში საჭიროა TURN სერვერი (პარამეტრებში).', 'Could not connect — some networks need a TURN server (in settings).'], 'cl.connected': ['დაკავშირებულია', 'Connected']
+  'cl.failed': ['დაკავშირება ვერ მოხერხდა — ზოგ ქსელში საჭიროა TURN სერვერი (პარამეტრებში).', 'Could not connect — some networks need a TURN server (in settings).'], 'cl.connected': ['დაკავშირებულია', 'Connected'], 'cl.connecting': ['უკავშირდება…', 'Connecting…'], 'cl.unstable': ['კავშირი შეწყდა — ვცდილობთ აღდგენას…', 'Connection lost — trying to reconnect…']
 });
 
 PD.community = (() => {
@@ -101,7 +101,7 @@ PD.community = (() => {
     const inp = h('textarea', { class: 'input cm-in', rows: '1', maxlength: '4000', placeholder: t('cm.type'), 'aria-label': t('cm.type') });
     const send = async () => { const v = inp.value.trim(); if (!v) return; inp.value = ''; try { await C.chat.send(id, v); poll(); } catch (e) { PD.ui.toast(err(e)); inp.value = v; } };
     inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-    w.append(h('div', { class: 'cm-head' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.go('community') }), h('b', { class: 'grow', text: name || '—' }),
+    w.append(h('div', { class: 'cm-head' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => history.state && history.state.r === 'community' && history.length > 1 ? history.back() : PD.app.go('community', null, true) }), h('b', { class: 'grow', text: name || '—' }),
       h('button', { class: 'pz-ic', 'aria-label': t('cl.video'), html: ic.video, onclick: () => PD.premium.require('call', () => PD.call.start(id, name)) })]),
       msgs, h('div', { class: 'cm-bar' }, [inp, h('button', { class: 'btn primary icon', 'aria-label': t('cm.send'), html: ic.send, onclick: send })]));
     let last = 0, busy = false;
@@ -122,7 +122,7 @@ PD.community = (() => {
 /* ---------- 1:1 video call: WebRTC, signalling through the server (offer · answer · ICE) ---------- */
 PD.call = (() => {
   const h = PD.h, C = PD.cloud, ic = PD.ic;
-  let cur = null, ringPoll = 0, lastRing = Date.now();
+  let cur = null, ringPoll = 0, ringMark = null;   // id of the newest ring already seen (server ids, so the device clock does not matter)
   const ICE = () => { const s = [{ urls: 'stun:stun.l.google.com:19302' }]; const tc = PD.CONFIG && PD.CONFIG.turn; if (tc && tc.urls) s.push(tc); return s; };
   function ui(name, state) {
     const root = h('div', { class: 'call', role: 'dialog', 'aria-label': t('cl.video') });
@@ -130,12 +130,13 @@ PD.call = (() => {
     const st = h('div', { class: 'call-st' }, [h('b', { text: name || '—' }), h('small', { text: state })]);
     const bMic = h('button', { class: 'call-b', 'aria-label': t('cl.mute'), html: ic.mic }), bCam = h('button', { class: 'call-b', 'aria-label': t('cl.cam'), html: ic.video }), bEnd = h('button', { class: 'call-b end', 'aria-label': t('cl.hang'), html: ic.hangup });
     root.append(remote, local, st, h('div', { class: 'call-bar' }, [bMic, bCam, bEnd]));
+    local.muted = true;   // the attribute alone does not mute it: your own voice must never come back through the speaker
     document.body.appendChild(root);
     return { root, remote, local, st, bMic, bCam, bEnd, state: s => { st.lastChild.textContent = s; } };
   }
   async function media() { return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 } }, audio: { echoCancellation: true, noiseSuppression: true } }); }
   function session(conv, name, role, startId) {
-    const U = ui(name, t(role === 'caller' ? 'cl.calling' : 'cl.connected'));
+    const U = ui(name, t(role === 'caller' ? 'cl.calling' : 'cl.connecting'));
     const pc = new RTCPeerConnection({ iceServers: ICE() });
     const self = { conv, pc, U, last: startId || 0, ended: false, stream: null, ready: false, q: [] };
     cur = self;
@@ -143,8 +144,17 @@ PD.call = (() => {
     const sendIce = c => C.signal.send(conv, 'ice', c).catch(() => {});
     pc.onicecandidate = e => { if (!e.candidate) return; const c = e.candidate.toJSON ? e.candidate.toJSON() : e.candidate; if (self.ready) sendIce(c); else self.q.push(c); };
     self.flush = () => { self.ready = true; self.q.splice(0).forEach(sendIce); };
-    pc.ontrack = e => { U.remote.srcObject = e.streams[0]; U.state(t('cl.connected')); };
-    pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed') { U.state(t('cl.failed')); setTimeout(() => end(true), 2500); } };
+    pc.ontrack = e => { U.remote.srcObject = e.streams[0]; };
+    pc.onconnectionstatechange = () => {
+      const cs = pc.connectionState; clearTimeout(self.drop);
+      if (cs === 'connected') U.state(t('cl.connected'));
+      else if (cs === 'connecting') U.state(t(role === 'caller' && !pc.currentRemoteDescription ? 'cl.calling' : 'cl.connecting'));
+      else if (cs === 'disconnected') { U.state(t('cl.unstable')); self.drop = setTimeout(() => { if (pc.connectionState !== 'connected') { U.state(t('cl.failed')); setTimeout(() => end(true), 2000); } }, 10000); }
+      else if (cs === 'failed') { U.state(t('cl.failed')); setTimeout(() => end(true), 2500); }
+      else if (cs === 'closed') end(false);
+    };
+    self.lid = PD.layers.push(() => end(true));   // Back hangs up
+    const bye = () => end(true); window.addEventListener('pagehide', bye);
     U.bEnd.onclick = () => end(true);
     U.bMic.onclick = () => { const a = self.stream && self.stream.getAudioTracks()[0]; if (a) { a.enabled = !a.enabled; U.bMic.classList.toggle('off', !a.enabled); } };
     U.bCam.onclick = () => { const v = self.stream && self.stream.getVideoTracks()[0]; if (v) { v.enabled = !v.enabled; U.bCam.classList.toggle('off', !v.enabled); } };
@@ -163,7 +173,7 @@ PD.call = (() => {
       self.timer = setTimeout(poll, 900);
     }
     function end(notify) {
-      if (self.ended) return; self.ended = true; clearTimeout(self.timer); clearTimeout(self.noAns);
+      if (self.ended) return; self.ended = true; clearTimeout(self.timer); clearTimeout(self.noAns); clearTimeout(self.drop); window.removeEventListener('pagehide', bye); PD.layers.done(self.lid);
       if (notify) C.signal.send(conv, 'end', null).catch(() => {});
       try { pc.close(); } catch (_) {}
       if (self.stream) self.stream.getTracks().forEach(tr => tr.stop());
@@ -199,10 +209,13 @@ PD.call = (() => {
   async function checkRing() {
     if (!C.configured || !C.session || cur || document.hidden) return;
     try {
-      const since = new Date(Math.max(lastRing, Date.now() - 40000)).toISOString();
-      const rows = await C.db.select('call_signals', { kind: 'eq.ring', sender: 'neq.' + C.uid, created_at: 'gt.' + since, select: 'id,conversation_id,payload,created_at', order: 'id.desc', limit: '1' });
-      const r = rows && rows[0]; if (!r) return;
-      lastRing = new Date(r.created_at).getTime() + 1;
+      const q = { kind: 'eq.ring', sender: 'neq.' + C.uid, select: 'id,conversation_id,payload,created_at', order: 'id.desc', limit: '1' };
+      if (ringMark != null) q.id = 'gt.' + ringMark;
+      const rows = await C.db.select('call_signals', q);
+      const r = rows && rows[0];
+      if (ringMark == null) { ringMark = r ? r.id : 0; return; }   // first look: remember where we are, do not ring for old calls
+      if (!r) return;
+      ringMark = r.id;
       const name = (r.payload && r.payload.name) || '—';
       const box = h('div', { class: 'ring' }, [h('span', { class: 'ring-ic', html: ic.video }), h('b', { text: t('cl.incoming', { n: name }) }),
         h('div', { class: 'row' }, [h('button', { class: 'btn primary', 'data-t': 'cl.accept', onclick: () => { box.remove(); accept(r.conversation_id, name, r.id); } }),
@@ -210,7 +223,7 @@ PD.call = (() => {
       document.body.appendChild(box); PD.i18n.apply(box); setTimeout(() => box.remove(), 40000);
     } catch (_) {}
   }
-  function watch() { clearInterval(ringPoll); ringPoll = setInterval(checkRing, 5000); }
+  function watch() { clearInterval(ringPoll); ringMark = null; ringPoll = setInterval(checkRing, 5000); checkRing(); }
   PD.bus.on('cloud', watch);
   if (C.session) watch();
   return { start, accept, get active() { return !!cur; } };
