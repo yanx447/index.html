@@ -63,7 +63,7 @@ PD.engine = (() => {
   const bpb = () => S.lesson ? LS.bpb(S.lesson) : 4;
   const waitEff = () => (S.wait || S.stepMode) && S.mode !== 'perform' && !S.rec && !S.autoplay;
   const endBeat = () => S.rec ? 1e9 : (S.steps.length ? Math.max(...S.steps.map(s => s.t + s.d)) : bpb());
-  const reanchor = () => { S.anchorBeat = S.now; S.anchorTime = clock(); S.nextClick = Math.ceil(S.now - 1e-6); };
+  const reanchor = () => { S.anchorBeat = S.now; S.anchorTime = clock(); S.nextClick = Math.ceil(S.now - 1e-6); S.gi = null; };
   /* ---------- time ↔ beats ----------
      A song carries a beat map (the moment every beat sounds in its recording; live music drifts a little).
      W(b) = song seconds (at 100 %) of beat b; without a map it is a straight line (steady tempo).
@@ -167,7 +167,7 @@ PD.engine = (() => {
     PD.detector.guard(times);
   }
   function stop() { S.playing = false; S.ci = null; if (S.loadingRef) { S.loadingRef = 0; emit('loadingRef', false); } emit('state'); }
-  function endCountIn() { if (!S.ci) return; S.anchorTime = S.ci.t0 + S.ci.n * S.ci.sp; S.anchorBeat = S.now; S.nextClick = Math.ceil(S.now - 1e-6); S.ci = null; emit('count', 0); }
+  function endCountIn() { if (!S.ci) return; S.anchorTime = S.ci.t0 + S.ci.n * S.ci.sp; S.anchorBeat = S.now; S.nextClick = Math.ceil(S.now - 1e-6); S.gi = S.ci.gi != null ? S.ci.gi : null; S.ci = null; emit('count', 0); }
   function toggle() { S.playing ? stop() : play(); }
   function restart() { seek(S.loop.on ? S.loop.a : 0); S.passes = []; S.pass = { first: 0, total: 0, wrong: 0 }; S.extra = 0; S.streak = 0; S.bestStreak = 0; S.heatBars = {}; S.onStr = []; S.startedAt = 0; if (!S.playing) play(); }
 
@@ -181,6 +181,12 @@ PD.engine = (() => {
       const end = S.ci.t0 + S.ci.n * S.ci.sp;
       // the recording is scheduled to begin exactly where the count-in ends
       PD.audio.ref.sync(W(S.now), end, rf(), !S.stepMode);
+      // so is the app's own playing (the first stroke falls right on the end of the count-in)
+      if (now >= end - .15 && S.ci.gi == null && guideOn()) {
+        let i = S.cur; const lim = S.now + Math.max(.05, .15 * rf() * bpm() / 60);
+        for (; i < S.steps.length && S.steps[i].t <= lim; i++) { const g = S.steps[i], at = end + secs(S.now, g.t); if (g.kind === 'note') PD.audio.note(g.notes[0].s, g.notes[0].f, { when: at, vel: g.acc ? .85 : .65, guide: !waitEff() }); else PD.audio.strum(g.frets, g.st, { when: at, vel: g.acc ? 1 : .6, gap: g.acc ? .011 : .02, guide: !waitEff() }); }
+        S.ci.gi = i;
+      }
       if (now >= end) endCountIn();
       return;
     }
@@ -191,7 +197,7 @@ PD.engine = (() => {
       const st = S.steps[S.cur];
       if (st && waitEff() && st.wait !== false && next >= st.t) { next = st.t; S.now = next; enterWait(st); }
       else S.now = next;
-      scheduleClicks();
+      scheduleClicks(); scheduleGuide();
       if (S.autoplay) autoPass(); else if (!waitEff() || (S.steps[S.cur] && S.steps[S.cur].wait === false)) missPass();
       if (S.loop.on && S.loop.b != null && S.now >= S.loop.b) { endPass(); seek(S.loop.a); S.pass = { first: 0, total: 0, wrong: 0 }; }
       else if (!S.rec && S.now >= endBeat() && S.cur >= S.steps.length) finish();
@@ -210,6 +216,27 @@ PD.engine = (() => {
       S.nextClick++;
     }
     if (times.length) PD.detector.guard(times);
+  }
+  /** the app plays along: listen mode without the recording, or when the learner chose the synthesizer.
+      Every stroke is scheduled ahead on the audio clock, so it is exactly in time. */
+  function guideOn() {
+    const L = S.lesson; if (!L || S.rec || S.stepMode) return false;
+    const recOn = (L.stems || L.refAudio) && PD.audio.ref.key && !PD.audio.ref.error;
+    if (S.autoplay) return !recOn;
+    return L.stems ? PD.audio.ref.mix === 'synth' : !!S.guide;
+  }
+  function scheduleGuide() {
+    if (!guideOn()) return;
+    const limit = beatOf(clock() + .15), st = S.steps[S.cur], stop = waitEff() && st && !S.autoplay ? st.t + 1e-6 : 1e9;
+    if (S.gi == null) { S.gi = S.cur; while (S.gi > 0 && S.steps[S.gi - 1].t >= S.now - 1e-6) S.gi--; }
+    // in continuous play the learner strums together with the app: those sounds must not hide the learner's strokes (echo cancellation keeps them out of the microphone)
+    const own = S.autoplay || waitEff();
+    while (S.gi < S.steps.length && S.steps[S.gi].t <= limit && S.steps[S.gi].t <= stop) {
+      const g = S.steps[S.gi], at = timeOf(g.t); S.gi++;
+      if (at < clock() - .02 || (S.loop.on && S.loop.b != null && g.t >= S.loop.b - 1e-6)) continue;
+      if (g.kind === 'note') PD.audio.note(g.notes[0].s, g.notes[0].f, { when: at, vel: g.acc ? .85 : .65, guide: !own });
+      else PD.audio.strum(g.frets, g.st, { when: at, vel: g.acc ? 1 : .6, gap: g.acc ? .011 : .02, guide: !own });
+    }
   }
   function enterWait(st) {
     S.waiting = true; S.anchorBeat = S.now; S.anchorTime = clock();
@@ -241,10 +268,7 @@ PD.engine = (() => {
   function autoPass() {
     let st = S.steps[S.cur];
     while (st && S.now >= st.t) {
-      const rec = (S.lesson.stems || S.lesson.refAudio) && PD.audio.ref.key && !PD.audio.ref.error;   // a song with its recording: the recording is the sound
-      if (rec) {} else if (st.kind === 'note') PD.audio.note(st.notes[0].s, st.notes[0].f, { vel: st.acc ? .85 : .65 });
-      else PD.audio.strum(st.frets, st.st, { vel: st.acc ? 1 : .55, gap: st.acc ? .011 : .02 });   // accent: stronger attack
-      S.res[st.i].ok = true; emit('hit', { st, r: { res: 'ok', auto: true } }); S.cur++; st = S.steps[S.cur];
+      S.res[st.i].ok = true; emit('hit', { st, r: { res: 'ok', auto: true } }); S.cur++; st = S.steps[S.cur];   // the sound comes from the recording or from scheduleGuide()
     }
   }
   function label(st) { return st.kind === 'note' ? TH.name(TH.midi(st.notes[0].s, st.notes[0].f)) + ' (' + TH.stringName(st.notes[0].s) + ' · ' + st.notes[0].f + ')' : (st.name || 'A') + ' ' + (st.st === 'up' ? '↑' : '↓'); }
@@ -622,6 +646,9 @@ PD.engine = (() => {
     setTempo(p) { const b0 = S.lesson ? bpm() : 0; S.tempo = p; S.bpmOverride = 0; noteTempo(b0); reanchor(); emit('state'); },
     setBpm(b) { const b0 = S.lesson ? bpm() : 0; S.bpmOverride = Math.max(20, Math.min(260, b)); noteTempo(b0); reanchor(); emit('state'); },
     setMetro(v) { S.metro = v; PD.store.set('metro', v); emit('state'); },
+    /** the app plays along (synthesizer) — for lessons without a recording; songs use the sound choice */
+    setGuide(v, key) { S.guide = !!v; PD.store.set(key || 'guide', !!v); S.gi = null; emit('state'); },
+    guideOn,
     setCountIn(v) { S.countIn = v; PD.store.set('countIn', v); },
     setAssist(v) { S.assistOverride = v; PD.store.set('assist', v); emit('state'); },
     setAutoDemo(v) { S.autoDemo = v; PD.store.set('autoDemo', v); },

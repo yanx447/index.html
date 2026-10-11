@@ -56,7 +56,7 @@ PD.audio = (() => {
     if (smp) { src.buffer = smp.buf; src.playbackRate.value = smp.rate; g.gain.value = smp.gain; src.connect(g); g.connect(bus.inst); }   // recordings bypass the synthetic body EQ
     else { src.buffer = ks(midi, vel); g.gain.value = .32 + .22 * vel; src.connect(g); g.connect(body); }
     src.start(when, smp ? smp.offset || 0 : 0);
-    if (PD.detector && PD.detector.active) PD.detector.selfPlay([midi], when, (opt.dur || 1.2) + .1);   // never judge our own sound
+    if (PD.detector && PD.detector.active && !opt.guide) PD.detector.selfPlay([midi], when, (opt.dur || 1.2) + .1);   // never judge our own sound (a play-along guide is kept out by echo cancellation instead)
     if (opt.dur) { g.gain.setValueAtTime(g.gain.value, when + opt.dur); g.gain.exponentialRampToValueAtTime(.0005, when + opt.dur + .25); src.stop(when + opt.dur + .3); }
     return src;
   }
@@ -66,9 +66,9 @@ PD.audio = (() => {
     opt = opt || {}; const gap = opt.gap == null ? .018 : opt.gap, when = Math.max(ctx.currentTime, opt.when || 0), vel = opt.vel == null ? .75 : opt.vel;
     // a recorded whole-chord stroke wins when the teacher supplied one for exactly this shape and direction
     const ch = PD.samples && PD.samples.pickChord(frets, dir, vel);
-    if (ch) { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = ch.buf; g.gain.value = ch.gain; src.connect(g); g.connect(bus.inst); src.start(when, ch.offset || 0); if (PD.detector && PD.detector.active) PD.detector.selfPlay(frets.map((f, i) => f == null ? null : PD.theory.midi(i + 1, f)).filter(x => x != null), when, 1.3); return; }
+    if (ch) { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = ch.buf; g.gain.value = ch.gain; src.connect(g); g.connect(bus.inst); src.start(when, ch.offset || 0); if (PD.detector && PD.detector.active && !opt.guide) PD.detector.selfPlay(frets.map((f, i) => f == null ? null : PD.theory.midi(i + 1, f)).filter(x => x != null), when, 1.3); return; }
     const order = dir === 'up' ? [3, 2, 1] : [1, 2, 3];
-    order.filter(s => frets[s - 1] != null).forEach((s, k) => note(s, frets[s - 1], { vel, when: when + k * gap, art: opt.mute ? 'mute' : dir === 'up' ? 'up' : 'down' }));
+    order.filter(s => frets[s - 1] != null).forEach((s, k) => note(s, frets[s - 1], { vel, when: when + k * gap, art: opt.mute ? 'mute' : dir === 'up' ? 'up' : 'down', guide: opt.guide }));
   }
   function blip(freq, dur, gain, type, when, dest) {
     if (!ensure()) return 0;
@@ -109,22 +109,23 @@ PD.audio = (() => {
     get available() { return !!(ref.blobId || (ref.stems && PD.assets && PD.assets.media && PD.assets.media[ref.stems.full || ref.stems.music])); },
     get playing() { return !!ref.cur; },
     /** cache key of what should sound now: the stem's file, or a teacher recording */
-    get key() { return ref.blobId ? 'blob:' + ref.blobId : ref.stems && ref.mix !== 'off' ? ref.stems[ref.mix] || null : null; },
+    get key() { return ref.blobId ? 'blob:' + ref.blobId : ref.stems && /^(full|music|vocals)$/.test(ref.mix) ? ref.stems[ref.mix] || null : null; },
     loadStems(stems) { ref.unload(); ref.stems = stems; prepare(ref.key); return ref.available; },
     load(blobId) { ref.unload(); ref.blobId = blobId || null; prepare(ref.key); return !!blobId; },
     /** start decoding a song's recording early (e.g. when its page opens), so the first play starts at once */
     preload(stems, mix) { if (!stems) return; const k = stems[mix || ref.mix] || stems.full; if (k && !ref.buf[k] && !ref.job[k]) { const keep = ref.stems; ref.stems = stems; prepare(k); ref.stems = keep; } },
-    /** switch the audible mix ('full' | 'music' | 'vocals' | 'off'); playback continues at the same place once the new mix is ready */
-    use(mix, quiet) { ref.mix = mix; if (!quiet) PD.store.set('songMix', mix); if (mix === 'off') stopCur(); else prepare(ref.key); },
+    /** switch the sound ('full' | 'music' | 'vocals' — the recording; 'synth' — the app plays; 'off' — metronome only);
+        playback continues at the same place once the new recording is ready */
+    use(mix, quiet) { ref.mix = mix; if (!quiet) { PD.store.set('songMix', mix); if (/^(full|music|vocals)$/.test(mix)) PD.store.set('songMix.orig', mix); } if (!ref.key) stopCur(); else prepare(ref.key); },
     /** leave the song: playback stops; decoded recordings stay cached (two at most) so the next stage starts at once */
     unload() { stopCur(true); Object.keys(ref.job).forEach(x => { if (x.indexOf('@') > 0) { ref.job[x].cancel(); delete ref.job[x]; } }); ref.stems = null; ref.blobId = null; setState('idle'); },
     /** is the recording ready to play at this speed? (true also when there is nothing to play) */
-    ready(rate) { const k = ref.key; if (!k) return true; if (ref.error) return true; const b = ref.buf[k]; if (!b) return false; return near1(rate) || !!ref.str[k + '@' + rkey(rate)]; },
+    ready(rate) { const k = ref.key; if (!k) return true; if (ref.error) return true; if (!near1(rate)) return !!ref.str[k + '@' + rkey(rate)]; return !!ref.buf[k]; },
     /** resolves when ready(rate), starting whatever loading or stretching is needed */
     whenReady(rate) {
       return new Promise(res => { const k = ref.key; if (ref.ready(rate)) return res(true);
-        const tick = () => { if (ref.key !== k) return res(false); if (ref.ready(rate)) return res(!ref.error); if (ref.buf[k] && !near1(rate)) stretched(k, rate); setTimeout(tick, 120); };
-        prepare(k); tick(); });
+        const tick = () => { if (ref.key !== k) return res(false); if (ref.ready(rate)) return res(!ref.error); if (!near1(rate)) { const pk = preKey(k, rate); if (pk) stretched(k, rate); else { prepare(k); if (ref.buf[k]) stretched(k, rate); } } setTimeout(tick, 120); };
+        if (near1(rate) || !preKey(k, rate)) prepare(k); tick(); });
     },
     /** keep the recording at song time songT (valid at audio time `at`), moving at `rate` × the recording's speed */
     sync(songT, at, rate, live) {
@@ -133,7 +134,7 @@ PD.audio = (() => {
       const k = ref.key, r = near1(rate) ? 1 : rate, b = r === 1 ? ref.buf[k] : stretched(k, r);
       const now = c.currentTime;
       if (!b) {
-        prepare(k);
+        if (r === 1 || !preKey(k, r)) prepare(k);
         // the new mix (or tempo) is still being prepared: the music that is playing keeps going meanwhile
         if (ref.cur && near1(ref.cur.r / (r || 1)) && now >= ref.cur.when) { const pos = (ref.cur.off + (now - ref.cur.when)) * ref.cur.r, want = songT + (now - at) * rate; if (Math.abs(pos - want) < .012) return; }
         stopCur(); return;
@@ -198,11 +199,27 @@ PD.audio = (() => {
     for (let i = 0; i < n; i++) d[i] = (L[i] + R[i]) * .5;
     return out;
   }
+  /** a slower version made with a studio-quality time-stretch when the app was built (bani/full.mp3 → bani/full-70.mp3), if there is one */
+  function preKey(k, rate) {
+    const pct = Math.round(rate * 100); if (Math.abs(rate * 100 - pct) > .4 || k.indexOf('blob:') === 0) return null;
+    const pk = k.replace(/\.mp3$/, '-' + pct + '.mp3'); return PD.assets && PD.assets.media && PD.assets.media[pk] && !(ref.noPre && ref.noPre[pk]) ? pk : null;
+  }
   /** the stretched version of a stem for one tempo (null while it is being prepared) */
   function stretched(k, rate) {
     const sk = k + '@' + rkey(rate); if (ref.str[sk]) return ref.str[sk];
-    const b = ref.buf[k]; if (!b) return null;
     if (ref.job[sk]) return null;
+    const pk = preKey(k, rate);
+    if (pk) {   // load the ready-made slow version (no need to decode the 100 % stem first)
+      Object.keys(ref.job).forEach(x => { if (x.indexOf('@') > 0 && x !== sk) { ref.job[x].cancel(); delete ref.job[x]; } });
+      const job = { cancelled: false, cancel() { job.cancelled = true; } }; ref.job[sk] = job; setState('loading');
+      fetch(PD.assets.media[pk]).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.arrayBuffer(); }).then(decodeMono).then(out => {
+        if (job.cancelled) return; delete ref.job[sk];
+        Object.keys(ref.str).forEach(x => { if (x.indexOf(k + '@') === 0) delete ref.str[x]; });   // one tempo per stem
+        ref.str[sk] = out; setState('ready');
+      }).catch(() => { if (job.cancelled) return; delete ref.job[sk]; ref.noPre = Object.assign(ref.noPre || {}, { [pk]: true }); setState(ref.buf[k] ? 'ready' : 'loading'); });
+      return null;
+    }
+    const b = ref.buf[k]; if (!b) return null;
     // a new tempo replaces the previous preparation (the learner may be moving the tempo slider)
     Object.keys(ref.job).forEach(x => { if (x.indexOf('@') > 0 && x !== sk) { ref.job[x].cancel(); delete ref.job[x]; } });
     const job = { cancelled: false, w: null, cancel() { job.cancelled = true; if (job.w) try { job.w.terminate(); } catch (_) {} } }; ref.job[sk] = job;

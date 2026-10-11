@@ -27,7 +27,7 @@ PD.Lanes = function (canvas, opt) {
     G.px = Math.round(Math.max(64, Math.min(170, W * .2)));
     G.beats = W < 520 ? 4 : W < 900 ? 5.5 : 7;
     G.ppb = Math.max(56, (W - G.px - 16) / G.beats);
-    if (self.song) { G.beats = W < 520 ? 6 : W < 900 ? 8 : 10; G.ppb = Math.max(40, (W - G.px - 16) / G.beats); G.cy = H * .5; G.bh = Math.max(64, Math.min(150, H * .56)); }
+    if (self.song) { G.beats = W < 520 ? 3.6 : W < 900 ? 5 : 7; G.ppb = Math.max(40, (W - G.px - 16) / G.beats); G.cy = H * .5; G.bh = Math.max(64, Math.min(150, H * .56)); }
     else if (self.rhythm) { G.cy = H * .46; G.R = Math.max(20, Math.min(46, H * .2, G.ppb * .36)); }
     else {
       const top = 10, bot = H - 10, gap = (bot - top) / 3;
@@ -144,6 +144,83 @@ PD.Lanes = function (canvas, opt) {
   const CHC = ['#C9773F', '#8E3B22', '#D9A25B', '#6E8B5A', '#B4573A', '#A3814F'];
   const chordCol = {};
   function ccol(n) { if (!chordCol[n]) chordCol[n] = CHC[Object.keys(chordCol).length % CHC.length]; return chordCol[n]; }
+  /* ---------- a song whose chords repeat (Dm Dm B♭ C): the whole cycle on ONE still line ----------
+     Chord blocks as wide as their rhythms (Dm = 2 rhythms, B♭ = 1, C = 1), every stroke of every rhythm (↓ ↓ ↑),
+     and a cursor that walks through it exactly with the music. Nothing scrolls, so the eye can rest on the pattern;
+     each stroke turns green when the microphone heard it in time, red when it was missed. */
+  let cyIdx = null, cyFor = null;
+  function drawCycle(tm) {
+    const L = S.lesson, C = L.cycle.length, now = E.visualNow(), Wd = G.W, H = G.H;
+    if (cyFor !== S.steps) {   // first step index of every cycle
+      cyFor = S.steps; cyIdx = []; let i = 0; const last = S.steps.length ? S.steps[S.steps.length - 1].t : 0, n = Math.floor(last / C) + 2;
+      for (let k = 0; k <= n; k++) { while (i < S.steps.length && S.steps[i].t < k * C - 1e-6) i++; cyIdx[k] = i; }
+    }
+    const k = Math.max(0, Math.min(cyIdx.length - 2, Math.floor(now / C + 1e-6))), c0 = k * C, i0 = cyIdx[k], i1 = cyIdx[k + 1];
+    const pad = Wd < 520 ? 12 : 28, rowW = Math.min(Wd - pad * 2, 1000), x0 = (Wd - rowW) / 2;
+    const low = H < 170, top = low ? 18 : Math.round(Math.max(24, Math.min(40, H * .12))), bh = Math.max(56, Math.min(H - top - (low ? 8 : 30), 210)), y0 = top + 4;   // short screens (landscape phones): no legend line
+    // the chords of this cycle (from its strokes; the teacher's cycle where a rhythm has none)
+    const nameAt = r => { for (let i = i0; i < i1; i++) if (Math.floor(S.steps[i].t - c0 + 1e-6) === r) return S.steps[i].name; return L.cycle[r]; };
+    const runs = []; for (let r = 0; r < C; r++) { const c = nameAt(r), q = runs[runs.length - 1]; if (q && q.c === c) q.n++; else runs.push({ c, r0: r, n: 1 }); }
+    const G1 = Math.max(6, Math.min(12, rowW * .015)), RW = (rowW - G1 * (runs.length - 1)) / C;
+    const runOf = r => Math.max(0, runs.findIndex(q => r >= q.r0 && r < q.r0 + q.n));
+    const rx = r => x0 + r * RW + runOf(r) * G1;
+    const per = {}; for (let i = i0; i < i1; i++) { const r = Math.floor(S.steps[i].t - c0 + 1e-6); per[r] = (per[r] || 0) + 1; }
+    const sx = st => { const u = st.t - c0, r = Math.floor(u + 1e-6); return rx(r) + RW * ((u - r) + 1 / (2 * (per[r] || 3))); };
+    const sc = E.sectionAt(now), listen = sc && sc.kind === 'listen';
+    // header: the part of the song · which time round
+    ctx.textBaseline = 'middle';
+    if (sc && sc.name) { ctx.font = '600 ' + (low ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = 'rgba(255,236,210,.7)'; ctx.textAlign = 'left'; ctx.fillText(PD.i18n.pick(sc.name), x0 + 2, top / 2 + 2); }
+    if (sc && sc.to - sc.from >= 2 * C) { const a = Math.floor((c0 - sc.from) / C) + 1, b = Math.round((sc.to - sc.from) / C); ctx.font = '600 ' + (low ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = 'rgba(255,236,210,.55)'; ctx.textAlign = 'right'; ctx.fillText(tr('cy.round', { a: Math.max(1, Math.min(a, b)), b }), x0 + rowW - 2, top / 2 + 2); }
+    // chord blocks
+    runs.forEach(q => {
+      const x = rx(q.r0), w = q.n * RW, col = ccol(q.c), active = now >= c0 + q.r0 - 1e-6 && now < c0 + q.r0 + q.n;
+      const g = ctx.createLinearGradient(0, y0, 0, y0 + bh); g.addColorStop(0, hexA(col, active ? .62 : .3)); g.addColorStop(1, hexA(col, active ? .3 : .12));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y0, w, bh, 16) : ctx.rect(x, y0, w, bh); ctx.fill();
+      ctx.strokeStyle = hexA(col, active ? 1 : .45); ctx.lineWidth = active ? 2.5 : 1.2; ctx.stroke();
+      const fs = Math.round(Math.max(18, Math.min(32, bh * .2, w * .34)));
+      ctx.fillStyle = active ? '#FFFFFF' : 'rgba(255,244,230,.85)'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(q.c, x + 10, y0 + 8);
+      if (w > 96) { ctx.font = '600 11px ' + FONT; ctx.fillStyle = 'rgba(255,236,210,.6)'; ctx.textAlign = 'right'; ctx.fillText(tr('sg.rhythms', { n: q.n }), x + w - 10, y0 + 12); }
+      // the rhythms inside the chord: a dashed line between them and their number at the bottom (Dm: 1 · 2)
+      ctx.setLineDash([4, 5]); ctx.strokeStyle = 'rgba(255,236,210,.28)'; ctx.lineWidth = 1;
+      for (let r = q.r0 + 1; r < q.r0 + q.n; r++) { const xr = rx(r); ctx.beginPath(); ctx.moveTo(xr, y0 + bh * .3); ctx.lineTo(xr, y0 + bh - 8); ctx.stroke(); }
+      ctx.setLineDash([]);
+      if (!low) for (let r = q.r0; r < q.r0 + q.n; r++) { const on = active && now >= c0 + r && now < c0 + r + 1; ctx.font = (on ? '700 ' : '600 ') + '12px ' + FONT; ctx.fillStyle = on ? '#FFE2BA' : 'rgba(255,236,210,.4)'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(String(r - q.r0 + 1), rx(r) + RW / 2, y0 + bh - 6); }
+    });
+    // strokes
+    const yA = y0 + bh * .56;
+    for (let i = i0; i < i1; i++) {
+      const st = S.steps[i], x = sx(st), r = Math.floor(st.t - c0 + 1e-6), slot = RW / (per[r] || 3), f = fx[i] || {}, res = S.res[i] || {}, up = st.st === 'up';
+      let size = Math.min(bh * .2, slot * .4) * (st.acc ? 1.12 : 1), col = st.acc ? ACC : '#FFF4E6', a = 1;
+      const isCur = !S.autoplay && i === S.cur, sounding = S.autoplay && now >= st.t - .02 && now < st.t + st.d - .02;
+      let miss = false;
+      if (S.autoplay) { if (st.t + st.d <= now) a = .45; }
+      else if (res.ok) col = '#8EF0B4';
+      else if (res.missed) { a = .32; miss = true; }   // missed: faded, with a small × (red is the accent colour)
+      if (f.wrong && tm - f.wrong < 500) { col = '#FFFFFF'; miss = true; }
+      if (miss) text('×', x, yA + Math.max(16, size * 1.5), 15, '#FF8A7D', 800);
+      if (isCur || sounding) { size *= 1.22; ctx.fillStyle = 'rgba(255,240,220,.16)'; ctx.beginPath(); ctx.arc(x, yA, size * 1.45, 0, 7); ctx.fill(); if (isCur) col = '#FFFFFF'; }
+      if (f.hit && tm - f.hit < 260) size *= 1 + .3 * (1 - (tm - f.hit) / 260);
+      ctx.globalAlpha = listen ? .35 : a; arrow(x, yA, up, size, col, Math.max(2.2, size * (st.acc ? .2 : .15))); ctx.globalAlpha = 1;
+    }
+    // the cursor: where the music is now, between the strokes of this cycle
+    const pts = []; for (let i = i0; i < i1; i++) pts.push([S.steps[i].t - c0, sx(S.steps[i])]);
+    if (pts.length) {
+      pts.push([C + pts[0][0], x0 + rowW + 2]);
+      const u = now - c0; let cx = pts[0][1];
+      for (let j = 0; j < pts.length - 1; j++) if (u >= pts[j][0]) cx = pts[j][1] + (pts[j + 1][1] - pts[j][1]) * Math.min(1, (u - pts[j][0]) / Math.max(1e-6, pts[j + 1][0] - pts[j][0]));
+      ctx.fillStyle = 'rgba(240,180,101,.14)'; ctx.fillRect(cx - 9, y0 - 2, 18, bh + 4);
+      ctx.fillStyle = 'rgba(255,226,186,.95)'; ctx.fillRect(cx - 1.25, y0 - 4, 2.5, bh + 8);
+      ctx.beginPath(); ctx.moveTo(cx - 6, y0 - 9); ctx.lineTo(cx + 6, y0 - 9); ctx.lineTo(cx, y0 - 2); ctx.closePath(); ctx.fill();
+    }
+    if (listen) { ctx.fillStyle = 'rgba(20,12,7,.55)'; ctx.fillRect(x0, y0, rowW, bh); text('♪ ' + tr('p.listenPart'), Wd / 2, y0 + bh / 2, 18, 'rgba(255,236,210,.9)', 600); }
+    // below: what the arrows mean · the next part of the song
+    const yb = y0 + bh + 14;
+    if (!low && yb < H - 4) {
+      ctx.font = '500 12px ' + FONT; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(255,236,210,.45)'; ctx.fillText(tr('cy.legend'), x0 + 2, yb);
+      const nx = (S.lesson.sections || []).find(s2 => s2.from >= c0 + C - 1e-6 && s2.from < c0 + 2 * C);
+      if (nx && sc && nx !== sc) { ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,226,186,.8)'; ctx.fillText(tr('cy.next', { s: PD.i18n.pick(nx.name) }), x0 + rowW - 2, yb); }
+    }
+  }
   function drawSong(tm) {
     const now = E.visualNow(), px = PX(), bpb = E.bpb(), cy = G.cy, bh = G.bh, y0 = cy - bh / 2;
     const v0 = now - 2, v1 = now + G.beats + 1;
@@ -206,7 +283,7 @@ PD.Lanes = function (canvas, opt) {
     const t = performance.now();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, G.W, G.H);
     if (!S.lesson) return;
-    if (self.song) drawSong(t); else if (self.rhythm) drawRhythm(t); else drawNotes(t);
+    if (self.song && S.lesson.cycle && S.lesson.cycle.length) drawCycle(t); else if (self.song) drawSong(t); else if (self.rhythm) drawRhythm(t); else drawNotes(t);
     if (countT && t - countT < 900) { const k = (t - countT) / 900; ctx.save(); ctx.globalAlpha = 1 - k * .7; text(count > 0 ? String(count) : tr('ci.start'), G.W / 2, G.H / 2, count > 0 ? Math.min(96, G.H * .5) : Math.min(48, G.H * .25), '#FFFFFF', 700); ctx.restore(); }
   }
 

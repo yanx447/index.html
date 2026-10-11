@@ -120,12 +120,20 @@ PD.lessons = (() => {
     runs.forEach(r => out.events.push(...chord(r.t, r.name, r.frets, r.fingers, 'down', r.end - r.t, false, 'strum')));
     return normalize(out);
   }
-  /** song: the song's rhythm pattern on its first chord, 8 bars, no recording */
+  /** song: the song's rhythm (one rhythm = ↓ ↓ ↑) on its first chord only — one cycle long, repeated; no recording.
+      The right hand learns the pattern before the left hand has to change chords. */
   function songRhythm(l) {
-    const ss = steps(l), bb = bpb(l), first = ss[0]; if (!first) return l;
-    const per = ss.filter(s => s.t < first.t + bb - 1e-6), ev = [];
-    for (let k = 0; k < 8; k++) per.forEach(s => ev.push(...chord(s.t - first.t + k * bb, s.name, s.frets, s.fingers, s.st, s.d, s.acc, 'strum')));
-    return normalize(Object.assign({}, l, { id: l.id + '~rhythm', derived: l.id, title: { ka: l.title.ka + ' · რიტმი', en: l.title.en + ' · rhythm' }, user: false, stems: null, beatMap: null, stages: null, events: ev, sections: [] }));
+    const ss = steps(l), first = ss[0]; if (!first) return l;
+    const C = l.cycle ? l.cycle.length : bpb(l) * 2, per = ss.filter(s => s.t >= first.t && s.t < first.t + 1 - 1e-6), ev = [];
+    for (let r = 0; r < C * 8; r++) per.forEach(s => ev.push(...chord(s.t - first.t + r, first.name, first.frets, first.fingers, s.st, s.d, s.acc, 'strum')));
+    return normalize(Object.assign({}, l, { id: l.id + '~rhythm', derived: l.id, title: { ka: l.title.ka + ' · რიტმი', en: l.title.en + ' · rhythm' }, user: false, stems: null, beatMap: null, stages: null,
+      cycle: Array(C).fill(first.name), countIn: l.countIn, events: ev, sections: [{ id: 'r', name: { ka: 'რიტმი · ' + first.name, en: 'Rhythm · ' + first.name }, from: 0, to: C * 8 }] }));
+  }
+  /** song: a part of the song (with its recording), e.g. the intro and the first verse for learning the chord changes */
+  function songPart(l, from, to, title) {
+    const ev = l.events.filter(e => e.t >= from - 1e-6 && e.t < to - 1e-6).map(e => Object.assign({}, e));
+    return normalize(Object.assign({}, l, { id: l.id + '~part', derived: l.id, title: title || l.title, user: false, stages: null, events: ev,
+      sections: (l.sections || []).filter(sc => sc.from < to && sc.to > from).map(sc => Object.assign({}, sc, { to: Math.min(sc.to, to) })) }));
   }
   /** derived lesson: the same timing and stroke directions on open strings (rhythm stage) */
   function rhythmOf(l) {
@@ -156,7 +164,7 @@ PD.lessons = (() => {
   return {
     /** rebuild the list (built-in + the learner's own) after the stored lessons changed, e.g. after a sync */
     reload: reloadCurriculum,
-    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, steps, rhythmOf, songChanges, songRhythm, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
+    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, steps, rhythmOf, songChanges, songRhythm, songPart, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
     get: lid => all.find(l => l.id === lid) || (/^rhythm-/.test(lid || '') ? rhythmLesson(lid.slice(7)) : undefined),
     /** lessons generated from the teacher rhythms (not stored; rebuilt from curriculum data) */
     rhythmLessons: () => (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).map(r => fromRhythm(r)),

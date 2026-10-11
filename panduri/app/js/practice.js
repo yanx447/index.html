@@ -7,6 +7,7 @@
    secondary (control bar, settings sheet).
    ===================================================================== */
 PD.i18n.add({
+  'cy.round': ['წრე {a} / {b}', 'Round {a} / {b}'], 'cy.next': ['შემდეგ: {s}', 'Next: {s}'], 'cy.legend': ['↓ ჩაკვრა · ↑ ამოკვრა · წითელი = აქცენტი', '↓ down · ↑ up · red = accent'],
   'p.recLoad': ['ჩანაწერი იტვირთება…', 'Loading the recording…'], 'p.recStretch': ['ნელი ვერსია მზადდება… {p}%', 'Preparing the slower version… {p}%'],
   'ws.learn': ['სწავლა', 'Learn'], 'ws.practice': ['ვარჯიში', 'Practice'], 'ws.perform': ['შესრულება', 'Perform'],
   'ws.wait': ['ლოდინი', 'WAIT'], 'ws.step': ['ნაბიჯით', 'Step'], 'ws.autoPause': ['ავტოპაუზა', 'Auto-pause'],
@@ -143,7 +144,8 @@ PD.practice = (() => {
     const bMore = h('button', { class: 'pz-ic', 'aria-label': t('p.more'), html: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>', onclick: () => more() });
     const progI = h('i'), progN = h('span', { class: 'pz-pn' }), chip = h('span', { class: 'pz-chip', hidden: true });
     const narrow = () => window.matchMedia && matchMedia('(max-width: 480px)').matches;   // phones: the mix button is just ♪ and opens the choice
-    const bMix = lesson.stems ? h('button', { class: 'pz-mix', onclick: () => narrow() ? w.mixSheet() : cycleMix() }) : null;
+    const SOUND = !!(lesson.stems || lesson.song);   // songs (and their rhythm stage) choose what they hear: the original recording or the synthesizer
+    const bMix = SOUND ? h('button', { class: 'pz-mix', onclick: () => w.mixSheet() }) : null;
     const top = h('header', { class: 'pz-top' }, [bBack, h('div', { class: 'pz-title' }, [h('b', { text: PD.i18n.pick(lesson.title) }), chip]), bMix, bPause, bMore].filter(Boolean));
     const prog = h('div', { class: 'pz-prog' }, [h('div', { class: 'pz-bar' }, [progI]), progN]);
     /* lanes */
@@ -203,6 +205,7 @@ PD.practice = (() => {
       else if (opts.resumeBeat > 0) setTimeout(() => E.seek(Math.floor(opts.resumeBeat / E.bpb()) * E.bpb()), 30);
     } else { E.load(lesson, { mode: 'learn', wait: false, tempo: .7 }); S.steps = []; S.res = []; }
     S.input = 'mic';
+    w.guideKey = opts.guideKey || 'guide'; S.guide = !!PD.store.get(w.guideKey, opts.guide != null ? !!opts.guide : false); S.gi = null;
     S.mayPlay = () => W !== w || !needGate();
 
     /* ---------- microphone gate: the real panduri is the input ---------- */
@@ -228,17 +231,26 @@ PD.practice = (() => {
       if (lesson.stems && !PD.store.get('tip.headphones', false)) { PD.store.set('tip.headphones', true); setTimeout(() => PD.ui.toast(t('sg.headphones'), 6000), 5200); }
       if (!w.rec && !S.playing) setTimeout(() => { if (W === w) E.play(); }, 350);
     }
-    /* recording mix (songs): with vocals · no vocals · vocals only · off. While the recording plays through the speaker, echo cancellation keeps it out of the microphone. */
-    const MIXES = ['full', 'music', 'vocals', 'off'];
-    function mixLabel() { return t('mix.' + (PD.audio.ref.mix || 'full')); }
-    function cycleMix() { const i = MIXES.indexOf(PD.audio.ref.mix); setMix(MIXES[(i + 1) % MIXES.length]); }
+    /* sound: the original recording (with vocals · no vocals · vocals only), the synthesizer (the app plays the chords and the rhythm
+       itself, clean at any tempo) or the metronome only. Whatever plays through the speaker, echo cancellation keeps it out of the microphone. */
+    const MIXES = lesson.stems ? ['full', 'music', 'vocals', 'synth', 'off'] : ['synth', 'off'];
+    const curMix = () => lesson.stems ? PD.audio.ref.mix || 'full' : S.guide ? 'synth' : 'off';
+    const mixName = m => t(m === 'synth' ? 'mix.synth' : 'snd.' + m);
+    function mixLabel() { return mixName(curMix()); }
     function mixBtn() { if (!bMix) return; bMix.innerHTML = '♪<span class="pz-mixl"> ' + PD.esc(mixLabel()) + '</span>'; bMix.setAttribute('aria-label', t('sg.mix') + ': ' + mixLabel()); }
-    function setMix(m) { PD.audio.ref.use(m); mixBtn(); PD.detector.setAEC(m !== 'off'); }
-    if (lesson.stems) {
-      if (!PD.audio.ref.available) PD.ui.toast(t('p.noRec'), 5000);
-      mixBtn(); PD.detector.setAEC(PD.audio.ref.mix !== 'off');
+    function setMix(m) {
+      if (lesson.stems) PD.audio.ref.use(m); else E.setGuide(m === 'synth', w.guideKey);
+      S.gi = null; mixBtn(); PD.detector.setAEC(m !== 'off');
     }
-    w.mixSheet = () => (hold(), PD.ui.sheet((box, close) => { box.append(h('h2', { 'data-t': 'sg.mix' }), ...MIXES.map(m => h('button', { class: 'opt', 'aria-pressed': String(PD.audio.ref.mix === m), onclick: () => { setMix(m); close(); }, html: '<span><b data-t="mix.' + m + '"></b></span><span class="mono">' + (PD.audio.ref.mix === m ? '✓' : '') + '</span>' }))); }));
+    if (SOUND) {
+      if (lesson.stems && !PD.audio.ref.available) PD.ui.toast(t('p.noRec'), 5000);
+      mixBtn(); PD.detector.setAEC(curMix() !== 'off');
+    }
+    w.mixSheet = () => (hold(), PD.ui.sheet((box, close) => {
+      box.append(h('h2', { 'data-t': 'sg.mix' }), ...MIXES.map(m => h('button', { class: 'opt', 'aria-pressed': String(curMix() === m), onclick: () => { setMix(m); close(); },
+        html: '<span><b>' + PD.esc(mixName(m)) + '</b>' + (m === 'synth' ? '<small>' + PD.esc(t('snd.synthD')) + '</small>' : m === 'full' ? '<small>' + PD.esc(t('snd.origD')) + '</small>' : '') + '</span><span class="mono">' + (curMix() === m ? '✓' : '') + '</span>' })));
+      if (lesson.stems) box.append(h('small', { class: 'muted', 'data-t': 'sg.headphones' }));
+    }));
     const startBeat = () => S.loop.on ? S.loop.a : lesson.song ? ((lesson.sections || []).find(x => x.kind !== 'listen') || { from: 0 }).from : 0;
     function startWatch() { if (!w.watch) w.pre = { wait: S.wait, mode: S.mode, tempo: S.tempo, bpm: S.bpmOverride, step: S.stepMode }; w.watch = true; gateEl.hidden = true; closePause(); E.configure({ autoplay: true, wait: false, stepMode: false }); S.autoplay = true; E.seek(S.loop.on ? S.loop.a : 0); E.play(); sync(true); }
     /** "Now you play": after a listen stage the learner starts gently (WAIT, 70 %; a song: play-along at 70 %);
@@ -420,7 +432,7 @@ PD.practice = (() => {
         const val = h('b', { class: 'mono', style: 'font-size:28px;font-weight:500' });
         const upd = () => { val.textContent = E.bpm() + ' BPM · ' + Math.round(E.bpm() / lesson.bpm * 100) + '%'; rng.value = String(E.bpm()); seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(!S.bpmOverride && Math.abs(S.tempo * 100 - +b.dataset.p) < 1))); };
         const rng = h('input', { type: 'range', min: '20', max: String(Math.max(200, lesson.bpm * 1.3 | 0)), step: '1', 'aria-label': t('ws.customBpm'), oninput: e => { E.setBpm(+e.target.value); upd(); } });
-        const seg = h('div', { class: 'seg', role: 'group', 'aria-label': t('ws.speed') }, [50, 60, 70, 80, 90, 100].map(p => h('button', { 'data-p': String(p), text: p + '%', onclick: () => { E.setTempo(p / 100); upd(); } })));
+        const seg = h('div', { class: 'seg', role: 'group', 'aria-label': t('ws.speed') }, (lesson.beatMap ? [60, 70, 80, 90, 100] : [50, 60, 70, 80, 90, 100]).map(p => h('button', { 'data-p': String(p), text: p + '%', onclick: () => { E.setTempo(p / 100); upd(); } })));
         box.append(h('h2', { 'data-t': 'p.speed' }), val, seg, h('div', { class: 'row', style: 'flex-wrap:nowrap' }, [h('button', { class: 'btn small', text: '−5', onclick: () => { E.setBpm(E.bpm() - 5); upd(); } }), rng, h('button', { class: 'btn small', text: '+5', onclick: () => { E.setBpm(E.bpm() + 5); upd(); } })]),
           h('button', { class: 'btn', 'data-t': 'done', onclick: close }));
         rng.style.flex = '1'; upd();
@@ -447,7 +459,7 @@ PD.practice = (() => {
           row('p.speed', E.bpm() + ' BPM', tempoSheet),
           row('p.mode', t('pm.' + modeOf()), modeSheet),
           row('p.loop', S.loop.on ? t('p.loopOn') : '', loopSheet),
-          lesson.stems ? row('sg.mix', mixLabel(), () => w.mixSheet()) : null,
+          SOUND ? row('sg.mix', mixLabel(), () => w.mixSheet()) : tg('snd.guideOn', () => S.guide, v => { E.setGuide(v, w.guideKey); PD.detector.setAEC(v); }),
           row('p.showMe', null, () => { PD.audio.ensure(); E.showMe(); }),
           row('p.mic', PD.detector.active ? t('mic.on') : t('mic.off'), micSheet),
           lesson.media && lesson.media.length ? row('p.video', null, () => toggleVideo()) : null,

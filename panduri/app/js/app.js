@@ -79,12 +79,18 @@ PD.i18n.add({
 });
 
 PD.i18n.add({
-  'st.chords': ['აკორდების ცვლა', 'Chord changes'], 'std.chords': ['ყოველ ახალ აკორდზე ერთი ჩაკვრა. ჩანაწერი ჩერდება და გელოდება, სანამ აკორდს სწორად არ აიღებ.', 'One strum on every new chord. The recording stops and waits until you play the chord correctly.'],
-  'std.songDemo': ['მოუსმინე სიმღერას — აკორდები და რიტმი ეკრანზე მიჰყვება.', 'Listen to the song — chords and rhythm follow on screen.'],
-  'std.songRhythm': ['აჭარულის რიტმი Dm-ზე, მეტრონომით, წრეზე.', 'The Acharuli rhythm on Dm, with the metronome, looped.'],
-  'std.songSlow': ['ჩანაწერთან ერთად, 70% ტემპით — დრო ფასდება.', 'Along with the recording at 70% tempo — timing is scored.'],
+  'st.chords': ['აკორდები რიტმით', 'Chords with the rhythm'], 'std.chords': ['Dm (2 რითმი) → B♭ (1) → C (1), ყველა დარტყმით. ნელა (60%), მუსიკასთან ერთად — შესავალი და პირველი მუხლი.', 'Dm (2 rhythms) → B♭ (1) → C (1), every stroke. Slowly (60%), with the music — the intro and the first verse.'],
+  'std.songDemo': ['მოუსმინე და უყურე: ზოლზე ჩანს აკორდი და ყოველი დარტყმა.', 'Listen and watch: the line shows the chord and every stroke.'],
+  'std.songRhythm': ['ჯერ მხოლოდ მარჯვენა ხელი: ჩაკვრა · ჩაკვრა · ამოკვრა Dm-ზე, ნელა, წრეზე.', 'First the right hand only: down · down · up on Dm, slowly, looped.'],
+  'std.songSlow': ['მთელი სიმღერა მუსიკასთან ერთად, 70% ტემპით.', 'The whole song with the music, at 70% tempo.'],
   'std.songFull': ['მთელი სიმღერა ორიგინალ ტემპში.', 'The whole song at the original tempo.'],
-  'sg.mix': ['ჩანაწერი', 'Recording'], 'mix.full': ['ვოკალით', 'With vocals'], 'mix.music': ['ვოკალის გარეშე', 'No vocals'], 'mix.vocals': ['მხოლოდ ვოკალი', 'Vocals only'], 'mix.off': ['გამორთული', 'Off'],
+  'st.songRhythm': ['რიტმი: ჩაკვრა · ჩაკვრა · ამოკვრა', 'Rhythm: down · down · up'], 'st.songSlow': ['მთელი სიმღერა ნელა', 'The whole song, slowly'], 'st.songFull': ['სრული სიმღერა', 'The full song'],
+  'sg.mix': ['ხმა', 'Sound'], 'mix.full': ['ვოკალით', 'With vocals'], 'mix.music': ['ვოკალის გარეშე', 'No vocals'], 'mix.vocals': ['მხოლოდ ვოკალი', 'Vocals only'], 'mix.off': ['მხოლოდ მეტრონომი', 'Metronome only'], 'mix.synth': ['სინთეზატორი', 'Synthesizer'],
+  'snd.orig': ['ორიგინალი ჩანაწერი', 'Original recording'], 'snd.synth': ['სინთეზატორი', 'Synthesizer'],
+  'snd.origD': ['ნამდვილი სიმღერა. ნელ ტემპზე ნელდება ბგერის სიმაღლის შეუცვლელად.', 'The real song. At a slower tempo it slows down without changing pitch.'],
+  'snd.synthD': ['აპი თავად უკრავს ფანდურის აკორდებს და რიტმს — სუფთად, ნებისმიერ ტემპზე.', 'The app plays the panduri chords and rhythm itself — clean, at any tempo.'],
+  'snd.full': ['ორიგინალი · ვოკალით', 'Original · with vocals'], 'snd.music': ['ორიგინალი · ვოკალის გარეშე', 'Original · no vocals'], 'snd.vocals': ['ორიგინალი · მხოლოდ ვოკალი', 'Original · vocals only'], 'snd.off': ['მხოლოდ მეტრონომი', 'Metronome only'],
+  'snd.guideOn': ['აპი თან გიკრავს (სინთეზატორი)', 'The app plays along (synthesizer)'], 'snd.guideOff': ['მხოლოდ მეტრონომი', 'Metronome only'],
   'sg.auto': ['აკორდები და მათი თანმიმდევრობა მასწავლებლისაა. დრო აღებულია ჩანაწერიდან: აპი მიჰყვება ცოცხალი შესრულების ყველა დარტყმას, ამიტომ მეტრონომი და აკორდები მუსიკას ემთხვევა.', 'Chords and their order are the teacher\'s. Timing comes from the recording: the app follows every beat of the live performance, so the metronome and chords match the music.'],
   'sg.cycle': ['თანმიმდევრობა — მთელ სიმღერაში მეორდება', 'Progression — repeats through the whole song'], 'sg.rhythms': ['{n} რითმი', '{n} rhythm'], 'sg.oneRhythm': ['1 რითმი = ჩაკვრა · ჩაკვრა · ამოკვრა', '1 rhythm = down · down · up'],
   'sg.cycles': ['{n} წრე', '{n} cycles'],
@@ -429,24 +435,16 @@ PD.app = (() => {
   }
   /** song page: recording mix · the chords · five steps (listen → chord changes → rhythm → slow → full) · sections */
   function songPage(w, l, p, chips) {
-    const SD = PD.SONGS[l.song], stages = LS.stagesOf(l);
-    PD.audio.ref.preload(l.stems, PD.store.get('songMix', 'full'));   // decode now, so the first play starts at once
+    const SD = PD.SONGS[l.song], stages = LS.stagesOf(l), ORIG = ['full', 'music', 'vocals'];
+    const mixNow = () => PD.store.get('songMix', 'full');
+    PD.audio.ref.preload(l.stems, ORIG.includes(mixNow()) ? mixNow() : 'music');   // decode now, so the first play starts at once
     const DESC = { demo: 'std.songDemo', chords: 'std.chords', technique: 'std.songRhythm', slow: 'std.songSlow', perform: 'std.songFull' };
-    const NAME = { demo: 'st.listen', chords: 'st.chords', technique: 'st.rhythm', slow: 'st.slow', perform: 'st.perform' };
+    const NAME = { demo: 'st.listen', chords: 'st.chords', technique: 'st.songRhythm', slow: 'st.songSlow', perform: 'st.songFull' };
     const next = stages.find(s2 => !(stagePct(p, s2) >= 80)) || 'perform';
     w.append(h('div', { class: 'ls-actions lx-actions' }, [
       h('button', { class: 'btn primary big', text: t(p.plays ? 'hx.go' : 'home.start') + ' · ' + t(NAME[next]), onclick: () => startStage(l, next) }),
-      h('button', { class: 'btn', 'data-t': 'st.slow', onclick: () => startStage(l, 'slow') }),
-      h('button', { class: 'btn', 'data-t': 'ls.fullBtn', onclick: () => startStage(l, 'perform') }),
       h('button', { class: 'btn camb', html: ic.camera + '<span data-t="cam.title"></span>', onclick: () => PD.camera.launcher() })]), chips);
-    // recording mix
-    const cur = PD.store.get('songMix', 'full');
-    const mix = h('div', { class: 'seg', role: 'group', 'aria-label': t('sg.mix') }, ['full', 'music', 'vocals'].map(m => h('button', { 'aria-pressed': String(cur === m), 'data-t': 'mix.' + m, onclick: e => { PD.store.set('songMix', m); PD.audio.ref.mix = m; mix.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
-    w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.mix' }), mix, h('small', { class: 'muted', 'data-t': 'sg.headphones' })]));
-    // chords
-    w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.shapes' }), h('div', { class: 'chd-row' }, Object.keys(SD.chords).map(n => { const sh = SD.chords[n]; return h('div', { class: 'chd' }, [h('b', { text: n }), h('div', { html: chordSVG(sh) }), h('small', { class: 'muted', text: sh.frets.map((f, i) => TH.stringName(i + 1) + ' ' + f).join(' · ') + (sh.src === 'derived' ? ' · ' + t('sg.derived') : '') })]); })),
-      h('small', { class: 'muted', 'data-t': 'sg.auto' })]));
-    // the progression: chord · how many rhythms · the strokes of one rhythm
+    // the progression on one line: chord · how many rhythms · every stroke
     if (l.cycle) {
       const runs = []; l.cycle.forEach(c => { const r = runs[runs.length - 1]; if (r && r.c === c) r.n++; else runs.push({ c, n: 1 }); });
       const R = (LS.rhythmsAll ? LS.rhythmsAll() : PD.curriculum.rhythms()).find(r => r.id === l.songRhythm), strokes = R ? R.strokes : [];
@@ -455,6 +453,19 @@ PD.app = (() => {
         h('div', { class: 'cy' }, runs.map(r => h('div', { class: 'cy-c', style: 'flex:' + r.n }, [h('b', { text: r.c }), h('small', { text: t('sg.rhythms', { n: r.n }) }), h('div', { class: 'cy-rs' }, Array.from({ length: r.n }, one))]))),
         h('small', { class: 'muted', 'data-t': 'sg.oneRhythm' })]));
     }
+    // sound: the original recording (with / without vocals / vocals only) or the synthesizer
+    const snd = h('section', { class: 'sx-block snd' });
+    const setMix = m => { PD.store.set('songMix', m); if (ORIG.includes(m)) { PD.store.set('songMix.orig', m); PD.audio.ref.preload(l.stems, m); } PD.audio.ref.mix = m; drawSnd(); };
+    function drawSnd() {
+      const m = mixNow(), orig = ORIG.includes(m); snd.innerHTML = '';
+      const opt = (on, k, d, fn) => h('button', { class: 'snd-opt', 'aria-pressed': String(on), onclick: fn }, [h('b', { 'data-t': k }), h('small', { 'data-t': d })]);
+      snd.append(h('h3', { 'data-t': 'sg.mix' }), h('div', { class: 'snd-src', role: 'group', 'aria-label': t('sg.mix') }, [
+        opt(orig, 'snd.orig', 'snd.origD', () => setMix(PD.store.get('songMix.orig', 'full'))), opt(m === 'synth', 'snd.synth', 'snd.synthD', () => setMix('synth'))]));
+      if (orig) { const seg = h('div', { class: 'seg', role: 'group', 'aria-label': t('snd.orig') }, ORIG.map(k => h('button', { 'aria-pressed': String(m === k), 'data-t': 'mix.' + k, onclick: () => setMix(k) }))); snd.append(seg); }
+      snd.append(h('small', { class: 'muted', 'data-t': 'sg.headphones' }));
+      PD.i18n.apply(snd);
+    }
+    drawSnd(); w.append(snd);
     // steps
     const list = h('div', { class: 'list' });
     stages.forEach((s2, i) => {
@@ -464,6 +475,9 @@ PD.app = (() => {
       list.appendChild(h('div', { class: 'step' + (s2 === next ? ' cur' : '') }, [h('span', { class: 'num' + (done ? ' done' : ''), text: done ? '✓' : String(i + 1) }), body, h('button', { class: 'btn small' + (s2 === next ? ' primary' : ''), 'data-t': 'home.start', onclick: () => startStage(l, s2) })]));
     });
     w.append(h('h3', { 'data-t': 'ls.sections' }), list);
+    // the chord shapes
+    w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.shapes' }), h('div', { class: 'chd-row' }, Object.keys(SD.chords).map(n => { const sh = SD.chords[n]; return h('div', { class: 'chd' }, [h('b', { text: n }), h('div', { html: chordSVG(sh) }), h('small', { class: 'muted', text: sh.frets.map((f, i) => TH.stringName(i + 1) + ' ' + f).join(' · ') + (sh.src === 'derived' ? ' · ' + t('sg.derived') : '') })]); })),
+      h('small', { class: 'muted', 'data-t': 'sg.auto' })]));
     // sections of the song: play along from here (looped)
     const secs = h('div', { class: 'sx-secs' }, l.sections.map(sc => {
       const bars = Math.round((sc.to - sc.from) / LS.bpb(l)), chs = [...new Set(LS.steps(l).filter(x => x.t >= sc.from && x.t < sc.to).map(x => x.name))];
@@ -495,8 +509,11 @@ PD.app = (() => {
     if (l.song) {
       // songs with a recording: listen · chord changes (WAIT, the recording pauses for you) · the rhythm alone · play along slow · full song
       const firstPlay = (l.sections.find(x => x.kind !== 'listen') || { from: 0 }).from;
-      if (s === 'chords') return PD.practice.open(LS.songChanges(l), { wait: true, tempo: 1, mode: 'learn', resumeBeat: resumeBeat || firstPlay }, l.id, s);
-      if (s === 'technique') return PD.practice.open(LS.songRhythm(l), { wait: false, tempo: .6, mode: 'practice', metro: true, loop: { a: 0, b: LS.bpb(l) * 4, on: true } }, l.id, s);
+      // chords with the rhythm: every stroke, slowly, with the music — the intro and the first verse (the progression repeats there many times)
+      if (s === 'chords') { const v = (l.sections || []).find(x => x.kind === 'verse'), end = v ? v.to : Math.min(LS.end(l), (l.cycle ? l.cycle.length : 4) * 12);
+        return PD.practice.open(LS.songPart(l, 0, end, { ka: l.title.ka + ' · ' + t('st.chords'), en: l.title.en + ' · chords with the rhythm' }), { wait: false, tempo: .6, mode: 'practice', resumeBeat: resumeBeat > 0 && resumeBeat < end ? resumeBeat : 0 }, l.id, s); }
+      // the rhythm alone on the first chord, one cycle looped; the app plays along unless the learner switched that off
+      if (s === 'technique') return PD.practice.open(LS.songRhythm(l), { wait: false, tempo: .6, mode: 'practice', metro: true, guideKey: 'guide.songRhythm', guide: true, loop: { a: 0, b: l.cycle ? l.cycle.length : LS.bpb(l) * 2, on: true } }, l.id, s);
       if (s === 'slow') return PD.practice.open(l, { wait: false, tempo: .7, mode: 'practice', resumeBeat: resumeBeat || firstPlay }, l.id, s);
       if (s === 'perform') return PD.practice.open(l, { wait: false, tempo: 1, mode: 'perform' }, l.id, s);
       if (s === 'demo') return PD.practice.open(l, { autoplay: true, tempo: 1, wait: false, mode: 'learn' }, l.id, s);

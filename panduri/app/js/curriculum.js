@@ -192,7 +192,7 @@ PD.curriculum = (() => {
     return L({ id, type: 'song', level: 1, demo: false, source: 'teacher chords + supplied recording', title, desc, bpm: S.bpm, meter: [S.beatsPerBar, 8], meterLabel: S.meterLabel,
       song: id, stems: S.stems, refOffset: S.beats ? 0 : S.offset, beatMap: S.beats || null, countIn: S.countIn || 0, cycle: S.cycle || null,
       chartSrc: S.chartSrc, rhythm: undefined, songRhythm: R.id, events: ev, sections: secs,
-      stages: ['demo', 'chords', 'technique', 'slow', 'perform'], technique: { kind: 'rhythm' }, skills: ['chords', 'strumming', 'accents', 'rhythm'] });
+      stages: ['demo', 'technique', 'chords', 'slow', 'perform'], technique: { kind: 'rhythm' }, skills: ['chords', 'strumming', 'accents', 'rhythm'] });
   }
   B.push(songLesson('bani-acharuli', { ka: 'ბანი-აჭარული', en: 'Bani-Acharuli' },
     { ka: 'Dm (2 რითმი) · B♭ (1 რითმი) · C (1 რითმი) — მთელ სიმღერაში მეორდება. რითმი: ჩაკვრა · ჩაკვრა · ამოკვრა (აჭარული). იკვრება ორიგინალ ჩანაწერთან ერთად — ვოკალით ან მის გარეშე.', en: 'Dm (2 rhythms) · B♭ (1 rhythm) · C (1 rhythm), repeated through the whole song. Rhythm: down · down · up (Acharuli). Played along with the original recording — with or without vocals.' }));

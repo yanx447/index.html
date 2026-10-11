@@ -1091,3 +1091,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .lx-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.lx-actions .btn{white-space:normal;line-height:1.15;text-align:center;padding:6px 12px;min-width:0}
 .fb .cell:focus{outline:none}.fb .cell:focus-visible circle,.fb .cell:focus-visible rect{stroke:#FFD79A;stroke-width:3}
 .pz.cam .pz-prompt{height:auto;max-height:100%}.pz.cam .pz-prompt .pz-sub{max-height:none}   /* camera: a compact card over the picture (its size never moves the other rows) */
+/* song page: the progression always on one line */
+.cy-rs{flex-wrap:nowrap}.cy-st{gap:2px;padding:3px 6px}.cy-st i{font-size:16px}
+@media (max-width:380px){.cy-c{padding:8px 6px 10px}.cy-c b{font-size:20px}.cy-st{padding:2px 4px}.cy-st i{font-size:14px}}
+/* song page: sound = the original recording or the synthesizer */
+.snd-src{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.snd-opt{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:12px 14px;border-radius:16px;border:1px solid var(--line2);background:rgba(255,236,210,.03);color:var(--fg);min-height:72px}
+.snd-opt b{font-size:15px}.snd-opt small{font-size:12px;color:var(--fg2);line-height:1.35}
+.snd-opt[aria-pressed="true"]{border-color:rgba(246,201,135,.75);background:linear-gradient(180deg,rgba(233,165,90,.22),rgba(233,165,90,.07));box-shadow:0 0 0 1px rgba(246,201,135,.35) inset}
+.snd .seg{margin-top:10px}
+.opt small{display:block;font-size:12px;color:var(--fg2);font-weight:400;margin-top:2px}
