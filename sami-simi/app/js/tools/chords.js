@@ -84,7 +84,7 @@ export function create(ctx) {
     // every position of this chord
     el.querySelector('.pos-h').textContent = tr('positions', { n: list.length });
     el.querySelector('.voicing-strip').innerHTML = list.map((v, i) => `<button type="button" class="vc" role="option" aria-selected="${i === vIdx}" data-v="${i}">
-      <span class="vc-where">${esc(where(v))}</span>${chordDiagram(v, ['', '', ''])}<span class="vc-inv">${esc(trInv(v.inv))}</span></button>`).join('');
+      <span class="vc-txt"><span class="vc-where">${esc(where(v))}</span><span class="vc-inv">${esc(trInv(v.inv))}</span></span>${chordDiagram(v, ['', '', ''])}</button>`).join('');
 
     // all major / minor / other chords
     el.querySelector('.all-h').textContent = tr('all');
@@ -109,7 +109,7 @@ export function create(ctx) {
 
   function show(scrollStrip) {
     render();
-    if (scrollStrip) { const b = el.querySelector(`.vc[data-v="${vIdx}"]`); b && b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' }); }
+    void scrollStrip; // the positions list is vertical now: stay where the player is looking
   }
 
   el.addEventListener('click', (e) => {

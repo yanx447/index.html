@@ -818,3 +818,25 @@ textarea.txt { resize: vertical; line-height: 1.6; }
 .int-card[data-state="warn"] .int-state { color: var(--amber); }
 .int-card[data-state="bad"] .int-state { color: var(--red); }
 .int-sum-h { margin-top: 18px; }
+
+/* ── horizontal chord diagrams (head left, frets to the right) ───── */
+.chord-svg.h { max-width: 260px; }
+.chord-svg .cd-lbl { text-anchor: end; }
+.chord-svg .cd-num { fill: var(--faint); font: 600 10px var(--f-num); text-anchor: middle; }
+.chord-svg .cd-num.first { fill: var(--brass-hi); }
+.chord-body { grid-template-columns: 1fr; gap: 12px; justify-items: center; }
+.chord-body .chord-diag { width: 100%; display: grid; justify-items: center; }
+.chord-body .chord-diag .chord-svg { max-width: 300px; }
+.chord-body .chord-info { width: 100%; }
+.chord-mini .chord-svg.h { max-width: 100%; }
+.chord-grid { grid-template-columns: repeat(3, 1fr); }
+@media (min-width: 560px) { .chord-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* chord positions: a vertical list — scroll down, not sideways */
+.voicing-strip { flex-direction: column; overflow: visible; scroll-snap-type: none; padding: 0; margin: 0; gap: 8px; }
+.vc { width: 100%; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; text-align: left; }
+.vc .chord-svg, .vc .chord-svg.h { width: auto; max-width: none; height: 74px; flex: none; }
+.vc-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vc-where { font-size: 15px; }
+.vc-inv { font-size: 12px; text-align: left; }
+.chord-pop .chord-svg.h { max-width: 230px; margin: 4px auto; }

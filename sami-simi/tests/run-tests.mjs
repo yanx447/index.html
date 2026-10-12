@@ -156,7 +156,7 @@ console.log('\nNoise, weak signal, decay');
   const holdF = fr.find((f) => f.t > 1500 && f.state === State.HOLD);
   const lastV = lastValid(fr);
   const backIdle = fr.find((f) => f.t > (lastV?.t ?? 0) + 200 && f.state === State.LISTENING);
-  ok(!!holdF && !!backIdle && backIdle.t - lastV.t < 900, 'decay → hold → listening', holdF && backIdle ? `hold at ${holdF.t.toFixed(0)}ms, idle ${(backIdle.t - lastV.t).toFixed(0)}ms after last valid` : '');
+  ok(!!holdF && !!backIdle && backIdle.t - lastV.t < 1300, 'decay → hold (1 s) → listening', holdF && backIdle ? `hold at ${holdF.t.toFixed(0)}ms, idle ${(backIdle.t - lastV.t).toFixed(0)}ms after last valid` : '');
   const vs = fr.filter((f) => f.t > 1200 && (f.state === State.VALID || f.state === State.IN_TUNE));
   const maxJump = Math.max(...vs.map((f) => Math.abs(f.cents)));
   ok(maxJump < 2, 'no needle jumps while the note fades', `max |cents| ${maxJump.toFixed(2)}`);

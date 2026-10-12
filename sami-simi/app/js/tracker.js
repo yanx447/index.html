@@ -18,8 +18,8 @@ export const State = Object.freeze({
 
 const CALIBRATE_MS = 900;
 const ATTACK_MS = 90;
-const HOLD_MS = 650;
-const MIN_CLARITY = 0.82;
+const HOLD_MS = 1000;            // the panduri fades fast: keep the last reading a little longer
+const MIN_CLARITY = 0.8;
 const HIST = 7;
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -76,6 +76,7 @@ export class PitchTracker {
     this.slowRms = 0;
     this.attackUntil = 0;
     this.onsetAt = -1e9;
+    this.lastSignalAt = -1e9;
     this.hadSignal = false;
     this.autoIdx = null;
     this.resetMeasurement();
@@ -84,7 +85,7 @@ export class PitchTracker {
   end() { this.state = State.OFF; this.resetMeasurement(); this.snap = { ...this.blankSnapshot(), state: State.OFF }; }
 
   gate() {
-    if (this.cfg.autoSens) return Math.max(0.0009, this.noiseFloor * 3.2);
+    if (this.cfg.autoSens) return Math.max(0.0006, this.noiseFloor * 1.8); // ≈ +5 dB over the room
     return 0.045 * Math.pow(0.62, this.cfg.sens); // manual: sens 1 (deaf) … 10 (very sensitive)
   }
 
@@ -170,10 +171,14 @@ export class PitchTracker {
     }
     this.slowRms = this.slowRms ? this.slowRms * 0.8 + rms * 0.2 : rms;
     this.hadSignal = signal;
+    if (signal) this.lastSignalAt = now;
 
     if (this.cfg.awaitOnset && snap.onset) this.cfg.awaitOnset = false;
     const inAttack = now < this.attackUntil;
-    const valid = signal && !inAttack && !this.cfg.awaitOnset && det.freq > 0 && det.clarity >= MIN_CLARITY;
+    // a clearly periodic note is trusted even after it has faded close to the room noise
+    // (only shortly after real sound — never from noise alone)
+    const faint = !signal && rms >= this.noiseFloor * 1.15 && det.clarity >= 0.9 && now - this.lastSignalAt < 4000;
+    const valid = (signal || faint) && !inAttack && !this.cfg.awaitOnset && det.freq > 0 && det.clarity >= MIN_CLARITY;
 
     snap.rms = rms; snap.gate = gate; snap.noiseFloor = this.noiseFloor;
     snap.clarity = det.clarity; snap.rawFreq = det.freq;

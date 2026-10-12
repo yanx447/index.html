@@ -35,7 +35,8 @@ const tracker = new PitchTracker();
 const input = new AudioInput(16384); // detector uses the last 4096 samples, chord recognition 8192, the all-strings check 16384
 const reference = new ReferenceEngine();
 reference.load(); // decode the recorded plucks in the background
-let detector = null;
+let detector = null, detector8 = null, detector16 = null;
+const longResult = {};
 
 const done = [false, false, false];
 let running = false, starting = false, resumeOnVisible = false;
@@ -413,7 +414,18 @@ function analysisTick() {
   let snap;
   if (reference.busy) { snap = tracker.update(null, now); lastDet = null; }
   else {
-    const det = detector.analyze(input.read(), tracker.prior);
+    const buf = input.read();
+    let det = detector.analyze(buf, tracker.prior);
+    // quiet (a fading or distant string): listen over a longer window — 2–4× more signal against
+    // the room noise. Loud notes keep the short window so the needle stays quick.
+    const nf = tracker.noiseFloor;
+    if (S.autoSens && det.rms < nf * 6 && buf.length >= 16384) {
+      const big = det.rms < nf * 3;
+      const longDet = big ? (detector16 || (detector16 = new PitchDetector(input.sampleRate, { windowSize: 16384 })))
+                          : (detector8 || (detector8 = new PitchDetector(input.sampleRate, { windowSize: 8192 })));
+      const d2 = longDet.analyze(buf, tracker.prior);
+      if (d2.clarity > det.clarity) { const rms = det.rms; det = Object.assign(longResult, d2, { rms }); }
+    }
     lastDet = det;
     snap = tracker.update(det, now);
   }
@@ -459,7 +471,7 @@ async function startMic(silent = false) {
     else toast(t('toast.micRetry'));
     return;
   }
-  if (!detector || detector.sr !== input.sampleRate) detector = new PitchDetector(input.sampleRate, { windowSize: WINDOW });
+  if (!detector || detector.sr !== input.sampleRate) { detector = new PitchDetector(input.sampleRate, { windowSize: WINDOW }); detector8 = detector16 = null; }
   tracker.configure({ strings: model.strings, mode: S.mode, selected: S.selected, autoSens: S.autoSens, sens: S.sens, tol: S.tol, harmonic: S.harmonic });
   tracker.begin(performance.now());
   running = true; starting = false;
