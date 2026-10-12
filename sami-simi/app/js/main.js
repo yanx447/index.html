@@ -419,7 +419,8 @@ function analysisTick() {
     // quiet (a fading or distant string): listen over a longer window — 2–4× more signal against
     // the room noise. Loud notes keep the short window so the needle stays quick.
     const nf = tracker.noiseFloor;
-    if (S.autoSens && det.rms < nf * 6 && buf.length >= 16384) {
+    // only while a note is fading (≤ 4 s after real sound) — in silence this would just burn battery
+    if (S.autoSens && det.rms < nf * 6 && buf.length >= 16384 && now - (tracker.lastSignalAt || -1e9) < 4000) {
       const big = det.rms < nf * 3;
       const longDet = big ? (detector16 || (detector16 = new PitchDetector(input.sampleRate, { windowSize: 16384 })))
                           : (detector8 || (detector8 = new PitchDetector(input.sampleRate, { windowSize: 8192 })));

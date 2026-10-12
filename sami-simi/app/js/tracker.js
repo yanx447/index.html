@@ -17,7 +17,7 @@ export const State = Object.freeze({
 });
 
 const CALIBRATE_MS = 900;
-const ATTACK_MS = 90;
+const ATTACK_MS = 220;          // a plucked panduri string starts sharp (A3: +20¢) and settles in ~0.2 s — measured on real recordings
 const HOLD_MS = 1000;            // the panduri fades fast: keep the last reading a little longer
 const MIN_CLARITY = 0.8;
 const HIST = 7;
@@ -87,6 +87,17 @@ export class PitchTracker {
   gate() {
     if (this.cfg.autoSens) return Math.max(0.0006, this.noiseFloor * 1.8); // ≈ +5 dB over the room
     return 0.045 * Math.pow(0.62, this.cfg.sens); // manual: sens 1 (deaf) … 10 (very sensitive)
+  }
+
+  lowestTarget() { const s = this.cfg.strings; let m = Infinity; for (const x of s) m = Math.min(m, x.freq); return Number.isFinite(m) ? m : 0; }
+
+  /** is f within `semis` of a string (or of its octave, e.g. a 12th-fret harmonic)? */
+  nearString(f, semis) {
+    for (const x of this.cfg.strings) {
+      const d = 12 * Math.log2(f / x.freq);
+      if (Math.abs(d) <= semis || Math.abs(d - 12) <= semis) return true;
+    }
+    return false;
   }
 
   /** plausibility of a frequency given the current string expectation (used by the detector) */
@@ -177,8 +188,11 @@ export class PitchTracker {
     const inAttack = now < this.attackUntil;
     // a clearly periodic note is trusted even after it has faded close to the room noise
     // (only shortly after real sound — never from noise alone)
-    const faint = !signal && rms >= this.noiseFloor * 1.15 && det.clarity >= 0.9 && now - this.lastSignalAt < 4000;
-    const valid = (signal || faint) && !inAttack && !this.cfg.awaitOnset && det.freq > 0 && det.clarity >= MIN_CLARITY;
+    const faint = !signal && rms >= this.noiseFloor * 1.15 && det.clarity >= 0.9 && now - this.lastSignalAt < 4000 && this.nearString(det.freq, 2.5);
+    // nothing more than an octave below the lowest string is a panduri note (room hum, rumble,
+    // a subharmonic); a string tuned a whole octave too low must still be seen, to warn about it
+    const inRange = det.freq > 0 && det.freq >= this.lowestTarget() * 0.45;
+    const valid = (signal || faint) && inRange && !inAttack && !this.cfg.awaitOnset && det.clarity >= MIN_CLARITY;
 
     snap.rms = rms; snap.gate = gate; snap.noiseFloor = this.noiseFloor;
     snap.clarity = det.clarity; snap.rawFreq = det.freq;
