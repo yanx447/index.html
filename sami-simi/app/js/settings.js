@@ -67,7 +67,7 @@ function sanitize(s) {
     pegFlip: [0, 1, 2].map((i) => !!(Array.isArray(s.pegFlip) && s.pegFlip[i])),
     refMode: oneOf(s.refMode, ['pluck', 'drone'], 'pluck'),
     stageSound: s.stageSound !== false,
-    needleSpeed: Math.round(clamp(s.needleSpeed, 1, 10, 5)),
+    needleSpeed: Math.round(clamp(s.needleSpeed, 1, 10, 5) * 10) / 10,
   };
 }
 

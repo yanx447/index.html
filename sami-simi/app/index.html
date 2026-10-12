@@ -64,6 +64,11 @@
     <div class="meter" id="meter" data-view="needle">
       <div class="meter-glass" aria-hidden="true"></div>
       <button type="button" class="meter-stage" id="concertBtn" data-i18n-aria="aria.concert"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/></svg></button>
+      <div class="fader" id="fader" role="slider" tabindex="0" aria-orientation="vertical" aria-valuemin="1" aria-valuemax="10" aria-valuenow="5" data-i18n-aria="set.needleSpeed">
+        <span class="fd-top" aria-hidden="true" data-i18n="fader.fast">სწრაფი</span>
+        <div class="fd-track" aria-hidden="true"><span class="fd-groove"></span><span class="fd-fill"></span><span class="fd-ticks"></span><span class="fd-cap" id="faderCap"><i></i></span><b class="fd-val" id="faderVal"></b></div>
+        <span class="fd-bot" aria-hidden="true" data-i18n="fader.calm">მშვიდი</span>
+      </div>
       <svg id="gauge" class="gauge" viewBox="0 0 360 208" aria-hidden="true"></svg>
       <canvas id="strobe" class="strobe" hidden aria-hidden="true"></canvas>
       <div class="readout" id="readout">
@@ -214,7 +219,7 @@
         </div>
         <div class="field">
           <div class="field-row"><label class="lab" for="needleSpeed" data-i18n="set.needleSpeed">ისრის სისწრაფე</label><span class="val" id="needleVal">5</span></div>
-          <input type="range" id="needleSpeed" min="1" max="10" step="1" value="5">
+          <input type="range" id="needleSpeed" min="1" max="10" step="0.1" value="5">
           <div class="range-ends"><span data-i18n="set.needleCalm">მშვიდი</span><span data-i18n="set.needleFast">სწრაფი</span></div>
           <p class="field-note" data-i18n="set.needleNote"></p>
         </div>
@@ -297,7 +302,7 @@
         <div class="field"><a class="btn-row link" id="privacyLink" href="../privacy.html" target="_blank" rel="noopener" data-i18n="set.privacy">კონფიდენციალურობა</a></div>
         <div class="field"><a class="btn-row link" id="supportLink" href="../support.html" target="_blank" rel="noopener" data-i18n="set.support">დახმარება</a></div>
       </div>
-      <p class="about"><span data-i18n="set.about"></span> <span id="version">v1.8.2</span></p>
+      <p class="about"><span data-i18n="set.about"></span> <span id="version">v1.8.3</span></p>
     </section>
   </div>
 </section>

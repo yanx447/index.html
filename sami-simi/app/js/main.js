@@ -96,8 +96,7 @@ function applyAll() {
   document.body.classList.toggle('no-motion', !S.motion || reducedMotion.matches);
   reference.volume = S.refVolume;
   gauge.setTolerance(S.tol);
-  gauge.setSpeed(S.needleSpeed);
-  document.documentElement.style.setProperty('--needle-t', (0.5 * Math.pow(2, (5 - S.needleSpeed) / 3.5)).toFixed(2) + 's');
+  applyNeedleSpeed();
   trace.tol = S.tol;
   head.setSimple(S.ui === 'simple');
   setMeterView(S.meter);
@@ -595,21 +594,11 @@ function renderSettings() {
   const a4 = $('#a4'); a4.value = S.a4; setFill(a4);
   $('#a4Val').textContent = (S.a4 % 1 ? S.a4.toFixed(1) : S.a4) + ' ' + t('hz');
   const ns = $('#needleSpeed');
-  let previewT = 0;
-  ns.addEventListener('input', () => {
-    S.needleSpeed = +ns.value; tracker.configure({ speed: S.needleSpeed }); gauge.setSpeed(S.needleSpeed);
-    document.documentElement.style.setProperty('--needle-t', (0.5 * Math.pow(2, (5 - S.needleSpeed) / 3.5)).toFixed(2) + 's');
-    renderSettings();
-    if (!running || isIdle()) { // show how the needle now moves: a swing out and back
-      clearTimeout(previewT); gauge.set(30, 'live', false); requestRender();
-      previewT = setTimeout(() => { gauge.set(-12, 'live', false); requestRender(); previewT = setTimeout(() => { gauge.set(null, 'idle', false); requestRender(); }, 700); }, 700);
-    }
-  });
-  ns.addEventListener('change', persist);
+  ns.addEventListener('input', () => { setNeedleSpeed(+ns.value, false); setFill(ns); });
+  ns.addEventListener('change', () => { persist(); previewNeedle(); });
   const sens = $('#sens'); sens.value = S.sens; sens.disabled = S.autoSens; setFill(sens);
   $('#sensVal').textContent = S.autoSens ? t('set.auto') : S.sens + ' / 10';
-  const nsl = $('#needleSpeed'); nsl.value = S.needleSpeed; setFill(nsl);
-  $('#needleVal').textContent = `${S.needleSpeed} · ${t('set.needleLv')[S.needleSpeed - 1]}`;
+  applyNeedleSpeed();
   $('#tolVal').textContent = t('set.cents', { n: S.tol });
   const vol = $('#refVolume'); vol.value = S.refVolume; setFill(vol);
   $('#refVolVal').textContent = Math.round(S.refVolume * 100) + '%';
@@ -717,6 +706,55 @@ function renderTunings() {
 }
 function selectTuning(id) {
   S.presetId = id; S.transpose = 0; S.octave = 0; persist(); applyTuning(true); renderSettings(); updateInstruction(true);
+}
+
+// ─── needle speed: the fader next to the needle (and the slider in settings) ─────────
+const FADER_DEFAULT = 5;
+function needleLabel(v) { return t('set.needleLv')[Math.min(9, Math.max(0, Math.round(v) - 1))]; }
+function applyNeedleSpeed() {
+  const v = S.needleSpeed;
+  tracker.configure({ speed: v }); gauge.setSpeed(v);
+  document.documentElement.style.setProperty('--needle-t', (0.5 * Math.pow(2, (5 - v) / 3.5)).toFixed(2) + 's');
+  const f = $('#fader'), p = (v - 1) / 9;
+  f.style.setProperty('--fd-pos', ((1 - p) * 100).toFixed(2) + '%');
+  f.style.setProperty('--fd-fill', `calc(${(p * 100).toFixed(2)}% - ${(p * 12).toFixed(1)}px)`);
+  f.setAttribute('aria-valuenow', v.toFixed(1));
+  f.setAttribute('aria-valuetext', `${v.toFixed(1)} · ${needleLabel(v)}`);
+  $('#faderVal').textContent = v.toFixed(1);
+  const sl = $('#needleSpeed'); if (sl && document.activeElement !== sl) { sl.value = v; setFill(sl); }
+  if ($('#needleVal')) $('#needleVal').textContent = `${v.toFixed(1)} · ${needleLabel(v)}`;
+}
+let previewT = 0;
+function previewNeedle() { // show how the needle now moves: one swing out and back
+  if (running && !isIdle()) return;
+  clearTimeout(previewT); gauge.set(30, 'live', false); requestRender();
+  previewT = setTimeout(() => { gauge.set(-12, 'live', false); requestRender(); previewT = setTimeout(() => { gauge.set(null, 'idle', false); requestRender(); }, 700); }, 700);
+}
+function setNeedleSpeed(v, save) {
+  S.needleSpeed = Math.round(Math.min(10, Math.max(1, v)) * 10) / 10;
+  applyNeedleSpeed();
+  if (save) persist();
+}
+function bindFader() {
+  const f = $('#fader'), track = f.querySelector('.fd-track');
+  let dragging = false, lastTap = 0, showT = 0;
+  const fromY = (y) => { const r = track.getBoundingClientRect(); const p = 1 - (y - r.top - 6) / Math.max(1, r.height - 12); return 1 + 9 * Math.min(1, Math.max(0, p)); };
+  f.addEventListener('pointerdown', (e) => {
+    const now = performance.now();
+    if (now - lastTap < 320) { setNeedleSpeed(FADER_DEFAULT, true); previewNeedle(); haptic(12); lastTap = 0; return; } // double-tap: medium
+    lastTap = now;
+    dragging = true; f.classList.add('drag'); f.setPointerCapture(e.pointerId);
+    setNeedleSpeed(fromY(e.clientY), false); e.preventDefault();
+  });
+  f.addEventListener('pointermove', (e) => { if (dragging) setNeedleSpeed(fromY(e.clientY), false); });
+  const end = () => { if (!dragging) return; dragging = false; f.classList.remove('drag'); persist(); previewNeedle(); };
+  f.addEventListener('pointerup', end); f.addEventListener('pointercancel', end);
+  f.addEventListener('keydown', (e) => {
+    const step = { ArrowUp: 0.5, ArrowRight: 0.5, ArrowDown: -0.5, ArrowLeft: -0.5, PageUp: 2, PageDown: -2 }[e.key];
+    if (e.key === 'Home') setNeedleSpeed(1, true); else if (e.key === 'End') setNeedleSpeed(10, true);
+    else if (step) setNeedleSpeed(S.needleSpeed + step, true); else return;
+    e.preventDefault(); f.classList.add('show'); clearTimeout(showT); showT = setTimeout(() => f.classList.remove('show'), 900);
+  });
 }
 
 function setMeterView(v) {
@@ -1148,6 +1186,7 @@ function bind() {
   reducedMotion.addEventListener && reducedMotion.addEventListener('change', applyAll);
 
   bindSettings();
+  bindFader();
 }
 let brandLong = false;
 
