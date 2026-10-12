@@ -86,7 +86,7 @@ function persist() { saveSettings(S); }
 function applyTuning(resetStatus) {
   model.set(S);
   if (reference.droning) reference.droneTo(model.strings[current].freq, current);
-  tracker.configure({ strings: model.strings, mode: S.mode, selected: S.selected, autoSens: S.autoSens, sens: S.sens, tol: S.tol, harmonic: S.harmonic });
+  tracker.configure({ strings: model.strings, mode: S.mode, selected: S.selected, autoSens: S.autoSens, sens: S.sens, tol: S.tol, harmonic: S.harmonic, speed: S.needleSpeed });
   if (resetStatus) resetDone();
   renderLabels();
 }
@@ -96,6 +96,8 @@ function applyAll() {
   document.body.classList.toggle('no-motion', !S.motion || reducedMotion.matches);
   reference.volume = S.refVolume;
   gauge.setTolerance(S.tol);
+  gauge.setSpeed(S.needleSpeed);
+  document.documentElement.style.setProperty('--needle-t', (0.5 * Math.pow(2, (5 - S.needleSpeed) / 3.5)).toFixed(2) + 's');
   trace.tol = S.tol;
   head.setSimple(S.ui === 'simple');
   setMeterView(S.meter);
@@ -473,7 +475,7 @@ async function startMic(silent = false) {
     return;
   }
   if (!detector || detector.sr !== input.sampleRate) { detector = new PitchDetector(input.sampleRate, { windowSize: WINDOW }); detector8 = detector16 = null; }
-  tracker.configure({ strings: model.strings, mode: S.mode, selected: S.selected, autoSens: S.autoSens, sens: S.sens, tol: S.tol, harmonic: S.harmonic });
+  tracker.configure({ strings: model.strings, mode: S.mode, selected: S.selected, autoSens: S.autoSens, sens: S.sens, tol: S.tol, harmonic: S.harmonic, speed: S.needleSpeed });
   tracker.begin(performance.now());
   running = true; starting = false;
   setMicUI('live');
@@ -592,8 +594,22 @@ function renderSettings() {
   $('#octVal').textContent = model.labelWithOctaves();
   const a4 = $('#a4'); a4.value = S.a4; setFill(a4);
   $('#a4Val').textContent = (S.a4 % 1 ? S.a4.toFixed(1) : S.a4) + ' ' + t('hz');
+  const ns = $('#needleSpeed');
+  let previewT = 0;
+  ns.addEventListener('input', () => {
+    S.needleSpeed = +ns.value; tracker.configure({ speed: S.needleSpeed }); gauge.setSpeed(S.needleSpeed);
+    document.documentElement.style.setProperty('--needle-t', (0.5 * Math.pow(2, (5 - S.needleSpeed) / 3.5)).toFixed(2) + 's');
+    renderSettings();
+    if (!running || isIdle()) { // show how the needle now moves: a swing out and back
+      clearTimeout(previewT); gauge.set(30, 'live', false); requestRender();
+      previewT = setTimeout(() => { gauge.set(-12, 'live', false); requestRender(); previewT = setTimeout(() => { gauge.set(null, 'idle', false); requestRender(); }, 700); }, 700);
+    }
+  });
+  ns.addEventListener('change', persist);
   const sens = $('#sens'); sens.value = S.sens; sens.disabled = S.autoSens; setFill(sens);
   $('#sensVal').textContent = S.autoSens ? t('set.auto') : S.sens + ' / 10';
+  const nsl = $('#needleSpeed'); nsl.value = S.needleSpeed; setFill(nsl);
+  $('#needleVal').textContent = `${S.needleSpeed} · ${t('set.needleLv')[S.needleSpeed - 1]}`;
   $('#tolVal').textContent = t('set.cents', { n: S.tol });
   const vol = $('#refVolume'); vol.value = S.refVolume; setFill(vol);
   $('#refVolVal').textContent = Math.round(S.refVolume * 100) + '%';

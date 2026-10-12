@@ -18,7 +18,7 @@ const arc = (d0, d1, r) => {
 export class Meter {
   constructor(svg) {
     this.svg = svg;
-    this.angle = 0; this.vel = 0; this.target = 0;
+    this.angle = 0; this.vel = 0; this.target = 0; this.k = 170;
     this.build();
     this.needle = svg.querySelector('#mNeedle');
     this.lockZone = svg.querySelector('#mLock');
@@ -81,8 +81,11 @@ export class Meter {
     if (locked && !was) { this.pulse.classList.remove('go'); void this.pulse.getBBox(); this.pulse.classList.add('go'); }
   }
 
+  /** needle speed 1 (calm, heavy) … 10 (quick); 5 is the default feel */
+  setSpeed(v) { const f = Math.pow(2, ((v ?? 5) - 5) / 3.5); this.k = 170 * f * f; }
+
   step(dt) {
-    const k = 170, c = 2 * Math.sqrt(k) * 0.9;
+    const k = this.k, c = 2 * Math.sqrt(k) * 0.9;
     const a = k * (this.target - this.angle) - c * this.vel;
     this.vel += a * dt;
     this.angle += this.vel * dt;

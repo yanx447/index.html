@@ -25,6 +25,7 @@ export const DEFAULTS = Object.freeze({
   pegFlip: [false, false, false], // per string: the tuner key tightens the other way round
   refMode: 'pluck',  // 'pluck' | 'drone' (reference keeps sounding until stopped)
   stageSound: true,  // stage mode: audible cues
+  needleSpeed: 5,    // 1 calm … 10 fast — how quickly the needle follows the string
 });
 
 const MIDI_MIN = 45, MIDI_MAX = 76; // A2 … E5 — what three panduri strings can reasonably be tuned to
@@ -66,6 +67,7 @@ function sanitize(s) {
     pegFlip: [0, 1, 2].map((i) => !!(Array.isArray(s.pegFlip) && s.pegFlip[i])),
     refMode: oneOf(s.refMode, ['pluck', 'drone'], 'pluck'),
     stageSound: s.stageSound !== false,
+    needleSpeed: Math.round(clamp(s.needleSpeed, 1, 10, 5)),
   };
 }
 

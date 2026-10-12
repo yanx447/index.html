@@ -32,7 +32,7 @@ function median(arr, n) {
 
 export class PitchTracker {
   constructor() {
-    this.cfg = { strings: [], mode: 'auto', selected: 0, autoSens: true, sens: 6, tol: 3, harmonic: false };
+    this.cfg = { strings: [], mode: 'auto', selected: 0, autoSens: true, sens: 6, tol: 3, harmonic: false, speed: 5 };
     this.noiseFloor = 0.0015;
     this.state = State.OFF;
     this.snap = this.blankSnapshot();
@@ -256,7 +256,9 @@ export class PitchTracker {
     if (this.smoothed == null) this.smoothed = robust;
     else {
       const delta = robust - this.smoothed;
-      const alpha = Math.min(0.75, 0.1 + 0.5 * clamp01(Math.abs(delta) / 25) + 0.15 * clamp01(Math.abs(this.smoothed) / 30));
+      // needle speed setting: 5 = default; 1 calm (~0.5×), 10 fast (~2.4×)
+      const g = Math.pow(2, ((this.cfg.speed ?? 5) - 5) / 4);
+      const alpha = Math.min(0.95, Math.max(0.03, g * (0.1 + 0.5 * clamp01(Math.abs(delta) / 25) + 0.15 * clamp01(Math.abs(this.smoothed) / 30))));
       this.smoothed += delta * alpha;
     }
     const cents = this.smoothed;

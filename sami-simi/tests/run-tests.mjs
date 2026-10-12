@@ -396,6 +396,25 @@ console.log('\nEnsemble calibration (reed instrument tuned to A4 = 442 Hz)');
   }
 }
 
+console.log('\nNeedle speed setting (1 calm … 10 fast)');
+{
+  const { Meter } = await import('../app/js/view/meter.js').catch(() => ({}));
+  // the peg is turned while the string rings: −8¢ → 0¢ — how long until the reading is within 1¢?
+  const settle = (speed) => {
+    const tr = new PitchTracker();
+    tr.configure({ strings: S, mode: 'manual', selected: 0, autoSens: true, sens: 6, tol: 3, speed }); tr.begin(0);
+    let t = 0; const det = (c) => ({ freq: cents(S[0].freq, c), clarity: 0.97, periodicity: 0.97, rms: 0.05, peak: 0.1 });
+    for (let i = 0; i < 35; i++) { t += 33; tr.update({ freq: 0, clarity: 0, periodicity: 0, rms: 0.0004, peak: 0.001 }, t); } // room before the pluck
+    for (let i = 0; i < 40; i++) { t += 33; tr.update(det(-8), t); }
+    const t0 = t;
+    for (let i = 0; i < 120; i++) { t += 33; const s = tr.update(det(0), t); if (Math.abs(s.cents) < 1) return t - t0; }
+    return Infinity;
+  };
+  const ms = [1, 5, 10].map(settle);
+  ok(ms[0] > ms[1] && ms[1] > ms[2], 'calm is slower, fast is quicker', `to within 1¢: calm ${ms[0]} ms · default ${ms[1]} ms · fast ${ms[2]} ms`);
+  ok(ms[2] <= 400 && ms[0] <= 3000, 'still usable at both ends');
+}
+
 console.log('\nReference tone pitch');
 for (const sr of [48000, 44100]) {
   const det = new PitchDetector(sr);

@@ -213,6 +213,12 @@
           <input type="range" id="sens" min="1" max="10" step="1" value="6">
         </div>
         <div class="field">
+          <div class="field-row"><label class="lab" for="needleSpeed" data-i18n="set.needleSpeed">ისრის სისწრაფე</label><span class="val" id="needleVal">5</span></div>
+          <input type="range" id="needleSpeed" min="1" max="10" step="1" value="5">
+          <div class="range-ends"><span data-i18n="set.needleCalm">მშვიდი</span><span data-i18n="set.needleFast">სწრაფი</span></div>
+          <p class="field-note" data-i18n="set.needleNote"></p>
+        </div>
+        <div class="field">
           <div class="field-row"><span class="lab" data-i18n="set.tol">ზღვარი</span><span class="val" id="tolVal">±3</span></div>
           <div class="seg" data-key="tol" role="radiogroup">
             <button type="button" role="radio" data-v="2">±2 ¢</button><button type="button" role="radio" data-v="3">±3 ¢</button><button type="button" role="radio" data-v="5">±5 ¢</button>
@@ -291,7 +297,7 @@
         <div class="field"><a class="btn-row link" id="privacyLink" href="../privacy.html" target="_blank" rel="noopener" data-i18n="set.privacy">კონფიდენციალურობა</a></div>
         <div class="field"><a class="btn-row link" id="supportLink" href="../support.html" target="_blank" rel="noopener" data-i18n="set.support">დახმარება</a></div>
       </div>
-      <p class="about"><span data-i18n="set.about"></span> <span id="version">v1.8.1</span></p>
+      <p class="about"><span data-i18n="set.about"></span> <span id="version">v1.8.2</span></p>
     </section>
   </div>
 </section>

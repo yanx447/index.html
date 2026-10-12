@@ -764,7 +764,7 @@ textarea.txt { resize: vertical; line-height: 1.6; }
 .cc-bar { position: relative; width: min(92vw, 720px); height: min(9vh, 70px); border-radius: 18px; background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.16); }
 .cc-zone { position: absolute; top: 0; bottom: 0; left: 46%; width: 8%; background: rgba(255,255,255,.22); }
 .cc-mid { position: absolute; top: -8px; bottom: -8px; left: 50%; width: 3px; margin-left: -1.5px; background: rgba(255,255,255,.75); border-radius: 2px; }
-.cc-bar i { position: absolute; top: -14px; bottom: -14px; left: 50%; width: 12px; margin-left: -6px; border-radius: 6px; background: #fff; box-shadow: 0 0 22px rgba(255,255,255,.6); transition: left .18s ease, opacity .3s; }
+.cc-bar i { position: absolute; top: -14px; bottom: -14px; left: 50%; width: 12px; margin-left: -6px; border-radius: 6px; background: #fff; box-shadow: 0 0 22px rgba(255,255,255,.6); transition: left calc(var(--needle-t, .5s) * .36) ease, opacity .3s; }
 .concert[data-band="idle"] .cc-bar i { opacity: 0; }
 .cc-bar b { position: absolute; top: 50%; transform: translateY(-50%); font: 700 min(7vw, 4.5vh) var(--f-ui); opacity: .55; }
 .cc-bar b.l { left: 14px; } .cc-bar b.r { right: 14px; }
@@ -840,3 +840,7 @@ textarea.txt { resize: vertical; line-height: 1.6; }
 .vc-where { font-size: 15px; }
 .vc-inv { font-size: 12px; text-align: left; }
 .chord-pop .chord-svg.h { max-width: 230px; margin: 4px auto; }
+
+/* needle speed slider */
+.range-ends { display: flex; justify-content: space-between; margin-top: 4px; font: 500 12px var(--f-ui); color: var(--mute); }
+.field-note { margin: 6px 0 0; font: 500 12.5px/1.4 var(--f-ui); color: var(--mute); }
