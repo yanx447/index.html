@@ -30,6 +30,11 @@ for a, b in rep.items(): s = s.replace(a, b)
 # so the page works both as /apps and /apps/
 s = s.replace('../sami-simi/app/', '/sami-simi/app/')
 s = s.replace('href="https://studioplus.ge"', 'href="/"')
+# the studio's own logo (public/brand of the studio project) instead of the placeholder mark
+import re
+s = re.sub(r'<a class="brand".*?</a>', '<a class="brand" href="/" aria-label="Studio Plus+"><img src="/brand/studioplus-logo-horizontal-for-dark-bg.svg" alt="Studio Plus+" width="853" height="272" style="height:44px;width:auto;display:block"></a>', s, count=1, flags=re.S)
+# on the studio domain the way back follows the chosen language: / (ka) or /en
+s = s.replace("  document.title = l === 'ka'", "  document.querySelectorAll('a[href=\"/\"], a[href=\"/en\"]').forEach((a) => { a.href = l === 'en' ? '/en' : '/'; });\n  document.title = l === 'ka'")
 open(dst, 'w', encoding='utf-8').write(s)
 PY
 
