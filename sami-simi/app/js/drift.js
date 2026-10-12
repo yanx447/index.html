@@ -10,7 +10,10 @@ const TUNING_KEYS = ['presetId', 'transpose', 'octave', 'a4'];
 /** @returns {{key:string, value:any}[]} tuning-relevant settings that differ from the recommended ones */
 export function tuningChanges(S) {
   const out = [];
-  for (const k of TUNING_KEYS) if (S[k] !== DEFAULTS[k]) out.push({ key: k, value: S[k] });
+  for (const k of TUNING_KEYS) {
+    if (k === 'presetId' && String(S.presetId).startsWith('c-')) continue; // the player's own tuning is deliberate
+    if (S[k] !== DEFAULTS[k]) out.push({ key: k, value: S[k] });
+  }
   if (!S.autoSens && S.sens <= 3) out.push({ key: 'sens', value: S.sens });           // tuner barely hears the strings
   if (S.refVolume < 0.15) out.push({ key: 'refVolume', value: S.refVolume });          // reference tone inaudible
   return out;
@@ -23,6 +26,7 @@ export const changeSignature = (S) => tuningChanges(S).map((c) => `${c.key}=${c.
 export function recommended(S) {
   const r = { ...S };
   for (const k of TUNING_KEYS) r[k] = DEFAULTS[k];
+  r.harmonic = false;
   if (!r.autoSens && r.sens <= 3) { r.autoSens = true; r.sens = DEFAULTS.sens; }
   if (r.refVolume < 0.15) r.refVolume = DEFAULTS.refVolume;
   return r;

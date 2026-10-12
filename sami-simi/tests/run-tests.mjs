@@ -347,6 +347,55 @@ console.log('\nAll chords in all positions (17 frets)');
   ok(['0,0,0', '4,3,5', '7,8,9', '12,12,12', '16,15,17'].every((x) => a.includes(x)), 'A major: open, both inversions, octave barré and up to fret 17', a.join(' | '));
 }
 
+console.log('\nHarmonic tuning (12th-fret harmonic, an octave above the open string)');
+{
+  // a natural harmonic: almost a pure tone at 2f, slow decay, a little 2nd partial
+  const harmonic = (buf, start, f, amp = 0.2) => {
+    const n0 = Math.floor(start * SR);
+    for (let i = 0; i < SR * 2 && n0 + i < buf.length; i++) {
+      const t = i / SR, e = Math.exp(-t / 1.1) * Math.min(1, t / 0.003);
+      buf[n0 + i] += amp * e * (Math.sin(2 * Math.PI * 2 * f * t) + 0.12 * Math.sin(2 * Math.PI * 4 * f * t));
+    }
+  };
+  for (const s of S) for (const mode of ['manual', 'auto']) for (const off of [-9, 0, 6]) {
+    const buf = new Float32Array(SR * 3); addNoise(buf, 0.0008);
+    harmonic(buf, 1, cents(s.freq, off));
+    const fr = run(buf, S, { mode, selected: s.index, harmonic: true });
+    const v = lastValid(fr, 1400, 2600);
+    ok(v && v.stringIndex === s.index && Math.abs(v.cents - off) < 1, `${s.latin}${s.octave} harmonic ${off >= 0 ? '+' : ''}${off}¢ (${mode})`, v ? `string ${v.stringIndex + 1}, ${v.cents.toFixed(2)}¢, octave ${v.octaveOffset}` : 'no reading');
+  }
+}
+
+console.log('\nCustom tunings');
+{
+  const { loadSettings, DEFAULTS } = await import('../app/js/settings.js');
+  const { tuningChanges } = await import('../app/js/drift.js');
+  const store = {}; globalThis.localStorage = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } };
+  store['sami-simi:v1'] = JSON.stringify({ presetId: 'c-x1', customs: [{ id: 'c-x1', name: 'Tone down', strings: [55, 59, 62] }, { id: 'bad', strings: [1] }, { id: 'c-y', name: 'x', strings: [10, 200, 60] }] });
+  const st = loadSettings();
+  ok(st.customs.length === 2 && st.customs[1].strings.join() === '45,76,60', 'custom tunings are validated and clamped to A2…E5', JSON.stringify(st.customs.map((c) => c.strings)));
+  const m = new TuningModel(st);
+  ok(m.preset.id === 'c-x1' && m.label() === 'G · B · D', 'a custom tuning drives the targets', m.labelWithOctaves());
+  ok(tuningChanges(st).length === 0, 'choosing your own tuning is not flagged as a mistake');
+  store['sami-simi:v1'] = JSON.stringify({ presetId: 'c-gone', customs: [] });
+  ok(loadSettings().presetId === DEFAULTS.presetId, 'a deleted custom tuning falls back to the standard one');
+  delete globalThis.localStorage;
+}
+
+console.log('\nEnsemble calibration (reed instrument tuned to A4 = 442 Hz)');
+{
+  const det = new PitchDetector(SR);
+  for (const [note, a4] of [[69, 442], [64, 442], [69, 437.5], [57, 445]]) {
+    const f = a4 * Math.pow(2, (note - 69) / 12), x = new Float32Array(SR);
+    for (let i = 0; i < x.length; i++) { const t = i / SR; let v = 0; for (let h = 1; h <= 8; h++) v += Math.sin(2 * Math.PI * h * f * t) / h; x[i] = 0.2 * v; }
+    const cs = [];
+    for (let e = 4096; e <= x.length; e += 1600) { const r = det.analyze(x.subarray(e - 4096, e)); const mm = 69 + 12 * Math.log2(r.freq / 440); cs.push((mm - Math.round(mm)) * 100); }
+    cs.sort((a, b) => a - b);
+    const est = 440 * Math.pow(2, cs[cs.length >> 1] / 1200);
+    ok(Math.abs(est - a4) < 0.15, `note ${note} → A4 ${a4} Hz`, `measured ${est.toFixed(2)} Hz`);
+  }
+}
+
 console.log('\nReference tone pitch');
 for (const sr of [48000, 44100]) {
   const det = new PitchDetector(sr);

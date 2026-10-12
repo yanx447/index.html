@@ -165,15 +165,69 @@ export class ReferenceEngine {
     this.busyUntil = Math.max(this.busyUntil, performance.now() + (when + dur) * 1000 + 200);
   }
 
+  // ── continuous reference (drone) ─────────────────────────────────────────────────
+  // A steady tone with the panduri's harmonic balance (levels from the recorded voices).
+  // Against a ringing string it makes slow beats that disappear when the string is in tune.
+  waveFor(stringIndex) {
+    const ctx = audioContext();
+    this.waves = this.waves || new Map();
+    const v = VOICES[Math.min(Math.max(0, stringIndex), VOICES.length - 1)];
+    if (this.waves.has(v)) return this.waves.get(v);
+    const n = v.h.length + 1, real = new Float32Array(n), imag = new Float32Array(n);
+    v.h.forEach((p, k) => { imag[k + 1] = Math.pow(10, p[0] / 20); });
+    const w = ctx.createPeriodicWave(real, imag);
+    this.waves.set(v, w);
+    return w;
+  }
+
+  startDrone(freq, stringIndex = 0) {
+    const ctx = audioContext();
+    resumeContext();
+    this.stopDrone(true);
+    const osc = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime;
+    osc.setPeriodicWave(this.waveFor(stringIndex));
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(this.volume * 0.42, t + 0.12);
+    osc.connect(g).connect(ctx.destination);
+    osc.start(t);
+    this.drone = { osc, g, stringIndex, freq };
+  }
+
+  /** glide the drone to another string / pitch without restarting it */
+  droneTo(freq, stringIndex = 0) {
+    const d = this.drone; if (!d) return;
+    const t = audioContext().currentTime;
+    if (stringIndex !== d.stringIndex) { d.osc.setPeriodicWave(this.waveFor(stringIndex)); d.stringIndex = stringIndex; }
+    d.osc.frequency.cancelScheduledValues(t);
+    d.osc.frequency.setTargetAtTime(freq, t, 0.02);
+    d.freq = freq;
+  }
+
+  stopDrone(instant = false) {
+    const d = this.drone; if (!d) return;
+    this.drone = null;
+    const t = audioContext().currentTime, end = instant ? 0.02 : 0.15;
+    d.g.gain.cancelScheduledValues(t);
+    d.g.gain.setValueAtTime(d.g.gain.value, t);
+    d.g.gain.linearRampToValueAtTime(0, t + end);
+    d.osc.stop(t + end + 0.02);
+    d.osc.onended = () => { try { d.g.disconnect(); } catch (e) { /* noop */ } };
+    this.busyUntil = performance.now() + 300; // let the room settle before the tuner listens again
+  }
+
+  get droning() { return !!this.drone; }
+
   playChord(strings) {
     strings.forEach((s, i) => this.play(s.freq, s.index, i * 0.055, 0.62));
   }
 
   stop() {
+    this.stopDrone();
     for (const s of this.sources) { try { s.stop(); } catch (e) { /* noop */ } }
     this.sources.clear();
     this.busyUntil = performance.now() + 150;
   }
 
-  get busy() { return performance.now() < this.busyUntil; }
+  get busy() { return !!this.drone || performance.now() < this.busyUntil; }
 }

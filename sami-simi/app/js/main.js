@@ -1,9 +1,10 @@
 // App controller — wires audio → detector → tracker → views, and owns UI state.
 
 import { TuningModel } from './tuning.js';
+const namer = new TuningModel(); // sharp note names for the tuning editor
 import { PitchDetector } from './pitch-detector.js';
 import { PitchTracker, State } from './tracker.js';
-import { instruction } from './guidance.js';
+import { instruction, accuracyBand } from './guidance.js';
 import { AudioInput, micSupport, audioContext, resumeContext } from './audio-input.js';
 import { ReferenceEngine } from './reference.js';
 import { loadSettings, saveSettings, defaultSettings } from './settings.js';
@@ -83,7 +84,8 @@ function persist() { saveSettings(S); }
 
 function applyTuning(resetStatus) {
   model.set(S);
-  tracker.configure({ strings: model.strings, mode: S.mode, selected: S.selected, autoSens: S.autoSens, sens: S.sens, tol: S.tol });
+  if (reference.droning) reference.droneTo(model.strings[current].freq, current);
+  tracker.configure({ strings: model.strings, mode: S.mode, selected: S.selected, autoSens: S.autoSens, sens: S.sens, tol: S.tol, harmonic: S.harmonic });
   if (resetStatus) resetDone();
   renderLabels();
 }
@@ -126,6 +128,19 @@ function setCurrent(i) {
   current = i;
   head.setActive(i);
   el.target.textContent = model.strings[i].freq.toFixed(2);
+  if (reference.droning) reference.droneTo(model.strings[i].freq, i);
+}
+
+/** reference button: a single pluck, or a continuous tone until stopped */
+function playReference(i) {
+  if (S.refMode === 'drone') reference.startDrone(model.strings[i].freq, i);
+  else reference.play(model.strings[i].freq, i);
+  markRefPlaying();
+}
+function stopReference() {
+  reference.stop();
+  setTimeout(markRefIdle, 350);
+  markRefIdle();
 }
 
 function pickString(i) {
@@ -136,7 +151,8 @@ function pickString(i) {
   tracker.configure({ mode: S.mode, selected: i, awaitOnset: running });
   setCurrent(i);
   renderMode();
-  if (!running) { showIdleNote(); updateInstruction(true); reference.play(model.strings[i].freq, i); markRefPlaying(); }
+  if (reference.droning) { updateInstruction(true); return; } // the drone already moved to this string
+  if (!running) { showIdleNote(); updateInstruction(true); playReference(i); }
   else updateInstruction(true);
 }
 
@@ -238,6 +254,7 @@ function setInstruction(key, tone, icon, text) {
 function updateInstruction(force) {
   if (force) lastInsKey = '';
   const s = model.strings[current];
+  if (reference.droning) return setInstruction('drone', 'neutral', 'ear', t('ins.drone'));
   if (reference.busy) return setInstruction('ref', 'neutral', 'ear', t('ins.ref'));
   if (!running) {
     if (S.mode === 'guided') return setInstruction('off-g', 'neutral', null, t('ins.offGuided'));
@@ -247,6 +264,7 @@ function updateInstruction(force) {
   switch (snap.state) {
     case State.CALIBRATING: return setInstruction('cal', 'neutral', 'wait', t('ins.cal'));
     case State.LISTENING:
+      if (S.harmonic) return setInstruction('har' + current, 'neutral', null, (S.mode === 'auto' ? '' : t('string', { n: s.number }) + ' — ') + t('ins.harmonic'));
       if (S.mode === 'guided' || S.mode === 'manual') return setInstruction('lis' + current, 'neutral', null, t('ins.pluckN', { n: s.number, note: noteName(s) }));
       return setInstruction('lis', 'neutral', null, t('ins.pluck'));
     case State.ANALYZING: return setInstruction('ana', 'neutral', 'wait', t('ins.listening'));
@@ -269,6 +287,7 @@ function renderSub() {
   const snap = tracker.snap;
   const reading = running && (snap.state === State.VALID || snap.state === State.IN_TUNE || snap.state === State.HOLD);
   sub.classList.remove('warn');
+  if (reading && S.harmonic && snap.octaveOffset === 1) { sub.textContent = t('sub.harmonic'); return; } // expected: the harmonic is an octave up
   if (reading && snap.octaveOffset !== 0) {
     sub.classList.add('warn');
     sub.textContent = t(snap.octaveOffset > 0 ? 'sub.octHigh' : 'sub.octLow');
@@ -349,7 +368,8 @@ function onSnapshot(snap, now) {
   }
 
   // headstock
-  head.setDirection(current, live && st !== State.IN_TUNE ? (snap.cents < 0 ? 1 : -1) : 0);
+  // the arrow shows which way to turn this key; some instruments' keys turn the other way (settings)
+  head.setDirection(current, live && st !== State.IN_TUNE ? (snap.cents < 0 ? 1 : -1) * (S.pegFlip[current] ? -1 : 1) : 0);
   const lvl = hasReading && st !== State.HOLD ? Math.min(1, Math.max(0, Math.log10(snap.rms / (snap.gate || 1e-4)) / 1.4)) : 0;
   head.setSignal(current, lvl);
   lastLevel = lvl;
@@ -366,6 +386,7 @@ function onSnapshot(snap, now) {
   else if (live && (snap.octaveOffset || Math.abs(snap.cents) > 250)) renderSub();
 
   diag.update(snap, lastDet, { mode: S.mode, autoSens: S.autoSens, sampleRate: running ? input.sampleRate : 0, target: model.strings[current].freq });
+  if (concertOpen) { renderConcert(snap); concertCues(snap, now); }
   syncViewer();
   requestRender();
 }
@@ -387,6 +408,7 @@ function analysisTick() {
   analysisTimer = setTimeout(analysisTick, ANALYSIS_MS);
   if (!running || !input.active || toolOpen) return;
   const now = performance.now();
+  if (now < cueQuietUntil) return; // a stage-mode cue is sounding — don't measure our own beep
   const t0 = now;
   let snap;
   if (reference.busy) { snap = tracker.update(null, now); lastDet = null; }
@@ -422,6 +444,7 @@ function setMicUI(state) {
   el.micLbl.textContent = t(state === 'live' ? 'mic.stop' : state === 'starting' ? 'mic.starting' : 'mic.label');
   el.mic.setAttribute('aria-label', t(state === 'live' ? 'aria.micOff' : 'aria.micOn'));
   micState = state;
+  if (concertOpen) renderConcertLabels();
 }
 
 async function startMic(silent = false) {
@@ -437,7 +460,7 @@ async function startMic(silent = false) {
     return;
   }
   if (!detector || detector.sr !== input.sampleRate) detector = new PitchDetector(input.sampleRate, { windowSize: WINDOW });
-  tracker.configure({ strings: model.strings, mode: S.mode, selected: S.selected, autoSens: S.autoSens, sens: S.sens, tol: S.tol });
+  tracker.configure({ strings: model.strings, mode: S.mode, selected: S.selected, autoSens: S.autoSens, sens: S.sens, tol: S.tol, harmonic: S.harmonic });
   tracker.begin(performance.now());
   running = true; starting = false;
   setMicUI('live');
@@ -547,7 +570,9 @@ function setFill(input) {
 }
 
 function renderSettings() {
-  $('#presetName').textContent = t('preset.' + model.preset.id);
+  $('#presetName').textContent = presetTitle(model.preset);
+  renderTunings();
+  $('#pegFlips').innerHTML = model.strings.map((x, i) => `<button type="button" class="peg-flip" role="switch" aria-checked="${S.pegFlip[i]}" data-peg="${i}"><span>${t('string', { n: x.number })} · ${lang() === 'ka' ? x.ka : x.latin}</span><b>${t(S.pegFlip[i] ? 'set.pegs.flipped' : 'set.pegs.normal')}</b></button>`).join('');
   $('#presetNotes').innerHTML = model.strings.map((s) => `<span>${t('string', { n: s.number })} — ${lang() === 'ka' ? s.ka + ' (' + s.latin + s.octave + ')' : s.latin + s.octave}</span>`).join('');
   $('#transVal').textContent = t('set.semitones', { n: (S.transpose > 0 ? '+' : S.transpose < 0 ? '−' : '') + Math.abs(S.transpose) });
   $('#transNotes').textContent = model.label();
@@ -636,10 +661,34 @@ function driftDismiss() {
   renderDrift();
 }
 function watchStandard(snap) {
-  if (!driftSig || driftSig === driftOk || driftUndo) return;
+  if (!driftSig || driftSig === driftOk || driftUndo || S.presetId.startsWith('c-')) return; // never undo the player's own tuning
   if (standardWatch.push(snap.rawFreq, model.strings.map((x) => x.freq))) restoreRecommended(true);
 }
 function setSwitch(sel, v) { $(sel).setAttribute('aria-checked', String(!!v)); }
+
+// ─── tunings: built-in + the player's own ────────────────────────────────────────────
+let tuneEdit = null; // { id|null, name, strings: [m1, m2, m3] } while the editor is open
+const presetTitle = (p) => (p.custom ? p.name || t('set.tuneUnnamed') : t('preset.' + p.id));
+const noteLabel = (m) => { const n = namer.name(m); return (lang() === 'ka' ? n.ka : n.latin) + n.octave; };
+function renderTunings() {
+  const all = TuningModel.all(S.customs);
+  const cur = all.find((p) => p.id === S.presetId) || all[0];
+  $('#tunings').innerHTML = all.map((p) => `<button type="button" role="radio" class="tune-chip" aria-checked="${p.id === cur.id}" data-tune="${p.id}"><strong>${presetTitle(p).replace(/[<&]/g, '')}</strong><span>${p.strings.map(noteLabel).join(' · ')}</span></button>`).join('')
+    + `<button type="button" class="tune-chip add" data-tune-new="1"><strong>+ ${t('set.tuneNew')}</strong></button>`
+    + (cur.custom ? `<button type="button" class="tune-chip edit" data-tune-edit="${cur.id}"><strong>✎ ${t('set.tuneEdit')}</strong></button>` : '');
+  const ed = $('#tuningEditor');
+  ed.hidden = !tuneEdit;
+  if (!tuneEdit) return;
+  if (document.activeElement !== $('#tuneName')) $('#tuneName').value = tuneEdit.name;
+  $('#tuneName').placeholder = t('set.tuneNamePh');
+  $('#teDelete').hidden = !tuneEdit.id;
+  $('#teRows').innerHTML = tuneEdit.strings.map((m, i) => `<div class="te-row"><span>${t('string', { n: i + 1 })}</span>
+    <button type="button" class="round sm" data-te="${i}" data-d="-1" aria-label="−1">−</button><b>${noteLabel(m)}</b><button type="button" class="round sm" data-te="${i}" data-d="1" aria-label="+1">+</button>
+    <button type="button" class="round sm" data-te-play="${i}" aria-label="${t('dock.ref')}">▶</button></div>`).join('');
+}
+function selectTuning(id) {
+  S.presetId = id; S.transpose = 0; S.octave = 0; persist(); applyTuning(true); renderSettings(); updateInstruction(true);
+}
 
 function setMeterView(v) {
   S.meter = v;
@@ -659,7 +708,7 @@ function bindSettings() {
       const b = e.target.closest('button'); if (!b) return;
       const key = seg.dataset.key;
       const raw = b.dataset.v;
-      const v = key === 'octave' || key === 'tol' ? +raw : raw;
+      const v = key === 'octave' || key === 'tol' ? +raw : key === 'harmonic' ? raw === 'true' : raw;
       if (S[key] === v) return;
       S[key] = v; persist();
       if (key === 'octave') applyTuning(true);
@@ -667,6 +716,8 @@ function bindSettings() {
       if (key === 'meter') setMeterView(v);
       if (key === 'ui') { applyAll(); updateInstruction(true); }
       if (key === 'lang') applyLanguage();
+      if (key === 'harmonic') { tracker.configure({ harmonic: v }); tracker.resetMeasurement(); updateInstruction(true); if (v) toast(t('toast.harmonic'), 6000); }
+      if (key === 'refMode' && reference.droning) stopReference();
       renderSettings();
     });
     seg.addEventListener('keydown', (e) => {
@@ -705,8 +756,122 @@ function bindSettings() {
     S = defaultSettings(S); persist(); resetDone(); current = S.selected; applyAll(); setCurrent(S.selected);
     toast(t('toast.settingsReset'));
   };
+
+  // tunings list and editor
+  $('#tunings').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.tune) { tuneEdit = null; selectTuning(b.dataset.tune); return; }
+    if (b.dataset.tuneNew) tuneEdit = { id: null, name: '', strings: model.strings.map((x) => x.midi) };
+    if (b.dataset.tuneEdit) { const c = S.customs.find((x) => x.id === b.dataset.tuneEdit); if (c) tuneEdit = { id: c.id, name: c.name, strings: c.strings.slice() }; }
+    renderTunings();
+    if (tuneEdit) { $('#tuningEditor').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); $('#tuneName').focus({ preventScroll: true }); }
+  });
+  $('#tuneName').addEventListener('input', () => { if (tuneEdit) tuneEdit.name = $('#tuneName').value; });
+  $('#teRows').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b || !tuneEdit) return;
+    if (b.dataset.te != null) { const i = +b.dataset.te; tuneEdit.strings[i] = Math.min(76, Math.max(45, tuneEdit.strings[i] + +b.dataset.d)); renderTunings(); }
+    if (b.dataset.tePlay != null) { const i = +b.dataset.tePlay; reference.play(S.a4 * Math.pow(2, (tuneEdit.strings[i] - 69) / 12), i); markRefPlaying(); }
+  });
+  $('#teCancel').addEventListener('click', () => { tuneEdit = null; renderTunings(); });
+  $('#teSave').addEventListener('click', () => {
+    const name = $('#tuneName').value.trim().slice(0, 40);
+    let id = tuneEdit.id;
+    if (id) S.customs = S.customs.map((c) => (c.id === id ? { id, name, strings: tuneEdit.strings.slice() } : c));
+    else { id = 'c-' + Date.now().toString(36); S.customs = S.customs.concat({ id, name, strings: tuneEdit.strings.slice() }).slice(-20); }
+    tuneEdit = null; selectTuning(id); toast(t('set.tuneSaved'));
+  });
+  $('#teDelete').addEventListener('click', (e) => {
+    const b = e.currentTarget;
+    if (!b.classList.contains('confirming')) { b.classList.add('confirming'); b.textContent = t('set.resetConfirm'); setTimeout(() => { b.classList.remove('confirming'); b.textContent = t('set.tuneDelete'); }, 3500); return; }
+    b.classList.remove('confirming'); b.textContent = t('set.tuneDelete');
+    const id = tuneEdit.id; S.customs = S.customs.filter((c) => c.id !== id); tuneEdit = null;
+    selectTuning(S.presetId === id ? 'panduri-standard' : S.presetId);
+  });
+  // tuner keys that turn the other way
+  $('#pegFlips').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-peg]'); if (!b) return;
+    const i = +b.dataset.peg; S.pegFlip = S.pegFlip.map((v, k) => (k === i ? !v : v)); persist(); renderSettings();
+  });
 }
 
+
+// ─── stage mode ──────────────────────────────────────────────────────────────────────
+// The whole screen shows the state (red → amber → green), a huge note and needle, readable
+// from across a stage. Optional sound cues: a beep that comes faster as the string gets closer
+// (low beep = tighten, high beep = loosen) and a chime when it is in tune. While a cue sounds
+// the analysis pauses, so the tuner never measures its own beep.
+let concertOpen = false, cueNextAt = 0, cueQuietUntil = 0, concertInTune = false, lastConcertBand = 'idle';
+function openConcert() {
+  concertOpen = true;
+  $('#concert').hidden = false;
+  requestWakeLock();
+  renderConcertLabels();
+  renderConcert(tracker.snap);
+  $('#ccClose').focus({ preventScroll: true });
+}
+function closeConcert() {
+  concertOpen = false; $('#concert').hidden = true;
+  if (!running) releaseWakeLock();
+  $('#concertBtn').focus({ preventScroll: true });
+}
+function renderConcertLabels() {
+  $('#ccSound').setAttribute('aria-pressed', String(S.stageSound));
+  $('#ccSoundLbl').textContent = t(S.stageSound ? 'concert.soundOn' : 'concert.soundOff');
+  $('#ccMic').textContent = t('concert.start');
+  $('#ccMic').hidden = running;
+}
+function renderConcert(snap) {
+  const st = snap.state, live = running && (st === State.VALID || st === State.IN_TUNE);
+  const hold = running && st === State.HOLD;
+  const box = $('#concert');
+  const strIdx = live || hold ? snap.stringIndex : current;
+  const str = model.strings[strIdx];
+  if (live) {
+    const band = st === State.IN_TUNE ? 'excellent' : accuracyBand(Math.abs(snap.cents));
+    box.dataset.band = lastConcertBand = band;
+    const nm = model.name(model.freqToMidi(snap.freq));
+    $('#ccNote').textContent = S.ui === 'simple' ? noteName(nm) : nm.latin;
+    const c = snap.cents, a = Math.abs(c);
+    $('#ccCents').textContent = (c > 0.05 ? '+' : c < -0.05 ? '−' : '±') + (a < 10 ? a.toFixed(1) : a.toFixed(0)) + '¢';
+    $('#ccNeedle').style.left = (50 + Math.max(-50, Math.min(50, c))) + '%';
+    const g = instruction(c, S.tol);
+    $('#ccIns').textContent = g.dir === 0 ? '✓ ' + t('ins.intune') : (g.dir > 0 ? '↑ ' : '↓ ') + t('ins.' + g.key);
+  } else if (!hold) {
+    box.dataset.band = lastConcertBand = 'idle';
+    $('#ccNote').textContent = S.ui === 'simple' ? noteName(str) : str.latin;
+    $('#ccCents').textContent = '';
+    $('#ccIns').textContent = t(running ? (S.harmonic ? 'ins.harmonic' : 'ins.pluck') : 'ins.off');
+  }
+  $('#ccString').textContent = t('string', { n: str.number }) + (lang() === 'ka' ? ' · ' + str.ka : '');
+  $('#ccMic').hidden = running;
+}
+function beep(kind) {
+  const ac = audioContext(); resumeContext();
+  const t0 = ac.currentTime + 0.005, v = Math.max(0.05, S.refVolume) * 0.32;
+  const tone = (f, dur, at = 0, vol = v) => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t0 + at); g.gain.linearRampToValueAtTime(vol, t0 + at + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0008, t0 + at + dur);
+    o.connect(g).connect(ac.destination); o.start(t0 + at); o.stop(t0 + at + dur + 0.02);
+  };
+  if (kind === 'up') tone(1250, 0.07);                       // tighten: low beep
+  else if (kind === 'down') tone(1900, 0.07);                // loosen: high beep
+  else { tone(1568, 0.38, 0, v * 0.8); tone(2093, 0.42, 0.09, v * 0.7); } // in tune: chime
+}
+function concertCues(snap, now) {
+  if (!S.stageSound || !running) return;
+  const st = snap.state;
+  if (st === State.IN_TUNE) {
+    if (!concertInTune && snap.inTuneMs >= 250) { concertInTune = true; beep('ok'); cueQuietUntil = now + 480; haptic([14, 60, 14]); }
+    return;
+  }
+  if (st !== State.VALID) { if (st !== State.HOLD) concertInTune = false; return; }
+  concertInTune = false;
+  const a = Math.abs(snap.cents);
+  const period = 420 + Math.min(1, Math.max(0, (a - S.tol) / 40)) * 900; // 1.3 s far away → 0.42 s close
+  if (now >= cueNextAt) { beep(snap.cents < 0 ? 'up' : 'down'); cueNextAt = now + period; cueQuietUntil = now + 170; }
+}
 
 // ─── 3D view (lazy-loaded) ──────────────────────────────────────────────────────────
 function syncViewer() {
@@ -771,6 +936,8 @@ function closeViewer() {
 const TOOLS = [
   { id: 'strumtune', file: 'strumtune', icon: '<path d="M6 4v16M12 4v16M18 4v16"/><path d="M3 13c3-2 6 2 9 0s6-2 9 0"/>' },
   { id: 'chords', file: 'chords', icon: '<path d="M7 4v16M12 4v16M17 4v16M4 8h16M4 13h16"/><circle cx="12" cy="10.5" r="1.6" fill="currentColor"/><circle cx="7" cy="15.5" r="1.6" fill="currentColor"/>' },
+  { id: 'ensemble', file: 'ensemble', icon: '<path d="M4 15c2-1 3-5 5-5s3 6 5 6 3-4 6-4"/><circle cx="12" cy="5" r="1.6" fill="currentColor"/>' },
+  { id: 'intonation', file: 'intonation', icon: '<path d="M4 20L20 4"/><path d="M8 20v-3M12 20v-6M16 20v-9M20 20V8"/>' },
   { id: 'chordrec', file: 'chordrec', icon: '<path d="M4 18V6M8 18V10M12 18V4M16 18v-7M20 18V8"/>' },
   { id: 'metronome', file: 'metronome', icon: '<path d="M9 3h6l3 18H6z"/><path d="M12 15l5-9"/>' },
   { id: 'ear', file: 'ear', icon: '<path d="M7 10a5 5 0 1 1 10 0c0 3-2.5 3.5-3 6a3 3 0 0 1-5.5 1"/><path d="M10 10a2 2 0 1 1 4 0"/>' },
@@ -804,6 +971,13 @@ const ctx = {
     });
   },
   show3DChord(f, name) { openViewer({ f, name }); },
+  /** set the A4 calibration (ensemble tool) */
+  setA4(v) {
+    S.a4 = Math.round(Math.min(450, Math.max(430, v)) * 10) / 10; persist();
+    // matched to the ensemble on purpose — not an accidental change to warn about
+    driftOk = changeSignature(S); try { localStorage.setItem(DRIFT_OK_KEY, driftOk); } catch (e) { /* ignore */ }
+    applyTuning(true); renderSettings();
+  },
   async mic() {
     if (!input.active) {
       const sup = micSupport();
@@ -893,17 +1067,21 @@ function bind() {
   $('#micGo').addEventListener('click', () => { closeSheet(); S.micPrimed = true; persist(); startMic(); });
   $('#micCancel').addEventListener('click', closeSheet);
   el.ref.addEventListener('click', () => {
-    if (el.ref.classList.contains('playing')) { reference.stop(); markRefIdle(); return; }
-    reference.play(model.strings[current].freq, current); markRefPlaying();
+    if (el.ref.classList.contains('playing')) { stopReference(); return; }
+    playReference(current);
   });
   $('#chordBtn').addEventListener('click', () => { reference.stop(); reference.playChord(model.strings); markRefPlaying(); });
   $('#open3d').addEventListener('click', () => openViewer());
+  $('#concertBtn').addEventListener('click', openConcert);
+  $('#ccClose').addEventListener('click', closeConcert);
+  $('#ccSound').addEventListener('click', () => { S.stageSound = !S.stageSound; persist(); renderConcertLabels(); });
+  $('#ccMic').addEventListener('click', () => { if (!running) onMicButton(); });
   $('#openTools').addEventListener('click', () => { renderToolsHub(); openSheet('#toolsSheet'); });
   $('#toolsGrid').addEventListener('click', (e) => { const b = e.target.closest('[data-tool]'); if (b) openTool(b.dataset.tool); });
   $('#pageBack').addEventListener('click', () => closeTool());
   $('#v3dClose').addEventListener('click', closeViewer);
   $('#v3dReset').addEventListener('click', () => viewer && viewer.reset());
-  document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; if (viewerOpen) closeViewer(); else if (activeTool) closeTool(); });
+  document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; if (concertOpen) closeConcert(); else if (viewerOpen) closeViewer(); else if (activeTool) closeTool(); });
   $('#meterToggle').addEventListener('click', () => { setMeterView(S.meter === 'needle' ? 'strobe' : 'needle'); persist(); renderSettings(); });
   $('#openSettings').addEventListener('click', () => openSheet('#settings'));
   $('#langBtn').addEventListener('click', () => { S.lang = lang() === 'ka' ? 'en' : 'ka'; persist(); applyLanguage(); });
@@ -962,6 +1140,7 @@ function applyLanguage() {
   updateInstruction(true);
   renderSub();
   syncViewer();
+  if (concertOpen) { renderConcertLabels(); renderConcert(tracker.snap); }
   if (activeTool) { $('#pageTitle').textContent = activeTool.tool.title(); activeTool.tool.open({}); }
 }
 

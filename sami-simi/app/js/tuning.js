@@ -24,8 +24,11 @@ export const freqToMidi = (f, a4 = 440) => 69 + 12 * Math.log2(f / a4);
 export class TuningModel {
   constructor(opts = {}) { this.set(opts); }
 
-  set({ presetId = PRESETS[0].id, transpose = 0, octave = 0, a4 = 440 } = {}) {
-    this.preset = PRESETS.find((p) => p.id === presetId) || PRESETS[0];
+  /** all tunings: the built-in ones, then the player's own */
+  static all(customs = []) { return PRESETS.concat(customs.map((c) => ({ ...c, custom: true }))); }
+
+  set({ presetId = PRESETS[0].id, transpose = 0, octave = 0, a4 = 440, customs = [] } = {}) {
+    this.preset = TuningModel.all(customs).find((p) => p.id === presetId) || PRESETS[0];
     this.transpose = transpose;
     this.octave = octave;
     this.a4 = a4;

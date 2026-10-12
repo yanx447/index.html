@@ -20,7 +20,25 @@ export const DEFAULTS = Object.freeze({
   selected: 0,
   micPrimed: false,
   lang: 'auto',      // 'auto' | 'ka' | 'en'
+  customs: [],       // the player's own tunings: [{ id: 'c-…', name, strings: [m1, m2, m3] }]
+  harmonic: false,   // tune with 12th-fret harmonics (expect the octave above the open string)
+  pegFlip: [false, false, false], // per string: the tuner key tightens the other way round
+  refMode: 'pluck',  // 'pluck' | 'drone' (reference keeps sounding until stopped)
+  stageSound: true,  // stage mode: audible cues
 });
+
+const MIDI_MIN = 45, MIDI_MAX = 76; // A2 … E5 — what three panduri strings can reasonably be tuned to
+
+function sanitizeCustoms(list) {
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  for (const c of list.slice(0, 20)) {
+    if (!c || typeof c.id !== 'string' || !/^c-[\w-]{1,40}$/.test(c.id) || !Array.isArray(c.strings) || c.strings.length !== 3) continue;
+    const strings = c.strings.map((m) => Math.round(clamp(m, MIDI_MIN, MIDI_MAX, 57)));
+    out.push({ id: c.id, name: String(c.name || '').slice(0, 40), strings });
+  }
+  return out;
+}
 
 const clamp = (v, lo, hi, d) => (Number.isFinite(+v) ? Math.min(hi, Math.max(lo, +v)) : d);
 const oneOf = (v, list, d) => (list.includes(v) ? v : d);
@@ -43,6 +61,11 @@ function sanitize(s) {
     selected: Math.round(clamp(s.selected, 0, 2, 0)),
     micPrimed: !!s.micPrimed,
     lang: oneOf(s.lang, ['auto', 'ka', 'en'], 'auto'),
+    customs: sanitizeCustoms(s.customs),
+    harmonic: !!s.harmonic,
+    pegFlip: [0, 1, 2].map((i) => !!(Array.isArray(s.pegFlip) && s.pegFlip[i])),
+    refMode: oneOf(s.refMode, ['pluck', 'drone'], 'pluck'),
+    stageSound: s.stageSound !== false,
   };
 }
 
@@ -58,7 +81,10 @@ export function loadSettings() {
       }
     } catch (e) { /* ignore */ }
   }
-  return sanitize({ ...DEFAULTS, ...s });
+  const out = sanitize({ ...DEFAULTS, ...s });
+  // a custom tuning that no longer exists falls back to the standard one
+  if (out.presetId.startsWith('c-') && !out.customs.some((c) => c.id === out.presetId)) out.presetId = DEFAULTS.presetId;
+  return out;
 }
 
 export function saveSettings(s) {
@@ -66,5 +92,6 @@ export function saveSettings(s) {
 }
 
 export function defaultSettings(keep = {}) {
-  return sanitize({ ...DEFAULTS, micPrimed: !!keep.micPrimed, lang: keep.lang || 'auto' });
+  // restoring defaults never deletes the player's own tunings or how their tuner keys turn
+  return sanitize({ ...DEFAULTS, micPrimed: !!keep.micPrimed, lang: keep.lang || 'auto', customs: keep.customs || [], pegFlip: keep.pegFlip });
 }

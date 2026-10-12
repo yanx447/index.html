@@ -32,7 +32,7 @@ function median(arr, n) {
 
 export class PitchTracker {
   constructor() {
-    this.cfg = { strings: [], mode: 'auto', selected: 0, autoSens: true, sens: 6, tol: 3 };
+    this.cfg = { strings: [], mode: 'auto', selected: 0, autoSens: true, sens: 6, tol: 3, harmonic: false };
     this.noiseFloor = 0.0015;
     this.state = State.OFF;
     this.snap = this.blankSnapshot();
@@ -92,7 +92,10 @@ export class PitchTracker {
   priorFor(f) {
     const strs = this.cfg.strings;
     if (!strs.length || !(f > 0)) return 1;
-    const g = (ft) => { const d = 12 * Math.log2(f / ft); return Math.exp(-0.5 * (d / 2.5) ** 2); };
+    // harmonic mode: the 12th-fret harmonic sounds an octave above the open string
+    const g = this.cfg.harmonic
+      ? (ft) => { const d = 12 * Math.log2(f / (2 * ft)); return Math.exp(-0.5 * (d / 2.5) ** 2); }
+      : (ft) => { const d = 12 * Math.log2(f / ft); return Math.exp(-0.5 * (d / 2.5) ** 2); };
     if (this.cfg.mode === 'auto') { let p = 0; for (const s of strs) p = Math.max(p, g(s.freq)); return Math.max(0.03, p); }
     const s = strs[this.cfg.selected] || strs[0];
     return Math.max(0.03, g(s.freq));
