@@ -1,7 +1,7 @@
 // Service worker — offline app shell. Bump VERSION on every release; the old cache is dropped.
 // Nothing here touches microphone permissions: those stay with the browser.
 
-const VERSION = 'sami-simi-v1.8.4';
+const VERSION = 'sami-simi-v1.8.5';
 const SHELL = [
   './',
   './index.html',
@@ -52,7 +52,9 @@ const SHELL = [
 const FONT_CACHE = 'sami-simi-fonts-v1';
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache: 'reload' bypasses the browser's HTTP cache (GitHub Pages allows 10 min), so a new
+  // version never stores a stale copy of a file
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -86,8 +88,27 @@ self.addEventListener('fetch', (e) => {
       .catch(() => caches.match('./index.html')));
     return;
   }
-  e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((r) => {
-    if (r.ok) { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
-    return r;
-  })));
+  // code and styles: network-first (a fix shows up on the next load), cache when offline / slow;
+  // big, rarely changing files (sounds, fonts, 3D engine, icons): cache-first
+  const big = /\/(audio|fonts|vendor|icons)\//.test(url.pathname);
+  if (big) {
+    e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((r) => {
+      if (r.ok) { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
+      return r;
+    })));
+    return;
+  }
+  e.respondWith((async () => {
+    const cached = caches.match(req);
+    try {
+      const r = await Promise.race([
+        fetch(req, { cache: 'no-cache' }),
+        new Promise((_, no) => setTimeout(() => no(new Error('slow')), 3000)),
+      ]);
+      if (r.ok) { const copy = r.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }
+      return r;
+    } catch (err) {
+      return (await cached) || fetch(req);
+    }
+  })());
 });

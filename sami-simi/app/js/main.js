@@ -1237,7 +1237,19 @@ if (NATIVE) {
   $('#privacyLink').href = SITE_URL + 'privacy.html';
   $('#supportLink').href = SITE_URL + 'support.html';
 } else if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
-  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  window.addEventListener('load', () => {
+    // a page that was already running an older version reloads once when the new one takes over
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloaded || running) return; // never interrupt an active tuning
+      reloaded = true; location.reload();
+    });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => {
+      reg.update().catch(() => {});
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+    }).catch(() => {});
+  });
 }
 
 // test hook (used by automated browser checks only)
