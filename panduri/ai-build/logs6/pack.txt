@@ -1,0 +1,1 @@
+data 109659984 blob 54830088 parts ['part-000.bin', 'part-001.bin'] inputs ['input', 'onnx::ReduceMean_1'] outputs ['output', '5012']
