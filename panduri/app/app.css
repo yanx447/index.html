@@ -1389,3 +1389,4 @@ input[type=checkbox]::before{transition:transform .3s var(--spring),background .
 .ai-recent .ai-ri{flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:flex-start}
 .ai-recent .ai-rb{flex:1 1 auto;flex-direction:row;flex-wrap:nowrap;justify-content:flex-start;align-items:center;width:auto}
 .ai-recent .ai-rb>.grow{display:block;flex:1 1 auto;text-align:left}
+.adm-id .vip-tag{align-self:flex-start;margin-left:0}
