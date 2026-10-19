@@ -70,16 +70,16 @@ const AIW = function () {
     try { cache && await cache.put(url, new Response(out.slice().buffer)); } catch (_) {}
     return out.buffer;
   }
-  async function load(b, prefer) {
-    base = b;
+  async function load(b, prefer, dir) {
+    base = b; const M = base + (dir || 'model') + '/';
     importScripts(base + 'ort/' + (prefer === 'webgpu' ? 'ort.webgpu.min.js' : 'ort.min.js'));
     ort = self.ort; ort.env.wasm.wasmPaths = base + 'ort/'; ort.env.wasm.numThreads = 1;
-    man = JSON.parse(new TextDecoder().decode(await fetchCached(base + 'model/manifest.json')));
+    man = JSON.parse(new TextDecoder().decode(await fetchCached(M + 'manifest.json')));
     const total = man.blobSize; let got = 0, last = 0;
     const tick = n => { got += n; const now = Date.now(); if (now - last > 200) { last = now; post('dl', { got, total }); } };
-    const graph = new Uint8Array(await fetchCached(base + 'model/graph.onnx'));
+    const graph = new Uint8Array(await fetchCached(M + 'graph.onnx'));
     const blob = new Uint8Array(total); let o = 0;
-    for (const p of man.parts) { const b2 = new Uint8Array(await fetchCached(base + 'model/' + p, tick)); blob.set(b2, o); o += b2.length; }
+    for (const p of man.parts) { const b2 = new Uint8Array(await fetchCached(M + p, tick)); blob.set(b2, o); o += b2.length; }
     post('dl', { got: total, total });
     post('stage', { s: 'unpack' });
     const data = new Uint8Array(man.dataSize), dv = new DataView(data.buffer);
@@ -94,7 +94,7 @@ const AIW = function () {
   }
   /** separate a stereo mix (Float32Array L, R at 44.1 kHz) → 4 sources × 2 channels */
   async function separate(L, R, from, to) {
-    const len = to - from, S = 4, outs = [];
+    const len = to - from, S = man.sources.length, outs = [];
     for (let s = 0; s < S; s++) outs.push([new Float32Array(len), new Float32Array(len)]);
     const wsum = new Float32Array(len), stride = Math.floor(.75 * SEG), W = new Float32Array(SEG);
     for (let i = 0; i < SEG; i++) W[i] = i < SEG / 2 ? (i + 1) : (SEG - i); let wm = 0; for (let i = 0; i < SEG; i++) wm = Math.max(wm, W[i]); for (let i = 0; i < SEG; i++) W[i] /= wm;
@@ -124,7 +124,7 @@ const AIW = function () {
   self.onmessage = async e => {
     const m = e.data;
     try {
-      if (m.cmd === 'load') await load(m.base, m.prefer);
+      if (m.cmd === 'load') await load(m.base, m.prefer, m.dir);
       else if (m.cmd === 'separate') { const outs = await separate(m.L, m.R, m.from || 0, m.to || m.L.length); post('done', { stems: outs, sources: man.sources }, outs.flat().map(a => a.buffer)); }
       else if (m.cmd === 'selftest') { const x = new Float32Array(SEG); for (let i = 0; i < SEG; i++) x[i] = Math.sin(i * .01) * .5 + Math.sin(i * .37) * .2; const zr = new Float32Array(NB * LE), zi = new Float32Array(NB * LE); spec(x, zr, zi); const y = new Float32Array(SEG); ispec(zr, zi, y); let err = 0, mx = 0; for (let i = 0; i < SEG; i++) { err = Math.max(err, Math.abs(x[i] - y[i])); mx = Math.max(mx, Math.abs(x[i])); } post('selftest', { err, mx }); }
     } catch (err) { post('error', { msg: String(err && err.message || err) }); }
