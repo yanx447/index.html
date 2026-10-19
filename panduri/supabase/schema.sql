@@ -246,3 +246,32 @@ grant execute on function public.delete_my_account(), public.open_conversation(u
 
 -- ---------- make YOURSELF the admin (once, after you have signed up in the app) ----------
 -- update public.profiles set role = 'admin' where email = 'YOUR_EMAIL_HERE';
+
+-- ---------- premium management (Settings › Premium management) ----------
+alter table public.profiles add column if not exists premium_banned boolean not null default false;
+create or replace function public.is_premium(uid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.profiles where id = uid and not premium_banned and vip_until is not null and vip_until > now());
+$$;
+-- actions: cancel ❌ (remove once) · ban 🚫 (remove for good) · restore ✅ (lift ban + lifetime) · month 1️⃣ · year 1️⃣2️⃣ · forever ♾️
+create or replace function public.admin_premium(target uuid, action text)
+returns public.profiles language plpgsql security definer set search_path = public as $$
+declare r public.profiles; base timestamptz;
+begin
+  if not public.is_admin() then raise exception 'not allowed'; end if;
+  select * into r from public.profiles where id = target for update;
+  if not found then raise exception 'no such user'; end if;
+  if action in ('cancel', 'ban') and target = auth.uid() then raise exception 'cannot remove your own premium'; end if;
+  if action in ('month', 'year', 'forever') and r.premium_banned then raise exception 'banned: use restore first'; end if;
+  base := greatest(now(), coalesce(r.vip_until, now()));
+  if action = 'cancel' then update public.profiles set vip_until = null, plan = null where id = target returning * into r;
+  elsif action = 'ban' then update public.profiles set vip_until = null, plan = null, premium_banned = true where id = target returning * into r;
+  elsif action = 'restore' then update public.profiles set premium_banned = false, vip_until = '2099-12-31T00:00:00Z', plan = 'vip' where id = target returning * into r;
+  elsif action = 'month' then update public.profiles set vip_until = base + interval '1 month', plan = 'vip' where id = target returning * into r;
+  elsif action = 'year' then update public.profiles set vip_until = base + interval '1 year', plan = 'vip' where id = target returning * into r;
+  elsif action = 'forever' then update public.profiles set vip_until = '2099-12-31T00:00:00Z', plan = 'vip' where id = target returning * into r;
+  else raise exception 'bad action'; end if;
+  return r;
+end $$;
+revoke all on function public.admin_premium(uuid, text) from public, anon;
+grant execute on function public.admin_premium(uuid, text) to authenticated;

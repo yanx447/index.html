@@ -110,7 +110,7 @@ PD.i18n.add({
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
   const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['practice', 'nav.practice', ic.pulse], ['tuner', 'nav.tuner', ic.tune], ['profile', 'nav.profile', ic.user]];   // tuner = „სამი სიმი“, opened over the page
-  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', tips: 'learn', solfege: 'learn', ai: 'songs', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', tips: 'learn', solfege: 'learn', ai: 'songs', pmadmin: 'profile', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -179,7 +179,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => PD.tools.tuner(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
     page.style.scrollBehavior = 'auto'; page.scrollTop = changed ? 0 : keep; page.style.scrollBehavior = '';   // re-drawing the same page stays where you were
   }
@@ -705,6 +705,7 @@ PD.app = (() => {
     const toggle = (key, def, on) => { const c = h('input', { type: 'checkbox', 'aria-label': t(key) }); c.checked = PD.store.get(key, def); c.onchange = () => { PD.store.set(key, c.checked); on && on(c.checked); }; return c; };
     const seg = (opts, cur, on) => { const s = h('div', { class: 'seg' }); opts.forEach(([v, k]) => s.appendChild(h('button', { 'aria-pressed': String(cur === v), 'data-t': k, 'data-v': v, onclick: () => { s.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v)))); on(v); } }))); return s; };
     const range = (v, min, max, step, on, fmt) => { const out = h('span', { class: 'val', text: fmt ? fmt(v) : v }); const r = h('input', { type: 'range', min, max, step, value: v, oninput: e => { out.textContent = fmt ? fmt(+e.target.value) : e.target.value; on(+e.target.value); } }); return h('span', { class: 'set-ctl' }, [r, out]); };
+    if (PD.cloud.isAdmin) w.append(sect('pa.title', [h('button', { class: 'li pa-entry', onclick: () => go('pmadmin') }, [h('span', { class: 'pa-entry-ic', text: '♾️' }), h('div', { class: 'grow' }, [h('span', { 'data-t': 'pa.title' }), h('small', { 'data-t': 'pa.row' })]), h('span', { html: ic.chevron, class: 'chev' })])]));
     const cal = PD.detector.calib, ms = PD.detector.status();
     w.append(sect('set.audio', [
       row('set.microphone', ms.on ? t('mic.on') + (ms.label ? ' · ' + ms.label : '') : t('mic.off'), ms.on ? h('button', { class: 'btn small', 'data-t': 'set.micStop', onclick: () => { PD.detector.stop(); render(); } }) : h('button', { class: 'btn small', 'data-t': 'gate.on', onclick: () => PD.practice.micOn(() => render()) })),

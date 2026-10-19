@@ -20,6 +20,15 @@ PD.i18n.add({
   'pm.f3': ['ჭკვიანი ვარჯიში შენი შეცდომებიდან', 'Smart practice from your own mistakes'], 'pm.f4': ['ვიდეო ზარი სხვა მოსწავლეებთან', 'Video calls with other learners'], 'pm.f5': ['ახალი სიმღერები და მასწავლებლის გაკვეთილები, როგორც კი დაემატება', 'New songs and teacher lessons as soon as they are added'], 'pm.f6': ['VIP ნიშანი საზოგადოებაში', 'VIP badge in the community'],
   'pm.noPay': ['გადახდის სისტემა ჯერ არ არის დაკავშირებული (Google Play / App Store / ბარათით). VIP-ს ადმინისტრატორი ანიჭებს.', 'Payments are not connected yet (Google Play / App Store / card). VIP is granted by the administrator.'],
   'pm.needAccount': ['პრემიუმისთვის საჭიროა ანგარიში — ჯერ შედი.', 'Premium needs an account — sign in first.'], 'pm.locked': ['პრემიუმ ფუნქცია', 'Premium feature'],
+  'pa.title': ['პრემიუმის მართვა', 'Premium management'], 'pa.lead': ['ვის აქვს პრემიუმი და ვის არა. ცვლილებებს სერვერი ამოწმებს — მხოლოდ ადმინს შეუძლია.', 'Who has Premium and who does not. The server checks every change — only admins can make them.'],
+  'pa.row': ['მომხმარებლები, პრემიუმის მიცემა და გაუქმება', 'Members, granting and removing Premium'],
+  'pa.all': ['ყველა', 'All'], 'pa.with': ['აქვს', 'Has it'], 'pa.without': ['არ აქვს', 'Does not'], 'pa.banned': ['დაბლოკილი', 'Blocked'],
+  'pa.sForever': ['♾️ სამუდამო პრემიუმი', '♾️ Lifetime Premium'], 'pa.sUntil': ['პრემიუმი · {d}-მდე', 'Premium · until {d}'], 'pa.sNone': ['პრემიუმის გარეშე', 'No Premium'], 'pa.sBanned': ['🚫 სამუდამოდ დაბლოკილი', '🚫 Blocked for good'], 'pa.sAdmin': ['ადმინი — ყველაფერი ჩართულია', 'Admin — everything unlocked'],
+  'pa.cancel': ['გაუქმება', 'Remove'], 'pa.ban': ['სამუდამოდ გაუქმება', 'Remove for good'], 'pa.restore': ['ბლოკის მოხსნა + სამუდამო', 'Unblock + lifetime'], 'pa.month': ['1 თვე', '1 month'], 'pa.year': ['1 წელი', '1 year'], 'pa.forever': ['მუდმივი', 'Permanent'],
+  'pa.cCancel': ['{n}: პრემიუმი გაუქმდეს? მომავალში ისევ შეიძლება მიეცეს.', '{n}: remove Premium? It can be given again later.'], 'pa.cBan': ['{n}: პრემიუმი სამუდამოდ გაუქმდეს? ყიდვითაც ვეღარ ჩაირთვება, სანამ ✅-ით არ მოხსნი.', '{n}: remove Premium for good? Even a purchase will not turn it on until you lift it with ✅.'],
+  'pa.done': ['შენახულია: {n}', 'Saved: {n}'], 'pa.you': ['შენ', 'You'], 'pa.need': ['ამ გვერდისთვის ადმინის ანგარიშით უნდა შეხვიდე.', 'Sign in with an admin account to use this page.'], 'pa.signin': ['შესვლა', 'Sign in'],
+  'pa.legend': ['❌ ერთჯერადი გაუქმება · 🚫 სამუდამოდ გაუქმება · ✅ ბლოკის მოხსნა და სამუდამო პრემიუმი · 1️⃣ ერთი თვე · 1️⃣2️⃣ ერთი წელი · ♾️ მუდმივი', '❌ remove once · 🚫 remove for good · ✅ unblock and lifetime Premium · 1️⃣ one month · 1️⃣2️⃣ one year · ♾️ permanent'],
+  'pa.count': ['{n} ადამიანი', '{n} people'], 'pa.noOne': ['ამ სიაში არავინაა', 'Nobody in this list'],
   'ad.title': ['ადმინისტრირება', 'Administration'], 'ad.lead': ['მომხმარებლები, VIP და როლები. ცვლილებებს სერვერი ამოწმებს — მხოლოდ ადმინს შეუძლია.', 'Users, VIP and roles. The server checks every change — only admins can make them.'],
   'ad.search': ['ძიება: სახელი, ელფოსტა, ტელეფონი', 'Search: name, email, phone'], 'ad.vipMonth': ['VIP +1 თვე', 'VIP +1 month'], 'ad.vipYear': ['VIP +1 წელი', 'VIP +1 year'], 'ad.vipForever': ['VIP სამუდამოდ', 'VIP forever'], 'ad.vipOff': ['VIP-ის მოხსნა', 'Remove VIP'],
   'ad.makeAdmin': ['ადმინად დანიშვნა', 'Make admin'], 'ad.removeAdmin': ['ადმინის მოხსნა', 'Remove admin'], 'ad.none': ['ვერავინ მოიძებნა', 'Nobody found'], 'ad.saved': ['შენახულია', 'Saved'], 'ad.admin': ['ადმინი', 'Admin'], 'ad.joined': ['დარეგისტრირდა {d}', 'Joined {d}']
@@ -100,7 +109,8 @@ PD.premium = (() => {
   }
   const until = () => { const p = C.profile; return p && p.vip_until ? new Date(p.vip_until) : null; };
   const api = {
-    get active() { const u = until(); return !!(C.isAdmin || (u && u > new Date())); },
+    get active() { const u = until(), p = C.profile; if (C.isAdmin) return true; if (p && p.premium_banned) return false; return !!(u && u > new Date()); },
+    get banned() { const p = C.profile; return !!(p && p.premium_banned && !C.isAdmin); },
     get vip() { const p = C.profile; return !!(api.active && p && p.plan === 'vip'); },
     get until() { return until(); },
     allows(f) { return !FEATURES[f] || api.active; },
@@ -111,6 +121,7 @@ PD.premium = (() => {
     require(f, fn) { if (api.allows(f)) return fn && fn(); paywall(f); },
     paywall: f => paywall(f),
     admin: () => adminPanel(),
+    manage: (w) => managePage(w),
     /** one line for the profile and the paywall */
     status() { const u = until(), on = u && u > new Date(); if (on) return u.getFullYear() > 2090 ? t('pm.title') + ' · ' + t('pm.forever') : t('pm.active', { d: fmtDate(u) }); return C.isAdmin ? t('pm.adminOn') : ''; },
     FEATURES
@@ -142,6 +153,61 @@ PD.premium = (() => {
       } });
       box.append(plans, buy, msg, h('button', { class: 'btn quiet', 'data-t': 'pm.restore', onclick: () => { C.loadProfile().then(() => { close(); PD.app.render(); }).catch(() => { msg.hidden = false; msg.textContent = t('pm.noPay'); }); } }));
     });
+  }
+
+  /* ---------- Premium management (Settings › Premium management, admins only) ---------- */
+  function managePage(w) {
+    const back = () => PD.app.go('settings');
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'pa.title', style: 'margin:0' })]), h('p', { class: 'muted', 'data-t': 'pa.lead' }));
+    if (!C.isAdmin) { w.append(h('p', { class: 'notice', 'data-t': 'pa.need' }), h('button', { class: 'btn primary', 'data-t': 'pa.signin', onclick: () => PD.auth && PD.auth.open ? PD.auth.open() : PD.app.go('profile') })); return; }
+    let rows = [], filter = 'all', term = '';
+    const now = () => new Date();
+    const stat = u => { if (u.premium_banned) return 'banned'; const v = u.vip_until ? new Date(u.vip_until) : null; return v && v > now() ? 'with' : 'without'; };
+    const q = h('input', { class: 'input', type: 'search', placeholder: t('ad.search'), 'aria-label': t('ad.search') });
+    const tabs = h('div', { class: 'pa-tabs', role: 'tablist' }), list = h('div', { class: 'pa-list' }), msg = h('p', { class: 'ag-msg', hidden: true });
+    w.append(q, tabs, h('p', { class: 'pa-legend', 'data-t': 'pa.legend' }), msg, list);
+    let tmr = 0; q.oninput = () => { clearTimeout(tmr); tmr = setTimeout(() => { term = q.value.trim(); load(); }, 300); };
+    function say(text, ok) { msg.hidden = false; msg.className = 'ag-msg' + (ok ? ' info' : ''); msg.textContent = text; clearTimeout(say.t); if (ok) say.t = setTimeout(() => { msg.hidden = true; }, 2500); }
+    function drawTabs() {
+      const n = { all: rows.length, with: 0, without: 0, banned: 0 }; rows.forEach(u => n[stat(u)]++);
+      tabs.innerHTML = '';
+      [['all', 'pa.all'], ['with', 'pa.with'], ['without', 'pa.without'], ['banned', 'pa.banned']].forEach(([k, l]) => tabs.append(h('button', { role: 'tab', class: 'pa-tab ' + k, 'aria-pressed': String(filter === k), onclick: () => { filter = k; drawTabs(); drawList(); } }, [h('b', { text: String(n[k]) }), h('span', { text: t(l) })])));
+    }
+    const name = u => u.display_name || u.email || u.phone || u.id.slice(0, 8);
+    function drawList() {
+      list.innerHTML = '';
+      const vis = rows.filter(u => filter === 'all' || stat(u) === filter);
+      if (!vis.length) { list.append(h('p', { class: 'muted', text: t('pa.noOne') })); return; }
+      vis.forEach(u => list.append(card(u)));
+    }
+    function card(u) {
+      const s = stat(u), v = u.vip_until ? new Date(u.vip_until) : null, me = u.id === C.uid;
+      const label = s === 'banned' ? t('pa.sBanned') : s === 'with' ? (v.getFullYear() > 2090 ? t('pa.sForever') : t('pa.sUntil', { d: fmtDate(v) })) : (u.role === 'admin' ? t('pa.sAdmin') : t('pa.sNone'));
+      const b = (emo, k, act, cls) => h('button', { class: 'pa-b ' + (cls || ''), title: t(k), 'aria-label': t(k), onclick: () => run(u, act) }, [h('span', { class: 'pa-e', text: emo }), h('span', { text: t(k) })]);
+      const acts = s === 'banned' ? [b('✅', 'pa.restore', 'restore', 'good')] :
+        [s === 'with' && !me ? b('❌', 'pa.cancel', 'cancel', 'bad') : null, b('1️⃣', 'pa.month', 'month'), b('1️⃣2️⃣', 'pa.year', 'year'), b('♾️', 'pa.forever', 'forever', 'gold'), !me ? b('🚫', 'pa.ban', 'ban', 'bad') : null].filter(Boolean);
+      const av = u.avatar_url ? h('img', { src: u.avatar_url, alt: '' }) : h('span', { text: (name(u)[0] || '?').toUpperCase() });
+      return h('div', { class: 'pa-u ' + s }, [
+        h('div', { class: 'pa-top' }, [h('span', { class: 'pa-av' }, [av]), h('div', { class: 'grow' }, [h('b', { text: name(u) + (me ? ' · ' + t('pa.you') : '') }), h('small', { text: [u.email, u.phone].filter(Boolean).join(' · ') + (u.role === 'admin' ? ' · ' + t('ad.admin') : '') })]),
+          h('span', { class: 'pa-st ' + s, text: label })]),
+        h('div', { class: 'pa-acts' }, acts)]);
+    }
+    function run(u, act) {
+      const go = async () => {
+        try {
+          const r = await C.admin.premium(u.id, act); const row = Array.isArray(r) ? r[0] : r;
+          if (row && row.id) rows = rows.map(x => x.id === row.id ? Object.assign({}, x, row) : x); else await fetchRows();
+          if (u.id === C.uid) C.loadProfile().catch(() => {});
+          drawTabs(); drawList(); say(t('pa.done', { n: name(u) }), true);
+        } catch (e) { say(e.message || String(e)); }
+      };
+      if (act === 'cancel') return PD.ui.confirm(t('pa.cCancel', { n: name(u) }), go);
+      if (act === 'ban') return PD.ui.confirm(t('pa.cBan', { n: name(u) }), go);
+      go();
+    }
+    async function fetchRows() { rows = (await C.admin.users(term)) || []; }
+    async function load() { try { await fetchRows(); drawTabs(); drawList(); } catch (e) { say(e.message || String(e)); } }
+    PD.i18n.apply(w); load();
   }
   function adminPanel() {
     PD.ui.sheet((box, close) => {

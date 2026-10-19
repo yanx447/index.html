@@ -242,7 +242,8 @@ PD.cloud = (() => {
   const admin = {
     users: (term) => db.rpc('admin_list_users', { term: term || '' }),
     setVip: (id, until, plan) => db.rpc('admin_set_vip', { target: id, until, plan: plan || 'vip' }),
-    setRole: (id, role) => db.rpc('admin_set_role', { target: id, new_role: role })
+    setRole: (id, role) => db.rpc('admin_set_role', { target: id, new_role: role }),
+    premium: (id, action) => db.rpc('admin_premium', { target: id, action })
   };
 
   /* ---------- community ---------- */
