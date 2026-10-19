@@ -110,7 +110,7 @@ PD.i18n.add({
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
   const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['practice', 'nav.practice', ic.pulse], ['tuner', 'nav.tuner', ic.tune], ['profile', 'nav.profile', ic.user]];   // tuner = „სამი სიმი“, opened over the page
-  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', tips: 'learn', solfege: 'learn', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', tips: 'learn', solfege: 'learn', ai: 'songs', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -179,7 +179,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => PD.tools.tuner(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
     page.style.scrollBehavior = 'auto'; page.scrollTop = changed ? 0 : keep; page.style.scrollBehavior = '';   // re-drawing the same page stays where you were
   }
@@ -308,6 +308,7 @@ PD.app = (() => {
     w.append(h('button', { class: 'hx-goal', onclick: () => go('daily') }, [h('span', { class: 'hx-ring', html: ring(tm / goal) }), h('div', { class: 'grow' }, [h('small', { 'data-t': 'hx.goal' }), h('b', { text: t('hx.goalV', { a: Math.min(tm, goal), b: goal }) })]), h('span', { class: 'chev', html: ic.chevron })]));
     // the main way to learn: camera on, panduri in hand, the program on screen
     w.append(h('button', { class: 'camcard', onclick: () => PD.camera.launcher() }, [h('span', { class: 'camcard-ic', html: PD.ic.camera }), h('div', { class: 'grow' }, [h('b', { 'data-t': 'cam.title' }), h('small', { 'data-t': 'cam.lead' })]), h('span', { class: 'chev', html: ic.chevron })]));
+    w.append(h('button', { class: 'ai-card', onclick: () => go('ai') }, [h('span', { class: 'ai-badge', text: 'AI' }), h('span', { class: 'grow' }, [h('b', { 'data-t': 'ai.home' }), h('small', { 'data-t': 'ai.homeD' })]), h('span', { html: ic.chevron || '›' })]));
     // hero: continue learning
     const pa = primaryAction(), hasResume = pa && pa.kicker === t('hm.resume'), ts = !hasResume && nextTheoryStep();
     if (ts) {   // the path starts with theory: the next theory step is the main card
@@ -348,7 +349,7 @@ PD.app = (() => {
     const lv = h('div', { class: 'sx-chips' }, [[0, 'f.all'], [1, 'lvl.1'], [2, 'lvl.2'], [3, 'lvl.3']].map(([v, k]) => h('button', { class: 'chip', 'aria-pressed': String(st.level === v), 'data-t': k, onclick: () => { st.level = v; render(); } })));
     const search = h('label', { class: 'search' }, [h('span', { html: ic.search }), h('input', { type: 'search', value: st.q, 'data-t-ph': 'home.search', 'aria-label': t('home.search'), oninput: e => { st.q = e.target.value; list(); } })]);
     const box = h('div', { class: 'sx-grid', role: 'list' });
-    w.append(h('h1', { 'data-t': 'nav.songs' }), search, tabs, lv, box);
+    w.append(h('h1', { 'data-t': 'nav.songs' }), h('button', { class: 'ai-card', onclick: () => go('ai') }, [h('span', { class: 'ai-badge', text: 'AI' }), h('span', { class: 'grow' }, [h('b', { 'data-t': 'ai.home' }), h('small', { 'data-t': 'ai.homeD' })]), h('span', { html: ic.chevron || '›' })]), search, tabs, lv, box);
     function list() {
       box.innerHTML = '';
       const q = st.q.trim().toLowerCase();
@@ -589,7 +590,7 @@ PD.app = (() => {
       h('div', { class: 'steps-line', style: 'max-width:360px' }, plan.map(x => h('i', { class: x.done ? 'done' : '' }))), h('span', { class: 'muted', style: 'font-size:13px', text: plan.map(x => t(x.key)).join(' · ') }),
       h('div', { class: 'row', style: 'margin-top:8px' }, [h('button', { class: 'btn primary', 'data-t': dn === plan.length ? 'dl.done' : 'home.start', onclick: () => nextSeg ? PD.daily.start(nextSeg) : go('daily') }), h('button', { class: 'btn quiet', 'data-t': 'learn.open', onclick: () => go('daily') })])]));
     const tool = (r, icon, k, d) => h('button', { class: 'card path tool', onclick: () => go(r) }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]);
-    const items = [['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
+    const items = [['ai', ic.star || ic.chord, 'ai.title', 'ai.homeD'], ['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
     w.append(h('div', { class: 'paths' }, items.map(x => tool(...x))));
     if (PD.store.get('author', false)) w.append(h('div', { class: 'paths' }, [['studio', ic.edit, 'tools.studio', 'tools.studioD'], ['at:instrument', ic.frets, 'sd.instrument', 'at.instrument'], ['at:curriculum', ic.learn, 'sd.curriculum', 'at.curD'], ['at:samples', ic.mic, 'sd.samples', 'set.samples']].map(([r, icon, k, d]) => h('button', { class: 'card path tool', onclick: () => r === 'studio' ? PD.studio.open(null) : PD.authorTools[r.slice(3)]() }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]))));
   }
