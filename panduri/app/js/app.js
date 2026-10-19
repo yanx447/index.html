@@ -151,6 +151,7 @@ PD.app = (() => {
   }
   function go(r, p, replace) {
     if (r === 'library') r = 'songs'; if (r === 'more') r = 'profile'; if (r === 'tools') r = 'practice';
+    if (r === 'tuner' && PD.samiSimi && PD.samiSimi.available) { PD.samiSimi.open(); return; }   // the tuner is the teacher's own app „სამი სიმი“, opened over the page
     const same = r === route && (p == null ? null : p) === param;   // tapping the tab that is already open adds no history entry
     navDir = TOP[r] === r || replace ? 'tab' : 'fwd';
     route = r; param = p == null ? null : p;

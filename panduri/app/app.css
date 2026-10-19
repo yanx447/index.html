@@ -1280,3 +1280,12 @@ input[type=checkbox]::before{transition:transform .3s var(--spring),background .
 .lib-art svg{width:100%;height:100%}.lib-art img{width:100%;height:100%;object-fit:cover}
 .tp-scroll{overflow-x:auto;border-radius:16px;-webkit-overflow-scrolling:touch}.tp-scroll .tp-photo{min-width:760px}
 .ce-cap{min-height:24px;margin-top:-4px;font-size:15px;font-weight:600;color:#FFE2BA;text-align:center;opacity:0;transform:translateY(4px);transition:opacity .25s,transform .25s}.ce-cap.on{opacity:1;transform:none}
+/* „სამი სიმი“ tuner, full screen over the app */
+.ss-wrap{position:fixed;inset:0;z-index:80;display:grid;grid-template-rows:auto minmax(0,1fr);background:#120d0a;transform:translateY(16px);opacity:0;transition:transform .32s var(--ease-out,ease),opacity .25s}
+.ss-wrap.in{transform:none;opacity:1}.ss-wrap.out{transform:translateY(16px);opacity:0;transition-duration:.22s}
+:root.rm .ss-wrap{transition:none;transform:none}
+.ss-bar{display:flex;align-items:center;gap:10px;padding:calc(var(--safe-t,0px) + 4px) 10px 4px;background:#0c0806;border-bottom:1px solid rgba(255,214,170,.1)}
+.ss-back{display:inline-flex;align-items:center;gap:4px;min-height:38px;padding:0 14px 0 8px;border-radius:19px;border:1px solid rgba(255,214,170,.18);background:rgba(255,236,210,.05);color:#F6E3C8;font:inherit;font-size:14px;font-weight:600}
+.ss-back svg{width:20px;height:20px}
+.ss-name{display:flex;flex-direction:column;line-height:1.15}.ss-name b{font-size:15px}.ss-name small{font-size:11.5px;color:rgba(246,227,200,.6)}
+.ss-frame{width:100%;height:100%;border:0;display:block;background:#120d0a}
