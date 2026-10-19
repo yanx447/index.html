@@ -12,7 +12,7 @@ PD.i18n.add({
   'lv.level': ['ლეველი {n}', 'Level {n}'], 'lv.xp': ['{a} / {b} XP', '{a} / {b} XP'], 'lv.toNext': ['{n} XP შემდეგ ლეველამდე', '{n} XP to the next level'],
   'lv.t0': ['დამწყები', 'Beginner'], 'lv.t1': ['მოსწავლე', 'Student'], 'lv.t2': ['მუსიკოსი', 'Musician'], 'lv.t3': ['ოსტატი', 'Master'], 'lv.t4': ['ლეგენდა', 'Legend'],
   'lv.up': ['ახალი ლეველი!', 'Level up!'], 'lv.upD': ['ლეველი {n} · {t}', 'Level {n} · {t}'], 'lv.program': ['ლეველის პროგრამა', 'Level program'], 'lv.programD': ['შენი ლეველისთვის: {p}', 'For your level: {p}'],
-  'lv.open': ['პროგრამის გახსნა', 'Open the program'], 'lv.great': ['მშვენიერია', 'Great'], 'lv.how': ['XP მოდის მხოლოდ ნამდვილი დაკვრიდან: სწორი ნოტები და დარტყმები, ვარჯიშის წუთები, დასრულებული ნაბიჯები, დღის მიზანი.', 'XP comes only from real playing: correct notes and strokes, minutes practised, completed steps, the daily goal.'],
+  'lv.open': ['პროგრამის გახსნა', 'Open the program'], 'lv.great': ['მშვენიერია', 'Great'], 'lv.how': ['XP მოდის ნამდვილი დაკვრიდან (სწორი ნოტები და დარტყმები, ვარჯიშის წუთები, დასრულებული ნაბიჯები, დღის მიზანი) და სწავლიდან: წაკითხული თეორიის თავი +10, გავლილი სოლფეჯიოს დონე +20.', 'XP comes from real playing (correct notes and strokes, minutes practised, completed steps, the daily goal) and from learning: a theory chapter read +10, a solfège level passed +20.'],
   'pm.title': ['პრემიუმი', 'Premium'], 'pm.lead': ['მთელი სასწავლო პროგრამა და VIP შესაძლებლობები.', 'The whole programme and VIP features.'],
   'pm.monthly': ['თვიური', 'Monthly'], 'pm.yearly': ['წლიური', 'Yearly'], 'pm.perMonth': ['თვეში', 'per month'], 'pm.perYear': ['წელიწადში', 'per year'], 'pm.best': ['ყველაზე მომგებიანი', 'Best value'],
   'pm.buy': ['გამოწერა', 'Subscribe'], 'pm.restore': ['შეძენის აღდგენა', 'Restore purchase'], 'pm.active': ['პრემიუმი აქტიურია — {d}-მდე', 'Premium is active — until {d}'], 'pm.vip': ['VIP წევრი', 'VIP member'], 'pm.adminOn': ['ადმინი — ყველაფერი ჩართულია', 'Admin — everything is unlocked'], 'pm.priceSoon': ['ფასი მალე', 'Price soon'], 'pm.forever': ['ვადის გარეშე', 'no end date'],
@@ -42,7 +42,10 @@ PD.levels = (() => {
     const after = levelOf(xp);
     if (after > before) { PD.bus.emit('levelup', after); celebrate(after); }
   }
-  // XP from real practice only
+  // theory counts too: a theory chapter read for the first time, a solfège level passed (each only once)
+  PD.bus.on('theory', d => { const seen = PD.store.get('xp.theory', {}); Object.keys(d || {}).forEach(id => { if (!seen[id]) { seen[id] = 1; PD.store.set('xp.theory', seen); add(10, 'theory'); } }); });
+  PD.bus.on('solfege', b => { const seen = PD.store.get('xp.solfege', {}); Object.keys(b || {}).forEach(k => { if (b[k] >= .8 && !seen[k]) { seen[k] = 1; PD.store.set('xp.solfege', seen); add(20, 'solfege'); } }); });
+  // XP from real practice
   PD.bus.on('session', s => {
     if (!s || s.input === 'touch') return;   // the developer touch test never earns XP
     const correct = s.correct != null ? s.correct : Math.round((s.firstTry || 0) * (s.notes || 0));
@@ -69,7 +72,7 @@ PD.levels = (() => {
     get xp() { return PD.store.get('xp', 0); },
     get level() { return levelOf(api.xp); },
     get progress() { const L = api.level, a = at(L); return { level: L, into: api.xp - a, need: need(L), pct: (api.xp - a) / need(L) }; },
-    get program() { return programOf(api.level); },
+    get program() { const f = PD.app && PD.app.theoryProgram && PD.app.theoryProgram(); return f || programOf(api.level); },   // the theory part first, while any of it is still open
     tierName: L => t(tier(L == null ? api.level : L)), need, at, levelOf, programOf, add,
     /** a small level badge: ring + number */
     badge(size) {

@@ -353,7 +353,13 @@ PD.Lanes = function (canvas, opt) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, G.W, G.H);
     if (!S.lesson) return;
     if (self.song && S.lesson.cycle && S.lesson.cycle.length) (G.H > G.W * 1.15 ? drawCycleV : drawCycle)(t); else if (self.song) drawSong(t); else if (self.rhythm) drawRhythm(t); else drawNotes(t);
-    if (countT && t - countT < 900) { const k = (t - countT) / 900; ctx.save(); ctx.globalAlpha = 1 - k * .7; text(count > 0 ? String(count) : tr('ci.start'), G.W / 2, G.H / 2, count > 0 ? Math.min(96, G.H * .5) : Math.min(48, G.H * .25), '#FFFFFF', 700); ctx.restore(); }
+    if (countT && t - countT < 900) {   // count-in: the number sits on its own round badge (never mixed into the chart behind it), pops in and drains a ring
+      const k = (t - countT) / 900, big = count > 0, fs = big ? Math.min(72, G.H * .36) : Math.min(30, G.H * .16), r = big ? fs * .95 : Math.max(fs * 2.4, 60), pop = 1 + .18 * Math.max(0, 1 - k * 5);
+      ctx.save(); ctx.globalAlpha = Math.min(1, (1 - k) * 2.2); ctx.translate(G.W / 2, G.H / 2); ctx.scale(pop, pop);
+      ctx.fillStyle = 'rgba(14,8,4,.86)'; ctx.beginPath(); if (big) ctx.arc(0, 0, r, 0, 7); else if (ctx.roundRect) ctx.roundRect(-r, -fs, r * 2, fs * 2, fs); else ctx.rect(-r, -fs, r * 2, fs * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(246,201,135,.25)'; ctx.lineWidth = 4; ctx.stroke();
+      if (big) { ctx.strokeStyle = '#F6C987'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(0, 0, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - k)); ctx.stroke(); }
+      text(big ? String(count) : tr('ci.start'), 0, 2, fs, '#FFFFFF', 800); ctx.restore(); }
   }
 
   Object.assign(self, {

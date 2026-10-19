@@ -100,19 +100,30 @@ PD.curriculum = (() => {
 
   /* ---- Curriculum paths: steps are lessons or explanatory cards. Missing teaching media is marked, not faked. ---- */
   const NEED = (ka, en) => ({ kind: 'needs', media: 'teacher', title: { ka, en } });
+  /* the order of learning: first the instrument, then notes, scales, rhythm and the ear (solfège) — only then practice on the panduri */
+  const CH = id => ({ kind: 'chapter', id }), TIP = id => ({ kind: 'tip', id }), SF = (ex, lv) => ({ kind: 'solfege', id: ex + ':' + lv });
   const PATHS = [
-    { id: 'foundation', level: 'foundation', title: { ka: 'საფუძვლები', en: 'Foundation' }, steps: [
-      { kind: 'tour', title: { ka: 'ფანდურის გაცნობა', en: 'Meet the panduri' } },
+    { id: 'instrument', theory: true, title: { ka: 'გაიცანი ფანდური', en: 'Meet the panduri' }, steps: [
+      TIP('parts'), { kind: 'tour', title: { ka: 'ფანდური 3D-ში', en: 'The panduri in 3D' } }, TIP('strings'), TIP('dots'),
       NEED('როგორ დავიჭიროთ ფანდური', 'How to hold the panduri'),
-      { kind: 'tuner', title: { ka: 'სამი სიმი: აწყობა A · C♯ · E', en: 'Three strings: tuning A · C♯ · E' } },
-      { kind: 'theory', title: { ka: 'მუსიკის თეორია: ნოტები', en: 'Music theory: notes' } },
+      { kind: 'tuner', title: { ka: 'აწყობა: A · C♯ · E (სამი სიმი)', en: 'Tuning: A · C♯ · E (Sami Simi)' } }] },
+    { id: 'notes', theory: true, title: { ka: 'ნოტები', en: 'Notes' }, steps: [
+      CH('names'), CH('octave'), CH('semitone'), CH('accidentals'), CH('neck'), TIP('semitone'), CH('staff'), CH('durations'), CH('rests'), { kind: 'fretboard', title: { ka: 'ნოტები ტარზე: რუკა', en: 'Notes on the neck: the map' } }] },
+    { id: 'scales', theory: true, title: { ka: 'ინტერვალები, გამები, აკორდები', en: 'Intervals, scales, chords' }, steps: [
+      CH('intervals'), TIP('octave'), CH('scales'), CH('key'), CH('chords'), { kind: 'chords', title: { ka: 'აკორდების ბიბლიოთეკა', en: 'Chord library' } }, CH('signs')] },
+    { id: 'rhythms', theory: true, title: { ka: 'რითმი', en: 'Rhythm' }, steps: [
+      CH('meter'), CH('tempo'), TIP('count'), TIP('rhythm'), TIP('accent'), { kind: 'rhythms', title: { ka: 'ფანდურის რითმები', en: 'Panduri rhythms' } }] },
+    { id: 'solfege', theory: true, title: { ka: 'სოლფეჯიო', en: 'Solfège' }, steps: [
+      SF('hear', 1), SF('hear', 2), SF('iv', 1), SF('sing', 1), SF('hear', 3), SF('iv', 2), SF('sing', 2), TIP('sing')] },
+    { id: 'foundation', level: 'foundation', title: { ka: 'პრაქტიკა: საფუძვლები', en: 'Practice: foundation' }, steps: [
+      CH('app'), TIP('fretpos'), TIP('curve'),
       { kind: 'lesson', id: 'poc-three' }, { kind: 'lesson', id: 'rh-down' }, { kind: 'lesson', id: 'rh-up' }, { kind: 'lesson', id: 'poc-fret' }, { kind: 'lesson', id: 'poc-rhythm' }] },
-    { id: 'beginner', level: 'beginner', title: { ka: 'დამწყები', en: 'Beginner' }, steps: [
+    { id: 'beginner', level: 'beginner', title: { ka: 'პრაქტიკა: დამწყები', en: 'Practice: beginner' }, steps: [
       { kind: 'trainer', title: { ka: 'ნოტები და ლადები', en: 'Notes and frets' } }, { kind: 'lesson', id: 'lh-fingers' }, { kind: 'lesson', id: 'm1' }, { kind: 'lesson', id: 'rh-alt' },
       { kind: 'rhythm', id: 'kazbeguri' }, { kind: 'rhythm', id: 'acharuli' }, NEED('მარტივი სიმღერები', 'Simple songs')] },
-    { id: 'intermediate', level: 'intermediate', title: { ka: 'საშუალო', en: 'Intermediate' }, steps: [
+    { id: 'intermediate', level: 'intermediate', title: { ka: 'პრაქტიკა: საშუალო', en: 'Practice: intermediate' }, steps: [
       { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }] },
-    { id: 'advanced', level: 'advanced', title: { ka: 'რთული', en: 'Advanced' }, steps: [
+    { id: 'advanced', level: 'advanced', title: { ka: 'პრაქტიკა: რთული', en: 'Practice: advanced' }, steps: [
       { kind: 'rhythm', id: 'khorumi' }, NEED('სოლო', 'Solo'), NEED('სწრაფი ტექნიკა', 'Fast technique'), NEED('ტრადიციული სტილები', 'Traditional styles'), { kind: 'lesson', id: 'bani-acharuli' }] }
   ];
   const PATHS_OLD = [

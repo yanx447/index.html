@@ -1290,3 +1290,37 @@ input[type=checkbox]::before{transition:transform .3s var(--spring),background .
 .ss-name{display:flex;flex-direction:column;line-height:1.15}.ss-name b{font-size:15px}.ss-name small{font-size:11.5px;color:rgba(246,227,200,.6)}
 .ss-frame{width:100%;height:100%;border:0;display:block;background:#120d0a}
 @media (max-width:899px){.tabbar{grid-template-columns:repeat(6,minmax(0,1fr))}.tabbar .navb{font-size:10.5px;letter-spacing:-.01em}.tabbar .navb span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 1px}}
+
+/* learn: the two parts of the path, and the solfège trainer */
+.lp-part{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:18px;margin-top:6px;background:linear-gradient(120deg,rgba(233,165,90,.16),rgba(233,165,90,.03));border:1px solid rgba(233,165,90,.28)}
+.lp-part.p2{background:linear-gradient(120deg,rgba(142,240,180,.12),rgba(142,240,180,.02));border-color:rgba(142,240,180,.25)}
+.lp-part b{font-family:var(--f-display,inherit);font-size:20px}.lp-part small{color:var(--fg2);font-size:13px}
+.sf-tabs{max-width:520px}
+.chip.done::after{content:' ✓';color:#8EF0B4}
+.sf-card{display:flex;flex-direction:column;gap:16px;align-items:stretch;padding:22px 18px;border-radius:24px;background:radial-gradient(120% 100% at 50% 0%,#2A1A10 0%,#160D07 75%);border:1px solid rgba(255,214,170,.12);max-width:620px}
+.sf-big{display:grid;place-items:center;min-height:120px;font-family:var(--f-display,inherit);font-size:64px;font-weight:800;color:#FFE2BA}
+.sf-wave{display:flex;gap:6px;align-items:center;height:60px}.sf-wave i{width:7px;height:100%;border-radius:4px;background:#E9A55A;animation:sfw 1.1s ease-in-out infinite}
+.sf-wave i:nth-child(2){animation-delay:.12s}.sf-wave i:nth-child(3){animation-delay:.24s}.sf-wave i:nth-child(4){animation-delay:.36s}.sf-wave i:nth-child(5){animation-delay:.48s}
+@keyframes sfw{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+:root.rm .sf-wave i{animation:none;transform:scaleY(.6)}
+.sf-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
+.sf-b{min-height:58px;border-radius:16px;border:1px solid rgba(255,214,170,.2);background:rgba(255,236,210,.05);color:var(--fg);font:inherit;font-size:20px;font-weight:700;transition:transform .15s,background .2s,border-color .2s}
+.sf-b.wide{font-size:15px}.sf-b:active{transform:scale(.95)}
+.sf-b.ok{background:rgba(142,240,180,.2);border-color:#8EF0B4;color:#C9FFDD}.sf-b.no{background:rgba(255,107,91,.16);border-color:#FF6B5B;color:#FFB4AA}
+.sf-fb{min-height:28px;text-align:center;font-size:17px;font-weight:700;color:var(--fg2)}.sf-fb.ok{color:#8EF0B4}.sf-fb.no{color:#FF9A8E}
+.sf-fb.pop{animation:sfpop .35s var(--spring,ease)}@keyframes sfpop{0%{transform:scale(.8);opacity:0}100%{transform:none;opacity:1}}
+.sf-score{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-weight:600}
+.sf-needle{position:relative;height:14px;border-radius:7px;background:linear-gradient(90deg,rgba(255,107,91,.35),rgba(142,240,180,.45) 45%,rgba(142,240,180,.45) 55%,rgba(255,107,91,.35));max-width:420px;width:100%;align-self:center}
+.sf-needle i{position:absolute;left:50%;top:-6px;width:6px;height:26px;margin-left:-3px;border-radius:3px;background:#FFF4E6;transition:transform .12s linear}
+.sf-needle.ok i{background:#8EF0B4;box-shadow:0 0 12px #8EF0B4}
+/* 3D: the view buttons scroll sideways by touch (the row used to ignore touches), with a fade at the edge */
+.x3d .views{pointer-events:auto;-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent);padding-right:40px;touch-action:pan-x}
+
+/* home hero: the art stays behind the words (it used to show through the title) */
+.hx-hero::after{background:linear-gradient(180deg,rgba(10,7,4,.08) 0%,rgba(10,7,4,.62) 38%,rgba(10,7,4,.93) 72%,rgba(10,7,4,.97) 100%)}
+.hx-hero.theory .hx-art{display:grid;place-items:start center;padding:18px 18px 0;background:radial-gradient(120% 90% at 50% 0%,#3a2213 0%,#160d07 70%)}
+.hx-hero.theory .hx-art svg{width:100%;max-width:440px;height:auto}
+.hx-hero .hx-photo{width:100%;height:100%;object-fit:cover;object-position:30% 50%}
+.hx-hero.theory{min-height:270px}
+.hx-sec{background:rgba(255,236,210,.08);color:#fff;border-color:rgba(255,236,210,.2)}
+.hx-hero.theory.photo .hx-art{padding:0;display:block}.hx-hero.theory.photo .hx-photo{object-position:50% 30%}

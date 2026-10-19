@@ -105,12 +105,12 @@ PD.i18n.add({
   'hx.hello': ['გამარჯობა, {n}', 'Hello, {n}'], 'hx.goal': ['დღევანდელი მიზანი', "Today's goal"], 'hx.goalV': ['{a} / {b} წუთი', '{a} / {b} min'],
   'hx.continue': ['გააგრძელე სწავლა', 'Continue learning'], 'hx.start': ['დაიწყე აქედან', 'Start here'], 'hx.go': ['გაგრძელება', 'Continue'], 'hx.all': ['ყველა', 'All'],
   'hx.forYou': ['შენთვის', 'For you'], 'hx.songs': ['სიმღერები', 'Songs'], 'hx.melodies': ['მელოდიები', 'Melodies'], 'hx.rhythms': ['რიტმები', 'Rhythms'], 'hx.exercises': ['სავარჯიშოები', 'Exercises'], 'hx.recent': ['ბოლოს ნავარჯიშები', 'Recently practised'],
-  'ln.tool': ['ხელსაწყო', 'Tool'], 'ln.theory': ['თეორია · {d}/{n} თავი', 'Theory · {d}/{n} chapters']
+  'ln.tool': ['ხელსაწყო', 'Tool'], 'ln.chapter': ['თეორიის თავი · ხმით', 'Theory chapter · with sound'], 'ln.tip': ['მოკლე ბარათი · ანიმაცია', 'Short card · animation'], 'ln.solfege': ['სმენის ვარჯიში', 'Ear training'], 'ln.part1': ['ნაწილი 1 · თეორია', 'Part 1 · Theory'], 'ln.part1D': ['ჯერ გაიცანი ინსტრუმენტი, ნოტები, გამები, რითმი და სმენა', 'First the instrument, notes, scales, rhythm and the ear'], 'ln.part2': ['ნაწილი 2 · პრაქტიკა', 'Part 2 · Practice'], 'ln.part2D': ['ახლა — ფანდურზე, მიკროფონთან ერთად', 'Now on the panduri, with the microphone'], 'ln.theory': ['თეორია · {d}/{n} თავი', 'Theory · {d}/{n} chapters']
 });
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
   const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['practice', 'nav.practice', ic.pulse], ['tuner', 'nav.tuner', ic.tune], ['profile', 'nav.profile', ic.user]];   // tuner = „სამი სიმი“, opened over the page
-  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', tips: 'learn', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', tips: 'learn', solfege: 'learn', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -179,7 +179,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => PD.tools.tuner(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
     page.style.scrollBehavior = 'auto'; page.scrollTop = changed ? 0 : keep; page.style.scrollBehavior = '';   // re-drawing the same page stays where you were
   }
@@ -282,7 +282,7 @@ PD.app = (() => {
     for (const p of LS.PATHS) for (const s of p.steps) { if (s.kind !== 'lesson') continue; const l = LS.get(s.id); if (!l || !l.events.length || !PD.premium.canOpen(l.id)) continue; const pr = LS.progress.lesson(l.id); if (pr.mastery < .9) { out.push(l); break; } }
     return out;
   }
-  function stepDone(s) { if (s.kind === 'theory') return PD.theoryBook.progress() >= .8; if (s.kind === 'lesson') return LS.progress.lesson(s.id).mastery >= .9; if (s.kind === 'rhythm') return LS.progress.lesson('rhythm-' + s.id).mastery >= .9; if (s.kind === 'needs') return false; return !!PD.store.get('seen.' + s.kind, false); }
+  function stepDone(s) { if (s.kind === 'theory') return PD.theoryBook.progress() >= .8; if (s.kind === 'chapter') return !!PD.store.get('theory.done', {})[s.id]; if (s.kind === 'tip') return !!PD.store.get('seen.tip.' + s.id, false); if (s.kind === 'solfege') { const [e, l] = s.id.split(':'); return PD.solfege.done(e, +l); } if (s.kind === 'lesson') return LS.progress.lesson(s.id).mastery >= .9; if (s.kind === 'rhythm') return LS.progress.lesson('rhythm-' + s.id).mastery >= .9; if (s.kind === 'needs') return false; return !!PD.store.get('seen.' + s.kind, false); }
   function levelName() { const ps = LS.PATHS; let lv = ps[0]; for (const p of ps) { lv = p; if (p.steps.some(s => s.kind !== 'needs' && !stepDone(s))) break; } return lv && lv.level ? t('lv.' + lv.level) : PD.i18n.pick(lv.title); }
   const todayMin = () => Math.round(LS.progress.sessions().filter(s => new Date(s.date).toDateString() === new Date().toDateString()).reduce((a, s) => a + (s.dur || 0), 0) / 60);
 
@@ -309,8 +309,16 @@ PD.app = (() => {
     // the main way to learn: camera on, panduri in hand, the program on screen
     w.append(h('button', { class: 'camcard', onclick: () => PD.camera.launcher() }, [h('span', { class: 'camcard-ic', html: PD.ic.camera }), h('div', { class: 'grow' }, [h('b', { 'data-t': 'cam.title' }), h('small', { 'data-t': 'cam.lead' })]), h('span', { class: 'chev', html: ic.chevron })]));
     // hero: continue learning
-    const pa = primaryAction();
-    if (pa) {
+    const pa = primaryAction(), hasResume = pa && pa.kicker === t('hm.resume'), ts = !hasResume && nextTheoryStep();
+    if (ts) {   // the path starts with theory: the next theory step is the main card
+      const { p: tp, s: st, d, n } = ts, ph = PD.assets && PD.assets.photos, A = PD.tips.ART;
+      const art = (st.kind === 'tip' && st.id === 'parts') || st.kind === 'tour' ? (ph && ph.body ? '<img class="hx-photo" src="' + ph.body + '" alt="">' : '') : st.kind === 'tip' ? ((PD.tips.all(true).find(x => x.id === st.id) || {}).art && A[(PD.tips.all(true).find(x => x.id === st.id)).art] ? A[(PD.tips.all(true).find(x => x.id === st.id)).art]() : A.strings()) : st.kind === 'solfege' ? A.sing() : st.kind === 'tuner' ? A.tune() : st.kind === 'chapter' ? A.semitone() : A.dots();
+      w.append(h('section', { class: 'hx-hero theory' + (art.startsWith('<img') ? ' photo' : ''), onclick: e => { if (!e.target.closest('button')) stepGo(st); } }, [
+        h('div', { class: 'hx-art', html: art }),
+        h('div', { class: 'hx-body' }, [h('span', { class: 'hx-k', text: t('ln.part1') + ' · ' + PD.i18n.pick(tp.title) }), h('h2', { text: stepTitle(st) }),
+          h('div', { class: 'hx-pr' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(d / n * 100) + '%' })]), h('span', { text: d + ' / ' + n })]),
+          h('div', { class: 'row', style: 'gap:8px' }, [h('button', { class: 'btn hx-btn', text: d ? t('hx.go') : t('home.start'), onclick: () => stepGo(st) }), h('button', { class: 'btn small hx-sec', 'data-t': 'nav.learn', onclick: () => go('learn', tp.id) })])])]));
+    } else if (pa) {
       const p = LS.progress.lesson(pa.l.id), m = Math.round((p.mastery || 0) * 100);
       w.append(h('section', { class: 'hx-hero', onclick: e => { if (!e.target.closest('button')) pa.go(); } }, [
         h('div', { class: 'hx-art', html: coverSVG(pa.l) }),
@@ -368,9 +376,11 @@ PD.app = (() => {
     w.append(h('section', { class: 'lib' }, [h('h2', { 'data-t': 'tp.lib' }), h('div', { class: 'lib-row' }, [
       libCard('tips', null, 'tp.title', 'tp.lead', PD.tips.ART.strum()), libCard('theory', null, 'tb.title', 'tb.tool', PD.tips.ART.semitone()),
       libCard('tips', 'parts', 'tp.parts', 'tp.partsD', ph && ph.front ? '<img src="' + ph.front + '" alt="">' : '')])]));
-    const TOOL = { tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord };
+    const TOOL = { tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord, chapter: ic.learn || ic.chord, tip: ic.star, solfege: ic.mic, rhythms: ic.pulse };
     let curSet = false, focusEl = null;
+    let part = 0;
     LS.PATHS.forEach((p, pi) => {
+      const pt = p.theory ? 1 : 2; if (pt !== part) { part = pt; w.append(h('div', { class: 'lp-part p' + pt }, [h('b', { 'data-t': 'ln.part' + pt }), h('small', { 'data-t': 'ln.part' + pt + 'D' })])); }
       const real = p.steps.filter(s2 => s2.kind !== 'needs'), d = real.filter(stepDone).length;
       const sec = h('section', { class: 'lp', id: 'lp-' + p.id }, [h('div', { class: 'lp-h' }, [h('span', { class: 'lp-n', text: String(pi + 1) }), h('div', { class: 'grow' }, [h('h2', { text: PD.i18n.pick(p.title) }), h('small', { text: t('learn.steps', { d, n: real.length }) })])])]);
       const path = h('ol', { class: 'lp-path' });
@@ -378,7 +388,7 @@ PD.app = (() => {
         const done = stepDone(s2), need = s2.kind === 'needs', cur = !need && !done && !curSet; if (cur) curSet = true;
         const l = s2.kind === 'lesson' ? LS.get(s2.id) : s2.kind === 'rhythm' ? LS.get('rhythm-' + s2.id) : null;
         const thumb = l ? h('div', { class: 'lp-th', html: coverSVG(l) }) : h('div', { class: 'lp-th tool' + (need ? ' need' : ''), html: need ? '…' : (TOOL[s2.kind] || ic.learn) });
-        const meta2 = need ? t('ln.awaiting') : l ? t('lvl.' + (l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : '') + (l.demo ? ' · ' + t('demo.badge') : '') : s2.kind === 'theory' ? t('ln.theory', { n: PD.theoryBook.CHAPTERS.length, d: Math.round(PD.theoryBook.progress() * PD.theoryBook.CHAPTERS.length) }) : t('ln.tool');
+        const meta2 = need ? t('ln.awaiting') : l ? t('lvl.' + (l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : '') + (l.demo ? ' · ' + t('demo.badge') : '') : s2.kind === 'theory' ? t('ln.theory', { n: PD.theoryBook.CHAPTERS.length, d: Math.round(PD.theoryBook.progress() * PD.theoryBook.CHAPTERS.length) }) : s2.kind === 'chapter' ? t('ln.chapter') : s2.kind === 'tip' ? t('ln.tip') : s2.kind === 'solfege' ? t('ln.solfege') : t('ln.tool');
         const locked = !need && (l ? !PD.premium.canOpen(l.id) : PREMIUM_PATHS.has(p.id) && !PD.premium.active);
         const li = h('li', { class: 'lp-s' + (done ? ' done' : '') + (cur ? ' cur' : '') + (need ? ' need' : '') + (locked ? ' locked' : '') }, [
           h('span', { class: 'lp-dot', html: done ? ic.check : '' }),
@@ -391,11 +401,16 @@ PD.app = (() => {
     if (param && document.getElementById('lp-' + param)) requestAnimationFrame(() => document.getElementById('lp-' + param).scrollIntoView({ block: 'start' }));
     else if (focusEl) requestAnimationFrame(() => { const pg = document.getElementById('page'); if (pg && focusEl.offsetTop > pg.clientHeight * .6) focusEl.scrollIntoView({ block: 'center' }); });
   }
-  function stepTitle(s) { const l = s.kind === 'lesson' ? LS.get(s.id) : s.kind === 'rhythm' ? LS.get('rhythm-' + s.id) : null; return l ? PD.i18n.pick(l.title) : PD.i18n.pick(s.title); }
+  function stepTitle(s) { const l = s.kind === 'lesson' ? LS.get(s.id) : s.kind === 'rhythm' ? LS.get('rhythm-' + s.id) : null; if (l) return PD.i18n.pick(l.title);
+    if (s.kind === 'chapter') { const c = PD.theoryBook.CHAPTERS.find(x => x.id === s.id); return c ? PD.i18n.pick({ ka: c.t[0], en: c.t[1] }) : s.id; }
+    if (s.kind === 'tip') { const c = PD.tips.all(true).find(x => x.id === s.id); return c ? PD.i18n.pick({ ka: c.title[0], en: c.title[1] }) : s.id; }
+    if (s.kind === 'solfege') { const [e, n] = s.id.split(':'); return t('sf.' + e) + ' · ' + t('sf.lvl', { n }); }
+    return PD.i18n.pick(s.title); }
   function stepGo(s) {
     if (s.kind === 'lesson') return go('lesson', s.id);
     if (s.kind === 'rhythm') return go('rhythm', s.id);
     PD.store.set('seen.' + s.kind, true);
+    if (s.kind === 'chapter') return go('theory', s.id); if (s.kind === 'tip') { PD.store.set('seen.tip.' + s.id, true); return go('tips', s.id); } if (s.kind === 'solfege') return go('solfege', s.id); if (s.kind === 'rhythms') return go('rhythms');
     if (s.kind === 'theory') go('theory'); else if (s.kind === 'tour') go('explore', 'tour'); else if (s.kind === 'tuner') go('tuner'); else if (s.kind === 'chords') go('chords'); else if (s.kind === 'fretboard') go('fretboard'); else if (s.kind === 'trainer') go('trainer');
   }
   function stepChip(s) {
@@ -748,5 +763,8 @@ PD.app = (() => {
         h('div', { style: 'display:flex;flex-direction:column;gap:6px;flex:1 1 260px' }, [su, sk2, h('button', { class: 'btn small', 'data-t': 'set.serverSave', onclick: () => { PD.cloud.setConfig({ url: su.value, key: /…$/.test(sk2.value) ? cc.key : sk2.value }); location.reload(); } })])])]));
   }
 
-  return { shell, go, render, glyph, meta, lessonRow, startStage, coverSVG, get route() { return route; }, get param() { return param; } };
+  function nextTheoryStep() { for (const p of LS.PATHS) { if (!p.theory) continue; const real = p.steps.filter(x => x.kind !== 'needs'), s = real.find(x => !stepDone(x)); if (s) return { p, s, d: real.filter(stepDone).length, n: real.length }; } return null; }
+  /** the first theory path that still has open steps (the level program points there first) */
+  function theoryProgram() { const p = LS.PATHS.find(x => x.theory && x.steps.some(s2 => s2.kind !== 'needs' && !stepDone(s2))); return p ? p.id : null; }
+  return { shell, go, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, get route() { return route; }, get param() { return param; } };
 })();
