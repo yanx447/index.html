@@ -102,6 +102,7 @@ PD.i18n.add({
   'set.devTouchD': ['მხოლოდ შემოწმებისთვის: ტარზე შეხება ნოტად ითვლება. სწავლისას ეს არ გამოიყენება — ნოტს მხოლოდ ნამდვილი ფანდურის ხმა ასრულებს.', 'For testing only: tapping the neck counts as a note. Not used for learning — only the sound of a real panduri completes a note.']
 });
 PD.i18n.add({
+  'hxq.cam': ['კამერით', 'Camera'], 'hxq.camD': ['დაუკარი აპთან ერთად', 'Play along with the app'], 'hxq.ai': ['AI სტუდია', 'AI studio'], 'hxq.aiD': ['შენი სიმღერის აკორდები', 'Chords of your song'],
   'hx.hello': ['გამარჯობა, {n}', 'Hello, {n}'], 'hx.goal': ['დღევანდელი მიზანი', "Today's goal"], 'hx.goalV': ['{a} / {b} წუთი', '{a} / {b} min'],
   'hx.continue': ['გააგრძელე სწავლა', 'Continue learning'], 'hx.start': ['დაიწყე აქედან', 'Start here'], 'hx.go': ['გაგრძელება', 'Continue'], 'hx.all': ['ყველა', 'All'],
   'hx.forYou': ['შენთვის', 'For you'], 'hx.songs': ['სიმღერები', 'Songs'], 'hx.melodies': ['მელოდიები', 'Melodies'], 'hx.rhythms': ['რიტმები', 'Rhythms'], 'hx.exercises': ['სავარჯიშოები', 'Exercises'], 'hx.recent': ['ბოლოს ნავარჯიშები', 'Recently practised'],
@@ -305,10 +306,7 @@ PD.app = (() => {
       h('button', { class: 'hx-lv', 'aria-label': t('lv.level', { n: PD.levels.level }), onclick: () => go('profile'), html: PD.levels.badge(44) }),
       h('button', { class: 'hx-ic', 'aria-label': t('cm.title'), onclick: () => go('community'), html: PD.ic.chat || ic.user }),
       h('button', { class: 'avatar', 'aria-label': t('nav.profile'), onclick: () => go('profile'), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : ic.user })]));
-    w.append(h('button', { class: 'hx-goal', onclick: () => go('daily') }, [h('span', { class: 'hx-ring', html: ring(tm / goal) }), h('div', { class: 'grow' }, [h('small', { 'data-t': 'hx.goal' }), h('b', { text: t('hx.goalV', { a: Math.min(tm, goal), b: goal }) })]), h('span', { class: 'chev', html: ic.chevron })]));
     // the main way to learn: camera on, panduri in hand, the program on screen
-    w.append(h('button', { class: 'camcard', onclick: () => PD.camera.launcher() }, [h('span', { class: 'camcard-ic', html: PD.ic.camera }), h('div', { class: 'grow' }, [h('b', { 'data-t': 'cam.title' }), h('small', { 'data-t': 'cam.lead' })]), h('span', { class: 'chev', html: ic.chevron })]));
-    w.append(h('button', { class: 'ai-card', onclick: () => go('ai') }, [h('span', { class: 'ai-badge', text: 'AI' }), h('span', { class: 'grow' }, [h('b', { 'data-t': 'ai.home' }), h('small', { 'data-t': 'ai.homeD' })]), h('span', { html: ic.chevron || '›' })]));
     // hero: continue learning
     const pa = primaryAction(), hasResume = pa && pa.kicker === t('hm.resume'), ts = !hasResume && nextTheoryStep();
     if (ts) {   // the path starts with theory: the next theory step is the main card
@@ -327,6 +325,11 @@ PD.app = (() => {
           h('div', { class: 'hx-pr' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + m + '%' })]), h('span', { text: m + '%' })]),
           h('button', { class: 'btn hx-btn', text: p.plays ? t('hx.go') : t('home.start'), onclick: pa.go })])]));
     }
+    // quick tiles: camera lesson · AI studio · today's goal
+    w.append(h('section', { class: 'hx-quick' }, [
+      h('button', { class: 'hxq cam', onclick: () => PD.camera.launcher() }, [h('span', { class: 'hxq-ic', html: PD.ic.camera }), h('b', { 'data-t': 'hxq.cam' }), h('small', { 'data-t': 'hxq.camD' })]),
+      h('button', { class: 'hxq ai', onclick: () => go('ai') }, [h('span', { class: 'hxq-ic ai-badge', text: 'AI' }), h('b', { 'data-t': 'hxq.ai' }), h('small', { 'data-t': 'hxq.aiD' })]),
+      h('button', { class: 'hxq goal', onclick: () => go('daily') }, [h('span', { class: 'hxq-ic gring', html: ring(tm / goal) }), h('b', { text: t('hx.goalV', { a: Math.min(tm, goal), b: goal }) }), h('small', { 'data-t': 'hx.goal' })])]));
     const row = (k, items, more) => { if (!items.length) return; w.append(h('section', { class: 'hrow' }, [h('div', { class: 'hrow-h' }, [h('h2', { 'data-t': k }), more ? h('button', { class: 'linkbtn', 'data-t': 'hx.all', onclick: more }) : null]), h('div', { class: 'hrow-s' }, items.map(l => card(l)))])); };
     const all = LS.all.filter(visible);
     const rec = []; for (const p of LS.PATHS) for (const s2 of p.steps) { const l = s2.kind === 'lesson' ? LS.get(s2.id) : s2.kind === 'rhythm' ? LS.get('rhythm-' + s2.id) : null; if (l && l.events.length && LS.progress.lesson(l.id).mastery < .9 && !rec.includes(l) && (!pa || l !== pa.l)) rec.push(l); }
@@ -590,7 +593,7 @@ PD.app = (() => {
       h('div', { class: 'steps-line', style: 'max-width:360px' }, plan.map(x => h('i', { class: x.done ? 'done' : '' }))), h('span', { class: 'muted', style: 'font-size:13px', text: plan.map(x => t(x.key)).join(' · ') }),
       h('div', { class: 'row', style: 'margin-top:8px' }, [h('button', { class: 'btn primary', 'data-t': dn === plan.length ? 'dl.done' : 'home.start', onclick: () => nextSeg ? PD.daily.start(nextSeg) : go('daily') }), h('button', { class: 'btn quiet', 'data-t': 'learn.open', onclick: () => go('daily') })])]));
     const tool = (r, icon, k, d) => h('button', { class: 'card path tool', onclick: () => go(r) }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]);
-    const items = [['ai', ic.star || ic.chord, 'ai.title', 'ai.homeD'], ['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
+    const items = [['ai', '<b class="ai-badge">AI</b>', 'ai.title', 'ai.homeD'], ['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
     w.append(h('div', { class: 'paths' }, items.map(x => tool(...x))));
     if (PD.store.get('author', false)) w.append(h('div', { class: 'paths' }, [['studio', ic.edit, 'tools.studio', 'tools.studioD'], ['at:instrument', ic.frets, 'sd.instrument', 'at.instrument'], ['at:curriculum', ic.learn, 'sd.curriculum', 'at.curD'], ['at:samples', ic.mic, 'sd.samples', 'set.samples']].map(([r, icon, k, d]) => h('button', { class: 'card path tool', onclick: () => r === 'studio' ? PD.studio.open(null) : PD.authorTools[r.slice(3)]() }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]))));
   }
