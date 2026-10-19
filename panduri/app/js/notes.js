@@ -270,7 +270,10 @@ PD.theoryBook = (() => {
     const i = CH.indexOf(c);
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small', html: PD.ic.back + '<span data-t="tb.list"></span>', onclick: () => PD.app.go('theory') }), h('small', { class: 'muted', text: t('tb.chapter', { n: i + 1 }) + ' / ' + CH.length })]),
       h('h1', { class: 'tb-title', text: L(c.t[0], c.t[1]) }));
-    const body = h('article', { class: 'tb-body' }); w.append(body); c.body(body);
+    const body = h('article', { class: 'tb-body' }); w.append(body);
+    const AN = { octave: 'octave', semitone: 'semitone', neck: 'dots', durations: 'count', meter: 'count', tempo: 'tempo', chords: 'shapefirst' }[c.id];   // a short animation at the top of the chapter
+    if (AN && PD.tips && PD.tips.ART[AN]) body.append(h('div', { class: 'tp-hero tb-anim', html: PD.tips.ART[AN]() }));
+    c.body(body);
     // self-check
     if (c.q && c.q.length) {
       const qs = h('section', { class: 'tb-quiz' }, [h('h3', { 'data-t': 'tb.check' })]);

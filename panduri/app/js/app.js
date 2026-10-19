@@ -110,7 +110,7 @@ PD.i18n.add({
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
   const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['practice', 'nav.practice', ic.pulse], ['profile', 'nav.profile', ic.user]];
-  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', tips: 'learn', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -178,7 +178,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => PD.tools.tuner(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
     page.style.scrollBehavior = 'auto'; page.scrollTop = changed ? 0 : keep; page.style.scrollBehavior = '';   // re-drawing the same page stays where you were
   }
@@ -361,6 +361,12 @@ PD.app = (() => {
     w.append(h('div', {}, [h('h1', { 'data-t': 'ln.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'ln.lead' })]));
     const lp = PD.levels.progress, LPn = LS.PATHS.find(p2 => p2.id === PD.levels.program);
     w.append(h('section', { class: 'lvcard' }, [h('span', { class: 'lvcard-b', html: PD.levels.badge(56) }), h('div', { class: 'grow' }, [h('b', { text: t('lv.level', { n: lp.level }) + ' · ' + PD.levels.tierName() }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(lp.pct * 100) + '%' })]), h('small', { text: (LPn ? t('lv.programD', { p: PD.i18n.pick(LPn.title) }) + ' · ' : '') + t('lv.toNext', { n: lp.need - lp.into }) })])]));
+    // library: the theory book, tips & tricks, and the photo guide to the teacher's panduri
+    const libCard = (r, pa, k, d, art) => h('button', { class: 'lib-card', onclick: () => go(r, pa) }, [h('span', { class: 'lib-art', html: art }), h('span', { class: 'grow' }, [h('b', { 'data-t': k }), h('small', { 'data-t': d })])]);
+    const ph = PD.assets && PD.assets.photos;
+    w.append(h('section', { class: 'lib' }, [h('h2', { 'data-t': 'tp.lib' }), h('div', { class: 'lib-row' }, [
+      libCard('tips', null, 'tp.title', 'tp.lead', PD.tips.ART.strum()), libCard('theory', null, 'tb.title', 'tb.tool', PD.tips.ART.semitone()),
+      libCard('tips', 'parts', 'tp.parts', 'tp.partsD', ph && ph.front ? '<img src="' + ph.front + '" alt="">' : '')])]));
     const TOOL = { tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord };
     let curSet = false, focusEl = null;
     LS.PATHS.forEach((p, pi) => {
@@ -567,7 +573,7 @@ PD.app = (() => {
       h('div', { class: 'steps-line', style: 'max-width:360px' }, plan.map(x => h('i', { class: x.done ? 'done' : '' }))), h('span', { class: 'muted', style: 'font-size:13px', text: plan.map(x => t(x.key)).join(' · ') }),
       h('div', { class: 'row', style: 'margin-top:8px' }, [h('button', { class: 'btn primary', 'data-t': dn === plan.length ? 'dl.done' : 'home.start', onclick: () => nextSeg ? PD.daily.start(nextSeg) : go('daily') }), h('button', { class: 'btn quiet', 'data-t': 'learn.open', onclick: () => go('daily') })])]));
     const tool = (r, icon, k, d) => h('button', { class: 'card path tool', onclick: () => go(r) }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]);
-    const items = [['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
+    const items = [['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
     w.append(h('div', { class: 'paths' }, items.map(x => tool(...x))));
     if (PD.store.get('author', false)) w.append(h('div', { class: 'paths' }, [['studio', ic.edit, 'tools.studio', 'tools.studioD'], ['at:instrument', ic.frets, 'sd.instrument', 'at.instrument'], ['at:curriculum', ic.learn, 'sd.curriculum', 'at.curD'], ['at:samples', ic.mic, 'sd.samples', 'set.samples']].map(([r, icon, k, d]) => h('button', { class: 'card path tool', onclick: () => r === 'studio' ? PD.studio.open(null) : PD.authorTools[r.slice(3)]() }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]))));
   }

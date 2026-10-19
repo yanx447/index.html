@@ -73,7 +73,7 @@ PD.studio = (() => {
       h('button', { class: 'btn small', 'data-t': 'sd.import', onclick: importJSON }),
       h('button', { class: 'btn small', 'data-t': 'sd.instrument', onclick: () => PD.authorTools.instrument() }),
       h('button', { class: 'btn small', 'data-t': 'sd.curriculum', onclick: () => PD.authorTools.curriculum() }),
-      h('button', { class: 'btn small', 'data-t': 'sd.samples', onclick: () => PD.authorTools.samples() }),
+      h('button', { class: 'btn small', 'data-t': 'sd.samples', onclick: () => PD.authorTools.samples() }), h('button', { class: 'btn small', 'data-t': 'tp.edit', onclick: () => PD.tips.editor() }),
       h('button', { class: 'btn small primary', 'data-t': 'sd.save', onclick: save }),
       h('button', { class: 'btn small icon quiet', 'aria-label': t('sd.insp'), title: t('sd.insp'), html: ic.edit, onclick: () => insp.classList.toggle('open') })]);
     const side = h('aside', { class: 'st-side', 'aria-label': t('sd.side') });

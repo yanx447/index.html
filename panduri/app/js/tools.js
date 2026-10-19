@@ -14,7 +14,7 @@ PD.i18n.add({
   'tu.customWarn': ['გაკვეთილები სტანდარტულ A · C♯ · E აწყობაზეა დაწერილი. სხვა აწყობით ლადები იგივე დარჩება, ბგერები კი შეიცვლება.', 'Lessons are written for standard A · C♯ · E. In another tuning the frets stay the same but the pitches change.'],
   'tu.name': ['სახელი', 'Name'], 'tu.level': ['შემავალი სიგნალი', 'Input level'], 'tu.locked': ['დაფიქსირდა', 'Locked'],
   'ce.title': ['აკორდები', 'Chords'], 'ce.search': ['მოძებნე აკორდი (A, Bm, …)', 'Search chord (A, Bm, …)'], 'ce.maj': ['მაჟორი', 'Major'], 'ce.min': ['მინორი', 'Minor'],
-  'ce.play': ['▶ ჩამოკვრა', '▶ Strum'], 'ce.string': ['▶ {s} სიმი', '▶ {s} string'], 'ce.trans': ['გადასვლის სავარჯიშო', 'Transition exercise'],
+  'ce.play': ['▶ ჩამოკვრა', '▶ Strum'], 'ce.steps': ['✋ ნაბიჯ-ნაბიჯ', '✋ Step by step'], 'ce.showCh': ['▶ აჩვენე გადასვლა', '▶ Show the change'], 'ce.fStep': ['თითი {f} → {s} · ლადი {n}', 'Finger {f} → {s} · fret {n}'], 'ce.openStep': ['{s} — ღია სიმი, არ ეხები', '{s} — open string, don\'t touch it'], 'ce.allTog': ['ახლა სამივე ერთად', 'Now all three together'], 'ce.stay': ['თითი {f} რჩება ადგილზე', 'Finger {f} stays put'], 'ce.move': ['თითი {f}: {a} → {b}', 'Finger {f}: {a} → {b}'], 'ce.lift': ['თითი {f} იწევს', 'Finger {f} lifts'], 'ce.put': ['თითი {f} ჯდება: {b}', 'Finger {f} goes down: {b}'], 'ce.string': ['▶ {s} სიმი', '▶ {s} string'], 'ce.trans': ['გადასვლის სავარჯიშო', 'Transition exercise'],
   'ce.to': ['მეორე აკორდი', 'Second chord'], 'ce.notes': ['ბგერები', 'Notes'], 'ce.fingers': ['თითები', 'Fingers'], 'ce.barre': ['ბარე', 'barre'],
   'ce.majD': ['A · C♯ · E აწყობა თავად მაჟორული სამხმოვანებაა: ყველა სიმი ერთ ლადზე (ბარე) მაჟორს იძლევა.', 'A · C♯ · E is itself a major triad: all strings on one fret (barre) give a major chord.'],
   'ce.minD': ['მინორი: შუა (C♯) სიმი ერთი ლადით დაბლა — მესამე საფეხური ნახევარი ტონით ეცემა.', 'Minor: the middle (C♯) string one fret lower — the third drops a semitone.'],
@@ -172,7 +172,32 @@ PD.tools = (() => {
     const detail = h('div', { class: 'ce-detail' });
     const left = h('div', { class: 'ce-side' }, [h('span', { class: 'kicker', 'data-t': 'ce.root' }), rootRow, h('span', { class: 'kicker', 'data-t': 'ce.type' }), typeRow, search, count, g]);
     const layout = h('div', { class: 'ce-l' }, [left, detail]);
-    w.append(nv, layout);
+    // a caption under the neck for the step-by-step and change animations
+    const cap = h('div', { class: 'ce-cap', 'aria-live': 'polite' }); let animT = [];
+    const stopAnim = () => { animT.forEach(clearTimeout); animT = []; cap.textContent = ''; cap.classList.remove('on'); };
+    const later = (ms, f) => animT.push(setTimeout(f, ms)); own(stopAnim);
+    const say = txt => { cap.textContent = txt; cap.classList.remove('on'); void cap.offsetWidth; cap.classList.add('on'); };
+    const placeOf = (v, k) => TT.stringName(k + 1) + (v.frets[k] ? ' ' + v.frets[k] : ' 0');
+    /** place the fingers one at a time (barre = one step), then the open strings, then strum */
+    function stepByStep(v) {
+      stopAnim(); view.setTarget([], []); const groups = {}, order = [];
+      v.frets.forEach((f, k) => { if (f > 0) { const key = (v.fingers[k] || 9) + ':' + f; if (!groups[key]) { groups[key] = []; order.push(key); } groups[key].push(k); } });
+      order.sort((a, b) => parseInt(a) - parseInt(b));
+      const shown = []; let tm = 300;
+      order.forEach(key => { const ks = groups[key]; later(tm, () => { ks.forEach(k => shown.push({ s: k + 1, f: v.frets[k], fi: v.fingers[k] || 0 })); view.setTarget(shown.slice(), []); PD.audio.ensure(); ks.forEach(k => { PD.audio.note(k + 1, v.frets[k], { vel: .6 }); view.pluck(k + 1, v.frets[k]); }); say(t('ce.fStep', { f: v.fingers[ks[0]] || '?', s: ks.map(k => TT.stringName(k + 1)).join(' · '), n: v.frets[ks[0]] })); }); tm += 1500; });
+      v.frets.forEach((f, k) => { if (f === 0) { later(tm, () => { shown.push({ s: k + 1, f: 0, fi: 0 }); view.setTarget(shown.slice(), []); PD.audio.ensure(); PD.audio.note(k + 1, 0, { vel: .6 }); view.pluck(k + 1, 0); say(t('ce.openStep', { s: TT.stringName(k + 1) })); }); tm += 1300; } });
+      later(tm, () => { PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); v.frets.forEach((f, k) => view.pluck(k + 1, f)); say(t('ce.allTog')); });
+      later(tm + 2600, () => cap.classList.remove('on'));
+    }
+    /** show the change to another chord: which finger stays, moves, lifts or goes down — twice there and back */
+    function showChange(a, b, nameA, nameB) {
+      stopAnim(); const fin = v => { const o = {}; v.frets.forEach((f, k) => { if (f > 0 && v.fingers[k]) (o[v.fingers[k]] = o[v.fingers[k]] || []).push(k); }); return o; };
+      const desc = (x, y) => { const A = fin(x), B = fin(y), out = []; new Set(Object.keys(A).concat(Object.keys(B))).forEach(f => { const pa = (A[f] || []).map(k => placeOf(x, k)).join('+'), pb = (B[f] || []).map(k => placeOf(y, k)).join('+'); if (!A[f]) out.push(t('ce.put', { f, b: pb })); else if (!B[f]) out.push(t('ce.lift', { f })); else if (pa === pb) out.push(t('ce.stay', { f })); else out.push(t('ce.move', { f, a: pa, b: pb })); }); return out.join(' · '); };
+      const pts = v => v.frets.map((f, k) => ({ s: k + 1, f, fi: v.fingers[k] || 0 })), go = (x, nm) => { view.setTarget(pts(x), []); PD.audio.ensure(); PD.audio.strum(x.frets, 'down', { gap: .03 }); x.frets.forEach((f, k) => view.pluck(k + 1, f)); };
+      let tm = 100; for (let r = 0; r < 2; r++) { later(tm, () => { go(a); say(nameA + ' → ' + nameB + ': ' + desc(a, b)); }); tm += 1800; later(tm, () => { go(b); say(nameB); }); tm += 1800; }
+      later(tm, () => { go(a); say(nameA); }); later(tm + 2200, () => cap.classList.remove('on'));
+    }
+    w.append(nv, cap, layout);
     function match(c) {
       if (q) { const n = c.name.toLowerCase(), k = (c.ka || '').toLowerCase(); return n.includes(q) || n.replace('♭', 'b').replace('♯', '#').includes(q) || k.includes(q); }
       if (fRoot >= 0 && c.root !== fRoot) return false;
@@ -188,6 +213,7 @@ PD.tools = (() => {
     }
     const ROLE = { 0: 'ce.R', 1: 'ce.i2', 2: 'ce.i2', 3: 'ce.i3m', 4: 'ce.i3', 5: 'ce.i4', 6: 'ce.i5d', 7: 'ce.i5', 8: 'ce.i5a', 9: 'ce.i6', 10: 'ce.i7m', 11: 'ce.i7' };
     function show() {
+      if (typeof stopAnim === 'function') stopAnim();
       detail.innerHTML = '';
       const v = vo(), ms = v.frets.map((f, i) => TT.midi(i + 1, f)), T = TT.CHORD_TYPES.find(x => x.k === cur.q);
       const q0 = cur.q != null ? cur.q : cur.kind === 'min' ? 'm' : '', nm = m => cur.root != null ? TT.spell(m, cur.root, q0).name : TT.name(m), nmKa = m => cur.root != null ? TT.spell(m, cur.root, q0).ka : TT.nameKa(m);   // spelled from the root letter
@@ -208,7 +234,8 @@ PD.tools = (() => {
         h('div', { class: 'kv' }, [h('span', { 'data-t': 'ce.fingers', text: t('ce.fingers') }), h('b', { text: v.fingers.map(f => f || '0').join(' · ') + (v.barre ? ' · ' + t('ce.barre') : '') })]),
         h('div', { class: 'row' }, [h('button', { class: 'btn primary', text: t('ce.play'), onclick: () => { PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); v.frets.forEach((f, k) => view.pluck(k + 1, f)); } }),
           ...[1, 2, 3].map(sn => h('button', { class: 'btn small', style: 'color:' + SCOL[sn], text: t('ce.string', { s: TT.stringName(sn) }), onclick: () => { PD.audio.ensure(); PD.audio.note(sn, v.frets[sn - 1]); view.pluck(sn, v.frets[sn - 1]); } }))]),
-        h('div', { class: 'row' }, [other, h('button', { class: 'btn', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })]),
+        h('div', { class: 'row' }, [h('button', { class: 'btn', text: t('ce.steps'), onclick: () => stepByStep(v) })]),
+        h('div', { class: 'row' }, [other, h('button', { class: 'btn small', text: t('ce.showCh'), onclick: () => { const b = all.find(c => c.id === other.value); if (b) showChange(v, (b.voicings && b.voicings[0]) || b, cur.name, b.name); } }), h('button', { class: 'btn', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })]),
         h('p', { class: 'notice', text: t(src) }));
       preview();
     }
