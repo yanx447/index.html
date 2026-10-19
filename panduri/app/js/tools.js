@@ -4,6 +4,7 @@
    tour. Every tool that opens the microphone closes it when you leave.
    ===================================================================== */
 PD.i18n.add({
+  'ce.lib': ['აკორდების ბიბლიოთეკა', 'Chord library'],
   'tu.title': ['ტიუნერი', 'Tuner'], 'tu.auto': ['ავტო', 'Auto'], 'tu.manual': ['სიმის არჩევა', 'Pick string'],
   'tu.start': ['მიკროფონის ჩართვა', 'Turn on microphone'], 'tu.stop': ['გამორთვა', 'Turn off'],
   'tu.idle': ['დაუკარი ერთი სიმი', 'Pluck one string'], 'tu.inTune': ['✓ აწყობილია', '✓ In tune'], 'tu.up': ['↑ ოდნავ მოუჭირე (ბგერა დაბალია)', '↑ Tighten a little (flat)'],
@@ -170,8 +171,8 @@ PD.tools = (() => {
     const count = h('small', { class: 'muted' });
     const g = h('div', { class: 'cgrid', role: 'listbox', 'aria-label': t('ce.title') });
     const detail = h('div', { class: 'ce-detail' });
-    const left = h('div', { class: 'ce-side' }, [h('span', { class: 'kicker', 'data-t': 'ce.root' }), rootRow, h('span', { class: 'kicker', 'data-t': 'ce.type' }), typeRow, search, count, g]);
-    const layout = h('div', { class: 'ce-l' }, [left, detail]);
+    const left = h('div', { class: 'ce-side' }, [h('h2', { 'data-t': 'ce.lib' }), h('span', { class: 'kicker', 'data-t': 'ce.root' }), rootRow, h('span', { class: 'kicker', 'data-t': 'ce.type' }), typeRow, search, count]);
+    const nameBox = h('div', { class: 'ce-namebox' });
     // a caption under the neck for the step-by-step and change animations
     const cap = h('div', { class: 'ce-cap', 'aria-live': 'polite' }); let animT = [];
     const stopAnim = () => { animT.forEach(clearTimeout); animT = []; cap.textContent = ''; cap.classList.remove('on'); };
@@ -197,7 +198,7 @@ PD.tools = (() => {
       let tm = 100; for (let r = 0; r < 2; r++) { later(tm, () => { go(a); say(nameA + ' → ' + nameB + ': ' + desc(a, b)); }); tm += 1800; later(tm, () => { go(b); say(nameB); }); tm += 1800; }
       later(tm, () => { go(a); say(nameA); }); later(tm + 2200, () => cap.classList.remove('on'));
     }
-    w.append(nv, cap, layout);
+    w.append(h('section', { class: 'ce-hero' }, [nameBox, nv, cap]), g, detail, left);
     function match(c) {
       if (q) { const n = c.name.toLowerCase(), k = (c.ka || '').toLowerCase(); return n.includes(q) || n.replace('♭', 'b').replace('♯', '#').includes(q) || k.includes(q); }
       if (fRoot >= 0 && c.root !== fRoot) return false;
@@ -237,6 +238,8 @@ PD.tools = (() => {
         h('div', { class: 'row' }, [h('button', { class: 'btn', text: t('ce.steps'), onclick: () => stepByStep(v) })]),
         h('div', { class: 'row' }, [other, h('button', { class: 'btn small', text: t('ce.showCh'), onclick: () => { const b = all.find(c => c.id === other.value); if (b) showChange(v, (b.voicings && b.voicings[0]) || b, cur.name, b.name); } }), h('button', { class: 'btn', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })]),
         h('p', { class: 'notice', text: t(src) }));
+      nameBox.innerHTML = ''; nameBox.append(detail.firstChild);
+      { const sel = g.querySelector('[aria-pressed="true"]'); if (sel) requestAnimationFrame(() => { g.scrollLeft = Math.max(0, sel.offsetLeft - (g.clientWidth - sel.offsetWidth) / 2); }); }
       preview();
     }
     grid(); show();
