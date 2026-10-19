@@ -158,6 +158,7 @@ PD.Lanes = function (canvas, opt) {
     const k = Math.max(0, Math.min(cyIdx.length - 2, Math.floor(now / C + 1e-6))), c0 = k * C, i0 = cyIdx[k], i1 = cyIdx[k + 1];
     const pad = Wd < 520 ? 12 : 28, rowW = Math.min(Wd - pad * 2, 1000), x0 = (Wd - rowW) / 2;
     const low = H < 170, top = low ? 18 : Math.round(Math.max(24, Math.min(40, H * .12))), bh = Math.max(56, Math.min(H - top - (low ? 8 : 30), 210)), y0 = top + 4;   // short screens (landscape phones): no legend line
+    const oy = Math.max(0, Math.round((H - (y0 + bh + (low ? 8 : 30))) * .5)); ctx.save(); ctx.translate(0, oy);   // a tall screen: the line sits in the middle of its area, not stuck to the top
     // the chords of this cycle (from its strokes; the teacher's cycle where a rhythm has none)
     const nameAt = r => { for (let i = i0; i < i1; i++) if (Math.floor(S.steps[i].t - c0 + 1e-6) === r) return S.steps[i].name; return L.cycle[r]; };
     const runs = []; for (let r = 0; r < C; r++) { const c = nameAt(r), q = runs[runs.length - 1]; if (q && q.c === c) q.n++; else runs.push({ c, r0: r, n: 1 }); }
@@ -220,6 +221,7 @@ PD.Lanes = function (canvas, opt) {
       const nx = (S.lesson.sections || []).find(s2 => s2.from >= c0 + C - 1e-6 && s2.from < c0 + 2 * C);
       if (nx && sc && nx !== sc) { ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,226,186,.8)'; ctx.fillText(tr('cy.next', { s: PD.i18n.pick(nx.name) }), x0 + rowW - 2, yb); }
     }
+    ctx.restore();
   }
   function drawSong(tm) {
     const now = E.visualNow(), px = PX(), bpb = E.bpb(), cy = G.cy, bh = G.bh, y0 = cy - bh / 2;

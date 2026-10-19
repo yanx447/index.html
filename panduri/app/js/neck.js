@@ -1,121 +1,198 @@
 /* =====================================================================
    Panduri neck — the main teaching visual of the practice screen.
-   A close-up of the fingerboard (player view: nut on the left, E on top,
-   A at the bottom; mirrored for left-handed players). There is NO hand:
-   where to press is shown by a fingertip marker (finger colour + number)
-   sitting exactly on the string × fret contact point.
+   The teacher's instrument as the player sees it (nut on the left, E on
+   top, A at the bottom; mirrored for left-handed players): the start of
+   the oak headstock with its open slot and rollers, the WHOLE red-brown
+   fingerboard with every fret (pale brass wire, yellow dots), its tongue
+   on the pale soundboard and the body's shoulders.
+   There is NO hand: where to press is shown by a fingertip marker
+   (finger colour + number) on the string × fret contact point.
 
+   Along the strings the proportions are true (fret positions from the
+   instrument profile); across the strings the board is drawn wider than
+   life, so three strings and the fingertips read on a phone.
    Marker life: approach → touch → press → hold → (correct) confirm → fade.
-   The wood is rendered once into a bitmap per size; every frame only
-   blits it and draws strings and markers (cheap, 60 fps on phones).
-   Fret positions come from the instrument profile (true proportions
-   along the strings; the across-strings spacing is enlarged for reading).
+   The instrument is painted once into a bitmap per size; every frame only
+   blits it and draws strings, labels and markers (cheap, 60 fps on phones).
    ===================================================================== */
 PD.Neck = function (canvas, opt) {
   opt = opt || {};
-  const ctx = canvas.getContext('2d'), TH = PD.theory;
-  const self = { mirror: false, frets: opt.frets || 0, still: !!opt.still, sticky: !!opt.sticky };
-  const G = { W: 1, H: 1 };
-  let dpr = 1, bmp = null, bmpKey = '';
+  const ctx = canvas.getContext('2d');
+  const self = { mirror: false, sticky: !!opt.sticky };
+  const G = { W: 1, H: 1, k: 1, ky: 3, xNut: 60, yMid: 60, boardH: 100, yNum: 120, head: 60 };
+  let dpr = 1, bmp = null;
   const strings = { 1: { amp: 0, ph: 0, stop: 0 }, 2: { amp: 0, ph: 0, stop: 0 }, 3: { amp: 0, ph: 0, stop: 0 } };
-  let markers = [], ghosts = [], openGlow = {}, cam = { u0: null, v: 0 }, camGoal = null, lastT = performance.now();
-  const g = () => PD.geom.g, NF = () => PD.instrument.profile.frets.count;
+  let markers = [], ghosts = [], openGlow = {}, lastT = performance.now();
+  const g = () => PD.geom.g, P = () => PD.instrument.profile, NF = () => P().frets.count;
   const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
   const easeOut = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
+  const smooth = x => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
   const now = () => performance.now();
+  const offInst = PD.bus.on('instrument', () => { bmp = null; });
 
   /* ---------------- layout ---------------- */
+  const EX = 3.3, EXMAX = 4;   // across-the-strings enlargement (relative to the true scale along the strings); up to EXMAX when the screen has room
+  const TAIL = 34;     // mm of soundboard shown past the end of the fingerboard
+  const FLARE = 4;     // mm the tongue widens toward the E side on the soundboard
+  const PAD = 4, NUMH = 20, GAP = 7;
+  const fbDims = () => P().fingerboard || { nutHalfMm: 15, joinHalfMm: 18 };
+  const HALF = () => fbDims().joinHalfMm + 1;
+  const headPx = W => Math.round(clamp(W * .15, 58, 170));
+  const kFor = W => Math.max(.2, (W - 2 * PAD - headPx(W)) / (g().FE + TAIL));
+  const boardPx = (W, ex) => clamp(kFor(W) * (ex || EX) * 2 * HALF(), 92, 210);
+  const hAt = ky => Math.round(8 + (2 * HALF() + FLARE) * ky + GAP + NUMH + 6);
+  /** the height this view needs at a given width (its box can be sized with it); with room (maxH) the board may grow a little */
+  function natH(W, maxH) { const lo = hAt(boardPx(W) / (2 * HALF())), hi = hAt(boardPx(W, EXMAX) / (2 * HALF())); return maxH ? Math.round(clamp(maxH, lo, hi)) : lo; }
   function layout() {
     const r = canvas.getBoundingClientRect(); if (r.width < 4 || r.height < 4) return false;
     const q = PD.store.get('quality', 'auto');
     dpr = Math.min(q === 'low' ? 1 : q === 'medium' ? 1.5 : q === 'ultra' ? 3 : q === 'high' ? 2 : PD.device && PD.device.low ? 1.5 : 2, window.devicePixelRatio || 1);
     canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
     const W = G.W = r.width, H = G.H = r.height;
-    // how much of the neck is visible: phones show the first frets large, wide screens the whole board
-    const show = self.frets || (W < 520 ? 7 : W < 820 ? 10 : NF());
-    G.show = Math.min(NF(), show);
-    G.padL = W < 520 ? 26 : 40; G.padR = 12;
-    const uL = -7, uR = g().fretMm(G.show) + (G.show >= NF() ? 14 : 6);
-    G.k = (W - G.padL - G.padR) / (uR - uL); G.uL = uL; G.span = uR - uL;
-    G.numH = Math.max(18, Math.min(26, H * .12));
-    G.boardH = Math.max(64, Math.min(H - G.numH - 20, 230));
-    G.yT = Math.max(8, (H - G.numH - G.boardH) / 2); G.yB = G.yT + G.boardH;
-    if (cam.u0 == null || G.show >= NF()) cam.u0 = uL;
+    G.head = headPx(W); G.k = kFor(W); G.xNut = PAD + G.head;
+    const want = boardPx(W, EXMAX) / (2 * HALF()), room = (H - 14 - GAP - NUMH) / (2 * HALF() + FLARE);
+    G.ky = Math.max(1.2, Math.min(want, room));
+    G.boardH = 2 * HALF() * G.ky;
+    const block = (2 * HALF() + FLARE) * G.ky + GAP + NUMH, top = Math.max(4, (H - block) / 2);
+    G.yMid = top + (HALF() + FLARE) * G.ky; G.yNum = G.yMid + HALF() * G.ky + GAP + NUMH / 2;
     bmp = null;
     return true;
   }
-  // board coordinates: u (mm from the nut) → x px ; across: string s → y px (slight taper toward the body)
-  const taper = u => 1 + .07 * clamp(u / g().FE, 0, 1.2);
-  const X0 = u => G.padL + (u - cam.u0) * G.k;
+  // u = mm from the nut along the strings → x px ; v = mm across (E side negative) → y px
+  const X0 = u => G.xNut + u * G.k;
   const X = u => self.mirror ? G.W - X0(u) : X0(u);
-  const yMid = () => (G.yT + G.yB) / 2;
-  const halfH = u => G.boardH / 2 * taper(u) / taper(g().FE * .5);
-  const SY = { 3: -.62, 2: 0, 1: .62 };   // E top · C♯ middle · A bottom
-  const Y = (s, u) => yMid() + SY[s] * halfH(u == null ? 0 : u);
+  const V = v => G.yMid + v * G.ky;
+  const Y = (s, u) => V(g().stringV(s, u == null ? 0 : u));
   const contactU = f => g().contactU(f);
+  const baseHalf = u => { const f = fbDims(); return f.nutHalfMm + (f.joinHalfMm - f.nutHalfMm) * clamp(u / g().J, 0, 1); };
+  const tongue0 = () => g().J - 16;
+  /** fingerboard edges (mm): the tongue on the soundboard widens toward the E side, as on the teacher's instrument */
+  const topV = u => -(baseHalf(u) + FLARE * smooth((u - tongue0()) / Math.max(4, (g().FE - 4 - tongue0()))));
+  const botV = u => baseHalf(u);
+  const uRight = () => (G.W - G.xNut) / G.k;
 
-  /* ---------------- wood (cached bitmap, full board length) ---------------- */
+  /* ---------------- the instrument (cached bitmap, the whole visible view) ---------------- */
   function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
   function buildBitmap() {
-    const G0 = g(), k = G.k * dpr, u0 = -40, u1 = G0.FE + 30, w = Math.ceil((u1 - u0) * k), hh = Math.ceil(G.H * dpr);
-    const key = [k.toFixed(3), w, hh, G.yT, G.boardH, NF()].join(':'); if (bmp && bmpKey === key) return;
-    const c = document.createElement('canvas'); c.width = Math.min(w, 8192); c.height = hh;
-    const x = c.getContext('2d'), R = rng(11);
-    const ux = u => (u - u0) * k, yy = v => v * dpr;
-    const top = u => yy(yMid() - halfH(u)), bot = u => yy(yMid() + halfH(u));
-    const boardPath = (grow) => { x.beginPath(); x.moveTo(ux(0), top(0) - grow); for (let u = 0; u <= G0.FE; u += 6) x.lineTo(ux(u), top(u) - grow); x.lineTo(ux(G0.FE), top(G0.FE) - grow); x.lineTo(ux(G0.FE), bot(G0.FE) + grow); for (let u = G0.FE; u >= 0; u -= 6) x.lineTo(ux(u), bot(u) + grow); x.lineTo(ux(0), bot(0) + grow); x.closePath(); };
-    // neck wood visible beyond the board edges (dark walnut tone) + soft cast shadow
-    x.save(); x.filter = 'blur(' + Math.round(6 * dpr) + 'px)'; x.fillStyle = 'rgba(0,0,0,.55)'; x.translate(0, 7 * dpr); boardPath(4 * dpr); x.fill(); x.restore();
-    boardPath(3 * dpr); let gr = x.createLinearGradient(0, top(0), 0, bot(0)); gr.addColorStop(0, '#24130B'); gr.addColorStop(.5, '#3A2012'); gr.addColorStop(1, '#1B0E07'); x.fillStyle = gr; x.fill();
-    // headstock stub left of the nut
-    gr = x.createLinearGradient(ux(-40), 0, ux(0), 0); gr.addColorStop(0, 'rgba(40,22,12,0)'); gr.addColorStop(.6, '#2B170D'); gr.addColorStop(1, '#3A2113');
-    x.fillStyle = gr; x.fillRect(ux(-40), top(0) - 3 * dpr, ux(0) - ux(-40), bot(0) - top(0) + 6 * dpr);
-    // rosewood board
-    boardPath(0); gr = x.createLinearGradient(0, top(0), 0, bot(0));
-    gr.addColorStop(0, '#2E0F07'); gr.addColorStop(.18, '#4C1B0E'); gr.addColorStop(.5, '#5E2414'); gr.addColorStop(.82, '#491A0D'); gr.addColorStop(1, '#2A0E06');
-    x.fillStyle = gr; x.fill();
-    x.save(); boardPath(0); x.clip();
-    const bh = bot(0) - top(0);
-    for (let i = 0; i < 260; i++) {   // long grain lines with gentle waves; some lighter streaks
-      const v = top(0) + R() * bh * 1.1 - bh * .05, light = R() < .16;
-      x.strokeStyle = light ? 'rgba(150,72,40,' + (.06 + R() * .1).toFixed(3) + ')' : 'rgba(16,4,1,' + (.08 + R() * .2).toFixed(3) + ')';
-      x.lineWidth = (light ? .6 + R() * 1.4 : .3 + R() * 1.1) * dpr; x.beginPath(); const ph = R() * 6, fq = .004 + R() * .01;
-      for (let u = -2; u <= G0.FE + 4; u += 8) x.lineTo(ux(u), v + Math.sin(u * fq * 6 + ph) * 1.2 * dpr + (u / G0.FE) * (v - yy(yMid())) * .07);
+    const c = document.createElement('canvas'); c.width = Math.max(1, canvas.width); c.height = Math.max(1, canvas.height);
+    const x = c.getContext('2d'); x.scale(dpr, dpr);
+    const G0 = g(), J = G0.J, FE = G0.FE, k = G.k, R = rng(11), uR = uRight() + 4, uL = -G.head / k - 4;
+    const hs = G0.head, HH = hs.half, endU = -hs.len;
+    const bodyEdge = u => HALF() * G.ky * 1.04 + Math.max(0, G0.bodyHalf(u) - G0.bodyHalf(J)) * k;   // px from the centre line: the shoulders at their true slope
+    // silhouettes
+    const headPath = () => { const r = Math.min(HH, 9); x.beginPath(); x.moveTo(X0(-3), V(-HH)); x.lineTo(X0(endU + r), V(-HH)); x.ellipse(X0(endU + r), V(0), r * k, HH * G.ky, 0, -Math.PI / 2, Math.PI / 2, true); x.lineTo(X0(-3), V(HH)); x.closePath(); };
+    const boardPath = () => {
+      x.beginPath(); x.moveTo(X0(0), V(topV(0)));
+      for (let u = 2; u <= FE - 6; u += 2) x.lineTo(X0(u), V(topV(u)));
+      const tt = V(topV(FE - 6)), bb = V(botV(FE - 2));
+      x.bezierCurveTo(X0(FE + 2), tt, X0(FE + 1.2), bb - (bb - tt) * .2, X0(FE - 2.5), bb);
+      for (let u = FE - 4; u >= 0; u -= 2) x.lineTo(X0(u), V(botV(u)));
+      x.lineTo(X0(0), V(botV(0))); x.closePath();
+    };
+    const bodyPath = () => {
+      x.beginPath(); x.moveTo(X0(J - 2), G.yMid - HALF() * G.ky * 1.04);
+      for (let u = J; u <= uR; u += 2) x.lineTo(X0(u), G.yMid - bodyEdge(u));
+      for (let u = uR; u >= J; u -= 2) x.lineTo(X0(u), G.yMid + bodyEdge(u));
+      x.lineTo(X0(J - 2), G.yMid + HALF() * G.ky * 1.04); x.closePath();
+    };
+    // 1 soft shadow under the whole instrument
+    x.save(); x.shadowColor = 'rgba(0,0,0,.6)'; x.shadowBlur = 14 * dpr; x.shadowOffsetY = 6 * dpr; x.fillStyle = '#1A0F08';
+    bodyPath(); x.fill(); headPath(); x.fill(); boardPath(); x.fill(); x.restore();
+
+    // 2 soundboard: pale spruce, straight grain along the instrument, darker near the tongue
+    bodyPath(); let gr = x.createLinearGradient(0, G.yMid - 160, 0, G.yMid + 160);
+    gr.addColorStop(0, '#D9BC8A'); gr.addColorStop(.5, '#E8D2A4'); gr.addColorStop(1, '#CFAF7C'); x.fillStyle = gr; x.fill();
+    x.save(); bodyPath(); x.clip();
+    for (let i = 0; i < 70; i++) { const v = G.yMid + (R() - .5) * 2 * Math.min(G.H, 400); x.strokeStyle = 'rgba(150,104,52,' + (.07 + R() * .16).toFixed(3) + ')'; x.lineWidth = .5 + R() * .9; x.beginPath(); x.moveTo(X0(J - 4), v); x.lineTo(X0(uR), v + (R() - .5) * 1.2); x.stroke(); }
+    gr = x.createRadialGradient(X0(FE), G.yMid, 4, X0(FE), G.yMid, 90 + G.boardH * .5); gr.addColorStop(0, 'rgba(70,40,15,.28)'); gr.addColorStop(1, 'rgba(70,40,15,0)'); x.fillStyle = gr; x.fillRect(X0(J - 4), 0, X0(uR) - X0(J - 4), G.H);
+    x.restore();
+    x.lineWidth = 1.6; x.strokeStyle = 'rgba(52,30,16,.85)';   // the body's edge (dark sides seen from the front)
+    [-1, 1].forEach(sd => { x.beginPath(); for (let u = J; u <= uR; u += 2) { const y = G.yMid + sd * bodyEdge(u); u === J ? x.moveTo(X0(u), y) : x.lineTo(X0(u), y); } x.stroke(); });
+
+    // 3 headstock: light oak, an open slot with three rollers, geared tuners (2 on the A side, 1 on the E side)
+    headPath(); gr = x.createLinearGradient(0, V(-HH), 0, V(HH)); gr.addColorStop(0, '#E4C391'); gr.addColorStop(.45, '#D3AE7B'); gr.addColorStop(1, '#AE8457'); x.fillStyle = gr; x.fill();
+    x.save(); headPath(); x.clip();
+    for (let i = 0; i < 46; i++) { const v = V(-HH) + R() * 2 * HH * G.ky, ph = R() * 6; x.strokeStyle = R() < .3 ? 'rgba(255,236,200,.18)' : 'rgba(120,78,40,' + (.1 + R() * .2).toFixed(3) + ')'; x.lineWidth = .5 + R() * 1.2; x.beginPath(); for (let u = endU; u <= 0; u += 6) x.lineTo(X0(u), v + Math.sin(u * .05 + ph) * 1.4); x.stroke(); }
+    for (let i = 0; i < 70; i++) { x.fillStyle = 'rgba(255,240,210,' + (.08 + R() * .14).toFixed(3) + ')'; x.fillRect(X0(endU + R() * (-endU)), V(-HH) + R() * 2 * HH * G.ky, 1.5 + R() * 4, .8); }
+    x.restore();
+    const sl = hs.slot, sh = hs.slotHalf, ra = Math.min(8, (sl[1] - sl[0]) / 2);
+    const slotPath = () => { x.beginPath(); x.moveTo(X0(-sl[0] - ra), V(-sh)); x.lineTo(X0(-sl[1] + ra), V(-sh)); x.ellipse(X0(-sl[1] + ra), V(0), ra * k, sh * G.ky, 0, -Math.PI / 2, Math.PI / 2, true); x.lineTo(X0(-sl[0] - ra), V(sh)); x.ellipse(X0(-sl[0] - ra), V(0), ra * k, sh * G.ky, 0, Math.PI / 2, -Math.PI / 2, true); x.closePath(); };
+    slotPath(); gr = x.createLinearGradient(0, V(-sh), 0, V(sh)); gr.addColorStop(0, '#060302'); gr.addColorStop(.5, '#140B06'); gr.addColorStop(1, '#2A190E'); x.fillStyle = gr; x.fill();
+    x.lineWidth = 1.2; x.strokeStyle = 'rgba(60,34,16,.9)'; x.stroke();
+    // rollers across the slot, each with its string's turns and its tuner on the side of the head
+    const metal = (x0, x1) => { const m = x.createLinearGradient(x0, 0, x1, 0); m.addColorStop(0, '#5E5A55'); m.addColorStop(.38, '#EEEAE2'); m.addColorStop(.62, '#A9A398'); m.addColorStop(1, '#4E4A45'); return m; };
+    const sc = clamp(Math.sqrt(k * G.ky) / 1.6, .8, 2.2);
+    [1, 2, 3].forEach(s => {
+      const u = -hs.posts[s], cx = X0(u), rw = Math.max(3, 4.2 * k), top = hs.side[s] === 'E';
+      x.fillStyle = metal(cx - rw / 2, cx + rw / 2); x.fillRect(cx - rw / 2, V(-sh) - 1, rw, (2 * sh) * G.ky + 2);
+      x.fillStyle = 'rgba(0,0,0,.28)'; for (let y = V(-sh) + 2; y < V(sh); y += 2.4) x.fillRect(cx - rw / 2, y, rw, .7);
+      const wv = (2 - s) * 2.2;   // where the string winds on its roller
+      x.fillStyle = 'rgba(244,236,220,.9)'; x.fillRect(cx - rw / 2 - .5, V(wv) - 2.2 * sc, rw + 1, 4.4 * sc);
+      // tuner: gear housing just outside the edge and a cream paddle key beyond it
+      const ey = top ? V(-HH) : V(HH), d = top ? -1 : 1, hw = Math.max(9, 12 * k), hh = 5 * sc;
+      x.fillStyle = metal(cx - hw / 2, cx + hw / 2); x.beginPath(); x.roundRect ? x.roundRect(cx - hw / 2, top ? ey - hh : ey, hw, hh, 2) : x.rect(cx - hw / 2, top ? ey - hh : ey, hw, hh); x.fill();
+      x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(cx - hw / 2, top ? ey - 1 : ey, hw, 1);
+      x.fillStyle = metal(cx - 1.6 * sc, cx + 1.6 * sc); x.fillRect(cx - 1.6 * sc, ey + d * hh, 3.2 * sc, d * 4 * sc);
+      const ky0 = ey + d * (hh + 4 * sc + 5.5 * sc); gr = x.createRadialGradient(cx - 2 * sc, ky0 - 2 * sc, 1, cx, ky0, 9 * sc); gr.addColorStop(0, '#FFF8EA'); gr.addColorStop(.7, '#E9DFC9'); gr.addColorStop(1, '#BDB29C');
+      x.fillStyle = gr; x.beginPath(); x.ellipse(cx, ky0, Math.max(6, 7.5 * sc), 5.5 * sc, 0, 0, 7); x.fill(); x.strokeStyle = 'rgba(0,0,0,.25)'; x.lineWidth = 1; x.stroke();
+    });
+    // strings from the nut into the slot, each to its roller (static; the playing length is drawn live)
+    [1, 2, 3].forEach(s => {
+      const wv = (2 - s) * 2.2, u1 = -hs.posts[s];
+      x.strokeStyle = 'rgba(0,0,0,.35)'; x.lineWidth = 1.8; x.beginPath(); x.moveTo(X0(-3), Y(s, 0) + 2); x.quadraticCurveTo(X0(-sl[0]), V(wv * 1.6) + 2, X0(u1), V(wv) + 2); x.stroke();
+      x.strokeStyle = 'rgba(244,236,220,.82)'; x.lineWidth = s === 1 ? 1.9 : s === 2 ? 1.7 : 1.5; x.beginPath(); x.moveTo(X0(-3), Y(s, 0)); x.quadraticCurveTo(X0(-sl[0]), V(wv * 1.6), X0(u1), V(wv)); x.stroke();
+    });
+
+    // 4 fingerboard: red-brown, fine straight grain and pores, a satin sheen; its tongue lies on the soundboard
+    x.save(); x.shadowColor = 'rgba(30,14,4,.55)'; x.shadowBlur = 5 * dpr; x.shadowOffsetY = 1.5 * dpr; boardPath(); x.fillStyle = '#6E3F24'; x.fill(); x.restore();
+    boardPath(); gr = x.createLinearGradient(0, V(-HALF()), 0, V(HALF()));
+    gr.addColorStop(0, '#88543A'); gr.addColorStop(.3, '#7A472B'); gr.addColorStop(.7, '#6D3D23'); gr.addColorStop(1, '#58301B'); x.fillStyle = gr; x.fill();
+    x.save(); boardPath(); x.clip();
+    const bt = V(-HALF() - FLARE), bb = V(HALF());
+    for (let i = 0; i < 300; i++) {
+      const v = bt + R() * (bb - bt), light = R() < .22, ph = R() * 6;
+      x.strokeStyle = light ? 'rgba(172,112,74,' + (.08 + R() * .14).toFixed(3) + ')' : 'rgba(44,18,6,' + (.08 + R() * .2).toFixed(3) + ')';
+      x.lineWidth = .35 + R() * (light ? 1.1 : .9); x.beginPath();
+      for (let u = -2; u <= FE + 4; u += 10) x.lineTo(X0(u), v + Math.sin(u * .02 + ph) * .7);
       x.stroke();
     }
-    for (let i = 0; i < 2600; i++) { const u = R() * G0.FE, v = top(u) + R() * (bot(u) - top(u)); x.fillStyle = 'rgba(10,3,1,' + (.25 + R() * .35).toFixed(3) + ')'; x.fillRect(ux(u), v, (1 + R() * 3) * dpr, .55 * dpr); }
-    // satin sheen from the key light (upper left): broad, soft
-    gr = x.createLinearGradient(0, top(0), 0, bot(0)); gr.addColorStop(0, 'rgba(255,214,180,0)'); gr.addColorStop(.3, 'rgba(255,214,180,.07)'); gr.addColorStop(.45, 'rgba(255,214,180,0)');
-    x.fillStyle = gr; x.fillRect(0, 0, c.width, c.height);
-    gr = x.createLinearGradient(ux(0), 0, ux(G0.FE), 0); gr.addColorStop(0, 'rgba(255,230,200,.05)'); gr.addColorStop(1, 'rgba(0,0,0,.12)'); x.fillStyle = gr; x.fillRect(0, 0, c.width, c.height);
+    for (let i = 0; i < 1800; i++) { const u = R() * FE, v = V(topV(u)) + R() * (V(botV(u)) - V(topV(u))); x.fillStyle = 'rgba(30,10,2,' + (.2 + R() * .3).toFixed(3) + ')'; x.fillRect(X0(u), v, .8 + R() * 2.4, .5); }
+    gr = x.createLinearGradient(0, V(-HALF()), 0, V(HALF())); gr.addColorStop(0, 'rgba(255,214,170,0)'); gr.addColorStop(.18, 'rgba(255,214,170,.09)'); gr.addColorStop(.36, 'rgba(255,214,170,0)'); x.fillStyle = gr; x.fillRect(0, 0, G.W, G.H);
     x.restore();
-    // board edges: thin bright bevel on top, darker on the bottom
-    x.lineWidth = 1.2 * dpr; x.strokeStyle = 'rgba(255,205,170,.16)'; x.beginPath(); for (let u = 0; u <= G0.FE; u += 6) x.lineTo(ux(u), top(u) + .6 * dpr); x.stroke();
-    x.strokeStyle = 'rgba(0,0,0,.6)'; x.beginPath(); for (let u = 0; u <= G0.FE; u += 6) x.lineTo(ux(u), bot(u) - .6 * dpr); x.stroke();
-    // inlays: mother-of-pearl dots
-    const mk = G0.markers || { single: [3, 5, 7, 9, 15], double: [12] }, ir = Math.max(3.2, Math.min(7, halfH(0) * .09)) * dpr;
-    const pearl = (cx, cy) => { const pg = x.createRadialGradient(cx - ir * .35, cy - ir * .35, ir * .1, cx, cy, ir); pg.addColorStop(0, '#FBF8F1'); pg.addColorStop(.55, '#E6E0D3'); pg.addColorStop(.8, '#D7D9DA'); pg.addColorStop(1, '#B9B2A5');
-      x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.arc(cx, cy + .8 * dpr, ir + .8 * dpr, 0, 7); x.fill(); x.fillStyle = pg; x.beginPath(); x.arc(cx, cy, ir, 0, 7); x.fill(); };
+    x.lineWidth = 1; x.strokeStyle = 'rgba(255,214,176,.28)'; x.beginPath(); for (let u = 0; u <= FE - 6; u += 3) x.lineTo(X0(u), V(topV(u)) + .5); x.stroke();
+    x.strokeStyle = 'rgba(20,8,2,.7)'; x.beginPath(); for (let u = 0; u <= FE - 3; u += 3) x.lineTo(X0(u), V(botV(u)) - .5); x.stroke();
+
+    // 5 inlays: yellow dots (single under the middle string, the double one between the strings)
+    const mk = G0.markers || { single: [3, 5, 7, 9, 15], double: [12] }, ir = clamp(Math.sqrt(k * G.ky) * 2.1, 2.6, 6.5);
+    const dot = (cx, cy) => { const pg = x.createRadialGradient(cx - ir * .3, cy - ir * .35, ir * .1, cx, cy, ir); pg.addColorStop(0, '#FFF1A6'); pg.addColorStop(.55, '#F2CE3A'); pg.addColorStop(1, '#C99A1C');
+      x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.arc(cx, cy + .7, ir + .6, 0, 7); x.fill(); x.fillStyle = pg; x.beginPath(); x.arc(cx, cy, ir, 0, 7); x.fill(); };
     const cellMid = n => (G0.fretMm(n - 1) + G0.fretMm(n)) / 2;
-    (mk.single || []).filter(n => n <= NF()).forEach(n => pearl(ux(cellMid(n)), yy(yMid())));
-    (mk.double || []).filter(n => n <= NF()).forEach(n => { const u = cellMid(n); pearl(ux(u), yy(yMid() - halfH(u) * .32)); pearl(ux(u), yy(yMid() + halfH(u) * .32)); });
-    // frets: nickel wire — shadow, body, specular line
-    const fw = Math.max(2.2, Math.min(4, G.k * 1.6)) * dpr;
+    (mk.single || []).filter(n => n <= NF()).forEach(n => dot(X0(cellMid(n)), V(0)));
+    (mk.double || []).filter(n => n <= NF()).forEach(n => { const u = cellMid(n), d = G0.spacing(u) / 2 * .58; dot(X0(u), V(-d)); dot(X0(u), V(d)); });
+
+    // 6 frets: flat pale-brass wire, a thin shadow on the body side
+    const fw = clamp(2.3 * k, 2, 4.6);
     for (let n = 1; n <= NF(); n++) {
-      const u = G0.fretMm(n), xx = ux(u), t0 = top(u) + .5 * dpr, b0 = bot(u) - .5 * dpr;
-      x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(xx + fw * .2, t0, fw * 1.4, b0 - t0);
-      const fg = x.createLinearGradient(xx - fw / 2, 0, xx + fw / 2, 0); fg.addColorStop(0, '#6F6A63'); fg.addColorStop(.35, '#E9E6E0'); fg.addColorStop(.6, '#B9B4AC'); fg.addColorStop(1, '#5B5650');
+      const u = G0.fretMm(n), xx = X0(u), t0 = V(topV(u)) + .6, b0 = V(botV(u)) - .6;
+      x.fillStyle = 'rgba(20,8,2,.5)'; x.fillRect(xx + fw / 2, t0, Math.max(1, fw * .45), b0 - t0);
+      const fg = x.createLinearGradient(xx - fw / 2, 0, xx + fw / 2, 0); fg.addColorStop(0, '#9C8052'); fg.addColorStop(.38, '#F6E3B4'); fg.addColorStop(.7, '#DDBF86'); fg.addColorStop(1, '#A4875A');
       x.fillStyle = fg; x.fillRect(xx - fw / 2, t0, fw, b0 - t0);
-      const vg = x.createLinearGradient(0, t0, 0, b0); vg.addColorStop(0, 'rgba(255,255,255,.35)'); vg.addColorStop(.25, 'rgba(255,255,255,0)'); vg.addColorStop(.8, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.35)');
+      const vg = x.createLinearGradient(0, t0, 0, b0); vg.addColorStop(0, 'rgba(255,255,255,.3)'); vg.addColorStop(.3, 'rgba(255,255,255,0)'); vg.addColorStop(.85, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.3)');
       x.fillStyle = vg; x.fillRect(xx - fw / 2, t0, fw, b0 - t0);
     }
-    // nut: bone, with string slots
-    const nw = Math.max(5, 5.5 * G.k) * dpr, nx = ux(0) - nw;
-    x.fillStyle = 'rgba(0,0,0,.5)'; x.fillRect(ux(0), top(0), 3 * dpr, bot(0) - top(0));
-    gr = x.createLinearGradient(nx, 0, nx + nw, 0); gr.addColorStop(0, '#BFB5A2'); gr.addColorStop(.4, '#F1EADB'); gr.addColorStop(1, '#D3C8B3');
-    x.fillStyle = gr; x.fillRect(nx, top(0) - 2.5 * dpr, nw, bot(0) - top(0) + 5 * dpr);
-    [1, 2, 3].forEach(s => { const sy = yy(Y(s, 0)); x.fillStyle = 'rgba(70,52,34,.55)'; x.fillRect(nx, sy - 1.2 * dpr, nw, 2.4 * dpr); });
-    bmp = { c, u0, k }; bmpKey = key;
+    // 7 nut: bone, with a dark seam toward the head and the three string slots
+    const nw = Math.max(3, 3.6 * k), nt = V(-baseHalf(0) - .6), nb = V(baseHalf(0) + .6);
+    x.fillStyle = 'rgba(40,20,8,.75)'; x.fillRect(X0(0) - nw - 1.6, nt, 1.6, nb - nt);
+    gr = x.createLinearGradient(X0(0) - nw, 0, X0(0), 0); gr.addColorStop(0, '#CDBB98'); gr.addColorStop(.45, '#F5ECDA'); gr.addColorStop(1, '#D9C8A6');
+    x.fillStyle = gr; x.fillRect(X0(0) - nw, nt, nw, nb - nt);
+    [1, 2, 3].forEach(s => { x.fillStyle = 'rgba(80,58,36,.6)'; x.fillRect(X0(0) - nw, Y(s, 0) - 1, nw, 2); });
+
+    // 8 both ends fade out (the instrument goes on past the frame)
+    x.save(); x.globalCompositeOperation = 'destination-out';
+    gr = x.createLinearGradient(0, 0, G.head * .62, 0); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, G.head * .62, G.H);
+    gr = x.createLinearGradient(G.W - 26, 0, G.W, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,1)'); x.fillStyle = gr; x.fillRect(G.W - 26, 0, 26, G.H);
+    x.restore();
+    bmp = c;
   }
 
   /* ---------------- teaching state ---------------- */
@@ -140,7 +217,6 @@ PD.Neck = function (canvas, opt) {
         markers.push({ s: n.s, f: n.f, fi: n.fi || 0, state: 'approach', t, born: t });
       } else openGlow[n.s] = t;
     });
-    follow((notes || []).concat(next || []));
   }
   function confirm() {
     const t = now();
@@ -150,33 +226,25 @@ PD.Neck = function (canvas, opt) {
   function wrong() { const t = now(); markers.forEach(m => { if (m.state !== 'leave' && m.state !== 'confirm') m.shake = t; }); Object.keys(openGlow).forEach(s => { openGlow['x' + s] = t; }); }
   function pluck(s, f, amp) { const st = strings[s]; if (!st) return; st.amp = amp || 1; st.stop = f > 0 ? contactU(f) + 4 : 0; st.ph = 0; }
   function clear() { markers = []; ghosts = []; openGlow = {}; }
-  /** keep the targets in view (phones show only part of the neck) */
-  function follow(notes) {
-    if (G.show >= NF()) { camGoal = G.uL; return; }
-    const fs = notes.filter(n => n.f > 0).map(n => n.f); if (!fs.length) { camGoal = cam.u0 > G.uL + 1 && notes.length ? G.uL : camGoal; return; }
-    const lo = g().fretMm(Math.max(0, Math.min(...fs) - 1)), hi = g().fretMm(Math.max(...fs)) + 4;
-    const vis = G.span * .86, c0 = cam.u0;
-    let goal = c0;
-    if (hi > c0 + vis) goal = hi - vis; if (lo < c0 + 4) goal = lo - 6;
-    camGoal = Math.max(G.uL, Math.min(goal, g().FE - G.span + 8));
-  }
 
   /* ---------------- draw ---------------- */
-  function strokeString(s, alpha, glow) {
-    const st = strings[s], u0 = cam.u0 - 10, u1 = cam.u0 + G.span + 10, w = s === 1 ? 3.4 : s === 2 ? 3 : 2.6, sc = Math.max(.8, Math.min(1.25, G.boardH / 150));
+  /** nylon string: a soft shadow on the wood, a translucent body, a thin highlight; it fades out with the instrument at the far end */
+  function strokeString(s, glow) {
+    const st = strings[s], u0 = 0, u1 = uRight() + 2, w = clamp(G.ky * (s === 1 ? .92 : s === 2 ? .8 : .68), 1.7, 3.4), sh = clamp(G.ky * .7, 1.6, 3.2);
     const path = (dy, amp) => {
       ctx.beginPath();
-      const a = Math.max(u0, st.stop), N = 26;
+      const a = Math.max(u0, st.stop), N = 30;
       if (st.stop > u0) { ctx.moveTo(X(u0), Y(s, u0) + dy); ctx.lineTo(X(st.stop), Y(s, st.stop) + dy); }
       for (let i = 0; i <= N; i++) { const u = a + (u1 - a) * i / N, env = Math.sin(Math.PI * clamp((u - st.stop) / (g().L - st.stop), 0, 1)); const y = Y(s, u) + dy + (amp ? amp * env * Math.sin(st.ph) : 0); i === 0 && st.stop <= u0 ? ctx.moveTo(X(u), y) : ctx.lineTo(X(u), y); }
     };
-    const amp = st.amp * 3.2 * sc;
-    if (glow) { ctx.strokeStyle = 'rgba(255,244,214,' + (.16 * glow).toFixed(3) + ')'; ctx.lineWidth = w * sc * 6; path(0, amp); ctx.stroke(); ctx.strokeStyle = 'rgba(255,244,214,' + (.28 * glow).toFixed(3) + ')'; ctx.lineWidth = w * sc * 2.6; path(0, amp); ctx.stroke(); }
-    ctx.strokeStyle = 'rgba(0,0,0,.42)'; ctx.lineWidth = w * sc * 1.25; path(2.6 * sc, amp * .6); ctx.stroke();
-    ctx.strokeStyle = 'rgba(236,230,216,' + alpha + ')'; ctx.lineWidth = w * sc; path(0, amp); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,' + (alpha * .55).toFixed(3) + ')'; ctx.lineWidth = Math.max(.6, w * sc * .28); path(-w * sc * .22, amp); ctx.stroke();
+    const fade = a => { const e0 = self.mirror ? 26 : G.W - 26, e1 = self.mirror ? 0 : G.W, gr = ctx.createLinearGradient(e0, 0, e1, 0); gr.addColorStop(0, a); gr.addColorStop(1, 'rgba(0,0,0,0)'); return gr; };
+    const amp = st.amp * clamp(G.ky * 1.1, 2.2, 5);
+    if (glow) { ctx.strokeStyle = fade('rgba(255,244,214,' + (.16 * glow).toFixed(3) + ')'); ctx.lineWidth = w * 6; path(0, amp); ctx.stroke(); ctx.strokeStyle = fade('rgba(255,244,214,' + (.3 * glow).toFixed(3) + ')'); ctx.lineWidth = w * 2.6; path(0, amp); ctx.stroke(); }
+    ctx.strokeStyle = fade('rgba(16,6,2,.38)'); ctx.lineWidth = w * 1.3; path(sh, amp * .6); ctx.stroke();
+    ctx.strokeStyle = fade('rgba(240,232,214,.86)'); ctx.lineWidth = w; path(0, amp); ctx.stroke();
+    ctx.strokeStyle = fade('rgba(255,255,255,.62)'); ctx.lineWidth = Math.max(.6, w * .3); path(-w * .22, amp); ctx.stroke();
   }
-  function markerR(f) { const a = g().fretMm(f - 1), b = g().fretMm(f), cell = (b - a) * G.k; return Math.max(11, Math.min(cell * .42, G.boardH * .19, 26)); }
+  function markerR(f) { const G0 = g(), a = G0.fretMm(f - 1), b = G0.fretMm(f), cell = (b - a) * G.k, adj = G0.spacing(contactU(f)) / 2 * G.ky; return clamp(Math.min(cell * .5, adj * .47), 9.5, 24); }
   function drawMarker(m, t) {
     const R = markerR(m.f), cx = X(contactU(m.f)), cy0 = Y(m.s, contactU(m.f)), age = t - m.t;
     let a = 1, sc = 1, dy = 0, shadow = .55, ring = 0, ringA = 0, done = false;
@@ -219,8 +287,8 @@ PD.Neck = function (canvas, opt) {
   }
   function drawGhost(m) {
     const R = markerR(m.f) * .82, x = X(contactU(m.f)), y = Y(m.s, contactU(m.f)), col = fcol(m.fi);
-    ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = hexA(col, .55); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.stroke(); ctx.setLineDash([]);
-    if (m.fi) { ctx.fillStyle = hexA(col, .7); ctx.font = '600 ' + Math.round(R * .9) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(m.fi), x, y + 1); }
+    ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = hexA(col, .6); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    if (m.fi) { ctx.fillStyle = hexA(col, .75); ctx.font = '600 ' + Math.round(R * .9) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(m.fi), x, y + 1); }
     ctx.restore();
   }
   const FONT = "'Noto Sans Georgian', system-ui, sans-serif";
@@ -230,16 +298,11 @@ PD.Neck = function (canvas, opt) {
   function draw() {
     const t = now(), dt = Math.min(.05, (t - lastT) / 1000); lastT = t;
     if (!bmp) buildBitmap();
-    if (camGoal != null && Math.abs(camGoal - cam.u0) > .05) cam.u0 += (camGoal - cam.u0) * (1 - Math.exp(-dt * 7)); else if (camGoal != null) cam.u0 = camGoal;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, G.W, G.H);
-    // wood
-    ctx.save();
-    if (self.mirror) { ctx.translate(G.W, 0); ctx.scale(-1, 1); }
-    ctx.imageSmoothingEnabled = true;
-    const sx = (cam.u0 - bmp.u0) * bmp.k - G.padL * dpr;
-    ctx.drawImage(bmp.c, sx, 0, G.W * dpr, bmp.c.height, 0, 0, G.W, G.H);
-    ctx.restore();
-    // strings (open-string target glows)
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (self.mirror) { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+    ctx.drawImage(bmp, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // strings (open-string targets glow)
     for (let s = 3; s >= 1; s--) {
       const st = strings[s]; if (st.amp) { st.ph += dt * 70; st.amp *= Math.exp(-dt * 2.6); if (st.amp < .02) st.amp = 0; }
       const og = openGlow[s];
@@ -248,37 +311,51 @@ PD.Neck = function (canvas, opt) {
       else if (og < 0) glow = Math.max(0, 1 - (t + og) / 420);
       if (openGlow['x' + s] && t - openGlow['x' + s] < 300) glow *= .4;
       if (openGlow['p' + s] && t - openGlow['p' + s] < 260) glow = Math.min(1.6, glow + .8 * (1 - (t - openGlow['p' + s]) / 260));
-      strokeString(s, .92, glow);
+      strokeString(s, glow);
     }
-    // open-string tag at the nut
-    Object.keys(openGlow).forEach(k => { if (k[0] === 'x' || k[0] === 'p') return; const og = openGlow[k]; const a = og > 0 ? 1 : Math.max(0, 1 - (t + og) / 420); if (a <= 0) { if (og < 0) delete openGlow[k]; return; }
-      const s = +k, x = X(-7) + (self.mirror ? 2 : -2), y = Y(s, 0), r = Math.max(9, Math.min(13, G.boardH * .09));
-      ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#F4F2EE'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.fillStyle = '#121317'; ctx.font = '700 ' + Math.round(r * 1.05) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('0', x, y + .5); ctx.restore(); });
+    // string names beside the nut, in the strings' colours; the strings of the current shape light up
+    const used = new Set(); markers.forEach(m => { if (m.state === 'leave') return; for (let s = m.s; s <= (m.s2 || m.s); s++) used.add(s); }); Object.keys(openGlow).forEach(k => { if (/^\d$/.test(k) && openGlow[k] > 0) used.add(+k); });
+    const side = self.mirror ? 1 : -1, lr = clamp(G.boardH * .085, 8.5, 11);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    [1, 2, 3].forEach(s => {
+      const sp = P().strings[s - 1] || {}, col = sp.color || '#ccc', lab = sp.label || '', on = used.has(s), x = X(0) + side * (lr * 2 + 20), y = Y(s, 0);
+      ctx.fillStyle = on ? col : 'rgba(16,9,5,.86)'; ctx.beginPath(); ctx.arc(x, y, lr, 0, 7); ctx.fill();
+      ctx.strokeStyle = on ? 'rgba(255,255,255,.7)' : col; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = on ? '#140C06' : col; ctx.font = '700 ' + Math.round(lr * (lab.length > 1 ? .92 : 1.1)) + 'px ' + FONT; ctx.fillText(lab, x, y + .5);
+    });
+    // open string: a "0" tag at the nut
+    Object.keys(openGlow).forEach(k => { if (!/^\d$/.test(k)) return; const og = openGlow[k]; const a = og > 0 ? 1 : Math.max(0, 1 - (t + og) / 420); if (a <= 0) { if (og < 0) delete openGlow[k]; return; }
+      const s = +k, x = X(0) + side * (lr + 5), y = Y(s, 0), r = lr + 1;
+      ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#F4F2EE'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle = '#121317'; ctx.font = '700 ' + Math.round(r * 1.1) + 'px ' + FONT; ctx.fillText('0', x, y + .5); ctx.restore(); });
     ghosts.forEach(drawGhost);
     markers = markers.filter(m => drawMarker(m, t));
-    // fret numbers under the board; the target fret is bright
-    const tgt = new Set(markers.filter(m => m.state !== 'leave').map(m => m.f));
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    // fret numbers under the board: every fret that fits; the dotted frets in the inlay colour; the target fret bright
+    const tgt = new Set(markers.filter(m => m.state !== 'leave').map(m => m.f)), mk = g().markers || {}, dotted = new Set([].concat(mk.single || [], mk.double || []));
     for (let n = 1; n <= NF(); n++) {
-      const u = (g().fretMm(n - 1) + g().fretMm(n)) / 2, x = X(u); if (x < -10 || x > G.W + 10) continue;
-      const on = tgt.has(n); ctx.font = (on ? '700 ' : '500 ') + (on ? 15 : 12) + 'px ' + FONT; ctx.fillStyle = on ? '#FFFFFF' : 'rgba(200,203,212,.5)';
-      ctx.fillText(String(n), x, G.yB + G.numH * .5 + 8);
+      const a = g().fretMm(n - 1), b = g().fretMm(n), cell = (b - a) * G.k, x = X((a + b) / 2), on = tgt.has(n);
+      let fs = on ? clamp(cell * .7, 11, 15) : Math.min(12.5, cell * .62);
+      ctx.font = (on ? '700 ' : '500 ') + fs.toFixed(1) + 'px ' + FONT;
+      const tw = ctx.measureText(String(n)).width;
+      if (!on && tw > cell - 1.5) { fs *= (cell - 1.5) / tw; if (fs < 7) continue; ctx.font = '500 ' + fs.toFixed(1) + 'px ' + FONT; }
+      ctx.fillStyle = on ? '#FFFFFF' : dotted.has(n) ? 'rgba(242,206,96,.82)' : 'rgba(214,200,180,.5)';
+      ctx.fillText(String(n), x, G.yNum);
     }
-    return markers.length || ghosts.length || Object.keys(openGlow).length || [1, 2, 3].some(s => strings[s].amp) || (camGoal != null && Math.abs(camGoal - cam.u0) > .05);
+    return markers.length || ghosts.length || Object.keys(openGlow).length || [1, 2, 3].some(s => strings[s].amp);
   }
 
   /** dev/test only: map a tap to string + fret */
   function hit(px, py) {
-    const xx = self.mirror ? G.W - px : px, u = cam.u0 + (xx - G.padL) / G.k;
+    const xx = self.mirror ? G.W - px : px, u = (xx - G.xNut) / G.k;
+    if (u > g().FE + 2) return null;
     let s = 2, best = 1e9; [1, 2, 3].forEach(k => { const d = Math.abs(Y(k, u) - py); if (d < best) { best = d; s = k; } });
-    if (py < G.yT - 10 || py > G.yB + 10) return null;
+    if (py < V(topV(Math.max(0, u))) - 12 || py > V(botV(Math.max(0, u))) + 12) return null;
     let f = 0; for (let n = 1; n <= NF(); n++) if (u > g().fretMm(n - 1) && u <= g().fretMm(n)) f = n;
     if (u <= 0) f = 0;
     return { s, f };
   }
   if (opt.onTap) canvas.addEventListener('pointerdown', e => { const r = canvas.getBoundingClientRect(), p = hit(e.clientX - r.left, e.clientY - r.top); if (p) opt.onTap(p.s, p.f); });
 
-  Object.assign(self, { layout, draw, setTarget, confirm, wrong, pluck, clear, G, destroy() { bmp = null; } });
+  Object.assign(self, { layout, draw, setTarget, confirm, wrong, pluck, clear, natH, G, destroy() { bmp = null; offInst(); } });
   Object.defineProperty(self, 'mirrorOn', { set(v) { self.mirror = !!v; } });
   return self;
 };

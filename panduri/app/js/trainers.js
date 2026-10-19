@@ -119,7 +119,7 @@ PD.trainer = (() => {
     let raf = 0;
     const loop = () => { raf = requestAnimationFrame(loop); if (!document.hidden && !PD.practice.active) view.draw(); };
     requestAnimationFrame(() => { view.layout(); raf = requestAnimationFrame(loop); });
-    const ro = new ResizeObserver(() => view.layout()); ro.observe(nv); own(() => ro.disconnect());
+    const ro = new ResizeObserver(() => { const nh = view.natH(nv.clientWidth) + 'px'; if (nv.style.height !== nh) nv.style.height = nh; view.layout(); }); ro.observe(nv); own(() => ro.disconnect());
     function show(s, f, reveal) {
       // the shared instrument view shows the target (position questions) or the answer (after a miss)
       // finger shown only where the plain one-finger-per-fret convention applies (frets 1–4); otherwise just the target ring

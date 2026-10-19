@@ -158,10 +158,10 @@ PD.tools = (() => {
     const vo = () => (cur.voicings && cur.voicings[vi]) || cur;
     // the same neck and finger markers as the lessons, showing one still chord
     const nv = h('div', { class: 'neckview' }), ncv = h('canvas', { 'aria-label': t('ce.title') }); nv.appendChild(ncv);
-    const view = PD.Neck(ncv, { frets: 12 }); view.mirror = PD.store.get('lefty', false);
+    const view = PD.Neck(ncv); view.mirror = PD.store.get('lefty', false);
     let raf = 0; const loop = () => { raf = requestAnimationFrame(loop); if (!document.hidden && !PD.practice.active) view.draw(); };
     requestAnimationFrame(() => { view.layout(); raf = requestAnimationFrame(loop); }); own(() => { cancelAnimationFrame(raf); view.destroy(); });
-    const ro = new ResizeObserver(() => { view.layout(); preview(); }); ro.observe(nv); own(() => ro.disconnect());
+    const ro = new ResizeObserver(() => { const nh = view.natH(nv.clientWidth) + 'px'; if (nv.style.height !== nh) nv.style.height = nh; view.layout(); preview(); }); ro.observe(nv); own(() => ro.disconnect());
     const preview = () => { const v = vo(); view.setTarget(v.frets.map((f, k) => ({ s: k + 1, f, fi: v.fingers[k] || 0 })), []); };
     const search = h('input', { class: 'input', type: 'search', 'data-t-ph': 'ce.search', 'aria-label': t('ce.search'), oninput: e => { q = e.target.value.trim().toLowerCase().replace('#', '♯'); grid(); } });
     const chipRow = (items, get, set) => h('div', { class: 'ce-chips', role: 'group' }, items.map(([v, label]) => h('button', { class: 'chip', 'aria-pressed': String(get() === v), text: label, onclick: e => { set(v); e.currentTarget.parentNode.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); grid(); } })));

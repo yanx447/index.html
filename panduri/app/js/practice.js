@@ -194,7 +194,7 @@ PD.practice = (() => {
     const lanes = PD.Lanes(cvL, { rhythm: RHYTHM, song: !!lesson.song }); lanes.mirror = mirror;
     const neck = PD.Neck(cvN, { sticky: !!lesson.song, onTap: (s, f) => { if (!devTouch()) return; PD.audio.ensure(); PD.audio.note(s, f, { vel: .6 }); E.input({ kind: 'note', src: 'touch', midi: TH.midi(s, f), s, f, conf: 1, t: PD.audio.now() }); } }); neck.mirror = mirror;
     w.neck = neck; w.lanes = lanes;
-    const relayout = () => { lanes.layout(); neck.layout(); w.sig = ''; };
+    const relayout = () => { const nh = neck.natH(neckBox.clientWidth || stage0.clientWidth, stage0.clientHeight - (prompt.offsetHeight || 92) - (lesson.cycle ? 300 : 280)); if (nh !== w.nkH) { w.nkH = nh; stage0.style.setProperty('--nk', nh + 'px'); } lanes.layout(); neck.layout(); w.sig = ''; };   // the neck row is as tall as the whole neck needs; the rest goes to the lanes
 
     if (!w.rec) {
       E.load(lesson, Object.assign({ mode: 'learn', wait: true, tempo: .7, stepMode: false, autoPause: false, autoplay: false }, opts));

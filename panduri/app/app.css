@@ -1225,3 +1225,11 @@ input[type=checkbox]::before{transition:transform .3s var(--spring),background .
 /* ---------- less motion ---------- */
 :root.rm *,:root.rm *::before,:root.rm *::after{animation:none!important;transition:none!important}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ===================== v9 panduri neck: the whole neck (all 17 frets) in a row as tall as it needs ===================== */
+.pz-stage{grid-template-rows:minmax(0,1fr) 92px minmax(0,min(var(--nk,40%),56%))}
+@media (min-width:900px){.pz-stage{grid-template-rows:minmax(0,1fr) 108px minmax(0,min(var(--nk,40%),56%))}}
+.pz.rhythm .pz-stage{grid-template-rows:minmax(0,1fr) 92px minmax(0,min(var(--nk,30%),36%))}
+@media (max-height:520px) and (orientation:landscape){.pz-stage{grid-template-rows:minmax(0,1fr) 58px minmax(0,min(var(--nk,50%),50%))}}
+.pz.cam .pz-stage{grid-template-rows:minmax(96px,24%) minmax(0,1fr) minmax(0,min(var(--nk,25%),34%))}
+.neckview{height:auto;min-height:150px;background:radial-gradient(120% 90% at 50% 40%,#22160E 0%,#120B07 70%);border-color:rgba(255,214,170,.1)}
