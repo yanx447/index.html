@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/tmp/donnx/scripts/convert-pth-to-onnx.py", line 8, in <module>
+    from demucs.pretrained import get_model
+  File "/tmp/donnx/demucs-for-onnx/demucs/pretrained.py", line 15, in <module>
+    from .hdemucs import HDemucs
+  File "/tmp/donnx/demucs-for-onnx/demucs/hdemucs.py", line 18, in <module>
+    from .demucs import DConv, rescale_module
+  File "/tmp/donnx/demucs-for-onnx/demucs/demucs.py", line 15, in <module>
+    from .states import capture_init
+  File "/tmp/donnx/demucs-for-onnx/demucs/states.py", line 19, in <module>
+    from diffq import DiffQuantizer, UniformQuantizer, restore_quantized_state
+ModuleNotFoundError: No module named 'diffq'

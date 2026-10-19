@@ -1,0 +1,141 @@
+Looking in indexes: https://download.pytorch.org/whl/cpu
+Collecting torch==2.3.1
+  Downloading torch-2.3.1%2Bcpu-cp311-cp311-linux_x86_64.whl (190.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 190.4/190.4 MB 175.2 MB/s  0:00:01
+Collecting torchaudio==2.3.1
+  Downloading torchaudio-2.3.1%2Bcpu-cp311-cp311-linux_x86_64.whl (1.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 139.4 MB/s  0:00:00
+Collecting filelock (from torch==2.3.1)
+  Downloading filelock-3.32.3-py3-none-any.whl.metadata (2.0 kB)
+Collecting typing-extensions>=4.8.0 (from torch==2.3.1)
+  Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting sympy (from torch==2.3.1)
+  Downloading sympy-1.14.0-py3-none-any.whl.metadata (12 kB)
+Collecting networkx (from torch==2.3.1)
+  Downloading networkx-3.6.1-py3-none-any.whl.metadata (6.8 kB)
+Collecting jinja2 (from torch==2.3.1)
+  Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Collecting fsspec (from torch==2.3.1)
+  Downloading fsspec-2026.7.0-py3-none-any.whl.metadata (10 kB)
+Collecting MarkupSafe>=2.0 (from jinja2->torch==2.3.1)
+  Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+Collecting mpmath<1.4,>=1.1.0 (from sympy->torch==2.3.1)
+  Downloading mpmath-1.3.0-py3-none-any.whl.metadata (8.6 kB)
+Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Downloading filelock-3.32.3-py3-none-any.whl (98 kB)
+Downloading fsspec-2026.7.0-py3-none-any.whl (206 kB)
+Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+Downloading networkx-3.6.1-py3-none-any.whl (2.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 64.9 MB/s  0:00:00
+Downloading sympy-1.14.0-py3-none-any.whl (6.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 164.4 MB/s  0:00:00
+Downloading mpmath-1.3.0-py3-none-any.whl (536 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 97.4 MB/s  0:00:00
+Installing collected packages: mpmath, typing-extensions, sympy, networkx, MarkupSafe, fsspec, filelock, jinja2, torch, torchaudio
+
+Successfully installed MarkupSafe-3.0.3 filelock-3.32.3 fsspec-2026.7.0 jinja2-3.1.6 mpmath-1.3.0 networkx-3.6.1 sympy-1.14.0 torch-2.3.1+cpu torchaudio-2.3.1+cpu typing-extensions-4.16.0
+Collecting numpy<2
+  Downloading numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (61 kB)
+Collecting onnx==1.16.2
+  Downloading onnx-1.16.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (16 kB)
+Collecting onnxruntime==1.19.2
+  Downloading onnxruntime-1.19.2-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (4.5 kB)
+Collecting dora-search
+  Downloading dora_search-0.1.13-py3-none-any.whl.metadata (32 kB)
+Collecting einops
+  Downloading einops-0.8.2-py3-none-any.whl.metadata (13 kB)
+Collecting julius
+  Downloading julius-0.2.8-py3-none-any.whl.metadata (7.6 kB)
+Collecting lameenc
+  Downloading lameenc-1.9.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_34_x86_64.whl.metadata (940 bytes)
+Collecting openunmix
+  Downloading openunmix-1.3.0-py3-none-any.whl.metadata (17 kB)
+Collecting pyyaml
+  Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+Collecting tqdm
+  Downloading tqdm-4.70.1-py3-none-any.whl.metadata (57 kB)
+Collecting soundfile
+  Downloading soundfile-0.14.0-py2.py3-none-manylinux_2_28_x86_64.whl.metadata (18 kB)
+Collecting protobuf>=3.20.2 (from onnx==1.16.2)
+  Downloading protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl.metadata (595 bytes)
+Collecting coloredlogs (from onnxruntime==1.19.2)
+  Downloading coloredlogs-15.0.1-py2.py3-none-any.whl.metadata (12 kB)
+Collecting flatbuffers (from onnxruntime==1.19.2)
+  Downloading flatbuffers-25.12.19-py2.py3-none-any.whl.metadata (1.0 kB)
+Collecting packaging (from onnxruntime==1.19.2)
+  Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+Requirement already satisfied: sympy in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from onnxruntime==1.19.2) (1.14.0)
+Collecting omegaconf (from dora-search)
+  Downloading omegaconf-2.4.0-py3-none-any.whl.metadata (4.9 kB)
+Collecting retrying (from dora-search)
+  Downloading retrying-1.4.2-py3-none-any.whl.metadata (5.5 kB)
+Collecting submitit (from dora-search)
+  Downloading submitit-1.5.4-py3-none-any.whl.metadata (7.4 kB)
+Requirement already satisfied: torch in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from dora-search) (2.3.1+cpu)
+Collecting treetable (from dora-search)
+  Downloading treetable-0.2.6-py3-none-any.whl.metadata (5.3 kB)
+Requirement already satisfied: torchaudio>=0.9.0 in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from openunmix) (2.3.1+cpu)
+Collecting cffi>=1.0 (from soundfile)
+  Downloading cffi-2.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+Requirement already satisfied: typing-extensions in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from soundfile) (4.16.0)
+Collecting pycparser (from cffi>=1.0->soundfile)
+  Downloading pycparser-3.11-py3-none-any.whl.metadata (8.2 kB)
+Requirement already satisfied: filelock in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from torch->dora-search) (3.32.3)
+Requirement already satisfied: networkx in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from torch->dora-search) (3.6.1)
+Requirement already satisfied: jinja2 in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from torch->dora-search) (3.1.6)
+Requirement already satisfied: fsspec in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from torch->dora-search) (2026.7.0)
+Collecting humanfriendly>=9.1 (from coloredlogs->onnxruntime==1.19.2)
+  Downloading humanfriendly-10.0-py2.py3-none-any.whl.metadata (9.2 kB)
+Requirement already satisfied: MarkupSafe>=2.0 in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from jinja2->torch->dora-search) (3.0.3)
+Collecting cloudpickle>=1.2.1 (from submitit->dora-search)
+  Downloading cloudpickle-3.1.2-py3-none-any.whl.metadata (7.1 kB)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (from sympy->onnxruntime==1.19.2) (1.3.0)
+Downloading onnx-1.16.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (15.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 15.9/15.9 MB 159.9 MB/s  0:00:00
+Downloading onnxruntime-1.19.2-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (13.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.2/13.2 MB 184.0 MB/s  0:00:00
+Downloading numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (18.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 18.3/18.3 MB 306.1 MB/s  0:00:00
+Downloading dora_search-0.1.13-py3-none-any.whl (73 kB)
+Downloading einops-0.8.2-py3-none-any.whl (65 kB)
+Downloading julius-0.2.8-py3-none-any.whl (21 kB)
+Downloading lameenc-1.9.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_34_x86_64.whl (187 kB)
+Downloading openunmix-1.3.0-py3-none-any.whl (40 kB)
+Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 177.4 MB/s  0:00:00
+Downloading tqdm-4.70.1-py3-none-any.whl (80 kB)
+Downloading soundfile-0.14.0-py2.py3-none-manylinux_2_28_x86_64.whl (1.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 230.6 MB/s  0:00:00
+Downloading cffi-2.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (217 kB)
+Downloading protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl (343 kB)
+Downloading coloredlogs-15.0.1-py2.py3-none-any.whl (46 kB)
+Downloading humanfriendly-10.0-py2.py3-none-any.whl (86 kB)
+Downloading flatbuffers-25.12.19-py2.py3-none-any.whl (26 kB)
+Downloading omegaconf-2.4.0-py3-none-any.whl (254 kB)
+Downloading packaging-26.3-py3-none-any.whl (129 kB)
+Downloading pycparser-3.11-py3-none-any.whl (51 kB)
+Downloading retrying-1.4.2-py3-none-any.whl (10 kB)
+Downloading submitit-1.5.4-py3-none-any.whl (76 kB)
+Downloading cloudpickle-3.1.2-py3-none-any.whl (22 kB)
+Downloading treetable-0.2.6-py3-none-any.whl (7.4 kB)
+Installing collected packages: flatbuffers, treetable, tqdm, retrying, pyyaml, pycparser, protobuf, packaging, numpy, lameenc, humanfriendly, einops, cloudpickle, submitit, onnx, omegaconf, coloredlogs, cffi, soundfile, onnxruntime, julius, dora-search, openunmix
+
+Successfully installed cffi-2.1.1 cloudpickle-3.1.2 coloredlogs-15.0.1 dora-search-0.1.13 einops-0.8.2 flatbuffers-25.12.19 humanfriendly-10.0 julius-0.2.8 lameenc-1.9.0 numpy-1.26.4 omegaconf-2.4.0 onnx-1.16.2 onnxruntime-1.19.2 openunmix-1.3.0 packaging-26.3 protobuf-7.36.2 pycparser-3.11 pyyaml-6.0.3 retrying-1.4.2 soundfile-0.14.0 submitit-1.5.4 tqdm-4.70.1 treetable-0.2.6
+Obtaining file:///tmp/donnx/demucs-for-onnx
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: demucs
+  Building editable for demucs (pyproject.toml): started
+  Building editable for demucs (pyproject.toml): finished with status 'done'
+  Created wheel for demucs: filename=demucs-4.0.0-0.editable-py3-none-any.whl size=10863 sha256=abc5d102418ec47da5222c0ce6451eb585c45bfab143586da9f78a67337a2020
+  Stored in directory: /tmp/pip-ephem-wheel-cache-_8tntohe/wheels/7d/b1/71/c0fa2f7159705a868832a7823b61ae55d178e8d6bf6c355843
+Successfully built demucs
+Installing collected packages: demucs
+Successfully installed demucs-4.0.0
