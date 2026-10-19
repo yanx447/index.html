@@ -1,8 +1,12 @@
-Downloading: "https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/955717e8-8726e21a.th" to /home/runner/.cache/torch/hub/checkpoints/955717e8-8726e21a.th
-  0%|          | 0.00/80.2M [00:00<?, ?B/s] 45%|████▌     | 36.2M/80.2M [00:00<00:00, 379MB/s]100%|██████████| 80.2M/80.2M [00:00<00:00, 420MB/s]
-/tmp/donnx/demucs-for-onnx/demucs/hdemucs.py:134: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  if not le % self.stride == 0:
-Error during ONNX export: Unsupported value kind: Tensor
-total 8
-drwxr-xr-x  2 runner runner 4096 Oct 19 15:24 .
-drwxrwxrwt 16 root   root   4096 Oct 19 15:24 ..
+=== torch 2.5.1
+  _C._jit_pass_onnx_graph_shape_type_inference(
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/torch/onnx/utils.py:1180: UserWarning: Constant folding - Only steps=1 can be constant folded for opset >= 10 onnx::Slice op. Constant folding not applied. (Triggered internally at ../torch/csrc/jit/passes/onnx/constant_fold.cpp:178.)
+  params_dict = _C._jit_pass_onnx_constant_fold(
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/torch/onnx/utils.py:1186: UserWarning: Constant folding - Only steps=1 can be constant folded for opset >= 10 onnx::Slice op. Constant folding not applied. (Triggered internally at ../torch/csrc/jit/passes/onnx/constant_fold.cpp:178.)
+  _C._jit_pass_onnx_graph_shape_type_inference(
+Model successfully converted to ONNX format at /tmp/onnx/htdemucs.onnx
+OK with torch 2.5.1
+total 170188
+drwxr-xr-x  2 runner runner      4096 Oct 19 15:27 .
+drwxrwxrwt 16 root   root        4096 Oct 19 15:27 ..
+-rw-r--r--  1 runner runner 174263526 Oct 19 15:27 htdemucs.onnx
