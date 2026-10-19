@@ -102,6 +102,9 @@ PD.i18n.add({
   'set.devTouchD': ['მხოლოდ შემოწმებისთვის: ტარზე შეხება ნოტად ითვლება. სწავლისას ეს არ გამოიყენება — ნოტს მხოლოდ ნამდვილი ფანდურის ხმა ასრულებს.', 'For testing only: tapping the neck counts as a note. Not used for learning — only the sound of a real panduri completes a note.']
 });
 PD.i18n.add({
+  'hx.hi': ['გამარჯობა', 'Hello'], 'hd.practice': ['სავარჯიშოები', 'Exercises'], 'hd.practiceD': ['ტრენაჟორები და მეტრონომი', 'Trainers and metronome'], 'hd.songsN': ['{n} სიმღერა', '{n} songs'], 'hd.chordsN': ['{n} აკორდი', '{n} chords'], 'hd.theory': ['თეორია', 'Theory'], 'hd.theoryD': ['ნოტები და გამები', 'Notes and scales'], 'hd.popular': ['სიმღერები', 'Songs'],
+  'pf.student': ['მოსწავლე', 'Student'], 'pf.level': ['ლეველი', 'Level'], 'pf.lessons': ['ნასწავლი', 'Learned'], 'pf.progress': ['პროგრესი', 'Progress'], 'set.data': ['მონაცემები', 'Your data'],
+  'lnx.songsD': ['სიმღერები, მელოდიები და სოლოები — დონეების მიხედვით', 'Songs, melodies and solos — by level'],
   'hxq.cam': ['კამერით', 'Camera'], 'hxq.camD': ['დაუკარი აპთან ერთად', 'Play along with the app'], 'hxq.ai': ['AI სტუდია', 'AI studio'], 'hxq.aiD': ['შენი სიმღერის აკორდები', 'Chords of your song'],
   'hx.hello': ['გამარჯობა, {n}', 'Hello, {n}'], 'hx.goal': ['დღევანდელი მიზანი', "Today's goal"], 'hx.goalV': ['{a} / {b} წუთი', '{a} / {b} min'],
   'hx.continue': ['გააგრძელე სწავლა', 'Continue learning'], 'hx.start': ['დაიწყე აქედან', 'Start here'], 'hx.go': ['გაგრძელება', 'Continue'], 'hx.all': ['ყველა', 'All'],
@@ -110,13 +113,15 @@ PD.i18n.add({
 });
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
-  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['practice', 'nav.practice', ic.pulse], ['tuner', 'nav.tuner', ic.tune], ['profile', 'nav.profile', ic.user]];   // tuner = „სამი სიმი“, opened over the page
-  const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', tips: 'learn', solfege: 'learn', ai: 'songs', pmadmin: 'profile', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
+  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['profile', 'nav.profile', ic.user]];   // songs live under Learn, the profile behind the avatar   // tuner = „სამი სიმი“, opened over the page
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'learn', tips: 'learn', solfege: 'learn', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'learn', chords: 'learn', fretboard: 'learn', explore: 'learn', tools: 'learn',
+    songs: 'songs', library: 'songs', lesson: 'songs', ai: 'songs', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
   function shell() {
     document.documentElement.lang = PD.i18n.lang;
+    document.documentElement.dataset.theme = 'copper';
     if (PD.store.get('hc', false)) document.documentElement.classList.add('hc');
     if (PD.store.get('reduceMotion', false)) document.documentElement.classList.add('rm');
     const ts = PD.store.get('textSize', 'm'); if (ts !== 'm') document.documentElement.classList.add('ts-' + ts);
@@ -218,19 +223,19 @@ PD.app = (() => {
     if (!ss.length) return '<span>● REC</span>';
     const col = ['', '#D9783F', '#78B7DE', '#E3D3A6'], y = s => 40 - s * 9;
     let svg = '<svg viewBox="0 0 56 44" width="52" height="40" aria-hidden="true"><g stroke="rgba(242,232,218,.14)">' + [1, 2, 3].map(s => '<line x1="2" x2="54" y1="' + y(s) + '" y2="' + y(s) + '"/>').join('') + '</g>';
-    ss.forEach((st, i) => { const x = 6 + i * 7; if (st.kind === 'note') svg += '<circle cx="' + x + '" cy="' + y(st.notes[0].s) + '" r="2.6" fill="' + col[st.notes[0].s] + '"/>'; else svg += '<rect x="' + (x - 1.5) + '" y="' + (y(3) - 3) + '" width="3" height="' + (y(1) - y(3) + 6) + '" rx="1.5" fill="#D6A15A"/>'; });
+    ss.forEach((st, i) => { const x = 6 + i * 7; if (st.kind === 'note') svg += '<circle cx="' + x + '" cy="' + y(st.notes[0].s) + '" r="2.6" fill="' + col[st.notes[0].s] + '"/>'; else svg += '<rect x="' + (x - 1.5) + '" y="' + (y(3) - 3) + '" width="3" height="' + (y(1) - y(3) + 6) + '" rx="1.5" fill="#C98B5B"/>'; });
     return svg + '</svg>';
   }
   /** cover artwork, generated from the lesson id and category (no stock images, no copyrighted art) */
   const ART = {
-    song: [['#F2B867', '#7A2A14'], 'hills'], melody: [['#E9D2A1', '#7B4A26'], 'waves'], solo: [['#E8875A', '#4A1A10'], 'burst'],
-    rhythm: [['#D9783F', '#3B1A0C'], 'beats'], exercise: [['#B9784A', '#2E1A0F'], 'dots'], technique: [['#C9A46A', '#3A2A18'], 'rings']
+    song: [['#B87A4B', '#1A1411'], 'hills'], melody: [['#8A6A52', '#141110'], 'waves'], solo: [['#C98B5B', '#24170F'], 'burst'],
+    rhythm: [['#A86A3E', '#171210'], 'beats'], exercise: [['#7E6A5A', '#121010'], 'dots'], technique: [['#B08A6A', '#161312'], 'rings']
   };
   function seedOf(str) { let x = 7; for (const c of String(str)) x = (x * 31 + c.charCodeAt(0)) % 2147483647; return () => (x = (x * 16807) % 2147483647) / 2147483647; }
   function coverSVG(l) {
     const cat = catOf(l), [cols, motif] = ART[cat] || ART.exercise, R = seedOf(l.id || 'x'), id = 'g' + Math.floor(R() * 1e9);
     const [a, b] = cols; let art = '';
-    if (motif === 'hills') { for (let k = 0; k < 4; k++) { const y = 110 + k * 22, amp = 26 - k * 4; let d = 'M0 ' + y; for (let x = 0; x <= 320; x += 40) d += ' Q' + (x + 20) + ' ' + (y - amp * (R() + .3)) + ' ' + (x + 40) + ' ' + y; art += '<path d="' + d + ' V200 H0Z" fill="rgba(20,8,30,' + (.18 + k * .14).toFixed(2) + ')"/>'; } art = '<circle cx="' + (200 + R() * 70) + '" cy="' + (60 + R() * 20) + '" r="' + (26 + R() * 12) + '" fill="rgba(255,236,200,.85)"/>' + art; }
+    if (motif === 'hills') { for (let k = 0; k < 4; k++) { const y = 110 + k * 22, amp = 26 - k * 4; let d = 'M0 ' + y; for (let x = 0; x <= 320; x += 40) d += ' Q' + (x + 20) + ' ' + (y - amp * (R() + .3)) + ' ' + (x + 40) + ' ' + y; art += '<path d="' + d + ' V200 H0Z" fill="rgba(8,6,5,' + (.18 + k * .14).toFixed(2) + ')"/>'; } art = '<circle cx="' + (200 + R() * 70) + '" cy="' + (60 + R() * 20) + '" r="' + (26 + R() * 12) + '" fill="rgba(255,236,200,.85)"/>' + art; }
     else if (motif === 'waves') { for (let k = 0; k < 7; k++) { const y = 40 + k * 22, ph = R() * 6; let d = 'M0 ' + y; for (let x = 0; x <= 320; x += 10) d += ' L' + x + ' ' + (y + Math.sin(x / 34 + ph) * (8 + k)).toFixed(1); art += '<path d="' + d + '" fill="none" stroke="rgba(255,255,255,' + (.12 + k * .06).toFixed(2) + ')" stroke-width="' + (2 + k * .4).toFixed(1) + '"/>'; } }
     else if (motif === 'burst') { const cx = 220 + R() * 50, cy = 80 + R() * 30; for (let k = 0; k < 18; k++) { const an = k / 18 * Math.PI * 2 + R() * .2, r2 = 140 + R() * 60; art += '<path d="M' + cx + ' ' + cy + ' L' + (cx + Math.cos(an) * r2).toFixed(1) + ' ' + (cy + Math.sin(an) * r2).toFixed(1) + '" stroke="rgba(255,255,255,' + (.08 + R() * .18).toFixed(2) + ')" stroke-width="' + (2 + R() * 6).toFixed(1) + '"/>'; } art += '<circle cx="' + cx + '" cy="' + cy + '" r="22" fill="rgba(255,240,250,.9)"/>'; }
     else if (motif === 'beats') { for (let k = 0; k < 6; k++) { const x = 30 + k * 50, up = R() < .4, acc = R() < .35, y = 100, s2 = acc ? 34 : 24, w2 = acc ? 9 : 5; art += '<path d="M' + x + ' ' + (y - (up ? -s2 : s2)) + ' L' + x + ' ' + (y + (up ? -s2 : s2)) + ' M' + (x - s2 * .5) + ' ' + (y + (up ? -s2 * .45 : s2 * .45)) + ' L' + x + ' ' + (y + (up ? -s2 : s2)) + ' L' + (x + s2 * .5) + ' ' + (y + (up ? -s2 * .45 : s2 * .45)) + '" fill="none" stroke="rgba(255,255,255,' + (acc ? .85 : .4) + ')" stroke-width="' + w2 + '" stroke-linecap="round" stroke-linejoin="round"/>'; } }
@@ -258,6 +263,12 @@ PD.app = (() => {
   }
   function favBtn(l, fav) { return h('button', { class: 'fav', 'aria-pressed': String(fav), 'aria-label': t('f.fav'), html: fav ? ic.starF : ic.star, onclick: e => { e.stopPropagation(); const on = LS.progress.toggleFav(l.id); e.currentTarget.setAttribute('aria-pressed', String(on)); e.currentTarget.innerHTML = on ? ic.starF : ic.star; } }); }
   /** artwork card: cover · title · difficulty · progress */
+  function songRow(l) {
+    const p = LS.progress.lesson(l.id), m = Math.round((p.mastery || 0) * 100), open = () => l.rhythm ? go('rhythm', l.rhythm) : go('lesson', l.id);
+    return h('button', { class: 'srow', onclick: open }, [h('span', { class: 'srow-art', html: coverSVG(l) }),
+      h('span', { class: 'grow' }, [h('b', { text: PD.i18n.pick(l.title) }), h('small', { text: t('lvl.' + (l.level || 1)) + (l.demo ? ' · ' + t('demo.badge') : '') + (m ? ' · ' + m + '%' : '') })]),
+      h('span', { class: 'srow-t', text: l.events.length ? PD.fmtTime(durSec(l)) : '' }), h('span', { class: 'srow-play', html: '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>' })]);
+  }
   function card(l, wide) {
     const p = LS.progress.lesson(l.id), m = Math.round((p.mastery || 0) * 100);
     const open = () => l.rhythm ? go('rhythm', l.rhythm) : go('lesson', l.id);
@@ -298,15 +309,13 @@ PD.app = (() => {
     return null;
   }
   function home(w) {
-    const prof = PD.account.profile, sk = streaks(), goal = PD.store.get('goalMin', 15), tm = todayMin();
+    const prof = PD.account.profile, goal = PD.store.get('goalMin', 15), tm = todayMin();
     const name = (prof.name || '').trim().split(/\s+/)[0];
-    const ring = (v) => { const r = 15, c = 2 * Math.PI * r, k = Math.max(0, Math.min(1, v)); return '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4"/><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="url(#gr1)" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (c * k).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/><defs><linearGradient id="gr1"><stop offset="0" stop-color="#D99A50"/><stop offset="1" stop-color="#F6C987"/></linearGradient></defs></svg>'; };
+    const ring = (v) => { const r = 16, c = 2 * Math.PI * r, k = Math.max(0, Math.min(1, v)); return '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="rgba(255,240,228,.1)" stroke-width="3"/><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linecap="round" stroke-dasharray="' + (c * k).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/></svg>'; };
     w.append(h('div', { class: 'hx-top' }, [
-      h('div', { class: 'hx-hello' }, [h('h1', { text: name ? t('hx.hello', { n: name }) : t('gr.day') }), sk.cur ? h('span', { class: 'hx-streak', text: '🔥 ' + t('hm.streak', { n: sk.cur }) }) : null]),
-      h('button', { class: 'hx-lv', 'aria-label': t('lv.level', { n: PD.levels.level }), onclick: () => go('profile'), html: PD.levels.badge(44) }),
-      h('button', { class: 'hx-ic', 'aria-label': t('cm.title'), onclick: () => go('community'), html: PD.ic.chat || ic.user }),
+      h('div', { class: 'hx-hello' }, [h('h1', { html: PD.esc(t('hx.hi')) + (name ? ',<br>' + PD.esc(name) : '') })]),
       h('button', { class: 'avatar', 'aria-label': t('nav.profile'), onclick: () => go('profile'), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : ic.user })]));
-    // the main way to learn: camera on, panduri in hand, the program on screen
+    w.append(h('button', { class: 'hx-goal2', onclick: () => go('daily') }, [h('span', { html: ring(tm / goal) }), h('span', { class: 'grow' }, [h('small', { 'data-t': 'hx.goal' }), h('b', { text: t('hx.goalV', { a: Math.min(tm, goal), b: goal }) })]), h('span', { class: 'chev', html: ic.chevron })]));
     // hero: continue learning
     const pa = primaryAction(), hasResume = pa && pa.kicker === t('hm.resume'), ts = !hasResume && nextTheoryStep();
     if (ts) {   // the path starts with theory: the next theory step is the main card
@@ -325,23 +334,20 @@ PD.app = (() => {
           h('div', { class: 'hx-pr' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + m + '%' })]), h('span', { text: m + '%' })]),
           h('button', { class: 'btn hx-btn', text: p.plays ? t('hx.go') : t('home.start'), onclick: pa.go })])]));
     }
-    // quick tiles: camera lesson · AI studio · today's goal
-    w.append(h('section', { class: 'hx-quick' }, [
-      h('button', { class: 'hxq cam', onclick: () => PD.camera.launcher() }, [h('span', { class: 'hxq-ic', html: PD.ic.camera }), h('b', { 'data-t': 'hxq.cam' }), h('small', { 'data-t': 'hxq.camD' })]),
-      h('button', { class: 'hxq ai', onclick: () => go('ai') }, [h('span', { class: 'hxq-ic ai-badge', text: 'AI' }), h('b', { 'data-t': 'hxq.ai' }), h('small', { 'data-t': 'hxq.aiD' })]),
-      h('button', { class: 'hxq goal', onclick: () => go('daily') }, [h('span', { class: 'hxq-ic gring', html: ring(tm / goal) }), h('b', { text: t('hx.goalV', { a: Math.min(tm, goal), b: goal }) }), h('small', { 'data-t': 'hx.goal' })])]));
-    const row = (k, items, more) => { if (!items.length) return; w.append(h('section', { class: 'hrow' }, [h('div', { class: 'hrow-h' }, [h('h2', { 'data-t': k }), more ? h('button', { class: 'linkbtn', 'data-t': 'hx.all', onclick: more }) : null]), h('div', { class: 'hrow-s' }, items.map(l => card(l)))])); };
-    const all = LS.all.filter(visible);
-    const rec = []; for (const p of LS.PATHS) for (const s2 of p.steps) { const l = s2.kind === 'lesson' ? LS.get(s2.id) : s2.kind === 'rhythm' ? LS.get('rhythm-' + s2.id) : null; if (l && l.events.length && LS.progress.lesson(l.id).mastery < .9 && !rec.includes(l) && (!pa || l !== pa.l)) rec.push(l); }
-    const LP = LS.PATHS.find(p2 => p2.id === PD.levels.program);
-    if (LP) w.append(h('button', { class: 'lvprog', onclick: () => go('learn', LP.id) }, [h('span', { html: PD.levels.badge(40) }), h('div', { class: 'grow' }, [h('small', { 'data-t': 'lv.program' }), h('b', { text: t('lv.level', { n: PD.levels.level }) + ' · ' + PD.i18n.pick(LP.title) })]), h('span', { class: 'chev', html: ic.chevron })]));
-    row('hx.forYou', rec.slice(0, 6));
-    row('hx.songs', all.filter(l => l.type === 'song'), () => { st.cat = 'song'; go('songs'); });
-    row('hx.melodies', all.filter(l => l.type === 'melody'), () => { st.cat = 'melody'; go('songs'); });
-    row('hx.rhythms', LS.rhythmLessons(), () => go('rhythms'));
-    row('hx.exercises', all.filter(l => catOf(l) === 'exercise' || catOf(l) === 'technique'));
-    const recent = []; LS.progress.sessions().slice().reverse().forEach(se => { const l = LS.get(se.id); if (l && !recent.includes(l)) recent.push(l); });
-    row('hx.recent', recent.slice(0, 8));
+    // six doors
+    const I = d => '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    const nSongs = LS.all.filter(l => visible(l) && catOf(l) === 'song').length, nChords = (PD.curriculum.chords() || []).length;
+    const door = (r, icon, k, sub, fn) => h('button', { class: 'door', onclick: fn || (() => go(r)) }, [h('span', { class: 'door-ic', html: icon }), h('b', { text: t(k) }), h('small', { text: sub })]);
+    w.append(h('section', { class: 'doors' }, [
+      door('practice', I('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'), 'hd.practice', t('hd.practiceD')),
+      door('songs', I('<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M10 9v6l5-3z"/>'), 'nav.songs', t('hd.songsN', { n: nSongs })),
+      door('chords', I('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 8h14M5 13h14M10 3v18M14 3v18"/><circle cx="12" cy="10.5" r="1.3" fill="currentColor"/>'), 'tools.chords', t('hd.chordsN', { n: nChords })),
+      door('theory', I('<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M8 7h8M8 11h6"/>'), 'hd.theory', t('hd.theoryD')),
+      door('tuner', I('<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/><circle cx="12" cy="18" r="1.4" fill="currentColor"/>'), 'nav.tuner', 'A · C♯ · E'),
+      door('ai', '<b class="door-ai">AI</b>', 'hxq.ai', t('hxq.aiD'))]));
+    // songs
+    const songsL = LS.all.filter(l => visible(l) && l.type === 'song').slice(0, 5);
+    if (songsL.length) w.append(h('section', { class: 'hx-songs' }, [h('div', { class: 'hrow-h' }, [h('h2', { 'data-t': 'hd.popular' }), h('button', { class: 'linkbtn', 'data-t': 'hx.all', onclick: () => { st.cat = 'song'; go('songs'); } })]), h('div', { class: 'slist' }, songsL.map(songRow))]));
     if (PD.curriculum.isDemo) w.append(h('p', { class: 'hx-note', html: '<b>' + PD.esc(t('demo.badge')) + '</b> · ' + PD.esc(t('hm.demo')) }));
   }
 
@@ -351,7 +357,7 @@ PD.app = (() => {
     const tabs = h('div', { class: 'sx-tabs', role: 'tablist' }, cats.map(k => h('button', { role: 'tab', 'aria-pressed': String(st.cat === k), 'data-t': 'cat.' + k, onclick: () => { st.cat = k; PD.store.set('home.cat', k); render(); } })));
     const lv = h('div', { class: 'sx-chips' }, [[0, 'f.all'], [1, 'lvl.1'], [2, 'lvl.2'], [3, 'lvl.3']].map(([v, k]) => h('button', { class: 'chip', 'aria-pressed': String(st.level === v), 'data-t': k, onclick: () => { st.level = v; render(); } })));
     const search = h('label', { class: 'search' }, [h('span', { html: ic.search }), h('input', { type: 'search', value: st.q, 'data-t-ph': 'home.search', 'aria-label': t('home.search'), oninput: e => { st.q = e.target.value; list(); } })]);
-    const box = h('div', { class: 'sx-grid', role: 'list' });
+    const box = h('div', { class: 'slist', role: 'list' });
     w.append(h('h1', { 'data-t': 'nav.songs' }), h('button', { class: 'ai-card', onclick: () => go('ai') }, [h('span', { class: 'ai-badge', text: 'AI' }), h('span', { class: 'grow' }, [h('b', { 'data-t': 'ai.home' }), h('small', { 'data-t': 'ai.homeD' })]), h('span', { html: ic.chevron || '›' })]), search, tabs, lv, box);
     function list() {
       box.innerHTML = '';
@@ -359,7 +365,7 @@ PD.app = (() => {
       let ls = LS.all.filter(visible).filter(l => q ? (l.title.ka + ' ' + l.title.en).toLowerCase().includes(q) : catOf(l) === st.cat);
       if (st.level) ls = ls.filter(l => (l.level || 1) === st.level);
       ls.sort((a, b) => (a.level || 1) - (b.level || 1));
-      ls.forEach(l => box.appendChild(card(l)));
+      ls.forEach(l => box.appendChild(songRow(l)));
       if (!ls.length) box.appendChild(h('div', { class: 'empty', text: !q && st.cat === 'solo' ? t('lib.noSolos') : t('lib.none') }));
       if (PD.store.get('author', false) && !q) box.appendChild(h('button', { class: 'acard add', onclick: () => PD.studio.open(null, st.cat), html: '<div class="acard-art">' + ic.plus + '</div><span class="acard-t">' + PD.esc(t('lib.new')) + '</span>' }));
       PD.i18n.apply(box);
@@ -378,6 +384,7 @@ PD.app = (() => {
     const libCard = (r, pa, k, d, art) => h('button', { class: 'lib-card', onclick: () => go(r, pa) }, [h('span', { class: 'lib-art', html: art }), h('span', { class: 'grow' }, [h('b', { 'data-t': k }), h('small', { 'data-t': d })])]);
     const ph = PD.assets && PD.assets.photos;
     w.append(h('section', { class: 'lib' }, [h('h2', { 'data-t': 'tp.lib' }), h('div', { class: 'lib-row' }, [
+      libCard('practice', null, 'hd.practice', 'ph.lead', '<span class="lib-ic">' + ic.pulse + '</span>'), libCard('tuner', null, 'nav.tuner', 'tools.tunerD', '<span class="lib-ic">' + ic.tune + '</span>'),
       libCard('tips', null, 'tp.title', 'tp.lead', PD.tips.ART.strum()), libCard('theory', null, 'tb.title', 'tb.tool', PD.tips.ART.semitone()),
       libCard('tips', 'parts', 'tp.parts', 'tp.partsD', ph && ph.front ? '<img src="' + ph.front + '" alt="">' : '')])]));
     const TOOL = { tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord, chapter: ic.learn || ic.chord, tip: ic.star, solfege: ic.mic, rhythms: ic.pulse };
@@ -587,14 +594,14 @@ PD.app = (() => {
 
   /* ---------- Practice hub ---------- */
   function practiceHub(w) {
-    w.append(h('div', {}, [h('h1', { 'data-t': 'ph.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'ph.lead' })]));
+    w.append(h('div', { class: 'pg-top' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : go('learn') }), h('h1', { 'data-t': 'hd.practice' })]));
     const plan = PD.daily.plan(), dn = plan.filter(x => x.done).length, nextSeg = plan.find(x => !x.done && x.go);
-    w.append(h('section', { class: 'cont daily-hero' }, [h('span', { class: 'kicker', 'data-t': 'hm.daily' }), h('h2', { text: t('dl.lead', { m: PD.store.get('goalMin', 15) }) }),
-      h('div', { class: 'steps-line', style: 'max-width:360px' }, plan.map(x => h('i', { class: x.done ? 'done' : '' }))), h('span', { class: 'muted', style: 'font-size:13px', text: plan.map(x => t(x.key)).join(' · ') }),
-      h('div', { class: 'row', style: 'margin-top:8px' }, [h('button', { class: 'btn primary', 'data-t': dn === plan.length ? 'dl.done' : 'home.start', onclick: () => nextSeg ? PD.daily.start(nextSeg) : go('daily') }), h('button', { class: 'btn quiet', 'data-t': 'learn.open', onclick: () => go('daily') })])]));
-    const tool = (r, icon, k, d) => h('button', { class: 'card path tool', onclick: () => go(r) }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]);
+    const rowI = (cls, icon, k, d, right, fn) => h('button', { class: 'prow' + (cls ? ' ' + cls : ''), onclick: fn }, [h('span', { class: 'prow-ic', html: icon }), h('span', { class: 'grow' }, [h('b', { text: t(k) }), h('small', { text: d })]), right ? h('span', { class: 'prow-n', text: right }) : null, h('span', { class: 'chev', html: ic.chevron })]);
+    const list = h('div', { class: 'plist' });
+    list.append(rowI('on', ic.target || ic.pulse, 'hm.daily', t('dl.lead', { m: PD.store.get('goalMin', 15) }), dn + '/' + plan.length, () => nextSeg ? PD.daily.start(nextSeg) : go('daily')));
     const items = [['ai', '<b class="ai-badge">AI</b>', 'ai.title', 'ai.homeD'], ['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
-    w.append(h('div', { class: 'paths' }, items.map(x => tool(...x))));
+    items.forEach(([r, icon, k, d]) => list.append(rowI('', icon, k, t(d), '', () => go(r))));
+    w.append(list);
     if (PD.store.get('author', false)) w.append(h('div', { class: 'paths' }, [['studio', ic.edit, 'tools.studio', 'tools.studioD'], ['at:instrument', ic.frets, 'sd.instrument', 'at.instrument'], ['at:curriculum', ic.learn, 'sd.curriculum', 'at.curD'], ['at:samples', ic.mic, 'sd.samples', 'set.samples']].map(([r, icon, k, d]) => h('button', { class: 'card path tool', onclick: () => r === 'studio' ? PD.studio.open(null) : PD.authorTools[r.slice(3)]() }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]))));
   }
 
@@ -608,40 +615,33 @@ PD.app = (() => {
     return [['firstMelody', melodyDone], ['sessions10', ss.length >= 10], ['perfectRhythm', perfectRhythm], ['notes100', notes >= 100], ['fullSong', fullSong], ['week', sk.longest >= 7]];
   }
   function profile(w) {
-    const prof = PD.account.profile, sk = streaks(), sess = PD.account.session;
+    const prof = PD.account.profile, sk = streaks(), C = PD.cloud, PM = PD.premium, lp = PD.levels.progress;
     const photo = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async e => { const f = e.target.files[0]; if (!f) return; const url = await shrink(f); PD.account.setProfile({ avatar: url }); render(); } });
-    const name = h('input', { class: 'input name-in', value: prof.name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { const v = e.target.value.trim(); PD.account.setProfile({ name: v }); if (v && PD.cloud.session) PD.cloud.db.update('profiles', { id: 'eq.' + PD.cloud.uid }, { display_name: v }).then(() => PD.cloud.loadProfile()).catch(() => {}); } });
-    w.append(h('div', { class: 'pf-head' }, [h('button', { class: 'avatar big', 'aria-label': t('pf.photo'), title: t('pf.photo'), onclick: () => photo.click(), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : prof.name ? PD.esc(prof.name.charAt(0).toUpperCase()) : ic.user }), photo,
-      h('div', { class: 'pf-id' }, [name, h('span', { class: 'muted', text: t('pr.stage') + ': ' + levelName() + ' · ' + t('hm.streak', { n: sk.cur }) + ' · ' + t('pr.longest') + ' ' + t('pr.days', { n: sk.longest }) })])]));
-    const goalSeg = h('div', { class: 'seg', role: 'group', 'aria-label': t('pf.goal') }, [5, 10, 15, 20, 30].map(m => h('button', { 'aria-pressed': String(PD.store.get('goalMin', 15) === m), text: t('dl.min', { n: m }), onclick: e => { PD.store.set('goalMin', m); goalSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
-    w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.goal' }), goalSeg]));
-    // level · XP
-    const lp = PD.levels.progress;
-    w.append(h('section', { class: 'lvcard' }, [h('span', { class: 'lvcard-b', html: PD.levels.badge(64) }), h('div', { class: 'grow' }, [h('b', { text: t('lv.level', { n: lp.level }) + ' · ' + PD.levels.tierName() }),
-      h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(lp.pct * 100) + '%' })]), h('small', { text: t('lv.xp', { a: lp.into, b: lp.need }) + ' · ' + t('lv.toNext', { n: lp.need - lp.into }) })]),
-      h('button', { class: 'btn small', 'data-t': 'lv.program', onclick: () => go('learn', PD.levels.program) })]));
-    // premium / VIP
-    const PM = PD.premium;
-    w.append(h('button', { class: 'pmcard' + (PM.active ? ' on' : ''), onclick: () => PM.paywall() }, [h('span', { class: 'pmcard-ic', html: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z" fill="currentColor"/></svg>' }),
-      h('div', { class: 'grow' }, [h('b', { text: PM.vip ? t('pm.vip') : t('pm.title') }), h('small', { text: PM.active ? PM.status() : t('pm.lead') })]), h('span', { class: 'chev', html: ic.chevron })]));
-    const C = PD.cloud, cp = C.profile, who = C.session ? (cp && (cp.email || cp.phone)) || (C.user && (C.user.email || C.user.phone)) || '' : '';
-    w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.account' }), h('div', { class: 'list' }, [
-      h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { text: C.session ? t('au.signedIn', { e: who }) : t('pf.guest') }), h('small', { text: C.session ? t('au.syncOn') : (C.configured ? t('au.guestD') : t('au.syncOff')) })]),
-        C.session ? h('button', { class: 'btn small', 'data-t': 'au.signout', onclick: () => PD.ui.confirm(t('au.signout') + '?', async () => { await C.auth.signOut(); PD.store.set('auth.skip', false); render(); }) }) : h('button', { class: 'btn small primary', 'data-t': 'pf.signin', onclick: () => PD.auth.open() })]),
-      C.session ? h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'au.delete' }), h('small', { 'data-t': 'au.deleteD' })]),
-        h('button', { class: 'btn small quiet danger', 'data-t': 'au.deleteGo', onclick: () => PD.ui.confirm(t('au.deleteQ'), async () => { try { await C.auth.deleteAccount(); PD.ui.toast(t('au.deleted'), 5000); render(); } catch (e) { PD.ui.toast((e && e.message) || String(e), 6000); } }) })]) : null,
-      C.isAdmin ? h('button', { class: 'li', onclick: () => PM.admin() }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'ad.title' }), h('small', { 'data-t': 'ad.lead' })]), h('span', { html: ic.chevron, class: 'chev' })]) : null,
-      h('button', { class: 'li', onclick: () => go('community') }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'cm.title' }), h('small', { 'data-t': 'cm.lead' })]), h('span', { html: ic.chevron, class: 'chev' })]),
-      h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'acct.export' })]), h('span', { class: 'row', style: 'gap:6px' }, [
-        h('button', { class: 'btn small', html: ic.dl + '<span data-t="acct.export"></span>', onclick: () => PD.ui.download('panduri-data.json', JSON.stringify({ schema: 'panduri-data', v: 1, data: PD.store.exportAll() }, null, 1)) }),
-        h('button', { class: 'btn small', html: ic.ul + '<span data-t="acct.import"></span>', onclick: async () => { const f = await PD.ui.pickFile('application/json'); if (!f) return; try { const o = JSON.parse(await f.text()); PD.store.importAll(o.data || o); PD.ui.toast(t('toast.imported')); setTimeout(() => location.reload(), 600); } catch (e) { PD.ui.toast('JSON: ' + e.message); } } })])])])]));
-    w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.achievements' }), h('div', { class: 'ach' }, achievements().map(([k, ok]) => h('div', { class: 'ach-i' + (ok ? ' ok' : '') }, [h('span', { class: 'ach-mark', html: ok ? ic.check : '' }), h('div', {}, [h('b', { 'data-t': 'ac.' + k }), h('small', { 'data-t': 'ac.' + k + 'D' })])])))]));
+    const name = h('input', { class: 'pf-name', value: prof.name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { const v = e.target.value.trim(); PD.account.setProfile({ name: v }); if (v && C.session) C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }).then(() => C.loadProfile()).catch(() => {}); } });
+    const role = C.isAdmin ? t('ad.admin') : PM.active ? t('pm.title') : t('pf.student');
+    w.append(h('h1', { class: 'sr', 'data-t': 'nav.profile' }));
+    w.append(h('div', { class: 'pf2-head' }, [h('button', { class: 'pf2-av', 'aria-label': t('pf.photo'), onclick: () => photo.click(), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : ic.user }), photo,
+      h('div', { class: 'grow' }, [name, h('small', { text: role })])]));
+    // three numbers
+    const done = LS.all.filter(l => visible(l) && LS.progress.lesson(l.id).mastery >= .9).length;
+    const pp = (() => { let n = 0, d = 0; LS.PATHS.forEach(p2 => p2.steps.forEach(st2 => { n++; if (stepDone(st2)) d++; })); return n ? Math.round(d / n * 100) : 0; })();
+    w.append(h('section', { class: 'pf2-stats' }, [
+      h('div', {}, [h('small', { 'data-t': 'pf.level' }), h('b', { text: String(lp.level) })]),
+      h('div', {}, [h('small', { 'data-t': 'pf.lessons' }), h('b', { text: String(done) })]),
+      h('div', {}, [h('small', { 'data-t': 'pf.progress' }), h('b', { text: pp + '%' }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + pp + '%' })])])]));
+    // one menu
+    const I = d => '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    const item = (icon, k, sub, fn, cls) => h('button', { class: 'pf2-i' + (cls ? ' ' + cls : ''), onclick: fn }, [h('span', { class: 'pf2-ic', html: icon }), h('span', { class: 'grow' }, [h('span', { text: t(k) }), sub ? h('small', { text: sub }) : null]), h('span', { class: 'chev', html: ic.chevron })]);
+    w.append(h('section', { class: 'pf2-menu' }, [
+      item(I('<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'), 'nav.progress', t('hm.streak', { n: sk.cur }), () => go('progress')),
+      item(I('<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>'), PM.vip ? 'pm.vip' : 'pm.title', PM.active ? PM.status() : t('pm.lead'), () => PM.paywall()),
+      item(I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), 'more.settings', null, () => go('settings')),
+      item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', null, () => go('community')),
+      C.isAdmin ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'ad.title', null, () => PM.admin()) : null,
+      C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => PD.ui.confirm(t('au.signout') + '?', async () => { await C.auth.signOut(); PD.store.set('auth.skip', false); render(); }))
+        : item(I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'), 'pf.signin', t('au.guestD'), () => PD.auth.open(), 'accent')].filter(Boolean)));
     const favs = LS.progress.favorites().map(id => LS.get(id)).filter(Boolean);
-    w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.saved' }), favs.length ? h('div', { class: 'list' }, favs.map(lessonRow)) : h('p', { class: 'muted', style: 'font-size:13px', 'data-t': 'pr.none' })]));
-    w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.downloads' }), h('p', { class: 'muted', style: 'font-size:13px;line-height:1.6', 'data-t': 'pf.downloadsD' })]));
-    w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.links' }), h('div', { class: 'list' }, [
-      h('button', { class: 'li', onclick: () => go('progress') }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'nav.progress' })]), h('span', { html: ic.chevron, class: 'chev' })]),
-      h('button', { class: 'li', onclick: () => go('settings') }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'more.settings' }), h('small', { 'data-t': 'more.settingsD' })]), h('span', { html: ic.chevron, class: 'chev' })])])]));
+    if (favs.length) w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.saved' }), h('div', { class: 'list' }, favs.map(lessonRow))]));
   }
   function shrink(file) { return new Promise(res => { const img = new Image(), r = new FileReader(); r.onload = () => { img.onload = () => { const c = document.createElement('canvas'), k = 160 / Math.max(img.width, img.height); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', .85)); }; img.src = r.result; }; r.readAsDataURL(file); }); }
 
@@ -677,6 +677,7 @@ PD.app = (() => {
     w.append(h('section', { class: 'panel fretheat' }, [h('h2', { 'data-t': 'pr.problems' }), h('p', { class: 'muted', style: 'font-size:13px', 'data-t': 'pr.problemsD' }), h('div', { html: fretHeat(probs) })]));
     const recent = ss.slice(-8).reverse();
     w.append(h('section', { class: 'panel' }, [h('h2', { 'data-t': 'pr.sessions' }), h('div', { class: 'list' }, recent.length ? recent.map(s => { const l = LS.get(s.id); return h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { text: l ? PD.i18n.pick(l.title) : String(s.id).startsWith('trainer:') ? t('tr.title') : s.id }), h('small', { text: PD.ui.daysAgo(s.date) + (s.tempo ? ' · ' + s.tempo + '%' : '') + ' · ' + t('l.min', { n: Math.max(1, Math.round((s.dur || 0) / 60)) }) })]), h('span', { class: 'mono', text: Math.round((s.firstTry || 0) * 100) + '%' })]); }) : [h('div', { class: 'li muted', 'data-t': 'pr.none' })])]));
+    w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.achievements' }), h('div', { class: 'ach' }, achievements().map(([k, ok]) => h('div', { class: 'ach-i' + (ok ? ' ok' : '') }, [h('span', { class: 'ach-mark', html: ok ? ic.check : '' }), h('div', {}, [h('b', { 'data-t': 'ac.' + k }), h('small', { 'data-t': 'ac.' + k + 'D' })])])))]));
   }
   /** single-series trend line with a hover readout (no legend needed: the title names the series) */
   function chartCard(title, pts, empty) {
@@ -685,8 +686,8 @@ PD.app = (() => {
     const W = 600, H = 150, pl = 34, pr = 10, pt = 10, pb = 22, x = i => pl + i * (W - pl - pr) / (pts.length - 1), y = v => pt + (1 - v) * (H - pt - pb);
     let s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + PD.esc(title) + '">';
     [0, .5, 1].forEach(v => { s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="rgba(242,232,218,.08)"/><text x="' + (pl - 6) + '" y="' + (y(v) + 4) + '" fill="#A39B91" font-size="11" text-anchor="end" font-family="Noto Sans Georgian">' + Math.round(v * 100) + '</text>'; });
-    s += '<polyline fill="none" stroke="#D6A15A" stroke-width="2" stroke-linejoin="round" points="' + pts.map((p, i) => x(i) + ',' + y(p.v)).join(' ') + '"/>';
-    pts.forEach((p, i) => { const l = LS.get(p.id); s += '<circle cx="' + x(i) + '" cy="' + y(p.v) + '" r="4" fill="#D6A15A" stroke="#161412" stroke-width="2"><title>' + PD.esc((l ? PD.i18n.pick(l.title) + ' · ' : '') + new Date(p.d).toLocaleDateString() + ' · ' + Math.round(p.v * 100) + '%') + '</title></circle>'; });
+    s += '<polyline fill="none" stroke="#C98B5B" stroke-width="2" stroke-linejoin="round" points="' + pts.map((p, i) => x(i) + ',' + y(p.v)).join(' ') + '"/>';
+    pts.forEach((p, i) => { const l = LS.get(p.id); s += '<circle cx="' + x(i) + '" cy="' + y(p.v) + '" r="4" fill="#C98B5B" stroke="#161412" stroke-width="2"><title>' + PD.esc((l ? PD.i18n.pick(l.title) + ' · ' : '') + new Date(p.d).toLocaleDateString() + ' · ' + Math.round(p.v * 100) + '%') + '</title></circle>'; });
     s += '</svg>';
     const tbl = h('details', {}, [h('summary', { class: 'muted', style: 'font-size:12px', text: '▤' }), h('div', { class: 'mono muted', style: 'font-size:12px;line-height:1.7', text: pts.map(p => new Date(p.d).toLocaleDateString() + ' — ' + Math.round(p.v * 100) + '%').join(' · ') })]);
     card.append(h('div', { html: s }), tbl); return card;
@@ -694,7 +695,7 @@ PD.app = (() => {
   function fretHeat(probs) {
     const max = Math.max(1, ...Object.values(probs)), W = 760, H = 110, x0 = 40, cw = (W - x0 - 10) / 18, y = s => 14 + (3 - s) * 28;
     let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + PD.esc(t('pr.problems')) + '">';
-    for (let st = 1; st <= 3; st++) { s += '<text x="10" y="' + (y(st) + 15) + '" fill="#CFC8BE" font-size="12" font-family="Noto Sans Georgian">' + TH.stringName(st) + '</text>'; for (let f = 0; f <= 17; f++) { const v = (probs[st + ':' + f] || 0) / max; s += '<rect x="' + (x0 + f * cw) + '" y="' + y(st) + '" width="' + (cw - 2) + '" height="24" rx="4" fill="' + (v ? 'rgba(214,161,90,' + (.15 + .85 * v).toFixed(2) + ')' : '#191816') + '"><title>' + TH.stringName(st) + ' · ' + f + ' · ' + (probs[st + ':' + f] || 0) + '</title></rect>'; } }
+    for (let st = 1; st <= 3; st++) { s += '<text x="10" y="' + (y(st) + 15) + '" fill="#CFC8BE" font-size="12" font-family="Noto Sans Georgian">' + TH.stringName(st) + '</text>'; for (let f = 0; f <= 17; f++) { const v = (probs[st + ':' + f] || 0) / max; s += '<rect x="' + (x0 + f * cw) + '" y="' + y(st) + '" width="' + (cw - 2) + '" height="24" rx="4" fill="' + (v ? 'rgba(201,139,91,' + (.15 + .85 * v).toFixed(2) + ')' : '#191816') + '"><title>' + TH.stringName(st) + ' · ' + f + ' · ' + (probs[st + ':' + f] || 0) + '</title></rect>'; } }
     for (let f = 0; f <= 17; f++) s += '<text x="' + (x0 + f * cw + cw / 2 - 1) + '" y="' + (H - 4) + '" fill="#7C746A" font-size="10" text-anchor="middle" font-family="Noto Sans Georgian">' + f + '</text>';
     return s + '</svg>';
   }
@@ -709,6 +710,14 @@ PD.app = (() => {
     const seg = (opts, cur, on) => { const s = h('div', { class: 'seg' }); opts.forEach(([v, k]) => s.appendChild(h('button', { 'aria-pressed': String(cur === v), 'data-t': k, 'data-v': v, onclick: () => { s.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v)))); on(v); } }))); return s; };
     const range = (v, min, max, step, on, fmt) => { const out = h('span', { class: 'val', text: fmt ? fmt(v) : v }); const r = h('input', { type: 'range', min, max, step, value: v, oninput: e => { out.textContent = fmt ? fmt(+e.target.value) : e.target.value; on(+e.target.value); } }); return h('span', { class: 'set-ctl' }, [r, out]); };
     if (PD.cloud.isAdmin) w.append(sect('pa.title', [h('button', { class: 'li pa-entry', onclick: () => go('pmadmin') }, [h('span', { class: 'pa-entry-ic', text: '♾️' }), h('div', { class: 'grow' }, [h('span', { 'data-t': 'pa.title' }), h('small', { 'data-t': 'pa.row' })]), h('span', { html: ic.chevron, class: 'chev' })])]));
+    { const C = PD.cloud; const goalSeg = h('div', { class: 'seg', role: 'group', 'aria-label': t('pf.goal') }, [5, 10, 15, 20, 30].map(m => h('button', { 'aria-pressed': String(PD.store.get('goalMin', 15) === m), text: t('dl.min', { n: m }), onclick: e => { PD.store.set('goalMin', m); goalSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
+      w.append(sect('pf.goal', [h('div', { class: 'li' }, [goalSeg])]));
+      w.append(sect('set.data', [
+      h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'acct.export' })]), h('span', { class: 'row', style: 'gap:6px' }, [
+        h('button', { class: 'btn small', html: ic.dl + '<span data-t="acct.export"></span>', onclick: () => PD.ui.download('panduri-data.json', JSON.stringify({ schema: 'panduri-data', v: 1, data: PD.store.exportAll() }, null, 1)) }),
+        h('button', { class: 'btn small', html: ic.ul + '<span data-t="acct.import"></span>', onclick: async () => { const f = await PD.ui.pickFile('application/json'); if (!f) return; try { const o = JSON.parse(await f.text()); PD.store.importAll(o.data || o); PD.ui.toast(t('toast.imported')); setTimeout(() => location.reload(), 600); } catch (e) { PD.ui.toast('JSON: ' + e.message); } } })])]),
+      C.session ? h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'au.delete' }), h('small', { 'data-t': 'au.deleteD' })]),
+        h('button', { class: 'btn small quiet danger', 'data-t': 'au.deleteGo', onclick: () => PD.ui.confirm(t('au.deleteQ'), async () => { try { await C.auth.deleteAccount(); PD.ui.toast(t('au.deleted'), 5000); render(); } catch (e) { PD.ui.toast((e && e.message) || String(e), 6000); } }) })]) : null])); }
     const cal = PD.detector.calib, ms = PD.detector.status();
     w.append(sect('set.audio', [
       row('set.microphone', ms.on ? t('mic.on') + (ms.label ? ' · ' + ms.label : '') : t('mic.off'), ms.on ? h('button', { class: 'btn small', 'data-t': 'set.micStop', onclick: () => { PD.detector.stop(); render(); } }) : h('button', { class: 'btn small', 'data-t': 'gate.on', onclick: () => PD.practice.micOn(() => render()) })),

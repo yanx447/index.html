@@ -86,7 +86,7 @@ PD.levels = (() => {
     /** a small level badge: ring + number */
     badge(size) {
       const p = api.progress, r = 15, c = 2 * Math.PI * r, s = size || 44;
-      return '<svg viewBox="0 0 40 40" width="' + s + '" height="' + s + '" aria-hidden="true"><circle cx="20" cy="20" r="' + r + '" fill="rgba(0,0,0,.25)" stroke="rgba(255,214,170,.18)" stroke-width="4"/><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="url(#lvg)" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (c * Math.min(1, p.pct)).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/><defs><linearGradient id="lvg"><stop offset="0" stop-color="#F5C27A"/><stop offset="1" stop-color="#D2843A"/></linearGradient></defs><text x="20" y="25" text-anchor="middle" fill="#FFE6C4" font-size="14" font-weight="700" font-family="Noto Sans Georgian, system-ui">' + p.level + '</text></svg>';
+      return '<svg viewBox="0 0 40 40" width="' + s + '" height="' + s + '" aria-hidden="true"><circle cx="20" cy="20" r="' + r + '" fill="rgba(0,0,0,.25)" stroke="rgba(255,240,228,.18)" stroke-width="4"/><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="url(#lvg)" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (c * Math.min(1, p.pct)).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/><defs><linearGradient id="lvg"><stop offset="0" stop-color="#D59A68"/><stop offset="1" stop-color="#D2843A"/></linearGradient></defs><text x="20" y="25" text-anchor="middle" fill="#FFE6C4" font-size="14" font-weight="700" font-family="Noto Sans Georgian, system-ui">' + p.level + '</text></svg>';
     }
   };
   return api;
@@ -132,7 +132,7 @@ PD.premium = (() => {
     PD.ui.sheet((box, close) => {
       const cfg = (PD.CONFIG && PD.CONFIG.prices) || {}, pay = PD.CONFIG && PD.CONFIG.payments;
       box.classList.add('pw');
-      box.append(h('div', { class: 'pw-crown', html: '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z" fill="#F5C27A" stroke="#24140A" stroke-width=".8" stroke-linejoin="round"/></svg>' }),
+      box.append(h('div', { class: 'pw-crown', html: '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z" fill="#D59A68" stroke="#24140A" stroke-width=".8" stroke-linejoin="round"/></svg>' }),
         h('h2', { 'data-t': 'pm.title' }), h('p', { class: 'fg2', 'data-t': 'pm.lead' }));
       if (feature && FEATURES[feature]) box.append(h('p', { class: 'pw-why', text: t('pm.locked') + ' · ' + t(FEATURES[feature]) }));
       if (api.active) box.append(h('p', { class: 'pw-active', text: (api.vip ? t('pm.vip') + ' · ' : '') + api.status() }));

@@ -125,7 +125,7 @@ PD.tools = (() => {
       msg.style.color = ac <= 5 ? 'var(--ok)' : ac <= 20 ? 'var(--almost)' : 'var(--fix)';
       strs.querySelectorAll('button').forEach((b, i) => b.classList.toggle('intune', TH.open(i + 1) === target && ac <= 5));
       hist.push(Math.max(-50, Math.min(50, c))); if (hist.length > 120) hist.shift();
-      spark.innerHTML = '<svg class="spark" viewBox="0 0 240 46" preserveAspectRatio="none"><line x1="0" x2="240" y1="23" y2="23" stroke="#3F6B4C" stroke-width="1"/><polyline fill="none" stroke="#D6A15A" stroke-width="1.5" points="' + hist.map((v, i) => (i * 2).toFixed(0) + ',' + (23 - v * .44).toFixed(1)).join(' ') + '"/></svg>';
+      spark.innerHTML = '<svg class="spark" viewBox="0 0 240 46" preserveAspectRatio="none"><line x1="0" x2="240" y1="23" y2="23" stroke="#3F6B4C" stroke-width="1"/><polyline fill="none" stroke="#C98B5B" stroke-width="1.5" points="' + hist.map((v, i) => (i * 2).toFixed(0) + ',' + (23 - v * .44).toFixed(1)).join(' ') + '"/></svg>';
     }
     own(PD.detector.on('pitch', onPitch));
     own(PD.detector.on('note', m => { if (m.unsure && performance.now() - lastP > 700) { msg.textContent = t('tu.unsure'); msg.style.color = 'var(--almost)'; } }));
@@ -269,10 +269,10 @@ PD.tools = (() => {
       [1, 2, 3].forEach(st => { for (let f = 0; f <= TH.FRETS; f++) {
         const m = TH.midi(st, f), pc = TH.pc(m), inScale = scl.length && scl.includes((pc - root + 12) % 12), isRoot = scl.length && pc === root;
         const same = selM != null && m === selM, isSel = sel && sel.s === st && sel.f === f;
-        const fill = isSel ? SCOL[st] : same ? 'rgba(214,161,90,.85)' : isRoot ? '#D6A15A' : inScale ? 'rgba(242,232,218,.85)' : 'rgba(20,14,10,.75)';
+        const fill = isSel ? SCOL[st] : same ? 'rgba(201,139,91,.85)' : isRoot ? '#C98B5B' : inScale ? 'rgba(242,232,218,.85)' : 'rgba(20,14,10,.75)';
         const txt = label === 'names' ? TH.pcName(m) : label === 'ka' ? TH.nameKa(m) : label === 'oct' ? TH.name(m) : '';
         const show = label !== 'none' || inScale || same || isSel;
-        if (show) s += '<g class="cell" data-s="' + st + '" data-f="' + f + '" role="button" tabindex="0" aria-label="' + PD.esc(TH.name(m) + ' ' + TH.stringName(st) + ' ' + f) + '"><circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="15" fill="' + fill + '" stroke="' + (inScale || isSel || same ? 'none' : 'rgba(242,232,218,.2)') + '"/>' + (txt ? '<text x="' + cx(f) + '" y="' + (yS(st) + 4) + '" fill="' + (inScale || isRoot || isSel || same ? '#140D08' : '#F2E8DA') + '" font-size="' + (txt.length > 3 ? 9 : 11) + '" text-anchor="middle" font-family="Noto Sans Georgian" pointer-events="none">' + PD.esc(txt) + '</text>' : '') + (isRoot ? '<circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="18" fill="none" stroke="#D6A15A" stroke-width="1.5"/>' : '') + '</g>';
+        if (show) s += '<g class="cell" data-s="' + st + '" data-f="' + f + '" role="button" tabindex="0" aria-label="' + PD.esc(TH.name(m) + ' ' + TH.stringName(st) + ' ' + f) + '"><circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="15" fill="' + fill + '" stroke="' + (inScale || isSel || same ? 'none' : 'rgba(242,232,218,.2)') + '"/>' + (txt ? '<text x="' + cx(f) + '" y="' + (yS(st) + 4) + '" fill="' + (inScale || isRoot || isSel || same ? '#140D08' : '#F2E8DA') + '" font-size="' + (txt.length > 3 ? 9 : 11) + '" text-anchor="middle" font-family="Noto Sans Georgian" pointer-events="none">' + PD.esc(txt) + '</text>' : '') + (isRoot ? '<circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="18" fill="none" stroke="#C98B5B" stroke-width="1.5"/>' : '') + '</g>';
         else s += '<g class="cell" data-s="' + st + '" data-f="' + f + '" role="button" tabindex="0" aria-label="' + PD.esc(TH.stringName(st) + ' ' + f) + '"><rect x="' + (cx(f) - 15) + '" y="' + (yS(st) - 15) + '" width="30" height="30" fill="transparent"/></g>';
       } });
       fb.innerHTML = s + '</svg>';

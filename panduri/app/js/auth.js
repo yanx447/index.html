@@ -6,6 +6,7 @@
    so, and "continue without an account" keeps progress on this device.
    ===================================================================== */
 PD.i18n.add({
+  'au.tagline': ['ისწავლე · დაუკარი · იმღერე', 'Learn · play · sing'], 'au.start': ['დაწყება', 'Get started'], 'au.signinLink': ['შესვლა', 'Sign in'], 'au.signinTitle': ['შესვლა', 'Sign in'],
   'au.delete': ['ანგარიშის წაშლა', 'Delete account'], 'au.deleteD': ['სერვერიდან სამუდამოდ წაიშლება ანგარიში, მიმოწერა, კითხვები და პროგრესის ასლი. ამ მოწყობილობაზე პროგრესი დარჩება.', 'Permanently removes the account, messages, questions and the progress backup from the server. Progress on this device stays.'],
   'au.deleteGo': ['წაშლა', 'Delete'], 'au.deleteQ': ['ნამდვილად წავშალო ანგარიში? ამის დაბრუნება შეუძლებელია.', 'Really delete the account? This cannot be undone.'], 'au.deleted': ['ანგარიში წაიშალა.', 'The account was deleted.'],
   'au.signin': ['შესვლა', 'Sign in'], 'au.signup': ['ანგარიშის შექმნა', 'Create account'], 'au.email': ['ელფოსტა', 'Email'], 'au.password': ['პაროლი', 'Password'], 'au.name': ['სახელი', 'Name'],
@@ -69,10 +70,24 @@ PD.auth = (() => {
     function render() {
       card.innerHTML = ''; card.classList.remove('home');
       if (view === 'home') {
+        // the splash: the instrument, the name, one way in
+        const ph = PD.assets && PD.assets.photos;
+        card.classList.add('splash'); root.classList.add('ag-splash');
+        if (ph && ph.body) root.style.setProperty('--ag-photo', 'url("' + ph.body + '")');
+        card.append(h('button', { class: 'ag-lang', text: PD.i18n.lang === 'ka' ? 'EN' : 'ქარ', onclick: () => { PD.i18n.set(PD.i18n.lang === 'ka' ? 'en' : 'ka'); render(); } }),
+          h('div', { class: 'sp-brand' }, [h('h1', { class: 'sp-name', 'data-t': 'app.name' }), h('p', { class: 'sp-tag', 'data-t': 'au.tagline' })]),
+          h('div', { class: 'sp-go' }, [
+            h('button', { class: 'sp-start', html: '<span data-t="au.start"></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>', onclick: () => { if (opts.noGuest) { view = 'methods'; render(); } else { PD.store.set('auth.skip', true); finish(false); } } }),
+            h('button', { class: 'sp-signin', 'data-t': 'au.signinLink', onclick: () => { view = 'methods'; render(); } })]));
+        if (opts.closable) card.prepend(h('button', { class: 'ag-x', 'aria-label': t('close'), html: PD.ic.close, onclick: () => finish(false) }));
+        PD.i18n.apply(card); return;
+      }
+      root.classList.remove('ag-splash'); card.classList.remove('splash');
+      if (view === 'methods') {
         const msg = msgEl();
         const prov = (k, ic, label, fn) => { const b = h('button', { class: 'ag-btn ' + k, html: '<span class="ag-ic">' + ic + '</span><span data-t="' + label + '"></span>', onclick: () => fn(b) }); return b; };
         card.classList.add('home');
-        card.append(h('div', { class: 'ag-brand' }, [h('div', { class: 'ag-logo', html: LOGO }), h('h1', { 'data-t': 'app.name' }), h('p', { class: 'ag-lead', 'data-t': 'au.welcome' }), h('p', { class: 'ag-sub', 'data-t': 'au.welcomeD' })]),
+        card.append(h('div', { class: 'ag-brand' }, [h('h2', { 'data-t': 'au.signinTitle' }), h('p', { class: 'ag-sub', 'data-t': 'au.welcomeD' })]),
           h('div', { class: 'ag-side' }, [C.configured ? null : h('p', { class: 'ag-msg info', 'data-t': 'au.noBackend' }),
           h('div', { class: 'ag-list' }, [
             prov('google', ICON.google, 'au.google', b => run(b, msg, () => C.auth.oauth('google'))),
@@ -89,7 +104,7 @@ PD.auth = (() => {
         const showOnly = v => { if (!v) return; ['google', 'facebook', 'phone'].forEach(k => { const b = card.querySelector('.ag-btn.' + k); if (b) b.hidden = !v[k] || (noOAuth && k !== 'phone'); }); };
         if (noOAuth) showOnly({ google: false, facebook: false, phone: true });
         if (C.configured) { showOnly(C.knownProviders); C.providers().then(showOnly).catch(() => {}); }
-        card.prepend(h('button', { class: 'ag-lang', text: PD.i18n.lang === 'ka' ? 'EN' : 'ქარ', onclick: () => { PD.i18n.set(PD.i18n.lang === 'ka' ? 'en' : 'ka'); render(); } }));
+        card.prepend(back());
         if (opts.closable) card.prepend(h('button', { class: 'ag-x', 'aria-label': t('close'), html: PD.ic.close, onclick: () => finish(false) }));
       } else if (view === 'signin' || view === 'signup') {
         const up = view === 'signup', msg = msgEl();

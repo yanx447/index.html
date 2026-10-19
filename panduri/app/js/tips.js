@@ -44,7 +44,7 @@ PD.tips = (() => {
   const M = () => !(PD.ui && PD.ui.motion && !PD.ui.motion());
 
   /* ---------------- small animated pictures (SVG; SMIL animation, still when motion is reduced) ---------------- */
-  const C = { board: '#7A472B', board2: '#5E3420', fret: '#E2C487', dot: '#F2CE3A', str: '#EFE6D2', ink: '#FFF4E6', acc: '#FF6B5B', ok: '#8EF0B4', dim: 'rgba(255,236,210,.45)', sA: '#D9783F', sC: '#78B7DE', sE: '#EFE0B8' };
+  const C = { board: '#7A472B', board2: '#5E3420', fret: '#E2C487', dot: '#F2CE3A', str: '#E8E1D8', ink: '#F4EFE9', acc: '#FF6B5B', ok: '#8EF0B4', dim: 'rgba(255,240,228,.45)', sA: '#D9783F', sC: '#78B7DE', sE: '#EFE0B8' };
   const fcol = fi => (PD.fingers && PD.fingers.on && fi ? PD.fingers.color(fi) : '#E8574A');
   const svg = (w, hh, body) => '<svg viewBox="0 0 ' + w + ' ' + hh + '" role="img" aria-hidden="true" class="tp-svg">' + body + '</svg>';
   /** show element i of n in turn (each for 1/n of the loop) */
@@ -56,8 +56,8 @@ PD.tips = (() => {
     opts = opts || {}; const x0 = 34, x1 = w - 10, top = 22, bot = 98, sy = { 3: 36, 2: 60, 1: 84 };
     const fx = n => x0 + (x1 - x0) * ET(n) / ET(F);
     let s = '<rect x="' + x0 + '" y="' + top + '" width="' + (x1 - x0) + '" height="' + (bot - top) + '" rx="4" fill="' + C.board + '"/>';
-    s += '<rect x="' + x0 + '" y="' + top + '" width="' + (x1 - x0) + '" height="' + (bot - top) * .35 + '" rx="4" fill="rgba(255,214,170,.06)"/>';
-    s += '<rect x="' + (x0 - 5) + '" y="' + (top - 2) + '" width="5" height="' + (bot - top + 4) + '" rx="1.5" fill="#EFE3C8"/>';
+    s += '<rect x="' + x0 + '" y="' + top + '" width="' + (x1 - x0) + '" height="' + (bot - top) * .35 + '" rx="4" fill="rgba(255,240,228,.06)"/>';
+    s += '<rect x="' + (x0 - 5) + '" y="' + (top - 2) + '" width="5" height="' + (bot - top + 4) + '" rx="1.5" fill="#E2DAD0"/>';
     const mk = (PD.geom && PD.geom.g.markers) || { single: [3, 5, 7, 9, 15], double: [12] };
     for (let n = 1; n <= F; n++) {
       const cx = (fx(n - 1) + fx(n)) / 2;
@@ -67,7 +67,7 @@ PD.tips = (() => {
       if (opts.nums) s += '<text x="' + cx + '" y="' + (bot + 14) + '" class="tp-num">' + n + '</text>';
     }
     [3, 2, 1].forEach(k => { s += '<line x1="' + (x0 - 6) + '" y1="' + sy[k] + '" x2="' + x1 + '" y2="' + sy[k] + '" stroke="' + C.str + '" stroke-width="' + (k === 1 ? 2.2 : k === 2 ? 1.9 : 1.6) + '" opacity=".9"/>'; });
-    if (opts.labels !== false) [[3, 'E', C.sE], [2, 'C♯', C.sC], [1, 'A', C.sA]].forEach(([k, l, c]) => { s += '<circle cx="15" cy="' + sy[k] + '" r="9.5" fill="#1A0F08" stroke="' + c + '" stroke-width="1.5"/><text x="15" y="' + (sy[k] + .5) + '" class="tp-lab" fill="' + c + '">' + l + '</text>'; });
+    if (opts.labels !== false) [[3, 'E', C.sE], [2, 'C♯', C.sC], [1, 'A', C.sA]].forEach(([k, l, c]) => { s += '<circle cx="15" cy="' + sy[k] + '" r="9.5" fill="#100E0D" stroke="' + c + '" stroke-width="1.5"/><text x="15" y="' + (sy[k] + .5) + '" class="tp-lab" fill="' + c + '">' + l + '</text>'; });
     const contact = n => n <= 0 ? x0 - 14 : fx(n) - Math.min(9, (fx(n) - fx(n - 1)) * .3);
     return { s, fx, sy, contact, x0, x1, top, bot };
   }
@@ -101,8 +101,8 @@ PD.tips = (() => {
     curve() {
       let s = '<rect x="10" y="78" width="300" height="16" rx="4" fill="' + C.board + '"/>';
       [70, 110, 150].forEach(x => { s += '<circle cx="' + x + '" cy="74" r="4" fill="' + C.str + '"/>'; });
-      const good = '<path d="M110 70 C 112 40, 150 22, 200 18 L 300 16" fill="none" stroke="#E8B48C" stroke-width="18" stroke-linecap="round"/><text x="250" y="52" class="tp-big" fill="' + C.ok + '">✓</text>';
-      const bad = '<path d="M70 66 L 150 64 C 200 60, 240 30, 300 22" fill="none" stroke="#E8B48C" stroke-width="18" stroke-linecap="round"/><text x="250" y="52" class="tp-big" fill="' + C.acc + '">✗</text>';
+      const good = '<path d="M110 70 C 112 40, 150 22, 200 18 L 300 16" fill="none" stroke="#FFC98A" stroke-width="18" stroke-linecap="round"/><text x="250" y="52" class="tp-big" fill="' + C.ok + '">✓</text>';
+      const bad = '<path d="M70 66 L 150 64 C 200 60, 240 30, 300 22" fill="none" stroke="#FFC98A" stroke-width="18" stroke-linecap="round"/><text x="250" y="52" class="tp-big" fill="' + C.acc + '">✗</text>';
       s += '<g>' + turn(0, 2, 3.6) + good + '</g><g opacity="' + (M() ? 0 : 0) + '">' + turn(1, 2, 3.6) + bad + '</g>';
       return svg(320, 110, s);
     },
@@ -124,17 +124,17 @@ PD.tips = (() => {
     /** one rhythm: ↓ ↓ ↑ with the accents of the teacher's pattern */
     strum() {
       const acc = [false, true, true], xs = [80, 160, 240]; let s = '';
-      [44, 60, 76].forEach(y => { s += '<line x1="40" y1="' + y + '" x2="280" y2="' + y + '" stroke="rgba(239,230,210,.25)" stroke-width="1.5"/>'; });
-      xs.forEach((x, i) => { const up = i === 2, col = acc[i] ? C.acc : C.ink; s += '<g opacity=".35">' + arrow(x, 60, up, 22, col, acc[i] ? 4.5 : 3) + '</g><g opacity="' + (M() ? 0 : 1) + '">' + turn(i, 3, 1.8) + '<circle cx="' + x + '" cy="60" r="30" fill="rgba(255,240,220,.1)"/>' + arrow(x, 60, up, 25, col, acc[i] ? 5 : 3.4) + '</g><text x="' + x + '" y="108" class="tp-cap">' + (up ? L(['ამოკვრა', 'up']) : L(['ჩაკვრა', 'down'])) + '</text>'; });
+      [44, 60, 76].forEach(y => { s += '<line x1="40" y1="' + y + '" x2="280" y2="' + y + '" stroke="rgba(255,240,228,.25)" stroke-width="1.5"/>'; });
+      xs.forEach((x, i) => { const up = i === 2, col = acc[i] ? C.acc : C.ink; s += '<g opacity=".35">' + arrow(x, 60, up, 22, col, acc[i] ? 4.5 : 3) + '</g><g opacity="' + (M() ? 0 : 1) + '">' + turn(i, 3, 1.8) + '<circle cx="' + x + '" cy="60" r="30" fill="rgba(255,240,228,.1)"/>' + arrow(x, 60, up, 25, col, acc[i] ? 5 : 3.4) + '</g><text x="' + x + '" y="108" class="tp-cap">' + (up ? L(['ამოკვრა', 'up']) : L(['ჩაკვრა', 'down'])) + '</text>'; });
       return svg(320, 118, s);
     },
     /** tuning: each string's needle settles in the middle and turns green */
     tune() {
       let s = '';
       [['A', C.sA, 60], ['C♯', C.sC, 160], ['E', C.sE, 260]].forEach(([l, c, x], i) => {
-        s += '<path d="M' + (x - 36) + ' 70 A 36 36 0 0 1 ' + (x + 36) + ' 70" fill="none" stroke="rgba(255,236,210,.18)" stroke-width="6" stroke-linecap="round"/><line x1="' + x + '" y1="30" x2="' + x + '" y2="38" stroke="' + C.ok + '" stroke-width="2"/>';
+        s += '<path d="M' + (x - 36) + ' 70 A 36 36 0 0 1 ' + (x + 36) + ' 70" fill="none" stroke="rgba(255,240,228,.18)" stroke-width="6" stroke-linecap="round"/><line x1="' + x + '" y1="30" x2="' + x + '" y2="38" stroke="' + C.ok + '" stroke-width="2"/>';
         s += '<g><line x1="' + x + '" y1="70" x2="' + x + '" y2="38" stroke="' + C.ink + '" stroke-width="3" stroke-linecap="round">' + (M() ? '<animateTransform attributeName="transform" type="rotate" values="-38 ' + x + ' 70;18 ' + x + ' 70;-8 ' + x + ' 70;3 ' + x + ' 70;0 ' + x + ' 70;0 ' + x + ' 70" keyTimes="0;.2;.4;.55;.7;1" dur="3.4s" begin="' + (i * .4) + 's" repeatCount="indefinite"/>' : '') + '</line></g>';
-        s += '<circle cx="' + x + '" cy="70" r="5" fill="' + C.ink + '"/><circle cx="' + x + '" cy="96" r="12" fill="#1A0F08" stroke="' + c + '" stroke-width="1.6"/><text x="' + x + '" y="96.5" class="tp-lab" fill="' + c + '">' + l + '</text>';
+        s += '<circle cx="' + x + '" cy="70" r="5" fill="' + C.ink + '"/><circle cx="' + x + '" cy="96" r="12" fill="#100E0D" stroke="' + c + '" stroke-width="1.6"/><text x="' + x + '" y="96.5" class="tp-lab" fill="' + c + '">' + l + '</text>';
       });
       return svg(320, 116, s);
     },
@@ -160,51 +160,51 @@ PD.tips = (() => {
     /** slow first: the tempo steps up only after clean repeats */
     tempo() {
       const st = [60, 70, 80, 90, 100]; let s = '';
-      st.forEach((v, i) => { const x = 30 + i * 56, hh = 20 + i * 14; s += '<rect x="' + x + '" y="' + (96 - hh) + '" width="44" height="' + hh + '" rx="6" fill="rgba(233,165,90,.18)" stroke="rgba(233,165,90,.5)"/><text x="' + (x + 22) + '" y="110" class="tp-cap">' + v + '%</text>'; s += '<g opacity="' + (M() ? 0 : 1) + '">' + turn(i, 5, 6) + '<rect x="' + x + '" y="' + (96 - hh) + '" width="44" height="' + hh + '" rx="6" fill="#E9A55A"/><text x="' + (x + 22) + '" y="' + (90 - hh) + '" class="tp-cap" fill="' + C.ok + '">✓✓✓</text></g>'; });
+      st.forEach((v, i) => { const x = 30 + i * 56, hh = 20 + i * 14; s += '<rect x="' + x + '" y="' + (96 - hh) + '" width="44" height="' + hh + '" rx="6" fill="rgba(201,139,91,.18)" stroke="rgba(201,139,91,.5)"/><text x="' + (x + 22) + '" y="110" class="tp-cap">' + v + '%</text>'; s += '<g opacity="' + (M() ? 0 : 1) + '">' + turn(i, 5, 6) + '<rect x="' + x + '" y="' + (96 - hh) + '" width="44" height="' + hh + '" rx="6" fill="#C98B5B"/><text x="' + (x + 22) + '" y="' + (90 - hh) + '" class="tp-cap" fill="' + C.ok + '">✓✓✓</text></g>'; });
       return svg(320, 118, s);
     },
     /** count aloud: 1 · and · 2 · and with a pulsing beat */
     count() {
       const w = ['1', L(['და', 'and']), '2', L(['და', 'and'])]; let s = '';
-      w.forEach((x, i) => { const cx = 50 + i * 74, big = i % 2 === 0; s += '<circle cx="' + cx + '" cy="52" r="' + (big ? 20 : 13) + '" fill="rgba(233,165,90,.15)"/><g opacity="' + (M() ? 0 : 1) + '">' + turn(i, 4, 2) + '<circle cx="' + cx + '" cy="52" r="' + (big ? 22 : 15) + '" fill="#E9A55A"/></g><text x="' + cx + '" y="53" class="tp-big" fill="#FFF4E6" style="font-size:' + (big ? 18 : 13) + 'px">' + x + '</text>'; });
+      w.forEach((x, i) => { const cx = 50 + i * 74, big = i % 2 === 0; s += '<circle cx="' + cx + '" cy="52" r="' + (big ? 20 : 13) + '" fill="rgba(201,139,91,.15)"/><g opacity="' + (M() ? 0 : 1) + '">' + turn(i, 4, 2) + '<circle cx="' + cx + '" cy="52" r="' + (big ? 22 : 15) + '" fill="#C98B5B"/></g><text x="' + cx + '" y="53" class="tp-big" fill="#F4EFE9" style="font-size:' + (big ? 18 : 13) + 'px">' + x + '</text>'; });
       return svg(320, 100, s);
     },
     /** a little every day */
     daily() {
       let s = ''; const d = L(['ორ სა ოთ ხუ პა შა კვ', 'Mo Tu We Th Fr Sa Su']).split(' ');
-      d.forEach((x, i) => { const cx = 30 + i * 43; s += '<rect x="' + (cx - 17) + '" y="30" width="34" height="40" rx="8" fill="rgba(255,236,210,.06)" stroke="rgba(255,236,210,.18)"/><g opacity="' + (M() ? 0 : 1) + '">' + (M() ? '<animate attributeName="opacity" values="0;0;1;1" keyTimes="0;' + (i / 7).toFixed(3) + ';' + ((i + .5) / 7).toFixed(3) + ';1" dur="5s" repeatCount="indefinite"/>' : '') + '<rect x="' + (cx - 17) + '" y="30" width="34" height="40" rx="8" fill="rgba(142,240,180,.18)" stroke="' + C.ok + '"/><text x="' + cx + '" y="52" class="tp-cap" fill="' + C.ok + '">15′</text></g><text x="' + cx + '" y="88" class="tp-cap">' + x + '</text>'; });
+      d.forEach((x, i) => { const cx = 30 + i * 43; s += '<rect x="' + (cx - 17) + '" y="30" width="34" height="40" rx="8" fill="rgba(255,240,228,.06)" stroke="rgba(255,240,228,.18)"/><g opacity="' + (M() ? 0 : 1) + '">' + (M() ? '<animate attributeName="opacity" values="0;0;1;1" keyTimes="0;' + (i / 7).toFixed(3) + ';' + ((i + .5) / 7).toFixed(3) + ';1" dur="5s" repeatCount="indefinite"/>' : '') + '<rect x="' + (cx - 17) + '" y="30" width="34" height="40" rx="8" fill="rgba(142,240,180,.18)" stroke="' + C.ok + '"/><text x="' + cx + '" y="52" class="tp-cap" fill="' + C.ok + '">15′</text></g><text x="' + cx + '" y="88" class="tp-cap">' + x + '</text>'; });
       return svg(320, 100, s);
     },
     /** listen before you play */
     listen() {
-      let s = '<path d="M120 70 V58 a40 40 0 0 1 80 0 V70" fill="none" stroke="' + C.ink + '" stroke-width="5" stroke-linecap="round"/><rect x="108" y="64" width="22" height="30" rx="8" fill="#E9A55A"/><rect x="190" y="64" width="22" height="30" rx="8" fill="#E9A55A"/>';
-      [0, 1, 2].forEach(i => { s += '<circle cx="160" cy="80" r="20" fill="none" stroke="rgba(233,165,90,.6)" stroke-width="2">' + (M() ? '<animate attributeName="r" values="20;70" dur="2.4s" begin="' + (i * .8) + 's" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0" dur="2.4s" begin="' + (i * .8) + 's" repeatCount="indefinite"/>' : '') + '</circle>'; });
+      let s = '<path d="M120 70 V58 a40 40 0 0 1 80 0 V70" fill="none" stroke="' + C.ink + '" stroke-width="5" stroke-linecap="round"/><rect x="108" y="64" width="22" height="30" rx="8" fill="#C98B5B"/><rect x="190" y="64" width="22" height="30" rx="8" fill="#C98B5B"/>';
+      [0, 1, 2].forEach(i => { s += '<circle cx="160" cy="80" r="20" fill="none" stroke="rgba(201,139,91,.6)" stroke-width="2">' + (M() ? '<animate attributeName="r" values="20;70" dur="2.4s" begin="' + (i * .8) + 's" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0" dur="2.4s" begin="' + (i * .8) + 's" repeatCount="indefinite"/>' : '') + '</circle>'; });
       return svg(320, 110, s);
     },
     /** loop only the hard part */
     loop() {
-      let s = '<rect x="20" y="52" width="280" height="10" rx="5" fill="rgba(255,236,210,.12)"/><rect x="130" y="52" width="80" height="10" rx="5" fill="#E9A55A"/>';
-      s += '<path d="M130 44 C 130 14, 210 14, 210 44" fill="none" stroke="#E9A55A" stroke-width="3" stroke-dasharray="6 5"/><path d="M204 38 L210 46 L216 38" fill="none" stroke="#E9A55A" stroke-width="3" stroke-linecap="round"/>';
+      let s = '<rect x="20" y="52" width="280" height="10" rx="5" fill="rgba(255,240,228,.12)"/><rect x="130" y="52" width="80" height="10" rx="5" fill="#C98B5B"/>';
+      s += '<path d="M130 44 C 130 14, 210 14, 210 44" fill="none" stroke="#C98B5B" stroke-width="3" stroke-dasharray="6 5"/><path d="M204 38 L210 46 L216 38" fill="none" stroke="#C98B5B" stroke-width="3" stroke-linecap="round"/>';
       s += '<circle cx="130" cy="57" r="8" fill="' + C.ink + '">' + (M() ? '<animate attributeName="cx" values="130;210" dur="1.6s" repeatCount="indefinite"/>' : '') + '</circle><text x="170" y="88" class="tp-cap">' + L(['მხოლოდ რთული ადგილი, ბევრჯერ', 'only the hard spot, many times']) + '</text>';
       return svg(320, 100, s);
     },
     /** press only as hard as needed */
     press() {
-      let s = '<path d="M60 90 A 100 100 0 0 1 260 90" fill="none" stroke="rgba(255,236,210,.14)" stroke-width="14" stroke-linecap="round"/><path d="M60 90 A 100 100 0 0 1 120 30" fill="none" stroke="rgba(255,138,125,.55)" stroke-width="14" stroke-linecap="round"/><path d="M135 22 A 100 100 0 0 1 190 22" fill="none" stroke="rgba(142,240,180,.6)" stroke-width="14" stroke-linecap="round"/><path d="M205 28 A 100 100 0 0 1 260 90" fill="none" stroke="rgba(255,138,125,.55)" stroke-width="14" stroke-linecap="round"/>';
+      let s = '<path d="M60 90 A 100 100 0 0 1 260 90" fill="none" stroke="rgba(255,240,228,.14)" stroke-width="14" stroke-linecap="round"/><path d="M60 90 A 100 100 0 0 1 120 30" fill="none" stroke="rgba(255,138,125,.55)" stroke-width="14" stroke-linecap="round"/><path d="M135 22 A 100 100 0 0 1 190 22" fill="none" stroke="rgba(142,240,180,.6)" stroke-width="14" stroke-linecap="round"/><path d="M205 28 A 100 100 0 0 1 260 90" fill="none" stroke="rgba(255,138,125,.55)" stroke-width="14" stroke-linecap="round"/>';
       s += '<text x="75" y="108" class="tp-cap">' + L(['ზუზუნი', 'buzz']) + '</text><text x="160" y="56" class="tp-cap" fill="' + C.ok + '">' + L(['საკმარისი', 'enough']) + '</text><text x="248" y="108" class="tp-cap">' + L(['ზედმეტი', 'too hard']) + '</text>';
       s += '<line x1="160" y1="96" x2="160" y2="30" stroke="' + C.ink + '" stroke-width="4" stroke-linecap="round">' + (M() ? '<animateTransform attributeName="transform" type="rotate" values="62 160 96;62 160 96;-50 160 96;-4 160 96;-4 160 96" keyTimes="0;.1;.4;.7;1" dur="3.6s" repeatCount="indefinite"/>' : '<animateTransform attributeName="transform" type="rotate" values="-4 160 96" dur="1s" fill="freeze"/>') + '</line><circle cx="160" cy="96" r="7" fill="' + C.ink + '"/>';
       return svg(320, 118, s);
     },
     /** a loose wrist swings like a pendulum, also on the silent beats */
     wrist() {
-      let s = '<path d="M90 30 A 90 90 0 0 0 230 30" fill="none" stroke="rgba(255,236,210,.2)" stroke-width="2" stroke-dasharray="4 6"/><circle cx="160" cy="10" r="6" fill="#E9A55A"/>';
-      s += '<g>' + (M() ? '<animateTransform attributeName="transform" type="rotate" values="-32 160 10;32 160 10;-32 160 10" dur="1.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"/>' : '') + '<line x1="160" y1="10" x2="160" y2="88" stroke="#E8B48C" stroke-width="10" stroke-linecap="round"/><circle cx="160" cy="96" r="11" fill="#E8B48C"/></g>';
+      let s = '<path d="M90 30 A 90 90 0 0 0 230 30" fill="none" stroke="rgba(255,240,228,.2)" stroke-width="2" stroke-dasharray="4 6"/><circle cx="160" cy="10" r="6" fill="#C98B5B"/>';
+      s += '<g>' + (M() ? '<animateTransform attributeName="transform" type="rotate" values="-32 160 10;32 160 10;-32 160 10" dur="1.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"/>' : '') + '<line x1="160" y1="10" x2="160" y2="88" stroke="#FFC98A" stroke-width="10" stroke-linecap="round"/><circle cx="160" cy="96" r="11" fill="#FFC98A"/></g>';
       return svg(320, 118, s);
     },
     /** where the strings are struck: between the end of the fingerboard and the sound hole */
     zone() {
       let s = '<path d="M20 52 H150 C 180 52, 200 18, 250 14 H310 V106 H250 C 200 102, 180 68, 150 68 H20 Z" fill="#E2C99A"/><rect x="20" y="52" width="140" height="16" fill="' + C.board + '"/><path d="M160 52 q 12 8 0 16 Z" fill="' + C.board + '"/>';
-      s += '<circle cx="262" cy="60" r="20" fill="#2A1A10"/>'; for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2; s += '<circle cx="' + (262 + Math.cos(a) * 30).toFixed(1) + '" cy="' + (60 + Math.sin(a) * 30).toFixed(1) + '" r="2.4" fill="#2A1A10"/>'; }
+      s += '<circle cx="262" cy="60" r="20" fill="#1C1917"/>'; for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2; s += '<circle cx="' + (262 + Math.cos(a) * 30).toFixed(1) + '" cy="' + (60 + Math.sin(a) * 30).toFixed(1) + '" r="2.4" fill="#1C1917"/>'; }
       [55, 60, 65].forEach(y => { s += '<line x1="20" y1="' + y + '" x2="310" y2="' + y + '" stroke="' + C.str + '" stroke-width="1.2"/>'; });
       s += '<rect x="176" y="40" width="44" height="40" rx="8" fill="rgba(142,240,180,.18)" stroke="' + C.ok + '" stroke-width="2">' + (M() ? '<animate attributeName="opacity" values=".4;1;.4" dur="1.6s" repeatCount="indefinite"/>' : '') + '</rect><text x="198" y="96" class="tp-cap" fill="' + C.ok + '">' + L(['აქ', 'here']) + '</text>';
       return svg(320, 118, s);
@@ -217,7 +217,7 @@ PD.tips = (() => {
     },
     /** sing (hum) the note before you play it */
     sing() {
-      let s = '<text x="80" y="70" class="tp-big" style="font-size:44px" fill="#FFE2BA">♪</text><path d="M120 60 q 15 -20 30 0 t 30 0 t 30 0 t 30 0" fill="none" stroke="#E9A55A" stroke-width="3" stroke-linecap="round">' + (M() ? '<animate attributeName="stroke-dasharray" values="0 200;200 0" dur="1.8s" repeatCount="indefinite"/>' : '') + '</path><text x="270" y="68" class="tp-big" fill="' + C.ok + '">=</text>';
+      let s = '<text x="80" y="70" class="tp-big" style="font-size:44px" fill="#FFE2BA">♪</text><path d="M120 60 q 15 -20 30 0 t 30 0 t 30 0 t 30 0" fill="none" stroke="#C98B5B" stroke-width="3" stroke-linecap="round">' + (M() ? '<animate attributeName="stroke-dasharray" values="0 200;200 0" dur="1.8s" repeatCount="indefinite"/>' : '') + '</path><text x="270" y="68" class="tp-big" fill="' + C.ok + '">=</text>';
       return svg(320, 100, s);
     },
     /** check every string of a chord: they light one by one */
@@ -228,7 +228,7 @@ PD.tips = (() => {
     },
     /** fingertips get used to it: short sessions, rest */
     sore() {
-      let s = '<circle cx="160" cy="56" r="38" fill="none" stroke="rgba(255,236,210,.2)" stroke-width="6"/><path d="M160 18 A 38 38 0 0 1 196 66" fill="none" stroke="#E9A55A" stroke-width="6" stroke-linecap="round">' + (M() ? '<animate attributeName="stroke-dasharray" values="0 240;120 240" dur="3s" repeatCount="indefinite"/>' : '') + '</path><text x="160" y="62" class="tp-big" fill="#FFE2BA" style="font-size:18px">15′</text><text x="160" y="108" class="tp-cap">' + L(['ვარჯიში → დასვენება', 'practise → rest']) + '</text>';
+      let s = '<circle cx="160" cy="56" r="38" fill="none" stroke="rgba(255,240,228,.2)" stroke-width="6"/><path d="M160 18 A 38 38 0 0 1 196 66" fill="none" stroke="#C98B5B" stroke-width="6" stroke-linecap="round">' + (M() ? '<animate attributeName="stroke-dasharray" values="0 240;120 240" dur="3s" repeatCount="indefinite"/>' : '') + '</path><text x="160" y="62" class="tp-big" fill="#FFE2BA" style="font-size:18px">15′</text><text x="160" y="108" class="tp-cap">' + L(['ვარჯიში → დასვენება', 'practise → rest']) + '</text>';
       return svg(320, 116, s);
     },
     /** accents: the red arrows are stronger strokes */
