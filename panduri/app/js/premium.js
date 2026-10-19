@@ -157,7 +157,7 @@ PD.premium = (() => {
 
   /* ---------- Premium management (Settings › Premium management, admins only) ---------- */
   function managePage(w) {
-    const back = () => PD.app.go('settings');
+    const back = () => PD.app.back('settings');
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'pa.title', style: 'margin:0' })]), h('p', { class: 'muted', 'data-t': 'pa.lead' }));
     if (!C.isAdmin) { w.append(h('p', { class: 'notice', 'data-t': 'pa.need' }), h('button', { class: 'btn primary', 'data-t': 'pa.signin', onclick: () => PD.auth && PD.auth.open ? PD.auth.open() : PD.app.go('profile') })); return; }
     let rows = [], filter = 'all', term = '';

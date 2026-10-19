@@ -344,7 +344,7 @@ PD.tips = (() => {
       h('div', { class: 'tp-tx' }, [h('small', { class: 'tp-cat', text: t('tp.c.' + c.cat) }), h('b', { text: L(c.title) }), h('span', { text: L(c.short) })])]);
   }
   function page(w, param) {
-    const list = all(), back = () => history.length > 1 ? history.back() : PD.app.go('learn');
+    const list = all(), back = () => PD.app.back('learn');
     const c = param && list.find(x => x.id === param);
     if (c) {
       w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { text: L(c.title), style: 'margin:0' })]));

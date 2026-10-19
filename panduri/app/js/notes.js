@@ -261,7 +261,7 @@ PD.theoryBook = (() => {
     const c = CH.find(x => x.id === param);
     if (c) return chapter(w, c);
     const d = done(), n = CH.filter(x => d[x.id]).length;
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : PD.app.go('learn') }), h('h1', { 'data-t': 'tb.title', style: 'margin:0' })]),
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('learn') }), h('h1', { 'data-t': 'tb.title', style: 'margin:0' })]),
       h('p', { class: 'fg2', 'data-t': 'tb.lead' }),
       h('div', { class: 'tb-prog' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(n / CH.length * 100) + '%' })]), h('small', { class: 'muted', text: t('tb.read', { a: n, b: CH.length }) })]),
       h('div', { class: 'tb-list' }, CH.map((x, i) => h('button', { class: 'tb-card' + (d[x.id] ? ' done' : ''), onclick: () => PD.app.go('theory', x.id) }, [h('span', { class: 'tb-num', text: d[x.id] ? '✓' : String(i + 1) }), h('b', { text: L(x.t[0], x.t[1]) })]))));

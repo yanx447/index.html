@@ -1781,3 +1781,100 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border:2px solid #B57
 :root[data-theme] .rail .navb[aria-current="page"] svg :is(path,rect,circle){fill:currentColor;fill-opacity:.22}
 .ce-detail{order:0!important}
 .ce-hero .ce-cap:empty{display:none}
+
+/* =====================================================================
+   v14 · motion system
+   One set of timings and curves for the whole app:
+   --t-press 120ms (press/release) · --t-ctl 220ms (toggles, tabs, segments)
+   --t-page 380ms (push/pop, set in JS) · --t-ctx 440ms (sheets)
+   Curves: --e-ios (navigation, sheets) · --e-out (arrivals) · --e-spring (small, controlled overshoot for icons only)
+   ===================================================================== */
+:root{--t-press:120ms;--t-ctl:220ms;--t-ctx:440ms;--e-ios:cubic-bezier(.32,.72,0,1);--e-out:cubic-bezier(.22,1,.36,1);--e-spring:cubic-bezier(.34,1.36,.64,1)}
+/* screens are opaque cards that slide over each other */
+.page{background:var(--bg);will-change:auto}
+.page.leave{pointer-events:none}
+.page.top-edge{box-shadow:-18px 0 40px rgba(0,0,0,.55)}
+.pg-dim{position:absolute;inset:0;background:rgba(0,0,0,.42);pointer-events:none;opacity:0}
+/* the old class-based page animations are replaced by the router's own */
+.page.enter,.page.enter-fwd,.page.enter-back,.page.enter-tab,.page.leave-fwd,.page.leave-back,.page.leave-tab{animation:none!important}
+.page .wrap,.page .wrap>*{animation:none}
+.page.enter .wrap > *,.page.enter-tab .wrap > *{animation:none!important}
+
+/* ---- tab bar: one copper indicator that travels between tabs ---- */
+.tab-ind{opacity:1;transition:transform .34s var(--e-ios),opacity .2s}
+.tabbar .tab-ind{display:flex!important;top:0;width:28px;height:2px}
+.tabbar .tab-ind i{display:none} .tabbar .tab-ind i:first-child{display:block;flex:1;height:2px;border-radius:0 0 2px 2px;background:var(--acc)!important;box-shadow:0 0 10px rgba(201,139,91,.55)}
+.rail .tab-ind{display:flex!important;width:2px;height:28px} .rail .tab-ind i{display:none} .rail .tab-ind i:first-child{display:block;flex:1;width:2px;background:var(--acc)!important}
+.tab-ind.twang i{animation:none!important}
+@media (max-width:820px){ :root[data-theme] .tabbar .navb[aria-current="page"]::after{display:none!important} }
+.navb{transition:color var(--t-ctl) ease}
+.navb svg{transition:transform var(--t-ctl) var(--e-out)} .navb svg :is(path,rect,circle){transition:fill-opacity var(--t-ctl) ease}
+.navb span{transition:color var(--t-ctl) ease,opacity var(--t-ctl) ease}
+.tabbar .navb:not([aria-current]) span{opacity:.85}
+.navb:active svg{transform:scale(.9)}
+
+/* ---- press feedback: everything you can tap answers the finger ---- */
+:is(.btn,.chip,.prow,.srow,.door,.pf2-i,.lib-card,.hx-goal2,.ai-card,.hxq,.acard,.cgrid button,.ag-btn,.sp-start,.li[onclick],button.li,.pa-b,.ai-tg,.ai-ms,.seg button){transition:transform var(--t-press) var(--e-out),background-color var(--t-ctl) ease,border-color var(--t-ctl) ease,color var(--t-ctl) ease,box-shadow var(--t-ctl) ease,opacity var(--t-ctl) ease}
+:is(.btn,.chip,.cgrid button,.ag-btn,.sp-start,.pa-b,.ai-tg,.ai-ms):active{transform:scale(.96)}
+:is(.prow,.srow,.door,.pf2-i,.lib-card,.hx-goal2,.ai-card,.hxq,.acard,button.li):active{transform:scale(.985)}
+.srow:active,.pf2-i:active,button.li:active{background:rgba(255,240,228,.03)}
+.srow-play,.srow-art{transition:transform var(--t-ctl) var(--e-out),border-color var(--t-ctl),color var(--t-ctl)}
+.srow:active .srow-play{transform:scale(.9)}
+
+/* ---- toggles, sliders, fields ---- */
+input[type=checkbox]{transition:background-color var(--t-ctl) ease,box-shadow var(--t-ctl) ease}
+input[type=checkbox]::before{transition:transform var(--t-ctl) var(--e-out),width var(--t-press) ease}
+input[type=checkbox]:active::before{width:24px}
+input[type=checkbox]:checked:active::before{transform:translateX(14px)}
+input[type=range]::-webkit-slider-thumb{transition:transform var(--t-press) var(--e-out),box-shadow var(--t-ctl)}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.18)}
+:is(.input,.search){transition:border-color var(--t-ctl) ease,box-shadow var(--t-ctl) ease,background-color var(--t-ctl) ease}
+select.input{transition:border-color var(--t-ctl)}
+
+/* ---- segmented controls: a thumb that slides to the chosen option (added by motion.js) ---- */
+.seg.has-thumb{position:relative;isolation:isolate}
+.seg.has-thumb>button{position:relative;z-index:1;background:transparent!important;box-shadow:none!important}
+.seg-thumb{position:absolute;left:0;top:0;z-index:0;border-radius:999px;background:linear-gradient(180deg,rgba(201,139,91,.28),rgba(201,139,91,.14));box-shadow:inset 0 0 0 1px rgba(201,139,91,.7);transition:transform .3s var(--e-ios),width .3s var(--e-ios),height .3s var(--e-ios);pointer-events:none}
+.seg-thumb.jump{transition:none}
+
+/* ---- sheets and toasts ---- */
+.sheet-back{animation:sbIn var(--t-ctl) ease both!important}
+.sheet{animation:shIn var(--t-ctx) var(--e-ios) both!important}
+.sheet-back.out{animation:sbOut .22s ease both!important}
+.sheet-back.out .sheet{animation:shOut .24s cubic-bezier(.4,0,1,1) both!important}
+@keyframes sbIn{from{background-color:rgba(0,0,0,0);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0)}}
+@keyframes sbOut{to{background-color:rgba(0,0,0,0);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0)}}
+@keyframes shIn{from{transform:translateY(100%)}to{transform:none}}
+@keyframes shOut{to{transform:translateY(100%)}}
+.toast{animation:toIn .3s var(--e-out) both}
+.toast.out{animation:toOut .2s ease both!important}
+@keyframes toIn{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes toOut{to{opacity:0;transform:translate(-50%,8px)}}
+
+/* ---- progress that moves rather than jumps ---- */
+.hx-bar i,.acard-p i,.pf2-stats .hx-bar i{transition:width .5s var(--e-out)}
+.hx-goal2 svg circle:last-child,.gring circle:last-child{transition:stroke-dasharray .6s var(--e-out)}
+/* ---- empty states arrive softly ---- */
+.empty,.ai-msg:not(:empty),.ag-msg:not([hidden]){animation:fadeUp .3s var(--e-out) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---- a quiet number swap (BPM, counters): used by motion.js ---- */
+.num-swap{display:inline-block}
+
+/* reduced motion: nothing slides, nothing scales */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+:root.rm *,:root.rm *::before,:root.rm *::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+/* ---- the learning screen: clear, quiet feedback ---- */
+.pz-mic{transition:color .18s ease,border-color .18s ease,background-color .18s ease}
+.pz-mic.on .pz-mi{animation:micOn .5s var(--e-out) both}
+@keyframes micOn{0%{transform:scale(.7);opacity:.3}60%{transform:scale(1.08)}100%{transform:none;opacity:1}}
+.pz-mic.ok{animation:okRing .45s var(--e-out)}
+@keyframes okRing{0%{box-shadow:0 0 0 0 rgba(127,227,168,.45)}100%{box-shadow:0 0 0 9px rgba(127,227,168,0)}}
+.pz-mic.fix{animation:fixNudge .28s ease}
+@keyframes fixNudge{0%,100%{transform:none}30%{transform:translateX(-3px)}65%{transform:translateX(3px)}}
+.res-grid .stat{animation:fadeUp .4s var(--e-out) both}
+.res-grid .stat:nth-child(2){animation-delay:.06s}.res-grid .stat:nth-child(3){animation-delay:.12s}.res-grid .stat:nth-child(4){animation-delay:.18s}.res-grid .stat:nth-child(n+5){animation-delay:.24s}
+.ce-namebox .ce-name{will-change:auto}
+.cgrid button{transition:background .22s ease,border-color .22s ease,box-shadow .22s ease,transform var(--t-press) var(--e-out)}

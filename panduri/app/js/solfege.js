@@ -40,7 +40,7 @@ PD.solfege = (() => {
   /* ---------- page ---------- */
   function page(w, param) {
     const own = (() => { const offs = []; const un = PD.bus.on('route', () => { offs.forEach(f => { try { f(); } catch (_) {} }); un(); }); return f => offs.push(f); })();
-    const back = () => history.length > 1 ? history.back() : PD.app.go('learn');
+    const back = () => PD.app.back('learn');
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'sf.title', style: 'margin:0' })]), h('p', { class: 'muted', 'data-t': 'sf.lead' }));
     let [ex, lv] = String(param || 'hear:1').split(':'); if (!LEVELS[ex]) ex = 'hear'; lv = Math.max(1, Math.min(3, +lv || 1));
     const tabs = h('div', { class: 'seg sf-tabs', role: 'tablist' }, ['hear', 'iv', 'sing'].map(k => h('button', { role: 'tab', 'aria-pressed': String(k === ex), 'data-t': 'sf.' + k, onclick: () => PD.app.go('solfege', k + ':' + lv, true) })));

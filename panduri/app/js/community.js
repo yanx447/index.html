@@ -26,7 +26,7 @@ PD.community = (() => {
   const err = e => t('cm.err', { e: (e && e.message) || e });
   function page(w, param) {
     const own = PD.pageScope();
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : PD.app.go('home') }), h('h1', { 'data-t': 'cm.title', style: 'margin:0' })]));
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('home') }), h('h1', { 'data-t': 'cm.title', style: 'margin:0' })]));
     if (!C.configured) { w.append(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: ic.chat }), h('p', { 'data-t': 'cm.noServer' })])); return; }
     if (!C.session) { w.append(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: ic.chat }), h('p', { 'data-t': 'cm.signin' }), h('button', { class: 'btn primary', 'data-t': 'pf.signin', onclick: () => PD.auth.open() })])); return; }
     if (param && String(param).indexOf('c:') === 0) { const [, id, ...nm] = String(param).split(':'); return chatView(w, id, nm.join(':'), own); }

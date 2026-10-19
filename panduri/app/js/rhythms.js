@@ -38,7 +38,7 @@ PD.rhythmsUI = (() => {
   }
 
   function list(w) {
-    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : PD.app.go('practice') }), h('div', { class: 'grow' }, [h('h1', { 'data-t': 'nav.rhythms' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'rh.lead' })])]));
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('div', { class: 'grow' }, [h('h1', { 'data-t': 'nav.rhythms' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'rh.lead' })])]));
     const box = h('div', { class: 'paths' });
     C.rhythms().forEach(r => {
       const p = LS.progress.lesson('rhythm-' + r.id);
@@ -53,7 +53,7 @@ PD.rhythmsUI = (() => {
   function detail(w, id) {
     const r = C.rhythms().find(x => x.id === id); if (!r) return list(w);
     const L = LS.fromRhythm(r);
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.go('rhythms') })]),
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('rhythms') })]),
       h('div', { style: 'display:flex;flex-direction:column;gap:6px' }, [h('span', { class: 'kicker', text: t('nav.rhythms') + ' · ' + t('rh.strokes', { n: r.strokes.length }) }), h('h1', { text: PD.i18n.pick(r.name) }),
         h('div', { class: 'row' }, [h('span', { class: 'tag', text: t('rh.teacher') }), h('span', { class: 'muted', text: t('rh.usage', { u: PD.i18n.pick(r.usage).join(' · ') }) })])]));
     if (r.timing.src === 'default') w.append(h('p', { class: 'tag warn', style: 'display:block;padding:10px 12px;line-height:1.5', text: t('rh.timingDefault') }));

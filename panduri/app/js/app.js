@@ -133,6 +133,7 @@ PD.app = (() => {
     });
     const main = h('main', { class: 'main', id: 'main' });
     document.body.append(h('div', { class: 'shell', id: 'shell' }, [rail, main]), bar);
+    swipeBack();
     PD.i18n.apply(document);
     PD.bus.on('lang', () => render());
     let cloudT = 0, cloudSig = '';
@@ -142,7 +143,10 @@ PD.app = (() => {
       if (!e.state && /access_token=|error_description=/.test(location.hash)) return;   // a sign-in link opened in this tab (handled by the account code)
       if (PD.layers.onPop(e)) return;   // Back closed an overlay (sheet, lesson screen, studio…): the page stays
       const s = e.state || { r: 'home' }; if (s.r === route && (s.p == null ? null : s.p) === param && $('page')) return;   // same page: keep it (and its scroll)
-      route = s.r || 'home'; param = s.p == null ? null : s.p; render(true);
+      route = s.r || 'home'; param = s.p == null ? null : s.p;
+      { const k = route + ':' + (param == null ? '' : param); if (navStack.length > 1 && navStack[navStack.length - 2] === k) navStack.pop(); else navStack.push(k); }
+      if (e.hasUAVisualTransition) quietNext = true;   // the browser already animated its own swipe
+      render(true);
     });
     // Android hardware Back (installed app): the same as the browser's Back; on the first page it leaves the app
     try { const A = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App; if (A && A.addListener) A.addListener('backButton', ev => { if (ev && ev.canGoBack) history.back(); else if (route !== 'home') go('home', null, true); else A.exitApp(); }); } catch (_) {}
@@ -162,32 +166,105 @@ PD.app = (() => {
     navDir = TOP[r] === r || replace ? 'tab' : 'fwd';
     route = r; param = p == null ? null : p;
     try { (replace || same || PD.layers.dangling() ? history.replaceState : history.pushState).call(history, { r, p: param }, ''); } catch (_) {}
+    { const k = r + ':' + (param == null ? '' : param); if (replace || same || !navStack.length) { if (navStack.length) navStack[navStack.length - 1] = k; else navStack.push(k); } else navStack.push(k); }
     render();
   }
-  /* page transitions: a new page slides in from the side it comes from (deeper → from the right, Back → from the left,
-     another tab → a short rise); the old page moves the other way and fades. Re-drawing the same page keeps its scroll and does not move. */
-  let lastKey = null, navDir = 'tab';
+  /* ---------- screen transitions ----------
+     deeper (push): the new screen slides in from the right over the old one, which moves a third of the way left and dims;
+     Back (pop): the reverse; another tab: a short cross-fade with the cards arriving in order; a re-draw of the same
+     screen does not move. A new navigation finishes any running one first, so screens never pile up. Scroll positions are
+     remembered per screen and restored on Back; the last screens are kept (static) for the swipe-back gesture. */
+  let lastKey = null, navDir = 'tab', quietNext = false;
   const motionOK = () => !document.documentElement.classList.contains('rm') && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  function render(fromPop) {
-    const main = $('main'), key = route + ':' + (param == null ? '' : param), changed = key !== lastKey, dir = !changed ? null : fromPop ? 'back' : navDir;
-    lastKey = key; navDir = 'fwd';
-    main.querySelectorAll('.page.leave').forEach(x => x.remove());
-    const old = main.querySelector('.page'), keep = !changed && old ? old.scrollTop : 0;
-    if (old) {
-      if (dir && motionOK()) { old.removeAttribute('id'); old.classList.remove('enter', 'enter-fwd', 'enter-back', 'enter-tab'); old.classList.add('leave', 'leave-' + dir); old.inert = true; old.setAttribute('aria-hidden', 'true'); setTimeout(() => old.remove(), 320); }
-      else old.remove();
+  const M = { push: 380, tab: 260, ease: 'cubic-bezier(.32,.72,0,1)', out: 'cubic-bezier(.22,1,.36,1)', par: '-28%' };
+  const scrolls = {}, cache = new Map(), navStack = [];
+  let running = [];   // [{ A: animations, done }]
+  function settle() { const R = running; running = []; R.forEach(x => x.done()); const main = $('main'); if (main) main.querySelectorAll('.page.leave, .pg-dim').forEach(x => x.remove()); }
+  function keep(key, el) {   // a static copy of a screen we left, for the swipe-back gesture
+    if (!el || !key) return; el.classList.remove('leave', 'top-edge'); el.style.transform = ''; el.style.zIndex = ''; el.style.visibility = ''; el.inert = true; el.setAttribute('aria-hidden', 'true');
+    cache.delete(key); cache.set(key, el); while (cache.size > 6) cache.delete(cache.keys().next().value);
+  }
+  function animate(main, old, page, dir, oldKey) {
+    if (!old) return;
+    if (!dir || !motionOK()) { if (dir === 'fwd') { old.remove(); keep(oldKey, old); } else old.remove(); return; }
+    old.removeAttribute('id'); old.classList.add('leave'); old.inert = true; old.setAttribute('aria-hidden', 'true');
+    const o = { duration: dir === 'tab' ? M.tab : M.push, easing: M.ease, fill: 'both' }, A = []; let dim = null;
+    if (dir === 'fwd' || dir === 'back') {
+      dim = h('div', { class: 'pg-dim', 'aria-hidden': 'true' });
+      if (dir === 'fwd') { main.insertBefore(dim, page); page.classList.add('top-edge'); A.push(page.animate([{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }], o), old.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(' + M.par + ')' }], o), dim.animate([{ opacity: 0 }, { opacity: 1 }], o)); }
+      else { main.appendChild(dim); main.appendChild(old); old.style.zIndex = 3; old.classList.add('top-edge'); A.push(old.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }], o), page.animate([{ transform: 'translateX(' + M.par + ')' }, { transform: 'translateX(0)' }], o), dim.animate([{ opacity: 1 }, { opacity: 0 }], o)); }
+    } else {   // tab: the old screen fades quickly, the new one rises a few pixels, its first cards follow in order
+      A.push(old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: 'ease-out', fill: 'both' }), page.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: M.tab, easing: M.out, delay: 50, fill: 'both' }));
+      [...page.querySelectorAll('.wrap > *')].slice(1, 8).forEach((el, k) => A.push(el.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: M.out, delay: 90 + k * 35, fill: 'backwards' })));
     }
+    let fin = false;
+    const done = () => { if (fin) return; fin = true; A.forEach(a => { try { a.cancel(); } catch (_) {} }); page.classList.remove('top-edge'); if (dim) dim.remove(); old.remove(); if (dir === 'fwd') keep(oldKey, old); running = running.filter(x => x.done !== done); };
+    running.push({ A, done });
+    Promise.all(A.map(a => a.finished)).then(done, done);
+  }
+  function render(fromPop) {
+    const main = $('main'), key = route + ':' + (param == null ? '' : param), changed = key !== lastKey;
+    let dir = !changed ? null : fromPop ? 'back' : navDir;
+    if (quietNext) { dir = null; quietNext = false; }
+    const oldKey = lastKey; lastKey = key; navDir = 'fwd';
+    settle();
+    const old = $('page') || main.querySelector('.page:not(.leave)'), keepScroll = !changed && old ? old.scrollTop : 0;
+    if (old && oldKey) scrolls[oldKey] = old.scrollTop;
     const top = TOP[route] || 'home';
     document.querySelectorAll('.navb').forEach(b => { if (b.dataset.go === top) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     tabInd(top);
-    const page = h('div', { class: 'page' + (dir ? ' enter enter-' + dir : ''), id: 'page' }), wrap = h('div', { class: 'wrap' }); page.appendChild(wrap); main.appendChild(page);
+    const page = h('div', { class: 'page', id: 'page' }), wrap = h('div', { class: 'wrap' }); page.appendChild(wrap);
+    if (old) old.removeAttribute('id');
+    main.appendChild(page);
     PD.bus.emit('route', route);
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => PD.tools.tuner(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
       community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
-    page.style.scrollBehavior = 'auto'; page.scrollTop = changed ? 0 : keep; page.style.scrollBehavior = '';   // re-drawing the same page stays where you were
+    const want = !changed ? keepScroll : (fromPop && scrolls[key]) || 0;
+    page.style.scrollBehavior = 'auto'; page.scrollTop = want;   // Back returns to where you were
+    if (want && page.scrollTop < want - 2) { let n = 0; const again = () => { if (!page.isConnected || n++ > 20) return; page.scrollTop = want; if (page.scrollTop < want - 2) setTimeout(again, 50); }; requestAnimationFrame(again); }
+    page.style.scrollBehavior = '';
+    if (old && old !== page) animate(main, old, page, dir, oldKey);
+    // keyboard / screen-reader users land on the new screen's title (touch users keep no focus ring)
+    if (changed && document.activeElement && document.activeElement !== document.body && main.contains(document.activeElement) === false && old && old.contains(document.activeElement) || (changed && old && old.contains(document.activeElement))) { const h1 = page.querySelector('h1'); if (h1) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); } }
+  }
+  /* ---------- swipe back from the left edge (installed app only: in a browser tab the browser has its own) ---------- */
+  function swipeBack() {
+    const main = $('main'); if (!main) return;
+    const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    let g = null;
+    main.addEventListener('touchstart', e => {
+      if (g || e.touches.length !== 1 || !standalone() || !motionOK() || PD.layers.depth || (PD.practice && PD.practice.active)) return;
+      const x = e.touches[0].clientX; if (x > 24 || navStack.length < 2) return;
+      const prevKey = navStack[navStack.length - 2], under = cache.get(prevKey), cur = main.querySelector('.page:not(.leave)'); if (!under || !cur) return;
+      settle();
+      const dim = h('div', { class: 'pg-dim', 'aria-hidden': 'true' });
+      main.insertBefore(under, cur); main.insertBefore(dim, cur); under.scrollTop = scrolls[prevKey] || 0; cur.classList.add('top-edge');
+      g = { x0: x, y0: e.touches[0].clientY, t0: performance.now(), cur, under, dim, W: main.clientWidth, on: false, dx: 0, v: 0, lt: performance.now(), lx: x };
+      under.style.transform = 'translateX(' + M.par + ')'; dim.style.opacity = 1;
+    }, { passive: true });
+    main.addEventListener('touchmove', e => {
+      if (!g) return; const x = e.touches[0].clientX, y = e.touches[0].clientY;
+      if (!g.on) { if (Math.abs(y - g.y0) > Math.abs(x - g.x0) && Math.abs(y - g.y0) > 8) return cancel(true); if (x - g.x0 < 6) return; g.on = true; }
+      e.preventDefault();
+      const now = performance.now(); g.v = (x - g.lx) / Math.max(1, now - g.lt); g.lx = x; g.lt = now;
+      g.dx = Math.max(0, x - g.x0); const p = Math.min(1, g.dx / g.W);
+      g.cur.style.transform = 'translateX(' + g.dx + 'px)'; g.under.style.transform = 'translateX(' + (-28 * (1 - p)) + '%)'; g.dim.style.opacity = 1 - p;
+    }, { passive: false });
+    const end = () => {
+      if (!g) return; if (!g.on) return cancel(true);
+      const p = g.dx / g.W, go2 = p > .38 || g.v > .45, rest = go2 ? 1 - p : p, dur = Math.max(120, Math.min(320, rest * 420)), G = g; g = null;
+      const o = { duration: dur, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' };
+      const a = [G.cur.animate([{ transform: G.cur.style.transform }, { transform: go2 ? 'translateX(100%)' : 'translateX(0)' }], o), G.under.animate([{ transform: G.under.style.transform }, { transform: go2 ? 'translateX(0)' : 'translateX(' + M.par + ')' }], o), G.dim.animate([{ opacity: G.dim.style.opacity }, { opacity: go2 ? 0 : 1 }], o)];
+      Promise.all(a.map(x => x.finished)).then(() => {
+        if (go2) { a.forEach(x => x.cancel()); G.cur.remove(); G.under.style.transform = ''; G.under.classList.add('leave'); G.dim.style.opacity = 0; quietNext = true; history.back(); }
+        else { a.forEach(x => x.cancel()); G.cur.style.transform = ''; G.cur.classList.remove('top-edge'); G.under.remove(); G.under.style.transform = ''; G.dim.remove(); }
+      });
+    };
+    function cancel() { if (!g) return; g.cur.style.transform = ''; g.cur.classList.remove('top-edge'); g.under.remove(); g.under.style.transform = ''; g.dim.remove(); g = null; }
+    main.addEventListener('touchend', end); main.addEventListener('touchcancel', () => cancel());
   }
   /** the active tab is marked by three short strings (A · C♯ · E) that slide to it and ring for a moment */
   let tabNow = null;
@@ -197,7 +274,7 @@ PD.app = (() => {
       const b = nav.querySelector('.navb[data-go="' + top + '"]'); if (!b) { ind.style.opacity = '0'; return; }
       const place = () => { const vert = nav.classList.contains('rail'); ind.style.opacity = '1'; ind.style.transform = vert ? 'translateY(' + (b.offsetTop + b.offsetHeight / 2 - 14) + 'px)' : 'translateX(' + (b.offsetLeft + b.offsetWidth / 2 - 14) + 'px)'; };
       if (!b.offsetWidth) requestAnimationFrame(place); else place();
-      if (tabNow && tabNow !== top && motionOK()) { ind.classList.remove('twang'); void ind.offsetWidth; ind.classList.add('twang'); }
+      if (tabNow && tabNow !== top && motionOK() && PD.motion) PD.motion.spring(b.querySelector('svg'));
     });
     tabNow = top;
   }
@@ -441,7 +518,7 @@ PD.app = (() => {
     const ss = LS.steps(l);
     const stages = LS.stagesOf(l);
     w.append(h('div', { class: 'lx-hero' }, [h('div', { class: 'lx-art', html: coverSVG(l) }),
-      h('div', { class: 'lx-bar' }, [h('button', { class: 'pz-ic lx-ic', 'aria-label': t('back'), html: ic.back, onclick: () => history.length > 1 ? history.back() : go('songs') }), h('span', { class: 'spacer' }), favBtn(l, LS.progress.favorites().includes(l.id))])]));
+      h('div', { class: 'lx-bar' }, [h('button', { class: 'pz-ic lx-ic', 'aria-label': t('back'), html: ic.back, onclick: () => back('songs') }), h('span', { class: 'spacer' }), favBtn(l, LS.progress.favorites().includes(l.id))])]));
     w.append(h('div', { class: 'lx-head' }, [h('h1', { text: PD.i18n.pick(l.title) }),
       h('div', { class: 'lx-meta' }, [h('span', { class: 'lx-lv lv' + (l.level || 1), text: t('lvl.' + (l.level || 1)) }), h('span', { text: t('type.' + l.type) }), has ? h('span', { text: PD.fmtTime(durSec(l)) }) : null, h('span', { text: Math.round(l.bpm) + ' BPM' }), l.demo ? h('span', { class: 'tag demo', title: t('demo.badgeD'), text: t('demo.badge') }) : null]),
       l.desc ? h('p', { class: 'fg2', text: PD.i18n.pick(l.desc) }) : null,
@@ -594,7 +671,7 @@ PD.app = (() => {
 
   /* ---------- Practice hub ---------- */
   function practiceHub(w) {
-    w.append(h('div', { class: 'pg-top' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : go('learn') }), h('h1', { 'data-t': 'hd.practice' })]));
+    w.append(h('div', { class: 'pg-top' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('learn') }), h('h1', { 'data-t': 'hd.practice' })]));
     const plan = PD.daily.plan(), dn = plan.filter(x => x.done).length, nextSeg = plan.find(x => !x.done && x.go);
     const rowI = (cls, icon, k, d, right, fn) => h('button', { class: 'prow' + (cls ? ' ' + cls : ''), onclick: fn }, [h('span', { class: 'prow-ic', html: icon }), h('span', { class: 'grow' }, [h('b', { text: t(k) }), h('small', { text: d })]), right ? h('span', { class: 'prow-n', text: right }) : null, h('span', { class: 'chev', html: ic.chevron })]);
     const list = h('div', { class: 'plist' });
@@ -652,7 +729,7 @@ PD.app = (() => {
     const avg = arr => { const a = arr.filter(v => v != null); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : null; };
     const noteAcc = avg(ss.map(s => s.pitch)), timeAcc = avg(ss.filter(s => !s.waited).map(s => s.timing)), avgBpm = avg(ss.map(s => s.bpm));
     const rhythmsLearned = PD.curriculum.rhythms().filter(r => LS.progress.lesson('rhythm-' + r.id).mastery >= .9).length;
-    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : go('profile') }), h('div', { class: 'grow' }, [h('h1', { 'data-t': 'pr.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'pr.lead' })])]));
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('profile') }), h('div', { class: 'grow' }, [h('h1', { 'data-t': 'pr.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'pr.lead' })])]));
     const pc = v => v == null ? '—' : Math.round(v * 100) + '%';
     w.append(h('div', { class: 'pgrid' }, [
       stat(Math.floor(totalSec / 3600) + ':' + String(Math.floor(totalSec % 3600 / 60)).padStart(2, '0'), t('pr.time')), stat(levelName(), t('pr.stage')),
@@ -703,7 +780,7 @@ PD.app = (() => {
 
   /* ---------- Settings: Audio · Learning · Visual · Language · Accessibility · Account ---------- */
   function settings(w) {
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => go('profile') }), h('h1', { 'data-t': 'set.title', style: 'margin:0' })]));
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('profile') }), h('h1', { 'data-t': 'set.title', style: 'margin:0' })]));
     const sect = (k, rows) => h('section', { class: 'set-sec' }, [h('h2', { 'data-t': k }), h('div', { class: 'list' }, rows.filter(Boolean))]);
     const row = (k, d, ctrl) => h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': k }), d ? h('small', { text: d }) : null]), ctrl]);
     const toggle = (key, def, on) => { const c = h('input', { type: 'checkbox', 'aria-label': t(key) }); c.checked = PD.store.get(key, def); c.onchange = () => { PD.store.set(key, c.checked); on && on(c.checked); }; return c; };
@@ -780,5 +857,7 @@ PD.app = (() => {
   function nextTheoryStep() { for (const p of LS.PATHS) { if (!p.theory) continue; const real = p.steps.filter(x => x.kind !== 'needs'), s = real.find(x => !stepDone(x)); if (s) return { p, s, d: real.filter(stepDone).length, n: real.length }; } return null; }
   /** the first theory path that still has open steps (the level program points there first) */
   function theoryProgram() { const p = LS.PATHS.find(x => x.theory && x.steps.some(s2 => s2.kind !== 'needs' && !stepDone(s2))); return p ? p.id : null; }
-  return { shell, go, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, get route() { return route; }, get param() { return param; } };
+  /** an in-app Back button: the same step as the system Back when there is one, otherwise up to the section */
+  function back(fallback) { if (navStack.length > 1) history.back(); else go(fallback || TOP[route] || 'home', null, true); }
+  return { shell, go, back, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, get route() { return route; }, get param() { return param; } };
 })();

@@ -43,7 +43,7 @@ PD.tools = (() => {
   const SCOL = ['', '#D9783F', '#78B7DE', '#EFE0B8'];
   /** run fn(off) and release resources when the route changes */
   function scope() { const offs = []; const un = PD.bus.on('route', () => { offs.forEach(f => { try { f(); } catch (_) {} }); un(); }); return f => offs.push(f); }
-  const header = (w, k) => w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.go('tools') }), h('h1', { 'data-t': k, style: 'margin:0' })]));
+  const header = (w, k) => w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': k, style: 'margin:0' })]));
 
   /* =================== TUNER =================== */
   function tuner(w) {
@@ -155,7 +155,7 @@ PD.tools = (() => {
     header(w, 'ce.title');
     const all = PD.curriculum.chords();
     let cur = all.find(c => c.id === param) || all.find(c => c.name === 'Dm') || all[0], vi = 0, q = '';
-    let fRoot = PD.store.get('ce.root', -1), fType = PD.store.get('ce.type', 'basic');
+    let swapDir = 0, fRoot = PD.store.get('ce.root', -1), fType = PD.store.get('ce.type', 'basic');
     const vo = () => (cur.voicings && cur.voicings[vi]) || cur;
     // the same neck and finger markers as the lessons, showing one still chord
     const nv = h('div', { class: 'neckview' }), ncv = h('canvas', { 'aria-label': t('ce.title') }); nv.appendChild(ncv);
@@ -223,9 +223,9 @@ PD.tools = (() => {
       const posSeg = cur.voicings && cur.voicings.length > 1 ? h('div', { class: 'seg', role: 'group', 'aria-label': t('ce.pos') }, cur.voicings.map((x, k) => h('button', { 'aria-pressed': String(k === vi), text: x.pos ? t('ce.posN', { n: x.pos }) : t('ce.open'), onclick: () => { vi = k; show(); } }))) : null;
       const src = cur.src === 'teacher' && vi === 0 ? 'ce.teacher' : cur.src === 'song' && vi === 0 ? 'ce.song' : cur.demo ? 'ce.demo' : 'ce.computed';
       detail.append(
-        h('div', { class: 'row' }, [h('button', { class: 'btn icon small', 'aria-label': t('prev'), text: '‹', onclick: () => { cur = list[(i - 1 + list.length) % list.length] || cur; vi = 0; grid(); show(); } }),
+        h('div', { class: 'row' }, [h('button', { class: 'btn icon small', 'aria-label': t('prev'), text: '‹', onclick: () => { swapDir = -1; cur = list[(i - 1 + list.length) % list.length] || cur; vi = 0; grid(); show(); } }),
           h('div', { class: 'ce-name' }, [h('h2', { text: cur.name }), h('small', { text: cur.ka || '' })]),
-          h('button', { class: 'btn icon small', 'aria-label': t('next'), text: '›', onclick: () => { cur = list[(i + 1) % list.length] || cur; vi = 0; grid(); show(); } }), h('span', { class: 'mono muted', text: v.frets.join('-') })]),
+          h('button', { class: 'btn icon small', 'aria-label': t('next'), text: '›', onclick: () => { swapDir = 1; cur = list[(i + 1) % list.length] || cur; vi = 0; grid(); show(); } }), h('span', { class: 'mono muted', text: v.frets.join('-') })]),
         T ? h('p', { class: 'fg2', text: PD.i18n.pick({ ka: T.d[0], en: T.d[1] }) }) : h('p', { class: 'fg2', text: v.frets.every(f => f === 0) ? t('ce.openD') : cur.kind === 'maj' ? t('ce.majD') : t('ce.minD') }),
         posSeg,
         h('div', { class: 'ce-roles' }, [h('span', { class: 'kicker', 'data-t': 'ce.roles' }), h('div', { class: 'ce-rl' }, ms.map((m, k) => {
@@ -239,6 +239,7 @@ PD.tools = (() => {
         h('div', { class: 'row' }, [other, h('button', { class: 'btn small', text: t('ce.showCh'), onclick: () => { const b = all.find(c => c.id === other.value); if (b) showChange(v, (b.voicings && b.voicings[0]) || b, cur.name, b.name); } }), h('button', { class: 'btn', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })]),
         h('p', { class: 'notice', text: t(src) }));
       nameBox.innerHTML = ''; nameBox.append(detail.firstChild);
+      if (PD.motion && nameBox.dataset.shown) PD.motion.swap(nameBox.querySelector('.ce-name'), swapDir); nameBox.dataset.shown = '1'; swapDir = 0;
       { const sel = g.querySelector('[aria-pressed="true"]'); if (sel) requestAnimationFrame(() => { g.scrollLeft = Math.max(0, sel.offsetLeft - (g.clientWidth - sel.offsetWidth) / 2); }); }
       preview();
     }
@@ -323,7 +324,7 @@ PD.tools = (() => {
   /* =================== 3D EXPLORER + TOUR =================== */
   function explore(w, param) {
     const own = scope(), R = PD.R3D;
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.go('tools') }), h('h1', { 'data-t': 'x3.title', style: 'margin:0' }), h('span', { class: 'spacer' }), h('button', { class: 'btn small primary', 'data-t': 'x3.tour', onclick: () => tour(0) })]));
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': 'x3.title', style: 'margin:0' }), h('span', { class: 'spacer' }), h('button', { class: 'btn small primary', 'data-t': 'x3.tour', onclick: () => tour(0) })]));
     const host = h('div', { class: 'x3d' });
     const tags = h('div', { class: 'tags' }), views = h('div', { class: 'views' }), infoEl = h('div', { class: 'info', hidden: true, role: 'status', 'aria-live': 'polite' });
     host.append(tags, views, infoEl); tags.hidden = true;

@@ -53,7 +53,7 @@ PD.metronome = (() => {
   }
   function page(w) {
     const own = PD.pageScope();
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : PD.app.go('practice') }), h('h1', { 'data-t': 'mt.title', style: 'margin:0' })]));
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': 'mt.title', style: 'margin:0' })]));
     const c = cfg();
     const bpmEl = h('b', { class: 'mt-bpm' }), dots = h('div', { class: 'mt-dots', 'aria-hidden': 'true' });
     const rng = h('input', { type: 'range', min: '30', max: '240', step: '1', 'aria-label': 'BPM', oninput: e => { PD.store.set('mBpm', +e.target.value); upd(); } });
@@ -106,7 +106,7 @@ PD.trainer = (() => {
     const own = PD.pageScope();
     let level = param && LEVELS.some(l => l.id === param) ? param : PD.store.get('tr.level', 'open');
     let cur = null, last = null, stats = { a: 0, c: 0, streak: 0 }, t0 = 0, timer = 0, wrongN = 0, startedAt = Date.now(), done = false, locked = false, micMine = false;
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : PD.app.go('practice') }), h('h1', { 'data-t': 'tr.title', style: 'margin:0' })]),
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': 'tr.title', style: 'margin:0' })]),
       h('p', { class: 'muted', 'data-t': 'tr.lead' }));
     const tabs = h('div', { class: 'chips-row', role: 'tablist' }, LEVELS.map(L => h('button', { class: 'chip' + (FREE_TR.has(L.id) || PD.premium.active ? '' : ' locked'), role: 'tab', 'aria-pressed': String(L.id === level), 'data-t': 'tl.' + L.id, onclick: () => { if (!FREE_TR.has(L.id) && !PD.premium.active) return PD.premium.paywall('trainer.pro'); level = L.id; PD.store.set('tr.level', level); tabs.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.t === 'tl.' + level))); reset(); } })));
     const prompt = h('div', { class: 'tr-prompt' }), sub = h('div', { class: 'tr-sub' }), fb = h('div', { class: 'tr-fb', 'aria-live': 'polite' });
