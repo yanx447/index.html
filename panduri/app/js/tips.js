@@ -24,6 +24,21 @@ PD.i18n.add({
   'tp.fTitle': ['სათაური', 'Title'], 'tp.fShort': ['მოკლედ', 'In short'], 'tp.fSteps': ['ნაბიჯები (თითო ხაზზე)', 'Steps (one per line)'], 'tp.fWhy': ['რატომ', 'Why'], 'tp.lib': ['ბიბლიოთეკა', 'Library'], 'tp.parts': ['გაიცანი შენი ფანდური', 'Meet your panduri'], 'tp.partsD': ['ფოტოები და ნაწილების სახელები', 'Photos and the names of the parts']
 });
 
+/* the part names and descriptions (also in three3d.js, which loads only with the 3D view) */
+PD.i18n.add({
+  'x3p.body': ['ტანი', 'Body'], 'x3p.top': ['დეკა', 'Soundboard'], 'x3p.neck': ['ტარი', 'Neck'], 'x3p.fret': ['ლადი', 'Fret'], 'x3p.string': ['სიმი', 'String'],
+  'x3p.nut': ['ნულოვანი ლადი', 'Nut'], 'x3p.bridge': ['ხიდი', 'Bridge'], 'x3p.hole': ['სახმო ხვრელი', 'Sound hole'], 'x3p.head': ['თავი', 'Headstock'], 'x3p.tuners': ['მექანიკა', 'Tuners'],
+  'pi.body': ['ამოთლილი, ღრმა ზურგი — მუქი, პრიალა. ჰაერი შიგნით ჟღერადობას აძლიერებს.', 'A deep carved back with a dark gloss finish. The air inside amplifies the sound.'],
+  'pi.top': ['ღია ფერის დეკა — სწორი, ვერტიკალური ბოჭკოთი. სიმების რხევა ხიდიდან დეკაზე გადადის და ის ჟღერს.', 'The pale soundboard, with straight vertical grain. String vibration passes through the bridge into it and it radiates the sound.'],
+  'pi.neck': ['გრძელი, ვიწრო ტარი წითელ-ყავისფერი ლადფიცრით და ყვითელი მარკერებით 3·5·7·9·12·15 ლადებზე.', 'A long narrow neck with a red-brown fingerboard and yellow markers at frets 3·5·7·9·12·15.'],
+  'pi.fret': ['17 ლადი. ყოველი ლადი სიმს ნახევარტონით ამაღლებს; მე-12 ლადი სიმის ზუსტად შუაშია.', '17 frets. Each fret raises the string by one semitone; fret 12 is exactly half the string length.'],
+  'pi.string': ['სამი ნეილონის სიმი: A · C♯ · E. სიმი ჟღერს დაჭერილი ლადიდან ხიდამდე.', 'Three nylon strings: A · C♯ · E. A string sounds from the pressed fret to the bridge.'],
+  'pi.nut': ['მუქი ზღურბლი — აქ იწყება სიმის ჟღერადი ნაწილი, როცა სიმი ღიაა.', 'The dark nut — the sounding part of an open string starts here.'],
+  'pi.bridge': ['ღია ფერის ხიდი მუქ საფუძველზე: სიმების რხევას დეკაზე გადასცემს.', 'A light bridge on a dark base: it passes string vibration to the soundboard.'],
+  'pi.hole': ['დიდი მრგვალი ხვრელი მუქი რგოლით და 26 პატარა ხვრელის წრე.', 'A large round hole with a dark ring, surrounded by a circle of 26 small holes.'],
+  'pi.head': ['ღია თავი, ზემოთ უკან მოხრილი. სამი სიმი სამ ღერძზეა დახვეული.', 'An open, slotted headstock hooked backward at the top. Three strings wind on three posts.'],
+  'pi.tuners': ['სამი კბილანიანი მექანიკა, 2 + 1: C♯ და A ერთ მხარეს, E — მეორეზე.', 'Three geared tuners, 2 + 1: C♯ and A on one side, E on the other.']
+});
 PD.tips = (() => {
   const h = PD.h, t = PD.i18n.t, L = a => PD.i18n.pick(Array.isArray(a) ? { ka: a[0], en: a[1] } : a);
   const M = () => !(PD.ui && PD.ui.motion && !PD.ui.motion());
