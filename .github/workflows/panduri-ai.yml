@@ -1,0 +1,65 @@
+name: Panduri AI — Demucs model for the browser
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/panduri-ai.yml'
+      - 'panduri/ai-build/*.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: panduri-ai
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: demucs.onnx (MIT) — Demucs with the STFT moved outside the network
+        run: git clone --depth 1 https://github.com/sevagh/demucs.onnx /tmp/donnx
+      - name: Install
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.3.1 torchaudio==2.3.1
+          pip install "numpy<2" onnx==1.16.2 onnxruntime==1.19.2 dora-search einops julius lameenc openunmix pyyaml tqdm soundfile
+          pip install --no-deps -e /tmp/donnx/demucs-for-onnx
+      - name: Export htdemucs to ONNX (weights from Meta, MIT)
+        run: python /tmp/donnx/scripts/convert-pth-to-onnx.py /tmp/onnx && ls -la /tmp/onnx
+      - name: Pack for the browser
+        run: python panduri/ai-build/pack.py /tmp/onnx/htdemucs.onnx panduri/ai
+      - name: Reference separation of the test clip
+        run: |
+          mkdir -p panduri/ai/ref
+          python panduri/ai-build/reference.py panduri/ai-build/test.wav panduri/ai/ref
+          python - <<'PY'
+          import onnxruntime as ort
+          s = ort.InferenceSession('/tmp/onnx/htdemucs.onnx')
+          print([(i.name, i.shape) for i in s.get_inputs()], [(o.name, o.shape) for o in s.get_outputs()])
+          PY
+      - name: ONNX Runtime Web (MIT)
+        run: |
+          npm pack onnxruntime-web@1.20.1 --silent
+          tar xzf onnxruntime-web-1.20.1.tgz
+          mkdir -p panduri/ai/ort
+          cp package/dist/ort.min.js package/dist/ort.webgpu.min.js package/dist/ort-wasm-simd-threaded.wasm package/dist/ort-wasm-simd-threaded.mjs package/dist/ort-wasm-simd-threaded.jsep.wasm package/dist/ort-wasm-simd-threaded.jsep.mjs panduri/ai/ort/ 2>/dev/null || cp package/dist/* panduri/ai/ort/
+          cp package/LICENSE panduri/ai/ort/LICENSE.txt || true
+          ls -la panduri/ai/ort
+      - name: Commit
+        run: |
+          git config user.name "panduri-ai-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add panduri/ai
+          git commit -m "Panduri AI: Demucs model and ONNX Runtime Web for the browser" || echo "nothing to commit"
+          git pull --rebase origin main
+          git push

@@ -6,6 +6,8 @@ on:
     paths:
       - 'panduri/**'
       - '!panduri/**.md'
+      - '!panduri/ai/**'
+      - '!panduri/ai-build/**'
       - '.github/workflows/panduri-android.yml'
   workflow_dispatch:
 
