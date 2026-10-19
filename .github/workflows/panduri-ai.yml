@@ -41,7 +41,15 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p panduri/ai-build/logs
-          python /tmp/donnx/scripts/convert-pth-to-onnx.py /tmp/onnx 2>&1 | tee panduri/ai-build/logs/export.txt
+          : > panduri/ai-build/logs/export.txt
+          for TV in 2.5.1:2.5.1 2.4.1:2.4.1 2.2.2:2.2.2 2.1.2:2.1.2 2.6.0:2.6.0; do
+            T=${TV%%:*}; A=${TV##*:}
+            echo "=== torch $T" | tee -a panduri/ai-build/logs/export.txt
+            pip install -q --index-url https://download.pytorch.org/whl/cpu torch==$T torchaudio==$A 2>&1 | tail -2 | tee -a panduri/ai-build/logs/export.txt
+            rm -rf /tmp/onnx
+            python /tmp/donnx/scripts/convert-pth-to-onnx.py /tmp/onnx 2>&1 | grep -v TracerWarning | tail -6 | tee -a panduri/ai-build/logs/export.txt
+            if [ -f /tmp/onnx/htdemucs.onnx ]; then echo "OK with torch $T" | tee -a panduri/ai-build/logs/export.txt; break; fi
+          done
           ls -la /tmp/onnx | tee -a panduri/ai-build/logs/export.txt
           test -f /tmp/onnx/htdemucs.onnx
       - name: Pack for the browser
