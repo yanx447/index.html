@@ -130,7 +130,7 @@ PD.app = (() => {
     PD.i18n.apply(document);
     PD.bus.on('lang', () => render());
     let cloudT = 0, cloudSig = '';
-    PD.bus.on('cloud', e => { const sig = (e && e.session && e.session.user ? e.session.user.id : '-') + ':' + JSON.stringify(e && e.profile ? [e.profile.role, e.profile.vip_until, e.profile.display_name] : 0); if (sig === cloudSig) return; cloudSig = sig; clearTimeout(cloudT); cloudT = setTimeout(() => { if (['profile', 'settings', 'community', 'home', 'learn', 'songs'].includes(route) && !PD.practice.active && !document.querySelector('.sheet-back')) render(true); }, 60); });
+    PD.bus.on('cloud', e => { const sig = (e && e.session && e.session.user ? e.session.user.id : '-') + ':' + JSON.stringify(e && e.profile ? [e.profile.role, e.profile.vip_until, e.profile.display_name] : 0); if (sig === cloudSig) return; cloudSig = sig; clearTimeout(cloudT); cloudT = setTimeout(() => { if (['profile', 'settings', 'community', 'home', 'learn', 'songs'].includes(route) && !PD.practice.active && !document.querySelector('.sheet-back:not(.out)')) render(true); }, 60); });
     PD.bus.on('lessons', () => { if (['home', 'lesson', 'learn', 'path', 'songs'].includes(route)) render(); });
     window.addEventListener('popstate', e => {
       if (!e.state && /access_token=|error_description=/.test(location.hash)) return;   // a sign-in link opened in this tab (handled by the account code)
@@ -152,23 +152,49 @@ PD.app = (() => {
   function go(r, p, replace) {
     if (r === 'library') r = 'songs'; if (r === 'more') r = 'profile'; if (r === 'tools') r = 'practice';
     const same = r === route && (p == null ? null : p) === param;   // tapping the tab that is already open adds no history entry
+    navDir = TOP[r] === r || replace ? 'tab' : 'fwd';
     route = r; param = p == null ? null : p;
     try { (replace || same || PD.layers.dangling() ? history.replaceState : history.pushState).call(history, { r, p: param }, ''); } catch (_) {}
     render();
   }
+  /* page transitions: a new page slides in from the side it comes from (deeper → from the right, Back → from the left,
+     another tab → a short rise); the old page moves the other way and fades. Re-drawing the same page keeps its scroll and does not move. */
+  let lastKey = null, navDir = 'tab';
+  const motionOK = () => !document.documentElement.classList.contains('rm') && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   function render(fromPop) {
-    const main = $('main'); main.innerHTML = '';
+    const main = $('main'), key = route + ':' + (param == null ? '' : param), changed = key !== lastKey, dir = !changed ? null : fromPop ? 'back' : navDir;
+    lastKey = key; navDir = 'fwd';
+    main.querySelectorAll('.page.leave').forEach(x => x.remove());
+    const old = main.querySelector('.page'), keep = !changed && old ? old.scrollTop : 0;
+    if (old) {
+      if (dir && motionOK()) { old.removeAttribute('id'); old.classList.remove('enter', 'enter-fwd', 'enter-back', 'enter-tab'); old.classList.add('leave', 'leave-' + dir); old.inert = true; old.setAttribute('aria-hidden', 'true'); setTimeout(() => old.remove(), 320); }
+      else old.remove();
+    }
     const top = TOP[route] || 'home';
     document.querySelectorAll('.navb').forEach(b => { if (b.dataset.go === top) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
-    const page = h('div', { class: 'page' + (fromPop ? '' : ' enter'), id: 'page' }), wrap = h('div', { class: 'wrap' }); page.appendChild(wrap); main.appendChild(page);
+    tabInd(top);
+    const page = h('div', { class: 'page' + (dir ? ' enter enter-' + dir : ''), id: 'page' }), wrap = h('div', { class: 'wrap' }); page.appendChild(wrap); main.appendChild(page);
     PD.bus.emit('route', route);
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => PD.tools.tuner(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
       community: () => PD.community.page(wrap, param), theory: () => PD.theoryBook.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
-    if (!fromPop) page.scrollTop = 0;
+    page.style.scrollBehavior = 'auto'; page.scrollTop = changed ? 0 : keep; page.style.scrollBehavior = '';   // re-drawing the same page stays where you were
   }
+  /** the active tab is marked by three short strings (A · C♯ · E) that slide to it and ring for a moment */
+  let tabNow = null;
+  function tabInd(top) {
+    document.querySelectorAll('.tabbar, .rail').forEach(nav => {
+      let ind = nav.querySelector('.tab-ind'); if (!ind) { ind = h('span', { class: 'tab-ind', 'aria-hidden': 'true', html: '<i></i><i></i><i></i>' }); nav.appendChild(ind); }
+      const b = nav.querySelector('.navb[data-go="' + top + '"]'); if (!b) { ind.style.opacity = '0'; return; }
+      const place = () => { const vert = nav.classList.contains('rail'); ind.style.opacity = '1'; ind.style.transform = vert ? 'translateY(' + (b.offsetTop + b.offsetHeight / 2 - 14) + 'px)' : 'translateX(' + (b.offsetLeft + b.offsetWidth / 2 - 14) + 'px)'; };
+      if (!b.offsetWidth) requestAnimationFrame(place); else place();
+      if (tabNow && tabNow !== top && motionOK()) { ind.classList.remove('twang'); void ind.offsetWidth; ind.classList.add('twang'); }
+    });
+    tabNow = top;
+  }
+  window.addEventListener('resize', () => { if (tabNow) { const t0 = tabNow; tabNow = null; tabInd(t0); } });
 
   /* ---------- shared bits ---------- */
   const TECH = new Set(['rh-down', 'rh-up', 'rh-alt', 'lh-fingers', 'lh-strings', 'pos-shift']);
@@ -600,7 +626,7 @@ PD.app = (() => {
     const avg = arr => { const a = arr.filter(v => v != null); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : null; };
     const noteAcc = avg(ss.map(s => s.pitch)), timeAcc = avg(ss.filter(s => !s.waited).map(s => s.timing)), avgBpm = avg(ss.map(s => s.bpm));
     const rhythmsLearned = PD.curriculum.rhythms().filter(r => LS.progress.lesson('rhythm-' + r.id).mastery >= .9).length;
-    w.append(h('div', { class: 'row', style: 'align-items:flex-end' }, [h('div', {}, [h('h1', { 'data-t': 'pr.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'pr.lead' })]), h('span', { class: 'spacer' }), h('button', { class: 'btn small', html: ic.back + '<span data-t="back"></span>', onclick: () => go('profile') })]));
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => history.length > 1 ? history.back() : go('profile') }), h('div', { class: 'grow' }, [h('h1', { 'data-t': 'pr.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'pr.lead' })])]));
     const pc = v => v == null ? '—' : Math.round(v * 100) + '%';
     w.append(h('div', { class: 'pgrid' }, [
       stat(Math.floor(totalSec / 3600) + ':' + String(Math.floor(totalSec % 3600 / 60)).padStart(2, '0'), t('pr.time')), stat(levelName(), t('pr.stage')),
@@ -632,7 +658,7 @@ PD.app = (() => {
     if (pts.length < 2) { card.append(h('p', { class: 'muted', style: 'font-size:13px', text: empty || t('pr.noData') })); return card; }
     const W = 600, H = 150, pl = 34, pr = 10, pt = 10, pb = 22, x = i => pl + i * (W - pl - pr) / (pts.length - 1), y = v => pt + (1 - v) * (H - pt - pb);
     let s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + PD.esc(title) + '">';
-    [0, .5, 1].forEach(v => { s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="rgba(242,232,218,.08)"/><text x="' + (pl - 6) + '" y="' + (y(v) + 4) + '" fill="#A39B91" font-size="11" text-anchor="end" font-family="IBM Plex Mono">' + Math.round(v * 100) + '</text>'; });
+    [0, .5, 1].forEach(v => { s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="rgba(242,232,218,.08)"/><text x="' + (pl - 6) + '" y="' + (y(v) + 4) + '" fill="#A39B91" font-size="11" text-anchor="end" font-family="Noto Sans Georgian">' + Math.round(v * 100) + '</text>'; });
     s += '<polyline fill="none" stroke="#D6A15A" stroke-width="2" stroke-linejoin="round" points="' + pts.map((p, i) => x(i) + ',' + y(p.v)).join(' ') + '"/>';
     pts.forEach((p, i) => { const l = LS.get(p.id); s += '<circle cx="' + x(i) + '" cy="' + y(p.v) + '" r="4" fill="#D6A15A" stroke="#161412" stroke-width="2"><title>' + PD.esc((l ? PD.i18n.pick(l.title) + ' · ' : '') + new Date(p.d).toLocaleDateString() + ' · ' + Math.round(p.v * 100) + '%') + '</title></circle>'; });
     s += '</svg>';
@@ -642,15 +668,15 @@ PD.app = (() => {
   function fretHeat(probs) {
     const max = Math.max(1, ...Object.values(probs)), W = 760, H = 110, x0 = 40, cw = (W - x0 - 10) / 18, y = s => 14 + (3 - s) * 28;
     let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + PD.esc(t('pr.problems')) + '">';
-    for (let st = 1; st <= 3; st++) { s += '<text x="10" y="' + (y(st) + 15) + '" fill="#CFC8BE" font-size="12" font-family="IBM Plex Mono">' + TH.stringName(st) + '</text>'; for (let f = 0; f <= 17; f++) { const v = (probs[st + ':' + f] || 0) / max; s += '<rect x="' + (x0 + f * cw) + '" y="' + y(st) + '" width="' + (cw - 2) + '" height="24" rx="4" fill="' + (v ? 'rgba(214,161,90,' + (.15 + .85 * v).toFixed(2) + ')' : '#191816') + '"><title>' + TH.stringName(st) + ' · ' + f + ' · ' + (probs[st + ':' + f] || 0) + '</title></rect>'; } }
-    for (let f = 0; f <= 17; f++) s += '<text x="' + (x0 + f * cw + cw / 2 - 1) + '" y="' + (H - 4) + '" fill="#7C746A" font-size="10" text-anchor="middle" font-family="IBM Plex Mono">' + f + '</text>';
+    for (let st = 1; st <= 3; st++) { s += '<text x="10" y="' + (y(st) + 15) + '" fill="#CFC8BE" font-size="12" font-family="Noto Sans Georgian">' + TH.stringName(st) + '</text>'; for (let f = 0; f <= 17; f++) { const v = (probs[st + ':' + f] || 0) / max; s += '<rect x="' + (x0 + f * cw) + '" y="' + y(st) + '" width="' + (cw - 2) + '" height="24" rx="4" fill="' + (v ? 'rgba(214,161,90,' + (.15 + .85 * v).toFixed(2) + ')' : '#191816') + '"><title>' + TH.stringName(st) + ' · ' + f + ' · ' + (probs[st + ':' + f] || 0) + '</title></rect>'; } }
+    for (let f = 0; f <= 17; f++) s += '<text x="' + (x0 + f * cw + cw / 2 - 1) + '" y="' + (H - 4) + '" fill="#7C746A" font-size="10" text-anchor="middle" font-family="Noto Sans Georgian">' + f + '</text>';
     return s + '</svg>';
   }
 
 
   /* ---------- Settings: Audio · Learning · Visual · Language · Accessibility · Account ---------- */
   function settings(w) {
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small', html: ic.back + '<span data-t="back"></span>', onclick: () => go('profile') }), h('h1', { 'data-t': 'set.title', style: 'margin:0' })]));
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => go('profile') }), h('h1', { 'data-t': 'set.title', style: 'margin:0' })]));
     const sect = (k, rows) => h('section', { class: 'set-sec' }, [h('h2', { 'data-t': k }), h('div', { class: 'list' }, rows.filter(Boolean))]);
     const row = (k, d, ctrl) => h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': k }), d ? h('small', { text: d }) : null]), ctrl]);
     const toggle = (key, def, on) => { const c = h('input', { type: 'checkbox', 'aria-label': t(key) }); c.checked = PD.store.get(key, def); c.onchange = () => { PD.store.set(key, c.checked); on && on(c.checked); }; return c; };

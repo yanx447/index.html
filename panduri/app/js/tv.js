@@ -9,7 +9,7 @@ PD.tv = (() => {
   const on = () => isTV || PD.store.get('remoteNav', false);
   const SEL = 'button:not([disabled]), a[href], input:not([type=hidden]):not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
   function layer() {
-    const tops = ['.call', '.lvup', '.sheet-back', '.ag', '.ob', '.pz'];
+    const tops = ['.call', '.lvup', '.sheet-back:not(.out)', '.ag', '.ob', '.pz'];
     for (const s of tops) { const els = document.querySelectorAll(s); if (els.length) return els[els.length - 1]; }
     return document.body;
   }
@@ -43,13 +43,13 @@ PD.tv = (() => {
         if ((tag === 'INPUT' && !/checkbox|range|radio/.test(e.target.type)) || tag === 'TEXTAREA') return;
         // the lesson screen and the studio have their own arrow keys (bars, tempo, moving notes) when no control is focused
         const a = document.activeElement, idle = !a || a === document.body || !a.matches(SEL);
-        if (idle && !document.querySelector('.sheet-back') && (PD.practice.active || document.querySelector('.studio'))) return;
+        if (idle && !document.querySelector('.sheet-back:not(.out)') && (PD.practice.active || document.querySelector('.studio'))) return;
         if (tag === 'INPUT' && e.target.type === 'range' && (k === 'ArrowLeft' || k === 'ArrowRight')) return;
         e.preventDefault(); e.stopPropagation(); move(k);
       } else if (k === 'Backspace' || k === 'Escape' || k === 'GoBack' || k === 'BrowserBack') {
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-        if (k === 'Escape' && (document.querySelector('.sheet-back') || PD.practice.active)) return;   // sheets and the lesson screen close themselves on Esc
-        if ((k === 'Escape' || k === 'Backspace') && document.querySelector('.studio') && !document.querySelector('.sheet-back')) return;   // the studio: Esc clears the selection, Backspace deletes notes
+        if (k === 'Escape' && (document.querySelector('.sheet-back:not(.out)') || PD.practice.active)) return;   // sheets and the lesson screen close themselves on Esc
+        if ((k === 'Escape' || k === 'Backspace') && document.querySelector('.studio') && !document.querySelector('.sheet-back:not(.out)')) return;   // the studio: Esc clears the selection, Backspace deletes notes
         if (PD.layers.back()) e.preventDefault();   // the top layer first (via the same Back as the browser's)
       }
     }, true);

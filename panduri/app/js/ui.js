@@ -139,9 +139,20 @@ PD.layers = (() => {
 PD.ui = (() => {
   const $ = PD.$;
   let toastT = 0;
+  /** motion is welcome unless the learner (or the system) asked for less */
+  const motion = () => !document.documentElement.classList.contains('rm') && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   function toast(msg, ms) {
     let el = $('toast'); if (!el) { el = PD.h('div', { id: 'toast', class: 'toast', role: 'status', 'aria-live': 'polite' }); document.body.appendChild(el); }
-    el.textContent = msg; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, ms || 2200);
+    el.textContent = msg; el.classList.remove('out'); el.hidden = false; clearTimeout(toastT);
+    toastT = setTimeout(() => { if (!motion()) { el.hidden = true; return; } el.classList.add('out'); toastT = setTimeout(() => { el.hidden = true; el.classList.remove('out'); }, 200); }, ms || 2200);
+  }
+  /** numbers in an element count up to their value (results, progress): "83%" → 0…83 % */
+  function countUp(el, ms) {
+    if (!el || !motion()) return;
+    const txt = el.textContent, re = /\d+(?:[.,]\d+)?/g, nums = txt.match(re); if (!nums) return;
+    const t0 = performance.now(), dur = ms || 700, ease = k => 1 - Math.pow(1 - k, 3);
+    const step = tm => { const k = Math.min(1, (tm - t0) / dur); let i = 0; el.textContent = txt.replace(re, m => { const v = parseFloat(m.replace(',', '.')), d = (m.split(/[.,]/)[1] || '').length; i++; return (v * ease(k)).toFixed(d); }); if (k < 1) requestAnimationFrame(step); else el.textContent = txt; };
+    requestAnimationFrame(step);
   }
   /** bottom sheet / dialog; returns close() */
   function sheet(build, opts) {
@@ -149,7 +160,8 @@ PD.ui = (() => {
     back.appendChild(box); document.body.appendChild(back);
     const prev = document.activeElement;
     let cleanup = null, closed = false, lid = 0;
-    const close = fromBack => { if (closed) return; closed = true; if (fromBack !== true) PD.layers.done(lid); back.remove(); document.removeEventListener('keydown', esc, true); if (typeof cleanup === 'function') try { cleanup(); } catch (_) {} if (opts && opts.onClose) opts.onClose(); if (prev && prev.focus && prev.isConnected) prev.focus(); };
+    const close = fromBack => { if (closed) return; closed = true; if (fromBack !== true) PD.layers.done(lid);
+      if (motion()) { back.classList.add('out'); setTimeout(() => back.remove(), 230); } else back.remove();   /* the sheet slides back down */ document.removeEventListener('keydown', esc, true); if (typeof cleanup === 'function') try { cleanup(); } catch (_) {} if (opts && opts.onClose) opts.onClose(); if (prev && prev.focus && prev.isConnected) prev.focus(); };
     lid = PD.layers.push(close);
     const esc = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
     document.addEventListener('keydown', esc, true);
@@ -169,5 +181,5 @@ PD.ui = (() => {
   function pickFile(accept) { return new Promise(res => { const i = PD.h('input', { type: 'file', accept }); i.onchange = () => res(i.files[0] || null); i.click(); }); }
   function micBlocked() { try { const pp = document.permissionsPolicy || document.featurePolicy; if (pp && pp.allowsFeature && !pp.allowsFeature('microphone')) return true; } catch (_) {} return false; }
   function micError(code) { return t('mic.' + (code === 'blocked' || (code === 'denied' && window.top !== window) ? 'blocked' : code === 'denied' ? 'denied' : code || 'failed')); }
-  return { toast, sheet, confirm, daysAgo, download, pickFile, micError, micBlocked };
+  return { toast, sheet, confirm, daysAgo, download, pickFile, micError, micBlocked, countUp, motion };
 })();

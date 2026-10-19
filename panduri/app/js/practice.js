@@ -223,7 +223,7 @@ PD.practice = (() => {
         h('button', { class: 'btn quiet', 'data-t': 'p.listenFirst', onclick: () => startWatch() }));
       if (lesson.stems) card.append(h('small', { class: 'pz-tip', 'data-t': 'sg.headphones' }));
       gateEl.appendChild(card); PD.i18n.apply(gateEl);
-      if (!document.querySelector('.sheet-back')) try { card.querySelector('.btn.primary').focus({ preventScroll: true }); } catch (_) {}
+      if (!document.querySelector('.sheet-back:not(.out)')) try { card.querySelector('.btn.primary').focus({ preventScroll: true }); } catch (_) {}
     }
     function afterMic() {
       if (!PD.detector.calib.date) PD.ui.toast(t('gate.calib'), 5000);
@@ -382,6 +382,8 @@ PD.practice = (() => {
       const nxt = !nx || !A.ghost ? [] : nx.notes.map(n => ({ s: n.s, f: n.f, fi: A.fingers ? n.fi : 0 }));
       neck.setTarget(st.kind === 'strum' && !st.notes.some(n => n.f > 0) ? [] : tgt, nxt);
       drawStroke(); w.ssig = strokeSig();
+      // a new chord or note: the prompt changes with a short lift, so the change is noticed out of the corner of the eye
+      if (pBig.textContent !== w.lastBig) { if (w.lastBig != null && PD.ui.motion()) { pBig.classList.remove('swap'); void pBig.offsetWidth; pBig.classList.add('swap'); } w.lastBig = pBig.textContent; }
     }
     /** the frame guide: shown while the learner sits down (first seconds), when stopped or counting in, or always if chosen */
     function frameOn() { if (frameEl) { const v = !S.playing || !!S.ci || PD.store.get('cam.frame', false) || performance.now() - (w.camT0 || 0) < 8000; if (v !== w.frameV) { w.frameV = v; frameEl.classList.toggle('on', v); } } }
@@ -518,7 +520,7 @@ PD.practice = (() => {
           if (offs.length > 140) { const g = Math.ceil(offs.length / 140), out = []; for (let i = 0; i < offs.length; i += g) { const grp = offs.slice(i, i + g), v = grp.filter(o => !o.missed && o.off != null).map(o => o.off).sort((a, b) => a - b); out.push(v.length ? { off: v[Math.floor(v.length / 2)] } : { missed: true }); } offs = out; }
           const W = 440, H = 110, M = 200, n = offs.length, x = i => 8 + i * (W - 16) / Math.max(1, n - 1), y = v => H / 2 - Math.max(-M, Math.min(M, v)) / M * (H / 2 - 6);
           let s = '<rect x="0" y="' + y(90) + '" width="' + W + '" height="' + (y(-90) - y(90)) + '" fill="rgba(147,207,166,.07)"/><rect x="0" y="' + y(40) + '" width="' + W + '" height="' + (y(-40) - y(40)) + '" fill="rgba(147,207,166,.10)"/><line x1="0" x2="' + W + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="rgba(240,232,220,.25)"/>';
-          s += '<text x="4" y="11" fill="#8B847B" font-size="9" font-family="IBM Plex Mono">' + PD.esc(t('g.late')) + '</text><text x="4" y="' + (H - 3) + '" fill="#8B847B" font-size="9" font-family="IBM Plex Mono">' + PD.esc(t('g.early')) + '</text>';
+          s += '<text x="4" y="11" fill="#8B847B" font-size="9" font-family="Noto Sans Georgian">' + PD.esc(t('g.late')) + '</text><text x="4" y="' + (H - 3) + '" fill="#8B847B" font-size="9" font-family="Noto Sans Georgian">' + PD.esc(t('g.early')) + '</text>';
           offs.forEach((o, i) => { if (o.missed || o.off == null) { s += '<text x="' + x(i) + '" y="' + (H / 2 + 3) + '" fill="#E39D88" font-size="10" text-anchor="middle">×</text>'; return; } const ms = o.off * 1000, a = Math.abs(ms); s += '<circle cx="' + x(i) + '" cy="' + y(ms) + '" r="3.5" fill="' + (a <= 40 ? '#93CFA6' : a <= 90 ? '#E2C06A' : '#E39D88') + '" stroke="#131418" stroke-width="1.5"><title>' + (i + 1) + ': ' + (ms >= 0 ? '+' : '') + Math.round(ms) + ' ms</title></circle>'; });
           tgraph = h('div', { class: 'tgraph', role: 'img', 'aria-label': t('r.tgraph'), html: '<svg viewBox="0 0 ' + W + ' ' + H + '">' + s + '</svg>' });
         }
@@ -527,6 +529,7 @@ PD.practice = (() => {
         const worstSc = r.areas.find(a => a.sc);
         if (worstSc) btns.append(h('button', { class: 'btn primary', text: t('r.retry'), onclick: () => { close(); E.drill(worstSc.sc.from, worstSc.sc.to, { tempo: Math.max(.4, S.tempo - .1), wait: true }); } }));
         btns.append(h('button', { class: 'btn' + (worstSc ? '' : ' primary'), text: t('r.continue'), onclick: () => { close(); WClose(); } }), h('button', { class: 'btn quiet', text: t('r.again'), onclick: () => { close(); E.restart(); } }));
+        requestAnimationFrame(() => box.querySelectorAll('.res-grid .stat b').forEach((b, i) => setTimeout(() => PD.ui.countUp(b, 650), i * 60)));   // the numbers count up as the sheet arrives
         box.append(...[h('h2', { 'data-t': 'r.title' }), h('div', { class: 'res-grid' }, tiles), grades, tgraph ? h('span', { class: 'kicker', 'data-t': 'r.tgraph' }) : null, tgraph, h('span', { class: 'kicker', 'data-t': 'r.errors' }), line, h('span', { class: 'kicker', 'data-t': 'r.areas' }), areas, btns].filter(Boolean));
       });
     }
@@ -536,7 +539,7 @@ PD.practice = (() => {
 
     /* ---------- keyboard: transport only (never note input, except the developer test mode) ---------- */
     function onKey(e) {
-      if (W !== w || e.target.closest('input, textarea, select') || document.querySelector('.sheet-back')) return;
+      if (W !== w || e.target.closest('input, textarea, select') || document.querySelector('.sheet-back:not(.out)')) return;
       const k = e.key;
       if (k === ' ') { if (e.target.closest && e.target.closest('button, a, [role=button]')) return; e.preventDefault(); togglePause(); }   // a focused button keeps its own Space
       else if (k === 'Escape') close();
@@ -592,7 +595,8 @@ PD.practice = (() => {
     PD.media.unload();
     PD.detector.setAEC(false, true);
     if (!PD.store.get('micStay', false)) PD.detector.stop();   // leaving practice releases the microphone (also a pending request)
-    w.cleanup && w.cleanup(); w.root.remove(); document.body.style.overflow = '';
+    w.cleanup && w.cleanup(); document.body.style.overflow = '';
+    { const r = w.root; r.inert = true; if (PD.ui.motion() && !silent) { r.classList.add('out'); setTimeout(() => r.remove(), 240); } else r.remove(); }   // the lesson screen sinks away, the page shows through
     (w.inerted || []).forEach(el => { el.inert = false; });
     W = null; S.mayPlay = null; E.unload(); PD.layers.done(w.lid);
     if (!silent && PD.app && PD.app.route === 'lesson') PD.app.render();

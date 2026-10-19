@@ -1101,3 +1101,127 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .snd-opt[aria-pressed="true"]{border-color:rgba(246,201,135,.75);background:linear-gradient(180deg,rgba(233,165,90,.22),rgba(233,165,90,.07));box-shadow:0 0 0 1px rgba(246,201,135,.35) inset}
 .snd .seg{margin-top:10px}
 .opt small{display:block;font-size:12px;color:var(--fg2);font-weight:400;margin-top:2px}
+
+/* ===================== v8 · refined design and motion =====================
+   One identity: the instrument in a warm room — walnut and spruce, brass lacquer, and the three strings
+   (A · C♯ · E) as the only ornament. Titles are set in the Georgian serif, everything you read or press in
+   the sans. Motion answers the learner: pages slide the way you move, sheets rise and sink, the lesson
+   screen lifts in, numbers count up, and the three strings under the active tab ring when you choose it.
+   "Reduce motion" (system or app setting) turns all of it off. */
+:root{
+  --f-display:'Noto Serif Georgian','Noto Sans Georgian',Georgia,serif;
+  --f-mono:var(--f-ui);
+  --ease-out:cubic-bezier(.16,1,.3,1); --ease-in:cubic-bezier(.55,0,.75,.1); --spring:cubic-bezier(.25,1.35,.4,1);
+}
+/* type: serif for titles and the big numbers, tabular sans for every small number */
+h1,.ag-card h1,.lvup-n,.mt-bpm,.tnote,.ce-name h2,.pgrid .stat b,.cover b{font-family:var(--f-display);letter-spacing:.005em}
+h1{font-weight:700;font-size:clamp(26px,6.6vw,34px);line-height:1.18}
+.ag-card h1{font-weight:700}
+.mt-bpm{font-weight:600}
+.pgrid .stat b{font-weight:600;font-size:26px}
+.mono,.rail .mark small{font-family:var(--f-ui);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+h2{letter-spacing:.003em}
+/* one shape language: pills for actions, round for icons, 18 px containers, 14 px items inside them */
+.btn{border-radius:999px}
+.btn.icon,.btn.small.icon{border-radius:50%}
+.sx-block,.lvcard,.pmcard,.camcard,.lvprog,.tr-card{border-radius:18px}
+.chd,.sx-sec,.snd-opt,.cm-row,.cm-post{border-radius:14px}
+.seg{border-radius:14px}.seg button{border-radius:11px}
+/* the page header: a round back button beside the title, the same on every page */
+.backbtn{width:40px;min-width:40px;height:40px;padding:0;border-radius:50%;background:rgba(255,236,210,.06);border:1px solid var(--line2);color:var(--fg)}
+.backbtn svg{width:20px;height:20px}
+.backbtn::after{inset:-4px}
+.row:has(> .backbtn){flex-wrap:nowrap;gap:12px;align-items:center}
+.row:has(> .backbtn) > h1{min-width:0}
+.pg-head{align-items:flex-start!important}.pg-head .backbtn{margin-top:2px}.pg-head .grow{flex:1;min-width:0}
+
+/* ---------- the three strings mark the active tab ---------- */
+.rail{position:relative}
+.tabbar .navb[aria-current="page"]::after,.rail .navb[aria-current="page"]::before{display:none!important}
+.tab-ind{position:absolute;left:0;top:0;width:28px;height:9px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;opacity:0;z-index:2;
+  transition:transform .46s var(--ease-out),opacity .2s ease}
+.tab-ind i{display:block;height:1.5px;border-radius:1px;box-shadow:0 0 6px currentColor}
+.tab-ind i:nth-child(1){background:var(--sE);color:rgba(227,211,166,.5)}
+.tab-ind i:nth-child(2){background:var(--sC);color:rgba(120,183,222,.5)}
+.tab-ind i:nth-child(3){background:var(--sA);color:rgba(217,120,63,.5)}
+.tabbar .tab-ind{top:1px;height:8px}
+.rail .tab-ind{left:3px;width:9px;height:28px;flex-direction:row}
+.rail .tab-ind i{width:1.5px;height:auto}
+.tab-ind.twang i{animation:pluck .75s var(--ease-out) both}
+.tab-ind.twang i:nth-child(2){animation-delay:.05s}.tab-ind.twang i:nth-child(3){animation-delay:.1s}
+.rail .tab-ind.twang i{animation-name:pluckX}
+@keyframes pluck{0%{transform:none}10%{transform:translateY(-2px)}22%{transform:translateY(1.7px)}36%{transform:translateY(-1.2px)}52%{transform:translateY(.8px)}70%{transform:translateY(-.35px)}100%{transform:none}}
+@keyframes pluckX{0%{transform:none}10%{transform:translateX(-2px)}22%{transform:translateX(1.7px)}36%{transform:translateX(-1.2px)}52%{transform:translateX(.8px)}70%{transform:translateX(-.35px)}100%{transform:none}}
+.navb svg{transition:transform .32s var(--spring)}
+.navb[aria-current="page"] svg{transform:translateY(-1px)}
+.navb:active svg{transform:scale(.88)}
+
+/* ---------- pages move the way you move ---------- */
+.page.enter{z-index:1}
+.page.leave{z-index:0;pointer-events:none}
+.page.enter .wrap > *{animation:none}
+.page.enter-fwd{animation:pgInR .38s var(--ease-out) .05s both}
+.page.enter-back{animation:pgInL .38s var(--ease-out) .05s both}
+.page.enter-tab{animation:pgInT .32s var(--ease-out) .06s both}
+.page.leave-fwd{animation:pgOutL .18s var(--ease-in) both}
+.page.leave-back{animation:pgOutR .18s var(--ease-in) both}
+.page.leave-tab{animation:pgOutT .16s ease both}
+@keyframes pgInR{0%{opacity:0;transform:translateX(32px)}45%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes pgInL{0%{opacity:0;transform:translateX(-32px)}45%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes pgInT{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pgOutL{to{opacity:0;transform:translateX(-16px)}}
+@keyframes pgOutR{to{opacity:0;transform:translateX(16px)}}
+@keyframes pgOutT{to{opacity:0}}
+/* switching tabs: the first blocks of the page settle one after another */
+.page.enter-tab .wrap > *{animation:rise .42s var(--ease-out) both}
+.page.enter-tab .wrap > *:nth-child(2){animation-delay:.04s}.page.enter-tab .wrap > *:nth-child(3){animation-delay:.08s}.page.enter-tab .wrap > *:nth-child(n+4){animation-delay:.12s}
+/* progress fills grow in when a page opens */
+.page.enter :is(.bar,.hx-bar,.acard-p,.pz-bar) > i{animation:grow .9s var(--ease-out) .15s both;transform-origin:left center}
+@keyframes grow{from{transform:scaleX(0)}to{transform:none}}
+/* where you are on the path: a slow breath around the current step */
+.lp-s.cur .lp-dot{animation:breathe 2.8s ease-in-out infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(242,184,103,0)}50%{box-shadow:0 0 0 7px rgba(242,184,103,.16)}}
+
+/* ---------- pressing things ---------- */
+:is(.btn,.opt,.snd-opt,.cm-row,.cm-post,.sx-sec,.door,.lp-c,.chip,.seg button,.pz-ic,.pz-mix,.pz-turn,.hx-ic,.pmcard,.camcard,.lvcard){transition:transform .16s var(--ease-out),background-color .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease}
+:is(.btn,.opt,.snd-opt,.cm-row,.cm-post,.sx-sec,.door,.lp-c,.chip,.seg button,.pz-ic,.pz-mix,.pz-turn,.hx-ic,.pmcard,.camcard):active{transform:scale(.97)}
+.btn.primary:active{filter:brightness(.94)}
+input[type=checkbox]::before{transition:transform .3s var(--spring),background .2s}
+
+/* ---------- sheets rise from the bottom and sink back; on large screens they open in place ---------- */
+.sheet-back{background:rgba(10,6,3,.62);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:fadeIn .22s ease both}
+.sheet{animation:sheetIn .4s var(--ease-out) both}
+.sheet-back.out{animation:fadeOut .22s ease both;pointer-events:none}
+.sheet-back.out .sheet{animation:sheetOut .22s var(--ease-in) both}
+@keyframes sheetIn{from{transform:translateY(100%)}to{transform:none}}
+@keyframes sheetOut{from{transform:none}to{transform:translateY(100%)}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+@media (min-width:821px){
+  .sheet{animation:dlgIn .3s var(--ease-out) both}
+  .sheet-back.out .sheet{animation:dlgOut .18s ease both}
+  @keyframes dlgIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+  @keyframes dlgOut{to{opacity:0;transform:scale(.97)}}
+}
+/* toasts */
+.toast{animation:toastIn .38s var(--spring) both}
+.toast.out{animation:toastOut .2s ease both}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,12px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes toastOut{to{opacity:0;transform:translate(-50%,8px)}}
+
+/* ---------- the lesson screen lifts in and sinks away ---------- */
+.pz{animation:pzIn .38s var(--ease-out) both}
+.pz.out{animation:pzOut .24s var(--ease-in) both;pointer-events:none}
+@keyframes pzIn{0%{opacity:0;transform:translateY(32px) scale(.985)}35%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes pzOut{to{opacity:0;transform:translateY(26px) scale(.985)}}
+.pz-over > .pz-card{animation:cardIn .36s var(--spring) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+.pz-big.swap{animation:swap .32s var(--ease-out)}
+@keyframes swap{from{opacity:.15;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pz-turn:not([hidden]),.pz-recpill:not([hidden]){animation:cardIn .32s var(--spring) both}
+.res-grid .stat{animation:rise .4s var(--ease-out) both}
+.res-grid .stat:nth-child(2){animation-delay:.05s}.res-grid .stat:nth-child(3){animation-delay:.1s}.res-grid .stat:nth-child(4){animation-delay:.15s}.res-grid .stat:nth-child(n+5){animation-delay:.2s}
+.res-grid .stat b{font-variant-numeric:tabular-nums}
+
+/* ---------- less motion ---------- */
+:root.rm *,:root.rm *::before,:root.rm *::after{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

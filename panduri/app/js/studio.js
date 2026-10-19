@@ -196,12 +196,12 @@ PD.studio = (() => {
       const W = G.W, H = G.H, vs = viewStart(), ve = B(W);
       ctx.clearRect(0, 0, W, H); ctx.fillStyle = '#0F0D0B'; ctx.fillRect(0, 0, W, H);
       // lanes
-      [1, 2, 3].forEach(s => { const y = laneY(s); ctx.fillStyle = s === 2 ? '#141210' : '#121009'; ctx.fillRect(G.x0, y, W - G.x0, G.laneH); ctx.fillStyle = SCOL[s]; ctx.font = '600 13px IBM Plex Mono'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(TH.stringName(s), G.x0 / 2, y + G.laneH / 2); ctx.globalAlpha = .25; ctx.fillRect(G.x0, y + G.laneH / 2, W - G.x0, 1); ctx.globalAlpha = 1; });
+      [1, 2, 3].forEach(s => { const y = laneY(s); ctx.fillStyle = s === 2 ? '#141210' : '#121009'; ctx.fillRect(G.x0, y, W - G.x0, G.laneH); ctx.fillStyle = SCOL[s]; ctx.font = '600 13px Noto Sans Georgian'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(TH.stringName(s), G.x0 / 2, y + G.laneH / 2); ctx.globalAlpha = .25; ctx.fillRect(G.x0, y + G.laneH / 2, W - G.x0, 1); ctx.globalAlpha = 1; });
       // grid lines + ruler
       for (let b = Math.floor(vs / st.grid) * st.grid; b <= ve; b += st.grid) {
         const x = X(b); if (x < G.x0) continue; const bar = Math.abs(b / bpb() - Math.round(b / bpb())) < 1e-6, beat = Math.abs(b - Math.round(b)) < 1e-6;
         ctx.fillStyle = bar ? 'rgba(242,232,218,.28)' : beat ? 'rgba(242,232,218,.12)' : 'rgba(242,232,218,.05)'; ctx.fillRect(x, G.ruler, 1, H - G.ruler);
-        if (bar) { ctx.fillStyle = 'rgba(242,232,218,.6)'; ctx.font = '11px IBM Plex Mono'; ctx.textAlign = 'left'; ctx.fillText(String(Math.round(b / bpb()) + 1), x + 3, 11); }
+        if (bar) { ctx.fillStyle = 'rgba(242,232,218,.6)'; ctx.font = '11px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.fillText(String(Math.round(b / bpb()) + 1), x + 3, 11); }
       }
       // waveform
       if (G.wave) {
@@ -212,16 +212,16 @@ PD.studio = (() => {
       l.sections.forEach((sc, i) => { const a = Math.max(G.x0, X(sc.from)), b = X(sc.to); if (b < G.x0) return; ctx.fillStyle = i % 2 ? 'rgba(120,183,222,.18)' : 'rgba(214,161,90,.18)'; ctx.fillRect(a, G.secY + 2, b - a - 2, 14); ctx.fillStyle = 'rgba(242,232,218,.8)'; ctx.font = '11px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.fillText(PD.i18n.pick(sc.name), a + 4, G.secY + 9); });
       // chord connectors
       const groups = {}; l.events.forEach(e => { if (e.chordId) (groups[e.chordId] = groups[e.chordId] || []).push(e); });
-      Object.values(groups).forEach(g => { const x = X(Math.min(...g.map(e => e.t))) + 3, ys = g.map(e => laneY(e.s) + G.laneH / 2); ctx.fillStyle = 'rgba(214,161,90,.5)'; ctx.fillRect(x - 1.5, Math.min(...ys), 3, Math.max(...ys) - Math.min(...ys)); ctx.fillStyle = '#D6A15A'; ctx.font = '600 11px IBM Plex Mono'; ctx.textAlign = 'left'; ctx.fillText(g[0].chord || '', x + 4, laneY(3) - 0 + 2 > G.top ? laneY(3) + 2 : G.top); });
+      Object.values(groups).forEach(g => { const x = X(Math.min(...g.map(e => e.t))) + 3, ys = g.map(e => laneY(e.s) + G.laneH / 2); ctx.fillStyle = 'rgba(214,161,90,.5)'; ctx.fillRect(x - 1.5, Math.min(...ys), 3, Math.max(...ys) - Math.min(...ys)); ctx.fillStyle = '#D6A15A'; ctx.font = '600 11px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.fillText(g[0].chord || '', x + 4, laneY(3) - 0 + 2 > G.top ? laneY(3) + 2 : G.top); });
       // events
       l.events.forEach(e => {
         const r = evRect(e); if (r.x + r.w < G.x0 || r.x > W) return;
         const on = st.sel.has(e.id);
         ctx.fillStyle = on ? SCOL[e.s] : 'rgba(30,26,22,.95)'; ctx.strokeStyle = SCOL[e.s]; ctx.lineWidth = on ? 2 : 1.4;
         ctx.beginPath(); ctx.roundRect ? ctx.roundRect(r.x, r.y, r.w, r.h, 6) : ctx.rect(r.x, r.y, r.w, r.h); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = on ? '#140D08' : '#F2E8DA'; ctx.font = '600 ' + Math.min(18, r.h * .45) + 'px IBM Plex Mono'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = on ? '#140D08' : '#F2E8DA'; ctx.font = '600 ' + Math.min(18, r.h * .45) + 'px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
         ctx.fillText(String(e.f), r.x + 6, r.y + r.h / 2);
-        ctx.font = '10px IBM Plex Mono'; const meta = (e.f ? '·' + (e.fi || '?') : '') + (e.st === 'up' ? ' ↑' : ' ↓') + (e.acc ? ' >' : '') + (e.hint ? ' ✎' : '');
+        ctx.font = '10px Noto Sans Georgian'; const meta = (e.f ? '·' + (e.fi || '?') : '') + (e.st === 'up' ? ' ↑' : ' ↓') + (e.acc ? ' >' : '') + (e.hint ? ' ✎' : '');
         if (r.w > 40) ctx.fillText(meta, r.x + 6 + (e.f > 9 ? 22 : 13), r.y + r.h / 2 + 1);
         if (e.f && !e.fi) { ctx.fillStyle = '#E9C46A'; ctx.beginPath(); ctx.arc(r.x + r.w - 6, r.y + 6, 3, 0, 7); ctx.fill(); }
       });
@@ -372,7 +372,7 @@ PD.studio = (() => {
 
     /* ---------- keyboard ---------- */
     function onKey(e) {
-      if (ST !== st || document.querySelector('.sheet-back')) return;
+      if (ST !== st || document.querySelector('.sheet-back:not(.out)')) return;
       if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return;
       const k = e.key, mod = e.ctrlKey || e.metaKey;
       if (mod && (k === 'z' || k === 'Z')) { e.preventDefault(); e.shiftKey ? redo() : undo(); }
