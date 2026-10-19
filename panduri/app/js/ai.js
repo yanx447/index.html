@@ -25,10 +25,11 @@ PD.i18n.add({
   'ai.range': ['რომელი ნაწილი', 'Which part'], 'ai.all': ['მთელი სიმღერა', 'Whole song'], 'ai.first': ['პირველი {n} წმ', 'First {n} s'], 'ai.fromHere': ['აქედან {n} წმ', '{n} s from here'],
   'ai.vocals': ['ვოკალი', 'Vocals'], 'ai.drums': ['დრამი', 'Drums'], 'ai.bass': ['ბასი', 'Bass'], 'ai.other': ['დანარჩენი (ფანდური…)', 'The rest (panduri…)'], 'ai.mute': ['ჩუმად', 'Mute'], 'ai.solo': ['მხოლოდ ეს', 'Solo'], 'ai.save': ['WAV', 'WAV'],
   'ai.stemsOn': ['ისმის AI-ით დაყოფილი ვერსია', 'Playing the AI-split version'], 'ai.orig': ['ორიგინალი', 'Original'], 'ai.mixed': ['AI მიქსი', 'AI mix'], 'ai.speedStems': ['AI მიქსში სიჩქარე ცვლის ბგერის სიმაღლესაც.', 'In the AI mix, speed also changes the pitch.'],
-  'ai.recent': ['ბოლოს გაანალიზებული', 'Recently analysed'], 'ai.home': ['AI: შენი სიმღერის აკორდები', 'AI: chords of your song'], 'ai.homeD': ['ჩატვირთე სიმღერა — AI აკორდებს ფანდურზე გაჩვენებს და ინსტრუმენტებს დაყოფს', 'Load a song — the AI shows its chords on the panduri and splits the instruments']
+  'ai.recent': ['ბოლოს გაანალიზებული', 'Recently analysed'], 'ai.reload': ['ეს სიმღერა ჯერ არ იყო შენახული — აირჩიე ფაილი კიდევ ერთხელ, შემდეგ უკვე შენახული დარჩება.', 'This song was not saved yet — pick the file once more; after that it stays saved.'], 'ai.reloadS': ['შეეხე და ფაილი კიდევ ერთხელ აირჩიე', 'Tap and pick the file once more'], 'ai.forget': ['სიიდან წაშლა', 'Remove from list'], 'ai.home': ['AI: შენი სიმღერის აკორდები', 'AI: chords of your song'], 'ai.homeD': ['ჩატვირთე სიმღერა — AI აკორდებს ფანდურზე გაჩვენებს და ინსტრუმენტებს დაყოფს', 'Load a song — the AI shows its chords on the panduri and splits the instruments']
 });
 
 PD.ai = (() => {
+  const KEEP = 12;   // songs kept on the device for reopening
   const h = PD.h, t = PD.i18n.t, ic = PD.ic, TH = PD.theory;
   const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
   const SR = 44100;
@@ -150,20 +151,51 @@ PD.ai = (() => {
     own(stopAll); own(() => { if (worker) { try { worker.terminate(); } catch (_) {} worker = null; } });
     function bar(label, p) { status.innerHTML = ''; status.append(h('span', { text: label }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(p * 100) + '%' })])); }
 
-    async function open(file) {
+    async function open(file, saved) {
       stopAll(); body.innerHTML = ''; bar(t('ai.reading'), .05);
       let ab; try { ab = await decode(file); } catch (e) { status.textContent = t('ai.bad'); return; }
-      bar(t('ai.analysing'), .1);
-      const mono22 = await resample(ab, 22050, 1);
-      const res = await analyse(mono22.getChannelData(0), 22050, p => bar(t('ai.analysing'), .1 + .9 * p));
+      let res = saved && saved.res;
+      if (!res) {
+        bar(t('ai.analysing'), .1);
+        const mono22 = await resample(ab, 22050, 1);
+        res = await analyse(mono22.getChannelData(0), 22050, p => bar(t('ai.analysing'), .1 + .9 * p));
+      }
       status.innerHTML = '';
       const url = URL.createObjectURL(file), audio = new Audio(url); audio.preservesPitch = true; audio.mozPreservesPitch = true; audio.webkitPreservesPitch = true;
       S = { file, ab, res, audio, url, tr: 0, speed: 1, stems: null, mode: 'orig', raf: 0 };
-      try { const rec = PD.store.get('ai.recent', []).filter(r => r.name !== file.name); rec.unshift({ name: file.name, at: Date.now(), key: cname(res.key.r, res.key.q), bpm: res.bpm, chords: [...new Set(res.chords.filter(c => c.root >= 0).map(c => cname(c.root, c.q)))].slice(0, 8) }); PD.store.set('ai.recent', rec.slice(0, 8)); } catch (_) {}
+      // keep the song + its analysis on the device so it can be reopened any time
+      try {
+        const all = PD.store.get('ai.recent', []), id = saved ? saved.id : 's' + Date.now().toString(36);
+        const rest = all.filter(r => r.id !== id && r.name !== file.name), gone = all.filter(r => !rest.includes(r) && r.id && r.id !== id);
+        const entry = { id, name: file.name, type: file.type, at: Date.now(), key: cname(res.key.r, res.key.q), bpm: res.bpm, chords: [...new Set(res.chords.filter(c => c.root >= 0).map(c => cname(c.root, c.q)))].slice(0, 8), stored: saved ? true : false };
+        const keep = [entry].concat(rest).slice(0, KEEP), drop = gone.concat(rest.slice(KEEP - 1));
+        drop.forEach(r => { if (r.id) { PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.res.' + r.id); } });
+        PD.store.set('ai.recent', keep);
+        if (!saved) {
+          try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (_) {}
+          const blob = new Blob([await file.arrayBuffer()], { type: file.type || 'audio/mpeg' });
+          const ok = await PD.blobs.put('ai.song.' + id, blob), ok2 = await PD.blobs.put('ai.res.' + id, res);
+          if (ok !== null && ok2 !== null) { const r2 = PD.store.get('ai.recent', []), e2 = r2.find(r => r.id === id); if (e2) { e2.stored = true; PD.store.set('ai.recent', r2); } }
+        }
+      } catch (_) {}
       render();
     }
+    async function reopen(r) {
+      if (!r.id || !r.stored) { status.textContent = t('ai.reload'); input.click(); return; }
+      bar(t('ai.reading'), .03);
+      const blob = await PD.blobs.get('ai.song.' + r.id), res = await PD.blobs.get('ai.res.' + r.id);
+      if (!blob) { status.textContent = t('ai.reload'); input.click(); return; }
+      const file = new File([blob], r.name, { type: r.type || blob.type });
+      open(file, { id: r.id, res: res && res.chords ? res : null });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function forget(r) {
+      if (r.id) { PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.res.' + r.id); }
+      PD.store.set('ai.recent', PD.store.get('ai.recent', []).filter(x => x !== r && !(x.id ? x.id === r.id : x.name === r.name)));
+      recentList();
+    }
 
-    function render() {
+    let render = function () {
       body.innerHTML = '';
       const { res } = S;
       const used = [...new Map(res.chords.filter(c => c.root >= 0).map(c => [c.root + c.q, c])).values()];
@@ -291,9 +323,16 @@ PD.ai = (() => {
     function stopStems() { const st = S && S.stems; if (!st || !st.src) return; st.src.forEach(s => { try { s.stop(); } catch (_) {} }); st.src = null; st.playing = false; }
     function stemPos() { const st = S.stems; return st.playing && actx ? st.at + (actx.currentTime - st.t0) * S.speed : st.at || st.from; }
     function applyGains() { const st = S.stems; if (!st || !st.g) return; st.g.forEach((g, i) => { g.gain.value = st.solo >= 0 ? (i === st.solo ? st.gain[i] : 0) : st.mute[i] ? 0 : st.gain[i]; }); }
-    // recent analyses
-    const rec = PD.store.get('ai.recent', []);
-    if (rec.length) body.append(h('section', { class: 'ai-recent' }, [h('h3', { 'data-t': 'ai.recent' }), h('div', { class: 'list' }, rec.map(r => h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('b', { text: r.name.replace(/\.[^.]+$/, '') }), h('small', { class: 'muted', text: r.key + ' · ' + r.bpm + ' BPM · ' + (r.chords || []).join(' ') })])])))]));
+    // recent analyses: tap to reopen (song + chords are kept on this device)
+    const recentBox = h('section', { class: 'ai-recent' }); w.append(recentBox);
+    function recentList() {
+      const rec = PD.store.get('ai.recent', []); recentBox.innerHTML = ''; recentBox.hidden = !rec.length; if (!rec.length) return;
+      recentBox.append(h('h3', { text: t('ai.recent') }), h('div', { class: 'list' }, rec.map(r => h('div', { class: 'li ai-ri' }, [
+        h('button', { class: 'ai-rb grow', onclick: () => reopen(r) }, [h('span', { class: 'ai-rplay', html: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>' }), h('span', { class: 'grow' }, [h('b', { text: r.name.replace(/\.[^.]+$/, '') }), h('small', { class: 'muted', text: r.key + ' · ' + r.bpm + ' BPM · ' + (r.chords || []).join(' ') }), r.stored ? null : h('small', { class: 'ai-rwarn', text: t('ai.reloadS') })])]),
+        h('button', { class: 'btn small ghost ai-rdel', 'aria-label': t('ai.forget'), title: t('ai.forget'), text: '✕', onclick: () => forget(r) })]))));
+    }
+    recentList();
+    const _render = render; render = function () { _render(); recentList(); };
   }
   return { page, analyse, allowed, BASE };
 })();
