@@ -35,7 +35,7 @@ jobs:
           mkdir -p panduri/ai-build/logs
           exec > >(tee panduri/ai-build/logs/install.txt) 2>&1
           pip install --index-url https://download.pytorch.org/whl/cpu torch==2.3.1 torchaudio==2.3.1
-          pip install "numpy<2" onnx==1.16.2 onnxruntime==1.19.2 dora-search einops julius lameenc openunmix pyyaml tqdm soundfile
+          pip install "numpy<2" onnx==1.16.2 onnxruntime==1.19.2 dora-search diffq einops julius lameenc openunmix pyyaml tqdm soundfile
           pip install --no-deps -e /tmp/donnx/demucs-for-onnx
       - name: Export htdemucs to ONNX (weights from Meta, MIT)
         run: |
