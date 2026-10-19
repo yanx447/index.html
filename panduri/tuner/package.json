@@ -1,0 +1,10 @@
+{
+  "name": "panduri-tuner",
+  "version": "1.8.5",
+  "private": true,
+  "description": "Sami Simi — the panduri tuner built into the Panduri app (A · C♯ · E). Engine tests and materials.",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/run-tests.mjs"
+  }
+}

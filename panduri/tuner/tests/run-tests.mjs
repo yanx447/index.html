@@ -3,11 +3,11 @@
 // exactly like the app does, and checks accuracy, direction, octave handling, noise,
 // decay/hold, repeated plucks, auto string switching, calibration and transposition.
 
-import { PitchDetector } from '../js/pitch-detector.js';
-import { PitchTracker, State } from '../js/tracker.js';
-import { TuningModel } from '../js/tuning.js';
-import { instruction } from '../js/guidance.js';
-import { renderPluck } from '../js/reference.js';
+import { PitchDetector } from '../../app/tuner/js/pitch-detector.js';
+import { PitchTracker, State } from '../../app/tuner/js/tracker.js';
+import { TuningModel } from '../../app/tuner/js/tuning.js';
+import { instruction } from '../../app/tuner/js/guidance.js';
+import { renderPluck } from '../../app/tuner/js/reference.js';
 
 let pass = 0, fail = 0;
 const ok = (cond, name, info = '') => {
@@ -156,7 +156,7 @@ console.log('\nNoise, weak signal, decay');
   const holdF = fr.find((f) => f.t > 1500 && f.state === State.HOLD);
   const lastV = lastValid(fr);
   const backIdle = fr.find((f) => f.t > (lastV?.t ?? 0) + 200 && f.state === State.LISTENING);
-  ok(!!holdF && !!backIdle && backIdle.t - lastV.t < 900, 'decay → hold → listening', holdF && backIdle ? `hold at ${holdF.t.toFixed(0)}ms, idle ${(backIdle.t - lastV.t).toFixed(0)}ms after last valid` : '');
+  ok(!!holdF && !!backIdle && backIdle.t - lastV.t < 1300, 'decay → hold (1 s) → listening', holdF && backIdle ? `hold at ${holdF.t.toFixed(0)}ms, idle ${(backIdle.t - lastV.t).toFixed(0)}ms after last valid` : '');
   const vs = fr.filter((f) => f.t > 1200 && (f.state === State.VALID || f.state === State.IN_TUNE));
   const maxJump = Math.max(...vs.map((f) => Math.abs(f.cents)));
   ok(maxJump < 2, 'no needle jumps while the note fades', `max |cents| ${maxJump.toFixed(2)}`);
@@ -229,6 +229,190 @@ console.log('\nGuidance wording');
   ok(t(6).text === 'ოდნავ მოუშვი' && t(6).dir === -1, 'near sharp → ოდნავ მოუშვი ↓');
   ok(t(40).text === 'მოუშვი', 'far sharp → მოუშვი');
   ok(t(2.5).dir === 0, 'within tolerance → აწყობილია');
+}
+
+console.log('\nInharmonic partials (measured on a real panduri: H3 −17¢ on C♯4, H2 +6¢ / H3 −25¢ on E4)');
+{
+  // per-harmonic [cents offset, relative amplitude] taken from 1-second spectra of phone recordings
+  const real = [
+    { s: 1, p: [[0, 1], [3, 0.35], [-19, 0.6], [-5, 0.25], [1, 0.15]] },
+    { s: 2, p: [[0, 1], [13, 0.6], [-18, 0.3], [-2, 0.25], [0, 0.12]] },
+    { s: 0, p: [[0, 1], [5, 0.35], [-13, 0.55], [3, 0.2], [6, 0.4]] },
+  ];
+  for (const { s, p } of real) {
+    for (const off of [0, -8, 8]) {
+      const buf = new Float32Array(SR * 2.6); addNoise(buf, 0.0008);
+      const f = cents(S[s].freq, off), n0 = SR;
+      for (let i = 0; i < SR * 1.5; i++) {
+        const t = i / SR; let v = 0;
+        p.forEach(([c, a], h) => { v += a * Math.exp(-t * (1.6 + h)) * Math.sin(2 * Math.PI * (h + 1) * f * Math.pow(2, c / 1200) * t); });
+        buf[n0 + i] += 0.2 * v * Math.min(1, t / 0.002);
+      }
+      const fr = run(buf, S, { mode: 'manual', selected: s });
+      const v = lastValid(fr, 1300, 2300);
+      ok(v && Math.abs(v.cents - off) < 1, `${S[s].latin}${S[s].octave} ${off >= 0 ? '+' : ''}${off}¢ with real-instrument partials`, v ? `measured ${v.cents.toFixed(2)}¢` : 'no reading');
+    }
+  }
+}
+
+console.log('\nChord recognition (panduri-voiced chords, overtones must not count as notes)');
+{
+  const music = await import('../../app/tuner/js/music.js');
+  const sp = new music.Spectrum(8192), T = S.map((s) => s.midi);
+  let good = 0, total = 0; const miss = [];
+  for (const name of ['A', 'D', 'E', 'Em', 'F#m', 'Bm', 'C#m', 'G', 'C', 'Am', 'Dm', 'B', 'F', 'A7', 'E7', 'D7', 'Asus4']) {
+    const p = music.parseChord(name), f = music.fingering(p.root, p.q, T), want = music.chordName(p.root, p.q, 'en').short;
+    const buf = new Float32Array(SR * 2);
+    f.notes.forEach((m, i) => { const y = renderPluck(440 * 2 ** ((m - 69) / 12), SR, { stringIndex: i, duration: 1.9, seed: i + 3 }); const o = Math.floor(i * 0.02 * SR); for (let k = 0; k < y.length && k + o < buf.length; k++) buf[k + o] += y[k] * 0.3; });
+    for (const t of [0.2, 0.5, 0.9, 1.4]) {
+      const e = Math.floor(t * SR), prof = music.noteProfile(sp.compute(buf.subarray(e - 8192, e)), SR / 8192, 440, T);
+      const m = music.matchChord(prof.chroma, prof.bass), got = music.chordName(m.root, m.q, 'en').short;
+      total++; if (got === want) good++; else miss.push(`${want}@${t}s→${got}`);
+    }
+  }
+  ok(good / total >= 0.95, 'chords recognised while ringing', `${good}/${total}${miss.length ? '  missed: ' + miss.join(', ') : ''}`);
+}
+
+console.log('\nAll three at once (one strum, each string measured)');
+{
+  const music = await import('../../app/tuner/js/music.js');
+  for (const offs of [[6, -3, -9], [0, 0, 0], [-12, 8, 3]]) {
+    const buf = new Float32Array(SR * 2.4); addNoise(buf, 0.0008);
+    S.forEach((s, i) => { const y = renderPluck(cents(s.freq, offs[i]), SR, { stringIndex: i, duration: 2.2, seed: i + 9 }); const o = Math.floor(i * 0.03 * SR); for (let k = 0; k < y.length && k + o < buf.length; k++) buf[k + o] += y[k] * 0.3; });
+    const per = [[], [], []];
+    for (let t = 0.6; t < 2.0; t += 0.05) { const e = Math.floor(t * SR); music.strumCheck(buf.subarray(e - 16384, e), SR, S.map((s) => s.freq), { n: 16384 }).forEach((q, i) => q.cents != null && per[i].push(q.cents)); }
+    const got = per.map((a) => a.sort((p, q) => p - q)[a.length >> 1]);
+    ok(got.every((g, i) => Math.abs(g - offs[i]) < 1), `strum ${offs.map((o) => (o >= 0 ? '+' : '') + o + '¢').join(' ')}`, `measured ${got.map((g) => g.toFixed(1)).join(' / ')}`);
+  }
+}
+
+console.log('\nAccidentally changed settings');
+{
+  const { tuningChanges, recommended, StandardWatch } = await import('../../app/tuner/js/drift.js');
+  const { DEFAULTS } = await import('../../app/tuner/js/settings.js');
+  const base = { ...DEFAULTS };
+  ok(tuningChanges(base).length === 0, 'recommended settings: no notice');
+  const messy = { ...base, transpose: 2, a4: 445, lang: 'en', ui: 'simple', meter: 'strobe' };
+  ok(tuningChanges(messy).map((c) => c.key).join() === 'transpose,a4', 'notice lists only tuning changes', tuningChanges(messy).map((c) => c.key).join());
+  const r = recommended(messy);
+  ok(r.transpose === 0 && r.a4 === 440 && r.lang === 'en' && r.ui === 'simple' && r.meter === 'strobe', 'restore keeps language and view');
+  ok(tuningChanges(recommended({ ...base, autoSens: false, sens: 2, refVolume: 0 })).length === 0, 'restore fixes deaf sensitivity and silent reference');
+  ok(tuningChanges({ ...base, autoSens: false, sens: 7 }).length === 0, 'normal manual sensitivity is not flagged');
+
+  // stream real plucks through detector + tracker and feed the watch exactly like the app
+  const watchRun = (settings, plucks) => {
+    const m = new TuningModel(settings);
+    const buf = new Float32Array(SR * (1 + plucks.length * 1.6)); addNoise(buf, 0.0008);
+    plucks.forEach((f, k) => pluck(buf, 1 + k * 1.6, f));
+    const det = new PitchDetector(SR), tr = new PitchTracker(), w = new StandardWatch();
+    tr.configure({ strings: m.strings, mode: 'auto', selected: 0, autoSens: true, sens: 6, tol: 3 }); tr.begin(0);
+    for (let e = 4096; e <= buf.length; e += SR / 30) {
+      const i = Math.floor(e), s = tr.update(det.analyze(buf.subarray(i - 4096, i), tr.prior), (i / SR) * 1000);
+      if ((s.state === 'valid' || s.state === 'intune' || s.state === 'unstable') && w.push(s.rawFreq, m.strings.map((x) => x.freq))) return (i / SR);
+    }
+    return null;
+  };
+  const std = [220, 277.1826, 329.6276];
+  const t1 = watchRun({ ...base, transpose: 2 }, std);
+  ok(t1 != null && t1 < 4.5, 'standard panduri + transposed settings → restored automatically', t1 ? `after ${t1.toFixed(1)} s` : 'not detected');
+  const t2 = watchRun({ ...base, octave: 1 }, [220, 220]);
+  ok(t2 == null, 'octave change alone is not mistaken (octave-folded targets still match)', t2 ? 'fired' : 'no false alarm');
+  const t3 = watchRun({ ...base, transpose: 2 }, std.map((f) => f * Math.pow(2, 2 / 12)));
+  ok(t3 == null, 'panduri really tuned up 2 semitones → no false alarm');
+  const t4 = watchRun({ ...base, a4: 442 }, std);
+  ok(t4 == null, 'small A4 change (442 Hz) → notice only, no automatic change');
+}
+
+console.log('\nAll chords in all positions (17 frets)');
+{
+  const music = await import('../../app/tuner/js/music.js');
+  const T = S.map((s) => s.midi);
+  let bad = [], total = 0, few = [];
+  for (const q of ['maj', 'min', '7', 'm7', 'sus4', 'dim']) for (let r = 0; r < 12; r++) {
+    const list = music.voicings(r, q, T), tones = music.quality(q).iv.map((i) => music.pc(r + i));
+    total += list.length;
+    if ((q === 'maj' || q === 'min') && list.length < 3) few.push(music.chordName(r, q).short);
+    for (const v of list) {
+      const used = v.frets.filter((x) => x > 0);
+      const okNotes = v.notes.every((m, i) => m === T[i] + v.frets[i] && tones.includes(music.pc(m)));
+      const okHand = v.frets.every((x) => x >= 0 && x <= 17) && (!used.length || Math.max(...used) - Math.min(...used) <= 3);
+      if (!okNotes || !okHand) bad.push(music.chordName(r, q).short + '[' + v.frets + ']');
+    }
+    const std = music.fingering(r, q, T).frets.join();
+    if ((q === 'maj' || q === 'min') && !list.some((v) => v.frets.join() === std)) bad.push('standard ' + music.chordName(r, q).short + ' missing');
+  }
+  ok(!bad.length, 'every position has only chord tones and fits the hand', bad.length ? bad.slice(0, 5).join(', ') : `${total} positions checked`);
+  ok(!few.length, 'every major and minor chord has ≥ 3 positions', few.join(', '));
+  const a = music.voicings(9, 'maj', T).map((v) => v.frets.join());
+  ok(['0,0,0', '4,3,5', '7,8,9', '12,12,12', '16,15,17'].every((x) => a.includes(x)), 'A major: open, both inversions, octave barré and up to fret 17', a.join(' | '));
+}
+
+console.log('\nHarmonic tuning (12th-fret harmonic, an octave above the open string)');
+{
+  // a natural harmonic: almost a pure tone at 2f, slow decay, a little 2nd partial
+  const harmonic = (buf, start, f, amp = 0.2) => {
+    const n0 = Math.floor(start * SR);
+    for (let i = 0; i < SR * 2 && n0 + i < buf.length; i++) {
+      const t = i / SR, e = Math.exp(-t / 1.1) * Math.min(1, t / 0.003);
+      buf[n0 + i] += amp * e * (Math.sin(2 * Math.PI * 2 * f * t) + 0.12 * Math.sin(2 * Math.PI * 4 * f * t));
+    }
+  };
+  for (const s of S) for (const mode of ['manual', 'auto']) for (const off of [-9, 0, 6]) {
+    const buf = new Float32Array(SR * 3); addNoise(buf, 0.0008);
+    harmonic(buf, 1, cents(s.freq, off));
+    const fr = run(buf, S, { mode, selected: s.index, harmonic: true });
+    const v = lastValid(fr, 1400, 2600);
+    ok(v && v.stringIndex === s.index && Math.abs(v.cents - off) < 1, `${s.latin}${s.octave} harmonic ${off >= 0 ? '+' : ''}${off}¢ (${mode})`, v ? `string ${v.stringIndex + 1}, ${v.cents.toFixed(2)}¢, octave ${v.octaveOffset}` : 'no reading');
+  }
+}
+
+console.log('\nCustom tunings');
+{
+  const { loadSettings, DEFAULTS } = await import('../../app/tuner/js/settings.js');
+  const { tuningChanges } = await import('../../app/tuner/js/drift.js');
+  const store = {}; globalThis.localStorage = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } };
+  store['sami-simi:v1'] = JSON.stringify({ presetId: 'c-x1', customs: [{ id: 'c-x1', name: 'Tone down', strings: [55, 59, 62] }, { id: 'bad', strings: [1] }, { id: 'c-y', name: 'x', strings: [10, 200, 60] }] });
+  const st = loadSettings();
+  ok(st.customs.length === 2 && st.customs[1].strings.join() === '45,76,60', 'custom tunings are validated and clamped to A2…E5', JSON.stringify(st.customs.map((c) => c.strings)));
+  const m = new TuningModel(st);
+  ok(m.preset.id === 'c-x1' && m.label() === 'G · B · D', 'a custom tuning drives the targets', m.labelWithOctaves());
+  ok(tuningChanges(st).length === 0, 'choosing your own tuning is not flagged as a mistake');
+  store['sami-simi:v1'] = JSON.stringify({ presetId: 'c-gone', customs: [] });
+  ok(loadSettings().presetId === DEFAULTS.presetId, 'a deleted custom tuning falls back to the standard one');
+  delete globalThis.localStorage;
+}
+
+console.log('\nEnsemble calibration (reed instrument tuned to A4 = 442 Hz)');
+{
+  const det = new PitchDetector(SR);
+  for (const [note, a4] of [[69, 442], [64, 442], [69, 437.5], [57, 445]]) {
+    const f = a4 * Math.pow(2, (note - 69) / 12), x = new Float32Array(SR);
+    for (let i = 0; i < x.length; i++) { const t = i / SR; let v = 0; for (let h = 1; h <= 8; h++) v += Math.sin(2 * Math.PI * h * f * t) / h; x[i] = 0.2 * v; }
+    const cs = [];
+    for (let e = 4096; e <= x.length; e += 1600) { const r = det.analyze(x.subarray(e - 4096, e)); const mm = 69 + 12 * Math.log2(r.freq / 440); cs.push((mm - Math.round(mm)) * 100); }
+    cs.sort((a, b) => a - b);
+    const est = 440 * Math.pow(2, cs[cs.length >> 1] / 1200);
+    ok(Math.abs(est - a4) < 0.15, `note ${note} → A4 ${a4} Hz`, `measured ${est.toFixed(2)} Hz`);
+  }
+}
+
+console.log('\nNeedle speed setting (1 calm … 10 fast)');
+{
+  const { Meter } = await import('../../app/tuner/js/view/meter.js').catch(() => ({}));
+  // the peg is turned while the string rings: −8¢ → 0¢ — how long until the reading is within 1¢?
+  const settle = (speed) => {
+    const tr = new PitchTracker();
+    tr.configure({ strings: S, mode: 'manual', selected: 0, autoSens: true, sens: 6, tol: 3, speed }); tr.begin(0);
+    let t = 0; const det = (c) => ({ freq: cents(S[0].freq, c), clarity: 0.97, periodicity: 0.97, rms: 0.05, peak: 0.1 });
+    for (let i = 0; i < 35; i++) { t += 33; tr.update({ freq: 0, clarity: 0, periodicity: 0, rms: 0.0004, peak: 0.001 }, t); } // room before the pluck
+    for (let i = 0; i < 40; i++) { t += 33; tr.update(det(-8), t); }
+    const t0 = t;
+    for (let i = 0; i < 120; i++) { t += 33; const s = tr.update(det(0), t); if (Math.abs(s.cents) < 1) return t - t0; }
+    return Infinity;
+  };
+  const ms = [1, 5, 10].map(settle);
+  ok(ms[0] > ms[1] && ms[1] > ms[2], 'calm is slower, fast is quicker', `to within 1¢: calm ${ms[0]} ms · default ${ms[1]} ms · fast ${ms[2]} ms`);
+  ok(ms[2] <= 400 && ms[0] <= 3000, 'still usable at both ends');
 }
 
 console.log('\nReference tone pitch');

@@ -1,6 +1,0 @@
-{
-  "name": "panduri-tuner",
-  "private": true,
-  "type": "module",
-  "scripts": { "test": "node tests/run-tests.mjs" }
-}

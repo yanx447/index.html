@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>აპლიკაციები — Studio Plus+</title>
-<meta name="description" content="Studio Plus+-ის უფასო აპლიკაციები ქართული ფანდურისთვის: სამი სიმი (ტიუნერი) და ფანდური (სასწავლო აპი). Free apps for the Georgian panduri.">
+<meta name="description" content="Studio Plus+-ის უფასო აპლიკაცია ქართული ფანდურისთვის: ფანდური — სწავლა და ტიუნერი „სამი სიმი“ ერთ აპში. A free app for the Georgian panduri.">
 <meta name="theme-color" content="#0a0a0a">
 <meta name="color-scheme" content="dark">
 <meta property="og:title" content="Studio Plus+ · აპლიკაციები / Apps">
-<meta property="og:description" content="სამი სიმი — ფანდურის ტიუნერი · ფანდური — ისწავლე დაკვრა. Android APK და ვებ-ვერსია.">
-<meta property="og:image" content="https://yanx447.github.io/index.html/sami-simi/app/icons/icon-512.png">
+<meta property="og:description" content="ფანდური — ისწავლე დაკვრა, ჩაშენებული ტიუნერით „სამი სიმი“. Android APK და ვებ-ვერსია.">
+<meta property="og:image" content="https://yanx447.github.io/index.html/panduri/app/icons/icon-512.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a'/%3E%3Cg stroke='%23e3262f' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M9 6v20M16 6v20M23 6v20'/%3E%3C/g%3E%3Cg fill='%23f4efe8'%3E%3Crect x='5.5' y='17' width='7' height='4' rx='1.4'/%3E%3Crect x='12.5' y='9' width='7' height='4' rx='1.4'/%3E%3Crect x='19.5' y='13' width='7' height='4' rx='1.4'/%3E%3C/g%3E%3C/svg%3E">
 <style>
-@font-face { font-family: "Noto Sans Georgian"; src: url("../sami-simi/app/fonts/NotoSansGeorgian.woff") format("woff"); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: "Noto Serif Georgian"; src: url("../sami-simi/app/fonts/NotoSerifGeorgian.woff") format("woff"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Noto Sans Georgian"; src: url("../panduri/app/tuner/fonts/NotoSansGeorgian.woff") format("woff"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Noto Serif Georgian"; src: url("../panduri/app/tuner/fonts/NotoSerifGeorgian.woff") format("woff"); font-weight: 100 900; font-display: swap; }
 
 :root {
   --bg: #0a0a0a; --bg-2: #111010; --card: #141212; --card-2: #1a1716;
@@ -149,34 +149,6 @@ html.embed .embed-lang { display: flex; justify-content: flex-end; margin-bottom
 
   <div class="wrap embed-lang"><div class="lang" role="group" aria-label="Language / ენა"><button type="button" data-l="ka" aria-pressed="true">ქა</button><button type="button" data-l="en" aria-pressed="false">EN</button></div></div>
   <div class="wrap apps">
-    <!-- Sami Simi -->
-    <article class="app" data-app="samisimi">
-      <div class="app-head">
-        <img src="../sami-simi/app/icons/icon-192.png" alt="" width="76" height="76">
-        <h2><span lang="ka">სამი სიმი</span><span lang="en">Sami Simi</span><small lang="ka">ფანდურის ტიუნერი</small><small lang="en">Panduri tuner</small></h2>
-      </div>
-      <p lang="ka">ზუსტი ტიუნერი სამსიმიანი ქართული ფანდურისთვის — ლა · დო♯ · მი. ჩამოკარი სიმი და ნახე, საით დაატრიალო მომჭერი.</p>
-      <p lang="en">A precise tuner for the three-string Georgian panduri — A · C♯ · E. Pluck a string and see which way to turn the peg.</p>
-      <ul class="feats">
-        <li lang="ka">ერთი სიმით ან სამივე ერთად, ერთი ჩამოკვრით</li><li lang="en">One string at a time, or all three with one strum</li>
-        <li lang="ka">ყველა აკორდი ყველა პოზიციაში, 17-ლადიან 3D ტარზე</li><li lang="en">Every chord in every position on a 17-fret 3D neck</li>
-        <li lang="ka">ეტალონური ბგერა ნამდვილი ფანდურიდან, მეტრონომი, აკორდის ამოცნობა</li><li lang="en">Reference tones from a real panduri, metronome, chord recognition</li>
-        <li lang="ka">მუშაობს ინტერნეტის გარეშე</li><li lang="en">Works offline</li>
-      </ul>
-      <div class="meta" data-meta></div>
-      <div class="actions">
-        <a class="btn btn-red" data-apk href="https://github.com/yanx447/index.html/releases/download/android-latest/SamiSimi.apk" download>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg>
-          <span lang="ka">ჩამოტვირთე APK</span><span lang="en">Download APK</span>
-        </a>
-        <button type="button" class="btn btn-line btn-sq" data-qr aria-label="QR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2"/></svg></button>
-        <div class="row2">
-          <a class="btn btn-line" href="../sami-simi/app/"><span lang="ka">გახსენი ბრაუზერში</span><span lang="en">Open in browser</span></a>
-          <a class="btn btn-line" href="../sami-simi/"><span lang="ka">მეტი აპზე</span><span lang="en">About the app</span></a>
-        </div>
-        <div class="qr-box" hidden></div>
-      </div>
-    </article>
 
     <!-- Panduri Learning -->
     <article class="app" data-app="panduri">
@@ -189,7 +161,7 @@ html.embed .embed-lang { display: flex; justify-content: flex-end; margin-bottom
       <ul class="feats">
         <li lang="ka">გაკვეთილები, რომლებიც შენს დაკვრას ელოდება</li><li lang="en">Lessons that wait for you to play</li>
         <li lang="ka">მასწავლებლის ვიდეო და კამერის რეჟიმი</li><li lang="en">Teacher video and camera mode</li>
-        <li lang="ka">ტიუნერი, აკორდები და 3D ინსტრუმენტი</li><li lang="en">Tuner, chords and a 3D instrument</li>
+        <li lang="ka">ჩაშენებული ტიუნერი „სამი სიმი“, აკორდები და 3D ინსტრუმენტი</li><li lang="en">The built-in Sami Simi tuner, chords and a 3D instrument</li>
         <li lang="ka">ტელეფონზე, პლანშეტზე და Android TV-ზე</li><li lang="en">Phones, tablets and Android TV</li>
       </ul>
       <div class="meta" data-meta></div>
@@ -257,14 +229,14 @@ html.embed .embed-lang { display: flex; justify-content: flex-end; margin-bottom
     <span>© 2026 <span lang="ka">სტუდიო+</span><span lang="en">Studio Plus+</span> · <span lang="ka">ბათუმი</span><span lang="en">Batumi</span></span>
     <nav>
       <a href="https://studioplus.ge">studioplus.ge</a>
-      <a href="../sami-simi/privacy.html"><span lang="ka">კონფიდენციალურობა — სამი სიმი</span><span lang="en">Privacy — Sami Simi</span></a>
-      <a href="../sami-simi/support.html"><span lang="ka">დახმარება</span><span lang="en">Support</span></a>
+      <a href="../panduri/tuner/privacy.html"><span lang="ka">კონფიდენციალურობა — ტიუნერი</span><span lang="en">Privacy — tuner</span></a>
+      <a href="../panduri/tuner/support.html"><span lang="ka">დახმარება</span><span lang="en">Support</span></a>
     </nav>
   </div>
 </footer>
 
 <script type="module">
-import qrcode from '../sami-simi/app/vendor/qrcode.js';
+import qrcode from '../panduri/app/tuner/vendor/qrcode.js';
 
 const qs = new URLSearchParams(location.search);
 const EMBED = qs.has('embed') && window.parent !== window;
@@ -293,7 +265,7 @@ setLang(initial);
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 // live version, size and date of each APK from the GitHub release
-const RELEASES = { samisimi: ['android-latest', 'SamiSimi.apk'], panduri: ['panduri-android-latest', 'Panduri.apk'] };
+const RELEASES = { panduri: ['panduri-android-latest', 'Panduri.apk'] };
 function renderMeta(m, info) {
   const ka = root.lang === 'ka';
   const d = new Date(info.date);
