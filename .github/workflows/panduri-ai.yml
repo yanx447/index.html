@@ -71,7 +71,7 @@ jobs:
         run: |
           git config user.name "panduri-ai-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add panduri/ai panduri/ai-build/logs || true
+          git add panduri/ai-build/logs 2>/dev/null || true; git add panduri/ai 2>/dev/null || true
           git commit -m "Panduri AI: Demucs model and ONNX Runtime Web for the browser" || echo "nothing to commit"
           git pull --rebase origin main
           git push
