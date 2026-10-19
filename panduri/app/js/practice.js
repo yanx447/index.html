@@ -138,6 +138,7 @@ PD.practice = (() => {
     const mirror = PD.store.get('lefty', false);
 
     const root = h('div', { class: 'pz' + (RHYTHM ? ' rhythm' : ''), role: 'dialog', 'aria-modal': 'true', 'aria-label': PD.i18n.pick(lesson.title) });
+    if (mirror) root.classList.add('lefty');
     /* header: back · title · pause · more ; progress */
     const bBack = h('button', { class: 'pz-ic', 'aria-label': t('ws.close'), html: ic.back, onclick: () => close() });
     const bPause = h('button', { class: 'pz-ic', 'aria-label': t('ws.pause'), html: ic.pause, onclick: () => togglePause() });
@@ -176,7 +177,7 @@ PD.practice = (() => {
     const CAM = !!opts.camera || PD.camera.take();
     let camV = null, frameEl = null;
     if (CAM && !w.rec) {
-      root.classList.add('cam'); if (mirror) root.classList.add('lefty');
+      root.classList.add('cam');
       camV = h('video', { class: 'pz-camv' + (PD.camera.facing === 'user' ? ' mirror' : ''), playsinline: '', muted: '', autoplay: '' });
       frameEl = h('div', { class: 'pz-frame', 'aria-hidden': 'true', html: PD.camera.frameSVG(mirror) + '<span>' + PD.esc(t('cam.frame')) + '</span>' });
       root.prepend(camV); stage0.appendChild(frameEl);
@@ -194,7 +195,15 @@ PD.practice = (() => {
     const lanes = PD.Lanes(cvL, { rhythm: RHYTHM, song: !!lesson.song }); lanes.mirror = mirror;
     const neck = PD.Neck(cvN, { sticky: !!lesson.song, onTap: (s, f) => { if (!devTouch()) return; PD.audio.ensure(); PD.audio.note(s, f, { vel: .6 }); E.input({ kind: 'note', src: 'touch', midi: TH.midi(s, f), s, f, conf: 1, t: PD.audio.now() }); } }); neck.mirror = mirror;
     w.neck = neck; w.lanes = lanes;
-    const relayout = () => { const nh = neck.natH(neckBox.clientWidth || stage0.clientWidth, stage0.clientHeight - (prompt.offsetHeight || 92) - (lesson.cycle ? 300 : 280)); if (nh !== w.nkH) { w.nkH = nh; stage0.style.setProperty('--nk', nh + 'px'); } lanes.layout(); neck.layout(); w.sig = ''; };   // the neck row is as tall as the whole neck needs; the rest goes to the lanes
+    // portrait phone + a song's chord cycle: the neck stands upright along the right side, the cycle runs down beside it
+    const upMQ = window.matchMedia ? matchMedia('(orientation: portrait) and (max-width: 760px)') : null;
+    const relayout = () => {
+      const up = !!(lesson.cycle && lesson.cycle.length && !RHYTHM && !root.classList.contains('cam') && upMQ && upMQ.matches);
+      root.classList.toggle('upright', up);
+      if (up) { const nw = Math.min(neck.natH(stage0.clientHeight, 0, true), Math.round(stage0.clientWidth * .42)); if (nw !== w.nkW) { w.nkW = nw; stage0.style.setProperty('--nkw', nw + 'px'); } }
+      else { const nh = neck.natH(neckBox.clientWidth || stage0.clientWidth, stage0.clientHeight - (prompt.offsetHeight || 92) - (lesson.cycle ? 300 : 280)); if (nh !== w.nkH) { w.nkH = nh; stage0.style.setProperty('--nk', nh + 'px'); } }
+      lanes.layout(); neck.layout(); w.sig = '';
+    };   // the neck row is as tall as the whole neck needs; the rest goes to the lanes
 
     if (!w.rec) {
       E.load(lesson, Object.assign({ mode: 'learn', wait: true, tempo: .7, stepMode: false, autoPause: false, autoplay: false }, opts));

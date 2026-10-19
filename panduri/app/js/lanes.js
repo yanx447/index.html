@@ -166,7 +166,8 @@ PD.Lanes = function (canvas, opt) {
     const runOf = r => Math.max(0, runs.findIndex(q => r >= q.r0 && r < q.r0 + q.n));
     const rx = r => x0 + r * RW + runOf(r) * G1;
     const per = {}; for (let i = i0; i < i1; i++) { const r = Math.floor(S.steps[i].t - c0 + 1e-6); per[r] = (per[r] || 0) + 1; }
-    const sx = st => { const u = st.t - c0, r = Math.floor(u + 1e-6); return rx(r) + RW * ((u - r) + 1 / (2 * (per[r] || 3))); };
+    const lead = low ? 34 : 0;   // low: room for the chord name before the first stroke of a chord
+    const sx = st => { const u = st.t - c0, r = Math.floor(u + 1e-6), q = runs[runOf(r)], first = q && r === q.r0, x = first ? rx(r) + lead : rx(r), w = first ? RW - lead : RW; return x + w * ((u - r) + 1 / (2 * (per[r] || 3))); };
     const sc = E.sectionAt(now), listen = sc && sc.kind === 'listen';
     // header: the part of the song · which time round
     ctx.textBaseline = 'middle';
@@ -178,9 +179,9 @@ PD.Lanes = function (canvas, opt) {
       const g = ctx.createLinearGradient(0, y0, 0, y0 + bh); g.addColorStop(0, hexA(col, active ? .62 : .3)); g.addColorStop(1, hexA(col, active ? .3 : .12));
       ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y0, w, bh, 16) : ctx.rect(x, y0, w, bh); ctx.fill();
       ctx.strokeStyle = hexA(col, active ? 1 : .45); ctx.lineWidth = active ? 2.5 : 1.2; ctx.stroke();
-      const fs = Math.round(Math.max(18, Math.min(32, bh * .2, w * .34)));
-      ctx.fillStyle = active ? '#FFFFFF' : 'rgba(255,244,230,.85)'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(q.c, x + 10, y0 + 8);
-      if (w > 96) { ctx.font = '600 11px ' + FONT; ctx.fillStyle = 'rgba(255,236,210,.6)'; ctx.textAlign = 'right'; ctx.fillText(tr('sg.rhythms', { n: q.n }), x + w - 10, y0 + 12); }
+      const fs = low ? Math.round(Math.max(14, Math.min(18, bh * .24))) : Math.round(Math.max(18, Math.min(32, bh * .2, w * .34)));
+      ctx.fillStyle = active ? '#FFFFFF' : 'rgba(255,244,230,.85)'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = low ? 'middle' : 'top'; ctx.fillText(q.c, x + 9, low ? y0 + bh * .55 : y0 + 8);
+      if (w > 96 && !low) { ctx.font = '600 11px ' + FONT; ctx.fillStyle = 'rgba(255,236,210,.6)'; ctx.textAlign = 'right'; ctx.fillText(tr('sg.rhythms', { n: q.n }), x + w - 10, y0 + 12); }
       // the rhythms inside the chord: a dashed line between them and their number at the bottom (Dm: 1 · 2)
       ctx.setLineDash([4, 5]); ctx.strokeStyle = 'rgba(255,236,210,.28)'; ctx.lineWidth = 1;
       for (let r = q.r0 + 1; r < q.r0 + q.n; r++) { const xr = rx(r); ctx.beginPath(); ctx.moveTo(xr, y0 + bh * .3); ctx.lineTo(xr, y0 + bh - 8); ctx.stroke(); }
@@ -188,10 +189,10 @@ PD.Lanes = function (canvas, opt) {
       if (!low) for (let r = q.r0; r < q.r0 + q.n; r++) { const on = active && now >= c0 + r && now < c0 + r + 1; ctx.font = (on ? '700 ' : '600 ') + '12px ' + FONT; ctx.fillStyle = on ? '#FFE2BA' : 'rgba(255,236,210,.4)'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(String(r - q.r0 + 1), rx(r) + RW / 2, y0 + bh - 6); }
     });
     // strokes
-    const yA = y0 + bh * .56;
+    const yA = low ? y0 + bh * .64 : y0 + bh * .56;
     for (let i = i0; i < i1; i++) {
       const st = S.steps[i], x = sx(st), r = Math.floor(st.t - c0 + 1e-6), slot = RW / (per[r] || 3), f = fx[i] || {}, res = S.res[i] || {}, up = st.st === 'up';
-      let size = Math.min(bh * .2, slot * .4) * (st.acc ? 1.12 : 1), col = st.acc ? ACC : '#FFF4E6', a = 1;
+      let size = Math.min(bh * (low ? .17 : .2), slot * .4) * (st.acc ? 1.12 : 1), col = st.acc ? ACC : '#FFF4E6', a = 1;
       const isCur = !S.autoplay && i === S.cur, sounding = S.autoplay && now >= st.t - .02 && now < st.t + st.d - .02;
       let miss = false;
       if (S.autoplay) { if (st.t + st.d <= now) a = .45; }
@@ -213,7 +214,7 @@ PD.Lanes = function (canvas, opt) {
       ctx.fillStyle = 'rgba(255,226,186,.95)'; ctx.fillRect(cx - 1.25, y0 - 4, 2.5, bh + 8);
       ctx.beginPath(); ctx.moveTo(cx - 6, y0 - 9); ctx.lineTo(cx + 6, y0 - 9); ctx.lineTo(cx, y0 - 2); ctx.closePath(); ctx.fill();
     }
-    if (listen) { ctx.fillStyle = 'rgba(20,12,7,.55)'; ctx.fillRect(x0, y0, rowW, bh); text('♪ ' + tr('p.listenPart'), Wd / 2, y0 + bh / 2, 18, 'rgba(255,236,210,.9)', 600); }
+    if (listen) { ctx.fillStyle = 'rgba(20,12,7,.62)'; ctx.fillRect(x0, y0, rowW, bh); if (low) text('♪ ' + tr('p.listenPart'), Wd / 2, top / 2 + 2, 12, 'rgba(255,236,210,.9)', 600); else text('♪ ' + tr('p.listenPart'), Wd / 2, y0 + bh / 2, 18, 'rgba(255,236,210,.9)', 600); }
     // below: what the arrows mean · the next part of the song
     const yb = y0 + bh + 14;
     if (!low && yb < H - 4) {
@@ -221,6 +222,72 @@ PD.Lanes = function (canvas, opt) {
       const nx = (S.lesson.sections || []).find(s2 => s2.from >= c0 + C - 1e-6 && s2.from < c0 + 2 * C);
       if (nx && sc && nx !== sc) { ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,226,186,.8)'; ctx.fillText(tr('cy.next', { s: PD.i18n.pick(nx.name) }), x0 + rowW - 2, yb); }
     }
+    ctx.restore();
+  }
+  /* ---------- the same cycle, running DOWN (portrait phone, beside the upright neck) ----------
+     One block per chord, as tall as its rhythms (Dm = 2 rows, B♭ = 1, C = 1); each row is one rhythm ↓ ↓ ↑,
+     read left to right; the cursor walks along the row with the music, then drops to the next one. */
+  function drawCycleV(tm) {
+    const L = S.lesson, C = L.cycle.length, now = E.visualNow(), Wd = G.W, H = G.H;
+    if (cyFor !== S.steps) { cyFor = S.steps; cyIdx = []; let i = 0; const last = S.steps.length ? S.steps[S.steps.length - 1].t : 0, n = Math.floor(last / C) + 2; for (let k = 0; k <= n; k++) { while (i < S.steps.length && S.steps[i].t < k * C - 1e-6) i++; cyIdx[k] = i; } }
+    const k = Math.max(0, Math.min(cyIdx.length - 2, Math.floor(now / C + 1e-6))), c0 = k * C, i0 = cyIdx[k], i1 = cyIdx[k + 1];
+    const nameAt = r => { for (let i = i0; i < i1; i++) if (Math.floor(S.steps[i].t - c0 + 1e-6) === r) return S.steps[i].name; return L.cycle[r]; };
+    const runs = []; for (let r = 0; r < C; r++) { const c = nameAt(r), q = runs[runs.length - 1]; if (q && q.c === c) q.n++; else runs.push({ c, r0: r, n: 1 }); }
+    const runOf = r => Math.max(0, runs.findIndex(q => r >= q.r0 && r < q.r0 + q.n));
+    const pad = 10, x0 = pad, rowW = Wd - pad * 2, head = 40, legend = 48, G1 = 10;
+    const rh = Math.max(54, Math.min(92, (H - head - legend - G1 * (runs.length - 1)) / C));
+    const used = head + rh * C + G1 * (runs.length - 1) + legend, oy = Math.max(0, Math.round((H - used) * .45));
+    ctx.save(); ctx.translate(0, oy);
+    const ry = r => head + r * rh + runOf(r) * G1;   // top of rhythm row r
+    const per = {}; for (let i = i0; i < i1; i++) { const r = Math.floor(S.steps[i].t - c0 + 1e-6); per[r] = (per[r] || 0) + 1; }
+    const nameW = Math.max(54, Math.min(84, rowW * .3)), ax0 = x0 + nameW, aw = rowW - nameW - 8;
+    const pos = st => { const u = st.t - c0, r = Math.floor(u + 1e-6); return [ax0 + aw * ((u - r) + 1 / (2 * (per[r] || 3))), ry(r) + rh / 2]; };
+    const sc = E.sectionAt(now), listen = sc && sc.kind === 'listen';
+    ctx.textBaseline = 'middle';
+    if (sc && sc.name) { ctx.font = '600 13px ' + FONT; ctx.fillStyle = 'rgba(255,236,210,.7)'; ctx.textAlign = 'left'; ctx.fillText(PD.i18n.pick(sc.name), x0 + 2, head / 2); }
+    if (sc && sc.to - sc.from >= 2 * C) { const a = Math.floor((c0 - sc.from) / C) + 1, b = Math.round((sc.to - sc.from) / C); ctx.font = '600 13px ' + FONT; ctx.fillStyle = 'rgba(255,236,210,.55)'; ctx.textAlign = 'right'; ctx.fillText(tr('cy.round', { a: Math.max(1, Math.min(a, b)), b }), x0 + rowW - 2, head / 2); }
+    runs.forEach(q => {
+      const y = ry(q.r0), hh = q.n * rh, col = ccol(q.c), active = now >= c0 + q.r0 - 1e-6 && now < c0 + q.r0 + q.n;
+      const g = ctx.createLinearGradient(x0, 0, x0 + rowW, 0); g.addColorStop(0, hexA(col, active ? .62 : .3)); g.addColorStop(1, hexA(col, active ? .28 : .1));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y, rowW, hh, 16) : ctx.rect(x0, y, rowW, hh); ctx.fill();
+      ctx.strokeStyle = hexA(col, active ? 1 : .45); ctx.lineWidth = active ? 2.5 : 1.2; ctx.stroke();
+      const fs = Math.round(Math.max(20, Math.min(34, rh * .42, nameW * .42)));
+      ctx.fillStyle = active ? '#FFFFFF' : 'rgba(255,244,230,.85)'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(q.c, x0 + 12, y + Math.min(hh / 2, rh / 2));
+      if (q.n > 1) { ctx.font = '600 11px ' + FONT; ctx.fillStyle = 'rgba(255,236,210,.6)'; ctx.fillText(tr('sg.rhythms', { n: q.n }), x0 + 12, y + rh / 2 + fs * .75); }
+      ctx.setLineDash([4, 5]); ctx.strokeStyle = 'rgba(255,236,210,.28)'; ctx.lineWidth = 1;
+      for (let r = q.r0 + 1; r < q.r0 + q.n; r++) { const yr = ry(r); ctx.beginPath(); ctx.moveTo(ax0 - 4, yr); ctx.lineTo(x0 + rowW - 8, yr); ctx.stroke(); }
+      ctx.setLineDash([]);
+      for (let r = q.r0; r < q.r0 + q.n; r++) { const on = active && now >= c0 + r && now < c0 + r + 1; ctx.font = (on ? '700 ' : '600 ') + '11px ' + FONT; ctx.fillStyle = on ? '#FFE2BA' : 'rgba(255,236,210,.4)'; ctx.textAlign = 'right'; ctx.fillText(String(r - q.r0 + 1), x0 + rowW - 7, ry(r) + 12); }
+    });
+    for (let i = i0; i < i1; i++) {
+      const st = S.steps[i], [x, yA] = pos(st), r = Math.floor(st.t - c0 + 1e-6), slot = aw / (per[r] || 3), f = fx[i] || {}, res = S.res[i] || {}, up = st.st === 'up';
+      let size = Math.min(rh * .26, slot * .36) * (st.acc ? 1.12 : 1), col = st.acc ? ACC : '#FFF4E6', a = 1, miss = false;
+      const isCur = !S.autoplay && i === S.cur, sounding = S.autoplay && now >= st.t - .02 && now < st.t + st.d - .02;
+      if (S.autoplay) { if (st.t + st.d <= now) a = .45; }
+      else if (res.ok) col = '#8EF0B4';
+      else if (res.missed) { a = .32; miss = true; }
+      if (f.wrong && tm - f.wrong < 500) { col = '#FFFFFF'; miss = true; }
+      if (miss) text('×', x + size * 1.1, yA + size * .9, 13, '#FF8A7D', 800);
+      if (isCur || sounding) { size *= 1.2; ctx.fillStyle = 'rgba(255,240,220,.16)'; ctx.beginPath(); ctx.arc(x, yA, size * 1.45, 0, 7); ctx.fill(); if (isCur) col = '#FFFFFF'; }
+      if (f.hit && tm - f.hit < 260) size *= 1 + .3 * (1 - (tm - f.hit) / 260);
+      ctx.globalAlpha = listen ? .35 : a; arrow(x, yA, up, size, col, Math.max(2.2, size * (st.acc ? .2 : .15))); ctx.globalAlpha = 1;
+    }
+    // cursor: along the current row, then down to the next
+    const pts = []; for (let i = i0; i < i1; i++) { const [x, y] = pos(S.steps[i]); pts.push([S.steps[i].t - c0, x, y]); }
+    if (pts.length) {
+      pts.push([C + pts[0][0], ax0 + aw, pts[pts.length - 1][2]]);
+      const u = now - c0; let cx = pts[0][1], cyy = pts[0][2];
+      for (let j = 0; j < pts.length - 1; j++) if (u >= pts[j][0]) { const p0 = pts[j], p1 = pts[j + 1], e = Math.min(1, (u - p0[0]) / Math.max(1e-6, p1[0] - p0[0])); cyy = p0[2]; cx = p1[2] === p0[2] ? p0[1] + (p1[1] - p0[1]) * e : p0[1] + (ax0 + aw - p0[1]) * e; }
+      ctx.fillStyle = 'rgba(240,180,101,.14)'; ctx.fillRect(cx - 9, cyy - rh / 2 + 4, 18, rh - 8);
+      ctx.fillStyle = 'rgba(255,226,186,.95)'; ctx.fillRect(cx - 1.25, cyy - rh / 2 + 2, 2.5, rh - 4);
+    }
+    if (listen) { const yy = ry(0), hh = ry(C - 1) + rh - yy; ctx.fillStyle = 'rgba(20,12,7,.55)'; ctx.fillRect(x0, yy, rowW, hh); text('♪ ' + tr('p.listenPart'), Wd / 2, yy + hh / 2, 17, 'rgba(255,236,210,.92)', 600); }
+    const yb = ry(C - 1) + rh + 16;
+    ctx.font = '500 11.5px ' + FONT; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(255,236,210,.45)';
+    const lines = []; tr('cy.legend').split(' · ').forEach(part => { const l = lines.length ? lines[lines.length - 1] + ' · ' + part : null; if (l && ctx.measureText(l).width <= rowW - 4) lines[lines.length - 1] = l; else lines.push(part); });   // wraps in a narrow column
+    lines.forEach((l, j) => ctx.fillText(l, x0 + 2, yb + j * 15));
+    const nx = (S.lesson.sections || []).find(s2 => s2.from >= c0 + C - 1e-6 && s2.from < c0 + 2 * C);
+    if (nx && sc && nx !== sc) { ctx.fillStyle = 'rgba(255,226,186,.8)'; ctx.fillText(tr('cy.next', { s: PD.i18n.pick(nx.name) }), x0 + 2, yb + lines.length * 15 + 2); }
     ctx.restore();
   }
   function drawSong(tm) {
@@ -285,7 +352,7 @@ PD.Lanes = function (canvas, opt) {
     const t = performance.now();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, G.W, G.H);
     if (!S.lesson) return;
-    if (self.song && S.lesson.cycle && S.lesson.cycle.length) drawCycle(t); else if (self.song) drawSong(t); else if (self.rhythm) drawRhythm(t); else drawNotes(t);
+    if (self.song && S.lesson.cycle && S.lesson.cycle.length) (G.H > G.W * 1.15 ? drawCycleV : drawCycle)(t); else if (self.song) drawSong(t); else if (self.rhythm) drawRhythm(t); else drawNotes(t);
     if (countT && t - countT < 900) { const k = (t - countT) / 900; ctx.save(); ctx.globalAlpha = 1 - k * .7; text(count > 0 ? String(count) : tr('ci.start'), G.W / 2, G.H / 2, count > 0 ? Math.min(96, G.H * .5) : Math.min(48, G.H * .25), '#FFFFFF', 700); ctx.restore(); }
   }
 

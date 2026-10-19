@@ -31,24 +31,28 @@ PD.Neck = function (canvas, opt) {
   const offInst = PD.bus.on('instrument', () => { bmp = null; });
 
   /* ---------------- layout ---------------- */
-  const EX = 3.3, EXMAX = 4;   // across-the-strings enlargement (relative to the true scale along the strings); up to EXMAX when the screen has room
+  let EX = 2.4, EXMAX = 2.8;   // across-the-strings enlargement (relative to the true scale along the strings); up to EXMAX when the screen has room
   const TAIL = 34;     // mm of soundboard shown past the end of the fingerboard
   const FLARE = 4;     // mm the tongue widens toward the E side on the soundboard
   const PAD = 4, NUMH = 20, GAP = 7;
   const fbDims = () => P().fingerboard || { nutHalfMm: 15, joinHalfMm: 18 };
   const HALF = () => fbDims().joinHalfMm + 1;
-  const headPx = W => Math.round(clamp(W * .15, 58, 170));
+  const headPx = W => Math.round(G.vert ? clamp(W * .1, 46, 76) : clamp(W * .15, 58, 170));
   const kFor = W => Math.max(.2, (W - 2 * PAD - headPx(W)) / (g().FE + TAIL));
   const boardPx = (W, ex) => clamp(kFor(W) * (ex || EX) * 2 * HALF(), 92, 210);
   const hAt = ky => Math.round(8 + (2 * HALF() + FLARE) * ky + GAP + NUMH + 6);
   /** the height this view needs at a given width (its box can be sized with it); with room (maxH) the board may grow a little */
-  function natH(W, maxH) { const lo = hAt(boardPx(W) / (2 * HALF())), hi = hAt(boardPx(W, EXMAX) / (2 * HALF())); return maxH ? Math.round(clamp(maxH, lo, hi)) : lo; }
+  function natH(W, maxH, vert) { const pv = G.vert, pe = [EX, EXMAX]; setVert(!!vert); try { return natH0(W, maxH); } finally { G.vert = pv; EX = pe[0]; EXMAX = pe[1]; } }
+  function setVert(v) { G.vert = v; EX = v ? 1.65 : 2.4; EXMAX = v ? 1.9 : 2.8; }
+  function natH0(W, maxH) { const lo = hAt(boardPx(W) / (2 * HALF())), hi = hAt(boardPx(W, EXMAX) / (2 * HALF())); return maxH ? Math.round(clamp(maxH, lo, hi)) : lo; }
   function layout() {
     const r = canvas.getBoundingClientRect(); if (r.width < 4 || r.height < 4) return false;
     const q = PD.store.get('quality', 'auto');
     dpr = Math.min(q === 'low' ? 1 : q === 'medium' ? 1.5 : q === 'ultra' ? 3 : q === 'high' ? 2 : PD.device && PD.device.low ? 1.5 : 2, window.devicePixelRatio || 1);
     canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
-    const W = G.W = r.width, H = G.H = r.height;
+    // a tall box (portrait phone): the neck stands upright, nut at the top, along the screen's long side
+    setVert(r.height > r.width * 1.2);
+    const W = G.W = G.vert ? r.height : r.width, H = G.H = G.vert ? r.width : r.height;
     G.head = headPx(W); G.k = kFor(W); G.xNut = PAD + G.head;
     const want = boardPx(W, EXMAX) / (2 * HALF()), room = (H - 14 - GAP - NUMH) / (2 * HALF() + FLARE);
     G.ky = Math.max(1.2, Math.min(want, room));
@@ -60,7 +64,8 @@ PD.Neck = function (canvas, opt) {
   }
   // u = mm from the nut along the strings → x px ; v = mm across (E side negative) → y px
   const X0 = u => G.xNut + u * G.k;
-  const X = u => self.mirror ? G.W - X0(u) : X0(u);
+  const MIR = () => self.mirror && !G.vert;   // upright, the left-handed view flips across instead (see draw)
+  const X = u => MIR() ? G.W - X0(u) : X0(u);
   const V = v => G.yMid + v * G.ky;
   const Y = (s, u) => V(g().stringV(s, u == null ? 0 : u));
   const contactU = f => g().contactU(f);
@@ -74,7 +79,7 @@ PD.Neck = function (canvas, opt) {
   /* ---------------- the instrument (cached bitmap, the whole visible view) ---------------- */
   function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
   function buildBitmap() {
-    const c = document.createElement('canvas'); c.width = Math.max(1, canvas.width); c.height = Math.max(1, canvas.height);
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(G.W * dpr)); c.height = Math.max(1, Math.round(G.H * dpr));
     const x = c.getContext('2d'); x.scale(dpr, dpr);
     const G0 = g(), J = G0.J, FE = G0.FE, k = G.k, R = rng(11), uR = uRight() + 4, uL = -G.head / k - 4;
     const hs = G0.head, HH = hs.half, endU = -hs.len;
@@ -237,7 +242,7 @@ PD.Neck = function (canvas, opt) {
       if (st.stop > u0) { ctx.moveTo(X(u0), Y(s, u0) + dy); ctx.lineTo(X(st.stop), Y(s, st.stop) + dy); }
       for (let i = 0; i <= N; i++) { const u = a + (u1 - a) * i / N, env = Math.sin(Math.PI * clamp((u - st.stop) / (g().L - st.stop), 0, 1)); const y = Y(s, u) + dy + (amp ? amp * env * Math.sin(st.ph) : 0); i === 0 && st.stop <= u0 ? ctx.moveTo(X(u), y) : ctx.lineTo(X(u), y); }
     };
-    const fade = a => { const e0 = self.mirror ? 26 : G.W - 26, e1 = self.mirror ? 0 : G.W, gr = ctx.createLinearGradient(e0, 0, e1, 0); gr.addColorStop(0, a); gr.addColorStop(1, 'rgba(0,0,0,0)'); return gr; };
+    const fade = a => { const e0 = MIR() ? 26 : G.W - 26, e1 = MIR() ? 0 : G.W, gr = ctx.createLinearGradient(e0, 0, e1, 0); gr.addColorStop(0, a); gr.addColorStop(1, 'rgba(0,0,0,0)'); return gr; };
     const amp = st.amp * clamp(G.ky * 1.1, 2.2, 5);
     if (glow) { ctx.strokeStyle = fade('rgba(255,244,214,' + (.16 * glow).toFixed(3) + ')'); ctx.lineWidth = w * 6; path(0, amp); ctx.stroke(); ctx.strokeStyle = fade('rgba(255,244,214,' + (.3 * glow).toFixed(3) + ')'); ctx.lineWidth = w * 2.6; path(0, amp); ctx.stroke(); }
     ctx.strokeStyle = fade('rgba(16,6,2,.38)'); ctx.lineWidth = w * 1.3; path(sh, amp * .6); ctx.stroke();
@@ -269,7 +274,7 @@ PD.Neck = function (canvas, opt) {
       ctx.fillStyle = 'rgba(0,0,0,' + (shadow * .5).toFixed(3) + ')'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w2 / 2 + 2, y0 - r + 4, w2, y1 - y0 + r * 2, w2 / 2) : ctx.rect(x - w2 / 2, y0 - r, w2, y1 - y0 + r * 2); ctx.fill();
       ctx.fillStyle = gb; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w2 / 2, y0 - r, w2, y1 - y0 + r * 2, w2 / 2) : ctx.rect(x - w2 / 2, y0 - r, w2, y1 - y0 + r * 2); ctx.fill();
       ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; ctx.stroke();
-      ctx.fillStyle = fink(m.fi); ctx.font = '700 ' + Math.round(r * 1.05) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(m.fi), x, (y0 + y1) / 2 + r * .04);
+      ctx.fillStyle = fink(m.fi); ctx.font = '700 ' + Math.round(r * 1.05) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; txt(String(m.fi), x, (y0 + y1) / 2 + r * .04);
       ctx.restore(); return true;
     }
     const gr = ctx.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r);
@@ -278,8 +283,8 @@ PD.Neck = function (canvas, opt) {
     ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; ctx.stroke();
     if (m.fi) {
       ctx.fillStyle = fink(m.fi); ctx.font = '700 ' + Math.round(r * 1.05) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(String(m.fi), x, y + r * .04);
-      if (PD.fingers.symbols) { ctx.font = '600 ' + Math.round(r * .55) + 'px ' + FONT; ctx.fillStyle = '#F4F2EE'; ctx.fillText(PD.fingers.symbol(m.fi), x + r * 1.05, y - r * .95); }
+      txt(String(m.fi), x, y + r * .04);
+      if (PD.fingers.symbols) { ctx.font = '600 ' + Math.round(r * .55) + 'px ' + FONT; ctx.fillStyle = '#F4F2EE'; txt(PD.fingers.symbol(m.fi), x + r * 1.05, y - r * .95); }
     }
     if (m.state === 'confirm' && age < 380) { ctx.globalAlpha = clamp(1 - age / 380, 0, 1); ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x - r * .4, y - r * 1.75); ctx.lineTo(x - r * .1, y - r * 1.45); ctx.lineTo(x + r * .45, y - r * 2.05); ctx.stroke(); }
     ctx.restore();
@@ -288,10 +293,12 @@ PD.Neck = function (canvas, opt) {
   function drawGhost(m) {
     const R = markerR(m.f) * .82, x = X(contactU(m.f)), y = Y(m.s, contactU(m.f)), col = fcol(m.fi);
     ctx.save(); ctx.setLineDash([3, 4]); ctx.strokeStyle = hexA(col, .6); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.stroke(); ctx.setLineDash([]);
-    if (m.fi) { ctx.fillStyle = hexA(col, .75); ctx.font = '600 ' + Math.round(R * .9) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(m.fi), x, y + 1); }
+    if (m.fi) { ctx.fillStyle = hexA(col, .75); ctx.font = '600 ' + Math.round(R * .9) + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; txt(String(m.fi), x, y + 1); }
     ctx.restore();
   }
   const FONT = "'Noto Sans Georgian', system-ui, sans-serif";
+  /** text stays upright on screen, also when the neck is drawn turned */
+  function txt(str, x, y) { if (!G.vert) return ctx.fillText(str, x, y); ctx.save(); ctx.translate(x, y); if (self.mirror) ctx.transform(0, 1, 1, 0, 0, 0); else ctx.rotate(-Math.PI / 2); ctx.fillText(str, 0, 0); ctx.restore(); }
   function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a.toFixed(3) + ')'; }
   function mix(a, b, k) { const p = parseInt(a.slice(1), 16), q = parseInt(b.slice(1), 16); const c = i => Math.round(((p >> i) & 255) * (1 - k) + ((q >> i) & 255) * k); return 'rgb(' + c(16) + ',' + c(8) + ',' + c(0) + ')'; }
 
@@ -299,9 +306,11 @@ PD.Neck = function (canvas, opt) {
     const t = now(), dt = Math.min(.05, (t - lastT) / 1000); lastT = t;
     if (!bmp) buildBitmap();
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (self.mirror) { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+    // upright: the drawing is turned a quarter clockwise (E on the right, like facing the instrument); left-handed: flipped across
+    const T = G.vert ? (self.mirror ? [0, 1, 1, 0, 0, 0] : [0, 1, -1, 0, canvas.width, 0]) : self.mirror ? [-1, 0, 0, 1, canvas.width, 0] : [1, 0, 0, 1, 0, 0];
+    ctx.setTransform(T[0], T[1], T[2], T[3], T[4], T[5]);
     ctx.drawImage(bmp, 0, 0);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (G.vert) ctx.setTransform(T[0] * dpr, T[1] * dpr, T[2] * dpr, T[3] * dpr, T[4], T[5]); else ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     // strings (open-string targets glow)
     for (let s = 3; s >= 1; s--) {
       const st = strings[s]; if (st.amp) { st.ph += dt * 70; st.amp *= Math.exp(-dt * 2.6); if (st.amp < .02) st.amp = 0; }
@@ -315,37 +324,38 @@ PD.Neck = function (canvas, opt) {
     }
     // string names beside the nut, in the strings' colours; the strings of the current shape light up
     const used = new Set(); markers.forEach(m => { if (m.state === 'leave') return; for (let s = m.s; s <= (m.s2 || m.s); s++) used.add(s); }); Object.keys(openGlow).forEach(k => { if (/^\d$/.test(k) && openGlow[k] > 0) used.add(+k); });
-    const side = self.mirror ? 1 : -1, lr = clamp(G.boardH * .085, 8.5, 11);
+    const side = MIR() ? 1 : -1, lr = clamp(G.boardH * .085, 8.5, 11);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     [1, 2, 3].forEach(s => {
       const sp = P().strings[s - 1] || {}, col = sp.color || '#ccc', lab = sp.label || '', on = used.has(s), x = X(0) + side * (lr * 2 + 20), y = Y(s, 0);
       ctx.fillStyle = on ? col : 'rgba(16,9,5,.86)'; ctx.beginPath(); ctx.arc(x, y, lr, 0, 7); ctx.fill();
       ctx.strokeStyle = on ? 'rgba(255,255,255,.7)' : col; ctx.lineWidth = 1.5; ctx.stroke();
-      ctx.fillStyle = on ? '#140C06' : col; ctx.font = '700 ' + Math.round(lr * (lab.length > 1 ? .92 : 1.1)) + 'px ' + FONT; ctx.fillText(lab, x, y + .5);
+      ctx.fillStyle = on ? '#140C06' : col; ctx.font = '700 ' + Math.round(lr * (lab.length > 1 ? .92 : 1.1)) + 'px ' + FONT; txt(lab, x, y + .5);
     });
     // open string: a "0" tag at the nut
     Object.keys(openGlow).forEach(k => { if (!/^\d$/.test(k)) return; const og = openGlow[k]; const a = og > 0 ? 1 : Math.max(0, 1 - (t + og) / 420); if (a <= 0) { if (og < 0) delete openGlow[k]; return; }
       const s = +k, x = X(0) + side * (lr + 5), y = Y(s, 0), r = lr + 1;
-      ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#F4F2EE'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle = '#121317'; ctx.font = '700 ' + Math.round(r * 1.1) + 'px ' + FONT; ctx.fillText('0', x, y + .5); ctx.restore(); });
+      ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#F4F2EE'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle = '#121317'; ctx.font = '700 ' + Math.round(r * 1.1) + 'px ' + FONT; txt('0', x, y + .5); ctx.restore(); });
     ghosts.forEach(drawGhost);
     markers = markers.filter(m => drawMarker(m, t));
     // fret numbers under the board: every fret that fits; the dotted frets in the inlay colour; the target fret bright
     const tgt = new Set(markers.filter(m => m.state !== 'leave').map(m => m.f)), mk = g().markers || {}, dotted = new Set([].concat(mk.single || [], mk.double || []));
     for (let n = 1; n <= NF(); n++) {
       const a = g().fretMm(n - 1), b = g().fretMm(n), cell = (b - a) * G.k, x = X((a + b) / 2), on = tgt.has(n);
-      let fs = on ? clamp(cell * .7, 11, 15) : Math.min(12.5, cell * .62);
+      let fs = on ? clamp(cell * .7, 11, 15) : G.vert ? clamp(cell * .6, 9.5, 12.5) : Math.min(12.5, cell * .62);
       ctx.font = (on ? '700 ' : '500 ') + fs.toFixed(1) + 'px ' + FONT;
       const tw = ctx.measureText(String(n)).width;
-      if (!on && tw > cell - 1.5) { fs *= (cell - 1.5) / tw; if (fs < 7) continue; ctx.font = '500 ' + fs.toFixed(1) + 'px ' + FONT; }
+      if (!on && !G.vert && tw > cell - 1.5) { fs *= (cell - 1.5) / tw; if (fs < 7) continue; ctx.font = '500 ' + fs.toFixed(1) + 'px ' + FONT; }
       ctx.fillStyle = on ? '#FFFFFF' : dotted.has(n) ? 'rgba(242,206,96,.82)' : 'rgba(214,200,180,.5)';
-      ctx.fillText(String(n), x, G.yNum);
+      txt(String(n), x, G.yNum);
     }
     return markers.length || ghosts.length || Object.keys(openGlow).length || [1, 2, 3].some(s => strings[s].amp);
   }
 
   /** dev/test only: map a tap to string + fret */
   function hit(px, py) {
-    const xx = self.mirror ? G.W - px : px, u = (xx - G.xNut) / G.k;
+    if (G.vert) { const vx = py, vy = self.mirror ? px : G.H - px; px = vx; py = vy; }
+    const xx = MIR() ? G.W - px : px, u = (xx - G.xNut) / G.k;
     if (u > g().FE + 2) return null;
     let s = 2, best = 1e9; [1, 2, 3].forEach(k => { const d = Math.abs(Y(k, u) - py); if (d < best) { best = d; s = k; } });
     if (py < V(topV(Math.max(0, u))) - 12 || py > V(botV(Math.max(0, u))) + 12) return null;

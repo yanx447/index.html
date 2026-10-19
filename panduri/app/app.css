@@ -1233,3 +1233,13 @@ input[type=checkbox]::before{transition:transform .3s var(--spring),background .
 @media (max-height:520px) and (orientation:landscape){.pz-stage{grid-template-rows:minmax(0,1fr) 58px minmax(0,min(var(--nk,50%),50%))}}
 .pz.cam .pz-stage{grid-template-rows:minmax(96px,24%) minmax(0,1fr) minmax(0,min(var(--nk,25%),34%))}
 .neckview{height:auto;min-height:150px;background:radial-gradient(120% 90% at 50% 40%,#22160E 0%,#120B07 70%);border-color:rgba(255,214,170,.1)}
+
+/* portrait phone, song lessons: the cycle runs down on the left, the neck stands upright on the right */
+.pz.upright .pz-stage{grid-template-columns:minmax(0,1fr) var(--nkw,150px);grid-template-rows:minmax(0,1fr) auto}
+.pz.upright .pz-lanes{grid-column:1;grid-row:1}
+.pz.upright .pz-prompt{grid-column:1;grid-row:2;height:auto;min-height:0;padding:6px 8px 10px}
+.pz.upright .pz-prompt .pz-sub{max-height:none}
+.pz.upright .pz-big{font-size:30px}
+.pz.upright .pz-neck{grid-column:2;grid-row:1/3}
+.pz.lefty.upright .pz-stage{grid-template-columns:var(--nkw,150px) minmax(0,1fr)}
+.pz.lefty.upright .pz-lanes,.pz.lefty.upright .pz-prompt{grid-column:2}.pz.lefty.upright .pz-neck{grid-column:1}
