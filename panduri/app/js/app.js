@@ -45,7 +45,7 @@ PD.i18n.add({
 
 
 PD.i18n.add({
-  'nav.songs': ['სიმღერები', 'Songs'], 'nav.practice': ['ვარჯიში', 'Practice'], 'nav.profile': ['პროფილი', 'Profile'],
+  'nav.songs': ['სიმღერები', 'Songs'], 'nav.practice': ['ვარჯიში', 'Practice'], 'nav.profile': ['პროფილი', 'Profile'], 'nav.tuner': ['ტიუნერი', 'Tuner'],
   'gr.morning': ['დილა მშვიდობისა', 'Good morning'], 'gr.day': ['გამარჯობა', 'Hello'], 'gr.evening': ['საღამო მშვიდობისა', 'Good evening'],
   'hm.goal': ['დღეს: {a} / {b} წთ', 'Today: {a} / {b} min'], 'hm.streak': ['{n} დღე ზედიზედ', '{n}-day streak'], 'hm.daily': ['დღევანდელი ვარჯიში', 'Daily practice'], 'hm.dailyD': ['{d} / {n} ეტაპი · {m} წთ', '{d} / {n} parts · {m} min'],
   'hm.song': ['ისწავლე სიმღერა', 'Learn a song'], 'hm.songD': ['სიმღერები და მელოდიები', 'Songs and melodies'], 'hm.rhythms': ['რიტმები', 'Rhythms'], 'hm.rhythmsD': ['მასწავლებლის 4 რიტმი', 'The teacher’s 4 rhythms'],
@@ -109,7 +109,7 @@ PD.i18n.add({
 });
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
-  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['practice', 'nav.practice', ic.pulse], ['profile', 'nav.profile', ic.user]];
+  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['songs', 'nav.songs', ic.song], ['practice', 'nav.practice', ic.pulse], ['tuner', 'nav.tuner', ic.tune], ['profile', 'nav.profile', ic.user]];   // tuner = „სამი სიმი“, opened over the page
   const TOP = { home: 'home', learn: 'learn', path: 'learn', songs: 'songs', library: 'songs', lesson: 'songs', practice: 'practice', daily: 'practice', trainer: 'practice', metronome: 'practice', rhythms: 'practice', rhythm: 'practice', tuner: 'practice', chords: 'practice', fretboard: 'practice', explore: 'practice', tools: 'practice', community: 'home', theory: 'learn', tips: 'learn', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
