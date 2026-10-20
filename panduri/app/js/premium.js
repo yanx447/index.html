@@ -9,6 +9,7 @@
    by pretending: the paywall says what is missing.
    ===================================================================== */
 PD.i18n.add({
+  'fx.goalDone': ['დღევანდელი მიზანი შესრულდა!', "Today's goal is done!"],
   'lv.level': ['ლეველი {n}', 'Level {n}'], 'lv.xp': ['{a} / {b} XP', '{a} / {b} XP'], 'lv.toNext': ['{n} XP შემდეგ ლეველამდე', '{n} XP to the next level'],
   'lv.t0': ['დამწყები', 'Beginner'], 'lv.t1': ['მოსწავლე', 'Student'], 'lv.t2': ['მუსიკოსი', 'Musician'], 'lv.t3': ['ოსტატი', 'Master'], 'lv.t4': ['ლეგენდა', 'Legend'],
   'lv.up': ['ახალი ლეველი!', 'Level up!'], 'lv.upD': ['ლეველი {n} · {t}', 'Level {n} · {t}'], 'lv.program': ['ლეველის პროგრამა', 'Level program'], 'lv.programD': ['შენი ლეველისთვის: {p}', 'For your level: {p}'],
@@ -61,7 +62,7 @@ PD.levels = (() => {
     add(correct + Math.round((s.dur || 0) / 60 * 5), 'practice');
     const day = new Date().toDateString(), goal = PD.store.get('goalMin', 15);
     const mins = PD.lessons.progress.sessions().filter(x => new Date(x.date).toDateString() === day).reduce((a, x) => a + (x.dur || 0), 0) / 60;
-    if (mins >= goal && PD.store.get('xp.goalDay', '') !== day) { PD.store.set('xp.goalDay', day); add(25, 'goal'); }
+    if (mins >= goal && PD.store.get('xp.goalDay', '') !== day) { PD.store.set('xp.goalDay', day); add(25, 'goal'); if (PD.fx) setTimeout(() => { PD.fx.celebrate(); PD.ui.toast(t('fx.goalDone'), 3200); }, 900); }
   });
   PD.bus.on('stageDone', () => add(30, 'stage'));
   PD.bus.on('mastered', () => add(100, 'mastered'));
@@ -73,6 +74,7 @@ PD.levels = (() => {
       P ? h('p', { class: 'muted', text: t('lv.programD', { p: PD.i18n.pick(P.title) }) }) : null,
       h('div', { class: 'row', style: 'justify-content:center' }, [h('button', { class: 'btn primary', 'data-t': 'lv.great', onclick: () => back.remove() }), P ? h('button', { class: 'btn', 'data-t': 'lv.open', onclick: () => { back.remove(); if (!PD.practice.active) PD.app.go('learn', P.id); } }) : null].filter(Boolean))].filter(Boolean)));
     document.body.appendChild(back); PD.i18n.apply(back);
+    if (PD.fx) PD.fx.celebrate({ y: innerHeight * .38 });
     if (PD.store.get('haptics', true) && navigator.vibrate) try { navigator.vibrate([20, 60, 30]); } catch (_) {}
     setTimeout(() => back.remove(), 9000);
   }

@@ -103,6 +103,7 @@ PD.i18n.add({
 });
 PD.i18n.add({
   'hx.hi': ['გამარჯობა', 'Hello'], 'hd.practice': ['სავარჯიშოები', 'Exercises'], 'hd.practiceD': ['ტრენაჟორები და მეტრონომი', 'Trainers and metronome'], 'hd.songsN': ['{n} სიმღერა', '{n} songs'], 'hd.chordsN': ['{n} აკორდი', '{n} chords'], 'hd.theory': ['თეორია', 'Theory'], 'hd.theoryD': ['ნოტები და გამები', 'Notes and scales'], 'hd.popular': ['სიმღერები', 'Songs'],
+  'set.uiSounds': ['ღილაკების ხმა', 'Button sounds'], 'set.uiSoundsD': ['მსუბუქი ხმა დაჭერისას; სიმძლავრე — „უკუკავშირის ხმა“', 'A soft sound on tap; level = “feedback volume”'],
   'pf.student': ['მოსწავლე', 'Student'], 'pf.level': ['ლეველი', 'Level'], 'pf.lessons': ['ნასწავლი', 'Learned'], 'pf.progress': ['პროგრესი', 'Progress'], 'set.data': ['მონაცემები', 'Your data'],
   'lnx.songsD': ['სიმღერები, მელოდიები და სოლოები — დონეების მიხედვით', 'Songs, melodies and solos — by level'],
   'hxq.cam': ['კამერით', 'Camera'], 'hxq.camD': ['დაუკარი აპთან ერთად', 'Play along with the app'], 'hxq.ai': ['AI სტუდია', 'AI studio'], 'hxq.aiD': ['შენი სიმღერის აკორდები', 'Chords of your song'],
@@ -829,6 +830,7 @@ PD.app = (() => {
       row('set.text', null, seg([['m', 'ts.m'], ['l', 'ts.l'], ['xl', 'ts.xl']], PD.store.get('textSize', 'm'), v => { PD.store.set('textSize', v); document.documentElement.classList.remove('ts-l', 'ts-xl'); if (v !== 'm') document.documentElement.classList.add('ts-' + v); })),
       row('set.hc', null, toggle('hc', false, v => document.documentElement.classList.toggle('hc', v))),
       row('set.colorblind', null, toggle('fingerSymbols', false)),
+      row('set.uiSounds', t('set.uiSoundsD'), toggle('uiSounds', true)),
       row('set.haptics', null, toggle('haptics', true)),
       row('set.remote', t('set.remoteD'), toggle('remoteNav', PD.tv.isTV)),
       row('set.keys', t('kbd.help'), null)]));

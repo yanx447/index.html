@@ -35,7 +35,7 @@ PD.solfege = (() => {
   const K = 'solfege.best';
   const best = () => PD.store.get(K, {});
   const done = (ex, lv) => (best()[ex + lv] || 0) >= .8;
-  function saveBest(ex, lv, p) { const b = best(); if (!(b[ex + lv] >= p)) { b[ex + lv] = p; PD.store.set(K, b); PD.bus.emit('solfege', b); } }
+  function saveBest(ex, lv, p) { const b = best(), was = b[ex + lv] || 0; if (!(b[ex + lv] >= p)) { b[ex + lv] = p; PD.store.set(K, b); PD.bus.emit('solfege', b); if (was < .8 && p >= .8 && PD.fx) PD.fx.celebrate(); } }
 
   /* ---------- page ---------- */
   function page(w, param) {

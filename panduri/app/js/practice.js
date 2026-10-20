@@ -502,6 +502,7 @@ PD.practice = (() => {
       p.lastResult = { firstTry: r.firstTry, pitchAcc: r.input === 'mic' ? r.pitchAcc : null, timing: r.timing, tempoPct: r.tempoPct, waited: r.waited, date: Date.now() };
       LS.progress.saveLesson(id, p);
       results(r);
+      if (PD.fx) setTimeout(() => { if (r.input === 'mic' && r.firstTry >= .8) PD.fx.celebrate({ y: innerHeight * .3 }); else PD.fx.sound('success'); }, 380);   // a real pass earns the confetti
     }
     function results(r) {
       PD.ui.sheet((box, close) => {

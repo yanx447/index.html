@@ -25,12 +25,14 @@ PD.i18n.add({
   'ai.range': ['რომელი ნაწილი', 'Which part'], 'ai.all': ['მთელი სიმღერა', 'Whole song'], 'ai.first': ['პირველი {n} წმ', 'First {n} s'], 'ai.fromHere': ['აქედან {n} წმ', '{n} s from here'],
   'ai.vocals': ['ვოკალი', 'Vocals'], 'ai.drums': ['დრამი', 'Drums'], 'ai.bass': ['ბასი', 'Bass'], 'ai.other': ['დანარჩენი (ფანდური…)', 'The rest (panduri…)'], 'ai.mute': ['ჩუმად', 'Mute'], 'ai.solo': ['მხოლოდ ეს', 'Solo'], 'ai.save': ['WAV', 'WAV'],
   'ai.stemsOn': ['ისმის AI-ით დაყოფილი ვერსია', 'Playing the AI-split version'], 'ai.orig': ['ორიგინალი', 'Original'], 'ai.mixed': ['AI მიქსი', 'AI mix'], 'ai.speedStems': ['AI მიქსში სიჩქარე ცვლის ბგერის სიმაღლესაც.', 'In the AI mix, speed also changes the pitch.'],
-  'ai.recent': ['ბოლოს გაანალიზებული', 'Recently analysed'], 'ai.beats': ['ვპოულობ დარტყმებს და ტაქტებს…', 'Finding beats and bars…'], 'ai.prep': ['მზადდება…', 'Preparing…'], 'ai.seek': ['პოზიცია', 'Position'],
+  'ai.recent': ['ბოლოს გაანალიზებული', 'Recently analysed'], 'ai.fx': ['ეფექტები', 'Effects'], 'ai.fxOpen': ['EQ · რევერბი · ექო', 'EQ · reverb · echo'], 'ai.comp': ['კომპრესორი', 'Compressor'], 'ai.fxStems': ['AI მიქსში ეფექტები თითოეულ ინსტრუმენტს ცალკე აქვს — FX ღილაკი ინსტრუმენტის ხაზზე.', 'In the AI mix each instrument has its own effects — the FX button on its row.'],
+  'ai.fxLow': ['დაბლები', 'Lows'], 'ai.fxMid': ['შუა', 'Mids'], 'ai.fxHigh': ['მაღლები', 'Highs'], 'ai.fxRev': ['რევერბი', 'Reverb'], 'ai.fxEcho': ['ექო', 'Echo'],
+  'ai.fxP_clean': ['გასუფთავება', 'Clean'], 'ai.fxP_hall': ['დარბაზი', 'Hall'], 'ai.fxP_echo': ['ექო', 'Echo'], 'ai.fxP_warm': ['თბილი', 'Warm'], 'ai.fxP_bright': ['ნათელი', 'Bright'], 'ai.fxP_radio': ['ძველი რადიო', 'Old radio'], 'ai.beats': ['ვპოულობ დარტყმებს და ტაქტებს…', 'Finding beats and bars…'], 'ai.prep': ['მზადდება…', 'Preparing…'], 'ai.seek': ['პოზიცია', 'Position'],
   'ai.pitch': ['ტონი', 'Pitch'], 'ai.pitchD': ['ნახევარტონი — ხმა და აკორდებიც იცვლება', 'semitones — the sound and the chords move together'], 'ai.metro': ['მეტრონომი', 'Metronome'], 'ai.click': ['კლიკი', 'Click'], 'ai.clickVol': ['კლიკის ხმა', 'Click volume'], 'ai.countIn': ['თვლა', 'Count-in'],
   'ai.loop': ['გამეორება', 'Loop'], 'ai.loopA': ['გამეორების დასაწყისი', 'Loop start'], 'ai.loopB': ['გამეორების დასასრული', 'Loop end'], 'ai.loopOff': ['გამეორების გამორთვა', 'Loop off'], 'ai.bars': ['{n} ტაქტი', '{n} bar(s)'], 'ai.barN': ['ტაქტი {n}', 'Bar {n}'],
   'ai.guitar': ['გიტარა', 'Guitar'], 'ai.piano': ['ფორტეპიანო', 'Piano'], 'ai.model': ['ინსტრუმენტები', 'Instruments'], 'ai.m4': ['4 · ვოკ., დრამი, ბასი, დანარჩ.', '4 · vocals, drums, bass, rest'], 'ai.m6': ['6 · + გიტარა, ფორტეპიანო', '6 · + guitar, piano'],
   'ai.vol': ['ხმა', 'Volume'], 'ai.pan': ['მარცხნივ / მარჯვნივ', 'Left / right'], 'ai.export': ['მიქსის შენახვა (WAV)', 'Save the mix (WAV)'], 'ai.mixName': ['ჩემი მიქსი', 'my mix'], 'ai.again': ['ხელახლა დაყოფა', 'Split again'],
-  'ai.partInfo': ['დაყოფილია: {a}–{b}', 'Split: {a}–{b}'], 'ai.mixNote': ['მიქსის შენახვაში სიჩქარე, ტონი, ხმები და პანორამა ისე შეინახება, როგორც ახლა ისმის.', 'The saved mix keeps the speed, pitch, levels and panning you hear now.'],
+  'ai.partInfo': ['დაყოფილია: {a}–{b}', 'Split: {a}–{b}'], 'ai.mixNote': ['მიქსის შენახვაში სიჩქარე, ტონი, ხმები, პანორამა და ეფექტები ისე შეინახება, როგორც ახლა ისმის.', 'The saved mix keeps the speed, pitch, levels, panning and effects you hear now.'],
   'ai.pAll': ['ყველა', 'All'], 'ai.pKaraoke': ['🎤 ვოკალის გარეშე', '🎤 No vocals'], 'ai.pVocal': ['მხოლოდ ვოკალი', 'Vocals only'], 'ai.pNoDrums': ['დრამის გარეშე', 'No drums'], 'ai.pNoBass': ['ბასის გარეშე', 'No bass'], 'ai.pPlay': ['🪕 შენ უკრავ (ინსტრუმენტის გარეშე)', '🪕 You play (instrument muted)'], 'ai.reload': ['ეს სიმღერა ჯერ არ იყო შენახული — აირჩიე ფაილი კიდევ ერთხელ, შემდეგ უკვე შენახული დარჩება.', 'This song was not saved yet — pick the file once more; after that it stays saved.'], 'ai.reloadS': ['შეეხე და ფაილი კიდევ ერთხელ აირჩიე', 'Tap and pick the file once more'], 'ai.forget': ['სიიდან წაშლა', 'Remove from list'], 'ai.home': ['AI: შენი სიმღერის აკორდები', 'AI: chords of your song'], 'ai.homeD': ['ჩატვირთე სიმღერა — AI აკორდებს ფანდურზე გაჩვენებს და ინსტრუმენტებს დაყოფს', 'Load a song — the AI shows its chords on the panduri and splits the instruments']
 });
 
@@ -272,6 +274,12 @@ PD.ai = (() => {
       const lB = h('button', { class: 'btn small', text: 'B', 'aria-label': t('ai.loopB'), onclick: () => { const b = dk.pos(), a = la != null ? la : (D.loop.on ? D.loop.a : Math.max(0, b - 8)); if (b > a + .3) dk.setLoop(a, b); } });
       const lBars = n => h('button', { class: 'btn small', text: t('ai.bars', { n }), onclick: () => { const bt = dk.beatAt(dk.pos()), B = res.beats || []; if (!bt) return dk.setLoop(dk.pos(), Math.min(res.dur, dk.pos() + 8)); const ks = bt.k - (((bt.k - D.phase) % 4) + 4) % 4, a = B[Math.max(0, ks)], b = B[ks + 4 * n] || res.dur; dk.setLoop(a, b); la = a; } });
       const lOff = h('button', { class: 'btn small ghost', text: '✕', 'aria-label': t('ai.loopOff'), onclick: () => { la = null; dk.clearLoop(); } });
+      // effects for the song you hear (the original; in the AI mix each instrument has its own FX)
+      S.origFx = S.origFx || fxStore();
+      const fxWrap = h('div', { class: 'ai-fxwrap', hidden: true });
+      const fxBtn = h('button', { class: 'ai-tg', 'aria-pressed': 'false', onclick: () => { const open = fxWrap.hidden; fxWrap.hidden = !open; fxBtn.setAttribute('aria-pressed', String(open)); if (open) { fxWrap.innerHTML = ''; fxWrap.append(S.mode === 'stems' ? h('p', { class: 'muted', style: 'font-size:12.5px;margin:0', text: t('ai.fxStems') }) : fxPanel(S.origFx, (k, v) => { if (S.mode !== 'stems') dk.setFx(0, k, v); })); } } }, [h('span', { text: 'FX' }), h('span', { text: t('ai.fxOpen') })]);
+      const compT = h('button', { class: 'ai-tg', 'aria-pressed': String(D.comp), onclick: () => { dk.setComp(!D.comp); compT.setAttribute('aria-pressed', String(D.comp)); } }, [h('span', { text: '◐' }), h('span', { text: t('ai.comp') })]);
+      const fxTool = h('div', { class: 'ai-tool ai-tool-fx' }, [h('span', { class: 'ai-tl', text: t('ai.fx') }), h('div', { class: 'ai-tc' }, [fxBtn, compT]), fxWrap]);
       const chipRow = h('div', { class: 'ai-chips' });
       const chips = () => { chipRow.innerHTML = ''; chipRow.append(h('small', { class: 'muted', text: t('ai.used', { n: used.length }) })); used.forEach(c => chipRow.append(h('button', { class: 'chip', text: cname(c.root, c.q, TR()), onclick: () => { const r = (c.root + TR() + 12) % 12, sh = shapeOf(r, c.q); if (sh) PD.app.go('chords', sh.id); } }))); };
       body.append(h('section', { class: 'ai-player' }, [rWrap,
@@ -281,7 +289,8 @@ PD.ai = (() => {
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.speed') }), h('div', { class: 'ai-tc' }, [sp, spV, spReset])]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.pitch') }), h('div', { class: 'ai-tc' }, [piBtn(-1), piV, piBtn(1), h('small', { class: 'muted', text: t('ai.pitchD') })])]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.metro') }), h('div', { class: 'ai-tc' }, [clickT, clickV, ciT])]),
-          h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.loop') }), h('div', { class: 'ai-tc' }, [lA, lB, lBars(1), lBars(4), lOff, loopTxt])])]),
+          h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.loop') }), h('div', { class: 'ai-tc' }, [lA, lB, lBars(1), lBars(4), lOff, loopTxt])]),
+          fxTool]),
         chipRow, h('p', { class: 'notice', 'data-t': 'ai.est' })]));
       body.append(stemsPanel());
       PD.i18n.apply(body);
@@ -340,6 +349,24 @@ PD.ai = (() => {
       own(() => { neck.destroy(); });
     };
 
+    /* ---------------- effects panel: EQ + reverb + echo for one track ---------------- */
+    const FXK = [['low', 'ai.fxLow', -12, 12, 1, 'dB'], ['mid', 'ai.fxMid', -12, 12, 1, 'dB'], ['high', 'ai.fxHigh', -12, 12, 1, 'dB'], ['rev', 'ai.fxRev', 0, 100, 5, '%'], ['echo', 'ai.fxEcho', 0, 100, 5, '%']];
+    const FXP = { clean: { low: 0, mid: 0, high: 0, rev: 0, echo: 0 }, hall: { low: 0, mid: 0, high: 1, rev: .38, echo: 0 }, echo: { low: 0, mid: 0, high: 0, rev: .12, echo: .32 }, warm: { low: 3, mid: -1, high: -3, rev: .1, echo: 0 }, bright: { low: -2, mid: 1, high: 4, rev: 0, echo: 0 }, radio: { low: -12, mid: 5, high: -9, rev: 0, echo: 0 } };
+    function fxPanel(store, apply) {
+      const box = h('div', { class: 'ai-fx' });
+      const rows = FXK.map(([k, lab, mn, mx, stp, unit]) => {
+        const isPct = unit === '%', val = () => isPct ? Math.round(store[k] * 100) : store[k];
+        const out = h('b', { class: 'mono' }), fmt = () => { const v = val(); out.textContent = (!isPct && v > 0 ? '+' : '') + v + (isPct ? '%' : ' dB'); };
+        const r = h('input', { type: 'range', min: mn, max: mx, step: stp, value: val(), 'aria-label': t(lab), oninput: e => { store[k] = isPct ? e.target.value / 100 : +e.target.value; fmt(); apply(k, store[k]); box.classList.toggle('used', used()); }, ondblclick: e => { store[k] = 0; e.target.value = 0; fmt(); apply(k, 0); } });
+        fmt(); return { k, r, fmt, el: h('label', { class: 'ai-fxr' }, [h('span', { text: t(lab) }), r, out]) };
+      });
+      const used = () => Object.keys(FXP.clean).some(k => Math.abs(store[k]) > 0.001);
+      const pre = h('div', { class: 'ai-fxp' }, Object.keys(FXP).map(n => h('button', { class: 'chip', text: t('ai.fxP_' + n), onclick: () => { Object.assign(store, FXP[n]); rows.forEach(x => { x.r.value = x.k === 'rev' || x.k === 'echo' ? Math.round(store[x.k] * 100) : store[x.k]; x.fmt(); apply(x.k, store[x.k]); }); box.classList.toggle('used', used()); PD.fx && PD.fx.sound('select'); } })));
+      box.append(pre, ...rows.map(x => x.el)); box.classList.toggle('used', used());
+      return box;
+    }
+    const fxStore = () => ({ low: 0, mid: 0, high: 0, rev: 0, echo: 0 });
+
     /* ---------------- instruments (premium) ---------------- */
     const LBL = { vocals: 'ai.vocals', drums: 'ai.drums', bass: 'ai.bass', other: 'ai.other', guitar: 'ai.guitar', piano: 'ai.piano' };
     const ORDER = ['vocals', 'drums', 'bass', 'guitar', 'piano', 'other'];
@@ -376,7 +403,7 @@ PD.ai = (() => {
           else if (m.type === 'done') {
             const tracks = ORDER.map(n => m.sources.indexOf(n)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] }));
             S.stems = { id: 'stems' + Date.now(), sr: SR, from: from / SR, len: (to - from) / SR, tracks };
-            S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0) };
+            S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
             useStems(true); prog.hidden = true; const sp = stemsPanel(); box.replaceWith(sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
           }
           else if (m.type === 'error') { go.disabled = false; prog.hidden = true; msg.textContent = /memory|Out of|alloc/i.test(m.msg) ? t('ai.mem') : t('ai.fail', { e: m.msg }); worker && worker.terminate(); worker = null; }
@@ -388,6 +415,7 @@ PD.ai = (() => {
     function useStems(on) {
       const dk = S.deck; S.mode = on ? 'stems' : 'orig';
       dk.setSet(on ? S.stems : S.origSet, true);
+      if (on) (S.mix.fx || []).forEach((f, i) => Object.keys(f).forEach(k => dk.setFx(i, k, f[k]))); else if (S.origFx) Object.keys(S.origFx).forEach(k => dk.setFx(0, k, S.origFx[k]));
       if (on) { const M = S.mix; M.gain.forEach((g, i) => dk.setGain(i, g)); M.mute.forEach((v, i) => dk.setMute(i, v)); dk.setSolo(M.solo); M.pan.forEach((v, i) => dk.setPan(i, v)); }
     }
     function saveWav(L, R, sr, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(wav(L, R, sr)); a.download = S.file.name.replace(/\.[^.]+$/, '') + ' - ' + name + '.wav'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); }
@@ -402,7 +430,10 @@ PD.ai = (() => {
         const mute = h('button', { class: 'ai-ms m', text: 'M', title: t('ai.mute'), 'aria-label': t('ai.mute'), onclick: () => { M.mute[i] = !M.mute[i]; if (live()) dk.setMute(i, M.mute[i]); else useStems(true); paintMix(); } });
         const solo = h('button', { class: 'ai-ms s', text: 'S', title: t('ai.solo'), 'aria-label': t('ai.solo'), onclick: () => { M.solo = M.solo === i ? -1 : i; if (live()) dk.setSolo(M.solo); else useStems(true); paintMix(); } });
         const save = h('button', { class: 'ai-ms', html: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>', title: t('ai.save'), 'aria-label': t('ai.save'), onclick: () => saveWav(x.L, x.R, st.sr, x.name) });
-        const row = h('div', { class: 'ai-st ' + x.name }, [h('div', { class: 'ai-stn' }, [h('i'), h('b', { text: t(LBL[x.name] || x.name) }), mute, solo, save]), h('div', { class: 'ai-stv' }, [vol, v]), h('div', { class: 'ai-stp' }, [h('small', { text: 'L' }), pan, h('small', { text: 'R' })])]);
+        M.fx = M.fx || tr.map(fxStore);
+        const fxw = h('div', { class: 'ai-fxwrap', hidden: true });
+        const fxb = h('button', { class: 'ai-ms fx', text: 'FX', title: t('ai.fx'), 'aria-label': t(LBL[x.name] || x.name) + ' · ' + t('ai.fx'), onclick: () => { const open = fxw.hidden; fxw.hidden = !open; fxb.classList.toggle('on', open); if (open && !fxw.firstChild) fxw.append(fxPanel(M.fx[i], (k, val) => { if (live()) dk.setFx(i, k, val); fxb.classList.toggle('used', Object.values(M.fx[i]).some(z => Math.abs(z) > .001)); })); } });
+        const row = h('div', { class: 'ai-st ' + x.name }, [h('div', { class: 'ai-stn' }, [h('i'), h('b', { text: t(LBL[x.name] || x.name) }), mute, solo, fxb, save]), h('div', { class: 'ai-stv' }, [vol, v]), h('div', { class: 'ai-stp' }, [h('small', { text: 'L' }), pan, h('small', { text: 'R' })]), fxw]);
         row._m = mute; row._s = solo; row._v = vol; row._vv = v; return row;
       });
       // presets: one tap, like a karaoke or play-along button

@@ -1878,3 +1878,45 @@ select.input{transition:border-color var(--t-ctl)}
 .res-grid .stat:nth-child(2){animation-delay:.06s}.res-grid .stat:nth-child(3){animation-delay:.12s}.res-grid .stat:nth-child(4){animation-delay:.18s}.res-grid .stat:nth-child(n+5){animation-delay:.24s}
 .ce-namebox .ce-name{will-change:auto}
 .cgrid button{transition:background .22s ease,border-color .22s ease,box-shadow .22s ease,transform var(--t-press) var(--e-out)}
+
+/* =====================================================================
+   v15 · effects
+   ===================================================================== */
+/* ripple: a copper ring from the finger */
+.fx-rbox{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:0}
+.navb .fx-rbox{overflow:visible}
+.fx-ripple{position:absolute;border-radius:50%;pointer-events:none;z-index:0;background:radial-gradient(closest-side,rgba(227,168,122,.28),rgba(227,168,122,.12) 60%,rgba(227,168,122,0));transform:scale(0);animation:fxRip .6s var(--e-out) forwards}
+.btn.primary .fx-ripple,.sp-start .fx-ripple,.chip[aria-pressed="true"] .fx-ripple{background:radial-gradient(closest-side,rgba(255,255,255,.45),rgba(255,255,255,0))}
+.navb .fx-ripple{width:56px!important;height:56px!important;left:50%!important;top:4px!important;margin-left:-28px;background:radial-gradient(closest-side,rgba(201,139,91,.3),rgba(201,139,91,0))}
+@keyframes fxRip{0%{transform:scale(0);opacity:1}70%{opacity:.9}100%{transform:scale(1);opacity:0}}
+:is(.btn,.prow,.srow,.door,.pf2-i,.lib-card,.chip,.cgrid button,.ag-btn,.sp-start,button.li,.ai-tg,.ai-ms)>:not(.fx-rbox):not(.seg-thumb){position:relative;z-index:1}
+/* a soft light that follows the mouse over cards */
+:is(.door,.prow,.lib-card,.hx-goal2,.pf2-menu,.ce-hero,.ai-card,.srow).fx-lit{background-image:radial-gradient(220px circle at var(--mx) var(--my),rgba(227,168,122,.08),transparent 70%)!important}
+.door.fx-lit,.prow.fx-lit,.lib-card.fx-lit{border-color:rgba(201,139,91,.35)!important}
+/* hero pictures: room to move for the parallax */
+.hx-hero .hx-art,.lx-art{will-change:transform;transform:scale(1.08)}
+.hx-hero,.lx-hero{overflow:hidden}
+/* confetti sits above everything and never blocks a tap */
+.fx-confetti{position:fixed;inset:0;width:100vw;height:100vh;z-index:200;pointer-events:none}
+/* work in progress: a light that moves along the bar (only while something is actually loading) */
+:is(.ai-prog,.ai-status) .hx-bar i{position:relative;overflow:hidden}
+:is(.ai-prog,.ai-status) .hx-bar i::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,240,228,.45),transparent);transform:translateX(-100%);animation:fxShim 1.4s ease-in-out infinite}
+@keyframes fxShim{to{transform:translateX(100%)}}
+/* level-up card gets the copper treatment */
+.lvup-card{background:linear-gradient(180deg,#1C1714,#120F0D)!important;border:1px solid rgba(201,139,91,.4)!important;box-shadow:0 30px 80px -20px rgba(0,0,0,.9),0 0 0 1px rgba(201,139,91,.15)!important}
+.lvup-n{color:var(--acc2)!important;text-shadow:0 0 30px rgba(201,139,91,.45)}
+
+/* ---- AI studio: effects ---- */
+.ai-tool-fx{grid-template-columns:96px 1fr}
+.ai-tool-fx .ai-fxwrap{grid-column:1/-1}
+.ai-fxwrap{animation:fadeUp .26s var(--e-out) both}
+.ai-fx{display:grid;gap:8px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2)}
+.ai-fxp{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px} .ai-fxp::-webkit-scrollbar{display:none}
+.ai-fxr{display:grid;grid-template-columns:72px 1fr 54px;align-items:center;gap:8px;color:var(--fg2);font-size:12.5px}
+.ai-fxr b{text-align:right;color:var(--muted);font-size:12px}
+.ai-fxr input{accent-color:var(--acc)}
+.ai-ms.fx{font-size:11px;letter-spacing:.02em}
+.ai-ms.fx.used{color:var(--acc);border-color:rgba(201,139,91,.6)}
+.ai-ms.fx.on{background:rgba(201,139,91,.18);border-color:var(--acc);color:var(--fg)}
+.ai-st .ai-fxwrap{grid-column:1/-1}
+.ai-tool-fx .ai-tg{white-space:nowrap}
