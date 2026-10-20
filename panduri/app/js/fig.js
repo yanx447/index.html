@@ -50,7 +50,7 @@ PD.fig = (() => {
     skin: '#DDAA84', skin2: '#C38E69', skinHi: '#EBC2A0', nail: '#F1D3C1', nailE: '#C99A82', crease: 'rgba(120,70,45,.45)',
     hair: '#2A1C14', top: '#33454F', top2: '#26353D', topHi: '#3E5360', pants: '#3B3631', pants2: '#2D2925', shoe: '#1D1612', sole: '#0E0B09',
     chair: '#7B4F30', chair2: '#5C3A22', chairHi: '#93633F', floor: 'rgba(255,240,228,.10)',
-    spruce: '#EED6A6', spruce2: '#D8B47C', edge: '#7E4E2C', neck: '#7A4526', board: '#4E2817', fret: '#E6DCC6', dot: '#F2CE3A', hole: '#160C07', ring: '#5B3420', bridge: '#F2E6CC', metal: '#BFC3C7', str: '#F4EEE4',
+    spruce: '#EED6A6', spruce2: '#D8B47C', edge: '#7E4E2C', neck: '#8A5532', board: '#6A3720', fret: '#E6DCC6', dot: '#F2CE3A', hole: '#160C07', ring: '#5B3420', bridge: '#F2E6CC', metal: '#BFC3C7', str: '#F4EEE4',
     ok: '#8EF0B4', bad: '#FF7A6B', ink: '#F4EFE9', dim: 'rgba(255,240,228,.55)'
   };
 
@@ -92,7 +92,7 @@ PD.fig = (() => {
     s += path('M' + P([PN.nut, -1.2]) + 'h.5v2.4h-.5Z', '#2A1A12');
     // head: slotted, hooked back at the end, tuners 2 + 1
     const hx = PN.nut + .5;
-    s += path('M' + P([hx, -1.3]) + 'L' + P([90, -1.45]) + 'Q' + P([92.3, -1.5]) + ' ' + P([92.1, 0]) + 'Q' + P([92.3, 1.5]) + ' ' + P([90, 1.45]) + 'L' + P([hx, 1.3]) + 'Z', K.neck, ' stroke="#4A2715" stroke-width=".18"');
+    s += path('M' + P([hx, -1.3]) + 'L' + P([90, -1.45]) + 'Q' + P([92.3, -1.5]) + ' ' + P([92.1, 0]) + 'Q' + P([92.3, 1.5]) + ' ' + P([90, 1.45]) + 'L' + P([hx, 1.3]) + 'Z', '#B98A55', ' stroke="#7A5230" stroke-width=".18"');
     s += path('M' + P([82.2, -.55]) + 'L' + P([89.4, -.6]) + 'L' + P([89.4, .6]) + 'L' + P([82.2, .55]) + 'Z', '#1A0F09');
     [83.8, 86.3, 88.6].forEach(x => { s += line([x, -.6], [x, .6], K.metal, .28); });
     [[84.1, 1], [86.6, 1], [86.0, -1]].forEach(([x, side]) => { s += line([x, side * 1.4], [x, side * 2.5], K.metal, .34) + '<ellipse cx="' + f(x) + '" cy="' + f(side * 2.95) + '" rx=".75" ry=".55" fill="#D9D3C8" stroke="#8B8580" stroke-width=".1"/>'; });
@@ -163,6 +163,85 @@ PD.fig = (() => {
   }
   const handDefs = id => '<radialGradient id="' + id + 'hs" cx="0" cy="-5" r="7" gradientUnits="userSpaceOnUse"><stop offset=".5" stop-color="#fff" stop-opacity=".07"/><stop offset="1" stop-color="#6a3a20" stop-opacity=".18"/></radialGradient>';
 
+  /* ---------------- the right hand in profile (seen from the thumb side) for strokes ----------------
+     Hand frame: wrist at (0,0), hand axis straight down (+y), palm on the left (−x), back of the hand on the right.
+     pose: {flex:[mcp,pip,dip] (index; the other fingers follow and curl a little more), tA: thumb angle toward the palm, tF: thumb bend} */
+  const SF = [[-.15, 9.5, [4.0, 2.35, 1.85], .92, 0], [.15, 9.8, [4.4, 2.7, 1.9], .95, 6], [.4, 9.4, [4.1, 2.55, 1.85], .9, 11], [.6, 8.6, [3.3, 1.9, 1.65], .78, 16]];
+  function handFK(ps) {
+    const out = { fingers: [], thumb: null };
+    SF.forEach(([bx, by, Ls, r0, extra], i) => {
+      let p = [bx, by], a = 0; const pts = [p], rs = [r0, r0 * .9, r0 * .82, r0 * .74];
+      Ls.forEach((l, k) => { a += ps.flex[k] * (1 + extra / 60) + (k === 0 ? extra * .3 : 0); const q = add(p, mul(rot([0, 1], a), l)); pts.push(q); p = q; });
+      out.fingers.push({ pts, rs, a });
+    });
+    { let p = [-1.7, 2.4], a = ps.tA; const pts = [p], Ls = [3.7, 3.0, 2.45], rs = [1.25, 1.1, .96, .84];
+      Ls.forEach((l, k) => { if (k) a -= ps.tF * (k === 1 ? .55 : .45); const q = add(p, mul(rot([0, 1], a), l)); pts.push(q); p = q; });
+      out.thumb = { pts, rs, a }; }
+    return out;
+  }
+  const toWorld = (ps, p) => add(add(ps.wrist, ps.off || [0, 0]), rot(p, ps.W));
+  /** world positions of the index nail tip and the thumb nail tip */
+  function nailTips(ps) {
+    const fk = handFK(ps), fi = fk.fingers[0], th = fk.thumb;
+    const tipOf = (c, side) => { const n = c.pts.length, q = c.pts[n - 1], d = nrm(sub(q, c.pts[n - 2])), r = c.rs[c.rs.length - 1]; return add(add(q, mul(d, .32)), mul(rot(d, side), r * .45)); };
+    return { index: toWorld(ps, tipOf(fi, -90)), thumb: toWorld(ps, tipOf(th, 90)) };
+  }
+  function handSideSVG(ps, hl) {
+    const fk = handFK(ps), edge = ' stroke="' + K.skin2 + '" stroke-width=".09"';
+    let s = '';
+    const chain = (c, col) => { let o = ''; for (let k = 0; k < c.pts.length - 1; k++) o += path(cap(c.pts[k], c.rs[k], c.pts[k + 1], c.rs[k + 1]), col, edge); return o; };
+    const nail = (c, side, glow) => { const n = c.pts.length, q = c.pts[n - 1], p0 = c.pts[n - 2], d = nrm(sub(q, p0)), r = c.rs[n - 1], ds = rot(d, side), L0 = len(sub(q, p0));
+      const a1 = add(add(q, mul(d, -L0 * .55)), mul(ds, r * .78)), a2 = add(add(q, mul(d, .32)), mul(ds, r * .55)), a3 = add(add(q, mul(d, .3)), mul(ds, r * .2)), a4 = add(add(q, mul(d, -L0 * .55)), mul(ds, r * .5));
+      return '<path d="M' + P(a1) + 'L' + P(a2) + 'Q' + P(add(a2, mul(d, .12))) + ' ' + P(a3) + 'L' + P(a4) + 'Z" fill="' + K.nail + '" stroke="' + K.nailE + '" stroke-width=".07"/>' + (glow ? '<circle cx="' + f(a2[0]) + '" cy="' + f(a2[1]) + '" r=".55" fill="' + K.ok + '" opacity="' + f(glow) + '"/>' : ''); };
+    // fingers behind the index, darker as they go back
+    for (let i = 3; i >= 1; i--) s += chain(fk.fingers[i], ['', '#CF9C77', '#C6936E', '#BD8A66'][i]) + nail(fk.fingers[i], -90, 0);
+    // palm (profile): back of the hand on the right, the palm pad on the left
+    const palm = smooth([[1.7, -.6], [2.15, 3], [2.05, 6.6], [1.5, 9.4], [.2, 10.6], [-1.3, 9.9], [-2.3, 7.2], [-2.75, 4.2], [-2.4, 1.4], [-1.8, -.6]], true);
+    s += path(palm, K.skin, edge) + '<path d="M' + P([1.95, 1]) + 'Q' + P([2.25, 5]) + ' ' + P([1.5, 9.2]) + '" stroke="' + K.skinHi + '" stroke-width=".35" fill="none" opacity=".6"/>';
+    s += '<path d="M' + P([-2.1, 4.6]) + 'Q' + P([-1.2, 6.2]) + ' ' + P([-1.4, 8.4]) + '" stroke="' + K.crease + '" stroke-width=".09" fill="none"/>';
+    s += chain(fk.fingers[0], K.skin) + nail(fk.fingers[0], -90, hl && hl.index);
+    // knuckle creases on the index
+    [1, 2].forEach(k => { const c = fk.fingers[0], p = c.pts[k], d = nrm(sub(c.pts[k + 1], p)), ds = rot(d, -90); s += '<path d="M' + P(add(p, mul(ds, c.rs[k] * .9))) + 'q' + P(mul(d, .25)) + ' ' + P(mul(rot(d, 90), c.rs[k] * .5)) + '" stroke="' + K.crease + '" stroke-width=".07" fill="none"/>'; });
+    // thumb in front
+    s += chain(fk.thumb, K.skin) + nail(fk.thumb, 90, hl && hl.thumb);
+    return '<g transform="translate(' + P(add(ps.wrist, ps.off || [0, 0])) + ') rotate(' + f(ps.W) + ')">' + s + '</g>';
+  }
+  /** the stroke cycle (seconds): ↓ the fingers flick open, nail tips lead · ↑ the thumbnail leads; only the wrist turns.
+      Geometry: the strings sit in a vertical row (A top · C♯ · E bottom); the wrist is placed so the curled index nail
+      passes through the middle string, and the thumb's shape is solved so its nail passes it on the way up. */
+  const STR = [[8, 9.9], [8, 11.5], [8, 13.1]];
+  const EGG = { flex: [42, 58, 34], tA: 38, tF: 34 }, OPEN = { flex: [6, 8, 3], tA: 30, tF: 10 }, UPM = { flex: [62, 78, 44], tA: 8, tF: 2 };
+  const ST = { wrist: [21, 11.5], Wc: 90, up: 1.5, down: 1.4 };
+  function strokePose(t) {
+    const k = t % 3.2, We = ST.Wc + 40, Wo = ST.Wc - 46;
+    const blend = (A, B, m) => ({ flex: A.flex.map((v, i) => mix(v, B.flex[i], m)), tA: mix(A.tA, B.tA, m), tF: mix(A.tF, B.tF, m) });
+    let ps, dir, W;
+    if (k < .5) { ps = EGG; W = We; dir = 0; }
+    else if (k < 1.5) { const m = easeIO(k - .5); ps = blend(EGG, OPEN, easeIO(Math.min(1, Math.max(0, (k - .95) / .5)))); W = mix(We, Wo, m); dir = 1; }
+    else if (k < 1.9) { ps = OPEN; W = Wo; dir = 0; }
+    else if (k < 2.9) { const m = k - 1.9; ps = m < .55 ? blend(OPEN, UPM, easeIO(m / .55)) : blend(UPM, EGG, easeIO((m - .55) / .45)); W = mix(Wo, We, easeIO(m)); dir = -1; }
+    else { ps = EGG; W = We; dir = 0; }
+    return Object.assign({ wrist: ST.wrist, off: [0, 0], dir, k, W }, ps);
+  }
+  const STRC = () => STR;
+  let CAL = null;
+  function strokeCal() {
+    if (CAL) return CAL;
+    // radius and angle of the curled index nail with the wrist at the origin
+    const pe = Object.assign({ wrist: [0, 0], off: [0, 0], W: 0 }, EGG), tip0 = nailTips(pe).index, R = len(tip0), ang0 = Math.atan2(tip0[1], tip0[0]) * 180 / Math.PI;
+    ST.Wc = 180 - ang0; ST.wrist = [STR[1][0] + R, STR[1][1]];
+    // the moment of the up-stroke when the hand passes the middle: W(k) = Wc
+    let kU = 2.4; for (let k = 1.9; k < 2.9; k += .005) { if (strokePose(k).W >= ST.Wc) { kU = k; break; } }
+    let kD = 1; for (let k = .5; k < 1.5; k += .005) { if (strokePose(k).W <= ST.Wc) { kD = k; break; } }
+    // thumb shape at kU so its nail meets the middle string
+    { const m = kU - 1.9, w = m < .55 ? easeIO(m / .55) : 1; let best = null;
+      for (let a = -70; a <= 90; a += 2) for (let fb = -30; fb <= 60; fb += 2) { UPM.tA = a; UPM.tF = fb; const d = len(sub(nailTips(strokePose(kU)).thumb, STR[1])); if (!best || d < best.d) best = { d, a, fb }; }
+      UPM.tA = best.a; UPM.tF = best.fb; void w; }
+    const toff = sub(STR[1], nailTips(strokePose(kU)).thumb);
+    const cross = (from, to, which, off) => STR.map(p => { let best = from, bd = 1e9; for (let k = from; k <= to; k += .01) { const ps = strokePose(k); if (off) ps.off = mul(toff, Math.min(1, Math.sin(Math.PI * (k - 1.9)) * 1.8)); const q = nailTips(ps)[which], d = len(sub(q, p)); if (d < bd) { bd = d; best = k; } } return best; });
+    CAL = { str: STR, v: [0, 1], n: [-1, 0], toff, kU, kD, hitD: cross(.5, 1.5, 'index'), hitU: cross(1.9, 2.9, 'thumb', true) };
+    return CAL;
+  }
   /* ---------------- people ---------------- */
   /** head in profile facing right */
   function headSide(c, tilt) {
@@ -300,10 +379,13 @@ PD.fig = (() => {
     else s += '<circle cx="' + f(lh[0]) + '" cy="' + f(lh[1] + 2) + '" r="2.4" fill="' + K.skin + '"/>';
     // player's right arm (on your left) over the body; the hand strums between the hole and the fingerboard
     const zone = onP(PAN_AT, nAng, [35.2, 0]), nrmv = rot([0, 1], nAng), sw = o.strum || 0;
-    const rh = add(zone, mul(nrmv, -3.2 + sw * 4.4)), re = [69, 88 - br * .5];
+    // only the wrist turns: the forearm rests still on the body, the rounded hand swings across the strings
+    const rh = add(zone, mul(nrmv, -1)), re = [69, 88 - br * .5], wp = add(rh, [-3.4, -4.2]), ang = (sw - .5) * 46;
     s += path(cap([x - 19, shY + 3], 4.6, re, 3.8), K.top);
-    s += path(cap(re, 3.7, add(rh, [-3.4, -4.2]), 2.9), K.top) + path(cap(add(rh, [-3.4, -4.2]), 2.3, add(rh, [-.6, -.8]), 2.5), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".12"');
-    s += path(cap(add(rh, [-.8, -1.2]), 1.9, add(rh, [.6, 1.6]), .9), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".1"') + path(cap(add(rh, [.4, -1.4]), 1.1, add(rh, [2.2, -.2]), .75), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".1"');
+    s += path(cap(re, 3.7, wp, 2.9), K.top);
+    s += '<g transform="rotate(' + f(ang) + ' ' + P(wp) + ')">' + path(cap(wp, 2.3, add(rh, [-.6, -.8]), 2.5), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".12"');
+    s += path(cap(add(rh, [-.8, -1.2]), 1.9, add(rh, [.4, 1.2]), 1.25), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".1"') + '<path d="M' + P(add(rh, [-1.6, .2])) + 'q1 1.2 2.2 .6" stroke="' + K.skin2 + '" stroke-width=".25" fill="none"/>';
+    s += path(cap(add(rh, [.4, -1.6]), 1.05, add(rh, [2.0, -.6]), .75), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".1"') + '</g>';
     return s;
   }
   const frontDefs = id => '<linearGradient id="' + id + 'tf" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".2"/><stop offset=".45" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>';
@@ -337,6 +419,86 @@ PD.fig = (() => {
     return s;
   }
 
+  /* ---------------- left hand on the neck (Bm) ---------------- */
+  const bm = () => { const c = (PD.curriculum && PD.curriculum.chords ? PD.curriculum.chords() : []).find(x => x.name === 'Bm'); return c && c.frets.join() === '2,1,2' ? c : { frets: [2, 1, 2], fingers: [2, 1, 3] }; };
+  function lhTop(t, id) {
+    const k = t % 9, NUT = 3.2, fx = n => NUT + 63 * (1 - Math.pow(2, -n / 12)) * 1.0, SY = { 3: 9.3, 2: 10.4, 1: 11.5 }; // E top · C♯ · A bottom (as on the app's neck)
+    const ch = bm(), place = [0, 1, 2].map(i => ({ s: i + 1, f: ch.frets[i], fi: ch.fingers[i] })).filter(p => p.f > 0).sort((a, b) => a.fi - b.fi);
+    let s = '';
+    // neck: fingerboard, nut, frets 1–6, dots at 3 and 5
+    s += '<rect x="' + NUT + '" y="8.6" width="24" height="3.6" rx=".3" fill="url(#' + id + 'nb)"/><rect x="' + (NUT - .5) + '" y="8.5" width=".5" height="3.8" rx=".15" fill="' + K.bridge + '"/><rect x="0" y="8.4" width="' + (NUT - .5) + '" height="4" fill="#C9A06A" opacity=".55"/>';
+    for (let n = 1; n <= 6; n++) s += line([fx(n), 8.65], [fx(n), 12.15], K.fret, .16) + '<text x="' + f((fx(n) + fx(n - 1)) / 2) + '" y="13.4" fill="' + K.dim + '" font-size=".75" style="text-anchor:middle" dominant-baseline="central">' + n + '</text>';
+    [3, 5].forEach(n => { s += '<circle cx="' + f((fx(n) + fx(n - 1)) / 2) + '" cy="10.4" r=".18" fill="' + K.dot + '"/>'; });
+    // when do the fingers land: one by one, then the chord rings, then lift and again
+    const land = i => ramp(k, .6 + i * 1.1, 1.2 + i * 1.1) * (1 - ramp(k, 7.8, 8.6));
+    const ring = k > 4.4 && k < 7.8 ? Math.exp(-((k - 4.4) % 1.1) * 3) * .35 : 0;
+    [3, 2, 1].forEach(sn => { const p = place.find(x => x.s === sn), a = ring * Math.sin(t * 45 + sn); const x0 = p ? fx(p.f) - .5 : NUT - .5; s += '<path d="M0 ' + SY[sn] + 'L' + f(x0) + ' ' + SY[sn] + (a && p ? 'Q' + f((x0 + 27) / 2) + ' ' + f(SY[sn] + a) + ' 27 ' + SY[sn] : 'L27 ' + SY[sn]) + '" stroke="' + K.str + '" stroke-width="' + [0, .16, .13, .11][sn] + '" fill="none"/>'; });
+    ['A', 'C♯', 'E'].forEach((nm, i) => { s += '<text x="1.3" y="' + SY[i + 1] + '" fill="' + ['#D9783F', '#78B7DE', '#EFE0B8'][i] + '" font-size=".7" font-weight="800" style="text-anchor:middle" dominant-baseline="central">' + nm + '</text>'; });
+    // thumb behind the neck (hidden): a dashed outline under it
+    s += '<path d="' + cap([fx(1.6), 13.6], .95, [fx(1.2) - .2, 10.6], .85) + '" fill="none" stroke="' + K.skin + '" stroke-width=".1" stroke-dasharray=".3 .25" opacity=".8"/>';
+    // back of the hand above the neck, knuckles in a line
+    const KN = [[5.6, 4.3], [7.8, 3.7], [10.0, 3.9], [12.0, 4.7]];
+    s += path(smooth([[3.6, -2], [4.2, 3.4], [5.4, 5.2], [8, 4.8], [10.4, 4.9], [12.6, 5.6], [13.8, 3.6], [13.4, -2]], true), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".08"');
+    s += path(smooth([[3.6, -2], [4.2, 3.4], [5.4, 5.2], [8, 4.8], [10.4, 4.9], [12.6, 5.6], [13.8, 3.6], [13.4, -2]], true), 'url(#' + id + 'hs)');
+    s += '<rect x="2.9" y="-1.6" width="11.8" height="1.6" rx=".5" fill="' + K.top2 + '"/>';
+    // the ball the hand holds (rounded shape)
+    const ballA = ramp(k, .1, .5) * (1 - ramp(k, 2.2, 2.7));
+    s += '<ellipse cx="8.8" cy="7.2" rx="3.2" ry="1.5" fill="#fff" fill-opacity=".05" stroke="' + K.ok + '" stroke-width=".1" stroke-dasharray=".35 .25" opacity="' + f(ballA) + '"/>';
+    // fingers: from the knuckle they arch up toward you and come down on the string with the fingertip
+    const FN = [1, 2, 3, 4];
+    FN.forEach(fi => {
+      const kn = KN[fi - 1], p = place.find(x => x.fi === fi), l = p ? land(fi - 1) : 0;
+      const target = p ? [fx(p.f) - .62, SY[p.s]] : [kn[0] + .8, 7.6];
+      const hover = [kn[0] + (target[0] - kn[0]) * .7, kn[1] + 2.6];
+      const tip = p ? mix(hover, target, l) : add([kn[0] + .9, 7.4], [0, Math.sin(t * 1.3 + fi) * .1]);
+      const pip = mix(kn, tip, .42), dip = mix(kn, tip, .8), r0 = fi === 4 ? .66 : .8;
+      const lift = p ? (1 - l) : 1;
+      s += '<ellipse cx="' + f(tip[0] + .15) + '" cy="' + f(tip[1] + .25) + '" rx=".55" ry=".3" fill="#000" opacity="' + f(.35 * (p ? l : 0)) + '"/>';
+      s += path(cap(kn, r0, add(pip, [0, -.15]), r0 * .95), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".07"') + path(cap(add(pip, [0, -.15]), r0 * .95, dip, r0 * .84), 'url(#' + id + 'fs)', ' stroke="' + K.skin2 + '" stroke-width=".07"') + path(cap(dip, r0 * .84, tip, r0 * .7), K.skin2, ' stroke="' + K.skin2 + '" stroke-width=".07"');
+      s += '<ellipse cx="' + f(pip[0]) + '" cy="' + f(pip[1] - .25) + '" rx="' + f(r0 * .55) + '" ry=".22" fill="' + K.skinHi + '" opacity=".6"/>';
+      s += '<ellipse cx="' + f(tip[0]) + '" cy="' + f(tip[1] - .55) + '" rx="' + f(r0 * .48) + '" ry=".32" fill="' + K.nail + '" stroke="' + K.nailE + '" stroke-width=".05"/>';
+      if (p && l > .5) { const c = PD.fingers && PD.fingers.color ? PD.fingers.color(fi) : '#E8574A'; s += '<circle cx="' + f(tip[0] + 1.25) + '" cy="' + f(tip[1] - .9) + '" r=".55" fill="' + c + '" stroke="#fff" stroke-opacity=".7" stroke-width=".06"/><text x="' + f(tip[0] + 1.25) + '" y="' + f(tip[1] - .88) + '" fill="#fff" font-size=".65" font-weight="800" style="text-anchor:middle" dominant-baseline="central">' + fi + '</text>'; }
+      void lift;
+    });
+    // captions
+    const cA = ramp(k, .1, .5) * (1 - ramp(k, 4, 4.4)), cB = ramp(k, 4.4, 4.8) * (1 - ramp(k, 7.8, 8.3));
+    s += '<g opacity="' + f(cA) + '">' + label(26.6, 15.4, L(['თითის წვერი — ლადის ახლოს, მის უკან', 'Fingertip close behind the fret']), K.ok, 1, 'end') + label(26.6, 16.9, L(['თითები მომრგვალებული — სხვა სიმს არ ეხება', 'Fingers rounded — not touching other strings']), K.ink, .9, 'end') + '</g>';
+    s += '<g opacity="' + f(cB) + '">' + label(26.6, 15.4, 'Bm · A 2 · C♯ 1 · E 2', K.ok, 1.05, 'end') + label(26.6, 16.9, L(['ხელი მოდუნებული — ზედმეტად ნუ მოუჭერ', 'Hand relaxed — don\'t squeeze']), K.ink, .9, 'end') + '</g>';
+    s += label(26.6, 1, L(['ცერი — ტარის უკან (წყვეტილი ხაზი)', 'Thumb behind the neck (dashed)']), K.dim, .8, 'end');
+    return s;
+  }
+  /** cross-section of the neck seen from the head: the hand wraps it like a ball, the thumb rests lightly behind */
+  function lhSection(t, id) {
+    const k = t % 9, press = 1 - ramp(k % 3, 1.9, 2.3) * (1 - ramp(k % 3, 2.6, 2.95)), cx = 13, cy = 6.6, S = 1.25;
+    const T = p => [cx + p[0] * S, cy + p[1] * S];
+    let s = '';
+    // neck section: fingerboard on top, rounded back below
+    s += path('M' + P(T([-1.45, 0])) + 'L' + P(T([1.45, 0])) + 'L' + P(T([1.45, .55])) + 'C' + P(T([1.45, 2.4])) + ' ' + P(T([-1.45, 2.4])) + ' ' + P(T([-1.45, .55])) + 'Z', K.neck);
+    s += '<rect x="' + f(T([-1.45, 0])[0]) + '" y="' + f(T([0, 0])[1]) + '" width="' + f(2.9 * S) + '" height="' + f(.5 * S) + '" fill="#4E2817"/>';
+    const SX = { 3: -.9, 2: 0, 1: .9 };
+    [3, 2, 1].forEach(sn => { s += '<circle cx="' + f(T([SX[sn], -.32])[0]) + '" cy="' + f(T([0, -.32])[1]) + '" r="' + f([0, .13, .11, .09][sn] * S) + '" fill="' + K.str + '"/><text x="' + f(T([SX[sn], -1.5])[0]) + '" y="' + f(T([0, -1.2])[1]) + '" fill="' + ['', '#D9783F', '#78B7DE', '#EFE0B8'][sn] + '" font-size=".8" font-weight="800" style="text-anchor:middle" dominant-baseline="central">' + ['', 'A', 'C♯', 'E'][sn] + '</text>'; });
+    // the hand as a "C" around the neck: the space inside is the ball
+    const O = T([-1.5, 1.2]), Rr = 3.0 * S, arc = a => [O[0] + Math.cos(a * Math.PI / 180) * Rr, O[1] + Math.sin(a * Math.PI / 180) * Rr];
+    s += '<circle cx="' + f(O[0]) + '" cy="' + f(O[1]) + '" r="' + f(Rr * .78) + '" fill="#fff" fill-opacity=".04" stroke="' + K.ok + '" stroke-width=".1" stroke-dasharray=".35 .25"/>';
+    const tube = (angs, r0, r1, col, extra) => { let o = ''; for (let i = 0; i < angs.length - 1; i++) { const q0 = Array.isArray(angs[i]) ? angs[i] : arc(angs[i]), q1 = Array.isArray(angs[i + 1]) ? angs[i + 1] : arc(angs[i + 1]); o += path(cap(q0, mix(r0, r1, i / (angs.length - 1)), q1, mix(r0, r1, (i + 1) / (angs.length - 1))), col, extra || ''); } return o; };
+    const E = ' stroke="' + K.skin2 + '" stroke-width=".07"';
+    // forearm and palm (lower left), thumb along the bottom to the back of the neck
+    const wr = T([-5.2, 7.4]);
+    s += path(cap(T([-6.6, 11]), 1.9 * S, wr, 1.55 * S), K.top);
+    s += tube([wr, 125, 150, 175, 196], 1.25 * S, 1.0 * S, K.skin, E);
+    s += tube([118, 95, 72, 52, T([.25, 2.15])], .78 * S, .55 * S, K.skin, E);
+    // the finger: from the knuckle over the top, then the tip straight down onto C♯
+    const tipY = -.32 - .5 * (1 - press) - .13, tip = T([SX[2], tipY]);
+    s += tube([196, 220, 245, 268, 286], .72 * S, .55 * S, 'url(#' + id + 'fs)', E) + path(cap(arc(286), .55 * S, add(tip, [0, -.9 * S]), .48 * S), K.skin, E) + path(cap(add(tip, [0, -.9 * S]), .48 * S, tip, .42 * S), K.skin, E);
+    s += line(add(tip, [.4 * S, -1.1 * S]), add(tip, [.38 * S, -.15 * S]), K.nail, .28);
+    s += '<circle cx="' + f(tip[0]) + '" cy="' + f(tip[1] + .55) + '" r=".42" fill="none" stroke="' + K.ok + '" stroke-width=".1" opacity="' + f(press) + '"/>';
+    // captions
+    s += label(.6, .6, L(['ტარის ჭრილი — თავის მხრიდან', 'Neck in section — seen from the head']), K.dim, .8, 'start');
+    s += label(26.4, 2.2, L(['თითი თაღივით — წვერი ვერტიკალურად', 'The finger arches — the tip comes straight down']), K.ok, .95, 'end');
+    s += label(26.4, 15.2, L(['ცერი ტარის უკან, მსუბუქად', 'Thumb behind the neck, lightly']), K.ink, .9, 'end');
+    s += label(26.4, 16.8, L(['ხელისგული ტარს არ ეხება — შიგნით „ბურთია“', 'The palm does not touch the neck — a “ball” inside']), K.ink, .9, 'end');
+    return s;
+  }
   /* ---------------- scene registry ---------------- */
   const SCENES = {
     sit: { vb: '18 8 172 168', views: [['side', ['გვერდიდან', 'Side']], ['front', ['წინიდან', 'Front']], ['top', ['ზემოდან', 'Above']]], dur: 10,
@@ -370,21 +532,49 @@ PD.fig = (() => {
         s += '<g opacity="' + f(!A ? ramp(k, 4, 4.4) * (1 - ramp(k, 7.6, 8)) : 0) + '"><circle cx="' + f(lh[0]) + '" cy="' + f(lh[1]) + '" r="9" fill="#78B7DE" fill-opacity=".1" stroke="#78B7DE" stroke-width=".8"/>' + label(100, 14, L(['მარცხენა ხელი აჭერს სიმებს ლადებზე', 'The left hand presses strings on the frets']), '#9CCBEA', 4.4) + '</g>';
         return s;
       } },
-    /** close-up from the front: soundboard, ring of holes, strings A · C♯ · E; the right hand strums */
-    strokes: { vb: '0 0 40 26', dur: 4, defs: id => panduriDefs(id) + handDefs(id),
+    /** strokes, seen from the side: the strings in cross-section (A top · C♯ · E bottom), the right hand turns only at the wrist */
+    strokes: { vb: '-1 -6 37 29', dur: 3.2, defs: id => '<linearGradient id="' + id + 'bw" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#9A6038"/><stop offset="1" stop-color="#4A2614"/></linearGradient>',
       draw(t, id) {
-        const k = t % 4, down = k < 2, q = down ? k : k - 2, mv = easeIO(Math.min(1, Math.max(0, (q - .35) / .9)));
-        const y = down ? mix(-4.6, 4.2, mv) : mix(4.2, -4.6, mv), hit = s0 => { const d = (down ? 1 : -1) * (y - s0); return d > 0 ? Math.max(0, .45 - d * .05) * Math.sin(t * 60) * Math.exp(-(q - .35 - mv) * 2) : 0; };
-        const strY = [-1.05, 0, 1.05], wig = strY.map(sy0 => hit(sy0 + 13));
-        let s = '<g transform="translate(-8 13)">' + panduri(id, { wiggle: wig }) + '</g>';
-        // right hand: back of the hand toward you, fingers down (left hand mirrored vertically), thumb toward the neck
-        const flex = down ? [[20, mix(65, 12, mv), mix(30, 8, mv)], [45, 55, 30], [50, 60, 30], [55, 60, 30]] : [[30, 50, 25], [45, 55, 30], [50, 60, 30], [55, 60, 30]];
-        const th = down ? { a: 8, flex: 25 } : { a: mix(-4, 14, mv), flex: 6 };
-        s += '<g transform="translate(' + f(25.8 + (down ? 0 : .6)) + ' ' + f(y + 13 - 12.4) + ') rotate(-14) scale(.86 -.86)">' + hand({ id, flex, thumb: th, sleeve: K.top, sleeve2: K.top2 }) + '</g>';
-        s += '<g transform="translate(0 0)">' + label(4, 2.3, down ? '↓ ' + L(['ჩამოკვრა', 'Down']) : '↑ ' + L(['ამოკვრა', 'Up']), down ? K.ink : K.ok, 1.7, 'start') + label(4, 4.3, down ? L(['საჩვენებელი თითის ფრჩხილით', 'back of the index nail']) : L(['ცერა თითის ბალიშით', 'pad of the thumb']), K.dim, 1.15, 'start') + '</g>';
-        [['A', '#D9783F'], ['C♯', '#78B7DE'], ['E', '#EFE0B8']].forEach(([n, c], i) => { s += '<circle cx="1.5" cy="' + f(13 + strY[i] * 1.55) + '" r=".75" fill="#100E0D" stroke="' + c + '" stroke-width=".12"/><text x="1.5" y="' + f(13 + strY[i] * 1.55) + '" fill="' + c + '" font-size=".8" font-weight="700" text-anchor="middle" dominant-baseline="central">' + n + '</text>'; });
+        const C = strokeCal(), ps = strokePose(t), k = ps.k;
+        if (k >= 1.9 && k < 2.9) ps.off = mul(C.toff, Math.min(1, Math.sin(Math.PI * (k - 1.9)) * 1.8));
+        const tips = nailTips(ps);
+        // the panduri in cross-section: soundboard, body, strings
+        const v = C.v, n = C.n, mid = C.str[1];
+        const b0 = add(add(mid, mul(n, 2.4)), mul(v, -10)), b1 = add(add(mid, mul(n, 2.4)), mul(v, 10));
+        let s = '<path d="M' + P(b0) + 'C' + P(add(b0, mul(n, 9))) + ' ' + P(add(b1, mul(n, 9))) + ' ' + P(b1) + 'Z" fill="url(#' + id + 'bw)"/>' + line(b0, b1, K.spruce, .55);
+        s += label(3, 20.6, L(['ფანდური ჭრილში', 'panduri in section']), K.dim, 1.05, 'start');
+        const SC = ['#D9783F', '#78B7DE', '#EFE0B8'], NM = ['A', 'C♯', 'E'];
+        C.str.forEach((p, j) => {
+          const dk = ps.dir > 0 ? k - C.hitD[j] : ps.dir < 0 ? k - C.hitU[j] : (k < 1.9 && k >= 1.5 ? k - C.hitD[j] : k >= 2.9 ? k - C.hitU[j] : 9);
+          const amp = dk > 0 && dk < 1.4 ? Math.exp(-dk * 3) * .5 : 0;
+          s += '<ellipse cx="' + f(p[0]) + '" cy="' + f(p[1]) + '" rx="' + f(.34 + amp * Math.abs(Math.sin(t * 40))) + '" ry=".34" fill="' + K.str + '" transform="rotate(' + f(Math.atan2(v[1], v[0]) * 180 / Math.PI - 90) + ' ' + P(p) + ')"/>';
+          s += '<text x="' + f(p[0] + n[0] * 4) + '" y="' + f(p[1] + n[1] * 4) + '" fill="' + SC[j] + '" font-size="1" font-weight="800" style="text-anchor:middle" dominant-baseline="central">' + NM[j] + '</text>';
+        });
+        // forearm stays still; the wrist is the hinge
+        const wr = add(ps.wrist, ps.off || [0, 0]), el = add(ps.wrist, [26, -7.5]), u = nrm(sub(el, wr));
+        s += path(cap(el, 3.4, add(wr, mul(u, 1.6)), 2.5), K.top) + path(cap(add(wr, mul(u, 2.7)), 2.55, add(wr, mul(u, 1.2)), 2.45), K.top2);
+        const hit = (tip) => Math.max(0, 1 - Math.min(...C.str.map(p => len(sub(p, tip)))) / 1.2);
+        s += handSideSVG(ps, { index: ps.dir > 0 ? hit(tips.index) : 0, thumb: ps.dir < 0 ? hit(tips.thumb) : 0 });
+        s += '<circle cx="' + f(wr[0] + .2) + '" cy="' + f(wr[1]) + '" r="1.1" fill="none" stroke="' + K.ok + '" stroke-width=".16" stroke-dasharray=".4 .3"/>';
+        // the egg the hand holds (rounded hand)
+        const egg = ps.dir === 0 && (k < .5 || k >= 2.9) ? 1 : 0;
+        if (egg) { const c = toWorld(ps, [-2.2, 11.6]); s += '<ellipse cx="' + f(c[0]) + '" cy="' + f(c[1]) + '" rx="2.1" ry="2.7" fill="#fff" fill-opacity=".06" stroke="' + K.ok + '" stroke-width=".14" stroke-dasharray=".5 .35" transform="rotate(' + f(ps.W - 20) + ' ' + P(c) + ')"/>'; }
+        // a fading trail of the leading nail
+        const lead = ps.dir > 0 ? tips.index : ps.dir < 0 ? tips.thumb : null;
+        if (lead) s += '<circle cx="' + f(lead[0]) + '" cy="' + f(lead[1]) + '" r=".5" fill="none" stroke="' + K.ok + '" stroke-width=".14" opacity=".8"/>';
+        // captions
+        const cap1 = ps.dir > 0 || (k >= 1.5 && k < 1.9) ? ['↓ ' + L(['ჩამოკვრა', 'Down-stroke']), L(['თითები იშლება — სიმებს ეხება ფრჩხილის წვერები', 'The fingers flick open — the nail tips hit the strings'])]
+          : ps.dir < 0 || k >= 2.9 ? ['↑ ' + L(['ამოკვრა', 'Up-stroke']), L(['ცერა თითის ფრჩხილის წვერით', 'With the tip of the thumbnail'])]
+          : [L(['მომრგვალებული ხელი', 'Rounded hand']), L(['თითქოს კვერცხი ან ბურთი გიჭირავს', 'As if holding an egg or a ball'])];
+        s += label(35.5, -4.4, cap1[0], ps.dir < 0 || k >= 2.9 ? K.ok : K.ink, 1.75, 'end') + label(35.5, -2.4, cap1[1], K.dim, 1.05, 'end');
+        s += label(35.5, 21.6, L(['მოძრაობს მხოლოდ მაჯა — მკლავი უძრავია', 'Only the wrist moves — the arm stays still']), K.ok, 1.05, 'end');
         return s;
       } },
+    /** the left hand on the neck, Bm triangle chord (A 2 · C♯ 1 · E 2 with fingers 2 · 1 · 3 from the chord library):
+        from above as you see the neck (E on top, the nut on the left) and in cross-section (how the hand wraps the neck) */
+    lefthand: { vb: '0 -1 27 19', views: [['top', ['ზემოდან · Bm', 'From above · Bm']], ['section', ['ჭრილში', 'In section']]], dur: 9,
+      defs: id => handDefs(id) + '<linearGradient id="' + id + 'nb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A2F1C"/><stop offset="1" stop-color="#3E1E10"/></linearGradient><radialGradient id="' + id + 'fs" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="' + K.skinHi + '"/><stop offset="1" stop-color="' + K.skin + '"/></radialGradient>',
+      draw(t, id, view) { return view === 'section' ? lhSection(t, id) : lhTop(t, id); } },
     /** care: wipe the strings, keep it in a case, away from sun / heater / damp */
     care: { vb: '-4 -16 100 40', dur: 9, defs: panduriDefs,
       draw(t, id) {

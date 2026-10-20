@@ -5,6 +5,10 @@
    ===================================================================== */
 PD.i18n.add({
   'ce.lib': ['აკორდების ბიბლიოთეკა', 'Chord library'],
+  'ce.sh.tri': ['სამკუთხა აკორდები', 'Triangle chords'], 'ce.sh.triD': ['განაპირა სიმები ერთ ლადზე, შუა — ერთი ლადით გვერდზე. მაგ. Bm = 2-1-2', 'Outer strings on one fret, the middle one fret beside. E.g. Bm = 2-1-2'],
+  'ce.sh.barre': ['გადაკეტილი აკორდები', 'Barre chords'], 'ce.sh.barreD': ['ერთი თითი (1) ერთ ლადზე რამდენიმე სიმს კეტავს. მაგ. B = 2-2-2', 'One finger (1) closes several strings on one fret. E.g. B = 2-2-2'],
+  'ce.sh.open': ['ღია სიმებით', 'With open strings'], 'ce.sh.openD': ['ერთი ან მეტი სიმი ღიაა (0)', 'One or more strings are open (0)'],
+  'ce.sh.other': ['სხვა ფორმები', 'Other shapes'], 'ce.sh.otherD': ['ყველა დანარჩენი ფორმა', 'All remaining shapes'],
   'tu.title': ['ტიუნერი', 'Tuner'], 'tu.auto': ['ავტო', 'Auto'], 'tu.manual': ['სიმის არჩევა', 'Pick string'],
   'tu.start': ['მიკროფონის ჩართვა', 'Turn on microphone'], 'tu.stop': ['გამორთვა', 'Turn off'],
   'tu.idle': ['დაუკარი ერთი სიმი', 'Pluck one string'], 'tu.inTune': ['✓ აწყობილია', '✓ In tune'], 'tu.up': ['↑ ოდნავ მოუჭირე (ბგერა დაბალია)', '↑ Tighten a little (flat)'],
@@ -150,13 +154,36 @@ PD.tools = (() => {
     else c.frets.forEach((f, i) => { const k = i + 1; if (f > 0) { const cx = (fx(f) + fx(f - 1)) / 2 + 8; s += '<circle cx="' + cx + '" cy="' + y(k) + '" r="14" fill="' + SCOL[k] + '"/><text x="' + cx + '" y="' + (y(k) + 5) + '" fill="#140D08" font-size="14" font-weight="700" text-anchor="middle" font-family="Noto Sans Georgian">' + (c.fingers[i] || '') + '</text>'; } else s += '<circle cx="' + (x0 - 2) + '" cy="' + y(k) + '" r="7" fill="none" stroke="' + SCOL[k] + '" stroke-width="2"/>'; });
     return s + '</svg>';
   }
+  /** every chord in each shape it can take; cached per tuning */
+  let SHC = null;
+  function shapeEntries(all, shapeOf) {
+    const key = all.length + ':' + (PD.theory._libKey || '');
+    if (SHC && SHC.key === key) return SHC.list;
+    const TT = PD.theory, out = [];
+    all.forEach(c => {
+      const T = c.q != null ? TT.CHORD_TYPES.find(x => x.k === c.q) : null;
+      const vs = (c.root != null && T ? TT.voicings(c.root, T) : []).concat(c.voicings || [c]);
+      const best = {};
+      vs.forEach(v => { const k = shapeOf(v), p = v.pos != null ? v.pos : Math.min(...v.frets.filter(x => x > 0).concat([0])); const pp = p + (v.frets.some(x => x === 0) ? .5 : 0); if (!best[k] || pp < best[k].p) best[k] = { v, p: pp }; });
+      // the chord's own main shape always shows (teacher / song shapes win)
+      const own = (c.voicings && c.voicings[0]) || c, ok = shapeOf(own); best[ok] = { v: own, p: -1 };
+      Object.keys(best).forEach(k => out.push({ c, v: best[k].v, shape: k }));
+    });
+    const TI = k => { const i = PD.theory.CHORD_TYPES.findIndex(x => x.k === k); return i < 0 ? 99 : i; };
+    out.sort((a, b) => TI(a.c.q) - TI(b.c.q) || ((a.c.root != null ? (a.c.root - 9 + 12) % 12 : 0) - (b.c.root != null ? (b.c.root - 9 + 12) % 12 : 0)));
+    SHC = { key, list: out }; return out;
+  }
   function chords(w, param) {
     const own = scope(), TT = PD.theory;
     header(w, 'ce.title');
     const all = PD.curriculum.chords();
-    let cur = all.find(c => c.id === param) || all.find(c => c.name === 'Dm') || all[0], vi = 0, q = '';
+    let cur = all.find(c => c.id === param) || all.find(c => c.name === 'Dm') || all[0], vi = 0, q = '', forced = null;
+    /* shape sections: every chord in every shape it can be played in (triangle · barre · with open strings · other) */
+    const SH = ['tri', 'barre', 'open', 'other'];
+    const shapeOf = v => { const fr = v.frets; if (fr.every(x => x > 0) && fr[0] === fr[2] && Math.abs(fr[1] - fr[0]) === 1) return 'tri'; if (v.barre || (fr.every(x => x > 0) && fr[0] === fr[1] && fr[1] === fr[2])) return 'barre'; if (fr.some(x => x === 0)) return 'open'; return 'other'; };
+    const entries = shapeEntries(all, shapeOf);
     let swapDir = 0, fRoot = PD.store.get('ce.root', -1), fType = PD.store.get('ce.type', 'basic');
-    const vo = () => (cur.voicings && cur.voicings[vi]) || cur;
+    const vo = () => forced || (cur.voicings && cur.voicings[vi]) || cur;
     // the same neck and finger markers as the lessons, showing one still chord
     const nv = h('div', { class: 'neckview' }), ncv = h('canvas', { 'aria-label': t('ce.title') }); nv.appendChild(ncv);
     const view = PD.Neck(ncv); view.mirror = PD.store.get('lefty', false);
@@ -169,7 +196,7 @@ PD.tools = (() => {
     const rootRow = chipRow([[-1, t('ce.all')]].concat(TT.ROOTS.map((r, i) => [i, r])), () => fRoot, v => { fRoot = v; PD.store.set('ce.root', v); });
     const typeRow = chipRow([['basic', t('ce.maj') + ' · ' + t('ce.min')], ['all', t('ce.all')]].concat(TT.CHORD_TYPES.map(T => [T.k, T.k === '' ? 'maj' : T.k])), () => fType, v => { fType = v; PD.store.set('ce.type', v); });
     const count = h('small', { class: 'muted' });
-    const g = h('div', { class: 'cgrid', role: 'listbox', 'aria-label': t('ce.title') });
+    const g = h('div', { class: 'cgroups' });
     const detail = h('div', { class: 'ce-detail' });
     const left = h('div', { class: 'ce-side' }, [h('h2', { 'data-t': 'ce.lib' }), h('span', { class: 'kicker', 'data-t': 'ce.root' }), rootRow, h('span', { class: 'kicker', 'data-t': 'ce.type' }), typeRow, search, count]);
     const nameBox = h('div', { class: 'ce-namebox' });
@@ -205,13 +232,21 @@ PD.tools = (() => {
       if (fType === 'basic') return c.q === '' || c.q === 'm' || c.q == null;
       return fType === 'all' || c.q === fType;
     }
+    const same = (a, b) => a && b && a.frets.join() === b.frets.join();
+    let flat = [];
     function grid() {
-      g.innerHTML = '';
-      const list = all.filter(match);
-      count.textContent = t('ce.count', { n: list.length });
+      g.innerHTML = ''; flat = [];
+      const list = entries.filter(e => match(e.c));
+      count.textContent = t('ce.count', { n: new Set(list.map(e => e.c.id)).size });
       if (!list.length) g.appendChild(h('span', { class: 'muted', text: t('ce.none') }));
-      list.forEach(c => g.appendChild(h('button', { role: 'option', 'aria-selected': String(c === cur), 'aria-pressed': String(c === cur), text: c.name, onclick: () => { cur = c; vi = 0; grid(); show(); } })));
+      SH.forEach(k => {
+        const part = list.filter(e => e.shape === k); if (!part.length) return;
+        const row = h('div', { class: 'cgrid', role: 'listbox', 'aria-label': t('ce.sh.' + k) });
+        part.forEach(e => { flat.push(e); const on = e.c === cur && same(vo(), e.v); row.appendChild(h('button', { role: 'option', 'aria-selected': String(on), 'aria-pressed': String(on), title: e.v.frets.join('-'), html: PD.esc(e.c.name) + '<small>' + e.v.frets.join('-') + '</small>', onclick: () => { pick(e); } })); });
+        g.appendChild(h('section', { class: 'csec' }, [h('div', { class: 'csec-h' }, [h('b', { text: t('ce.sh.' + k) }), h('small', { text: t('ce.sh.' + k + 'D') }), h('span', { class: 'mono muted', text: String(part.length) })]), row]));
+      });
     }
+    function pick(e) { cur = e.c; const k = (cur.voicings || []).findIndex(x => same(x, e.v)); if (k >= 0) { vi = k; forced = null; } else { vi = 0; forced = e.v; } grid(); show(); }
     const ROLE = { 0: 'ce.R', 1: 'ce.i2', 2: 'ce.i2', 3: 'ce.i3m', 4: 'ce.i3', 5: 'ce.i4', 6: 'ce.i5d', 7: 'ce.i5', 8: 'ce.i5a', 9: 'ce.i6', 10: 'ce.i7m', 11: 'ce.i7' };
     function show() {
       if (typeof stopAnim === 'function') stopAnim();
@@ -220,12 +255,12 @@ PD.tools = (() => {
       const q0 = cur.q != null ? cur.q : cur.kind === 'min' ? 'm' : '', nm = m => cur.root != null ? TT.spell(m, cur.root, q0).name : TT.name(m), nmKa = m => cur.root != null ? TT.spell(m, cur.root, q0).ka : TT.nameKa(m);   // spelled from the root letter
       const list = all.filter(match), i = Math.max(0, list.indexOf(cur));
       const other = h('select', { class: 'input', 'aria-label': t('ce.to') }, all.filter(c => c !== cur && (c.q === '' || c.q === 'm' || c.q == null)).map(c => h('option', { value: c.id, text: c.name })));
-      const posSeg = cur.voicings && cur.voicings.length > 1 ? h('div', { class: 'seg', role: 'group', 'aria-label': t('ce.pos') }, cur.voicings.map((x, k) => h('button', { 'aria-pressed': String(k === vi), text: x.pos ? t('ce.posN', { n: x.pos }) : t('ce.open'), onclick: () => { vi = k; show(); } }))) : null;
+      const posSeg = cur.voicings && cur.voicings.length > 1 ? h('div', { class: 'seg', role: 'group', 'aria-label': t('ce.pos') }, cur.voicings.map((x, k) => h('button', { 'aria-pressed': String(!forced && k === vi), text: x.pos ? t('ce.posN', { n: x.pos }) : t('ce.open'), onclick: () => { vi = k; forced = null; grid(); show(); } }))) : null;
       const src = cur.src === 'teacher' && vi === 0 ? 'ce.teacher' : cur.src === 'song' && vi === 0 ? 'ce.song' : cur.demo ? 'ce.demo' : 'ce.computed';
       detail.append(
-        h('div', { class: 'row' }, [h('button', { class: 'btn icon small', 'aria-label': t('prev'), text: '‹', onclick: () => { swapDir = -1; cur = list[(i - 1 + list.length) % list.length] || cur; vi = 0; grid(); show(); } }),
+        h('div', { class: 'row' }, [h('button', { class: 'btn icon small', 'aria-label': t('prev'), text: '‹', onclick: () => { swapDir = -1; const j = flat.findIndex(e => e.c === cur && same(e.v, vo())); const e = flat[(j - 1 + flat.length) % flat.length]; if (e) pick(e); } }),
           h('div', { class: 'ce-name' }, [h('h2', { text: cur.name }), h('small', { text: cur.ka || '' })]),
-          h('button', { class: 'btn icon small', 'aria-label': t('next'), text: '›', onclick: () => { swapDir = 1; cur = list[(i + 1) % list.length] || cur; vi = 0; grid(); show(); } }), h('span', { class: 'mono muted', text: v.frets.join('-') })]),
+          h('button', { class: 'btn icon small', 'aria-label': t('next'), text: '›', onclick: () => { swapDir = 1; const j = flat.findIndex(e => e.c === cur && same(e.v, vo())); const e = flat[(j + 1) % flat.length]; if (e) pick(e); } }), h('span', { class: 'mono muted', text: v.frets.join('-') })]),
         T ? h('p', { class: 'fg2', text: PD.i18n.pick({ ka: T.d[0], en: T.d[1] }) }) : h('p', { class: 'fg2', text: v.frets.every(f => f === 0) ? t('ce.openD') : cur.kind === 'maj' ? t('ce.majD') : t('ce.minD') }),
         posSeg,
         h('div', { class: 'ce-roles' }, [h('span', { class: 'kicker', 'data-t': 'ce.roles' }), h('div', { class: 'ce-rl' }, ms.map((m, k) => {
@@ -240,7 +275,7 @@ PD.tools = (() => {
         h('p', { class: 'notice', text: t(src) }));
       nameBox.innerHTML = ''; nameBox.append(detail.firstChild);
       if (PD.motion && nameBox.dataset.shown) PD.motion.swap(nameBox.querySelector('.ce-name'), swapDir); nameBox.dataset.shown = '1'; swapDir = 0;
-      { const sel = g.querySelector('[aria-pressed="true"]'); if (sel) requestAnimationFrame(() => { g.scrollLeft = Math.max(0, sel.offsetLeft - (g.clientWidth - sel.offsetWidth) / 2); }); }
+      { const sel = g.querySelector('[aria-pressed="true"]'), row = sel && sel.parentNode; if (sel) requestAnimationFrame(() => { row.scrollLeft = Math.max(0, sel.offsetLeft - row.offsetLeft - (row.clientWidth - sel.offsetWidth) / 2); }); }
       preview();
     }
     grid(); show();

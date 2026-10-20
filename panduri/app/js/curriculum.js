@@ -106,7 +106,7 @@ PD.curriculum = (() => {
     /* Theory, easy → hard. "first" comes before everything: sitting, holding, which hand does what, finger and string numbers, care.
        Those cards are drafts for the teacher to check (tips.js, source 'draft') and editable in Author Studio. */
     { id: 'first', theory: true, title: { ka: 'პირველი ნაბიჯები: დაჯდომა და დაჭერა', en: 'First steps: sitting and holding' }, steps: [
-      TIP('sit'), TIP('hold'), TIP('hands'), TIP('strokes'), TIP('fingers'), TIP('stringnum'), TIP('warmup'), TIP('care'),
+      TIP('sit'), TIP('hold'), TIP('hands'), TIP('strokes'), TIP('fingers'), TIP('lefthand'), TIP('stringnum'), TIP('warmup'), TIP('care'),
       NEED('ვიდეო: მასწავლებელი აჩვენებს დაჯდომას და დაჭერას', 'Video: the teacher shows sitting and holding')] },
     { id: 'instrument', theory: true, title: { ka: 'გაიცანი ფანდური', en: 'Meet the panduri' }, steps: [
       TIP('parts'), { kind: 'tour', title: { ka: 'ფანდური 3D-ში', en: 'The panduri in 3D' } }, TIP('strings'), TIP('dots'), TIP('tab'),

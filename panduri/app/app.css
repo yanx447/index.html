@@ -1975,3 +1975,9 @@ select.input{transition:border-color var(--t-ctl)}
 .fig-views{display:flex;max-width:380px;margin:10px auto 2px;width:100%}
 .fig-views>button{flex:1;min-height:38px;font-weight:700}
 .tp-art .tp-svg.fig{max-height:none;height:100%;width:100%}
+/* v19 chord shape sections */
+.cgroups{display:flex;flex-direction:column;gap:14px}
+.csec{display:flex;flex-direction:column;gap:6px}
+.csec-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.csec-h b{font-size:15px}.csec-h small{color:var(--fg2);font-size:12px;flex:1;min-width:160px}
+.page .cgrid button{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;min-width:58px;padding:4px 8px}
+.page .cgrid button small{font:600 10px var(--f-mono,monospace);opacity:.6}
