@@ -256,15 +256,61 @@ PD.theoryBook = (() => {
   const mark = id => { const d = done(); if (!d[id]) { d[id] = Date.now(); PD.store.set('theory.done', d); PD.bus.emit('theory', d); } };
   const progress = () => CH.filter(c => done()[c.id]).length / CH.length;
 
+  /* ---------- plain-language terms: the first time a word appears in the detail, a tap explains it ---------- */
+  const GE = 'ა-ჿ', ENDS = '(?:ებ)?(?:ი|ა|ე|ო|ის|ს|ით|თ|ად|დ|ში|ზე|თან|ამდე|მდე|იდან|დან)?', esc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  function linkTerms(root, words) {
+    const ka = PD.i18n.lang !== 'en';
+    words.map(w => ({ disp: ka ? w[0] : w[1], def: ka ? w[2] : w[3] })).sort((a, b) => b.disp.length - a.disp.length).forEach(it => {
+      const re = ka ? new RegExp('(^|[^' + GE + '])(' + esc(it.disp.replace(/[აეიოუ]$/, '')) + ENDS + ')(?=$|[^' + GE + '])') : new RegExp('(^|[^A-Za-z])(' + esc(it.disp) + '(?:e?s)?)(?=$|[^A-Za-z])', 'i');
+      const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && n.parentElement.closest('button, .tb-term, svg, .tb-art, h3, th, a') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+      let n; while ((n = tw.nextNode())) {
+        const m = re.exec(n.data); if (!m) continue;
+        const mid = n.splitText(m.index + m[1].length); mid.splitText(m[2].length);
+        const b = h('button', { class: 'tb-term', type: 'button', 'aria-expanded': 'false', title: it.def, text: mid.data, onclick: e => { e.stopPropagation(); tip(b, it.disp, it.def); } });
+        mid.replaceWith(b); break;
+      }
+    });
+  }
+  let tipEl = null;
+  function closeTip() { if (tipEl) { tipEl.remove(); tipEl = null; document.querySelectorAll('.tb-term[aria-expanded="true"]').forEach(x => x.setAttribute('aria-expanded', 'false')); } }
+  function tip(b, term, def) {
+    const was = b.getAttribute('aria-expanded') === 'true'; closeTip(); if (was) return;
+    b.setAttribute('aria-expanded', 'true');
+    tipEl = h('div', { class: 'tb-tip', role: 'note' }, [h('b', { text: term }), h('span', { text: def })]);
+    document.body.appendChild(tipEl);
+    const r = b.getBoundingClientRect(), W = Math.min(300, innerWidth - 24), x = Math.max(12, Math.min(innerWidth - W - 12, r.left + r.width / 2 - W / 2));
+    tipEl.style.width = W + 'px'; tipEl.style.left = x + 'px';
+    const below = r.bottom + 8, hgt = tipEl.offsetHeight; tipEl.style.top = (below + hgt > innerHeight - 80 ? r.top - hgt - 8 : below) + 'px';
+  }
+  document.addEventListener('click', e => { if (tipEl && !e.target.closest('.tb-tip, .tb-term')) closeTip(); });
+  document.addEventListener('scroll', closeTip, true); PD.bus.on('route', closeTip);
+
+  /* ---------- the glossary: every word of the book, A–Z, searchable ---------- */
+  function glossary(w) {
+    const G = (PD.theorySimple ? PD.theorySimple.glossary() : []).map(x => ({ t: L(x.ka, x.en), d: L(x.dka, x.den), ch: x.ch }));
+    G.sort((a, b) => a.t.localeCompare(b.t, PD.i18n.lang === 'en' ? 'en' : 'ka'));
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('theory') }), h('h1', { text: L('ლექსიკონი', 'Glossary'), style: 'margin:0' })]),
+      h('p', { class: 'fg2', text: L('მუსიკის ყველა სიტყვა მარტივად — და რომელ თავშია.', 'Every music word in plain language — and which chapter it is in.') }));
+    const list = h('dl', { class: 'tbs-gl' }), q = h('input', { class: 'input', type: 'search', placeholder: L('მოძებნე სიტყვა…', 'Find a word…'), 'aria-label': L('ძებნა', 'Search'), oninput: () => draw() });
+    function draw() {
+      const f = q.value.trim().toLowerCase(); list.innerHTML = '';
+      G.filter(x => !f || x.t.toLowerCase().includes(f) || x.d.toLowerCase().includes(f)).forEach(x => { const c = CH.find(k => k.id === x.ch); list.append(h('dt', { text: x.t }), h('dd', {}, [h('span', { text: x.d }), c ? h('button', { class: 'linkbtn', text: L('თავი', 'Chapter') + ': ' + L(c.t[0], c.t[1]), onclick: () => PD.app.go('theory', c.id) }) : null])); });
+      if (!list.firstChild) list.append(h('p', { class: 'muted', text: L('ასეთი სიტყვა ვერ ვიპოვე.', 'No such word found.') }));
+    }
+    w.append(q, list); draw();
+  }
+
   /* ---------- pages ---------- */
   function page(w, param) {
+    if (param === 'glossary') return glossary(w);
     const c = CH.find(x => x.id === param);
     if (c) return chapter(w, c);
     const d = done(), n = CH.filter(x => d[x.id]).length;
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('learn') }), h('h1', { 'data-t': 'tb.title', style: 'margin:0' })]),
       h('p', { class: 'fg2', 'data-t': 'tb.lead' }),
       h('div', { class: 'tb-prog' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(n / CH.length * 100) + '%' })]), h('small', { class: 'muted', text: t('tb.read', { a: n, b: CH.length }) })]),
-      h('div', { class: 'tb-list' }, CH.map((x, i) => h('button', { class: 'tb-card' + (d[x.id] ? ' done' : ''), onclick: () => PD.app.go('theory', x.id) }, [h('span', { class: 'tb-num', text: d[x.id] ? '✓' : String(i + 1) }), h('b', { text: L(x.t[0], x.t[1]) })]))));
+      h('button', { class: 'tbs-glb', onclick: () => PD.app.go('theory', 'glossary') }, [h('b', { text: L('ლექსიკონი', 'Glossary') }), h('small', { text: L('მუსიკის ყველა სიტყვა მარტივად', 'Every music word, simply') })]),
+      h('div', { class: 'tb-list' }, CH.map((x, i) => { const S = PD.theorySimple && PD.theorySimple.get(x.id), one = S ? L(S.easy[0][0], S.easy[0][1]).replace(/<[^>]+>/g, '') : ''; return h('button', { class: 'tb-card' + (d[x.id] ? ' done' : ''), onclick: () => PD.app.go('theory', x.id) }, [h('span', { class: 'tb-num', text: d[x.id] ? '✓' : String(i + 1) }), h('span', { class: 'tb-ct' }, [h('b', { text: L(x.t[0], x.t[1]) }), one ? h('small', { text: one }) : null])]); })));
   }
   function chapter(w, c) {
     const i = CH.indexOf(c);
@@ -273,7 +319,20 @@ PD.theoryBook = (() => {
     const body = h('article', { class: 'tb-body' }); w.append(body);
     const AN = { octave: 'octave', semitone: 'semitone', neck: 'dots', durations: 'count', meter: 'count', tempo: 'tempo', chords: 'shapefirst' }[c.id];   // a short animation at the top of the chapter
     if (AN && PD.tips && PD.tips.ART[AN]) body.append(h('div', { class: 'tp-hero tb-anim', html: PD.tips.ART[AN]() }));
-    c.body(body);
+    // first in plain words, then the full detail
+    const S = PD.theorySimple && PD.theorySimple.get(c.id);
+    if (S) {
+      body.append(h('section', { class: 'tbs-easy' }, [h('h2', { class: 'tbs-h', text: L('მარტივად', 'In simple words') })].concat(S.easy.map(([ka, en]) => h('p', { html: L(ka, en) })))),
+        h('section', { class: 'tbs-rem' }, [h('h3', { text: L('დაიმახსოვრე', 'Remember') }), h('ul', {}, S.remember.map(([ka, en]) => h('li', { html: L(ka, en) })))]),
+        S.try ? h('section', { class: 'tbs-try' }, [h('span', { class: 'tbs-ic', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7M17 6l-6.5 6.5"/><path d="M10.5 12.5a4.5 4.5 0 1 1-6.4 6.4 4.5 4.5 0 0 1 6.4-6.4z"/><circle cx="7.3" cy="15.7" r="1.2" fill="currentColor"/></svg>' }), h('div', {}, [h('b', { text: L('სცადე ფანდურზე', 'Try it on the panduri') }), h('p', { html: L(S.try[0], S.try[1]) })])]) : null,
+        h('div', { class: 'tbs-more' }, [h('span', { text: L('დეტალურად', 'In detail') })]));
+    }
+    const det = h('div', { class: 'tbs-det' }); body.append(det);
+    c.body(det);
+    if (S && S.words && S.words.length) {
+      linkTerms(det, S.words);
+      body.append(h('section', { class: 'tbs-words' }, [h('h3', { text: L('სიტყვები ამ თავიდან', 'Words from this chapter') }), h('dl', {}, S.words.flatMap(([ka, en, dka, den]) => [h('dt', { text: L(ka, en) }), h('dd', { text: L(dka, den) })]))]));
+    }
     // self-check
     if (c.q && c.q.length) {
       const qs = h('section', { class: 'tb-quiz' }, [h('h3', { 'data-t': 'tb.check' })]);
