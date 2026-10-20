@@ -104,6 +104,7 @@ PD.i18n.add({
 PD.i18n.add({
   'hx.hi': ['გამარჯობა', 'Hello'], 'hd.practice': ['სავარჯიშოები', 'Exercises'], 'hd.practiceD': ['ტრენაჟორები და მეტრონომი', 'Trainers and metronome'], 'hd.songsN': ['{n} სიმღერა', '{n} songs'], 'hd.chordsN': ['{n} აკორდი', '{n} chords'], 'hd.theory': ['თეორია', 'Theory'], 'hd.theoryD': ['ნოტები და გამები', 'Notes and scales'], 'hd.popular': ['სიმღერები', 'Songs'],
   'set.uiSounds': ['ღილაკების ხმა', 'Button sounds'], 'set.uiSoundsD': ['მსუბუქი ხმა დაჭერისას; სიმძლავრე — „უკუკავშირის ხმა“', 'A soft sound on tap; level = “feedback volume”'],
+  'au.signoutQ': ['ანგარიშიდან გასვლა? პროგრესი ანგარიშში რჩება — შემდეგ შესვლისას დაბრუნდება.', 'Sign out? Your progress stays in the account and comes back when you sign in.'], 'au.signedOut': ['გამოხვედი ანგარიშიდან', 'Signed out'],
   'pf.owner': ['მფლობელი · პრემიუმი სამუდამოდ', 'Owner · lifetime Premium'],
   'pf.student': ['მოსწავლე', 'Student'], 'pf.level': ['ლეველი', 'Level'], 'pf.lessons': ['ნასწავლი', 'Learned'], 'pf.progress': ['პროგრესი', 'Progress'], 'set.data': ['მონაცემები', 'Your data'],
   'lnx.songsD': ['სიმღერები, მელოდიები და სოლოები — დონეების მიხედვით', 'Songs, melodies and solos — by level'],
@@ -717,7 +718,7 @@ PD.app = (() => {
       item(I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), 'more.settings', null, () => go('settings')),
       item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', null, () => go('community')),
       C.isOwner ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'pa.title', null, () => go('pmadmin')) : null,
-      C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => PD.ui.confirm(t('au.signout') + '?', async () => { await C.auth.signOut(); PD.store.set('auth.skip', false); render(); }))
+      C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => signOut())
         : item(I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'), 'pf.signin', t('au.guestD'), () => PD.auth.open(), 'accent')].filter(Boolean)));
     const favs = LS.progress.favorites().map(id => LS.get(id)).filter(Boolean);
     if (favs.length) w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.saved' }), h('div', { class: 'list' }, favs.map(lessonRow))]));
@@ -841,7 +842,7 @@ PD.app = (() => {
       ...(() => {   // the real state of the account, not a fixed text
         const C = PD.cloud, cp = C.profile, who = C.session ? (cp && (cp.email || cp.phone)) || (C.user && (C.user.email || C.user.phone)) || '' : '', PM = PD.premium;
         return [row('pf.account', C.session ? t('au.signedIn', { e: who }) : C.configured ? t('pf.guest') : t('au.noBackend'),
-            C.session ? h('button', { class: 'btn small', 'data-t': 'pf.open', onclick: () => go('profile') }) : C.configured ? h('button', { class: 'btn small', 'data-t': 'pf.signin', onclick: () => PD.auth.open('signin') }) : null),
+            C.session ? h('button', { class: 'btn small', 'data-t': 'au.signout', onclick: () => signOut() }) : C.configured ? h('button', { class: 'btn small', 'data-t': 'pf.signin', onclick: () => PD.auth.open('signin') }) : null),
           row('au.sync', C.session ? t('au.syncOn') : C.configured ? t('au.guestD') : t('au.syncOff'), null),
           row('au.subscription', PM.active ? PM.status() || t('pm.title') : t('pm.none'), h('button', { class: 'btn small', 'data-t': 'pm.title', onclick: () => PM.paywall() }))];
       })(),
@@ -860,7 +861,15 @@ PD.app = (() => {
   function nextTheoryStep() { for (const p of LS.PATHS) { if (!p.theory) continue; const real = p.steps.filter(x => x.kind !== 'needs'), s = real.find(x => !stepDone(x)); if (s) return { p, s, d: real.filter(stepDone).length, n: real.length }; } return null; }
   /** the first theory path that still has open steps (the level program points there first) */
   function theoryProgram() { const p = LS.PATHS.find(x => x.theory && x.steps.some(s2 => s2.kind !== 'needs' && !stepDone(s2))); return p ? p.id : null; }
+  /** sign out: confirm, sign out at once, then the welcome screen to sign in again (any account) or continue without one */
+  function signOut() {
+    PD.ui.confirm(t('au.signoutQ'), async () => {
+      await PD.cloud.auth.signOut(); PD.store.set('auth.skip', false);
+      PD.ui.toast(t('au.signedOut'), 2600); go('home', null, true);
+      PD.auth.gate(() => render());
+    });
+  }
   /** an in-app Back button: the same step as the system Back when there is one, otherwise up to the section */
   function back(fallback) { if (navStack.length > 1) history.back(); else go(fallback || TOP[route] || 'home', null, true); }
-  return { shell, go, back, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, get route() { return route; }, get param() { return param; } };
+  return { shell, go, back, signOut, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, get route() { return route; }, get param() { return param; } };
 })();

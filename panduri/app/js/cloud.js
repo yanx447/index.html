@@ -28,6 +28,11 @@ PD.cloud = (() => {
   }
   const configured = () => { const c = conf(); return !!(c.url && c.key && (/^https:\/\//.test(c.url) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(c.url))); };
 
+  /** fetch with a time limit: a slow or silent server can never freeze sign-in, sign-out or sync */
+  function tfetch(url, init, ms) {
+    const ac = window.AbortController ? new AbortController() : null, tm = ac ? setTimeout(() => ac.abort(), ms || 15000) : 0;
+    return fetch(url, Object.assign({}, init, ac ? { signal: ac.signal } : {})).finally(() => clearTimeout(tm));
+  }
   /* ---------- low-level HTTP ---------- */
   async function http(path, opt) {
     opt = opt || {};
@@ -39,7 +44,7 @@ PD.cloud = (() => {
     if (opt.auth !== false && S) headers.Authorization = 'Bearer ' + S.access_token;
     else if (/^eyJ/.test(c.key)) headers.Authorization = 'Bearer ' + c.key;
     let r;
-    try { r = await fetch(c.url + path, { method: opt.method || 'GET', headers, body: opt.body != null ? JSON.stringify(opt.body) : undefined }); }
+    try { r = await tfetch(c.url + path, { method: opt.method || 'GET', headers, body: opt.body != null ? JSON.stringify(opt.body) : undefined }, opt.timeout); }
     catch (e) { throw err('offline'); }
     if (r.status === 401 && opt.auth !== false && S && !opt.retried) { await refresh().catch(() => {}); if (S) return http(path, Object.assign({}, opt, { retried: true })); }
     const txt = await r.text(); let j = null; try { j = txt ? JSON.parse(txt) : null; } catch (_) { j = txt; }
@@ -58,7 +63,7 @@ PD.cloud = (() => {
       if (stored && S && stored.refresh_token && stored.refresh_token !== S.refresh_token) { S = stored; if (S.expires_at - 60 > Date.now() / 1000) return; }
       if (!S || !S.refresh_token) throw err('no-session');
       const c = conf(), used = S.refresh_token;
-      let r; try { r = await fetch(c.url + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: used }) }); } catch (_) { throw err('offline'); }
+      let r; try { r = await tfetch(c.url + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: used }) }); } catch (_) { throw err('offline'); }
       if (!r.ok) {
         const now = PD.store.get(KEY, null); if (now && now.refresh_token && now.refresh_token !== used) { S = now; return; }   // the other tab won the race: use its session
         if (r.status === 400 || r.status === 401) setSession(null); throw err('refresh');
@@ -95,7 +100,13 @@ PD.cloud = (() => {
       if (native() && P && P.Browser) { await P.Browser.open({ url }); return 'pending'; }
       location.assign(url); return 'pending';
     },
-    async signOut() { try { await http('/auth/v1/logout', { method: 'POST' }); } catch (_) {} setSession(null); PD.store.set('account.mode', 'local'); },
+    /** sign out on this device at once; the server is told in the background (a slow network can't keep you signed in) */
+    async signOut() {
+      const tok = S && S.access_token, c = conf();
+      setSession(null); PD.store.set('account.mode', 'local'); refreshing = null;
+      if (tok && c.url && c.key) tfetch(c.url + '/auth/v1/logout', { method: 'POST', headers: { apikey: c.key, Authorization: 'Bearer ' + tok } }, 6000).catch(() => {});
+      return true;
+    },
     /** delete the account and everything stored with it on the server (progress on this device stays) */
     async deleteAccount() { await http('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {} }); setSession(null); PD.store.set('account.mode', 'local'); }
   };

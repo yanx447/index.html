@@ -55,7 +55,7 @@ PD.auth = (() => {
     const card = h('div', { class: 'ag-card' });
     root.append(h('div', { class: 'ag-glow', 'aria-hidden': 'true' }), card);
     document.body.appendChild(root);
-    let view = 'home', email = '', phone = PD.store.get('auth.phone', '+995 '), busy = false, done = false;
+    let view = opts.view || 'home', email = '', phone = PD.store.get('auth.phone', '+995 '), busy = false, done = false;
     const off = C.on(() => { if (C.session) finish(true); });
     const lid = opts.closable ? PD.layers.push(() => finish(false)) : 0;   // opened from the app: Back closes it
     function finish(ok) { if (done) return; done = true; off(); if (lid) PD.layers.done(lid); root.classList.add('out'); setTimeout(() => root.remove(), 260); onDone && onDone(ok); }
@@ -66,7 +66,8 @@ PD.auth = (() => {
       catch (e) { msg.hidden = false; msg.textContent = message(e); msg.className = 'ag-msg' + (e && e.code === 'no-backend' ? ' info' : ''); }
       finally { busy = false; if (btn) btn.classList.remove('busy'); }
     }
-    const back = () => h('button', { class: 'ag-back', html: PD.ic.back + '<span data-t="au.back"></span>', onclick: () => { view = 'home'; render(); } });
+    // Back: sign-in form → the list of ways in → the welcome screen (or closes, when opened from inside the app)
+    const back = () => h('button', { class: 'ag-back', html: PD.ic.back + '<span data-t="au.back"></span>', onclick: () => { if (view === 'methods') { if (opts.closable) return finish(false); view = 'home'; } else view = 'methods'; render(); } });
     function render() {
       card.innerHTML = ''; card.classList.remove('home');
       if (view === 'home') {
@@ -165,5 +166,5 @@ PD.auth = (() => {
     });
   }
   PD.bus.on('recovery', () => newPassword());
-  return { gate, newPassword, open: () => gate(null, { closable: true }) };
+  return { gate, newPassword, open: v => gate(null, { closable: true, view: v === 'signin' ? 'signin' : 'methods' }) };
 })();
