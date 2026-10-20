@@ -157,6 +157,11 @@ PD.lessons = (() => {
   }
   function rhythmLesson(rid) { const r = PD.curriculum.anyRhythm ? PD.curriculum.anyRhythm(rid) : (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).find(x => x.id === rid); return r ? fromRhythm(r) : undefined; }
   /** derived lesson: alternate two chords (chord-transition exercise) */
+  /** derived lesson: a chord progression, each chord held for 2 beats, played twice */
+  function progression(list, bpm, title) {
+    const ev = [], n = list.length; for (let r = 0; r < 2; r++) list.forEach((c, i) => { const t0 = (r * n + i) * 2; ev.push(...chord(t0, c.name, c.frets, c.fingers, 'down', 2, i === 0)); });
+    return normalize({ id: 'prog-' + list.map(c => c.name).join('-'), type: 'exercise', derived: 'chords', title: title || { ka: list.map(c => c.name).join(' → '), en: list.map(c => c.name).join(' → ') }, bpm: bpm || 60, events: ev, sections: [sec('1', '1', 0, n * 2), sec('2', '2', n * 2, n * 4)] });
+  }
   function transition(a, b, bpm) {
     const ev = []; for (let i = 0; i < 8; i++) { const c = i % 2 ? b : a; ev.push(...chord(i * 2, c.name, c.frets, c.fingers, 'down', 2, i % 4 === 0)); }
     return normalize({ id: 'tr-' + a.id + '-' + b.id, type: 'exercise', derived: 'chords', title: { ka: a.name + ' → ' + b.name, en: a.name + ' → ' + b.name }, bpm: bpm || 60, events: ev, sections: [sec(a.name + ' ↔ ' + b.name, a.name + ' ↔ ' + b.name, 0, 8), sec('×2', '×2', 8, 16)] });
@@ -164,7 +169,7 @@ PD.lessons = (() => {
   return {
     /** rebuild the list (built-in + the learner's own) after the stored lessons changed, e.g. after a sync */
     reload: reloadCurriculum,
-    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, steps, rhythmOf, songChanges, songRhythm, songPart, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
+    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, progression, steps, rhythmOf, songChanges, songRhythm, songPart, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
     get: lid => all.find(l => l.id === lid) || (/^rhythm-/.test(lid || '') ? rhythmLesson(lid.slice(7)) : undefined),
     /** lessons generated from the teacher rhythms (not stored; rebuilt from curriculum data) */
     rhythmLessons: () => (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).concat(PD.curriculum.commonRhythms ? PD.curriculum.commonRhythms() : []).map(r => fromRhythm(r)),

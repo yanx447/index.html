@@ -150,7 +150,7 @@ PD.curriculum = (() => {
   function library() {
     const lib = PD.theory.chordLibrary().map(c => Object.assign({}, c));
     Object.values(PD.SONGS || {}).forEach(S => Object.entries(S.chords || {}).forEach(([n, sh]) => {
-      const c = lib.find(x => x.name === n); if (!c) return;
+      const c = lib.find(x => x.name === n || x.alias === n); if (!c || c.none) return;
       const same = v => v.frets.join() === sh.frets.join(), v0 = { frets: sh.frets, fingers: sh.fingers, barre: new Set(sh.fingers.filter(Boolean)).size === 1 && sh.fingers.filter(Boolean).length > 1, pos: sh.frets.some(f => f > 0) ? Math.min(...sh.frets.filter(f => f > 0)) : 0 };
       c.voicings = [v0].concat(c.voicings.filter(v => !same(v))).slice(0, 3);
       Object.assign(c, { frets: v0.frets, fingers: v0.fingers, barre: v0.barre, src: sh.src === 'teacher' ? 'teacher' : 'song' });

@@ -60,6 +60,10 @@ PD.theory = (() => {
     /* ---------- chords: every root × every chord type, computed from the tuning ----------
        need = tones a 3-string voicing must contain (the others may be left out, e.g. the 5th of a 7th chord) */
     ROOTS: ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'],
+    /** names shown for the roots (sharps); ROOTS above keep the spelling used for the chord tones */
+    ROOT_NAMES: ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'],
+    ROOT_NAMES_KA: ['დო', 'დო დიეზი', 'რე', 'რე დიეზი', 'მი', 'ფა', 'ფა დიეზი', 'სოლ', 'სოლ დიეზი', 'ლა', 'ლა დიეზი', 'სი'],
+    CAT: { '': 'major', '6': 'major', 'add9': 'major', 'm': 'minor', 'm6': 'minor', 'm(add9)': 'minor', '7': 'seventh', 'maj7': 'seventh', 'm7': 'seventh', 'm(maj7)': 'seventh', 'sus2': 'sus', 'sus4': 'sus', '7sus4': 'sus', '9': 'ext', 'maj9': 'ext', 'm9': 'ext', '11': 'ext', '13': 'ext', 'dim': 'dim', 'dim7': 'dim', 'm7♭5': 'dim', 'aug': 'aug', '7♯5': 'aug', '7♭5': 'other', '5': 'other' },
     ROOTS_KA: ['დო', 'დო დიეზი', 'რე', 'მი ბემოლი', 'მი', 'ფა', 'ფა დიეზი', 'სოლ', 'ლა ბემოლი', 'ლა', 'სი ბემოლი', 'სი'],
     CHORD_TYPES: [
       { k: '', iv: [0, 4, 7], need: [0, 4, 7], ka: 'მაჟორი', en: 'major', d: ['მთავარი ბგერა + დიდი ტერცია (4 ნახევარტონი) + წმინდა კვინტა (7). ნათელი, „მხიარული“ ჟღერადობა.', 'Root + major third (4 semitones) + perfect fifth (7). Bright sound.'] },
@@ -76,7 +80,17 @@ PD.theory = (() => {
       { k: '6', iv: [0, 4, 7, 9], need: [0, 4, 9], ka: 'მაჟორი სექსტით (6)', en: 'major 6th', d: ['მაჟორს ემატება დიდი სექსტა (9).', 'Major plus a major sixth (9).'] },
       { k: 'm6', iv: [0, 3, 7, 9], need: [0, 3, 9], ka: 'მინორი სექსტით (m6)', en: 'minor 6th', d: ['მინორს ემატება დიდი სექსტა (9).', 'Minor plus a major sixth (9).'] },
       { k: 'add9', iv: [0, 2, 4, 7], need: [0, 2, 4], ka: 'მაჟორი ნონით (add9)', en: 'add 9', d: ['მაჟორს ემატება ნონა (სეკუნდა ოქტავის ზემოთ). სამ სიმზე კვინტა გამოტოვებულია.', 'Major plus the ninth; the fifth is left out on three strings.'] },
-      { k: '5', iv: [0, 7], need: [0, 7], ka: 'კვინტა (5)', en: 'power chord (5)', d: ['მხოლოდ მთავარი ბგერა და კვინტა — არც მაჟორი, არც მინორი.', 'Only root and fifth — neither major nor minor.'] }
+      { k: '5', iv: [0, 7], need: [0, 7], ka: 'კვინტა (5)', en: 'power chord (5)', d: ['მხოლოდ მთავარი ბგერა და კვინტა — არც მაჟორი, არც მინორი.', 'Only root and fifth — neither major nor minor.'] },
+      { k: 'm(maj7)', iv: [0, 3, 7, 11], need: [0, 3, 11], ka: 'მინორი დიდი სეპტიმით', en: 'minor-major 7th', d: ['მინორს ემატება დიდი სეპტიმა (11). სამ სიმზე კვინტა გამოტოვებულია.', 'Minor plus a major seventh (11). On three strings the fifth is left out.'] },
+      { k: '7sus4', iv: [0, 5, 7, 10], need: [0, 5, 10], ka: 'სეპტაკორდი კვარტით (7sus4)', en: '7sus4', d: ['sus4-ს ემატება პატარა სეპტიმა (10). სამ სიმზე კვინტა გამოტოვებულია.', 'sus4 plus a minor seventh (10). On three strings the fifth is left out.'] },
+      { k: 'm(add9)', iv: [0, 2, 3, 7], need: [0, 2, 3], ka: 'მინორი ნონით', en: 'minor add 9', d: ['მინორს ემატება ნონა. სამ სიმზე კვინტა გამოტოვებულია.', 'Minor plus a ninth. On three strings the fifth is left out.'] },
+      { k: '9', iv: [0, 2, 4, 7, 10], need: [4, 10, 2], alt: [[0, 4, 10]], ka: 'ნონაკორდი (9)', en: 'dominant 9th', d: ['დომინანტსეპტაკორდს ემატება ნონა. სამ სიმზე: ტერცია · სეპტიმა · ნონა (ძირითადი ბგერა ბანმა ან სხვამ შეიძლება დაუკრას).', 'A dominant 7th plus a ninth. On three strings: 3rd · 7th · 9th (the root can come from the bass or another player).'] },
+      { k: 'maj9', iv: [0, 2, 4, 7, 11], need: [4, 11, 2], alt: [[0, 4, 11]], ka: 'დიდი მაჟორული ნონაკორდი', en: 'major 9th', d: ['maj7-ს ემატება ნონა. სამ სიმზე: ტერცია · დიდი სეპტიმა · ნონა.', 'maj7 plus a ninth. On three strings: 3rd · major 7th · 9th.'] },
+      { k: 'm9', iv: [0, 2, 3, 7, 10], need: [3, 10, 2], alt: [[0, 3, 10]], ka: 'მინორული ნონაკორდი', en: 'minor 9th', d: ['m7-ს ემატება ნონა. სამ სიმზე: პატარა ტერცია · სეპტიმა · ნონა.', 'm7 plus a ninth. On three strings: minor 3rd · 7th · 9th.'] },
+      { k: '11', iv: [0, 2, 5, 7, 10], need: [0, 5, 10], alt: [[10, 2, 5]], ka: 'უნდეციმაკორდი (11)', en: '11th', d: ['სეპტაკორდს ემატება უნდეციმა (11 = კვარტა ოქტავით მაღლა); ტერცია ჩვეულებრივ გამოტოვებულია. სამ სიმზე: ძირითადი · სეპტიმა · უნდეციმა.', 'A 7th chord plus the 11th; the 3rd is usually left out. On three strings: root · 7th · 11th.'] },
+      { k: '13', iv: [0, 4, 7, 9, 10], need: [4, 10, 9], alt: [[0, 10, 9]], ka: 'ტერცდეციმაკორდი (13)', en: '13th', d: ['დომინანტსეპტაკორდს ემატება ტერცდეციმა (13 = სექსტა ოქტავით მაღლა). სამ სიმზე: ტერცია · სეპტიმა · ტერცდეციმა.', 'A dominant 7th plus the 13th. On three strings: 3rd · 7th · 13th.'] },
+      { k: '7♭5', iv: [0, 4, 6, 10], need: [4, 6, 10], alt: [[0, 6, 10]], ka: 'სეპტაკორდი შემცირებული კვინტით', en: '7♭5', d: ['დომინანტსეპტაკორდი შემცირებული კვინტით (6). სამ სიმზე ერთი ბგერა გამოტოვებულია.', 'A dominant 7th with a flat fifth (6). On three strings one tone is left out.'] },
+      { k: '7♯5', iv: [0, 4, 8, 10], need: [4, 8, 10], alt: [[0, 8, 10]], ka: 'სეპტაკორდი გადიდებული კვინტით', en: '7♯5', d: ['დომინანტსეპტაკორდი გადიდებული კვინტით (8). სამ სიმზე ერთი ბგერა გამოტოვებულია.', 'A dominant 7th with a sharp fifth (8). On three strings one tone is left out.'] }
     ],
     /** finger numbers for a shape: a barre (1) on the lowest fret when it covers neighbouring strings, then the next fingers */
     fingersFor(fr) {
@@ -92,6 +106,7 @@ PD.theory = (() => {
     /** all playable shapes of one chord on this tuning, best first */
     voicings(root, type) {
       const T = typeof type === 'string' ? api.CHORD_TYPES.find(x => x.k === type) : type, n = I.stringCount, F = I.fretCount, out = [];
+      const mk = cur.id + ':' + cur.strings.join(',') + ':' + F + ':' + root + ':' + T.k; api._vm = api._vm || {}; if (api._vm[mk]) return api._vm[mk];
       const tones = new Set(T.iv.map(i => (root + i) % 12)), needs = [T.need].concat(T.alt || []).map(nd => nd.map(i => (root + i) % 12));
       const fr = new Array(n).fill(0);
       const rec = s => {
@@ -115,7 +130,7 @@ PD.theory = (() => {
         for (let f = 0; f <= F; f++) { fr[s] = f; rec(s + 1); }
       };
       rec(0);
-      return out.sort((a, b) => a.score - b.score);
+      return (api._vm[mk] = out.sort((a, b) => a.score - b.score));
     },
     /** the library: one entry per chord, with up to three positions (low · middle · high) */
     chordLibrary() {
@@ -123,11 +138,13 @@ PD.theory = (() => {
       if (api._lib && api._libKey === key) return api._lib;
       const lib = [];
       api.CHORD_TYPES.forEach(T => api.ROOTS.forEach((rn, root) => {
-        const all = api.voicings(root, T); if (!all.length) return;
+        const all = api.voicings(root, T);
+        const name = api.ROOT_NAMES[root] + T.k, alias = api.ROOTS[root] !== api.ROOT_NAMES[root] ? api.ROOTS[root] + T.k : null;
+        // honest: when no playable three-string form exists the chord is listed without a diagram
+        if (!all.length) { lib.push({ id: name, name, alias, root, q: T.k, cat: api.CAT[T.k] || 'other', none: true, kind: T.k, ka: api.ROOT_NAMES_KA[root] + ' · ' + T.ka, typeKa: T.ka, typeEn: T.en, frets: [0, 0, 0], fingers: [0, 0, 0], voicings: [], src: 'computed' }); return; }
         const pick = []; [[0, 4], [5, 9], [10, 99]].forEach(([a, b]) => { const v = all.find(x => x.pos >= a && x.pos <= b && !pick.includes(x)); if (v) pick.push(v); });
         if (!pick.length) pick.push(all[0]);
-        const name = rn + T.k;
-        lib.push({ id: name, name, root, q: T.k, kind: T.k === '' ? 'maj' : T.k === 'm' ? 'min' : T.k, ka: api.ROOTS_KA[root] + ' · ' + T.ka, typeKa: T.ka, typeEn: T.en,
+        lib.push({ id: name, name, alias, root, q: T.k, cat: api.CAT[T.k] || 'other', kind: T.k === '' ? 'maj' : T.k === 'm' ? 'min' : T.k, ka: api.ROOT_NAMES_KA[root] + ' · ' + T.ka, typeKa: T.ka, typeEn: T.en,
           frets: pick[0].frets, fingers: pick[0].fingers, barre: pick[0].barre, voicings: pick.map(v => ({ frets: v.frets, fingers: v.fingers, fsrc: v.fsrc, barre: v.barre, pos: v.pos })), fsrc: pick[0].fsrc, src: 'computed' });
       }));
       api._lib = lib; api._libKey = key; return lib;
