@@ -142,6 +142,7 @@ PD.cloud = (() => {
     if (!S.user) { S.user = await http('/auth/v1/user'); PD.store.set(KEY, S); }
     const rows = await db.select('profiles', { id: 'eq.' + uid(), select: '*' });
     profile = rows && rows[0] || null;
+    if (profile) { try { profile.owner = !!(await db.rpc('is_owner', {})); } catch (_) { profile.owner = false; } }   // the server decides who the owner is
     if (profile && profile.display_name && profile.display_name !== PD.account.profile.name) PD.account.setProfile({ name: profile.display_name });
     PD.store.set('cloud.profile', profile); emit();
     return profile;
@@ -276,6 +277,8 @@ PD.cloud = (() => {
     get uid() { return uid(); },
     get profile() { return profile; },
     get isAdmin() { return !!(profile && profile.role === 'admin'); },
+    /** the app's owner: the only account that manages premium (checked again by the server on every change) */
+    get isOwner() { return !!(profile && profile.owner); },
     get native() { return native(); },
     /** true once after arriving from a password-reset link */
     takeRecovery() { const r = recovery; recovery = false; return r; },

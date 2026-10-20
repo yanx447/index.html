@@ -104,6 +104,7 @@ PD.i18n.add({
 PD.i18n.add({
   'hx.hi': ['გამარჯობა', 'Hello'], 'hd.practice': ['სავარჯიშოები', 'Exercises'], 'hd.practiceD': ['ტრენაჟორები და მეტრონომი', 'Trainers and metronome'], 'hd.songsN': ['{n} სიმღერა', '{n} songs'], 'hd.chordsN': ['{n} აკორდი', '{n} chords'], 'hd.theory': ['თეორია', 'Theory'], 'hd.theoryD': ['ნოტები და გამები', 'Notes and scales'], 'hd.popular': ['სიმღერები', 'Songs'],
   'set.uiSounds': ['ღილაკების ხმა', 'Button sounds'], 'set.uiSoundsD': ['მსუბუქი ხმა დაჭერისას; სიმძლავრე — „უკუკავშირის ხმა“', 'A soft sound on tap; level = “feedback volume”'],
+  'pf.owner': ['მფლობელი · პრემიუმი სამუდამოდ', 'Owner · lifetime Premium'],
   'pf.student': ['მოსწავლე', 'Student'], 'pf.level': ['ლეველი', 'Level'], 'pf.lessons': ['ნასწავლი', 'Learned'], 'pf.progress': ['პროგრესი', 'Progress'], 'set.data': ['მონაცემები', 'Your data'],
   'lnx.songsD': ['სიმღერები, მელოდიები და სოლოები — დონეების მიხედვით', 'Songs, melodies and solos — by level'],
   'hxq.cam': ['კამერით', 'Camera'], 'hxq.camD': ['დაუკარი აპთან ერთად', 'Play along with the app'], 'hxq.ai': ['AI სტუდია', 'AI studio'], 'hxq.aiD': ['შენი სიმღერის აკორდები', 'Chords of your song'],
@@ -138,7 +139,7 @@ PD.app = (() => {
     PD.i18n.apply(document);
     PD.bus.on('lang', () => render());
     let cloudT = 0, cloudSig = '';
-    PD.bus.on('cloud', e => { const sig = (e && e.session && e.session.user ? e.session.user.id : '-') + ':' + JSON.stringify(e && e.profile ? [e.profile.role, e.profile.vip_until, e.profile.display_name] : 0); if (sig === cloudSig) return; cloudSig = sig; clearTimeout(cloudT); cloudT = setTimeout(() => { if (['profile', 'settings', 'community', 'home', 'learn', 'songs'].includes(route) && !PD.practice.active && !document.querySelector('.sheet-back:not(.out)')) render(true); }, 60); });
+    PD.bus.on('cloud', e => { const sig = (e && e.session && e.session.user ? e.session.user.id : '-') + ':' + JSON.stringify(e && e.profile ? [e.profile.role, e.profile.vip_until, e.profile.display_name, e.profile.owner, e.profile.premium_banned] : 0); if (sig === cloudSig) return; cloudSig = sig; clearTimeout(cloudT); cloudT = setTimeout(() => { if (['profile', 'settings', 'community', 'home', 'learn', 'songs'].includes(route) && !PD.practice.active && !document.querySelector('.sheet-back:not(.out)')) render(true); }, 60); });
     PD.bus.on('lessons', () => { if (['home', 'lesson', 'learn', 'path', 'songs'].includes(route)) render(); });
     window.addEventListener('popstate', e => {
       if (!e.state && /access_token=|error_description=/.test(location.hash)) return;   // a sign-in link opened in this tab (handled by the account code)
@@ -696,7 +697,7 @@ PD.app = (() => {
     const prof = PD.account.profile, sk = streaks(), C = PD.cloud, PM = PD.premium, lp = PD.levels.progress;
     const photo = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async e => { const f = e.target.files[0]; if (!f) return; const url = await shrink(f); PD.account.setProfile({ avatar: url }); render(); } });
     const name = h('input', { class: 'pf-name', value: prof.name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { const v = e.target.value.trim(); PD.account.setProfile({ name: v }); if (v && C.session) C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }).then(() => C.loadProfile()).catch(() => {}); } });
-    const role = C.isAdmin ? t('ad.admin') : PM.active ? t('pm.title') : t('pf.student');
+    const role = C.isOwner ? t('pf.owner') : C.isAdmin ? t('ad.admin') : PM.active ? t('pm.title') : t('pf.student');
     w.append(h('h1', { class: 'sr', 'data-t': 'nav.profile' }));
     w.append(h('div', { class: 'pf2-head' }, [h('button', { class: 'pf2-av', 'aria-label': t('pf.photo'), onclick: () => photo.click(), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : ic.user }), photo,
       h('div', { class: 'grow' }, [name, h('small', { text: role })])]));
@@ -715,7 +716,7 @@ PD.app = (() => {
       item(I('<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>'), PM.vip ? 'pm.vip' : 'pm.title', PM.active ? PM.status() : t('pm.lead'), () => PM.paywall()),
       item(I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), 'more.settings', null, () => go('settings')),
       item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', null, () => go('community')),
-      C.isAdmin ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'ad.title', null, () => PM.admin()) : null,
+      C.isOwner ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'pa.title', null, () => go('pmadmin')) : null,
       C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => PD.ui.confirm(t('au.signout') + '?', async () => { await C.auth.signOut(); PD.store.set('auth.skip', false); render(); }))
         : item(I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'), 'pf.signin', t('au.guestD'), () => PD.auth.open(), 'accent')].filter(Boolean)));
     const favs = LS.progress.favorites().map(id => LS.get(id)).filter(Boolean);
@@ -787,7 +788,7 @@ PD.app = (() => {
     const toggle = (key, def, on) => { const c = h('input', { type: 'checkbox', 'aria-label': t(key) }); c.checked = PD.store.get(key, def); c.onchange = () => { PD.store.set(key, c.checked); on && on(c.checked); }; return c; };
     const seg = (opts, cur, on) => { const s = h('div', { class: 'seg' }); opts.forEach(([v, k]) => s.appendChild(h('button', { 'aria-pressed': String(cur === v), 'data-t': k, 'data-v': v, onclick: () => { s.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v)))); on(v); } }))); return s; };
     const range = (v, min, max, step, on, fmt) => { const out = h('span', { class: 'val', text: fmt ? fmt(v) : v }); const r = h('input', { type: 'range', min, max, step, value: v, oninput: e => { out.textContent = fmt ? fmt(+e.target.value) : e.target.value; on(+e.target.value); } }); return h('span', { class: 'set-ctl' }, [r, out]); };
-    if (PD.cloud.isAdmin) w.append(sect('pa.title', [h('button', { class: 'li pa-entry', onclick: () => go('pmadmin') }, [h('span', { class: 'pa-entry-ic', text: '♾️' }), h('div', { class: 'grow' }, [h('span', { 'data-t': 'pa.title' }), h('small', { 'data-t': 'pa.row' })]), h('span', { html: ic.chevron, class: 'chev' })])]));
+    if (PD.cloud.isOwner) w.append(sect('pa.title', [h('button', { class: 'li pa-entry', onclick: () => go('pmadmin') }, [h('span', { class: 'pa-entry-ic', text: '♾️' }), h('div', { class: 'grow' }, [h('span', { 'data-t': 'pa.title' }), h('small', { 'data-t': 'pa.row' })]), h('span', { html: ic.chevron, class: 'chev' })])]));
     { const C = PD.cloud; const goalSeg = h('div', { class: 'seg', role: 'group', 'aria-label': t('pf.goal') }, [5, 10, 15, 20, 30].map(m => h('button', { 'aria-pressed': String(PD.store.get('goalMin', 15) === m), text: t('dl.min', { n: m }), onclick: e => { PD.store.set('goalMin', m); goalSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
       w.append(sect('pf.goal', [h('div', { class: 'li' }, [goalSeg])]));
       w.append(sect('set.data', [

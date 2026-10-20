@@ -275,3 +275,14 @@ begin
 end $$;
 revoke all on function public.admin_premium(uuid, text) from public, anon;
 grant execute on function public.admin_premium(uuid, text) to authenticated;
+
+-- ---------- owner-only control (the app owner manages premium, VIP and roles; other admins cannot) ----------
+-- Replace OWNER_EMAIL with the owner's address before running.
+create or replace function public.is_owner() returns boolean
+language sql stable security definer set search_path = public, auth as $$
+  select exists (select 1 from auth.users u where u.id = auth.uid() and lower(u.email) = lower('OWNER_EMAIL') and u.email_confirmed_at is not null);
+$$;
+revoke all on function public.is_owner() from public, anon;
+grant execute on function public.is_owner() to authenticated;
+-- is_premium(): the owner always has premium; admin_list_users / admin_set_vip / admin_set_role / admin_premium
+-- check public.is_owner() instead of public.is_admin() (see the live project for the full bodies).

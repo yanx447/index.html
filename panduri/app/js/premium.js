@@ -27,7 +27,7 @@ PD.i18n.add({
   'pa.sForever': ['♾️ სამუდამო პრემიუმი', '♾️ Lifetime Premium'], 'pa.sUntil': ['პრემიუმი · {d}-მდე', 'Premium · until {d}'], 'pa.sNone': ['პრემიუმის გარეშე', 'No Premium'], 'pa.sBanned': ['🚫 სამუდამოდ დაბლოკილი', '🚫 Blocked for good'], 'pa.sAdmin': ['ადმინი — ყველაფერი ჩართულია', 'Admin — everything unlocked'],
   'pa.cancel': ['გაუქმება', 'Remove'], 'pa.ban': ['სამუდამოდ გაუქმება', 'Remove for good'], 'pa.restore': ['ბლოკის მოხსნა + სამუდამო', 'Unblock + lifetime'], 'pa.month': ['1 თვე', '1 month'], 'pa.year': ['1 წელი', '1 year'], 'pa.forever': ['მუდმივი', 'Permanent'],
   'pa.cCancel': ['{n}: პრემიუმი გაუქმდეს? მომავალში ისევ შეიძლება მიეცეს.', '{n}: remove Premium? It can be given again later.'], 'pa.cBan': ['{n}: პრემიუმი სამუდამოდ გაუქმდეს? ყიდვითაც ვეღარ ჩაირთვება, სანამ ✅-ით არ მოხსნი.', '{n}: remove Premium for good? Even a purchase will not turn it on until you lift it with ✅.'],
-  'pa.done': ['შენახულია: {n}', 'Saved: {n}'], 'pa.you': ['შენ', 'You'], 'pa.need': ['ამ გვერდისთვის ადმინის ანგარიშით უნდა შეხვიდე.', 'Sign in with an admin account to use this page.'], 'pa.signin': ['შესვლა', 'Sign in'],
+  'pa.done': ['შენახულია: {n}', 'Saved: {n}'], 'pa.you': ['შენ', 'You'], 'pa.need': ['ეს გვერდი მხოლოდ აპის მფლობელისთვისაა.', 'This page is for the app owner only.'], 'pa.signin': ['შესვლა', 'Sign in'],
   'pa.legend': ['❌ ერთჯერადი გაუქმება · 🚫 სამუდამოდ გაუქმება · ✅ ბლოკის მოხსნა და სამუდამო პრემიუმი · 1️⃣ ერთი თვე · 1️⃣2️⃣ ერთი წელი · ♾️ მუდმივი', '❌ remove once · 🚫 remove for good · ✅ unblock and lifetime Premium · 1️⃣ one month · 1️⃣2️⃣ one year · ♾️ permanent'],
   'pa.count': ['{n} ადამიანი', '{n} people'], 'pa.noOne': ['ამ სიაში არავინაა', 'Nobody in this list'],
   'ad.title': ['ადმინისტრირება', 'Administration'], 'ad.lead': ['მომხმარებლები, VIP და როლები. ცვლილებებს სერვერი ამოწმებს — მხოლოდ ადმინს შეუძლია.', 'Users, VIP and roles. The server checks every change — only admins can make them.'],
@@ -111,7 +111,7 @@ PD.premium = (() => {
   }
   const until = () => { const p = C.profile; return p && p.vip_until ? new Date(p.vip_until) : null; };
   const api = {
-    get active() { const u = until(), p = C.profile; if (C.isAdmin) return true; if (p && p.premium_banned) return false; return !!(u && u > new Date()); },
+    get active() { const u = until(), p = C.profile; if (C.isOwner || C.isAdmin) return true; if (p && p.premium_banned) return false; return !!(u && u > new Date()); },
     get banned() { const p = C.profile; return !!(p && p.premium_banned && !C.isAdmin); },
     get vip() { const p = C.profile; return !!(api.active && p && p.plan === 'vip'); },
     get until() { return until(); },
@@ -161,7 +161,7 @@ PD.premium = (() => {
   function managePage(w) {
     const back = () => PD.app.back('settings');
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'pa.title', style: 'margin:0' })]), h('p', { class: 'muted', 'data-t': 'pa.lead' }));
-    if (!C.isAdmin) { w.append(h('p', { class: 'notice', 'data-t': 'pa.need' }), h('button', { class: 'btn primary', 'data-t': 'pa.signin', onclick: () => PD.auth && PD.auth.open ? PD.auth.open() : PD.app.go('profile') })); return; }
+    if (!C.isOwner) { w.append(h('p', { class: 'notice', 'data-t': 'pa.need' }), h('button', { class: 'btn primary', 'data-t': 'pa.signin', onclick: () => PD.auth && PD.auth.open ? PD.auth.open() : PD.app.go('profile') })); return; }
     let rows = [], filter = 'all', term = '';
     const now = () => new Date();
     const stat = u => { if (u.premium_banned) return 'banned'; const v = u.vip_until ? new Date(u.vip_until) : null; return v && v > now() ? 'with' : 'without'; };
