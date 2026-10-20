@@ -5,6 +5,7 @@
    ===================================================================== */
 PD.i18n.add({
   'ce.lib': ['აკორდების ბიბლიოთეკა', 'Chord library'],
+  'ce.triFing': ['თითები მასწავლებლის Bm-ის მიხედვით: T ცერა — ბანი, 1 საჩვენებელი — მე-2 ხმა, 2 შუა — 1-ლი ხმა. იგივე სამკუთხა ფორმა, სხვა ლადზე.', 'Fingers as the teacher\'s Bm: T thumb — bass, 1 index — 2nd voice, 2 middle — 1st voice. The same triangle shape on another fret.'],
   'ce.sh.tri': ['სამკუთხა აკორდები', 'Triangle chords'], 'ce.sh.triD': ['განაპირა სიმები ერთ ლადზე, შუა — ერთი ლადით გვერდზე. მაგ. Bm = 2-1-2', 'Outer strings on one fret, the middle one fret beside. E.g. Bm = 2-1-2'],
   'ce.sh.barre': ['გადაკეტილი აკორდები', 'Barre chords'], 'ce.sh.barreD': ['ერთი თითი (1) ერთ ლადზე რამდენიმე სიმს კეტავს. მაგ. B = 2-2-2', 'One finger (1) closes several strings on one fret. E.g. B = 2-2-2'],
   'ce.sh.open': ['ღია სიმებით', 'With open strings'], 'ce.sh.openD': ['ერთი ან მეტი სიმი ღიაა (0)', 'One or more strings are open (0)'],
@@ -272,6 +273,7 @@ PD.tools = (() => {
           ...[1, 2, 3].map(sn => h('button', { class: 'btn small', style: 'color:' + SCOL[sn], text: t('ce.string', { s: TT.stringName(sn) }), onclick: () => { PD.audio.ensure(); PD.audio.note(sn, v.frets[sn - 1]); view.pluck(sn, v.frets[sn - 1]); } }))]),
         h('div', { class: 'row' }, [h('button', { class: 'btn', text: t('ce.steps'), onclick: () => stepByStep(v) })]),
         h('div', { class: 'row' }, [other, h('button', { class: 'btn small', text: t('ce.showCh'), onclick: () => { const b = all.find(c => c.id === other.value); if (b) showChange(v, (b.voicings && b.voicings[0]) || b, cur.name, b.name); } }), h('button', { class: 'btn', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })]),
+        v.fsrc === 'teacher-bm' ? h('p', { class: 'notice', text: t('ce.triFing') }) : null,
         h('p', { class: 'notice', text: t(src) }));
       nameBox.innerHTML = ''; nameBox.append(detail.firstChild);
       if (PD.motion && nameBox.dataset.shown) PD.motion.swap(nameBox.querySelector('.ce-name'), swapDir); nameBox.dataset.shown = '1'; swapDir = 0;

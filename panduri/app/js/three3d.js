@@ -21,7 +21,7 @@ PD.i18n.add({
   'pi.bridge': ['ღია ფერის ხიდი მუქ საფუძველზე: სიმების რხევას დეკაზე გადასცემს.', 'A light bridge on a dark base: it passes string vibration to the soundboard.'],
   'pi.hole': ['დიდი მრგვალი ხვრელი მუქი რგოლით და 26 პატარა ხვრელის წრე.', 'A large round hole with a dark ring, surrounded by a circle of 26 small holes.'],
   'pi.head': ['ღია თავი, ზემოთ უკან მოხრილი. სამი სიმი სამ ღერძზეა დახვეული.', 'An open, slotted headstock hooked backward at the top. Three strings wind on three posts.'],
-  'pi.tuners': ['სამი კბილანიანი მექანიკა, 2 + 1: C♯ და A ერთ მხარეს, E — მეორეზე.', 'Three geared tuners, 2 + 1: C♯ and A on one side, E on the other.'],
+  'pi.tuners': ['სამი კბილანიანი მექანიკა, 2 + 1: C♯ და E ერთ მხარეს, A — მეორეზე, შუაში.', 'Three geared tuners, 2 + 1: C♯ and E on one side, A on the other, in the middle.'],
   'v.front': ['წინიდან', 'Front'], 'v.player': ['მოთამაშის', 'Player'], 'v.fretboard': ['ტარი', 'Fretboard'], 'v.right': ['მარჯვენა ხელი', 'Right hand'], 'v.left': ['მარცხენა ხელი', 'Left hand'],
   'v.head': ['თავი', 'Headstock'], 'v.sound': ['ხიდი · ხვრელი', 'Bridge · hole'], 'v.side': ['გვერდიდან', 'Side'], 'v.back': ['უკნიდან', 'Back'], 'v.teacher': ['მასწავლებელი', 'Teacher'], 'v.full': ['მთლიანი', 'Full instrument'], 'v.free': ['თავისუფალი', 'Free orbit'],
   'r3.nogl': ['ეს მოწყობილობა 3D-ს ვერ აჩვენებს (WebGL მიუწვდომელია). 2D ხედი მუშაობს.', 'This device cannot show 3D (WebGL unavailable). The 2D view works.'],
@@ -218,9 +218,10 @@ PD._R3D = (() => {
   box(-11.8, (SLOT0 + SLOT1) / 2, -6.5, 10.6, SLOT1 - SLOT0, 17, MAT.oak); box(11.8, (SLOT0 + SLOT1) / 2, -6.5, 10.6, SLOT1 - SLOT0, 17, MAT.oak);
   box(0, SLOT0 / 2, -6.5, 33, SLOT0, 17, MAT.oak);
   extrude([[2, SLOT1 - 1], [3, 126], [1, 133], [-8, HT], [-30, HT - 3], [-38, HT - 9], [-37, 122], [-29, 114], [-15, SLOT1 - 1]], -17, 17, (sx, sy, e) => [e, sy, sx], MAT.oak);
-  // three geared tuners: C♯ upper-left, A lower-left, E alone on the right (as on the real headstock)
+  // three geared tuners, as in the Sami Simi tuner: rollers E (nearest the nut) · A (middle) · C♯ (far end);
+  // C♯ and E tuners on one side, A alone on the other side
   curPart = 'tuners';
-  const POST = { 2: { y: 94, side: -1 }, 1: { y: 46, side: -1 }, 3: { y: 70, side: 1 } };
+  const POST = { 3: { y: 46, side: -1 }, 1: { y: 70, side: 1 }, 2: { y: 94, side: -1 } };
   Object.keys(POST).forEach(k => {
     const { y, side } = POST[k];
     cyl([0, y, -6], 'x', 2.6, 13.6, 16, MAT.chrome); box(side * 18.6, y + 3, -6, 2.2, 30, 12, MAT.chrome);
@@ -541,7 +542,9 @@ void main(){
     get quality() { return quality; },
     focusPart(id) { const p = PARTS.find(x => x.id === id); if (!p) return; base = VIEWS.free; view = 'free'; focus(p.focus.t, p.focus.r, p.focus.theta, p.focus.phi); PD.bus.emit('r3d.view', 'free'); },
     invalidate() { kick(); },
-    get geometry() { return { L, BT, B, BOT, BR, SH_Y, HR }; },
+    get geometry() { return { L, BT, B, BOT, BR, SH_Y, HR, TONGUE, NF }; },
+    /** raw meshes + textures (used to render the hand pictures offline with the same instrument) */
+    get export() { return { meshes, TEX, POST, strings, fbHalf, SX_NUT, SX_BR, SZ_NUT, SZ_BR, SRAD, HOLES }; },
     /** move the single canvas into a host element */
     mount(host) { if (!canvas) { const c = document.createElement('canvas'); c.className = 'gl3d'; c.setAttribute('aria-label', 'panduri 3D'); canvas = c; host.appendChild(c); if (!init(c)) return false; } else if (canvas.parentNode !== host) host.appendChild(canvas); kick(); return !failed; },
     fy, sxAt

@@ -92,10 +92,13 @@ PD.fig = (() => {
     s += path('M' + P([PN.nut, -1.2]) + 'h.5v2.4h-.5Z', '#2A1A12');
     // head: slotted, hooked back at the end, tuners 2 + 1
     const hx = PN.nut + .5;
-    s += path('M' + P([hx, -1.3]) + 'L' + P([90, -1.45]) + 'Q' + P([92.3, -1.5]) + ' ' + P([92.1, 0]) + 'Q' + P([92.3, 1.5]) + ' ' + P([90, 1.45]) + 'L' + P([hx, 1.3]) + 'Z', '#B98A55', ' stroke="#7A5230" stroke-width=".18"');
-    s += path('M' + P([82.2, -.55]) + 'L' + P([89.4, -.6]) + 'L' + P([89.4, .6]) + 'L' + P([82.2, .55]) + 'Z', '#1A0F09');
-    [83.8, 86.3, 88.6].forEach(x => { s += line([x, -.6], [x, .6], K.metal, .28); });
-    [[84.1, 1], [86.6, 1], [86.0, -1]].forEach(([x, side]) => { s += line([x, side * 1.4], [x, side * 2.5], K.metal, .34) + '<ellipse cx="' + f(x) + '" cy="' + f(side * 2.95) + '" rx=".75" ry=".55" fill="#D9D3C8" stroke="#8B8580" stroke-width=".1"/>'; });
+    s += path('M' + P([hx, -1.3]) + 'L' + P([90, -1.45]) + 'Q' + P([92.3, -1.5]) + ' ' + P([92.1, 0]) + 'Q' + P([92.3, 1.5]) + ' ' + P([90, 1.45]) + 'L' + P([hx, 1.3]) + 'Z', '#D9C29A', ' stroke="#9C7C52" stroke-width=".14"') + path('M' + P([89.6, -.35]) + 'L' + P([92.2, -.35]) + 'L' + P([92.2, .35]) + 'L' + P([89.6, .35]) + 'Z', '#6B2E1E');
+    s += path('M' + P([82.6, -.6]) + 'L' + P([89.4, -.62]) + 'L' + P([89.4, .62]) + 'L' + P([82.6, .6]) + 'Z', '#1A0F09');
+    // rollers in the slot (as in the Sami Simi tuner): E nearest the nut · A in the middle · C♯ at the far end
+    const ROL = { E: 83.8, A: 86.3, C: 88.6 };
+    Object.values(ROL).forEach(x => { s += line([x, -.62], [x, .62], '#E9DCC0', .3); });
+    // tuners: C♯ and E on the upper side, A alone on the lower side — gold gear, black button
+    [[ROL.C, -1], [ROL.E, -1], [ROL.A, 1]].forEach(([x, sd]) => { s += line([x, sd * 1.45], [x, sd * 2.2], '#C9A04A', .42) + '<circle cx="' + f(x) + '" cy="' + f(sd * 2.25) + '" r=".42" fill="#D9B45A"/><path d="' + smooth([[x - .85, sd * 2.6], [x + .85, sd * 2.6], [x + .95, sd * 3.6], [x, sd * 4.0], [x - .95, sd * 3.6]], true) + '" fill="#141110" stroke="#3A332C" stroke-width=".08"/>'; });
     // sound hole, its ring and the 26 small holes
     s += '<circle cx="' + PN.hole + '" cy="0" r="' + (PN.holeR + .35) + '" fill="' + K.ring + '"/><circle cx="' + PN.hole + '" cy="0" r="' + PN.holeR + '" fill="url(#' + id + 'ph)"/>';
     for (let i = 0; i < 26; i++) { const a = i / 26 * Math.PI * 2; s += '<circle cx="' + f(PN.hole + Math.cos(a) * PN.ringR) + '" cy="' + f(Math.sin(a) * PN.ringR) + '" r=".42" fill="' + K.hole + '"/>'; }
@@ -106,7 +109,7 @@ PD.fig = (() => {
     sy.forEach(([yn, yb], i) => {
       const w = [.13, .11, .09][i], a = [PN.bridge, yb], b = [PN.nut, yn], m = mix(a, b, .5), amp = wig[i];
       s += amp ? '<path d="M' + P(a) + 'Q' + P([m[0], m[1] + amp]) + ' ' + P(b) + '" stroke="' + K.str + '" stroke-width="' + w + '" fill="none"/>' : line(a, b, K.str, w);
-      s += line(b, [83.8 + i * 2.4 * (i < 2 ? 1 : .95), yn * .5], K.str, w * .8, ' opacity=".8"');
+      s += line(b, [[86.3, 88.6, 83.8][i], [-.15, 0, .15][i]], K.str, w * .8, ' opacity=".8"');
     });
     return s;
   }
@@ -310,8 +313,8 @@ PD.fig = (() => {
 
   /** SIDE: sitting deep and leaning back ✗ → on the front half, straight, feet flat ✓ */
   const FLOOR = 172, SEAT = 126, FRONT = 118;
-  const SIDE_BAD = { hip: [86, 117], sh: [74, 66], head: [79, 49], headTilt: 12, knee: [124, 115], ankle: [140, 156], toe: [152, 162], elbow: [80, 92], wrist: [97, 100], hand: [102, 105], elbow2: [83, 90], hand2: [101, 82] };
-  const SIDE_OK = { hip: [100, 116], sh: [102, 62], head: [106, 45], headTilt: 0, knee: [139, 117], ankle: [139, 161], toe: [154, 166], elbow: [105, 90], wrist: [121, 96], hand: [125, 103], elbow2: [110, 87], hand2: [124, 74] };
+  const SIDE_BAD = { hip: [86, 117], sh: [77, 76], head: [82, 59], headTilt: 12, knee: [124, 115], ankle: [140, 156], toe: [152, 162], elbow: [80, 92], wrist: [97, 100], hand: [102, 105], elbow2: [83, 90], hand2: [101, 82] };
+  const SIDE_OK = { hip: [100, 116], sh: [102, 73], head: [105, 56], headTilt: 0, knee: [139, 117], ankle: [139, 161], toe: [154, 166], elbow: [105, 90], wrist: [121, 96], hand: [125, 103], elbow2: [110, 87], hand2: [124, 74] };
   function sideScene(t, id) {
     const D = 10, k = t % D, m = ramp(k, 2.6, 4.4) * (1 - ramp(k, 9.2, 10)), J = {};
     Object.keys(SIDE_OK).forEach(q => { J[q] = mix(SIDE_BAD[q], SIDE_OK[q], m); });
@@ -359,11 +362,11 @@ PD.fig = (() => {
       if (o.feet) s += '<ellipse cx="' + ax + '" cy="' + (FLOOR + .4) + '" rx="9" ry="2.6" fill="none" stroke="' + K.ok + '" stroke-width=".7" opacity="' + f(o.feet) + '"/>';
     });
     // torso
-    const shY = 52 - br;
+    const shY = 63 - br;
     const torso = smooth([[x - 20, shY + 2], [x - 9, shY - 2.4], [x + 9, shY - 2.4], [x + 20, shY + 2], [x + 20.5, shY + 12], [x + 16.4, 96], [x + 17.5, 120], [x, 123], [x - 17.5, 120], [x - 16.4, 96], [x - 20.5, shY + 12]], true, .16);
-    s += path(cap([x, 38], 3.4, [x, shY + 1], 3.6), K.skin2) + path(torso, K.top) + '<path d="' + torso + '" fill="url(#' + id + 'tf)"/>';
+    s += path(cap([x, 48], 3.4, [x, shY + 1], 3.6), K.skin2) + path(torso, K.top) + '<path d="' + torso + '" fill="url(#' + id + 'tf)"/>';
     s += '<path d="M' + P([x - 5.6, shY - 2]) + 'q5.6 5.2 11.2 0" stroke="' + K.top2 + '" stroke-width="1.4" fill="none"/>';
-    s += headFront([x, 29 - br], o.tilt || 0);
+    s += headFront([x, 40 - br], o.tilt || 0);
     // player's left arm (on your right): from the shoulder down, forearm up to the neck
     const neckAt = o.neckFret != null ? o.neckFret : 3.5, nAng = o.ang != null ? o.ang : PAN_ANG;
     const lhOn = onP(PAN_AT, nAng, [fretX(neckAt), 0]), lAway = o.away || 0;
@@ -372,20 +375,19 @@ PD.fig = (() => {
     s += path(cap([x + 19, shY + 3], 4.6, le, 3.7), K.top);
     s += path(cap(le, 3.5, add(lh, [1.2, 7.8]), 2.7), K.top);
     s += '<g data-p="1">' + placed(id, PAN_AT, nAng, { wiggle: o.wiggle }) + '</g>';
-    // left hand: back of the hand below the neck, fingers arch over onto the fretboard
-    const lw = add(lh, [1.2, 7.4]);
-    s += path(cap(lw, 2.3, add(lh, [.4, 3.6]), 2.6), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".12"');
-    if (lAway < .3) [[-1.4, 1.6], [0, 1.9], [1.4, 1.7], [2.7, 1.3]].forEach(([dx], i) => { const tip = onP(PAN_AT, nAng, [fretX(Math.max(.4, neckAt - 1.5 + i)) + .8, [-.45, 0, .45, 0][i] * 1]); s += path(cap(add(lh, [dx * .9 - .6, 3.2]), .82, tip, .62), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".1"'); });
-    else s += '<circle cx="' + f(lh[0]) + '" cy="' + f(lh[1] + 2) + '" r="2.4" fill="' + K.skin + '"/>';
+    // left hand: one smooth shape cradling the neck from below (the fingers are shown in detail in the close-up videos)
+    { const lw = add(lh, [1.2, 7.4]), u = rot([1, 0], nAng), n = rot([0, 1], nAng), A = (dx, dy) => add(lh, add(mul(u, dx), mul(n, dy)));
+      const hand = lAway < .3 ? smooth([add(lw, [-2.2, .6]), A(-3.6, 3.4), A(-3.4, .6), A(-2.2, -1.1), A(0, -1.4), A(2.2, -1.1), A(3.4, .4), A(3.2, 3.2), add(lw, [2.2, .4])], true, .18)
+        : smooth([add(lw, [-2.2, .6]), add(lh, [-2.6, 1.6]), add(lh, [0, -.4]), add(lh, [2.6, 1.6]), add(lw, [2.2, .4])], true, .2);
+      s += path(hand, K.skin, ' stroke="' + K.skin2 + '" stroke-width=".14"') + (lAway < .3 ? '<path d="M' + P(A(-1.6, -.2)) + 'L' + P(A(-1.4, 1.6)) + 'M' + P(A(.4, -.5)) + 'L' + P(A(.5, 1.4)) + 'M' + P(A(2.2, -.2)) + 'L' + P(A(2.1, 1.4)) + '" stroke="' + K.skin2 + '" stroke-width=".18" stroke-linecap="round" opacity=".55"/>' : ''); }
     // player's right arm (on your left) over the body; the hand strums between the hole and the fingerboard
     const zone = onP(PAN_AT, nAng, [35.2, 0]), nrmv = rot([0, 1], nAng), sw = o.strum || 0;
     // only the wrist turns: the forearm rests still on the body, the rounded hand swings across the strings
     const rh = add(zone, mul(nrmv, -1)), re = [69, 88 - br * .5], wp = add(rh, [-3.4, -4.2]), ang = (sw - .5) * 46;
     s += path(cap([x - 19, shY + 3], 4.6, re, 3.8), K.top);
     s += path(cap(re, 3.7, wp, 2.9), K.top);
-    s += '<g transform="rotate(' + f(ang) + ' ' + P(wp) + ')">' + path(cap(wp, 2.3, add(rh, [-.6, -.8]), 2.5), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".12"');
-    s += path(cap(add(rh, [-.8, -1.2]), 1.9, add(rh, [.4, 1.2]), 1.25), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".1"') + '<path d="M' + P(add(rh, [-1.6, .2])) + 'q1 1.2 2.2 .6" stroke="' + K.skin2 + '" stroke-width=".25" fill="none"/>';
-    s += path(cap(add(rh, [.4, -1.6]), 1.05, add(rh, [2.0, -.6]), .75), K.skin, ' stroke="' + K.skin2 + '" stroke-width=".1"') + '</g>';
+    { const h0 = add(rh, [-.6, -.8]), fist = smooth([add(wp, [-1.9, -.9]), add(h0, [-2.4, -.4]), add(h0, [-1.8, 2.2]), add(h0, [.6, 3.0]), add(h0, [2.4, 1.6]), add(h0, [2.5, -.8]), add(h0, [1.4, -2.2]), add(wp, [1.6, -1.6])], true, .2);
+      s += '<g transform="rotate(' + f(ang) + ' ' + P(wp) + ')">' + path(fist, K.skin, ' stroke="' + K.skin2 + '" stroke-width=".14"') + '<path d="M' + P(add(h0, [-1.2, 1.6])) + 'Q' + P(add(h0, [.4, 2.4])) + ' ' + P(add(h0, [1.8, 1.2])) + '" stroke="' + K.skin2 + '" stroke-width=".2" fill="none" opacity=".6"/></g>'; }
     return s;
   }
   const frontDefs = id => '<linearGradient id="' + id + 'tf" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".2"/><stop offset=".45" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>';
@@ -654,5 +656,40 @@ PD.fig = (() => {
   new MutationObserver(ms => { for (const m of ms) m.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.matches && n.matches('svg[data-fig]')) mount(n); else if (n.querySelectorAll) n.querySelectorAll('svg[data-fig]').forEach(mount); }); })
     .observe(document.documentElement, { childList: true, subtree: true });
 
-  return { svg, panduri: (w) => { const id = 'fp' + (++UID) + '_'; return '<svg class="tp-svg" viewBox="-2 -12 96 24" aria-hidden="true"><defs>' + panduriDefs(id) + '</defs>' + panduri(id) + '</svg>'; }, SCENES };
+
+  /* ---------------- rendered videos (real 3D hand model on the app's own panduri model) ---------------- */
+  const VID = {
+    lefthand: { views: [['bm_front', ['წინიდან · სარკეში', 'Front · as in a mirror']], ['bm_player', ['შენი თვალით', 'Your own view']]], loop: 7,
+      caps: [[0, 1.0, ['ხელი უახლოვდება ტარს — მაჯა თავისუფალია', 'The hand comes to the neck — the wrist is free']], [1.0, 2.2, ['T ცერა: ბანი (მე-3 სიმი), მე-2 ლადი', 'T thumb: bass (3rd string), fret 2']], [2.2, 3.4, ['1 საჩვენებელი: მე-2 ხმა (მე-2 სიმი), 1-ლი ლადი', '1 index: 2nd voice (2nd string), fret 1']], [3.4, 4.6, ['2 შუა: 1-ლი ხმა (1-ლი სიმი), მე-2 ლადი', '2 middle: 1st voice (1st string), fret 2']], [4.6, 7, ['Bm — ახლა გაიმეორე შენს ფანდურზე', 'Bm — now copy it on your panduri']]] },
+    strokes: { views: [['strokes_side', ['გვერდიდან', 'From the side']], ['strokes_front', ['წინიდან · სარკეში', 'Front · as in a mirror']]], loop: 3.2,
+      caps: [[0, .5, ['მომრგვალებული ხელი — თითქოს კვერცხი გიჭირავს', 'A rounded hand — as if holding an egg']], [.5, 1.9, ['↓ ჩამოკვრა: თითები იშლება, სიმებს ეხება ფრჩხილის წვერები', '↓ Down: the fingers open, the nail tips hit the strings']], [1.9, 3.2, ['↑ ამოკვრა: ცერა თითის ფრჩხილის წვერით', '↑ Up: with the tip of the thumbnail']]],
+      note: ['მოძრაობს მხოლოდ მაჯა — მკლავი უძრავია', 'Only the wrist moves — the arm stays still'] },
+    fingers: { views: [['fingers', null]], loop: 7.5, caps: [[0, 1.5, ['1 — საჩვენებელი', '1 — index']], [1.5, 3, ['2 — შუა', '2 — middle']], [3, 4.5, ['3 — არათითი', '3 — ring']], [4.5, 6, ['4 — ნეკი', '4 — little']], [6, 7.5, ['T — ცერა', 'T — thumb']]] },
+    warmup: { views: [['warmup', null]], loop: 4, caps: [[0, 2, ['ნელა მოკუმე', 'Close slowly']], [2, 4, ['ნელა გაშალე', 'Open slowly']]], note: ['×10', '×10'] }
+  };
+  const figAsset = n => PD.assets && PD.assets.fig && PD.assets.fig[n];
+  /** a rendered video for a card (poster in lists, autoplaying loop on the card page); falls back to the drawing */
+  function media(key) {
+    const V0 = VID[key], a = V0 && figAsset(V0.views[0][0]);
+    if (!a) return SCENES[key] ? svg(key) : '';
+    return '<div class="fig-vid" data-vid="' + key + '" data-view="' + V0.views[0][0] + '"><img class="fig-poster" src="' + a.jpg + '" alt="" loading="lazy"><video muted loop playsinline autoplay preload="auto" poster="' + a.jpg + '" src="' + a.mp4 + '"></video><div class="fig-vcap" aria-live="polite"></div>' + (V0.note ? '<div class="fig-vnote">' + L(V0.note) + '</div>' : '') + '</div>';
+  }
+  function mountVid(el) {
+    if (el._mv) return; el._mv = 1;
+    const V0 = VID[el.dataset.vid], vid = el.querySelector('video'), cap = el.querySelector('.fig-vcap');
+    if (!el.closest('.tp-hero')) { if (vid) { vid.removeAttribute('autoplay'); vid.pause(); vid.remove(); } return; }
+    if (still() && vid) { vid.removeAttribute('autoplay'); vid.pause(); }
+    let last = '';
+    const tick = () => { if (!el.isConnected) return; const t = (vid.currentTime || 0) % V0.loop, c = V0.caps.find(([a, b]) => t >= a && t < b); const txt = c ? L(c[2]) : ''; if (txt !== last) { last = txt; cap.textContent = txt; cap.classList.toggle('on', !!txt); } requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+    if (V0.views.length > 1 && !el.parentNode.querySelector('.fig-views')) {
+      const row = document.createElement('div'); row.className = 'seg fig-views'; row.setAttribute('role', 'group');
+      V0.views.forEach(([n, lab]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = L(lab); b.setAttribute('aria-pressed', String(n === el.dataset.view)); b.onclick = () => { const a = figAsset(n); if (!a) return; el.dataset.view = n; vid.poster = a.jpg; vid.src = a.mp4; el.querySelector('.fig-poster').src = a.jpg; const p = vid.play(); if (p && p.catch) p.catch(() => {}); row.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }; row.appendChild(b); });
+      el.parentNode.appendChild(row);
+    }
+    const p = vid.play(); if (p && p.catch) p.catch(() => {});
+  }
+  new MutationObserver(ms => { for (const m of ms) m.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.matches && n.matches('.fig-vid')) mountVid(n); else if (n.querySelectorAll) n.querySelectorAll('.fig-vid').forEach(mountVid); }); }).observe(document.documentElement, { childList: true, subtree: true });
+
+  return { media, VID, svg, panduri: (w) => { const id = 'fp' + (++UID) + '_'; return '<svg class="tp-svg" viewBox="-2 -12 96 24" aria-hidden="true"><defs>' + panduriDefs(id) + '</defs>' + panduri(id) + '</svg>'; }, SCENES };
 })();

@@ -102,3 +102,15 @@ Chords page: the same stage in preview mode (one still step, no lane).
 QA scripts: qa/handqa.js (no teleporting, contact accuracy, stroke direction,
 no penetration), qa/perf.js (frame cost), qa/screens.js (all routes, clipping,
 horizontal overflow, missing strings), qa/st.js (practice at all viewport sizes).
+
+## Rendered hand videos (render/ → assets/fig/)
+The close-up hand clips (Bm on the neck, strokes, finger numbers, warm-up) are rendered offline from a real
+3D arm model (supplied as fps-arms.blend; mesh, UVs and vertex groups read with render/../tools/blend.py) on the
+app's own 3D panduri model (three3d.js `export`). A skeleton is derived from the vertex groups; poses are joint
+rotations only (bone lengths never change), solved so fingertip pads sit on their string/fret targets, nothing
+passes through the neck, fingers stay arched above the strings and the palm keeps a gap ("ball") to the neck.
+render/run.js opens the built app in headless Chromium, render/scene.js builds the Three.js scene, the job scripts
+(bmanim.js, strokes.js, handalone.js) write frames, render/post.py adds finger badges / nail highlights and
+encodes small H.264 loops + posters into assets/fig/, which build.py embeds (single file) or links (PWA).
+Teacher data used: Bm = thumb on the bass (3rd string) fret 2 · index on the 2nd voice fret 1 · middle on the
+1st voice fret 2; strokes: down with the nail tips as the fingers open, up with the thumbnail tip, wrist only.

@@ -105,7 +105,11 @@ PD.theory = (() => {
           const fg = api.fingersFor(fr); if (!fg) return;
           const pos = fretted.length ? Math.min(...fretted) : 0, bass = pcs[ms.indexOf(Math.min(...ms))];
           const score = pos * 1.1 + span * .9 + new Set(fg.fingers.filter(Boolean)).size * .5 - (bass === root ? 1.4 : 0) - fr.filter(f => f === 0).length * .25 - (fg.barre ? .3 : 0) + (new Set(pcs).size < Math.min(3, T.iv.length) ? 1.2 : 0) + (okMain ? 0 : 2.5);
-          out.push({ frets: fr.slice(), fingers: fg.fingers, barre: fg.barre, pos, score });
+          // triangle shape (outer strings on one fret, the middle one fret lower): the teacher's fingering, as for Bm —
+          // thumb on the bass (A) string, index on the 2nd voice (C♯), middle on the 1st voice (E)
+          let fingers = fg.fingers, fsrc = null;
+          if (fr.every(x => x > 0) && fr[0] === fr[2] && fr[1] === fr[0] - 1 && fr[0] <= 9) { fingers = ['T', 1, 2]; fsrc = 'teacher-bm'; }
+          out.push({ frets: fr.slice(), fingers, fsrc, barre: fg.barre, pos, score });
           return;
         }
         for (let f = 0; f <= F; f++) { fr[s] = f; rec(s + 1); }
@@ -124,7 +128,7 @@ PD.theory = (() => {
         if (!pick.length) pick.push(all[0]);
         const name = rn + T.k;
         lib.push({ id: name, name, root, q: T.k, kind: T.k === '' ? 'maj' : T.k === 'm' ? 'min' : T.k, ka: api.ROOTS_KA[root] + ' · ' + T.ka, typeKa: T.ka, typeEn: T.en,
-          frets: pick[0].frets, fingers: pick[0].fingers, barre: pick[0].barre, voicings: pick.map(v => ({ frets: v.frets, fingers: v.fingers, barre: v.barre, pos: v.pos })), src: 'computed' });
+          frets: pick[0].frets, fingers: pick[0].fingers, barre: pick[0].barre, voicings: pick.map(v => ({ frets: v.frets, fingers: v.fingers, fsrc: v.fsrc, barre: v.barre, pos: v.pos })), fsrc: pick[0].fsrc, src: 'computed' });
       }));
       api._lib = lib; api._libKey = key; return lib;
     }
