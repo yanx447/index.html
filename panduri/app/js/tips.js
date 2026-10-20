@@ -268,7 +268,7 @@ PD.tips = (() => {
     return s + (extra || '');
   }
   Object.assign(ART, {
-    sit() {
+    sitOld() {
       const n = 4, d = 8;
       let s = player(glow('<line x1="128" y1="42" x2="128" y2="100" stroke="' + HL + '" stroke-width="3" stroke-dasharray="4 4"/>', 0, n, d)
         + glow('<ellipse cx="139" cy="140" rx="15" ry="6" fill="none" stroke="' + HL + '" stroke-width="2"/><ellipse cx="181" cy="140" rx="15" ry="6" fill="none" stroke="' + HL + '" stroke-width="2"/>', 1, n, d)
@@ -404,6 +404,7 @@ PD.tips = (() => {
     }
   });
 
+  ['sit', 'hold', 'hands', 'strokes', 'fingers', 'warmup', 'care'].forEach(k => { ART[k] = () => PD.fig.svg(k); });
   /* ---------------- the cards ---------------- */
   // [id, category, source, art, title, in short, steps[], why, try-it]
   const T = (id, cat, src, art, title, short, steps, why, go) => ({ id, cat, src, art, title, short, steps, why, go });

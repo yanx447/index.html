@@ -1970,3 +1970,8 @@ select.input{transition:border-color var(--t-ctl)}
 .rh-row.counted .rh-card .rh-n{font-size:13px;font-weight:800;color:var(--fg2,#cbbfb3)}
 .rh-row.counted .rh-card.onbeat .rh-n{color:var(--acc2,#E2AA7B)}
 .rh-row.counted{flex-wrap:wrap}
+/* v18 figures */
+.tp-svg.fig{max-height:min(62vh,520px);margin:0 auto;overflow:hidden}
+.fig-views{display:flex;max-width:380px;margin:10px auto 2px;width:100%}
+.fig-views>button{flex:1;min-height:38px;font-weight:700}
+.tp-art .tp-svg.fig{max-height:none;height:100%;width:100%}
