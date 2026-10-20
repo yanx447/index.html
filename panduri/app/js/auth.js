@@ -6,7 +6,7 @@
    so, and "continue without an account" keeps progress on this device.
    ===================================================================== */
 PD.i18n.add({
-  'au.tagline': ['ისწავლე · დაუკარი · იმღერე', 'Learn · play · sing'], 'au.start': ['დაწყება', 'Get started'], 'au.signinLink': ['შესვლა', 'Sign in'], 'au.signinTitle': ['შესვლა', 'Sign in'],
+  'au.tagline': ['ისწავლე · დაუკარი · იმღერე', 'Learn · play · sing'], 'au.start': ['დაწყება', 'Get started'], 'au.signinLink': ['უკვე გაქვს ანგარიში? შესვლა', 'Have an account? Sign in'], 'au.signinTitle': ['შესვლა ან რეგისტრაცია', 'Sign in or register'], 'au.methodsD': ['პირველად შესვლისას ანგარიში ავტომატურად შეიქმნება.', 'Signing in the first time creates your account.'],
   'au.delete': ['ანგარიშის წაშლა', 'Delete account'], 'au.deleteD': ['სერვერიდან სამუდამოდ წაიშლება ანგარიში, მიმოწერა, კითხვები და პროგრესის ასლი. ამ მოწყობილობაზე პროგრესი დარჩება.', 'Permanently removes the account, messages, questions and the progress backup from the server. Progress on this device stays.'],
   'au.deleteGo': ['წაშლა', 'Delete'], 'au.deleteQ': ['ნამდვილად წავშალო ანგარიში? ამის დაბრუნება შეუძლებელია.', 'Really delete the account? This cannot be undone.'], 'au.deleted': ['ანგარიში წაიშალა.', 'The account was deleted.'],
   'au.signin': ['შესვლა', 'Sign in'], 'au.signup': ['ანგარიშის შექმნა', 'Create account'], 'au.email': ['ელფოსტა', 'Email'], 'au.password': ['პაროლი', 'Password'], 'au.name': ['სახელი', 'Name'],
@@ -88,7 +88,7 @@ PD.auth = (() => {
         const msg = msgEl();
         const prov = (k, ic, label, fn) => { const b = h('button', { class: 'ag-btn ' + k, html: '<span class="ag-ic">' + ic + '</span><span data-t="' + label + '"></span>', onclick: () => fn(b) }); return b; };
         card.classList.add('home');
-        card.append(h('div', { class: 'ag-brand' }, [h('h2', { 'data-t': 'au.signinTitle' }), h('p', { class: 'ag-sub', 'data-t': 'au.welcomeD' })]),
+        card.append(h('div', { class: 'ag-brand' }, [h('h2', { 'data-t': 'au.signinTitle' }), h('p', { class: 'ag-sub', 'data-t': 'au.methodsD' })]),
           h('div', { class: 'ag-side' }, [C.configured ? null : h('p', { class: 'ag-msg info', 'data-t': 'au.noBackend' }),
           h('div', { class: 'ag-list' }, [
             prov('google', ICON.google, 'au.google', b => run(b, msg, () => C.auth.oauth('google'))),

@@ -104,7 +104,7 @@ PD.i18n.add({
 PD.i18n.add({
   'hx.hi': ['გამარჯობა', 'Hello'], 'hd.practice': ['სავარჯიშოები', 'Exercises'], 'hd.practiceD': ['ტრენაჟორები და მეტრონომი', 'Trainers and metronome'], 'hd.songsN': ['{n} სიმღერა', '{n} songs'], 'hd.chordsN': ['{n} აკორდი', '{n} chords'], 'hd.theory': ['თეორია', 'Theory'], 'hd.theoryD': ['ნოტები და გამები', 'Notes and scales'], 'hd.popular': ['სიმღერები', 'Songs'],
   'set.uiSounds': ['ღილაკების ხმა', 'Button sounds'], 'set.uiSoundsD': ['მსუბუქი ხმა დაჭერისას; სიმძლავრე — „უკუკავშირის ხმა“', 'A soft sound on tap; level = “feedback volume”'],
-  'au.signoutQ': ['ანგარიშიდან გასვლა? პროგრესი ანგარიშში რჩება — შემდეგ შესვლისას დაბრუნდება.', 'Sign out? Your progress stays in the account and comes back when you sign in.'], 'au.signedOut': ['გამოხვედი ანგარიშიდან', 'Signed out'],
+  'au.signoutQ': ['ანგარიშიდან გასვლა? პროგრესი ანგარიშში რჩება — შესვლისას დაბრუნდება.', 'Sign out? Your progress stays in the account and comes back when you sign in.'], 'au.signedOut': ['გამოხვედი ანგარიშიდან', 'Signed out'],
   'pf.owner': ['მფლობელი · პრემიუმი სამუდამოდ', 'Owner · lifetime Premium'],
   'pf.student': ['მოსწავლე', 'Student'], 'pf.level': ['ლეველი', 'Level'], 'pf.lessons': ['ნასწავლი', 'Learned'], 'pf.progress': ['პროგრესი', 'Progress'], 'set.data': ['მონაცემები', 'Your data'],
   'lnx.songsD': ['სიმღერები, მელოდიები და სოლოები — დონეების მიხედვით', 'Songs, melodies and solos — by level'],
@@ -140,6 +140,7 @@ PD.app = (() => {
     PD.i18n.apply(document);
     PD.bus.on('lang', () => render());
     let cloudT = 0, cloudSig = '';
+    PD.bus.on('cloud', e => { if (PD.cloud.configured && !(e && e.session) && !document.querySelector('.ag')) setTimeout(() => { if (!PD.cloud.session && !document.querySelector('.ag')) PD.auth.gate(() => render(), { noGuest: true, view: 'methods' }); }, 0); });
     PD.bus.on('cloud', e => { const sig = (e && e.session && e.session.user ? e.session.user.id : '-') + ':' + JSON.stringify(e && e.profile ? [e.profile.role, e.profile.vip_until, e.profile.display_name, e.profile.owner, e.profile.premium_banned] : 0); if (sig === cloudSig) return; cloudSig = sig; clearTimeout(cloudT); cloudT = setTimeout(() => { if (['profile', 'settings', 'community', 'home', 'learn', 'songs'].includes(route) && !PD.practice.active && !document.querySelector('.sheet-back:not(.out)')) render(true); }, 60); });
     PD.bus.on('lessons', () => { if (['home', 'lesson', 'learn', 'path', 'songs'].includes(route)) render(); });
     window.addEventListener('popstate', e => {
@@ -865,8 +866,8 @@ PD.app = (() => {
   function signOut() {
     PD.ui.confirm(t('au.signoutQ'), async () => {
       await PD.cloud.auth.signOut(); PD.store.set('auth.skip', false);
-      PD.ui.toast(t('au.signedOut'), 2600); go('home', null, true);
-      PD.auth.gate(() => render());
+      go('home', null, true);
+      PD.auth.gate(() => render(), { noGuest: PD.cloud.configured, view: 'methods' });   // straight back to the sign-in screen
     });
   }
   /** an in-app Back button: the same step as the system Back when there is one, otherwise up to the section */
