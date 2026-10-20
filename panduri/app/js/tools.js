@@ -6,6 +6,7 @@
 PD.i18n.add({
   'ce.lib': ['აკორდების ბიბლიოთეკა', 'Chord library'],
   'ce.triFing': ['თითები მასწავლებლის Bm-ის მიხედვით: T ცერა — ბანი, 1 საჩვენებელი — მე-2 ხმა, 2 შუა — 1-ლი ხმა. იგივე სამკუთხა ფორმა, სხვა ლადზე.', 'Fingers as the teacher\'s Bm: T thumb — bass, 1 index — 2nd voice, 2 middle — 1st voice. The same triangle shape on another fret.'],
+  'ce.filters': ['ფილტრები', 'Filters'], 'ce.allRoots': ['ყველა ბგერა', 'all roots'], 'ce.accNotes': ['ბგერები და თითები', 'Notes and fingers'], 'ce.accAbout': ['ამ აკორდის შესახებ', 'About this chord'], 'ce.accChange': ['გადასვლა სხვა აკორდზე', 'Change to another chord'], 'ce.accChangeD': ['აჩვენე და ივარჯიშე', 'Show it and practise'],
   'ce.sh.none': ['ფორმა ვერ მოიძებნა', 'No form found'], 'ce.sh.noneD': ['ამ წყობით სამ სიმზე დასაკრავი ფორმა არ არსებობს', 'No playable three-string form in this tuning'],
   'ce.noForm': ['ფანდურზე ამ წყობით (A · C♯ · E, 17 ლადი) ხელმისაწვდომი ფორმა ვერ მოიძებნა. ყალბ დიაგრამას არ ვაჩვენებთ.', 'No playable form was found on the panduri in this tuning (A · C♯ · E, 17 frets). We don\'t show a fake diagram.'],
   'ce.sec.all': ['ყველა', 'All'], 'ce.sec.pop': ['პოპულარული', 'Popular'], 'ce.sec.easy': ['დამწყებთათვის', 'Beginner'], 'ce.sec.fav': ['ფავორიტები', 'Favourites'], 'ce.sec.prog': ['თანმიმდევრობები', 'Progressions'],
@@ -212,7 +213,13 @@ PD.tools = (() => {
     const count = h('small', { class: 'muted' });
     const g = h('div', { class: 'cgroups' });
     const detail = h('div', { class: 'ce-detail' });
-    const left = h('div', { class: 'ce-side' }, [h('h2', { 'data-t': 'ce.lib' }), search, h('span', { class: 'kicker', 'data-t': 'ce.type' }), typeRow, h('span', { class: 'kicker', 'data-t': 'ce.root' }), rootRow, count]);
+    /** a collapsible block; its open/closed state is remembered */
+    const acc = (key, title, sub, body, open0) => { const open = PD.store.get('ce.acc.' + key, !!open0); const d = h('details', { class: 'ce-acc', open: open || null, ontoggle: e => PD.store.set('ce.acc.' + key, e.currentTarget.open) }, [h('summary', {}, [h('span', { class: 'ce-acc-t' }, [h('b', { text: title }), sub ? h('small', { class: 'ce-acc-sub', text: sub }) : null]), h('span', { class: 'ce-acc-chev', 'aria-hidden': 'true' })]), h('div', { class: 'ce-acc-b' }, body)]); return d; };
+    const filtSub = h('small', { class: 'ce-acc-sub' });
+    const filters = h('details', { class: 'ce-acc ce-filt', open: PD.store.get('ce.acc.filters', false) || null, ontoggle: e => PD.store.set('ce.acc.filters', e.currentTarget.open) }, [h('summary', {}, [h('span', { class: 'ce-acc-t' }, [h('b', { 'data-t': 'ce.filters' }), filtSub]), h('span', { class: 'ce-acc-chev', 'aria-hidden': 'true' })]),
+      h('div', { class: 'ce-acc-b' }, [h('span', { class: 'kicker', 'data-t': 'ce.type' }), typeRow, h('span', { class: 'kicker', 'data-t': 'ce.root' }), rootRow])]);
+    const left = h('section', { class: 'ce-lib' }, [h('div', { class: 'ce-lib-h' }, [h('h2', { 'data-t': 'ce.lib' }), count]), filters]);
+    const top = h('div', { class: 'ce-top' }, [search, secRow]);
     const nameBox = h('div', { class: 'ce-namebox' });
     // a caption under the neck for the step-by-step and change animations
     const cap = h('div', { class: 'ce-cap', 'aria-live': 'polite' }); let animT = [];
@@ -239,7 +246,8 @@ PD.tools = (() => {
       let tm = 100; for (let r = 0; r < 2; r++) { later(tm, () => { go(a); say(nameA + ' → ' + nameB + ': ' + desc(a, b)); }); tm += 1800; later(tm, () => { go(b); say(nameB); }); tm += 1800; }
       later(tm, () => { go(a); say(nameA); }); later(tm + 2200, () => cap.classList.remove('on'));
     }
-    w.append(secRow, h('section', { class: 'ce-hero' }, [nameBox, nv, cap]), g, detail, left);
+    const acts = h('div', { class: 'ce-acts' }), accs = h('div', { class: 'ce-accs' });
+    w.append(top, h('section', { class: 'ce-hero' }, [nameBox, nv, cap, acts]), accs, left, g);
     const norm = x => (x || '').toLowerCase().replace(/#/g, '♯').replace(/([a-g])b/g, '$1♭').replace(/\s+/g, '');
     function match(c) {
       if (fSec === 'pop' && !popular(c)) return false;
@@ -254,6 +262,7 @@ PD.tools = (() => {
     function grid() {
       g.innerHTML = ''; flat = [];
       if (fSec === 'prog') { progressions(); return; }
+      filtSub.textContent = (fCat === 'all' ? t('ce.cat.all') : t('ce.cat.' + fCat)) + ' · ' + (fRoot < 0 ? t('ce.allRoots') : TT.ROOT_NAMES[fRoot]);
       const list = entries.filter(e => match(e.c));
       count.textContent = t('ce.count', { n: new Set(list.map(e => e.c.id)).size });
       if (!list.length) g.appendChild(h('span', { class: 'muted', text: t(fSec === 'fav' ? 'ce.favNone' : 'ce.none') }));
@@ -261,7 +270,8 @@ PD.tools = (() => {
         const part = list.filter(e => e.shape === k); if (!part.length) return;
         const row = h('div', { class: 'cgrid', role: 'listbox', 'aria-label': t('ce.sh.' + k) });
         part.forEach(e => { flat.push(e); const on = e.c === cur && same(vo(), e.v); row.appendChild(h('button', { role: 'option', 'aria-selected': String(on), 'aria-pressed': String(on), title: e.v.frets.join('-'), html: PD.esc(e.c.name) + '<small>' + e.v.frets.join('-') + '</small>', onclick: () => { pick(e); } })); });
-        g.appendChild(h('section', { class: 'csec' }, [h('div', { class: 'csec-h' }, [h('b', { text: t('ce.sh.' + k) }), h('small', { text: t('ce.sh.' + k + 'D') }), h('span', { class: 'mono muted', text: String(part.length) })]), row]));
+        const op = PD.store.get('ce.acc.sh.' + k, k !== 'none');
+        g.appendChild(h('details', { class: 'csec', open: op || null, ontoggle: e => PD.store.set('ce.acc.sh.' + k, e.currentTarget.open) }, [h('summary', { class: 'csec-h' }, [h('span', { class: 'csec-t' }, [h('b', { text: t('ce.sh.' + k) }), h('small', { text: t('ce.sh.' + k + 'D') })]), h('span', { class: 'csec-n mono', text: String(part.length) }), h('span', { class: 'ce-acc-chev', 'aria-hidden': 'true' })]), row]));
       });
     }
     /* progressions: common sequences in any key, played on the neck, or practised with the microphone */
@@ -296,32 +306,37 @@ PD.tools = (() => {
     function show() {
       if (typeof stopAnim === 'function') stopAnim();
       detail.innerHTML = '';
-      if (cur.none) { nameBox.innerHTML = ''; nameBox.append(h('div', { class: 'ce-name' }, [h('h2', { text: cur.name + (cur.alias ? ' · ' + cur.alias : '') }), h('small', { text: cur.ka || '' })])); detail.append(h('p', { class: 'notice', text: t('ce.noForm') })); view.setTarget([], []); return; }
+      if (cur.none) { nameBox.innerHTML = ''; nameBox.append(h('div', { class: 'ce-nb' }, [h('span'), h('div', { class: 'ce-name' }, [h('h2', { text: cur.name }), h('small', { text: [cur.alias, cur.ka].filter(Boolean).join(' · ') })]), h('span')])); acts.innerHTML = ''; acts.append(h('p', { class: 'notice', text: t('ce.noForm') })); accs.innerHTML = ''; view.setTarget([], []); return; }
       const v = vo(), ms = v.frets.map((f, i) => TT.midi(i + 1, f)), T = TT.CHORD_TYPES.find(x => x.k === cur.q), EXT = ['9', 'maj9', 'm9', '11', '13', 'add9', 'm(add9)'].includes(cur.q);
       const q0 = cur.q != null ? cur.q : cur.kind === 'min' ? 'm' : '', nm = m => cur.root != null ? TT.spell(m, cur.root, q0).name : TT.name(m), nmKa = m => cur.root != null ? TT.spell(m, cur.root, q0).ka : TT.nameKa(m);   // spelled from the root letter
       const list = all.filter(match), i = Math.max(0, list.indexOf(cur));
       const other = h('select', { class: 'input', 'aria-label': t('ce.to') }, all.filter(c => c !== cur && (c.q === '' || c.q === 'm' || c.q == null)).map(c => h('option', { value: c.id, text: c.name })));
       const posSeg = cur.voicings && cur.voicings.length > 1 ? h('div', { class: 'seg', role: 'group', 'aria-label': t('ce.pos') }, cur.voicings.map((x, k) => h('button', { 'aria-pressed': String(!forced && k === vi), text: x.pos ? t('ce.posN', { n: x.pos }) : t('ce.open'), onclick: () => { vi = k; forced = null; grid(); show(); } }))) : null;
       const src = cur.src === 'teacher' && vi === 0 ? 'ce.teacher' : cur.src === 'song' && vi === 0 ? 'ce.song' : cur.demo ? 'ce.demo' : 'ce.computed';
-      detail.append(
-        h('div', { class: 'row' }, [h('button', { class: 'btn icon small', 'aria-label': t('prev'), text: '‹', onclick: () => { swapDir = -1; const j = flat.findIndex(e => e.c === cur && same(e.v, vo())); const e = flat[(j - 1 + flat.length) % flat.length]; if (e) pick(e); } }),
-          h('div', { class: 'ce-name' }, [h('h2', { text: cur.name + (cur.alias ? ' · ' + cur.alias : '') }), h('small', { text: cur.ka || '' })]),
-          h('button', { class: 'btn icon small ce-fav' + (favs().includes(cur.id) ? ' on' : ''), 'aria-label': t('ce.fav'), text: favs().includes(cur.id) ? '★' : '☆', onclick: e => { const f = favs(), i = f.indexOf(cur.id); if (i >= 0) f.splice(i, 1); else f.push(cur.id); PD.store.set('ce.fav', f); e.currentTarget.textContent = i >= 0 ? '☆' : '★'; e.currentTarget.classList.toggle('on', i < 0); if (fSec === 'fav') grid(); } }),
-          h('button', { class: 'btn icon small', 'aria-label': t('next'), text: '›', onclick: () => { swapDir = 1; const j = flat.findIndex(e => e.c === cur && same(e.v, vo())); const e = flat[(j + 1) % flat.length]; if (e) pick(e); } }), h('span', { class: 'mono muted', text: v.frets.join('-') })]),
-        T ? h('p', { class: 'fg2', text: PD.i18n.pick({ ka: T.d[0], en: T.d[1] }) }) : h('p', { class: 'fg2', text: v.frets.every(f => f === 0) ? t('ce.openD') : cur.kind === 'maj' ? t('ce.majD') : t('ce.minD') }),
-        posSeg,
-        h('div', { class: 'ce-roles' }, [h('span', { class: 'kicker', 'data-t': 'ce.roles' }), h('div', { class: 'ce-rl' }, ms.map((m, k) => {
-          const iv = cur.root != null ? ((TT.pc(m) - cur.root) % 12 + 12) % 12 : null, role = iv == null ? null : EXT && iv === 2 ? 'ce.i9' : cur.q === '11' && iv === 5 ? 'ce.i11' : cur.q === '13' && iv === 9 ? 'ce.i13' : ROLE[iv];
-          return h('div', { class: 'ce-r', style: '--c:' + SCOL[k + 1] }, [h('small', { text: TT.stringName(k + 1) + ' · ' + (v.frets[k] ? t('ce.posN', { n: v.frets[k] }) : t('ce.open')) }), h('b', { text: nm(m) }), h('span', { text: nmKa(m) + (role ? ' · ' + t(role) : '') })]);
-        }))]),
-        h('div', { class: 'kv' }, [h('span', { 'data-t': 'ce.fingers', text: t('ce.fingers') }), h('b', { text: v.fingers.map(f => f || '0').join(' · ') + (v.barre ? ' · ' + t('ce.barre') : '') })]),
-        h('div', { class: 'row' }, [h('button', { class: 'btn primary', text: t('ce.play'), onclick: () => { PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); v.frets.forEach((f, k) => view.pluck(k + 1, f)); } }),
-          ...[1, 2, 3].map(sn => h('button', { class: 'btn small', style: 'color:' + SCOL[sn], text: t('ce.string', { s: TT.stringName(sn) }), onclick: () => { PD.audio.ensure(); PD.audio.note(sn, v.frets[sn - 1]); view.pluck(sn, v.frets[sn - 1]); } }))]),
-        h('div', { class: 'row' }, [h('button', { class: 'btn', text: t('ce.steps'), onclick: () => stepByStep(v) })]),
-        h('div', { class: 'row' }, [other, h('button', { class: 'btn small', text: t('ce.showCh'), onclick: () => { const b = all.find(c => c.id === other.value); if (b) showChange(v, (b.voicings && b.voicings[0]) || b, cur.name, b.name); } }), h('button', { class: 'btn', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })]),
-        v.fsrc === 'teacher-bm' ? h('p', { class: 'notice', text: t('ce.triFing') }) : null,
-        h('p', { class: 'notice', text: t(src) }));
-      nameBox.innerHTML = ''; nameBox.append(detail.firstChild);
+      const go = d => { swapDir = d; const j = flat.findIndex(e => e.c === cur && same(e.v, vo())); const e = flat[(j + d + flat.length) % flat.length]; if (e) pick(e); };
+      const isFav = favs().includes(cur.id);
+      nameBox.innerHTML = '';
+      nameBox.append(h('div', { class: 'ce-nb' }, [
+        h('button', { class: 'btn icon small ce-nav', 'aria-label': t('prev'), text: '‹', onclick: () => go(-1) }),
+        h('div', { class: 'ce-name' }, [h('h2', { text: cur.name }), h('small', { text: [cur.alias, cur.ka].filter(Boolean).join(' · ') }), h('span', { class: 'ce-frets mono', text: v.frets.join(' · ') })]),
+        h('button', { class: 'btn icon small ce-nav', 'aria-label': t('next'), text: '›', onclick: () => go(1) })]),
+        h('button', { class: 'btn icon small ce-fav' + (isFav ? ' on' : ''), 'aria-label': t('ce.fav'), 'aria-pressed': String(isFav), text: isFav ? '★' : '☆', onclick: e => { const f = favs(), i = f.indexOf(cur.id); if (i >= 0) f.splice(i, 1); else f.push(cur.id); PD.store.set('ce.fav', f); e.currentTarget.textContent = i >= 0 ? '☆' : '★'; e.currentTarget.classList.toggle('on', i < 0); if (fSec === 'fav') grid(); } }));
+      const strum = () => { PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); v.frets.forEach((f, k) => view.pluck(k + 1, f)); };
+      acts.innerHTML = '';
+      acts.append(...[h('div', { class: 'ce-acts-row' }, [h('button', { class: 'btn primary ce-play', text: t('ce.play'), onclick: strum }),
+        h('div', { class: 'ce-strs', role: 'group', 'aria-label': t('ce.roles') }, [1, 2, 3].map(sn => h('button', { class: 'ce-str', style: '--c:' + SCOL[sn], 'aria-label': t('ce.string', { s: TT.stringName(sn) }), text: TT.stringName(sn), onclick: () => { PD.audio.ensure(); PD.audio.note(sn, v.frets[sn - 1]); view.pluck(sn, v.frets[sn - 1]); } }))),
+        h('button', { class: 'btn ce-stepb', text: t('ce.steps'), onclick: () => stepByStep(v) })]), posSeg ? h('div', { class: 'ce-pos' }, [h('small', { class: 'kicker', 'data-t': 'ce.pos' }), posSeg]) : null].filter(Boolean));
+      const roles = h('div', { class: 'ce-rl' }, ms.map((m, k) => {
+        const iv = cur.root != null ? ((TT.pc(m) - cur.root) % 12 + 12) % 12 : null, role = iv == null ? null : EXT && iv === 2 ? 'ce.i9' : cur.q === '11' && iv === 5 ? 'ce.i11' : cur.q === '13' && iv === 9 ? 'ce.i13' : ROLE[iv];
+        return h('div', { class: 'ce-r', style: '--c:' + SCOL[k + 1] }, [h('small', { text: TT.stringName(k + 1) + ' · ' + (v.frets[k] ? t('ce.posN', { n: v.frets[k] }) : t('ce.open')) }), h('b', { text: nm(m) }), h('span', { text: nmKa(m) + (role ? ' · ' + t(role) : '') })]);
+      }));
+      const fingTxt = v.fingers.map(f => f || '0').join(' · ') + (v.barre ? ' · ' + t('ce.barre') : '');
+      const about = T ? PD.i18n.pick({ ka: T.d[0], en: T.d[1] }) : v.frets.every(f => f === 0) ? t('ce.openD') : cur.kind === 'maj' ? t('ce.majD') : t('ce.minD');
+      accs.innerHTML = '';
+      accs.append(
+        acc('notes', t('ce.accNotes'), ms.map(nm).join(' · ') + ' — ' + t('ce.fingers') + ' ' + fingTxt, [h('span', { class: 'kicker', 'data-t': 'ce.roles' }), roles, h('div', { class: 'kv' }, [h('span', { text: t('ce.fingers') }), h('b', { text: fingTxt })])], true),
+        acc('about', t('ce.accAbout'), cur.cat ? t('ce.cat.' + cur.cat) : '', [h('p', { class: 'fg2', text: about }), v.fsrc === 'teacher-bm' ? h('p', { class: 'notice', text: t('ce.triFing') }) : null, h('p', { class: 'notice', text: t(src) })]),
+        acc('change', t('ce.accChange'), t('ce.accChangeD'), [h('label', { class: 'field' }, [h('span', { text: t('ce.to') }), other]), h('div', { class: 'row' }, [h('button', { class: 'btn small', text: t('ce.showCh'), onclick: () => { const b = all.find(c => c.id === other.value); if (b) showChange(v, (b.voicings && b.voicings[0]) || b, cur.name, b.name); } }), h('button', { class: 'btn small', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })])]));
       if (PD.motion && nameBox.dataset.shown) PD.motion.swap(nameBox.querySelector('.ce-name'), swapDir); nameBox.dataset.shown = '1'; swapDir = 0;
       { const sel = g.querySelector('[aria-pressed="true"]'), row = sel && sel.parentNode; if (sel) requestAnimationFrame(() => { row.scrollLeft = Math.max(0, sel.offsetLeft - row.offsetLeft - (row.clientWidth - sel.offsetWidth) / 2); }); }
       preview();

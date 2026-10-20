@@ -1996,3 +1996,54 @@ select.input{transition:border-color var(--t-ctl)}
 .ce-fav{font-size:20px;color:var(--fg2)}.ce-fav.on{color:#F2CE3A}
 .ce-namebox .row{flex-wrap:nowrap!important;align-items:center}.ce-namebox .ce-name{flex:1;min-width:0}
 .page .ce-sec{flex-wrap:nowrap!important}
+/* v22 chord page — calmer hierarchy: search+sections, hero (name · neck · actions), accordions, library */
+.ce-top{display:flex;flex-direction:column;gap:10px}
+.ce-top .search{max-width:none;min-height:48px}
+.ce-hero{gap:14px!important;padding:18px 16px!important;border-radius:20px!important}
+.ce-namebox{position:relative}
+.ce-nb{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:8px}
+.ce-nb .ce-name{gap:2px}
+.ce-name .ce-frets{margin-top:4px;padding:2px 10px;border-radius:999px;background:rgba(255,240,228,.06);color:var(--fg2);font:600 12px var(--f-mono,monospace);letter-spacing:.04em}
+.ce-namebox .ce-nav{width:44px;height:44px;border-radius:22px}
+.ce-namebox .ce-fav{position:absolute;right:52px;top:0;width:36px!important;height:36px!important;border:0!important;background:transparent!important;font-size:20px!important}
+.ce-namebox .ce-fav.on{color:#F2CE3A}
+.ce-acts{display:flex;flex-direction:column;gap:12px;align-items:center}
+.ce-acts:empty{display:none}
+.ce-acts-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px}
+.ce-play{min-width:150px}
+.ce-strs{display:inline-flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
+.ce-str{min-width:46px;height:40px;padding:0 10px;border:0;background:transparent;color:var(--c);font:700 14px var(--f-ui,inherit)}
+.ce-str+.ce-str{border-left:1px solid var(--line2)}
+.ce-str:active,.ce-str:hover{background:rgba(255,240,228,.06)}
+.ce-pos{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:100%}
+.ce-pos .seg{max-width:100%;overflow-x:auto;scrollbar-width:none}
+.ce-accs{display:flex;flex-direction:column;gap:10px}
+.ce-acc{border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden}
+.ce-acc>summary{list-style:none;display:flex;align-items:center;gap:12px;min-height:56px;padding:10px 16px;cursor:pointer;user-select:none}
+.ce-acc>summary::-webkit-details-marker{display:none}
+.ce-acc-t{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.ce-acc-t b{font-size:15.5px;font-weight:650}
+.ce-acc-sub{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ce-acc-chev{flex:none;width:9px;height:9px;border-right:2px solid var(--fg2);border-bottom:2px solid var(--fg2);transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s}
+details[open]>summary .ce-acc-chev{transform:rotate(-135deg) translate(-2px,-2px)}
+.ce-acc-b{display:flex;flex-direction:column;gap:12px;padding:2px 16px 16px}
+.ce-acc-b .fg2{margin:0;line-height:1.6}
+.ce-acc-b .notice{margin:0}
+.ce-acc-b .row{flex-wrap:wrap}
+.ce-lib{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+.ce-lib-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.ce-lib-h h2{margin:0}
+.ce-filt>summary{min-height:48px}
+.cgroups{gap:10px!important}
+details.csec{border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden;gap:0!important}
+details.csec>summary{list-style:none;display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:nowrap!important;min-height:54px;padding:10px 16px;cursor:pointer}
+details.csec>summary::-webkit-details-marker{display:none}
+.csec-t{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.csec-t small{min-width:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)!important}
+.csec-n{flex:none;padding:2px 8px;border-radius:999px;background:rgba(255,240,228,.06);color:var(--fg2);font-size:12px}
+details.csec>.cgrid{padding:2px 14px 14px!important}
+.page .ce-sec{border-radius:12px}
+@media (max-width:420px){.ce-namebox .ce-fav{right:46px}.ce-play{min-width:0;flex:1 1 100%}}
+.ce-namebox .ce-name .ce-frets{display:inline-block!important}
+.csec-t small{white-space:normal!important;overflow:visible!important;line-height:1.45}
+@media (max-width:640px){.ce-top .ce-sec{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}}
