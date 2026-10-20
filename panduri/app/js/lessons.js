@@ -152,10 +152,10 @@ PD.lessons = (() => {
       secs.push(sec('ციკლი ' + (c + 1), 'Cycle ' + (c + 1), c * per, (c + 1) * per));
     }
     const per4 = Math.max(1, Math.round(per * 1000) / 1000);
-    return normalize({ id: 'rhythm-' + r.id, type: 'exercise', rhythm: r.id, demo: false, source: 'teacher', title: r.name, level: 1, bpm: r.timing.bpm, meter: [per4, 4],
+    return normalize({ id: 'rhythm-' + r.id, type: 'exercise', rhythm: r.id, demo: false, source: r.source || 'teacher', title: r.name, level: r.level || 1, bpm: r.timing.bpm, meter: [per4, 4],
       desc: { ka: r.usage.ka.join(' · '), en: r.usage.en.join(' · ') }, events: ev, sections: secs, stages: ['demo', 'watch', 'slow', 'wait', 'metro', 'loop', 'perform'] });
   }
-  function rhythmLesson(rid) { const r = (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).find(x => x.id === rid); return r ? fromRhythm(r) : undefined; }
+  function rhythmLesson(rid) { const r = PD.curriculum.anyRhythm ? PD.curriculum.anyRhythm(rid) : (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).find(x => x.id === rid); return r ? fromRhythm(r) : undefined; }
   /** derived lesson: alternate two chords (chord-transition exercise) */
   function transition(a, b, bpm) {
     const ev = []; for (let i = 0; i < 8; i++) { const c = i % 2 ? b : a; ev.push(...chord(i * 2, c.name, c.frets, c.fingers, 'down', 2, i % 4 === 0)); }
@@ -167,7 +167,7 @@ PD.lessons = (() => {
     all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, steps, rhythmOf, songChanges, songRhythm, songPart, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
     get: lid => all.find(l => l.id === lid) || (/^rhythm-/.test(lid || '') ? rhythmLesson(lid.slice(7)) : undefined),
     /** lessons generated from the teacher rhythms (not stored; rebuilt from curriculum data) */
-    rhythmLessons: () => (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).map(r => fromRhythm(r)),
+    rhythmLessons: () => (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).concat(PD.curriculum.commonRhythms ? PD.curriculum.commonRhythms() : []).map(r => fromRhythm(r)),
     add(l) { const n = normalize(Object.assign({ user: true }, l)); const i = all.findIndex(x => x.id === n.id); if (i >= 0) all[i] = n; else all.push(n); saveUser(); PD.bus.emit('lessons'); return n; },
     update(l) { const i = all.findIndex(x => x.id === l.id); if (i >= 0) { all[i] = l; if (l.user) saveUser(); PD.bus.emit('lessons'); } },
     remove(lid) { const i = all.findIndex(x => x.id === lid && x.user); if (i < 0) return; if (all[i].builtinUser) { all[i].events = []; all[i].sections = autoSections(all[i]); } else all.splice(i, 1); saveUser(); PD.bus.emit('lessons'); },

@@ -16,6 +16,7 @@ PD.i18n.add({
   'tp.all': ['ყველა', 'All'], 'tp.try': ['სცადე', 'Try it'], 'tp.steps': ['როგორ', 'How'], 'tp.why': ['რატომ', 'Why'], 'tp.more': ['ყველა რჩევა', 'All tips'],
   'tp.src.fact': ['შენი ფანდურიდან და აპის მონაცემებიდან', 'From your panduri and the app\'s data'], 'tp.src.general': ['ზოგადი რჩევა სიმიანი ინსტრუმენტისთვის', 'General advice for string instruments'],
   'tp.src.draft': ['მასწავლებელმა უნდა შეამოწმოს', 'For the teacher to check'], 'tp.src.teacher': ['მასწავლებლის დამოწმებული', 'Checked by the teacher'],
+  'tp.c.start': ['პირველი ნაბიჯები', 'First steps'], 'tp.c.basics': ['მუსიკის საფუძვლები', 'Music basics'], 'tp.c.deep': ['რთული თეორია', 'Harder theory'],
   'tp.c.inst': ['ინსტრუმენტი', 'Instrument'], 'tp.c.left': ['მარცხენა ხელი', 'Left hand'], 'tp.c.right': ['მარჯვენა ხელი', 'Right hand'], 'tp.c.chords': ['აკორდები', 'Chords'], 'tp.c.rhythm': ['რიტმი', 'Rhythm'], 'tp.c.practice': ['ვარჯიში', 'Practice'], 'tp.c.ear': ['სმენა და თეორია', 'Ear & theory'],
   'tp.listen': ['▶ მოსმენა', '▶ Listen'], 'tp.again': ['↻ თავიდან', '↻ Again'], 'tp.tap': ['შეეხე ნომერს — რა არის ეს ნაწილი', 'Tap a number to see what that part is'],
   'tp.ph.front': ['შენი ფანდური — წინიდან', 'Your panduri — from the front'], 'tp.ph.head': ['თავი: ღია ჭრილი, სამი ღერძი და მექანიკები (2 + 1)', 'Headstock: an open slot, three rollers and the tuners (2 + 1)'], 'tp.ph.body': ['დეკა, სახმო ხვრელი 26 პატარა ხვრელის წრით და ხიდი', 'Soundboard, the sound hole with its ring of 26 small holes, and the bridge'],
@@ -244,10 +245,214 @@ PD.tips = (() => {
     }
   };
 
+  /* ---------------- first steps: a seated player, hands, fingers, string numbers (drawn for the app) ---------------- */
+  const SKIN = '#E7BE98', CLOTH = '#3B2F29', WOOD = '#C98B5B', HL = '#8EF0B4';
+  const cap = (x, y, txt, i, n, dur, col) => '<g opacity="' + (M() ? 0 : i === 0 ? 1 : 0) + '">' + turn(i, n, dur) + '<text x="' + x + '" y="' + y + '" class="tp-cap" style="font-size:12px" fill="' + (col || C.ink) + '">' + txt + '</text></g>';
+  const glow = (shape, i, n, dur) => '<g opacity="' + (M() ? 0 : i === 0 ? 1 : 0) + '">' + turn(i, n, dur) + shape + '</g>';
+  /** the panduri across the body: body near the right hip, neck rising to the player's left (viewer's right) */
+  function panduri(ang) {
+    const a = ang == null ? -22 : ang;
+    return '<g transform="rotate(' + a + ' 150 92)"><rect x="168" y="88" width="122" height="8" rx="2" fill="' + C.board + '"/><rect x="288" y="86" width="20" height="12" rx="3" fill="#5A3826"/>' +
+      '<ellipse cx="150" cy="92" rx="26" ry="20" fill="' + WOOD + '" stroke="#7A4A2B" stroke-width="1.5"/><circle cx="160" cy="92" r="5.5" fill="#2A1A12"/><rect x="133" y="88" width="4" height="8" rx="1" fill="#E8DCC8"/>' +
+      [89.5, 92, 94.5].map(y => '<line x1="135" y1="' + y + '" x2="300" y2="' + y + '" stroke="' + C.str + '" stroke-width=".8" opacity=".9"/>').join('') + '</g>';
+  }
+  /** a seated player seen from the front; `extra` is drawn on top */
+  function player(extra, lhMove) {
+    let s = '<line x1="20" y1="142" x2="300" y2="142" stroke="rgba(255,240,228,.18)" stroke-width="2"/>';
+    s += '<rect x="122" y="40" width="76" height="62" rx="6" fill="rgba(255,240,228,.06)"/><rect x="116" y="100" width="88" height="7" rx="3" fill="#5A3826"/><line x1="122" y1="107" x2="122" y2="142" stroke="#5A3826" stroke-width="3"/><line x1="198" y1="107" x2="198" y2="142" stroke="#5A3826" stroke-width="3"/>';
+    s += '<path d="M143 106 L141 138 M177 106 L179 138" stroke="' + CLOTH + '" stroke-width="13" stroke-linecap="round"/><ellipse cx="139" cy="140" rx="11" ry="3.5" fill="#1C1512"/><ellipse cx="181" cy="140" rx="11" ry="3.5" fill="#1C1512"/>';
+    s += '<rect x="136" y="38" width="48" height="66" rx="14" fill="' + CLOTH + '"/><rect x="154" y="31" width="12" height="9" fill="' + SKIN + '"/><circle cx="160" cy="21" r="13" fill="' + SKIN + '"/><path d="M147 18 Q160 2 173 18" fill="#3A2416"/>';
+    s += panduri();
+    s += '<path d="M139 46 L124 78 L150 92" fill="none" stroke="' + CLOTH + '" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><circle cx="152" cy="92" r="6" fill="' + SKIN + '"/>';
+    s += '<g>' + (lhMove && M() ? '<animateTransform attributeName="transform" type="translate" values="0 0;0 0;14 -16;14 -16;0 0" keyTimes="0;.55;.65;.85;1" dur="6s" repeatCount="indefinite"/>' : '') + '<path d="M181 46 L206 70 L224 61" fill="none" stroke="' + CLOTH + '" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><circle cx="226" cy="60" r="6" fill="' + SKIN + '"/></g>';
+    return s + (extra || '');
+  }
+  Object.assign(ART, {
+    sit() {
+      const n = 4, d = 8;
+      let s = player(glow('<line x1="128" y1="42" x2="128" y2="100" stroke="' + HL + '" stroke-width="3" stroke-dasharray="4 4"/>', 0, n, d)
+        + glow('<ellipse cx="139" cy="140" rx="15" ry="6" fill="none" stroke="' + HL + '" stroke-width="2"/><ellipse cx="181" cy="140" rx="15" ry="6" fill="none" stroke="' + HL + '" stroke-width="2"/>', 1, n, d)
+        + glow('<path d="M265 70 A 30 30 0 0 0 262 44" fill="none" stroke="' + HL + '" stroke-width="2.4"/><text x="276" y="56" class="tp-cap" fill="' + HL + '">↗</text>', 2, n, d)
+        + glow('<circle cx="152" cy="92" r="14" fill="none" stroke="' + HL + '" stroke-width="2"/><circle cx="226" cy="60" r="12" fill="none" stroke="' + HL + '" stroke-width="2"/>', 3, n, d));
+      s += cap(62, 30, L(['წელი სწორი', 'Back straight']), 0, n, d, HL) + cap(62, 30, L(['ფეხები იატაკზე', 'Feet flat']), 1, n, d, HL) + cap(62, 30, L(['ტარი ოდნავ ზემოთ', 'Neck tilted up']), 2, n, d, HL) + cap(62, 30, L(['მხრები მოდუნებული', 'Shoulders loose']), 3, n, d, HL);
+      return svg(320, 150, s);
+    },
+    hold() {
+      const n = 3, d = 9;
+      let s = player(glow('<ellipse cx="150" cy="92" rx="30" ry="24" fill="none" stroke="' + HL + '" stroke-width="2.2"/>', 0, n, d)
+        + glow('<path d="M124 78 L150 92" stroke="' + HL + '" stroke-width="3" stroke-linecap="round"/>', 1, n, d)
+        + glow('<circle cx="236" cy="50" r="16" fill="none" stroke="' + HL + '" stroke-width="2" stroke-dasharray="3 3"/>', 2, n, d), true);
+      s += cap(64, 30, L(['ტანი სხეულს ეხება', 'Body against you']), 0, n, d, HL) + cap(64, 30, L(['მარჯვენა მკლავი აკავებს', 'Right arm holds it']), 1, n, d, HL) + cap(64, 30, L(['მარცხენა ხელი თავისუფალია', 'Left hand is free']), 2, n, d, HL);
+      return svg(320, 150, s);
+    },
+    hands() {
+      const n = 2, d = 6;
+      let s = player(glow('<circle cx="152" cy="92" r="16" fill="rgba(142,240,180,.14)" stroke="' + HL + '" stroke-width="2.2">' + pulse(1.2, 14, 18) + '</circle>', 0, n, d)
+        + glow('<circle cx="226" cy="60" r="14" fill="rgba(120,183,222,.16)" stroke="' + C.sC + '" stroke-width="2.2">' + pulse(1.2, 12, 16) + '</circle>', 1, n, d));
+      s += cap(64, 24, L(['მარჯვენა ხელი', 'Right hand']), 0, n, d, HL) + cap(64, 40, L(['უკრავს ↓ ↑', 'strums ↓ ↑']), 0, n, d, HL);
+      s += cap(64, 24, L(['მარცხენა ხელი', 'Left hand']), 1, n, d, C.sC) + cap(64, 40, L(['აჭერს ლადებზე', 'presses frets']), 1, n, d, C.sC);
+      return svg(320, 150, s);
+    },
+    /** looking down at the strings while holding: A nearest the face, E nearest the floor */
+    strokes() {
+      const ys = [40, 64, 88], lab = [['A', C.sA], ['C♯', C.sC], ['E', C.sE]], d = 3.2;
+      let s = '<rect x="40" y="26" width="200" height="76" rx="8" fill="rgba(201,139,91,.22)"/>';
+      ys.forEach((y, i) => { s += '<line x1="44" y1="' + y + '" x2="236" y2="' + y + '" stroke="' + C.str + '" stroke-width="' + (2.4 - i * .4) + '"/><circle cx="24" cy="' + y + '" r="9.5" fill="#100E0D" stroke="' + lab[i][1] + '" stroke-width="1.5"/><text x="24" y="' + (y + .5) + '" class="tp-lab" fill="' + lab[i][1] + '">' + lab[i][0] + '</text>'; });
+      s += '<text x="140" y="14" class="tp-num">' + L(['სახისკენ', 'toward your face']) + ' ↑</text><text x="140" y="116" class="tp-num">↓ ' + L(['იატაკისკენ', 'toward the floor']) + '</text>';
+      const mv = (from, to) => M() ? '<animateTransform attributeName="transform" type="translate" values="0 ' + from + ';0 ' + from + ';0 ' + to + ';0 ' + to + '" keyTimes="0;.1;.4;1" dur="' + (d / 2) + 's" repeatCount="indefinite"/>' : '';
+      // down: index finger, nail first
+      s += '<g opacity="' + (M() ? 0 : 1) + '">' + turn(0, 2, d) + '<g>' + mv(-6, 82) + '<rect x="128" y="0" width="22" height="34" rx="11" fill="' + SKIN + '"/><rect x="132" y="22" width="14" height="11" rx="5" fill="#F7E7DA" stroke="#C9A58A"/></g>' + arrow(270, 64, false, 26, C.ink, 4) + '<text x="270" y="108" class="tp-cap" fill="' + C.ink + '">' + L(['ჩამოკვრა', 'down']) + '</text></g>';
+      // up: thumb pad
+      s += '<g opacity="0">' + turn(1, 2, d) + '<g>' + mv(82, -6) + '<rect x="126" y="0" width="26" height="30" rx="13" fill="' + SKIN + '"/><path d="M131 6 Q139 -1 147 6" fill="none" stroke="#C9A58A" stroke-width="1.5"/></g>' + arrow(270, 64, true, 26, HL, 4) + '<text x="270" y="108" class="tp-cap" fill="' + HL + '">' + L(['ამოკვრა', 'up']) + '</text></g>';
+      return svg(320, 124, s);
+    },
+    /** left hand, palm toward you: 1 index · 2 middle · 3 ring · 4 little · T thumb (behind the neck) */
+    fingers() {
+      const F = [[1, 118, 26, 48], [2, 146, 14, 56], [3, 174, 20, 52], [4, 200, 38, 40]], n = 5, d = 7.5;
+      let s = '<rect x="104" y="72" width="112" height="62" rx="24" fill="' + SKIN + '"/>';
+      F.forEach(([k, x, y, hgt]) => { s += '<rect x="' + (x - 11) + '" y="' + y + '" width="22" height="' + (hgt + 20) + '" rx="11" fill="' + SKIN + '"/><circle cx="' + x + '" cy="' + (y + 14) + '" r="10" fill="' + fcol(k) + '" stroke="rgba(255,255,255,.6)" stroke-width="1.4"/><text x="' + x + '" y="' + (y + 14.5) + '" class="tp-fi">' + k + '</text>'; });
+      s += '<rect x="66" y="96" width="50" height="22" rx="11" fill="' + SKIN + '" transform="rotate(-28 110 110)"/><circle cx="80" cy="96" r="10" fill="#6B5A4E" stroke="rgba(255,255,255,.6)" stroke-width="1.4"/><text x="80" y="96.5" class="tp-fi">T</text>';
+      const nm = [['საჩვენებელი = 1', 'Index = 1'], ['შუა = 2', 'Middle = 2'], ['არათითი = 3', 'Ring = 3'], ['ნეკი = 4', 'Little = 4'], ['ცერი = T (ტარის უკან)', 'Thumb = T (behind the neck)']];
+      [[118, 40], [146, 28], [174, 34], [200, 52], [80, 96]].forEach(([x, y], i) => { s += glow('<circle cx="' + x + '" cy="' + y + '" r="15" fill="none" stroke="' + HL + '" stroke-width="2.4"/>', i, n, d); s += cap(270, 70, L(nm[i]).split(' = ')[0], i, n, d, HL) + cap(270, 90, '= ' + L(nm[i]).split(' = ')[1], i, n, d, HL); });
+      return svg(320, 140, s);
+    },
+    /** string numbers follow the string, not its place: held (A on top) and in the app (E on top) */
+    stringnum() {
+      const n = 3, d = 6;
+      const panel = (x0, title, order) => { let s = '<text x="' + (x0 + 60) + '" y="12" class="tp-cap">' + title + '</text><rect x="' + x0 + '" y="22" width="120" height="84" rx="8" fill="rgba(201,139,91,.18)"/>';
+        order.forEach(([nm, num, col], i) => { const y = 38 + i * 26; s += '<line x1="' + (x0 + 8) + '" y1="' + y + '" x2="' + (x0 + 112) + '" y2="' + y + '" stroke="' + col + '" stroke-width="' + (nm === 'A' ? 2.6 : nm === 'C♯' ? 2.1 : 1.6) + '"/><text x="' + (x0 + 24) + '" y="' + (y - 8) + '" class="tp-lab" fill="' + col + '">' + nm + '</text>';
+          s += '<g opacity="' + (M() ? 0 : 1) + '">' + (M() ? '<animate attributeName="opacity" values="0;0;1;1" keyTimes="0;' + ((num - 1) / n).toFixed(3) + ';' + ((num - 1) / n + .02).toFixed(3) + ';1" dur="' + d + 's" repeatCount="indefinite"/>' : '') + '<circle cx="' + (x0 + 92) + '" cy="' + y + '" r="10" fill="#100E0D" stroke="' + col + '" stroke-width="1.6"/><text x="' + (x0 + 92) + '" y="' + (y + .5) + '" class="tp-fi">' + num + '</text></g>'; });
+        return s; };
+      let s = panel(18, L(['ხელში (ზემოდან რომ დაიხედო)', 'In your hands (looking down)']), [['A', 3, C.sA], ['C♯', 2, C.sC], ['E', 1, C.sE]]);
+      s += panel(182, L(['აპის სურათზე', 'In the app']), [['E', 1, C.sE], ['C♯', 2, C.sC], ['A', 3, C.sA]]);
+      s += '<path d="M8 96 V40" stroke="' + HL + '" stroke-width="2" marker-end="url(#tpar)"/><defs><marker id="tpar" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="' + HL + '"/></marker></defs>';
+      s += '<text x="160" y="122" class="tp-cap" fill="' + HL + '">' + L(['1 = E · 2 = C♯ · 3 = A', '1 = E · 2 = C♯ · 3 = A']) + '</text>';
+      return svg(320, 132, s);
+    },
+    warmup() {
+      const dur = 2.4, F = [118, 146, 174, 200];
+      let s = '<rect x="104" y="80" width="112" height="56" rx="24" fill="' + SKIN + '"/>';
+      F.forEach((x, i) => { const h0 = [50, 58, 54, 42][i]; s += '<rect x="' + (x - 11) + '" y="' + (96 - h0) + '" width="22" height="' + (h0 + 14) + '" rx="11" fill="' + SKIN + '">' + (M() ? '<animate attributeName="height" values="' + (h0 + 14) + ';18;' + (h0 + 14) + '" dur="' + dur + 's" repeatCount="indefinite"/><animate attributeName="y" values="' + (96 - h0) + ';92;' + (96 - h0) + '" dur="' + dur + 's" repeatCount="indefinite"/>' : '') + '</rect>'; });
+      s += cap(268, 60, L(['გაშალე', 'Open']), 0, 2, dur, HL) + cap(268, 60, L(['მოკუმე', 'Close']), 1, 2, dur, HL) + '<text x="268" y="84" class="tp-num">×10</text>';
+      return svg(320, 140, s);
+    },
+    care() {
+      const n = 3, d = 9; let s = '';
+      // 1 wipe the strings
+      s += glow('<rect x="40" y="40" width="240" height="40" rx="6" fill="' + C.board + '"/>' + [52, 60, 68].map(y => '<line x1="44" y1="' + y + '" x2="276" y2="' + y + '" stroke="' + C.str + '" stroke-width="1.6"/>').join('') + '<rect x="50" y="34" width="44" height="52" rx="8" fill="#E9E1D6" opacity=".9">' + (M() ? '<animate attributeName="x" values="50;226;50" dur="3s" repeatCount="indefinite"/>' : '') + '</rect>' + '<text x="160" y="108" class="tp-cap" fill="' + HL + '">' + L(['დაკვრის მერე სიმები მშრალი ქსოვილით გაწმინდე', 'After playing, wipe the strings with a dry cloth']) + '</text>', 0, n, d);
+      // 2 case
+      s += glow('<rect x="90" y="30" width="140" height="56" rx="26" fill="#2A211C" stroke="' + WOOD + '" stroke-width="2"/><ellipse cx="128" cy="58" rx="26" ry="20" fill="' + WOOD + '" opacity=".6"/><rect x="150" y="54" width="70" height="8" rx="3" fill="' + C.board + '" opacity=".7"/><text x="160" y="108" class="tp-cap" fill="' + HL + '">' + L(['შეინახე ჩანთაში ან ბუდეში', 'Keep it in a bag or case']) + '</text>', 1, n, d);
+      // 3 heat / sun / damp
+      s += glow('<circle cx="100" cy="56" r="16" fill="#FFD27A"/>' + Array.from({ length: 8 }, (_, k) => { const a = k * Math.PI / 4; return '<line x1="' + (100 + Math.cos(a) * 21) + '" y1="' + (56 + Math.sin(a) * 21) + '" x2="' + (100 + Math.cos(a) * 28) + '" y2="' + (56 + Math.sin(a) * 28) + '" stroke="#FFD27A" stroke-width="2.4"/>'; }).join('') + '<rect x="190" y="34" width="44" height="44" rx="6" fill="none" stroke="' + C.acc + '" stroke-width="2.4"/><path d="M198 70 Q206 52 212 66 Q218 48 226 70" fill="none" stroke="' + C.acc + '" stroke-width="2.2"/><line x1="76" y1="84" x2="248" y2="28" stroke="' + C.acc + '" stroke-width="3.4" stroke-linecap="round"/><text x="160" y="108" class="tp-cap" fill="' + HL + '">' + L(['არა მზეზე, გამათბობელთან, ნესტში', 'Not in sun, by a heater or in damp']) + '</text>', 2, n, d);
+      return svg(320, 120, s);
+    },
+    /** the app's lanes: a line = a string, a number = the fret, 0 = open */
+    tab() {
+      const ys = [36, 60, 84], lab = [['E', C.sE], ['C♯', C.sC], ['A', C.sA]], notes = [[1, 0, 0], [2, 1, 1], [0, 2, 2], [1, 3, 3], [2, 0, 4]], d = 5;
+      let s = '';
+      ys.forEach((y, i) => { s += '<line x1="40" y1="' + y + '" x2="300" y2="' + y + '" stroke="rgba(255,240,228,.35)" stroke-width="1.6"/><circle cx="20" cy="' + y + '" r="9.5" fill="#100E0D" stroke="' + lab[i][1] + '" stroke-width="1.5"/><text x="20" y="' + (y + .5) + '" class="tp-lab" fill="' + lab[i][1] + '">' + lab[i][0] + '</text>'; });
+      s += '<line x1="70" y1="22" x2="70" y2="98" stroke="' + HL + '" stroke-width="2.4"/>';
+      s += '<g>' + (M() ? '<animateTransform attributeName="transform" type="translate" values="0 0;-240 0" dur="' + d + 's" repeatCount="indefinite"/>' : '') + notes.concat(notes.map(([st, f, k]) => [st, f, k + 5])).map(([st, f, k]) => '<rect x="' + (90 + k * 48 - 11) + '" y="' + (ys[st] - 11) + '" width="22" height="22" rx="6" fill="' + lab[st][1] + '"/><text x="' + (90 + k * 48) + '" y="' + (ys[st] + .5) + '" class="tp-fi" fill="#121317">' + f + '</text>').join('') + '</g>';
+      s += '<rect x="0" y="20" width="32" height="80" fill="none"/><text x="160" y="114" class="tp-cap">' + L(['ხაზი = სიმი · ციფრი = ლადი · 0 = ღია სიმი', 'line = string · number = fret · 0 = open']) + '</text>';
+      return svg(320, 124, s);
+    },
+    beat() {
+      const d = 2.4; let s = '';
+      [0, 1, 2, 3].forEach(i => { const x = 70 + i * 60; s += '<circle cx="' + x + '" cy="52" r="18" fill="rgba(255,240,228,.08)" stroke="rgba(255,240,228,.3)"/><g opacity="' + (M() ? 0 : i === 0 ? 1 : 0) + '">' + turn(i, 4, d) + '<circle cx="' + x + '" cy="52" r="22" fill="' + (i === 0 ? C.acc : WOOD) + '"/></g><text x="' + x + '" y="52.5" class="tp-big" style="font-size:16px" fill="#fff">' + (i + 1) + '</text>'; });
+      s += '<text x="160" y="100" class="tp-cap">' + L(['დარტყმა = თანაბარი პულსი, როგორც გულისცემა', 'The beat = an even pulse, like a heartbeat']) + '</text>';
+      return svg(320, 112, s);
+    },
+    pitch() {
+      const n = 2, d = 6; const wave = (k, a, col, w) => { let p = 'M30 56'; for (let x = 30; x <= 290; x += 2) p += ' L' + x + ' ' + (56 + Math.sin((x - 30) / 260 * Math.PI * 2 * k) * a).toFixed(1); return '<path d="' + p + '" fill="none" stroke="' + col + '" stroke-width="' + w + '"/>'; };
+      let s = glow(wave(2, 26, C.sA, 3.4), 0, n, d) + glow(wave(8, 14, C.sE, 2), 1, n, d);
+      s += cap(160, 104, L(['დაბალი ბგერა: ნელი, ფართო რხევა (A)', 'Low sound: slow, wide vibration (A)']), 0, n, d, C.sA) + cap(160, 104, L(['მაღალი ბგერა: ჩქარი, ვიწრო რხევა (E)', 'High sound: fast, narrow vibration (E)']), 1, n, d, C.sE);
+      return svg(320, 114, s);
+    },
+    chordwhat() {
+      const d = 6, nn = [['E', C.sE, 30], ['C♯', C.sC, 56], ['A', C.sA, 82]]; let s = '';
+      nn.forEach(([l, c, y], i) => { const k = 2 - i; s += '<g opacity="' + (M() ? 0 : 1) + '">' + (M() ? '<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;' + (k * .15).toFixed(2) + ';' + (k * .15 + .03).toFixed(2) + ';.92;1" dur="' + d + 's" repeatCount="indefinite"/>' : '') + '<circle cx="110" cy="' + y + '" r="12" fill="' + c + '"/><text x="110" y="' + (y + .5) + '" class="tp-lab" fill="#121317">' + l + '</text></g>'; });
+      s += '<g opacity="' + (M() ? 0 : 1) + '">' + (M() ? '<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.5;.53;.92;1" dur="' + d + 's" repeatCount="indefinite"/>' : '') + '<path d="M132 22 Q150 56 132 90" fill="none" stroke="' + HL + '" stroke-width="2.4"/><text x="210" y="50" class="tp-big" fill="' + HL + '">= A</text><text x="210" y="74" class="tp-cap">' + L(['მაჟორული აკორდი', 'major chord']) + '</text></g>';
+      s += '<text x="160" y="108" class="tp-cap">' + L(['აკორდი = რამდენიმე ნოტი ერთად', 'A chord = several notes together']) + '</text>';
+      return svg(320, 118, s);
+    },
+    dyn() {
+      const d = 6, L3 = [['p', 14, .4], ['mf', 24, .7], ['f', 34, 1]]; let s = '';
+      L3.forEach(([nm, r, o], i) => { const x = 80 + i * 80; s += '<circle cx="' + x + '" cy="50" r="' + r + '" fill="' + WOOD + '" opacity=".25"/><g opacity="' + (M() ? 0 : 1) + '">' + turn(i, 3, d) + '<circle cx="' + x + '" cy="50" r="' + r + '" fill="' + WOOD + '" opacity="' + o + '">' + pulse(.8, r * .85, r) + '</circle></g><text x="' + x + '" y="100" class="tp-big" style="font-style:italic;font-family:serif">' + nm + '</text>'; });
+      return svg(320, 116, s);
+    },
+    sync() {
+      const d = 3.2, lab = ['1', '&', '2', '&', '3', '&', '4', '&'], acc = [0, 1, 0, 1, 0, 0, 1, 0]; let s = '';
+      lab.forEach((l, i) => { const x = 34 + i * 36; s += '<text x="' + x + '" y="88" class="tp-cap" fill="' + (acc[i] ? C.acc : 'rgba(255,240,228,.6)') + '">' + l + '</text><rect x="' + (x - 12) + '" y="' + (acc[i] ? 22 : 46) + '" width="24" height="' + (acc[i] ? 44 : 20) + '" rx="6" fill="' + (acc[i] ? C.acc : 'rgba(255,240,228,.18)') + '"/><g opacity="0">' + turn(i, 8, d) + '<rect x="' + (x - 15) + '" y="16" width="30" height="80" rx="8" fill="none" stroke="' + HL + '" stroke-width="2"/></g>'; });
+      s += '<text x="160" y="110" class="tp-cap">' + L(['სინკოპა: ძლიერი დარტყმა „და“-ზე, თვლებს შორის', 'Syncopation: the strong stroke on “and”, between counts']) + '</text>';
+      return svg(320, 120, s);
+    },
+    triplet() {
+      const d = 3; let s = '<text x="80" y="18" class="tp-cap">' + L(['ერთ დარტყმაში 2', '2 in one beat']) + '</text><text x="240" y="18" class="tp-cap">' + L(['ერთ დარტყმაში 3', '3 in one beat']) + '</text>';
+      [[40, 120, 2], [200, 280, 3]].forEach(([a, b, k]) => { s += '<line x1="' + a + '" y1="70" x2="' + b + '" y2="70" stroke="rgba(255,240,228,.3)" stroke-width="2"/>'; for (let i = 0; i < k; i++) { const x = a + (b - a) * (i + .5) / k; s += '<circle cx="' + x + '" cy="52" r="11" fill="rgba(255,240,228,.15)"/><g opacity="0">' + turn(i, k, d * k / 3) + '<circle cx="' + x + '" cy="52" r="12" fill="' + (i ? WOOD : C.acc) + '"/></g>'; } });
+      s += '<text x="80" y="92" class="tp-cap">ტა-ტა</text><text x="240" y="92" class="tp-cap">ტრი-ო-ლი</text>';
+      return svg(320, 104, s);
+    },
+    transpose() {
+      const N = neck(5, 320, { dots: false, nums: true, labels: false }), steps = [[0, 'A'], [2, 'B'], [3, 'C']], n = 3, d = 7.5; let s = N.s;
+      steps.forEach(([f, nm], i) => { const x = f ? N.contact(f) : N.x0 - 14; s += '<g opacity="' + (M() ? 0 : i === 0 ? 1 : 0) + '">' + turn(i, n, d) + (f ? '<rect x="' + (x - 9) + '" y="' + (N.sy[3] - 10) + '" width="18" height="' + (N.sy[1] - N.sy[3] + 20) + '" rx="9" fill="' + fcol(1) + '" stroke="rgba(255,255,255,.6)" stroke-width="1.4"/><text x="' + x + '" y="' + (N.sy[2] + .5) + '" class="tp-fi">1</text>' : [1, 2, 3].map(k => '<circle cx="' + x + '" cy="' + N.sy[k] + '" r="7.5" fill="#F4F2EE"/><text x="' + x + '" y="' + (N.sy[k] + .5) + '" class="tp-fi" fill="#121317">0</text>').join('')) + '<text x="' + (N.x1 - 6) + '" y="10" class="tp-cap" text-anchor="end" fill="' + HL + '">' + (f ? f + ' ' + L(['ლადი', 'fret']) + ' → ' : L(['ღია', 'open']) + ' → ') + nm + '</text></g>'; });
+      return svg(320, 120, s);
+    },
+    inversion() {
+      const d = 7.5, orders = [['A', 'C♯', 'E'], ['C♯', 'E', 'A'], ['E', 'A', 'C♯']], col = { A: C.sA, 'C♯': C.sC, E: C.sE }, nm = [['ძირითადი', 'Root position'], ['1-ლი მიქცევა', '1st inversion'], ['მე-2 მიქცევა', '2nd inversion']]; let s = '';
+      orders.forEach((o, i) => { s += '<g opacity="' + (M() ? 0 : i === 0 ? 1 : 0) + '">' + turn(i, 3, d) + o.map((l, k) => '<circle cx="160" cy="' + (88 - k * 28) + '" r="13" fill="' + col[l] + '"/><text x="160" y="' + (88 - k * 28 + .5) + '" class="tp-lab" fill="#121317">' + l + '</text>').join('') + '<text x="250" y="60" class="tp-cap" fill="' + HL + '">' + L(nm[i]) + '</text><text x="70" y="60" class="tp-cap">' + L(['ქვემოთ: ', 'bottom: ']) + o[0] + '</text></g>'; });
+      return svg(320, 110, s);
+    }
+  });
+
   /* ---------------- the cards ---------------- */
   // [id, category, source, art, title, in short, steps[], why, try-it]
   const T = (id, cat, src, art, title, short, steps, why, go) => ({ id, cat, src, art, title, short, steps, why, go });
   const BUILT = [
+    /* ---- first steps (Learn starts here). Sitting, holding and which finger strums are written for the app and are
+       drafts until the teacher checks them in Author Studio; finger numbers and care are general for fretted instruments. ---- */
+    T('sit', 'start', 'draft', 'sit', ['როგორ დავჯდეთ', 'How to sit'], ['დაჯექი სკამის წინა ნაწილზე, სახელურების გარეშე. წელი სწორი, ფეხები იატაკზე, მხრები მოდუნებული.', 'Sit near the front of a chair without armrests. Back straight, feet flat on the floor, shoulders relaxed.'],
+      [['აირჩიე მყარი სკამი სახელურების გარეშე — სავარძელი და დივანი არ გამოდგება.', 'Choose a firm chair without armrests — not an armchair or sofa.'], ['დაჯექი სკამის წინა ნახევარზე, ზურგს ნუ მიაყრდნობ.', 'Sit on the front half of the seat; don\'t lean back.'], ['ორივე ფეხი მთლიანად იატაკზე, მუხლები დაახლოებით მართი კუთხით.', 'Both feet flat on the floor, knees at about a right angle.'], ['წელი სწორი, მაგრამ არა დაჭიმული. თავი წინ ნუ გადაგიწევს.', 'Back straight but not stiff. Don\'t push your head forward.'], ['მხრები დაუშვი და მოადუნე — ჩაისუნთქე და ამოისუნთქე.', 'Let your shoulders drop and relax — breathe in and out.']],
+      ['სწორად დამჯდარს ხელები თავისუფლად მოძრაობს და დიდხანს არ იღლება.', 'Sitting well keeps the hands free and stops you tiring quickly.'], null),
+    T('hold', 'start', 'draft', 'hold', ['როგორ დავიჭიროთ ფანდური', 'How to hold the panduri'], ['ფანდურის ტანი ეხება შენს სხეულს, მარჯვენა მკლავი ზემოდან აკავებს, ტარი შენგან მარცხნივ და ოდნავ ზემოთაა მიმართული.', 'The body rests against you, the right arm holds it from above, the neck points to your left and slightly up.'],
+      [['ფანდურის ტანი დაადე მარჯვენა ბარძაყზე / მუცელთან, დეკა (სახე) შენგან გარეთ.', 'Rest the body on your right thigh / against your belly, the soundboard facing out.'], ['ტარი მიმართე მარცხნივ და ოდნავ ზემოთ — თავი დაახლოებით მხრის სიმაღლეზე.', 'Point the neck to the left and slightly up — the head at about shoulder height.'], ['მარჯვენა წინამხარი ზემოდან დაადე ტანის კიდეს — ის აკავებს ინსტრუმენტს.', 'Lay the right forearm over the edge of the body — it holds the instrument.'], ['მარცხენა ხელი ტარს მხოლოდ ეხება, არ ეკიდება. შეამოწმე: ხელი რომ აუშვა, ფანდური არ უნდა ჩამოვარდეს.', 'The left hand only touches the neck, it does not carry it. Check: if you let go, the panduri should not fall.'], ['დეკა ნუ დახარე შენკენ ზემოთ — სიმებს ზემოდან რომ უყურებ, ეს ბუნებრივია, მაგრამ სწორად დაჭერისას ოდნავ გადაიხედავ.', 'Don\'t tilt the soundboard up toward you to see the strings — just glance over it.']],
+      ['როცა ინსტრუმენტი თავისით დგას, ორივე ხელი დაკვრისთვის თავისუფალია.', 'When the instrument stays put by itself, both hands are free to play.'], null),
+    T('hands', 'start', 'draft', 'hands', ['რომელი ხელი რას აკეთებს', 'Which hand does what'], ['მარჯვენა ხელი უკრავს სიმებს (ჩამოკვრა ↓ და ამოკვრა ↑). მარცხენა ხელი თითებით აჭერს სიმებს ლადებზე.', 'The right hand strums the strings (down ↓ and up ↑). The left hand presses the strings on the frets.'],
+      [['მარჯვენა ხელი: სიმებს ეხება სახმო ხვრელსა და ტარის ბოლოს შორის.', 'Right hand: plays between the sound hole and the end of the fingerboard.'], ['მარცხენა ხელი: თითის წვერებით აჭერს სიმებს ტარზე — ასე იცვლება ნოტი.', 'Left hand: presses strings on the neck with the fingertips — that changes the note.'], ['მარცხენა ცერი ტარის უკან დევს, დაახლოებით შუა თითის პირდაპირ.', 'The left thumb rests behind the neck, roughly opposite the middle finger.'], ['ცაცია ხარ? ზოგი პირიქით უკრავს (ტარი მარჯვნივ) — ამაზე მასწავლებელს ჰკითხე. აპში პარამეტრებში „ცაციას რეჟიმი“ ეკრანს სარკისებრად აბრუნებს.', 'Left-handed? Some play the other way round (neck to the right) — ask your teacher. In the app, Settings › Left-handed mirrors the screen.']],
+      null, null),
+    T('strokes', 'start', 'draft', 'strokes', ['ჩამოკვრა და ამოკვრა: რომელი თითით', 'Down and up strokes: which finger'], ['ჩამოკვრა ↓ — საჩვენებელი თითის ფრჩხილის ზურგით, ზემოდან ქვემოთ (A → C♯ → E). ამოკვრა ↑ — ცერა თითის ბალიშით, ქვემოდან ზემოთ (E → C♯ → A).', 'Down ↓ — with the back of the index fingernail, from top to bottom (A → C♯ → E). Up ↑ — with the pad of the thumb, from bottom to top (E → C♯ → A).'],
+      [['ზემოდან რომ დაიხედო: A (ყველაზე სქელი) სახესთან ყველაზე ახლოსაა, E — იატაკთან.', 'Looking down: A (the thickest) is nearest your face, E is nearest the floor.'], ['ჩამოკვრა: საჩვენებელი თითი ოდნავ მოხარე და ფრჩხილით ჩამოუსვი სამივე სიმს.', 'Down: curl the index finger a little and brush all three strings with the nail.'], ['ამოკვრა: ცერა თითის ბალიშით ამოუსვი ქვემოდან ზემოთ.', 'Up: brush from bottom to top with the pad of the thumb.'], ['ზოგი მასწავლებელი ამოკვრას საჩვენებელი თითის ბალიშით ასწავლის, ზოგი ჩამოკვრას რამდენიმე თითით — დააზუსტე შენს მასწავლებელთან.', 'Some teachers do the up-stroke with the index finger pad, or the down-stroke with several fingers — check with your teacher.'], ['მოძრაობა მაჯიდან, ხელი მოდუნებული.', 'Move from the wrist, keep the hand loose.']],
+      ['აპში ↓ ლურჯი ისარი = ჩამოკვრა, ↑ = ამოკვრა, წითელი = აქცენტი (უფრო ძლიერი).', 'In the app ↓ = down, ↑ = up, red = accent (stronger).'], { route: 'rhythms', label: ['რითმები', 'Rhythms'] }),
+    T('fingers', 'start', 'general', 'fingers', ['თითების ნომრები (5 თითი)', 'Finger numbers (5 fingers)'], ['მარცხენა ხელი: 1 = საჩვენებელი, 2 = შუა, 3 = არათითი, 4 = ნეკი. ცერს ნომერი არ აქვს (T) — ის ტარის უკანაა. 0 = ღია სიმი (არცერთი თითი).', 'Left hand: 1 = index, 2 = middle, 3 = ring, 4 = little. The thumb has no number (T) — it is behind the neck. 0 = open string (no finger).'],
+      [['აპში და აკორდის სურათებზე წრეში ჩაწერილი ციფრი = რომელი თითით დააჭირო.', 'In the app and on chord pictures the number in a circle = which finger to press with.'], ['ჩვეულებრივ ერთი თითი = ერთი ლადი: 1-ლი თითი 1-ლ ლადზე, მე-2 — მე-2-ზე და ა.შ.', 'Usually one finger = one fret: finger 1 on fret 1, finger 2 on fret 2, and so on.'], ['თეთრი წრე „0“ = სიმი ღიაა, დაუკარი დაჭერის გარეშე.', 'A white circle “0” = open string, play it without pressing.'], ['რთული: კლასიკურ გიტარაზე მარჯვენა ხელის თითებს ასოებით აღნიშნავენ: p ცერი, i საჩვენებელი, m შუა, a არათითი.', 'Harder: on classical guitar the right-hand fingers are letters: p thumb, i index, m middle, a ring.']],
+      ['თითის ნომერი გეუბნება, რომელი თითით დააჭირო — ასე ხელი ნაკლებად მოძრაობს და აკორდებზე გადასვლა ადვილია.', 'The finger number tells you which finger to use — the hand moves less and chord changes get easier.'], { route: 'chords', label: ['აკორდები', 'Chords'] }),
+    T('stringnum', 'start', 'draft', 'stringnum', ['სიმების ნომრები: 1 · 2 · 3', 'String numbers: 1 · 2 · 3'], ['ზოგადი წესით (როგორც გიტარაზე) ითვლი ქვემოდან ზემოთ — იატაკთან ყველაზე ახლო სიმიდან: 1 = E (ყველაზე წვრილი და მაღალი), 2 = C♯ (შუა), 3 = A (ყველაზე სქელი და დაბალი).', 'By the general rule (as on the guitar) you count from the bottom up — from the string nearest the floor: 1 = E (thinnest, highest), 2 = C♯ (middle), 3 = A (thickest, lowest).'],
+      [['ფანდური ხელში დაიჭირე და ზემოდან დაიხედე: ზემოთ A, შუაში C♯, ქვემოთ E.', 'Hold the panduri and look down: A on top, C♯ in the middle, E at the bottom.'], ['დაითვალე ქვემოდან: E = 1, C♯ = 2, A = 3.', 'Count from the bottom: E = 1, C♯ = 2, A = 3.'], ['აპის სურათზე ტარი ისე ჩანს, როგორც ტაბში: E ზემოთაა. ნომერი მაინც იგივეა — ნომერი მიჰყვება სიმს და არა ადგილს.', 'In the app\'s picture the neck is drawn like a tab: E is on top. The number stays the same — it follows the string, not its place.'], ['სიმს სახელითაც ვეძახით: „A სიმი“, „C♯ სიმი“, „E სიმი“ — ასე არასოდეს აგერევა.', 'We also call strings by name: “the A string”, “the C♯ string”, “the E string” — then you never mix them up.'], ['ზოგი სიმებს პირიქით ითვლის (ზემოდან). შენი მასწავლებლის წესს მიჰყევი.', 'Some count the other way (from the top). Follow your teacher\'s rule.']],
+      ['მასწავლებელი რომ გეტყვის „მე-2 სიმი, მე-3 ლადი“, მაშინვე უნდა იცოდე სად დააჭირო.', 'When the teacher says “string 2, fret 3”, you should know right away where to press.'], { route: 'tuner', label: ['ტიუნერი: სიმების მოსმენა', 'Tuner: hear the strings'] }),
+    T('warmup', 'start', 'general', 'warmup', ['ხელების გახურება', 'Warm up your hands'], ['დაკვრამდე 1–2 წუთი: გაშალე და მოკუმე ხელები, დაატრიალე მაჯები.', 'Before playing, 1–2 minutes: open and close your hands, roll your wrists.'],
+      [['10-ჯერ ნელა მოკუმე და გაშალე თითები.', 'Slowly close and open your fingers 10 times.'], ['მაჯები დაატრიალე წრიულად — 5-ჯერ ერთ მხარეს, 5-ჯერ მეორეზე.', 'Roll your wrists — 5 times each way.'], ['თითოეული თითით შეეხე ცერს: 1-2-3-4 და უკან.', 'Touch each finger to the thumb: 1-2-3-4 and back.'], ['ტკივილი არ უნდა იყოს — მხოლოდ მსუბუქი გაჭიმვა.', 'No pain — only a gentle stretch.']], null, null),
+    T('care', 'start', 'general', 'care', ['როგორ მოვუაროთ ინსტრუმენტს', 'Caring for the instrument'], ['ხის ინსტრუმენტს სიცხე, სიცივე და ნესტი აზიანებს. სუფთა ხელები, ბუდე და მშრალი ქსოვილი — ეს საკმარისია.', 'Heat, cold and damp harm a wooden instrument. Clean hands, a case and a dry cloth are enough.'],
+      [['დაკვრამდე ხელები დაიბანე და გაიმშრალე.', 'Wash and dry your hands before playing.'], ['დაკვრის მერე სიმები და ტარი მშრალი, რბილი ქსოვილით გაწმინდე.', 'After playing, wipe the strings and neck with a soft dry cloth.'], ['შეინახე ჩანთაში ან ბუდეში. ნუ დატოვებ მანქანაში, მზეზე, გამათბობელთან ან ნესტიან ოთახში.', 'Keep it in a bag or case. Not in a car, in the sun, by a heater or in a damp room.'], ['აიღე ტარით და ტანით ერთად — ინსტრუმენტი მხოლოდ თავით ნუ აიღე.', 'Pick it up by the neck and body together — never by the head alone.'], ['სიმები დროთა განმავლობაში ძველდება: ბგერა თუ მოყრუვდა ან აწყობა აღარ ჩერდება, შეცვლის დროა.', 'Strings wear out: when the sound gets dull or the tuning won\'t hold, it\'s time to change them.'], ['ახალი სიმები პირველ დღეებში ხშირად იწელება — ხშირად ააწყვე.', 'New strings stretch in the first days — tune often.']],
+      null, { route: 'tuner', label: ['ტიუნერი', 'Tuner'] }),
+    /* ---- music basics (facts of music theory and of the app) ---- */
+    T('tab', 'basics', 'fact', 'tab', ['როგორ წავიკითხოთ აპის ზოლები', 'How to read the app\'s lanes'], ['სამი ხაზი = სამი სიმი (E · C♯ · A). ციფრი ხაზზე = რომელ ლადზე დააჭირო. 0 = ღია სიმი. როცა ციფრი მწვანე ხაზს მიაღწევს — დაუკარი.', 'Three lines = three strings (E · C♯ · A). A number on a line = which fret to press. 0 = open string. When the number reaches the green line — play.'],
+      [['ჯერ ნახე რომელ ხაზზეა ციფრი — ეს სიმია.', 'First see which line the number is on — that is the string.'], ['მერე თავად ციფრი — ეს ლადია.', 'Then the number itself — that is the fret.'], ['ნელ ტემპზე დაიწყე, აპი დაგელოდება.', 'Start slowly; the app will wait for you.']], null, { route: 'practice', label: ['სავარჯიშოები', 'Exercises'] }),
+    T('beat', 'basics', 'fact', 'beat', ['რა არის დარტყმა (ბითი)', 'What is the beat'], ['დარტყმა მუსიკის თანაბარი პულსია — ის, რასაც ფეხით აყოლებ. 1 2 3 4 · 1 2 3 4…', 'The beat is the even pulse of music — what you tap your foot to. 1 2 3 4 · 1 2 3 4…'],
+      [['ჩართე ნებისმიერი სიმღერა და ფეხით აყევი.', 'Put on any song and tap your foot along.'], ['ხმამაღლა დაითვალე 1-დან 4-მდე და თავიდან.', 'Count aloud 1 to 4 and again.'], ['„1“ ჩვეულებრივ ყველაზე ძლიერია.', '“1” is usually the strongest.']], null, { route: 'metronome', label: ['მეტრონომი', 'Metronome'] }),
+    T('pitch', 'basics', 'fact', 'pitch', ['მაღალი და დაბალი ბგერა', 'High and low sounds'], ['სიმი რხევით ჟღერს. რაც უფრო ჩქარა ირხევა, მით მაღალია ბგერა. A — დაბალი, E — მაღალი. ლადზე დაჭერა სიმს ამოკლებს და ბგერას ამაღლებს.', 'A string sounds by vibrating. The faster it vibrates, the higher the sound. A is low, E is high. Pressing a fret shortens the string and raises the sound.'],
+      [['დაუკარი ღია A, მერე ღია E — შეადარე.', 'Play open A, then open E — compare.'], ['A სიმზე ნელა აიწიე ლადებით ზემოთ: 1, 2, 3… ბგერა მაღლდება.', 'Walk up the A string fret by fret: 1, 2, 3… the sound rises.']], null, { route: 'tuner', label: ['ტიუნერი', 'Tuner'] }),
+    T('chordwhat', 'basics', 'fact', 'chordwhat', ['რა არის აკორდი', 'What is a chord'], ['აკორდი = რამდენიმე ნოტი ერთდროულად. ფანდურის სამი ღია სიმი A · C♯ · E თავისთავად A მაჟორული აკორდია.', 'A chord = several notes at once. The panduri\'s three open strings A · C♯ · E are already an A major chord.'],
+      [['ჩამოკარი სამივე ღია სიმი — ეს A აკორდია.', 'Strum all three open strings — that is an A chord.'], ['თითებით დაჭერისას ნოტები იცვლება და სხვა აკორდი გამოდის.', 'Pressing frets changes the notes and makes another chord.'], ['მაჟორი ხშირად „მხიარულად“ ჟღერს, მინორი (მაგ. Dm) — „სევდიანად“.', 'Major often sounds “happy”, minor (e.g. Dm) “sad”.']], null, { route: 'chords', label: ['აკორდები', 'Chords'] }),
+    /* ---- harder theory ---- */
+    T('dyn', 'deep', 'fact', 'dyn', ['დინამიკა: ჩუმად და ხმამაღლა', 'Dynamics: soft and loud'], ['p (პიანო) = ჩუმად, mf (მეცო-ფორტე) = საშუალოდ, f (ფორტე) = ხმამაღლა. სიმღერა ცოცხლდება, როცა ხმამაღლობა იცვლება.', 'p (piano) = soft, mf (mezzo-forte) = medium, f (forte) = loud. Music comes alive when the loudness changes.'],
+      [['ერთი და იგივე რითმი დაუკარი p-ზე, მერე f-ზე.', 'Play the same rhythm at p, then at f.'], ['ტემპი არ შეცვალო — მხოლოდ ძალა.', 'Don\'t change the tempo — only the force.'], ['pp და ff = ძალიან ჩუმად / ძალიან ხმამაღლა. < = თანდათან ხმამაღლა, > = თანდათან ჩუმად.', 'pp and ff = very soft / very loud. < = gradually louder, > = gradually softer.']], null, null),
+    T('sync', 'deep', 'fact', 'sync', ['სინკოპა', 'Syncopation'], ['როცა ძლიერი დარტყმა თვლაზე კი არა, თვლებს შორის („და“-ზე) მოდის — ეს სინკოპაა. პოპ-რითმი ↓ ↓↑ ↑↓↑ სწორედ ასეა.', 'When the strong stroke falls between counts (on “and”) instead of on them — that is syncopation. The pop strum ↓ ↓↑ ↑↓↑ works that way.'],
+      [['თვალე: 1 და 2 და 3 და 4 და.', 'Count: 1 and 2 and 3 and 4 and.'], ['ტაში დაუკარი მხოლოდ „და“-ებზე.', 'Clap only on the “and”s.'], ['ხელი მაინც თანაბრად იქნიე ზემოთ-ქვემოთ — ზოგჯერ სიმს არ ეხება.', 'Keep the hand swinging evenly — sometimes it misses the strings on purpose.']], null, { route: 'rhythm', param: 'g-pop', label: ['პოპ-რითმი', 'Pop strum'] }),
+    T('triplet', 'deep', 'fact', 'triplet', ['ტრიოლი და 6/8', 'Triplets and 6/8'], ['ტრიოლი = ერთ დარტყმაში სამი თანაბარი ნოტი (ტრი-ო-ლი). 6/8 ზომაში ტაქტი ორ ჯგუფად იყოფა: 1-2-3 4-5-6.', 'A triplet = three even notes in one beat (tri-pu-let). In 6/8 a bar splits into two groups: 1-2-3 4-5-6.'],
+      [['თქვი „ტა-ტა“ ერთ დარტყმაში, მერე „ტრი-ო-ლი“.', 'Say “ta-ta” in one beat, then “tri-pu-let”.'], ['შაფლი (სვინგი) ტრიოლიდან მოდის: გრძელი-მოკლე.', 'The shuffle (swing) comes from triplets: long-short.']], null, { route: 'rhythm', param: 'g-68', label: ['ბალადა 6/8', '6/8 ballad'] }),
+    T('transpose', 'deep', 'fact', 'transpose', ['ტრანსპოზიცია: აკორდის გადატანა', 'Transposing: moving a chord'], ['თუ სამივე სიმს ერთნაირად აწევ — ბგერა იმდენი ნახევარტონით მაღლდება, რამდენი ლადიც აიწიე. ღია = A, ყველა მე-2 ლადზე = B, მე-3-ზე = C.', 'Raise all three strings by the same number of frets and the chord rises by that many semitones. Open = A, all at fret 2 = B, at fret 3 = C.'],
+      [['დაუკარი ღია სიმები (A).', 'Play the open strings (A).'], ['1-ლი თითი გაშალე სამივე სიმზე მე-2 ლადზე (ბარე) — ეს B-ა.', 'Lay finger 1 across all three strings at fret 2 (a barre) — that is B.'], ['ასე სიმღერა შენს ხმას მოარგე: ყველა აკორდი ერთნაირად გადაიტანე.', 'This is how you fit a song to your voice: move every chord by the same amount.']], null, { route: 'chords', label: ['აკორდები', 'Chords'] }),
+    T('inversion', 'deep', 'fact', 'inversion', ['აკორდის მიქცევები', 'Chord inversions'], ['ერთი აკორდის ნოტები შეიძლება სხვადასხვა რიგით დალაგდეს: A-C♯-E, C♯-E-A, E-A-C♯. აკორდი იგივეა, ფერი ცოტა სხვაა.', 'A chord\'s notes can be stacked in different orders: A-C♯-E, C♯-E-A, E-A-C♯. Same chord, slightly different colour.'],
+      [['ქვედა ნოტი განსაზღვრავს მიქცევას.', 'The lowest note decides the inversion.'], ['ტარის სხვადასხვა ადგილზე ერთი და იგივე აკორდის სხვა მიქცევას იპოვი.', 'At different places on the neck you find other inversions of the same chord.']], null, { route: 'chords', label: ['აკორდები', 'Chords'] }),
     T('parts', 'inst', 'fact', null, ['გაიცანი შენი ფანდური', 'Meet your panduri'], ['ნაწილები შენი ინსტრუმენტის ფოტოებზე: თავი, მექანიკები, ტარი, ლადები, დეკა, ხიდი.', 'The parts on photos of your own instrument: headstock, tuners, neck, frets, soundboard, bridge.'], [], null, { route: 'explore', label: ['3D ტური', '3D tour'] }),
     T('tune', 'inst', 'fact', 'tune', ['აწყობა: A · C♯ · E', 'Tuning: A · C♯ · E'], ['ყოველ ჯერზე, დაკვრამდე — აწყობილი ფანდური ნახევარ სამუშაოს აკეთებს.', 'Every time, before you play — an in-tune panduri does half the work.'],
       [['გახსენი ტიუნერი და დაუკარი ერთი ღია სიმი.', 'Open the tuner and play one open string.'], ['ისარი შუაში უნდა დადგეს და გამწვანდეს.', 'The needle should settle in the middle and turn green.'], ['მერე მეორე და მესამე სიმი. ბოლოს ისევ შეამოწმე პირველი.', 'Then the second and third string. Finally check the first again.']],
@@ -316,7 +521,7 @@ PD.tips = (() => {
     const custom = Object.keys(E).filter(k => E[k] && E[k].custom).map(k => ({ id: k, cat: E[k].cat || 'practice', src: 'teacher', art: null, title: [E[k].title || '', E[k].title || ''], short: [E[k].short || '', E[k].short || ''], steps: (E[k].steps || []).map(s => [s, s]), why: E[k].why ? [E[k].why, E[k].why] : null, go: null, hidden: !!E[k].hide }));
     return BUILT.map(merge).concat(custom).filter(c => withHidden || !c.hidden);
   }
-  const CATS = ['inst', 'left', 'right', 'chords', 'rhythm', 'practice', 'ear'];
+  const CATS = ['start', 'basics', 'inst', 'left', 'right', 'chords', 'rhythm', 'practice', 'ear', 'deep'];
   const badge = c => h('span', { class: 'tp-src ' + c.src, text: t('tp.src.' + c.src) });
 
   /* ---------------- the photo guide (your own instrument) ---------------- */
@@ -356,6 +561,11 @@ PD.tips = (() => {
         const acts = h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap' });
         if (c.art) acts.append(h('button', { class: 'btn small', text: t('tp.again'), onclick: () => { artBox.innerHTML = ART[c.art](); } }));
         if (c.id === 'rhythm' || c.art === 'strum' || c.art === 'accent') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: playRhythm }));
+        if (c.id === 'chordwhat') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; [0, 1, 2].forEach(k => PD.audio.note(k + 1, 0, { when: t0 + k * .45 })); PD.audio.strum([0, 0, 0], 'down', { when: t0 + 1.5 }); } }));
+        if (c.id === 'pitch') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; PD.audio.note(1, 0, { when: t0 }); PD.audio.note(3, 0, { when: t0 + .8 }); } }));
+        if (c.id === 'transpose') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; [0, 2, 3].forEach((f, i) => PD.audio.strum([f, f, f], 'down', { when: t0 + i * .9 })); } }));
+        if (c.id === 'dyn') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; [.18, .5, 1].forEach((v, i) => PD.audio.strum([0, 0, 0], 'down', { when: t0 + i * .8, vel: v })); } }));
+        if (c.id === 'beat') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; for (let i = 0; i < 8; i++) PD.audio.click(t0 + i * .6, i % 4 === 0); } }));
         if (c.id === 'octave') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; PD.audio.note(1, 0, { when: t0 }); PD.audio.note(1, 12, { when: t0 + .7 }); } }));
         if (c.id === 'semitone') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; for (let f = 0; f <= 12; f++) PD.audio.note(1, f, { when: t0 + f * .32, vel: .7 }); } }));
         if (acts.childNodes.length) w.append(acts);

@@ -10,6 +10,9 @@
    ===================================================================== */
 PD.i18n.add({
   'nav.rhythms': ['რიტმები', 'Rhythms'], 'rh.lead': ['მარჯვენა ხელის რიტმები — მასწავლებლის მიერ მოწოდებული.', 'Right-hand rhythms — supplied by the teacher.'],
+  'rh.teacherSec': ['ფანდურის რითმები (მასწავლებლისგან)', 'Panduri rhythms (from the teacher)'], 'rh.commonSec': ['ცნობილი რითმები', 'Famous rhythms'],
+  'rh.commonD': ['ზოგადი რითმები, რომლებიც გიტარიდან და პოპულარული მუსიკიდანაა ცნობილი. დალაგებულია მარტივიდან რთულისკენ. ციფრი = დათვლა (1 2 3 4), „&“ = „და“ ორ დათვლას შორის.', 'General strumming patterns known from the guitar and popular music, easy to hard. A number = the count (1 2 3 4), “&” = “and” between two counts.'],
+  'rh.gen': ['ზოგადი · გიტარიდან ცნობილი', 'General · known from guitar'], 'rh.genNote': ['ეს არ არის მასწავლებლის რითმი — ზოგადი, ცნობილი ნიმუშია. ისრის ზემოთ წერია, სად ეცემა დარტყმა თვლაში. სადაც თვლა გამოტოვებულია, ხელი მაინც მოძრაობს ჰაერში, სიმს არ ეხება.', 'This is not the teacher\'s rhythm — it is a general, well-known pattern. Above each arrow is where the stroke falls in the count. Where a count is skipped the hand still moves in the air without touching the strings.'],
   'rh.teacher': ['მასწავლებლის მონაცემი', "Teacher's data"], 'rh.usage': ['გამოიყენება: {u}', 'Used in: {u}'], 'rh.strokes': ['{n} დარტყმა', '{n} strokes'],
   'rh.accent': ['აქცენტი', 'Accent'], 'rh.stroke': ['დარტყმა {a} / {b}', 'Stroke {a} / {b}'], 'rh.normal': ['ჩვეულებრივი', 'Normal'], 'rh.now': ['ახლა', 'Now'], 'rh.next': ['შემდეგი', 'Next'],
   'rh.listen': ['▶ მოსმენა', '▶ Listen'], 'rh.stop': ['■ გაჩერება', '■ Stop'], 'rh.tempo': ['ტემპი', 'Tempo'], 'rh.hold': ['როგორც ხელში გიჭირავს: A ზემოთ, E ქვემოთ', 'As you hold it: A on top, E below'],
@@ -31,31 +34,43 @@ PD.rhythmsUI = (() => {
     const s = size || 56, w = acc ? 7 : 3.2, col = acc ? RED : BLUE, L = acc ? s * .42 : s * .3, cx = s / 2, cy = s / 2, d = dir === 'down' ? 1 : -1;
     return '<svg viewBox="0 0 ' + s + ' ' + s + '" width="' + s + '" height="' + s + '" aria-hidden="true"><path d="M' + cx + ' ' + (cy - d * L) + 'L' + cx + ' ' + (cy + d * L) + 'M' + (cx - L * .55) + ' ' + (cy + d * L * .35) + 'L' + cx + ' ' + (cy + d * L) + 'L' + (cx + L * .55) + ' ' + (cy + d * L * .35) + '" fill="none" stroke="' + col + '" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
+  /** where each stroke falls in the count: 1 · & · 2 … (only for rhythms whose timing is part of the pattern) */
+  function counts(r) {
+    if (!r.timing || r.timing.src !== 'general') return null;
+    if (r.eighths) { let at = 0; return r.timing.durations.map(d => { const n = Math.round(at * 2) + 1; at += d; return String(n); }); }
+    const sub = r.timing.durations.some(d => Math.abs(d * 4 - Math.round(d * 4)) > 1e-3) ? 3 : r.timing.durations.some(d => Math.abs(d * 2 - Math.round(d * 2)) > 1e-3) ? 4 : 2;
+    const SYL = { 2: ['', '&'], 3: ['', '&', 'a'], 4: ['', 'e', '&', 'a'] }[sub];
+    let at = 0; return r.timing.durations.map(d => { const b = Math.floor(at + 1e-6), k = Math.round((at - b) * sub); at += d; return k ? SYL[k] : String(b + 1); });
+  }
   function patternRow(r, big) {
-    return h('div', { class: 'rh-row' + (big ? ' big' : ''), role: 'list' }, r.strokes.map((s, i) => h('div', { class: 'rh-card' + (s.accent ? ' acc' : ''), role: 'listitem', 'data-i': String(i), 'aria-label': (i + 1) + ': ' + t(s.direction === 'down' ? 'w.down' : 'w.up') + ' · ' + t(s.accent ? 'rh.accent' : 'rh.normal') }, [
-      h('span', { class: 'mono rh-n', text: String(i + 1) }), h('span', { class: 'rh-ar', html: arrowSVG(s.direction, s.accent, big ? 64 : 40) }),
+    const cn = counts(r);
+    return h('div', { class: 'rh-row' + (big ? ' big' : '') + (cn ? ' counted' : ''), role: 'list' }, r.strokes.map((s, i) => h('div', { class: 'rh-card' + (s.accent ? ' acc' : '') + (cn && cn[i] && /\d/.test(cn[i]) ? ' onbeat' : ''), role: 'listitem', 'data-i': String(i), 'aria-label': (i + 1) + ': ' + t(s.direction === 'down' ? 'w.down' : 'w.up') + ' · ' + t(s.accent ? 'rh.accent' : 'rh.normal') }, [
+      h('span', { class: 'mono rh-n', text: cn ? cn[i] : String(i + 1) }), h('span', { class: 'rh-ar', html: arrowSVG(s.direction, s.accent, big ? 64 : 40) }),
       h('b', { text: (s.direction === 'down' ? '↓ ' : '↑ ') + t(s.direction === 'down' ? 'w.down' : 'w.up') }), h('small', { text: t(s.accent ? 'rh.accent' : 'rh.normal') })])));
   }
 
   function list(w) {
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('div', { class: 'grow' }, [h('h1', { 'data-t': 'nav.rhythms' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'rh.lead' })])]));
-    const box = h('div', { class: 'paths' });
-    C.rhythms().forEach(r => {
-      const p = LS.progress.lesson('rhythm-' + r.id);
-      box.append(h('button', { class: 'card path', onclick: () => PD.app.go('rhythm', r.id) }, [
-        h('div', { class: 'row', style: 'justify-content:space-between' }, [h('h2', { text: PD.i18n.pick(r.name) }), h('span', { class: 'tag', text: t('rh.teacher') })]),
+    const item = (r, tag) => { const p = LS.progress.lesson('rhythm-' + r.id);
+      return h('button', { class: 'card path', onclick: () => PD.app.go('rhythm', r.id) }, [
+        h('div', { class: 'row', style: 'justify-content:space-between' }, [h('h2', { text: PD.i18n.pick(r.name) }), h('span', { class: 'tag' + (r.source === 'general' ? ' gen' : ''), text: tag })]),
         h('span', { class: 'muted', text: t('rh.usage', { u: PD.i18n.pick(r.usage).join(' · ') }) }), patternRow(r),
-        p.plays ? h('div', { class: 'bar' }, [h('i', { style: 'width:' + Math.round((p.mastery || 0) * 100) + '%' })]) : null]));
-    });
-    w.append(box);
+        p.plays ? h('div', { class: 'bar' }, [h('i', { style: 'width:' + Math.round((p.mastery || 0) * 100) + '%' })]) : null]); };
+    const box = h('div', { class: 'paths' });
+    C.rhythms().forEach(r => box.append(item(r, t('rh.teacher'))));
+    w.append(h('h2', { class: 'rh-sec', 'data-t': 'rh.teacherSec' }), box);
+    const box2 = h('div', { class: 'paths' });
+    (C.commonRhythms ? C.commonRhythms() : []).slice().sort((a, b) => a.level - b.level).forEach(r => box2.append(item(r, t('rh.gen') + ' · ' + t('lvl.' + Math.min(4, r.level)))));
+    w.append(h('h2', { class: 'rh-sec', 'data-t': 'rh.commonSec' }), h('p', { class: 'muted', style: 'margin-top:-4px', 'data-t': 'rh.commonD' }), box2);
   }
 
   function detail(w, id) {
-    const r = C.rhythms().find(x => x.id === id); if (!r) return list(w);
+    const r = C.anyRhythm ? C.anyRhythm(id) : C.rhythms().find(x => x.id === id); if (!r) return list(w); const gen = r.source === 'general';
     const L = LS.fromRhythm(r);
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('rhythms') })]),
       h('div', { style: 'display:flex;flex-direction:column;gap:6px' }, [h('span', { class: 'kicker', text: t('nav.rhythms') + ' · ' + t('rh.strokes', { n: r.strokes.length }) }), h('h1', { text: PD.i18n.pick(r.name) }),
-        h('div', { class: 'row' }, [h('span', { class: 'tag', text: t('rh.teacher') }), h('span', { class: 'muted', text: t('rh.usage', { u: PD.i18n.pick(r.usage).join(' · ') }) })])]));
+        h('div', { class: 'row' }, [h('span', { class: 'tag' + (gen ? ' gen' : ''), text: t(gen ? 'rh.gen' : 'rh.teacher') }), h('span', { class: 'muted', text: t('rh.usage', { u: PD.i18n.pick(r.usage).join(' · ') }) })])]));
+    if (gen) w.append(h('p', { class: 'muted', style: 'font-size:13px;line-height:1.5', 'data-t': 'rh.genNote' }));
     if (r.timing.src === 'default') w.append(h('p', { class: 'tag warn', style: 'display:block;padding:10px 12px;line-height:1.5', text: t('rh.timingDefault') }));
     /* live preview: pattern + current/next + right-hand animation */
     const row = patternRow(r, true);
@@ -92,7 +107,7 @@ PD.rhythmsUI = (() => {
     });
     w.append(h('h2', { 'data-t': 'rh.practice' }), h('p', { class: 'muted', style: 'font-size:13px', 'data-t': 'rh.noPitch' }), list);
     /* author: timing only (order and accents are locked teacher data) */
-    if (PD.store.get('author', false)) {
+    if (PD.store.get('author', false) && !gen) {
       const durs = r.timing.durations.slice(); let bpm = r.timing.bpm;
       const ed = h('div', { class: 'row' }, r.strokes.map((s, i) => h('label', { class: 'field', style: 'width:84px' }, [h('span', { text: (i + 1) + ' ' + (s.direction === 'down' ? '↓' : '↑') + (s.accent ? ' ●' : '') }), h('input', { type: 'number', step: '.25', min: '.25', value: String(durs[i]), class: 'input', oninput: e => { durs[i] = Math.max(.125, +e.target.value || 1); } })])));
       w.append(h('section', { class: 'card', style: 'padding:16px;display:flex;flex-direction:column;gap:10px' }, [h('b', { 'data-t': 'rh.timing' }), h('p', { class: 'muted', style: 'font-size:12px', 'data-t': 'rh.orderLocked' }),

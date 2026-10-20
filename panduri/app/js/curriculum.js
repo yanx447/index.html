@@ -103,28 +103,34 @@ PD.curriculum = (() => {
   /* the order of learning: first the instrument, then notes, scales, rhythm and the ear (solfège) — only then practice on the panduri */
   const CH = id => ({ kind: 'chapter', id }), TIP = id => ({ kind: 'tip', id }), SF = (ex, lv) => ({ kind: 'solfege', id: ex + ':' + lv });
   const PATHS = [
+    /* Theory, easy → hard. "first" comes before everything: sitting, holding, which hand does what, finger and string numbers, care.
+       Those cards are drafts for the teacher to check (tips.js, source 'draft') and editable in Author Studio. */
+    { id: 'first', theory: true, title: { ka: 'პირველი ნაბიჯები: დაჯდომა და დაჭერა', en: 'First steps: sitting and holding' }, steps: [
+      TIP('sit'), TIP('hold'), TIP('hands'), TIP('strokes'), TIP('fingers'), TIP('stringnum'), TIP('warmup'), TIP('care'),
+      NEED('ვიდეო: მასწავლებელი აჩვენებს დაჯდომას და დაჭერას', 'Video: the teacher shows sitting and holding')] },
     { id: 'instrument', theory: true, title: { ka: 'გაიცანი ფანდური', en: 'Meet the panduri' }, steps: [
-      TIP('parts'), { kind: 'tour', title: { ka: 'ფანდური 3D-ში', en: 'The panduri in 3D' } }, TIP('strings'), TIP('dots'),
-      NEED('როგორ დავიჭიროთ ფანდური', 'How to hold the panduri'),
+      TIP('parts'), { kind: 'tour', title: { ka: 'ფანდური 3D-ში', en: 'The panduri in 3D' } }, TIP('strings'), TIP('dots'), TIP('tab'),
       { kind: 'tuner', title: { ka: 'აწყობა: A · C♯ · E (სამი სიმი)', en: 'Tuning: A · C♯ · E (Sami Simi)' } }] },
+    { id: 'rhythms', theory: true, title: { ka: 'რითმი: დათვლა და დარტყმა', en: 'Rhythm: counting and the beat' }, steps: [
+      TIP('beat'), CH('meter'), CH('tempo'), TIP('count'), TIP('rhythm'), TIP('accent'), { kind: 'rhythms', title: { ka: 'ფანდურის და ცნობილი რითმები', en: 'Panduri and famous rhythms' } }] },
     { id: 'notes', theory: true, title: { ka: 'ნოტები', en: 'Notes' }, steps: [
-      CH('names'), CH('octave'), CH('semitone'), CH('accidentals'), CH('neck'), TIP('semitone'), CH('staff'), CH('durations'), CH('rests'), { kind: 'fretboard', title: { ka: 'ნოტები ტარზე: რუკა', en: 'Notes on the neck: the map' } }] },
+      TIP('pitch'), CH('names'), CH('octave'), CH('semitone'), CH('accidentals'), CH('neck'), TIP('semitone'), CH('staff'), CH('durations'), CH('rests'), { kind: 'fretboard', title: { ka: 'ნოტები ტარზე: რუკა', en: 'Notes on the neck: the map' } }] },
     { id: 'scales', theory: true, title: { ka: 'ინტერვალები, გამები, აკორდები', en: 'Intervals, scales, chords' }, steps: [
-      CH('intervals'), TIP('octave'), CH('scales'), CH('key'), CH('chords'), { kind: 'chords', title: { ka: 'აკორდების ბიბლიოთეკა', en: 'Chord library' } }, CH('signs')] },
-    { id: 'rhythms', theory: true, title: { ka: 'რითმი', en: 'Rhythm' }, steps: [
-      CH('meter'), CH('tempo'), TIP('count'), TIP('rhythm'), TIP('accent'), { kind: 'rhythms', title: { ka: 'ფანდურის რითმები', en: 'Panduri rhythms' } }] },
+      TIP('chordwhat'), CH('intervals'), TIP('octave'), CH('scales'), CH('key'), CH('chords'), { kind: 'chords', title: { ka: 'აკორდების ბიბლიოთეკა', en: 'Chord library' } }, CH('signs')] },
     { id: 'solfege', theory: true, title: { ka: 'სოლფეჯიო', en: 'Solfège' }, steps: [
       SF('hear', 1), SF('hear', 2), SF('iv', 1), SF('sing', 1), SF('hear', 3), SF('iv', 2), SF('sing', 2), TIP('sing')] },
+    { id: 'deeper', theory: true, title: { ka: 'რთული თეორია', en: 'Harder theory' }, steps: [
+      TIP('dyn'), TIP('sync'), TIP('triplet'), TIP('transpose'), TIP('inversion')] },
     { id: 'foundation', level: 'foundation', title: { ka: 'პრაქტიკა: საფუძვლები', en: 'Practice: foundation' }, steps: [
       CH('app'), TIP('fretpos'), TIP('curve'),
-      { kind: 'lesson', id: 'poc-three' }, { kind: 'lesson', id: 'rh-down' }, { kind: 'lesson', id: 'rh-up' }, { kind: 'lesson', id: 'poc-fret' }, { kind: 'lesson', id: 'poc-rhythm' }] },
+      { kind: 'lesson', id: 'poc-three' }, { kind: 'lesson', id: 'rh-down' }, { kind: 'lesson', id: 'rh-up' }, { kind: 'lesson', id: 'poc-fret' }, { kind: 'lesson', id: 'poc-rhythm' }, { kind: 'rhythm', id: 'g-down4' }, { kind: 'rhythm', id: 'g-du8' }] },
     { id: 'beginner', level: 'beginner', title: { ka: 'პრაქტიკა: დამწყები', en: 'Practice: beginner' }, steps: [
       { kind: 'trainer', title: { ka: 'ნოტები და ლადები', en: 'Notes and frets' } }, { kind: 'lesson', id: 'lh-fingers' }, { kind: 'lesson', id: 'm1' }, { kind: 'lesson', id: 'rh-alt' },
-      { kind: 'rhythm', id: 'kazbeguri' }, { kind: 'rhythm', id: 'acharuli' }, NEED('მარტივი სიმღერები', 'Simple songs')] },
+      { kind: 'rhythm', id: 'kazbeguri' }, { kind: 'rhythm', id: 'acharuli' }, { kind: 'rhythm', id: 'g-waltz' }, { kind: 'rhythm', id: 'g-folk' }, NEED('მარტივი სიმღერები', 'Simple songs')] },
     { id: 'intermediate', level: 'intermediate', title: { ka: 'პრაქტიკა: საშუალო', en: 'Practice: intermediate' }, steps: [
-      { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }] },
+      { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }, { kind: 'rhythm', id: 'g-pop' }, { kind: 'rhythm', id: 'g-backbeat' }, { kind: 'rhythm', id: 'g-68' }] },
     { id: 'advanced', level: 'advanced', title: { ka: 'პრაქტიკა: რთული', en: 'Practice: advanced' }, steps: [
-      { kind: 'rhythm', id: 'khorumi' }, NEED('სოლო', 'Solo'), NEED('სწრაფი ტექნიკა', 'Fast technique'), NEED('ტრადიციული სტილები', 'Traditional styles'), { kind: 'lesson', id: 'bani-acharuli' }] }
+      { kind: 'rhythm', id: 'khorumi' }, NEED('სოლო', 'Solo'), NEED('სწრაფი ტექნიკა', 'Fast technique'), NEED('ტრადიციული სტილები', 'Traditional styles'), { kind: 'lesson', id: 'bani-acharuli' }, { kind: 'rhythm', id: 'g-shuffle' }, { kind: 'rhythm', id: 'g-gallop' }, { kind: 'rhythm', id: 'g-16' }] }
   ];
   const PATHS_OLD = [
     { id: 'start', title: { ka: 'დასაწყისი', en: 'Getting started' }, steps: [
@@ -176,6 +182,34 @@ PD.curriculum = (() => {
     { id: 'acharuli', name: { ka: 'აჭარული', en: 'Acharuli' }, usage: { ka: ['მელოდიები', 'სიმღერები'], en: ['Melodies', 'Songs'] },
       strokes: [S('down', false), S('down', true), S('up', true)], source: 'teacher' }
   ].map(r => Object.assign({ timing: { bpm: 60, durations: r.strokes.map(() => 1), src: 'default' } }, r));
+  /* ---- FAMOUS RHYTHMS: general strumming patterns known from the guitar and popular music (NOT the teacher's data).
+     Here the timing IS part of the pattern (durations in beats, 1 = a quarter note), so a stroke can be followed by a gap.
+     Shown in their own section, marked "general". The teacher's four rhythms above are untouched. ---- */
+  const G = (id, ka, en, uka, uen, level, bpm, pat) => ({ id, name: { ka, en }, usage: { ka: uka, en: uen }, level, source: 'general',
+    strokes: pat.map(([d, , a]) => S(d === 'D' ? 'down' : 'up', !!a)), timing: { bpm, durations: pat.map(p => p[1]), src: 'general' } });
+  const RLV = { 'g-down4': 1, 'g-du8': 1, 'g-waltz': 1, 'g-folk': 2, 'g-pop': 2, 'g-backbeat': 2, 'g-68': 3, 'g-shuffle': 3, 'g-gallop': 3, 'g-16': 4 };
+  const COMMON_RHYTHMS = [
+    G('g-down4', 'ოთხი ჩაკვრა (4/4)', 'Four downs (4/4)', ['პირველი რითმი ყველა დამწყებისთვის', 'როკი, პოპი'], ['The first rhythm for every beginner', 'Rock, pop'], 1, 70,
+      [['D', 1, 1], ['D', 1], ['D', 1], ['D', 1]]),
+    G('g-du8', 'ჩაკვრა-ამოკვრა (მერვედები)', 'Down-up eighths', ['ქანქარა: ჩაკვრა თვლაზე, ამოკვრა „და“-ზე'], ['The pendulum: down on the number, up on “and”'], 1, 70,
+      [['D', .5, 1], ['U', .5], ['D', .5], ['U', .5], ['D', .5], ['U', .5], ['D', .5], ['U', .5]]),
+    G('g-waltz', 'ვალსი (3/4)', 'Waltz (3/4)', ['ვალსი, ნანა, ნელი სიმღერები'], ['Waltz, lullabies, slow songs'], 2, 80,
+      [['D', 1, 1], ['D', 1], ['D', 1]]),
+    G('g-folk', 'ფოლკი: ↓ ↓↑ ↓ ↓↑', 'Folk: ↓ ↓↑ ↓ ↓↑', ['ფოლკი, კანტრი, საბანაკე სიმღერები'], ['Folk, country, campfire songs'], 2, 76,
+      [['D', 1, 1], ['D', .5], ['U', .5], ['D', 1], ['D', .5], ['U', .5]]),
+    G('g-pop', 'პოპ-რითმი: ↓ ↓↑ ↑↓↑', 'Pop strum: ↓ ↓↑ ↑↓↑', ['გიტარაზე ყველაზე ცნობილი რითმი — უამრავი პოპ და აკუსტიკური სიმღერა', '3-ზე ხელი ჰაერში ჩადის, სიმს არ ეხება'], ['The best-known guitar strum — countless pop and acoustic songs', 'On 3 the hand goes down in the air without touching'], 3, 80,
+      [['D', 1, 1], ['D', .5], ['U', 1], ['U', .5], ['D', .5], ['U', .5]]),
+    G('g-backbeat', 'ბექბიტი: აქცენტი 2-ზე და 4-ზე', 'Backbeat: accents on 2 and 4', ['როკი, პოპი — დასარტყამის „სნეარი“ 2-ზე და 4-ზე'], ['Rock, pop — like the snare drum on 2 and 4'], 3, 84,
+      [['D', .5], ['U', .5], ['D', .5, 1], ['U', .5], ['D', .5], ['U', .5], ['D', .5, 1], ['U', .5]]),
+    G('g-68', 'ბალადა 6/8', '6/8 ballad', ['ნელი ბალადები; ექვსი მერვედი, აქცენტი 1-ზე და 4-ზე'], ['Slow ballads; six eighths, accents on 1 and 4'], 3, 60,
+      [['D', .5, 1], ['D', .5], ['U', .5], ['D', .5, 1], ['D', .5], ['U', .5]]),
+    G('g-shuffle', 'შაფლი (სვინგი)', 'Shuffle (swing)', ['ბლუზი, ჯაზი, როკ-ენ-როლი: გრძელი ჩაკვრა, მოკლე ამოკვრა'], ['Blues, jazz, rock and roll: long down, short up'], 4, 90,
+      [['D', 2 / 3, 1], ['U', 1 / 3], ['D', 2 / 3], ['U', 1 / 3], ['D', 2 / 3, 1], ['U', 1 / 3], ['D', 2 / 3], ['U', 1 / 3]]),
+    G('g-gallop', 'გალოპი: ↓ ↓↑', 'Gallop: ↓ ↓↑', ['როკი, კანტრი: „ცხენის თქარუნი“ — მერვედი და ორი მეთექვსმეტედი'], ['Rock, country: the “horse gallop” — an eighth and two sixteenths'], 4, 72,
+      [['D', .5, 1], ['D', .25], ['U', .25], ['D', .5, 1], ['D', .25], ['U', .25], ['D', .5, 1], ['D', .25], ['U', .25], ['D', .5, 1], ['D', .25], ['U', .25]]),
+    G('g-16', 'მეთექვსმეტედები (ფანკი)', 'Sixteenths (funk)', ['ფანკი, სწრაფი სიმღერები: ↓↑↓↑ ყოველ დარტყმაზე'], ['Funk, fast songs: ↓↑↓↑ on every beat'], 5, 70,
+      [['D', .25, 1], ['U', .25], ['D', .25], ['U', .25], ['D', .25, 1], ['U', .25], ['D', .25], ['U', .25], ['D', .25, 1], ['U', .25], ['D', .25], ['U', .25], ['D', .25, 1], ['U', .25], ['D', .25], ['U', .25]])
+  ].map(r => Object.assign(r, { level: RLV[r.id] || r.level }, r.id === 'g-68' ? { eighths: true } : {}));
   const RH_KEY = 'rhythms.timing';   // teacher-edited timing overrides (stroke order/accents are never changed here)
   function rhythmsWithTiming(list) { const ov = PD.store.get(RH_KEY, {}); return list.map(r => ov[r.id] && ov[r.id].durations && ov[r.id].durations.length === r.strokes.length ? Object.assign({}, r, { timing: ov[r.id] }) : r); }
 
@@ -223,6 +257,8 @@ PD.curriculum = (() => {
     paths() { return active().paths || []; },
     /** teacher rhythms (a package may carry its own list; the teacher-supplied four are the default) */
     rhythms() { const a = active(); return rhythmsWithTiming(a.rhythms && a.rhythms.length ? a.rhythms : TEACHER_RHYTHMS); },
+    commonRhythms: () => COMMON_RHYTHMS,
+    anyRhythm(id) { return PD.curriculum.rhythms().find(r => r.id === id) || COMMON_RHYTHMS.find(r => r.id === id); },
     setRhythmTiming(id, timing) { const ov = PD.store.get(RH_KEY, {}); ov[id] = Object.assign({}, timing, { src: 'teacher' }); PD.store.set(RH_KEY, ov); PD.bus.emit('rhythms'); },
     chords() { const a = active(); return (a.chords && a.chords.length) ? a.chords : library(); },
     get chordsAreDemo() { const a = active(); return !!(a.chords && a.chords.some(c => c.demo)); },

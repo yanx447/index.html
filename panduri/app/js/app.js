@@ -112,6 +112,7 @@ PD.i18n.add({
   'hx.hello': ['გამარჯობა, {n}', 'Hello, {n}'], 'hx.goal': ['დღევანდელი მიზანი', "Today's goal"], 'hx.goalV': ['{a} / {b} წუთი', '{a} / {b} min'],
   'hx.continue': ['გააგრძელე სწავლა', 'Continue learning'], 'hx.start': ['დაიწყე აქედან', 'Start here'], 'hx.go': ['გაგრძელება', 'Continue'], 'hx.all': ['ყველა', 'All'],
   'hx.forYou': ['შენთვის', 'For you'], 'hx.songs': ['სიმღერები', 'Songs'], 'hx.melodies': ['მელოდიები', 'Melodies'], 'hx.rhythms': ['რიტმები', 'Rhythms'], 'hx.exercises': ['სავარჯიშოები', 'Exercises'], 'hx.recent': ['ბოლოს ნავარჯიშები', 'Recently practised'],
+  'ln.tab.theory': ['თეორია', 'Theory'], 'ln.tab.practice': ['პრაქტიკა', 'Practice'], 'ln.diff1': ['მარტივი', 'Easy'], 'ln.diff2': ['საშუალო', 'Medium'], 'ln.diff3': ['რთული', 'Hard'], 'ln.firstD': ['დაჯდომა, დაჭერა, თითები, სიმები, მოვლა', 'Sitting, holding, fingers, strings, care'],
   'ln.tool': ['ხელსაწყო', 'Tool'], 'ln.chapter': ['თეორიის თავი · ხმით', 'Theory chapter · with sound'], 'ln.tip': ['მოკლე ბარათი · ანიმაცია', 'Short card · animation'], 'ln.solfege': ['სმენის ვარჯიში', 'Ear training'], 'ln.part1': ['ნაწილი 1 · თეორია', 'Part 1 · Theory'], 'ln.part1D': ['ჯერ გაიცანი ინსტრუმენტი, ნოტები, გამები, რითმი და სმენა', 'First the instrument, notes, scales, rhythm and the ear'], 'ln.part2': ['ნაწილი 2 · პრაქტიკა', 'Part 2 · Practice'], 'ln.part2D': ['ახლა — ფანდურზე, მიკროფონთან ერთად', 'Now on the panduri, with the microphone'], 'ln.theory': ['თეორია · {d}/{n} თავი', 'Theory · {d}/{n} chapters']
 });
 PD.app = (() => {
@@ -457,40 +458,51 @@ PD.app = (() => {
   const PREMIUM_PATHS = PD.premium.PREMIUM_PATHS;
   const LOCK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   /* ---------- Learn: one visual path, Foundation → Beginner → Intermediate → Advanced ---------- */
+  const DIFF = { first: 1, instrument: 1, rhythms: 1, notes: 2, scales: 2, solfege: 2, deeper: 3, foundation: 1, beginner: 1, intermediate: 2, advanced: 3 };
   function learn(w) {
     w.append(h('div', {}, [h('h1', { 'data-t': 'ln.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'ln.lead' })]));
     const lp = PD.levels.progress, LPn = LS.PATHS.find(p2 => p2.id === PD.levels.program);
     w.append(h('section', { class: 'lvcard' }, [h('span', { class: 'lvcard-b', html: PD.levels.badge(56) }), h('div', { class: 'grow' }, [h('b', { text: t('lv.level', { n: lp.level }) + ' · ' + PD.levels.tierName() }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(lp.pct * 100) + '%' })]), h('small', { text: (LPn ? t('lv.programD', { p: PD.i18n.pick(LPn.title) }) + ' · ' : '') + t('lv.toNext', { n: lp.need - lp.into }) })])]));
-    // library: the theory book, tips & tricks, and the photo guide to the teacher's panduri
+    // Theory and Practice are two separate pages; each is ordered from easy to hard
+    const byPath = param && LS.PATHS.find(p2 => p2.id === param);
+    const theoryLeft = LS.PATHS.some(p2 => p2.theory && p2.steps.some(s2 => s2.kind !== 'needs' && !stepDone(s2)));
+    let tab = param === 'theory' || param === 'practice' ? param : byPath ? (byPath.theory ? 'theory' : 'practice') : PD.store.get('learn.tab', theoryLeft ? 'theory' : 'practice');
+    const seg = h('div', { class: 'seg ln-seg', role: 'tablist' }, ['theory', 'practice'].map(k => h('button', { role: 'tab', 'aria-pressed': String(k === tab), 'aria-selected': String(k === tab), 'data-k': k, html: (k === 'theory' ? (ic.learn || '') : ic.pulse) + '<span data-t="ln.tab.' + k + '"></span>', onclick: () => { if (k === tab) return; const dir = k === 'practice' ? 1 : -1; tab = k; PD.store.set('learn.tab', k); seg.querySelectorAll('button').forEach(b2 => { b2.setAttribute('aria-pressed', String(b2.dataset.k === k)); b2.setAttribute('aria-selected', String(b2.dataset.k === k)); }); draw(); PD.i18n.apply(body); if (PD.motion) PD.motion.swap(body, dir); const pg = document.getElementById('page'); if (pg && pg.scrollTop > seg.offsetTop) pg.scrollTop = Math.max(0, seg.offsetTop - 12); } })));
+    const body = h('div', { class: 'ln-body' });
+    w.append(seg, body);
     const libCard = (r, pa, k, d, art) => h('button', { class: 'lib-card', onclick: () => go(r, pa) }, [h('span', { class: 'lib-art', html: art }), h('span', { class: 'grow' }, [h('b', { 'data-t': k }), h('small', { 'data-t': d })])]);
-    const ph = PD.assets && PD.assets.photos;
-    w.append(h('section', { class: 'lib' }, [h('h2', { 'data-t': 'tp.lib' }), h('div', { class: 'lib-row' }, [
-      libCard('practice', null, 'hd.practice', 'ph.lead', '<span class="lib-ic">' + ic.pulse + '</span>'), libCard('tuner', null, 'nav.tuner', 'tools.tunerD', '<span class="lib-ic">' + ic.tune + '</span>'),
-      libCard('tips', null, 'tp.title', 'tp.lead', PD.tips.ART.strum()), libCard('theory', null, 'tb.title', 'tb.tool', PD.tips.ART.semitone()),
-      libCard('tips', 'parts', 'tp.parts', 'tp.partsD', ph && ph.front ? '<img src="' + ph.front + '" alt="">' : '')])]));
     const TOOL = { tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord, chapter: ic.learn || ic.chord, tip: ic.star, solfege: ic.mic, rhythms: ic.pulse };
-    let curSet = false, focusEl = null;
-    let part = 0;
-    LS.PATHS.forEach((p, pi) => {
-      const pt = p.theory ? 1 : 2; if (pt !== part) { part = pt; w.append(h('div', { class: 'lp-part p' + pt }, [h('b', { 'data-t': 'ln.part' + pt }), h('small', { 'data-t': 'ln.part' + pt + 'D' })])); }
-      const real = p.steps.filter(s2 => s2.kind !== 'needs'), d = real.filter(stepDone).length;
-      const sec = h('section', { class: 'lp', id: 'lp-' + p.id }, [h('div', { class: 'lp-h' }, [h('span', { class: 'lp-n', text: String(pi + 1) }), h('div', { class: 'grow' }, [h('h2', { text: PD.i18n.pick(p.title) }), h('small', { text: t('learn.steps', { d, n: real.length }) })])])]);
-      const path = h('ol', { class: 'lp-path' });
-      p.steps.forEach(s2 => {
-        const done = stepDone(s2), need = s2.kind === 'needs', cur = !need && !done && !curSet; if (cur) curSet = true;
-        const l = s2.kind === 'lesson' ? LS.get(s2.id) : s2.kind === 'rhythm' ? LS.get('rhythm-' + s2.id) : null;
-        const thumb = l ? h('div', { class: 'lp-th', html: coverSVG(l) }) : h('div', { class: 'lp-th tool' + (need ? ' need' : ''), html: need ? '…' : (TOOL[s2.kind] || ic.learn) });
-        const meta2 = need ? t('ln.awaiting') : l ? t('lvl.' + (l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : '') + (l.demo ? ' · ' + t('demo.badge') : '') : s2.kind === 'theory' ? t('ln.theory', { n: PD.theoryBook.CHAPTERS.length, d: Math.round(PD.theoryBook.progress() * PD.theoryBook.CHAPTERS.length) }) : s2.kind === 'chapter' ? t('ln.chapter') : s2.kind === 'tip' ? t('ln.tip') : s2.kind === 'solfege' ? t('ln.solfege') : t('ln.tool');
-        const locked = !need && (l ? !PD.premium.canOpen(l.id) : PREMIUM_PATHS.has(p.id) && !PD.premium.active);
-        const li = h('li', { class: 'lp-s' + (done ? ' done' : '') + (cur ? ' cur' : '') + (need ? ' need' : '') + (locked ? ' locked' : '') }, [
-          h('span', { class: 'lp-dot', html: done ? ic.check : '' }),
-          h(need ? 'div' : 'button', need ? { class: 'lp-c' } : { class: 'lp-c', onclick: () => locked ? PD.premium.paywall('paths.advanced') : stepGo(s2) }, [thumb, h('div', { class: 'lp-tx' }, [h('b', { text: stepTitle(s2) }), h('small', { text: meta2 })]), locked ? h('span', { class: 'lp-lock', html: LOCK }) : cur ? h('span', { class: 'lp-go', 'data-t': 'home.start' }) : null])]);
-        if (cur) focusEl = li;
-        path.appendChild(li);
+    let focusEl = null;
+    function draw() {
+      body.innerHTML = ''; focusEl = null; let curSet = false;
+      const ph = PD.assets && PD.assets.photos, th = tab === 'theory';
+      body.append(h('div', { class: 'lp-part p' + (th ? 1 : 2) }, [h('b', { 'data-t': 'ln.part' + (th ? 1 : 2) }), h('small', { 'data-t': 'ln.part' + (th ? 1 : 2) + 'D' })]));
+      body.append(h('section', { class: 'lib' }, [h('h2', { 'data-t': 'tp.lib' }), h('div', { class: 'lib-row' }, th ? [
+        libCard('tips', 'sit', 'tp.c.start', 'ln.firstD', PD.tips.ART.sit()), libCard('tips', null, 'tp.title', 'tp.lead', PD.tips.ART.strum()), libCard('theory', null, 'tb.title', 'tb.tool', PD.tips.ART.semitone()),
+        libCard('tips', 'parts', 'tp.parts', 'tp.partsD', ph && ph.front ? '<img src="' + ph.front + '" alt="">' : '')] : [
+        libCard('practice', null, 'hd.practice', 'ph.lead', '<span class="lib-ic">' + ic.pulse + '</span>'), libCard('rhythms', null, 'nav.rhythms', 'rh.commonSec', PD.tips.ART.beat()), libCard('tuner', null, 'nav.tuner', 'tools.tunerD', '<span class="lib-ic">' + ic.tune + '</span>')])]));
+      LS.PATHS.filter(p => !!p.theory === th).forEach((p, pi) => {
+        const real = p.steps.filter(s2 => s2.kind !== 'needs'), d = real.filter(stepDone).length;
+        const sec = h('section', { class: 'lp', id: 'lp-' + p.id }, [h('div', { class: 'lp-h' }, [h('span', { class: 'lp-n', text: String(pi + 1) }), h('div', { class: 'grow' }, [h('h2', { text: PD.i18n.pick(p.title) }), h('small', { text: t('learn.steps', { d, n: real.length }) })]), DIFF[p.id] ? h('span', { class: 'lp-diff d' + DIFF[p.id], text: t('ln.diff' + DIFF[p.id]) }) : null])]);
+        const path = h('ol', { class: 'lp-path' });
+        p.steps.forEach(s2 => {
+          const done = stepDone(s2), need = s2.kind === 'needs', cur = !need && !done && !curSet; if (cur) curSet = true;
+          const l = s2.kind === 'lesson' ? LS.get(s2.id) : s2.kind === 'rhythm' ? LS.get('rhythm-' + s2.id) : null;
+          const thumb = l ? h('div', { class: 'lp-th', html: coverSVG(l) }) : h('div', { class: 'lp-th tool' + (need ? ' need' : ''), html: need ? '…' : (TOOL[s2.kind] || ic.learn) });
+          const tipC = s2.kind === 'tip' ? PD.tips.all(true).find(x => x.id === s2.id) : null;
+          const meta2 = need ? t('ln.awaiting') : l ? t('lvl.' + Math.min(4, l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : '') + (l.demo ? ' · ' + t('demo.badge') : '') + (l.source === 'general' ? ' · ' + t('rh.gen') : '') : s2.kind === 'theory' ? t('ln.theory', { n: PD.theoryBook.CHAPTERS.length, d: Math.round(PD.theoryBook.progress() * PD.theoryBook.CHAPTERS.length) }) : s2.kind === 'chapter' ? t('ln.chapter') : s2.kind === 'tip' ? t('ln.tip') + (tipC && tipC.src === 'draft' ? ' · ' + t('tp.src.draft') : '') : s2.kind === 'solfege' ? t('ln.solfege') : t('ln.tool');
+          const locked = !need && (l ? !PD.premium.canOpen(l.id) : PREMIUM_PATHS.has(p.id) && !PD.premium.active);
+          const li = h('li', { class: 'lp-s' + (done ? ' done' : '') + (cur ? ' cur' : '') + (need ? ' need' : '') + (locked ? ' locked' : '') }, [
+            h('span', { class: 'lp-dot', html: done ? ic.check : '' }),
+            h(need ? 'div' : 'button', need ? { class: 'lp-c' } : { class: 'lp-c', onclick: () => locked ? PD.premium.paywall('paths.advanced') : stepGo(s2) }, [thumb, h('div', { class: 'lp-tx' }, [h('b', { text: stepTitle(s2) }), h('small', { text: meta2 })]), locked ? h('span', { class: 'lp-lock', html: LOCK }) : cur ? h('span', { class: 'lp-go', 'data-t': 'home.start' }) : null])]);
+          if (cur) focusEl = li;
+          path.appendChild(li);
+        });
+        sec.appendChild(path); body.append(sec);
       });
-      sec.appendChild(path); w.append(sec);
-    });
-    if (param && document.getElementById('lp-' + param)) requestAnimationFrame(() => document.getElementById('lp-' + param).scrollIntoView({ block: 'start' }));
+    }
+    draw();
+    if (byPath && document.getElementById('lp-' + param)) requestAnimationFrame(() => document.getElementById('lp-' + param).scrollIntoView({ block: 'start' }));
     else if (focusEl) requestAnimationFrame(() => { const pg = document.getElementById('page'); if (pg && focusEl.offsetTop > pg.clientHeight * .6) focusEl.scrollIntoView({ block: 'center' }); });
   }
   function stepTitle(s) { const l = s.kind === 'lesson' ? LS.get(s.id) : s.kind === 'rhythm' ? LS.get('rhythm-' + s.id) : null; if (l) return PD.i18n.pick(l.title);
