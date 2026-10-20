@@ -11,7 +11,8 @@
     // first thing: sign in (Google · Facebook · phone · e-mail), then the short onboarding
     const afterAuth = () => { if (!PD.store.get('onboarded', false)) PD.onboard.open(); };
     // the app is used with an account: without a session the sign-in screen stays until you sign in or register
-    if (!PD.cloud.session && (PD.cloud.configured || !PD.store.get('auth.skip', false))) PD.auth.gate(afterAuth, { noGuest: PD.cloud.configured }); else afterAuth();
+    PD.store.del('auth.skip');   // the old "continue without an account" choice no longer exists
+    if (!PD.cloud.session) PD.auth.gate(afterAuth); else afterAuth();
     if (PD.cloud.takeRecovery()) setTimeout(() => PD.auth.newPassword(), 300);   // came from the password-reset e-mail
     window.addEventListener('keydown', e => { if (e.key === '?' && !PD.practice.active) PD.ui.toast(t('kbd.list'), 6000); });
     PD.bus.on('lessons', () => PD.pwa.persist());

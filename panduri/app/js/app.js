@@ -140,7 +140,7 @@ PD.app = (() => {
     PD.i18n.apply(document);
     PD.bus.on('lang', () => render());
     let cloudT = 0, cloudSig = '';
-    PD.bus.on('cloud', e => { if (PD.cloud.configured && !(e && e.session) && !document.querySelector('.ag')) setTimeout(() => { if (!PD.cloud.session && !document.querySelector('.ag')) PD.auth.gate(() => render(), { noGuest: true, view: 'methods' }); }, 0); });
+    PD.bus.on('cloud', e => { if (!(e && e.session) && !document.querySelector('.ag')) setTimeout(() => { if (!PD.cloud.session && !document.querySelector('.ag')) PD.auth.gate(() => render(), { view: 'methods' }); }, 0); });
     PD.bus.on('cloud', e => { const sig = (e && e.session && e.session.user ? e.session.user.id : '-') + ':' + JSON.stringify(e && e.profile ? [e.profile.role, e.profile.vip_until, e.profile.display_name, e.profile.owner, e.profile.premium_banned] : 0); if (sig === cloudSig) return; cloudSig = sig; clearTimeout(cloudT); cloudT = setTimeout(() => { if (['profile', 'settings', 'community', 'home', 'learn', 'songs'].includes(route) && !PD.practice.active && !document.querySelector('.sheet-back:not(.out)')) render(true); }, 60); });
     PD.bus.on('lessons', () => { if (['home', 'lesson', 'learn', 'path', 'songs'].includes(route)) render(); });
     window.addEventListener('popstate', e => {
@@ -865,9 +865,9 @@ PD.app = (() => {
   /** sign out: confirm, sign out at once, then the welcome screen to sign in again (any account) or continue without one */
   function signOut() {
     PD.ui.confirm(t('au.signoutQ'), async () => {
-      await PD.cloud.auth.signOut(); PD.store.set('auth.skip', false);
+      await PD.cloud.auth.signOut();
       go('home', null, true);
-      PD.auth.gate(() => render(), { noGuest: PD.cloud.configured, view: 'methods' });   // straight back to the sign-in screen
+      PD.auth.gate(() => render(), { view: 'methods' });   // straight back to the sign-in screen
     });
   }
   /** an in-app Back button: the same step as the system Back when there is one, otherwise up to the section */

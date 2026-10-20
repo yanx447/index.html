@@ -13,7 +13,7 @@ PD.i18n.add({
   'au.forgot': ['დაგავიწყდა პაროლი?', 'Forgot password?'], 'au.reset': ['პაროლის აღდგენა', 'Reset password'], 'au.resetD': ['ელფოსტაზე გამოგიგზავნით ბმულს ახალი პაროლისთვის.', 'We will email you a link to set a new password.'], 'au.send': ['გაგზავნა', 'Send'],
   'au.sent': ['გაიგზავნა — შეამოწმე ელფოსტა.', 'Sent — check your email.'],
   'au.or': ['ან', 'or'], 'au.google': ['Google-ით გაგრძელება', 'Continue with Google'], 'au.facebook': ['Facebook-ით გაგრძელება', 'Continue with Facebook'], 'au.phone': ['ტელეფონის ნომრით', 'With phone number'], 'au.withEmail': ['ელფოსტით და პაროლით', 'With email and password'],
-  'au.guest': ['ანგარიშის გარეშე გაგრძელება', 'Continue without an account'], 'au.guestD': ['პროგრესი მხოლოდ ამ მოწყობილობაზე შეინახება. ანგარიშს მოგვიანებით შექმნი პროფილიდან.', 'Progress stays on this device only. You can create an account later from Profile.'],
+  'au.guestD': ['პროგრესი მხოლოდ ამ მოწყობილობაზე შეინახება. ანგარიშს მოგვიანებით შექმნი პროფილიდან.', 'Progress stays on this device only. You can create an account later from Profile.'],
   'au.verify': ['გამოგიგზავნეთ წერილი — დაადასტურე ელფოსტა და შემდეგ შედი.', 'We sent you an email — confirm your address, then sign in.'], 'au.resend': ['ხელახლა გაგზავნა', 'Resend'],
   'au.noBackend': ['სერვერი ჯერ არ არის დაკავშირებული — შესვლა და ანგარიშის შექმნა ჩაირთვება, როგორც კი სერვერი დაემატება. მანამდე შეგიძლია ანგარიშის გარეშე ისწავლო.', 'The server is not connected yet — sign-in and accounts switch on as soon as it is added. Until then you can learn without an account.'],
   'au.badEmail': ['შეამოწმე ელფოსტა', 'Check the email address'], 'au.shortPw': ['პაროლი — მინიმუმ 8 სიმბოლო', 'Password: at least 8 characters'], 'au.err': ['ვერ მოხერხდა: {e}', 'Could not complete: {e}'],
@@ -78,7 +78,7 @@ PD.auth = (() => {
         card.append(h('button', { class: 'ag-lang', text: PD.i18n.lang === 'ka' ? 'EN' : 'ქარ', onclick: () => { PD.i18n.set(PD.i18n.lang === 'ka' ? 'en' : 'ka'); render(); } }),
           h('div', { class: 'sp-brand' }, [h('h1', { class: 'sp-name', 'data-t': 'app.name' }), h('p', { class: 'sp-tag', 'data-t': 'au.tagline' })]),
           h('div', { class: 'sp-go' }, [
-            h('button', { class: 'sp-start', html: '<span data-t="au.start"></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>', onclick: () => { if (opts.noGuest) { view = 'methods'; render(); } else { PD.store.set('auth.skip', true); finish(false); } } }),
+            h('button', { class: 'sp-start', html: '<span data-t="au.start"></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>', onclick: () => { view = 'methods'; render(); } }),
             h('button', { class: 'sp-signin', 'data-t': 'au.signinLink', onclick: () => { view = 'methods'; render(); } })]));
         if (opts.closable) card.prepend(h('button', { class: 'ag-x', 'aria-label': t('close'), html: PD.ic.close, onclick: () => finish(false) }));
         PD.i18n.apply(card); return;
@@ -96,8 +96,6 @@ PD.auth = (() => {
             prov('phone', ICON.phone, 'au.phone', () => { view = 'phone'; render(); }),
             prov('mail', ICON.mail, 'au.withEmail', () => { view = 'signin'; render(); })]),
           msg,
-          opts.noGuest ? null : h('button', { class: 'ag-guest', 'data-t': 'au.guest', onclick: () => { PD.store.set('auth.skip', true); finish(false); } }),
-          opts.noGuest ? null : h('small', { class: 'ag-fine', 'data-t': 'au.guestD' }),
           h('small', { class: 'ag-fine', 'data-t': 'au.terms' })].filter(Boolean)));
         // show only the sign-in methods that are switched on in the server
         // Google / Facebook need a real top-level page to come back to: not inside another site's frame, not from a local file
@@ -166,5 +164,5 @@ PD.auth = (() => {
     });
   }
   PD.bus.on('recovery', () => newPassword());
-  return { gate, newPassword, open: v => gate(null, { closable: true, view: v === 'signin' ? 'signin' : 'methods' }) };
+  return { gate, newPassword, open: v => gate(null, { closable: !!PD.cloud.session, view: v === 'signin' ? 'signin' : 'methods' }) };   // closable only for someone already signed in
 })();
