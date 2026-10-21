@@ -9,7 +9,7 @@
     PD.app.shell();
     PD.app.go('home', null, true);
     // first thing: sign in (Google · Facebook · phone · e-mail), then the short onboarding
-    const afterAuth = () => { if (!PD.store.get('onboarded', false)) PD.onboard.open(); };
+    const afterAuth = () => { if (!PD.store.get('onboarded', false)) PD.onboard.open(); else PD.intro.maybe(); };   // after onboarding: the required introduction (once)
     // the app is used with an account: without a session the sign-in screen stays until you sign in or register
     PD.store.del('auth.skip');   // the old "continue without an account" choice no longer exists
     if (!PD.cloud.session) PD.auth.gate(afterAuth); else afterAuth();

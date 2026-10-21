@@ -110,6 +110,120 @@ PD.Lanes = function (canvas, opt) {
       if (f.grade && t - f.gradeT < 900) { const k = (t - f.gradeT) / 900, y = st.kind === 'note' ? G.lane[st.notes[0].s] - G.R - 12 : G.lane[3] - G.R - 10; text(t2(f.grade), px, Math.max(10, y - 8 * k), 11, gcol(f.grade, 1 - k), 600); }
     }
   }
+
+  /* ---------- the note road (Yousician-style): the three strings run away from the play line in perspective,
+     each note is a pill as long as it sounds with its FRET number inside and its FINGER on a small badge above,
+     coloured by the finger. A ball hops from note to note and lands on each one exactly when it should be played;
+     the dotted arc shows where it goes next. In WAIT the clock stops, so the ball rests on the note until the
+     microphone hears it — then the note flashes and a big grade („ზუსტი!“) rises from the line. ---------- */
+  const SC = { 1: '#D9783F', 2: '#78B7DE', 3: '#EFE0B8' };
+  function drawRoad(t) {
+    const A = E.flags(), now = E.visualNow(), px = PX(), dir = self.mirror ? -1 : 1, W = G.W, H = G.H;
+    const foot = H > 150 ? 16 : 8, top = Math.max(10, H * .08), bot = H - foot - Math.max(6, H * .04), gap = (bot - top) / 3;
+    const LY = { 3: top + gap * .5, 2: top + gap * 1.5, 1: top + gap * 2.5 }, cy = LY[2];
+    const reach = Math.max(80, self.mirror ? px : W - px), far = px + dir * reach, back = self.mirror ? W : 0;
+    const depth = x => clamp((x - px) * dir / reach, 0, 1);
+    const pk = clamp((H - 110) / 320, 0, 1), P = (x, y) => { const d = depth(x), sc = 1 - (.14 + .26 * pk) * d; return { x: px + (x - px) * (1 - .08 * d), y: cy - H * .05 * pk * d + (y - cy) * sc, s: sc }; };
+    const eT = LY[3] - gap * .5, eB = LY[1] + gap * .5;
+    // the deck
+    const q = [{ x: back, y: eT }, P(px, eT), P(far, eT), P(far, eB), P(px, eB), { x: back, y: eB }];
+    const dg = ctx.createLinearGradient(0, eT, 0, eB); dg.addColorStop(0, 'rgba(34,26,21,.92)'); dg.addColorStop(1, 'rgba(18,14,11,.96)');
+    ctx.fillStyle = dg; ctx.beginPath(); q.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(224,168,120,.16)'; ctx.lineWidth = 1; ctx.stroke();
+    // beats across the deck (bar starts brighter)
+    const bpb = E.bpb(), b0 = Math.floor(now) - 2, b1 = now + G.beats + 1.5;
+    for (let b = Math.max(0, b0); b <= b1; b++) {
+      const x = X(b); if ((x - px) * dir < -px) continue; const a = P(x, eT), c = P(x, eB), d = depth(x);
+      ctx.strokeStyle = b % bpb === 0 ? 'rgba(255,240,228,' + (.2 * (1 - d * .6)).toFixed(3) + ')' : 'rgba(255,240,228,' + (.07 * (1 - d * .6)).toFixed(3) + ')'; ctx.lineWidth = b % bpb === 0 ? 1.4 : 1;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(c.x, c.y); ctx.stroke();
+    }
+    // strings
+    [3, 2, 1].forEach(sn => {
+      const y = LY[sn], p1 = P(px, y), p2 = P(far, y), g2 = ctx.createLinearGradient(px, 0, far, 0);
+      g2.addColorStop(0, hexA(SC[sn], .75)); g2.addColorStop(1, hexA(SC[sn], .22));
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = hexA(SC[sn], .45); ctx.lineWidth = 3.4 - sn * .5; ctx.beginPath(); ctx.moveTo(back, y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+      ctx.strokeStyle = g2; ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      const lx = self.mirror ? W - 20 : 20; ctx.fillStyle = 'rgba(12,9,7,.9)'; ctx.beginPath(); ctx.arc(lx, y, 12, 0, 7); ctx.fill(); ctx.strokeStyle = SC[sn]; ctx.lineWidth = 1.6; ctx.stroke();
+      text(TH.stringName(sn), lx, y + .5, 11, SC[sn], 700);
+    });
+    // play line
+    const cur = S.steps[S.cur], waitHere = cur && (S.waiting || (cur.t - now) < .02);
+    const pt = P(px, eT - 6), pb = P(px, eB + 6), pl = ctx.createLinearGradient(0, pt.y, 0, pb.y);
+    pl.addColorStop(0, 'rgba(246,201,135,0)'); pl.addColorStop(.2, 'rgba(246,201,135,.85)'); pl.addColorStop(.8, 'rgba(246,201,135,.85)'); pl.addColorStop(1, 'rgba(246,201,135,0)');
+    ctx.fillStyle = 'rgba(201,139,91,.10)'; ctx.fillRect(px - 16, pt.y, 32, pb.y - pt.y);
+    ctx.fillStyle = pl; ctx.fillRect(px - 1.5, pt.y, 3, pb.y - pt.y);
+    const RR = Math.max(10, Math.min(21, gap * .27));
+    [3, 2, 1].forEach(sn => { const on = waitHere && cur.notes.some(n => n.s === sn); ctx.strokeStyle = on ? hexA(SC[sn], .95) : 'rgba(255,240,228,.16)'; ctx.lineWidth = on ? 2.4 : 1.2; ctx.beginPath(); ctx.ellipse(px, LY[sn], RR * .72 + (on ? Math.sin(t / 240) * 1.5 : 0), RR + (on ? Math.sin(t / 240) * 1.5 : 0), 0, 0, 7); ctx.stroke(); });
+    // notes (far ones first so near ones sit on top)
+    const vis0 = now - 1.6, vis1 = now + G.beats + 1, pill = (st, n, x0, x1, a, glow, f) => {
+      const y = LY[n.s], p0 = P(x0, y), p1 = P(x1, y), r0 = RR * p0.s, r1 = RR * p1.s, col = n.f > 0 && n.fi ? colOf(n) : SC[n.s];   // open string: the string's own colour
+      ctx.save(); ctx.globalAlpha = a;
+      if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 22; }
+      const gr = ctx.createLinearGradient(0, p0.y - r0, 0, p0.y + r0); gr.addColorStop(0, mix(col, '#FFFFFF', .28)); gr.addColorStop(.55, col); gr.addColorStop(1, mix(col, '#000000', .3));
+      ctx.fillStyle = gr; ctx.beginPath();
+      const L = p0.x < p1.x ? [p0, r0, p1, r1] : [p1, r1, p0, r0];
+      ctx.arc(L[0].x, L[0].y, L[1], Math.PI / 2, Math.PI * 1.5); ctx.lineTo(L[2].x, L[2].y - L[3]); ctx.arc(L[2].x, L[2].y, L[3], -Math.PI / 2, Math.PI / 2); ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.2; ctx.stroke();
+      text(String(n.f), p0.x + (self.mirror ? -1 : 1) * Math.min(r0 * .1, Math.abs(p1.x - p0.x) * .3), p0.y + .5, Math.round(r0 * 1.15), inkOf(n), 800);
+      if (n.f > 0 && n.fi) {   // the finger on a small badge above the note
+        const br = Math.max(7, r0 * .5), bx = p0.x, by = p0.y + r0 + br + 2;   // below the note: the ball lands on its top
+        ctx.fillStyle = 'rgba(12,9,7,.92)'; ctx.beginPath(); ctx.arc(bx, by, br, 0, 7); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.stroke();
+        text(String(n.fi), bx, by + .5, Math.round(br * 1.15), '#FFFFFF', 800);
+      }
+      if (A.names && !(f && f.hit)) text(TH.name(TH.midi(n.s, n.f)), p0.x + (n.f > 0 && n.fi ? (self.mirror ? -1 : 1) * Math.max(7, r0 * .5) * 2.6 : 0), p0.y + r0 + Math.max(7, r0 * .5) + 2, Math.round(10 + p0.s * 2), 'rgba(230,232,238,' + (.7 * a).toFixed(3) + ')', 600);
+      ctx.restore();
+    };
+    const idx = []; for (let i = 0; i < S.steps.length; i++) { const st = S.steps[i]; if (st.t + st.d < vis0 || st.t > vis1) continue; idx.push(i); }
+    idx.sort((i, j) => S.steps[i].t - S.steps[j].t);   // near first: a far pill never hides the number at the start of the next one
+    idx.forEach(i => {
+      const st = S.steps[i], f = fx[i] || {}, res = S.res[i] || {}, done = res.ok || res.missed;
+      let x = X(st.t), a = 1, glow = null;
+      if (f.hit) { const k = (t - f.hit) / 520; if (k >= 1) return; a = 1 - k * k; x = (x - px) * dir < 0 ? px : x; glow = 'rgba(142,240,180,.95)'; }
+      else if (done) { a = Math.max(0, .4 - (now - st.t) * .45); if (a <= 0) return; }
+      if (f.wrong && t - f.wrong < 340) { const p = (t - f.wrong) / 340; x += Math.sin(p * Math.PI * 6) * 6 * (1 - p); }
+      const nx = S.steps[i + 1], room = nx ? nx.t - st.t : st.d, len = clamp(Math.min(st.d, room), .1, 2.5), xe = X(st.t + len) - dir * RR * 2.3, x1 = ((xe - x) * dir > 0 ? xe : x) + (f.hit ? (px - X(st.t)) : 0);
+      if (st.kind === 'note') pill(st, st.notes[0], x, x1, a, glow, f);
+      else {   // a chord: a bar across the deck, every fretted note on its string
+        const p0 = P(x, eT + gap * .12), p1 = P(x, eB - gap * .12), w = RR * 1.5 * p0.s;
+        ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = st.acc ? 'rgba(255,107,91,.18)' : 'rgba(255,240,228,.07)'; ctx.strokeStyle = st.acc ? 'rgba(255,107,91,.75)' : 'rgba(255,240,228,.3)'; ctx.lineWidth = st.acc ? 2.2 : 1.2;
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(p0.x - w / 2, p0.y, w, p1.y - p0.y, w / 2) : ctx.rect(p0.x - w / 2, p0.y, w, p1.y - p0.y); ctx.fill(); ctx.stroke(); ctx.restore();
+        st.notes.forEach(n => pill(st, n, x, x + (x1 - x) * .5, a, glow, f));
+        if (!st.notes.some(n => n.f > 0)) { const pm = P(x, LY[2]); arrow(pm.x, pm.y, st.st === 'up', RR * .8 * pm.s, st.acc ? ACC : '#FFFFFF', st.acc ? 4 : 2.6); }
+      }
+      if (f.grade && t - f.gradeT < 1000) {
+        const k = (t - f.gradeT) / 1000, big = f.grade === 'perfect' || f.grade === 'good', fs = big ? Math.round(Math.min(30, Math.max(18, gap * .42))) : 14;
+        ctx.save(); ctx.globalAlpha = 1 - k * k; const yy = eT - 4 - 18 * easeOut(k), sc2 = 1 + .25 * Math.max(0, 1 - k * 4);
+        ctx.translate(px, Math.max(fs * .6, yy)); ctx.scale(sc2, sc2); ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 8;
+        text(tr('g.' + f.grade) + (big ? '!' : ''), 0, 0, fs, gcol(f.grade, 1), 800); ctx.restore();
+      }
+    });
+    // the ball: lands on every note at its time; between notes it flies in an arc
+    const ns = S.steps; let j = 0; while (j < ns.length && ns[j].t <= now + 1e-6) j++;
+    const yOf = st => { if (!st) return LY[2]; const n = st.kind === 'note' ? st.notes[0] : st.notes.reduce((m, n2) => n2.s > m.s ? n2 : m, st.notes[0] || { s: 3 }); return LY[n.s] - RR * 1.45; };
+    const ballY = tau => {
+      let k = 0; while (k < ns.length && ns[k].t <= tau + 1e-6) k++;
+      const a2 = ns[k - 1], b2 = ns[k]; if (!b2) return yOf(a2); if (!a2) return yOf(b2) - Math.min(gap * 1.1, 60) * Math.max(0, Math.min(1, (b2.t - tau) / 1.5));
+      const dt = Math.max(.05, b2.t - a2.t), u = clamp((tau - a2.t) / dt, 0, 1), hgt = Math.min(gap * .95, 14 + 30 * Math.min(2, dt));
+      return yOf(a2) + (yOf(b2) - yOf(a2)) * u - hgt * 4 * u * (1 - u);
+    };
+    if (ns.length && !self.rhythm) {
+      ctx.fillStyle = 'rgba(255,255,255,.55)';
+      for (let tau = now + .08; tau < now + G.beats; tau += .085) { const p = P(X(tau), ballY(tau)), d = depth(X(tau)); ctx.globalAlpha = .7 * (1 - d * .8); ctx.beginPath(); ctx.arc(p.x, p.y, 1.7 * p.s, 0, 7); ctx.fill(); }
+      ctx.globalAlpha = 1;
+      const by = ballY(now), bp = P(px, by), br = Math.max(6, RR * .42);
+      const sh = P(px, Math.min(eB, (ns[j] ? yOf(ns[j]) : by) + RR)); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(sh.x, sh.y, br * 1.1, br * .35, 0, 0, 7); ctx.fill();
+      const bg = ctx.createRadialGradient(bp.x - br * .35, bp.y - br * .4, br * .1, bp.x, bp.y, br); bg.addColorStop(0, '#FFFFFF'); bg.addColorStop(1, '#E9DCCB');
+      ctx.save(); ctx.shadowColor = 'rgba(255,240,228,.8)'; ctx.shadowBlur = 14; ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(bp.x, bp.y, br, 0, 7); ctx.fill(); ctx.restore();
+    }
+    // the whole piece in one strip: every note as a tick (green = heard, red = missed), the cursor = now
+    if (foot > 8 && ns.length) {
+      const total = Math.max(1, ns[ns.length - 1].t + ns[ns.length - 1].d), x0 = 16, x2 = W - 16, yy = H - foot / 2;
+      ctx.fillStyle = 'rgba(255,240,228,.08)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, yy - 3, x2 - x0, 6, 3) : ctx.rect(x0, yy - 3, x2 - x0, 6); ctx.fill();
+      for (let i = 0; i < ns.length; i++) { const r = S.res[i] || {}, xx = x0 + (x2 - x0) * (ns[i].t / total); ctx.fillStyle = r.ok ? '#8EF0B4' : r.missed ? '#FF8A7D' : 'rgba(255,240,228,.3)'; ctx.fillRect(xx - .75, yy - 3, 1.5, 6); }
+      const xc = x0 + (x2 - x0) * clamp(now / total, 0, 1); ctx.fillStyle = '#F6C987'; ctx.fillRect(xc - 1, yy - 6, 2, 12);
+    }
+  }
   const tr = (k, v) => PD.i18n.t(k, v), t2 = g => tr('g.' + g);
   function gcol(g, a) { const c = g === 'perfect' ? '#8EF0B4' : g === 'good' ? '#D8DCE6' : g === 'miss' ? '#FF8A7D' : '#FFD27A'; return hexA(c, clamp(a, 0, 1)); }
 
@@ -352,7 +466,7 @@ PD.Lanes = function (canvas, opt) {
     const t = performance.now();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, G.W, G.H);
     if (!S.lesson) return;
-    if (self.song && S.lesson.cycle && S.lesson.cycle.length) (G.H > G.W * 1.15 ? drawCycleV : drawCycle)(t); else if (self.song) drawSong(t); else if (self.rhythm) drawRhythm(t); else drawNotes(t);
+    if (self.song && S.lesson.cycle && S.lesson.cycle.length) (G.H > G.W * 1.15 ? drawCycleV : drawCycle)(t); else if (self.song) drawSong(t); else if (self.rhythm) drawRhythm(t); else if (PD.store.get('lanes.style', 'road') === 'road') drawRoad(t); else drawNotes(t);
     if (countT && t - countT < 900) {   // count-in: the number sits on its own round badge (never mixed into the chart behind it), pops in and drains a ring
       const k = (t - countT) / 900, big = count > 0, fs = big ? Math.min(72, G.H * .36) : Math.min(30, G.H * .16), r = big ? fs * .95 : Math.max(fs * 2.4, 60), pop = 1 + .18 * Math.max(0, 1 - k * 5);
       ctx.save(); ctx.globalAlpha = Math.min(1, (1 - k) * 2.2); ctx.translate(G.W / 2, G.H / 2); ctx.scale(pop, pop);

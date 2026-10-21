@@ -127,7 +127,7 @@ PD.onboard = (() => {
     back.appendChild(box); document.body.appendChild(back);
     let step = 0, offs = [], micByUs = false;
     const clean = () => { offs.forEach(f => f()); offs = []; };
-    const done = () => { clean(); if (micByUs && D.active) D.stop(); PD.store.set('onboarded', true); back.remove(); };
+    const done = () => { clean(); if (micByUs && D.active) D.stop(); PD.store.set('onboarded', true); back.remove(); PD.intro && PD.intro.maybe(); };
     const opt = (k, d, on, pressed) => h('button', { class: 'opt', 'aria-pressed': String(!!pressed), onclick: on, html: '<span><b data-t="' + k + '"></b>' + (d ? '<small data-t="' + d + '"></small>' : '') + '</span><span class="mono">' + (pressed ? '✓' : '') + '</span>' });
     const next = () => { step++; render(); }, prev = () => { step = Math.max(0, step - 1); render(); };
     const foot = (primary) => h('div', { class: 'row' }, [step > 0 ? h('button', { class: 'btn quiet', 'data-t': 'back', onclick: prev }) : null, h('span', { class: 'spacer' }), primary || h('button', { class: 'btn primary', 'data-t': 'next', onclick: next })].filter(Boolean));
