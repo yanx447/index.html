@@ -7,7 +7,7 @@ PD.i18n.add({
   'ce.lib': ['აკორდების ბიბლიოთეკა', 'Chord library'],
   'ce.triFing': ['თითები მასწავლებლის Bm-ის მიხედვით: T ცერა — ბანი, 1 საჩვენებელი — მე-2 ხმა, 2 შუა — 1-ლი ხმა. იგივე სამკუთხა ფორმა, სხვა ლადზე.', 'Fingers as the teacher\'s Bm: T thumb — bass, 1 index — 2nd voice, 2 middle — 1st voice. The same triangle shape on another fret.'],
   'ce.filters': ['ფილტრები', 'Filters'], 'ce.allRoots': ['ყველა ბგერა', 'all roots'], 'ce.accNotes': ['ბგერები და თითები', 'Notes and fingers'], 'ce.accAbout': ['ამ აკორდის შესახებ', 'About this chord'], 'ce.accChange': ['გადასვლა სხვა აკორდზე', 'Change to another chord'], 'ce.accChangeD': ['აჩვენე და ივარჯიშე', 'Show it and practise'],
-  'ce.allCh': ['ყველა აკორდი', 'All chords'], 'ce.catLead': ['მოძებნე სახელით, აირჩიე კატეგორია ან ბგერა — შეეხე აკორდს და გაიხსნება მისი გვერდი', 'Search by name, pick a category or root — tap a chord to open its page'],
+  'ce.allCh': ['ყველა აკორდი', 'All chords'], 'ce.h3front': ['წინიდან · სარკეში', 'Front · mirrored'], 'ce.h3player': ['შენი თვალით', 'Your view'], 'ce.h3load': ['3D ხელი იტვირთება…', 'Loading the 3D hand…'], 'ce.h3alt': ['3D-ში ნახე: {p}', 'See it in 3D: {p}'], 'ce.h3none': ['ამ პოზიციისთვის 3D ხელი ზუსტად ვერ დავსვით (ძირითადად მაღალ ლადებზე, სადაც ხელი ფანდურის ტანს ეხება). თითები 2D ხედში ჩანს.', 'The 3D hand could not be placed exactly for this position (mostly high frets, where the hand meets the body). See the fingers in 2D.'], 'ce.h3na': ['3D ხელი ამ ვერსიაში არ ჩაიტვირთა (ფაილი აკლია). 2D ხედი მუშაობს.', 'The 3D hand could not load in this version (file missing). 2D works.'], 'ce.catLead': ['მოძებნე სახელით, აირჩიე კატეგორია ან ბგერა — შეეხე აკორდს და გაიხსნება მისი გვერდი', 'Search by name, pick a category or root — tap a chord to open its page'],
   'ce.sh.none': ['ფორმა ვერ მოიძებნა', 'No form found'], 'ce.sh.noneD': ['ამ წყობით სამ სიმზე დასაკრავი ფორმა არ არსებობს', 'No playable three-string form in this tuning'],
   'ce.noForm': ['ფანდურზე ამ წყობით (A · C♯ · E, 17 ლადი) ხელმისაწვდომი ფორმა ვერ მოიძებნა. ყალბ დიაგრამას არ ვაჩვენებთ.', 'No playable form was found on the panduri in this tuning (A · C♯ · E, 17 frets). We don\'t show a fake diagram.'],
   'ce.sec.all': ['ყველა', 'All'], 'ce.sec.pop': ['პოპულარული', 'Popular'], 'ce.sec.easy': ['დამწყებთათვის', 'Beginner'], 'ce.sec.fav': ['ფავორიტები', 'Favourites'], 'ce.sec.prog': ['თანმიმდევრობები', 'Progressions'],
@@ -235,11 +235,11 @@ PD.tools = (() => {
     const placeOf = (v, k) => TT.stringName(k + 1) + (v.frets[k] ? ' ' + v.frets[k] : ' 0');
     /** place the fingers one at a time (barre = one step), then the open strings, then strum */
     function stepByStep(v) {
-      stopAnim(); view.setTarget([], []); const groups = {}, order = [];
+      stopAnim(); view.setTarget([], []); const groups = {}, order = [], on3 = new Set(); if (H3 && dim === '3d') H3.stepFingers(on3);
       v.frets.forEach((f, k) => { if (f > 0) { const key = (v.fingers[k] || 9) + ':' + f; if (!groups[key]) { groups[key] = []; order.push(key); } groups[key].push(k); } });
       order.sort((a, b) => parseInt(a) - parseInt(b));
       const shown = []; let tm = 300;
-      order.forEach(key => { const ks = groups[key]; later(tm, () => { ks.forEach(k => shown.push({ s: k + 1, f: v.frets[k], fi: v.fingers[k] || 0 })); view.setTarget(shown.slice(), []); PD.audio.ensure(); ks.forEach(k => { PD.audio.note(k + 1, v.frets[k], { vel: .6 }); view.pluck(k + 1, v.frets[k]); }); say(t('ce.fStep', { f: v.fingers[ks[0]] || '?', s: ks.map(k => TT.stringName(k + 1)).join(' · '), n: v.frets[ks[0]] })); }); tm += 1500; });
+      order.forEach(key => { const ks = groups[key]; later(tm, () => { if (H3 && dim === '3d') { ks.forEach(k => { if (v.fingers[k]) on3.add(String(v.fingers[k])); }); H3.stepFingers(new Set(on3)); } ks.forEach(k => shown.push({ s: k + 1, f: v.frets[k], fi: v.fingers[k] || 0 })); view.setTarget(shown.slice(), []); PD.audio.ensure(); ks.forEach(k => { PD.audio.note(k + 1, v.frets[k], { vel: .6 }); view.pluck(k + 1, v.frets[k]); }); say(t('ce.fStep', { f: v.fingers[ks[0]] || '?', s: ks.map(k => TT.stringName(k + 1)).join(' · '), n: v.frets[ks[0]] })); }); tm += 1500; });
       v.frets.forEach((f, k) => { if (f === 0) { later(tm, () => { shown.push({ s: k + 1, f: 0, fi: 0 }); view.setTarget(shown.slice(), []); PD.audio.ensure(); PD.audio.note(k + 1, 0, { vel: .6 }); view.pluck(k + 1, 0); say(t('ce.openStep', { s: TT.stringName(k + 1) })); }); tm += 1300; } });
       later(tm, () => { PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); v.frets.forEach((f, k) => view.pluck(k + 1, f)); say(t('ce.allTog')); });
       later(tm + 2600, () => cap.classList.remove('on'));
@@ -248,12 +248,40 @@ PD.tools = (() => {
     function showChange(a, b, nameA, nameB) {
       stopAnim(); const fin = v => { const o = {}; v.frets.forEach((f, k) => { if (f > 0 && v.fingers[k]) (o[v.fingers[k]] = o[v.fingers[k]] || []).push(k); }); return o; };
       const desc = (x, y) => { const A = fin(x), B = fin(y), out = []; new Set(Object.keys(A).concat(Object.keys(B))).forEach(f => { const pa = (A[f] || []).map(k => placeOf(x, k)).join('+'), pb = (B[f] || []).map(k => placeOf(y, k)).join('+'); if (!A[f]) out.push(t('ce.put', { f, b: pb })); else if (!B[f]) out.push(t('ce.lift', { f })); else if (pa === pb) out.push(t('ce.stay', { f })); else out.push(t('ce.move', { f, a: pa, b: pb })); }); return out.join(' · '); };
-      const pts = v => v.frets.map((f, k) => ({ s: k + 1, f, fi: v.fingers[k] || 0 })), go = (x, nm) => { view.setTarget(pts(x), []); PD.audio.ensure(); PD.audio.strum(x.frets, 'down', { gap: .03 }); x.frets.forEach((f, k) => view.pluck(k + 1, f)); };
+      const pts = v => v.frets.map((f, k) => ({ s: k + 1, f, fi: v.fingers[k] || 0 })), go = (x, nm) => { view.setTarget(pts(x), []); if (H3 && dim === '3d') H3.setChord(x.frets, x.fingers.map(f => f || 0)); PD.audio.ensure(); PD.audio.strum(x.frets, 'down', { gap: .03 }); x.frets.forEach((f, k) => view.pluck(k + 1, f)); };
       let tm = 100; for (let r = 0; r < 2; r++) { later(tm, () => { go(a); say(nameA + ' → ' + nameB + ': ' + desc(a, b)); }); tm += 1800; later(tm, () => { go(b); say(nameB); }); tm += 1800; }
       later(tm, () => { go(a); say(nameA); }); later(tm + 2200, () => cap.classList.remove('on'));
     }
     const acts = h('div', { class: 'ce-acts' }), accs = h('div', { class: 'ce-accs' });
-    if (isDet) w.append(h('section', { class: 'ce-hero' }, [nameBox, nv, cap, acts]), accs); else w.append(top, left, g);
+    /* 2D / 3D: the 3D hand (same model and cameras as the teacher's Bm) is loaded only when chosen */
+    let dim = PD.store.get('ce.dim', '2d'), H3 = null, h3view = PD.store.get('ce.h3view', 'front');
+    const h3stage = h('div', { class: 'h3-stage' }), h3msg = h('p', { class: 'h3-msg', hidden: true }), h3caps = h('ul', { class: 'h3-caps' });
+    const h3seg = h('div', { class: 'seg h3-views', role: 'group' }, [['front', 'ce.h3front'], ['player', 'ce.h3player']].map(([k, lk]) => h('button', { 'aria-pressed': String(k === h3view), 'data-k': k, 'data-t': lk, onclick: () => { h3view = k; PD.store.set('ce.h3view', k); h3seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k))); if (H3) H3.setView(k); } })));
+    const h3box = h('div', { class: 'h3-box', hidden: true }, [h3stage, h3msg, h3caps, h3seg]);
+    const dimSeg = h('div', { class: 'seg h3-dim', role: 'group', 'aria-label': '2D / 3D' }, ['2d', '3d'].map(k => h('button', { 'aria-pressed': String(k === dim), 'data-k': k, text: k.toUpperCase(), onclick: () => setDim(k) })));
+    const FNAME = { 1: ['საჩვენებელი', 'index'], 2: ['შუა', 'middle'], 3: ['არათითი', 'ring'], 4: ['ნეკი', 'little'], T: ['ცერა', 'thumb'] };
+    const SNAME = { 1: ['ბანი (მე-3 სიმი)', 'bass (3rd string)'], 2: ['მე-2 ხმა (მე-2 სიმი)', '2nd voice (2nd string)'], 3: ['1-ლი ხმა (1-ლი სიმი)', '1st voice (1st string)'] };
+    const ord = n => PD.i18n.lang === 'en' ? 'fret ' + n : (n === 1 ? '1-ლი' : 'მე-' + n) + ' ლადი', Lk = a => PD.i18n.lang === 'en' ? a[1] : a[0];
+    function h3caption(v) { h3caps.innerHTML = ''; v.frets.forEach((f, k) => { const fi = v.fingers[k]; if (!(f > 0 && fi)) return; h3caps.append(h('li', {}, [h('span', { class: 'h3-dot', style: 'background:' + PD.fingers.color(fi) + ';color:' + PD.fingers.ink(fi), text: String(fi) }), h('span', { text: Lk(FNAME[fi] || ['', '']) + ': ' + Lk(SNAME[k + 1]) + ', ' + ord(f) })])); }); v.frets.forEach((f, k) => { if (f === 0) h3caps.append(h('li', { class: 'open' }, [h('span', { class: 'h3-dot o', text: '0' }), h('span', { text: Lk(SNAME[k + 1]) + ' — ' + t('ce.open') })])); }); }
+    function upd3d() {
+      if (dim !== '3d' || !isDet) return; const v = vo(); h3caption(v);
+      if (!H3) { h3msg.hidden = false; h3msg.textContent = t('ce.h3load'); return; }
+      const ok = H3.setChord(v.frets, v.fingers.map(f => f || 0)); h3stage.hidden = !ok; h3seg.hidden = !ok; h3msg.hidden = ok;
+      if (!ok) { h3msg.innerHTML = ''; h3msg.append(t('ce.h3none'));
+        // another position of the same chord that has a 3D hand
+        const alt = (cur.voicings || []).map((x, k) => [x, k]).find(([x]) => H3.has(x.frets, x.fingers.map(f => f || 0)));
+        if (alt) h3msg.append(h('br'), h('button', { class: 'btn small h3-alt', text: t('ce.h3alt', { p: alt[0].pos ? t('ce.posN', { n: alt[0].pos }) : t('ce.open') }), onclick: () => { vi = alt[1]; forced = null; grid(); show(); } })); }
+    }
+    function setDim(k) {
+      dim = k; PD.store.set('ce.dim', k); dimSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k)));
+      nv.hidden = k === '3d'; h3box.hidden = k !== '3d';
+      if (k === '3d' && !H3) {
+        h3msg.hidden = false; h3msg.textContent = t('ce.h3load'); h3stage.hidden = true;
+        (PD._h3p = PD._h3p || import(new URL('hand3d.js', document.baseURI).href)).then(mod => { if (!h3box.isConnected) return; if (!mod.mount(h3stage)) { h3msg.textContent = t('r3.nogl'); return; } H3 = mod; H3.setView(h3view); upd3d(); }, () => { PD._h3p = null; h3msg.textContent = t('ce.h3na'); });
+      } else upd3d();
+      if (k === '2d') preview();
+    }
+    if (isDet) { w.append(h('section', { class: 'ce-hero' }, [nameBox, dimSeg, nv, h3box, cap, acts]), accs); if (dim === '3d') requestAnimationFrame(() => setDim('3d')); } else w.append(top, left, g);
     const norm = x => (x || '').toLowerCase().replace(/#/g, '♯').replace(/([a-g])b/g, '$1♭').replace(/\s+/g, '');
     function match(c) {
       if (fSec === 'pop' && !popular(c)) return false;
@@ -346,7 +374,7 @@ PD.tools = (() => {
         acc('change', t('ce.accChange'), t('ce.accChangeD'), [h('label', { class: 'field' }, [h('span', { text: t('ce.to') }), other]), h('div', { class: 'row' }, [h('button', { class: 'btn small', text: t('ce.showCh'), onclick: () => { const b = all.find(c => c.id === other.value); if (b) showChange(v, (b.voicings && b.voicings[0]) || b, cur.name, b.name); } }), h('button', { class: 'btn small', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })])]));
       if (PD.motion && nameBox.dataset.shown) PD.motion.swap(nameBox.querySelector('.ce-name'), swapDir); nameBox.dataset.shown = '1'; swapDir = 0;
       { const sel = g.querySelector('[aria-pressed="true"]'), row = sel && sel.parentNode; if (sel) requestAnimationFrame(() => { row.scrollLeft = Math.max(0, sel.offsetLeft - row.offsetLeft - (row.clientWidth - sel.offsetWidth) / 2); }); }
-      preview();
+      preview(); upd3d();
     }
     grid(); show();
   }
