@@ -99,9 +99,12 @@ export function create(host, opt) {
   /* the film: [t0, t1, from pos, to pos, from target, to target, fov0, fov1, up] */
   const SH = G.SH_Y, BR = G.BR;
   const portrait = () => (host.clientHeight || 1) > (host.clientWidth || 1);
-  function finalShot() {
-    // the whole instrument: upright on a phone (portrait), lying horizontally on a wide screen
-    return portrait() ? { p: [-140, -170, 1500], t: [0, -120, 0], f: 32, up: [0, 1, 0] } : { p: [150, -275, 1020], t: [0, -262, 0], f: 30, up: [1, 0, 0] };
+  // the end: no turn — the camera keeps the angle it had over the tuners (same direction, same up) and only pulls back
+  // until the whole instrument is in view; the view distance adapts to the screen shape
+  const TUNE_P = [24, 214, 138], TUNE_T = [0, 70, -6], DIRV = (() => { const d = [TUNE_T[0] - TUNE_P[0], TUNE_T[1] - TUNE_P[1], TUNE_T[2] - TUNE_P[2]], l = Math.hypot(...d); return d.map(x => x / l); })();
+  function finalShot(extra) {
+    const tg = [0, -240, 0], dist = (portrait() ? 1200 : 1050) * (1 + (extra || 0)), f = portrait() ? 40 : 36;
+    return { p: tg.map((x, i) => x - DIRV[i] * dist), t: tg, f, up: [0, 0, 1] };
   }
   const SHOTS = () => {
     const F = finalShot();
@@ -111,11 +114,11 @@ export function create(host, opt) {
       [3.4, 5.0, [0, SH - 2, -10], [0, SH + 30, 40], [0, SH - 150, 10], [0, SH - 150, 10], 60, 54, [0, 0, 1]],                  // rising out of the hole and turning to the soundboard
       [5.0, 9.0, [0, SH + 30, 40], [0, -20, 40], [0, SH - 150, 10], [0, -200, 10], 54, 54, [0, 0, 1]],                // the same view, sliding back along the strings and frets toward the head
       [9.0, 10.6, [0, -20, 40], [0, 230, 150], [0, -200, 10], [0, 70, -6], 54, 46, [0, 0, 1]],                       // rising behind the head: the tuners below
-      [10.6, 13.2, [0, 230, 150], [24, 214, 138], [0, 70, -6], [0, 70, -6], 46, 44, [0, 0, 1]],                        // tuning: A, C♯, E
-      [13.2, 15.6, [24, 214, 138], F.p, [0, 70, -6], F.t, 44, F.f, F.up]                                               // and back: the whole instrument
+      [10.6, 13.2, [0, 230, 150], TUNE_P, [0, 70, -6], TUNE_T, 46, 44, [0, 0, 1]],                        // tuning: A, C♯, E
+      [13.2, 17.0, TUNE_P, F.p, TUNE_T, F.t, 44, F.f, F.up]                                               // and back: the whole instrument
     ];
   };
-  const DUR = 15.6, TUNE = [[1, 10.8, 11.6, 'A'], [2, 11.55, 12.35, 'C♯'], [3, 12.3, 13.1, 'E']];
+  const DUR = 17.0, TUNE = [[1, 10.8, 11.6, 'A'], [2, 11.55, 12.35, 'C♯'], [3, 12.3, 13.1, 'E']];
   let fixedT = null, shots = SHOTS(), t0 = 0, raf = 0, stopped = false, endAt = null, onEnd = opt.onEnd || (() => {}), cued = {};
   function size() {
     const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight, dpr = Math.min(opt.still ? 1 : 1.6, window.devicePixelRatio || 1);
@@ -131,9 +134,9 @@ export function create(host, opt) {
     if (stopped) return; if (!host.isConnected && !opt.still) { stopped = true; ro.disconnect(); try { R.dispose(); R.forceContextLoss(); } catch (_) {} return; } raf = requestAnimationFrame(frame);
     if (document.hidden) return;
     const life = fixedT != null ? fixedT : (now - t0) / 1000, t = Math.min(DUR, life);
-    if (t < DUR) camAt(t); else { // after the film: a slow breathing orbit around the final shot
-      const F = finalShot(), a = (life - DUR) * .08, s = Math.sin(a), c = Math.cos(a);
-      cam.position.set(F.p[0] + s * 90, F.p[1] + (1 - c) * 30, F.p[2]); cam.up.set(...F.up); cam.lookAt(...F.t); cam.fov = F.f; cam.updateProjectionMatrix();
+    if (t < DUR) camAt(t); else { // after the film: the same view, breathing slowly
+      const F = finalShot(Math.sin((life - DUR) * .25) * .025); // only a gentle breath in and out along the same line — no turning
+      cam.position.set(...F.p); cam.up.set(...F.up); cam.lookAt(...F.t); cam.fov = F.f; cam.updateProjectionMatrix();
     }
     // strings grow one after another (A, then C♯, then E), each with a warm tip and a glow that settles
     const g = [sm(.3, 3.2, t), sm(1.1, 4.0, t), sm(1.9, 4.8, t)];
