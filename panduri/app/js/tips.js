@@ -578,10 +578,8 @@ PD.tips = (() => {
         if (c.why) w.append(h('section', { class: 'tp-sec' }, [h('h3', { 'data-t': 'tp.why' }), h('p', { text: L(c.why) })]));
       }
       if (c.go) w.append(h('button', { class: 'btn primary', style: 'align-self:flex-start', text: t('tp.try') + ': ' + L(c.go.label), onclick: () => openGo(c.go) }));
-      // more from the same group
-      const more = list.filter(x => x.cat === c.cat && x.id !== c.id).slice(0, 4);
-      if (more.length) w.append(h('h2', { text: t('tp.c.' + c.cat), style: 'margin-top:10px' }), h('div', { class: 'tp-grid' }, more.map(card)));
-      w.append(h('button', { class: 'btn small', style: 'align-self:flex-start', text: t('tp.more'), onclick: () => PD.app.go('tips') }));
+      // one lesson on its screen: no other cards here — the next step of the path, or the whole path
+      w.append(PD.app.pathBar('tip', c.id));
       return;
     }
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'tp.title', style: 'margin:0' })]), h('p', { class: 'muted', 'data-t': 'tp.lead' }));

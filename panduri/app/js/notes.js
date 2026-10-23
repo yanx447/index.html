@@ -353,6 +353,7 @@ PD.theoryBook = (() => {
     const nx = CH[i + 1], pv = CH[i - 1];
     w.append(h('div', { class: 'tb-nav' }, [pv ? h('button', { class: 'btn', text: '‹ ' + L(pv.t[0], pv.t[1]), onclick: () => PD.app.go('theory', pv.id) }) : h('span'),
       h('button', { class: 'btn primary', text: nx ? t('tb.next') + ' ›' : t('tb.finish'), onclick: () => { mark(c.id); PD.app.go('theory', nx ? nx.id : null); } })]));
+    if (PD.app.pathNav('chapter', c.id)) w.append(h('button', { class: 'btn small ls-path', style: 'align-self:center', html: PD.ic.learn + '<span data-t="ls.path"></span>', onclick: () => PD.app.go('learn', PD.app.pathNav('chapter', c.id).path) }));
     PD.i18n.apply(w);
   }
   return { page, progress, CHAPTERS: CH, M };

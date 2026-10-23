@@ -7,6 +7,7 @@ PD.i18n.add({
   'ce.lib': ['აკორდების ბიბლიოთეკა', 'Chord library'],
   'ce.triFing': ['თითები მასწავლებლის Bm-ის მიხედვით: T ცერა — ბანი, 1 საჩვენებელი — მე-2 ხმა, 2 შუა — 1-ლი ხმა. იგივე სამკუთხა ფორმა, სხვა ლადზე.', 'Fingers as the teacher\'s Bm: T thumb — bass, 1 index — 2nd voice, 2 middle — 1st voice. The same triangle shape on another fret.'],
   'ce.filters': ['ფილტრები', 'Filters'], 'ce.allRoots': ['ყველა ბგერა', 'all roots'], 'ce.accNotes': ['ბგერები და თითები', 'Notes and fingers'], 'ce.accAbout': ['ამ აკორდის შესახებ', 'About this chord'], 'ce.accChange': ['გადასვლა სხვა აკორდზე', 'Change to another chord'], 'ce.accChangeD': ['აჩვენე და ივარჯიშე', 'Show it and practise'],
+  'ce.allCh': ['ყველა აკორდი', 'All chords'], 'ce.catLead': ['მოძებნე სახელით, აირჩიე კატეგორია ან ბგერა — შეეხე აკორდს და გაიხსნება მისი გვერდი', 'Search by name, pick a category or root — tap a chord to open its page'],
   'ce.sh.none': ['ფორმა ვერ მოიძებნა', 'No form found'], 'ce.sh.noneD': ['ამ წყობით სამ სიმზე დასაკრავი ფორმა არ არსებობს', 'No playable three-string form in this tuning'],
   'ce.noForm': ['ფანდურზე ამ წყობით (A · C♯ · E, 17 ლადი) ხელმისაწვდომი ფორმა ვერ მოიძებნა. ყალბ დიაგრამას არ ვაჩვენებთ.', 'No playable form was found on the panduri in this tuning (A · C♯ · E, 17 frets). We don\'t show a fake diagram.'],
   'ce.sec.all': ['ყველა', 'All'], 'ce.sec.pop': ['პოპულარული', 'Popular'], 'ce.sec.easy': ['დამწყებთათვის', 'Beginner'], 'ce.sec.fav': ['ფავორიტები', 'Favourites'], 'ce.sec.prog': ['თანმიმდევრობები', 'Progressions'],
@@ -185,9 +186,14 @@ PD.tools = (() => {
   }
   function chords(w, param) {
     const own = scope(), TT = PD.theory;
-    header(w, 'ce.title');
+    // two screens: the catalogue (no parameter) and ONE chord (parameter = chord id, optionally |frets of a position)
+    const [pid, pfr] = param ? String(param).split('|') : [];
     const all = PD.curriculum.chords();
-    let cur = all.find(c => c.id === param) || all.find(c => c.name === 'Dm') || all[0], vi = 0, q = '', forced = null;
+    const isDet = !!(pid && all.some(c => c.id === pid || c.name === pid));
+    if (isDet) w.append(h('div', { class: 'row pg-head ce-dhead' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span data-t="ce.allCh"></span>', onclick: () => PD.app.back('chords') })]));
+    else w.append(h('div', { class: 'ce-chead' }, [h('h1', { 'data-t': 'ce.title', style: 'margin:0' }), h('p', { class: 'muted', 'data-t': 'ce.catLead' })]));
+    let cur = all.find(c => c.id === pid) || all.find(c => c.name === pid) || all.find(c => c.name === 'Dm') || all[0], vi = 0, q = '', forced = null;
+    if (isDet && pfr) { const k = (cur.voicings || []).findIndex(v => v.frets.join('-') === pfr); if (k >= 0) vi = k; else { const fr = pfr.split('-').map(Number); if (fr.length === 3 && fr.every(x => x >= 0 && x <= 17)) { const v0 = (cur.voicings || [])[0]; forced = Object.assign({}, v0 || cur, { frets: fr }); } } }
     /* shape sections: every chord in every shape it can be played in (triangle · barre · with open strings · other) */
     const SH = ['tri', 'barre', 'open', 'other', 'none'];
     const shapeOf = v => { const fr = v.frets; if (fr.every(x => x > 0) && fr[0] === fr[2] && Math.abs(fr[1] - fr[0]) === 1) return 'tri'; if (v.barre || (fr.every(x => x > 0) && fr[0] === fr[1] && fr[1] === fr[2])) return 'barre'; if (fr.some(x => x === 0)) return 'open'; return 'other'; };
@@ -247,7 +253,7 @@ PD.tools = (() => {
       later(tm, () => { go(a); say(nameA); }); later(tm + 2200, () => cap.classList.remove('on'));
     }
     const acts = h('div', { class: 'ce-acts' }), accs = h('div', { class: 'ce-accs' });
-    w.append(top, h('section', { class: 'ce-hero' }, [nameBox, nv, cap, acts]), accs, left, g);
+    if (isDet) w.append(h('section', { class: 'ce-hero' }, [nameBox, nv, cap, acts]), accs); else w.append(top, left, g);
     const norm = x => (x || '').toLowerCase().replace(/#/g, '♯').replace(/([a-g])b/g, '$1♭').replace(/\s+/g, '');
     function match(c) {
       if (fSec === 'pop' && !popular(c)) return false;
@@ -269,7 +275,7 @@ PD.tools = (() => {
       SH.forEach(k => {
         const part = list.filter(e => e.shape === k); if (!part.length) return;
         const row = h('div', { class: 'cgrid', role: 'listbox', 'aria-label': t('ce.sh.' + k) });
-        part.forEach(e => { flat.push(e); const on = e.c === cur && same(vo(), e.v); row.appendChild(h('button', { role: 'option', 'aria-selected': String(on), 'aria-pressed': String(on), title: e.v.frets.join('-'), html: PD.esc(e.c.name) + '<small>' + e.v.frets.join('-') + '</small>', onclick: () => { pick(e); } })); });
+        part.forEach(e => { flat.push(e); const on = isDet && e.c === cur && same(vo(), e.v); row.appendChild(h('button', { role: 'option', 'aria-selected': String(on), 'aria-pressed': String(on), title: e.v.frets.join('-'), html: PD.esc(e.c.name) + '<small>' + e.v.frets.join('-') + '</small>', onclick: () => { pick(e); } })); });
         const op = PD.store.get('ce.acc.sh.' + k, k !== 'none');
         g.appendChild(h('details', { class: 'csec', open: op || null, ontoggle: e => PD.store.set('ce.acc.sh.' + k, e.currentTarget.open) }, [h('summary', { class: 'csec-h' }, [h('span', { class: 'csec-t' }, [h('b', { text: t('ce.sh.' + k) }), h('small', { text: t('ce.sh.' + k + 'D') })]), h('span', { class: 'csec-n mono', text: String(part.length) }), h('span', { class: 'ce-acc-chev', 'aria-hidden': 'true' })]), row]));
       });
@@ -301,7 +307,8 @@ PD.tools = (() => {
       });
       count.textContent = '';
     }
-    function pick(e) { cur = e.c; const k = (cur.voicings || []).findIndex(x => same(x, e.v)); if (k >= 0) { vi = k; forced = null; } else { vi = 0; forced = e.v; } grid(); show(); }
+    function pick(e) { if (!isDet) return PD.app.go('chords', e.c.id + '|' + e.v.frets.join('-'));
+      cur = e.c; const k = (cur.voicings || []).findIndex(x => same(x, e.v)); if (k >= 0) { vi = k; forced = null; } else { vi = 0; forced = e.v; } grid(); show(); }
     const ROLE = { 0: 'ce.R', 1: 'ce.i2', 2: 'ce.i2', 3: 'ce.i3m', 4: 'ce.i3', 5: 'ce.i4', 6: 'ce.i5d', 7: 'ce.i5', 8: 'ce.i5a', 9: 'ce.i6', 10: 'ce.i7m', 11: 'ce.i7' };
     function show() {
       if (typeof stopAnim === 'function') stopAnim();
