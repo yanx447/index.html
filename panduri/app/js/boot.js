@@ -12,7 +12,7 @@
     const afterAuth = () => { if (!PD.store.get('onboarded', false)) PD.onboard.open(); else PD.intro.maybe(); };   // after onboarding: the required introduction (once)
     // the app is used with an account: without a session the sign-in screen stays until you sign in or register
     PD.store.del('auth.skip');   // the old "continue without an account" choice no longer exists
-    if (!PD.cloud.session) PD.auth.gate(afterAuth); else afterAuth();
+    if (!PD.cloud.session) PD.auth.gate(afterAuth); else { afterAuth(); PD.cine.boot(); }   // signed in: the opening film once a day
     if (PD.cloud.takeRecovery()) setTimeout(() => PD.auth.newPassword(), 300);   // came from the password-reset e-mail
     window.addEventListener('keydown', e => { if (e.key === '?' && !PD.practice.active) PD.ui.toast(t('kbd.list'), 6000); });
     PD.bus.on('lessons', () => PD.pwa.persist());

@@ -6,7 +6,7 @@
    so, and "continue without an account" keeps progress on this device.
    ===================================================================== */
 PD.i18n.add({
-  'au.tagline': ['ისწავლე · დაუკარი · იმღერე', 'Learn · play · sing'], 'au.start': ['დაწყება', 'Get started'], 'au.signinLink': ['უკვე გაქვს ანგარიში? შესვლა', 'Have an account? Sign in'], 'au.signinTitle': ['შესვლა ან რეგისტრაცია', 'Sign in or register'], 'au.methodsD': ['პირველად შესვლისას ანგარიში ავტომატურად შეიქმნება.', 'Signing in the first time creates your account.'],
+  'au.tagline': ['ისწავლე · დაუკარი · იმღერე', 'Learn · play · sing'], 'sp.title': ['ᲤᲐᲜᲓᲣᲠᲘ', 'PANDURI'], 'au.start': ['დაწყება', 'Get started'], 'au.signinLink': ['უკვე გაქვს ანგარიში? შესვლა', 'Have an account? Sign in'], 'au.signinTitle': ['შესვლა ან რეგისტრაცია', 'Sign in or register'], 'au.methodsD': ['პირველად შესვლისას ანგარიში ავტომატურად შეიქმნება.', 'Signing in the first time creates your account.'],
   'au.delete': ['ანგარიშის წაშლა', 'Delete account'], 'au.deleteD': ['სერვერიდან სამუდამოდ წაიშლება ანგარიში, მიმოწერა, კითხვები და პროგრესის ასლი. ამ მოწყობილობაზე პროგრესი დარჩება.', 'Permanently removes the account, messages, questions and the progress backup from the server. Progress on this device stays.'],
   'au.deleteGo': ['წაშლა', 'Delete'], 'au.deleteQ': ['ნამდვილად წავშალო ანგარიში? ამის დაბრუნება შეუძლებელია.', 'Really delete the account? This cannot be undone.'], 'au.deleted': ['ანგარიში წაიშალა.', 'The account was deleted.'],
   'au.signin': ['შესვლა', 'Sign in'], 'au.signup': ['ანგარიშის შექმნა', 'Create account'], 'au.email': ['ელფოსტა', 'Email'], 'au.password': ['პაროლი', 'Password'], 'au.name': ['სახელი', 'Name'],
@@ -58,7 +58,7 @@ PD.auth = (() => {
     let view = opts.view || 'home', email = '', phone = PD.store.get('auth.phone', '+995 '), busy = false, done = false;
     const off = C.on(() => { if (C.session) finish(true); });
     const lid = opts.closable ? PD.layers.push(() => finish(false)) : 0;   // opened from the app: Back closes it
-    function finish(ok) { if (done) return; done = true; off(); if (lid) PD.layers.done(lid); root.classList.add('out'); setTimeout(() => root.remove(), 260); onDone && onDone(ok); }
+    function finish(ok) { if (done) return; done = true; off(); if (root._cine) { root._cine.stop(); root._cine = null; } if (lid) PD.layers.done(lid); root.classList.add('out'); setTimeout(() => root.remove(), 260); onDone && onDone(ok); }
     const msgEl = () => h('p', { class: 'ag-msg', role: 'alert', hidden: true });
     async function run(btn, msg, fn) {
       if (busy) return; busy = true; msg.hidden = true; if (btn) btn.classList.add('busy');
@@ -74,16 +74,18 @@ PD.auth = (() => {
         // the splash: the instrument, the name, one way in
         const ph = PD.assets && PD.assets.photos;
         card.classList.add('splash'); root.classList.add('ag-splash');
-        if (ph && ph.body) root.style.setProperty('--ag-photo', 'url("' + ph.body + '")');
+        if (ph && ph.body) root.style.setProperty('--ag-photo', 'url("' + (ph.splashP || ph.body) + '")');
+        // the opening film plays behind; the name and the buttons come in when it ends (or is skipped)
+        if (!root._cine) { const layer = h('div', { class: 'ag-cine' }); root.prepend(layer); card.classList.add('pre'); root._cine = PD.cine.mount(layer, () => { card.classList.remove('pre'); card.classList.add('reveal'); }); }
         card.append(h('button', { class: 'ag-lang', text: PD.i18n.lang === 'ka' ? 'EN' : 'ქარ', onclick: () => { PD.i18n.set(PD.i18n.lang === 'ka' ? 'en' : 'ka'); render(); } }),
-          h('div', { class: 'sp-brand' }, [h('h1', { class: 'sp-name', 'data-t': 'app.name' }), h('p', { class: 'sp-tag', 'data-t': 'au.tagline' })]),
+          h('div', { class: 'sp-brand' }, [h('h1', { class: 'sp-name', 'aria-label': t('app.name'), html: PD.cine.titleHTML() }), h('p', { class: 'sp-tag', 'data-t': 'au.tagline' })]),
           h('div', { class: 'sp-go' }, [
             h('button', { class: 'sp-start', html: '<span data-t="au.start"></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>', onclick: () => { view = 'methods'; render(); } }),
             h('button', { class: 'sp-signin', 'data-t': 'au.signinLink', onclick: () => { view = 'methods'; render(); } })]));
         if (opts.closable) card.prepend(h('button', { class: 'ag-x', 'aria-label': t('close'), html: PD.ic.close, onclick: () => finish(false) }));
         PD.i18n.apply(card); return;
       }
-      root.classList.remove('ag-splash'); card.classList.remove('splash');
+      root.classList.remove('ag-splash'); card.classList.remove('splash', 'pre', 'reveal'); if (root._cine) { root._cine.stop(); root._cine = null; const L = root.querySelector('.ag-cine'); if (L) L.remove(); }
       if (view === 'methods') {
         const msg = msgEl();
         const prov = (k, ic, label, fn) => { const b = h('button', { class: 'ag-btn ' + k, html: '<span class="ag-ic">' + ic + '</span><span data-t="' + label + '"></span>', onclick: () => fn(b) }); return b; };

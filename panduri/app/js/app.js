@@ -897,6 +897,7 @@ PD.app = (() => {
       row('set.assist', t('set.assistD'), asSel)]));
     const q = PD.store.get('quality', 'auto');
     w.append(sect('set.visualSec', [
+      row('set.cine', t('set.cineD'), toggle('cine', true)),
       row('set.quality', null, seg([['auto', 'q.auto'], ['low', 'q.low'], ['medium', 'q.balanced'], ['high', 'q.high'], ['ultra', 'q.ultra']], q, v => { PD.store.set('quality', v); if (PD.has3D()) PD.R3D.quality = v; PD.bus.emit('quality', v); })),
       row('set.fps', null, seg([['auto', 'fps.auto'], ['30', 'fps.30']], PD.store.get('fps', 'auto'), v => PD.store.set('fps', v))),
       row('set.reduceMotion', t('set.motion'), toggle('reduceMotion', false, v => document.documentElement.classList.toggle('rm', v))),

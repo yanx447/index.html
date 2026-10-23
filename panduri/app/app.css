@@ -2154,3 +2154,56 @@ details[open]>summary .ce-acc-chev{transform:rotate(-135deg) translate(-2px,-2px
 .h3-views{align-self:stretch;display:grid!important;grid-template-columns:1fr 1fr}.h3-views button{min-height:44px}
 .ce-dhead .backbtn{width:auto!important;min-width:0!important;padding:0 16px 0 10px!important;height:40px!important;display:inline-flex!important;align-items:center;gap:6px;border:1px solid var(--line2)!important;border-radius:20px!important;background:var(--surface)!important;font-size:13.5px!important;color:var(--fg2)!important}.ce-dhead .backbtn span{position:static!important;width:auto!important;height:auto!important;clip:auto!important;overflow:visible!important}
 .h3-alt{margin-top:10px}
+/* v26 · the opening film and the welcome title */
+.ag-cine,.cine-boot{position:fixed;inset:0;z-index:0;background:radial-gradient(120% 80% at 45% 40%,#3a2616 0%,#140d09 55%,#070504 100%);overflow:hidden}
+.cine-boot{z-index:120;transition:opacity .6s}.cine-boot.out{opacity:0}
+.cine.still{background:var(--cine-still) center/cover no-repeat,#0a0807}
+.cine-stage,.cine-stage .cine-cv{position:absolute;inset:0;width:100%;height:100%}
+.cine-cv{opacity:0;transition:opacity 1.2s ease}.cine.playing .cine-cv{opacity:1}
+.cine-fx{position:absolute;inset:0;pointer-events:none;z-index:2;background:radial-gradient(130% 90% at 50% 45%,transparent 45%,rgba(0,0,0,.65) 100%),linear-gradient(180deg,rgba(0,0,0,.35) 0%,transparent 22%,transparent 62%,rgba(0,0,0,.85) 100%)}
+.cine-fx::after{content:'';position:absolute;inset:-50%;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain .9s steps(4) infinite}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-1%,3%)}100%{transform:translate(0,0)}}
+.cine-skip{position:absolute;z-index:5;right:16px;bottom:calc(20px + var(--safe-b,0px));min-height:40px;padding:0 18px;border-radius:20px;border:1px solid rgba(255,240,228,.25);background:rgba(10,8,7,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#F2ECE5;font:600 13.5px var(--f-ui,inherit);letter-spacing:.02em;transition:opacity .3s}
+.cine-skip.out{opacity:0}
+/* the welcome page over the film */
+.ag.ag-splash::before{background:none!important;filter:none!important}
+.ag.ag-splash::after{background:none!important}
+.ag-card.splash{background:transparent!important}
+.ag-card.splash.pre .sp-brand,.ag-card.splash.pre .sp-go,.ag-card.splash.pre .ag-lang{opacity:0;pointer-events:none}
+.sp-name{font-family:'Noto Sans Georgian',var(--f-ui)!important;font-weight:200!important;font-size:clamp(40px,11vw,92px)!important;letter-spacing:.32em!important;margin-right:-.32em;line-height:1.1;text-align:center;background:linear-gradient(100deg,#B97A4A 0%,#F6D2A8 30%,#FFF4E6 45%,#E3A87A 60%,#9E6238 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent!important;filter:drop-shadow(0 6px 30px rgba(227,168,122,.25))}
+.sp-name span{display:inline-block;background:linear-gradient(100deg,#B97A4A 0%,#F6D2A8 30%,#FFF4E6 45%,#E3A87A 60%,#9E6238 100%);background-size:600% 100%;background-position:calc(100% - var(--i) * 14%) 0;-webkit-background-clip:text;background-clip:text;color:transparent}
+.ag-card.splash.reveal .sp-name span{animation:spIn 1.1s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 90ms)}
+.sp-name{background:none!important;color:#F2D2AE!important}
+@keyframes spIn{0%{opacity:0;transform:translateY(24px) scale(.96);filter:blur(10px)}100%{opacity:1;transform:none;filter:blur(0)}}
+@keyframes spShine{0%,100%{background-position:100% 0}50%{background-position:0 0}}
+.sp-tag{font-family:'Noto Sans Georgian',var(--f-ui)!important;font-weight:300!important;letter-spacing:.38em!important;font-size:13px!important;color:rgba(255,240,228,.75)!important;text-align:center;margin-top:14px!important}
+.ag-card.splash.reveal .sp-tag{animation:fadeUp 1s ease .7s both}
+.ag-card.splash.reveal .sp-go{animation:fadeUp 1s cubic-bezier(.2,.8,.2,1) 1s both}
+.ag-card.splash.reveal .ag-lang{animation:fadeUp .8s ease 1.2s both}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(18px)}100%{opacity:1;transform:none}}
+.sp-start{position:relative;overflow:hidden}
+.sp-start::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:btnSweep 3.6s ease-in-out 2.2s infinite}
+@keyframes btnSweep{0%{left:-60%}35%,100%{left:130%}}
+.cine-title{position:absolute;z-index:4;left:0;right:0;top:calc(80px + var(--safe-t,0px));display:flex;flex-direction:column;align-items:center;opacity:0;transition:opacity .8s}
+.cine-boot.titled .cine-title{opacity:1}.cine-boot.titled .sp-name span{animation:spIn 1.1s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 90ms)}
+:root.rm .sp-name span,:root.rm .sp-go,:root.rm .sp-tag{animation:none!important}
+/* v27 · the stage behind the film */
+.cine-bg{position:absolute;inset:0;z-index:0;overflow:hidden;background:radial-gradient(90% 60% at 50% 46%,rgba(120,72,36,.55) 0%,rgba(40,24,14,.4) 40%,transparent 75%),radial-gradient(60% 50% at 82% 18%,rgba(70,110,170,.18) 0%,transparent 70%),linear-gradient(180deg,#120c09 0%,#0a0706 60%,#050403 100%)}
+.cine-stage{z-index:1}
+.cine-beam{position:absolute;top:-20%;width:46vmax;height:150%;transform-origin:50% 0;background:linear-gradient(180deg,rgba(255,214,160,.32) 0%,rgba(255,200,140,.10) 45%,transparent 80%);clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);filter:blur(14px);mix-blend-mode:screen;opacity:.75}
+.cine-beam.b1{left:-8%;animation:beamA 11s ease-in-out infinite alternate}
+.cine-beam.b2{left:30%;opacity:.55;animation:beamB 14s ease-in-out infinite alternate}
+.cine-beam.b3{right:-10%;background:linear-gradient(180deg,rgba(150,190,255,.26) 0%,rgba(150,190,255,.07) 45%,transparent 80%);animation:beamC 12s ease-in-out infinite alternate}
+@keyframes beamA{0%{transform:rotate(-24deg)}100%{transform:rotate(-8deg)}}
+@keyframes beamB{0%{transform:rotate(6deg)}100%{transform:rotate(-6deg)}}
+@keyframes beamC{0%{transform:rotate(22deg)}100%{transform:rotate(9deg)}}
+.cine-haze{position:absolute;inset:-20%;background:radial-gradient(40% 30% at 30% 60%,rgba(255,220,180,.10),transparent 70%),radial-gradient(35% 25% at 70% 40%,rgba(255,200,150,.09),transparent 70%),radial-gradient(30% 25% at 50% 80%,rgba(180,200,255,.06),transparent 70%);filter:blur(20px);animation:haze 18s ease-in-out infinite alternate}
+@keyframes haze{0%{transform:translate(-3%,2%) scale(1)}100%{transform:translate(4%,-3%) scale(1.12)}}
+.cine-bokeh i{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle,hsla(var(--h),90%,75%,.9) 0%,hsla(var(--h),90%,70%,.35) 45%,transparent 70%);opacity:var(--o);filter:blur(2px);animation:bokeh var(--d) ease-in-out infinite alternate}
+@keyframes bokeh{0%{transform:translate(0,0) scale(1)}100%{transform:translate(18px,-26px) scale(1.25)}}
+.cine-floor{position:absolute;left:-10%;right:-10%;bottom:-8%;height:38%;background:radial-gradient(50% 60% at 50% 100%,rgba(255,190,130,.28) 0%,rgba(255,170,110,.08) 50%,transparent 75%);filter:blur(6px)}
+.cine-tune{position:absolute;z-index:4;left:50%;top:calc(24px + var(--safe-t,0px));transform:translate(-50%,-10px);display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(10,8,7,.5);border:1px solid rgba(255,240,228,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;transition:opacity .4s,transform .4s}
+.cine-tune.on{opacity:1;transform:translate(-50%,0)}
+.cine-tune span{min-width:34px;text-align:center;font:700 15px var(--f-ui,inherit);color:rgba(255,240,228,.45);transition:color .3s}
+.cine-tune span.ok{color:#8EF0B4}.cine-tune span.ok::after{content:' ✓'}
+:root.rm .cine-beam,:root.rm .cine-haze,:root.rm .cine-bokeh i{animation:none}
