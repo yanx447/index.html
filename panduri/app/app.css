@@ -2207,3 +2207,15 @@ details[open]>summary .ce-acc-chev{transform:rotate(-135deg) translate(-2px,-2px
 .cine-tune span{min-width:34px;text-align:center;font:700 15px var(--f-ui,inherit);color:rgba(255,240,228,.45);transition:color .3s}
 .cine-tune span.ok{color:#8EF0B4}.cine-tune span.ok::after{content:' ✓'}
 :root.rm .cine-beam,:root.rm .cine-haze,:root.rm .cine-bokeh i{animation:none}
+
+/* v28 splash: bigger name; on wide screens the name and the buttons sit on the left and the instrument fills the right */
+.sp-name{font-size:clamp(44px,12.4vw,104px)!important;letter-spacing:.2em!important;margin-right:-.2em}
+.sp-tag{font-size:14px!important;letter-spacing:.32em!important}
+@media (min-width:900px) and (min-aspect-ratio:23/20){
+  .ag-card.splash{justify-content:center;align-items:flex-start;gap:56px;padding-left:7vw;padding-right:0}
+  .ag-card.splash .sp-brand{text-align:left;max-width:48vw}
+  .ag-card.splash .sp-name{text-align:left;font-size:clamp(64px,5.6vw,132px)!important;letter-spacing:.16em!important;white-space:nowrap}
+  .ag-card.splash .sp-tag{text-align:left;font-size:16px!important;margin-top:20px!important}
+  .ag-card.splash .sp-go{margin:0;align-items:flex-start;max-width:380px}
+  .ag-card.splash .sp-start{width:100%}
+}

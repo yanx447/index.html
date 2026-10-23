@@ -31,11 +31,19 @@ PD.cine = (() => {
     layer.append(skipB);
     layer.addEventListener('pointerdown', () => { if (!ended && ctl) { ctl.skip(); end(); } }, { once: true });
     let alive = true;
+    // the part of the screen not covered by the name and the buttons: the film frames the whole instrument inside it
+    const safe = () => {
+      const root = layer.closest('.ag') || layer, W = innerWidth, H = innerHeight, br = root.querySelector('.sp-brand, .cine-title'), go = root.querySelector('.sp-go');
+      if (!br) return null; const b = br.getBoundingClientRect(); if (!b.height) return null;
+      if (W > H * 1.15 && b.right < W * .62) return { l: Math.min(.6, b.right / W + .03), r: .98, t: .05, b: .95 };   // wide screen: name on the left, instrument on the right
+      const g = go ? go.getBoundingClientRect() : null, bot = g && g.height ? g.top / H - .012 : .92;
+      return { l: .03, r: .97, t: Math.min(.5, b.bottom / H + .012), b: Math.max(.55, bot) };
+    };
     (PD._cineP = PD._cineP || import(new URL('intro3d.js', document.baseURI).href)).then(mod => {
       if (!alive) return; let c = null;
-      try { c = mod.create(stage, { onEnd: end, onCue: cue }); } catch (e) { console.warn(e); }
+      PD._cineSafe = safe; try { c = mod.create(stage, { onEnd: end, onCue: cue, safe }); } catch (e) { console.warn(e); }
       if (!c) { layer.classList.add('still'); end(); return; }
-      ctl = c; layer.classList.add('playing'); c.play();
+      ctl = c; PD._cineCtl = c; layer.classList.add('playing'); c.play();
     }, () => { PD._cineP = null; layer.classList.add('still'); end(); });
     return { stop() { alive = false; if (ctl) ctl.stop(); ctl = null; }, skip() { if (ctl) ctl.skip(); end(); } };
   }

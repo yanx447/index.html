@@ -21,6 +21,11 @@ export function create(host, opt) {
   R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
   R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene(); R.setClearColor(0x000000, 0);
+  /* a soft studio environment, so chrome and gloss reflect something (otherwise metal renders black) */
+  scene.environment = (() => { const pm = new THREE.PMREMGenerator(R), es = new THREE.Scene(), c = document.createElement('canvas'); c.width = 64; c.height = 256; const x = c.getContext('2d'), gg = x.createLinearGradient(0, 0, 0, 256); gg.addColorStop(0, '#fff1de'); gg.addColorStop(.42, '#7a6450'); gg.addColorStop(1, '#140e0a'); x.fillStyle = gg; x.fillRect(0, 0, 64, 256);
+    const et = new THREE.CanvasTexture(c); et.colorSpace = THREE.SRGBColorSpace; es.add(new THREE.Mesh(new THREE.SphereGeometry(500, 32, 16), new THREE.MeshBasicMaterial({ map: et, side: THREE.BackSide })));
+    [[-300, 200, 320], [320, 260, -200], [0, -120, 420]].forEach((p, i) => { const q = new THREE.Mesh(new THREE.PlaneGeometry(i === 2 ? 400 : 260, 140), new THREE.MeshBasicMaterial({ color: i === 2 ? 0x8a7360 : 0xffffff, side: THREE.DoubleSide })); q.position.set(...p); q.lookAt(0, 0, 0); es.add(q); });
+    const rt = pm.fromScene(es, .03); pm.dispose(); return rt.texture; })();
 
   /* the instrument (same meshes as the in-app 3D view) */
   const pan = new THREE.Group(); scene.add(pan); const tc = {}, fretMats = [], tun = [];
@@ -33,6 +38,7 @@ export function create(host, opt) {
     let map = null; if (mt.tex && X.TEX[mt.tex]) { map = tc[mt.tex]; if (!map) { map = new THREE.CanvasTexture(X.TEX[mt.tex]); map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 8; tc[mt.tex] = map; } }
     const color = mt.color ? new THREE.Color().setRGB(mt.color[0], mt.color[1], mt.color[2], THREE.SRGBColorSpace) : new THREE.Color(1, 1, 1);
     const mat = new THREE.MeshPhysicalMaterial({ map, color, vertexColors: true, roughness: mt.rough == null ? .5 : mt.rough, metalness: mt.metal || 0, clearcoat: mt.coat ? .9 : .15, clearcoatRoughness: .18, emissive: new THREE.Color(0), side: THREE.DoubleSide });
+    mat.envMapIntensity = mt.metal ? 1 : mt.coat ? .5 : .28; if (mt.metal === 1) { mat.metalness = .8; mat.roughness = .22; }
     if (m.part === 'fret') { mat.metalness = .9; mat.roughness = .25; fretMats.push(mat); }
     if (m.holes) mat.onBeforeCompile = sh => {
       sh.uniforms.uHole = { value: X.HOLES.map(h => new THREE.Vector3(h[0], h[1], h[2])) };
@@ -102,9 +108,28 @@ export function create(host, opt) {
   // the end: no turn — the camera keeps the angle it had over the tuners (same direction, same up) and only pulls back
   // until the whole instrument is in view; the view distance adapts to the screen shape
   const TUNE_P = [24, 214, 138], TUNE_T = [0, 70, -6], DIRV = (() => { const d = [TUNE_T[0] - TUNE_P[0], TUNE_T[1] - TUNE_P[1], TUNE_T[2] - TUNE_P[2]], l = Math.hypot(...d); return d.map(x => x / l); })();
+  // points sampled from the instrument (for framing it exactly in the free part of the screen)
+  const CLOUD = []; pan.updateMatrixWorld(true); pan.traverse(o => { if (!o.isMesh || !o.geometry.attributes.position) return; const P = o.geometry.attributes.position, step = Math.max(1, Math.floor(P.count / 120)), v = new THREE.Vector3(); for (let i = 0; i < P.count; i += step) { v.fromBufferAttribute(P, i).applyMatrix4(o.matrixWorld); CLOUD.push([v.x, v.y, v.z]); } });
+  const FR = (() => { const f = DIRV, up = [0, 0, 1], r = [f[1] * up[2] - f[2] * up[1], f[2] * up[0] - f[0] * up[2], f[0] * up[1] - f[1] * up[0]], rl = Math.hypot(...r); r.forEach((x, i) => r[i] = x / rl); const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]]; return { f, r, u }; })();
+  function extents(pos) { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const p of CLOUD) { const d = [p[0] - pos[0], p[1] - pos[1], p[2] - pos[2]], z = d[0] * FR.f[0] + d[1] * FR.f[1] + d[2] * FR.f[2]; if (z < 1) continue; const x = (d[0] * FR.r[0] + d[1] * FR.r[1] + d[2] * FR.r[2]) / z, y = (d[0] * FR.u[0] + d[1] * FR.u[1] + d[2] * FR.u[2]) / z; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } return { x0, x1, y0, y1 }; }
+  // the end: no turn — the camera keeps the angle it had over the tuners (same direction, same up) and only pulls back
+  // (and slides sideways) until the whole instrument fills the free part of the screen (between the name and the buttons)
+  let finCache = null, finKey = '';
   function finalShot(extra) {
-    const tg = [0, -240, 0], dist = (portrait() ? 1200 : 1050) * (1 + (extra || 0)), f = portrait() ? 40 : 36;
-    return { p: tg.map((x, i) => x - DIRV[i] * dist), t: tg, f, up: [0, 0, 1] };
+    const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight, asp = w / h, sf = (opt.safe && opt.safe()) || { l: .04, r: .96, t: .2, b: .86 };
+    const key = [w, h, sf.l, sf.r, sf.t, sf.b].map(x => Math.round(x * 1000)).join();
+    if (key !== finKey) {
+      const fov = 36, th = Math.tan(fov / 2 * Math.PI / 180), wantH = 2 * th * (sf.b - sf.t) * .94, wantW = 2 * th * asp * (sf.r - sf.l) * .94;
+      const tg0 = [0, -220, -10]; let lo = 300, hi = 6000, d = 1200;
+      for (let i = 0; i < 26; i++) { d = (lo + hi) / 2; const e = extents(tg0.map((x, k) => x - FR.f[k] * d)); if (e.y1 - e.y0 > wantH || e.x1 - e.x0 > wantW) lo = d; else hi = d; }
+      d = hi; let tg = tg0.slice();
+      // slide (no rotation) so the instrument's centre lands on the centre of the free area
+      for (let it = 0; it < 3; it++) { const pos = tg.map((x, k) => x - FR.f[k] * d), e = extents(pos), cx = (e.x0 + e.x1) / 2, cy = (e.y0 + e.y1) / 2;
+        const wx = ((sf.l + sf.r) - 1) * th * asp, wy = (1 - (sf.t + sf.b)) * th, a = (cx - wx) * d, bb = (cy - wy) * d; tg = tg.map((x, k) => x + FR.r[k] * a + FR.u[k] * bb); }
+      finCache = { tg, d, fov }; finKey = key;
+    }
+    const { tg, d, fov } = finCache, dd = d * (1 + (extra || 0));
+    return { p: tg.map((x, i) => x - FR.f[i] * dd), t: tg, f: fov, up: [0, 0, 1] };
   }
   const SHOTS = () => {
     const F = finalShot();
@@ -119,7 +144,7 @@ export function create(host, opt) {
     ];
   };
   const DUR = 17.0, TUNE = [[1, 10.8, 11.6, 'A'], [2, 11.55, 12.35, 'C♯'], [3, 12.3, 13.1, 'E']];
-  let fixedT = null, shots = SHOTS(), t0 = 0, raf = 0, stopped = false, endAt = null, onEnd = opt.onEnd || (() => {}), cued = {};
+  let frameN = 0, fixedT = null, shots = SHOTS(), t0 = 0, raf = 0, stopped = false, endAt = null, onEnd = opt.onEnd || (() => {}), cued = {};
   function size() {
     const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight, dpr = Math.min(opt.still ? 1 : 1.6, window.devicePixelRatio || 1);
     R.setPixelRatio(dpr); R.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / h; cam.updateProjectionMatrix(); shots = SHOTS();
@@ -134,6 +159,7 @@ export function create(host, opt) {
     if (stopped) return; if (!host.isConnected && !opt.still) { stopped = true; ro.disconnect(); try { R.dispose(); R.forceContextLoss(); } catch (_) {} return; } raf = requestAnimationFrame(frame);
     if (document.hidden) return;
     const life = fixedT != null ? fixedT : (now - t0) / 1000, t = Math.min(DUR, life);
+    if (t > 12.5 && (frameN++ % 20 === 0)) { const k0 = finKey; finalShot(); if (finKey !== k0) shots = SHOTS(); }
     if (t < DUR) camAt(t); else { // after the film: the same view, breathing slowly
       const F = finalShot(Math.sin((life - DUR) * .25) * .025); // only a gentle breath in and out along the same line — no turning
       cam.position.set(...F.p); cam.up.set(...F.up); cam.lookAt(...F.t); cam.fov = F.f; cam.updateProjectionMatrix();
@@ -167,7 +193,7 @@ export function create(host, opt) {
     skip() { t0 = performance.now() - DUR * 1000; strings.forEach(S => { S.grow = 1; }); },
     still(t) { fixedT = t; t0 = performance.now() - t * 1000; cued = {}; strings.forEach(S => { S.grow = t > 4.9 ? 1 : 0; }); camAt(Math.min(t, DUR)); frame(performance.now()); },
     stop() { stopped = true; cancelAnimationFrame(raf); ro.disconnect(); try { R.dispose(); R.forceContextLoss(); } catch (_) {} cv.remove(); },
-    debugCam(pos, tgt, up, fov, li) { stopped = true; inner.intensity = li || 0; beam.material.opacity = li ? .5 : 0; cancelAnimationFrame(raf); cam.position.set(...pos); cam.up.set(...up); cam.lookAt(...tgt); cam.fov = fov; cam.updateProjectionMatrix(); strings.forEach(S => { S.m.visible = true; S.geo.setDrawRange(0, S.total); }); R.render(scene, cam); },
+    debugCam(pos, tgt, up, fov, li) { stopped = true; inside.visible = !!li; inner.intensity = li || 0; beam.material.opacity = li ? .5 : 0; cancelAnimationFrame(raf); cam.position.set(...pos); cam.up.set(...up); cam.lookAt(...tgt); cam.fov = fov; cam.updateProjectionMatrix(); strings.forEach(S => { S.m.visible = true; S.geo.setDrawRange(0, S.total); }); R.render(scene, cam); },
     get info() { return { pos: cam.position.toArray().map(Math.round), calls: R.info.render.calls, tris: R.info.render.triangles, inside: inside.visible, inner: inner.intensity }; },
     get duration() { return DUR; }, canvas: cv
   };

@@ -165,7 +165,7 @@ PD._R3D = (() => {
   const MAT = {
     spruce: { tex: 'spruce', rough: .55 }, back: { tex: 'back', rough: .25, coat: 1 }, interior: { color: [.13, .075, .04], rough: .9, dim: .35 }, oak: { tex: 'oak', rough: .6 }, board: { tex: 'board', rough: .5 },
     fret: { color: [.82, .78, .7], rough: .28, metal: .7 }, inlay: { color: [.95, .78, .16], rough: .35, emis: .2 }, nut: { color: [.06, .05, .045], rough: .35 },
-    bone: { color: [.9, .86, .77], rough: .38 }, dark: { color: [.09, .06, .05], rough: .45 }, rosette: { color: [.33, .14, .07], rough: .5 }, veneer: { color: [.4, .2, .1], rough: .6 },
+    bone: { color: [.9, .86, .77], rough: .38 }, dark: { color: [.09, .06, .05], rough: .45 }, rosette: { color: [.33, .14, .07], rough: .5 }, binding: { color: [.16, .08, .045], rough: .32, coat: 1 }, veneer: { color: [.4, .2, .1], rough: .6 },
     chrome: { color: [.86, .86, .87], rough: .14, metal: 1 }, key: { color: [.9, .86, .74], rough: .3 }, holeWall: { color: [.08, .05, .035], rough: .9, dim: .5 }, panel: { color: [.05, .05, .05], rough: .45 }, knob: { color: [.03, .03, .03], rough: .5 },
     nylon: { color: [.92, .9, .86], rough: .25, alpha: .9 }, marker: { color: [.47, .72, .87], rough: .3, emis: .85 }, glow: { color: [.47, .72, .87], rough: 1, emis: 1, alpha: .26 }, cell: { color: [.47, .72, .87], rough: 1, emis: 1, alpha: .16 },
     shadowQ: { shadow: 1, alpha: .62 }, strShadow: { color: [0, 0, 0], rough: 1, alpha: .22, flat: 1 }, ghost: { color: [.95, .92, .86], rough: 1, emis: 1, alpha: .35 }
@@ -179,6 +179,24 @@ PD._R3D = (() => {
   curPart = 'body';
   [-1, 1].forEach(sd => grid(1, 110, (u, v) => { const t = v, y = BT - t * B; return [sd * HW(t) * ASYM(t), y, -u * 3.2]; }, null, MAT.veneer));
   box(0, BOT + 1.6, -2.6, HW(1) * 2 - 1, 3.2, 5.2, MAT.veneer);
+  // binding: a rounded edge around the whole top (sides, flat bottom, and the shoulder under the neck), so the rim reads clean from any angle
+  function tubePath(P, r, sides, mat, closed) {
+    const n = P.length, pos = [], idx = [];
+    for (let i = 0; i < n; i++) {
+      const a = P[closed ? (i + n - 1) % n : Math.max(0, i - 1)], b = P[closed ? (i + 1) % n : Math.min(n - 1, i + 1)], d = norm(sub(b, a));
+      let ux = cross(d, [0, 0, 1]); if (len(ux) < 1e-3) ux = [1, 0, 0]; ux = norm(ux); const uy = cross(d, ux);
+      for (let k = 0; k <= sides; k++) { const an = k / sides * Math.PI * 2; pos.push(...add(P[i], add(mul(ux, Math.cos(an) * r), mul(uy, Math.sin(an) * r)))); }
+    }
+    const rows = closed ? n : n - 1;
+    for (let i = 0; i < rows; i++) for (let k = 0; k < sides; k++) { const a = i * (sides + 1) + k, b = ((i + 1) % n) * (sides + 1) + k; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+    return mesh(pos, idx, null, mat);
+  }
+  { const P = [], N = 90, zc = -1.5;
+    for (let i = 0; i <= N; i++) { const t = i / N; P.push([HW(t) * ASYM(t) + .15, BT - t * B, zc]); }
+    for (let i = 1; i < 12; i++) { const x = HW(1) * ASYM(1) * (1 - 2 * i / 12); P.push([x, BOT - .15, zc]); }
+    for (let i = N; i >= 0; i--) { const t = i / N; P.push([-HW(t) * ASYM(t) - .15, BT - t * B, zc]); }
+    for (let i = 1; i < 6; i++) { const x = -HW(0) + 2 * HW(0) * i / 6; P.push([x, BT + .15, zc]); }
+    tubePath(P, 1.6, 10, MAT.binding, true); }
   // carved back (outer) + interior (seen through the holes)
   const PEXP = 2.6, zb = (u, d) => -3.2 - d * Math.pow(1 - Math.pow(Math.abs(u), PEXP), 1 / PEXP);
   const aoBack = (x, y, z) => { const t = (BT - y) / B; return 1 - .25 * Math.exp(-Math.pow(z + 3.2, 2) / 50) - (t < .05 ? .15 : 0); };
@@ -206,8 +224,15 @@ PD._R3D = (() => {
   curPart = 'nut'; box(0, 1.5, 3.9, 31, 3, 7.8, MAT.nut);
   // bridge: dark base, light bridge with a cut-out
   curPart = 'bridge';
-  box(0, BR, 1.1, 62, 8, 2.2, MAT.dark); box(-17, BR, 6, 18, 6, 7.6, MAT.bone); box(17, BR, 6, 18, 6, 7.6, MAT.bone); box(0, BR, 7.9, 52, 6, 3.4, MAT.bone);
-  cyl([-11, BR, 4.6], 'z', 1.8, 6.6, 12, MAT.dark); cyl([11, BR, 4.6], 'z', 1.8, 6.6, 12, MAT.dark);
+  { // dark base: a thin plate with rounded ends and a soft bevel
+    const P = []; for (let i = 0; i <= 16; i++) { const a = -Math.PI / 2 + i / 16 * Math.PI; P.push([27 + Math.cos(a) * 4.5, Math.sin(a) * 4.5]); } for (let i = 0; i <= 16; i++) { const a = Math.PI / 2 + i / 16 * Math.PI; P.push([-27 + Math.cos(a) * 4.5, Math.sin(a) * 4.5]); }
+    extrude(P, 0, 1.6, (x, y, e) => [x, BR + y, e], MAT.dark); extrude(P.map(([x, y]) => [x * .985, y * .8]), 1.6, 2.2, (x, y, e) => [x, BR + y, e], MAT.dark);
+    // the light bridge, seen from the front: two feet, an arch cut out between them, a straight top that tapers at the ends
+    const F = [[-26, 0], [-15, 0], [-13.5, 2.2], [-11, 3.6], [-6, 4.6], [6, 4.6], [11, 3.6], [13.5, 2.2], [15, 0], [26, 0], [26, 2.4], [24, 5.6], [20, 7.4], [-20, 7.4], [-24, 5.6], [-26, 2.4]];
+    extrude(F, -2.6, 2.6, (x, z, e) => [x, BR + e, 2.2 + z], MAT.bone);
+    // the saddle the strings rest on: a rounded bone ridge (strings sit at its top)
+    cyl([0, BR, SZ_BR - 1.1], 'x', 1.1, 42, 16, MAT.bone); [-21, 21].forEach(x => sphere([x, BR, SZ_BR - 1.1], 1.1, [1, 1, 1], MAT.bone, 12, 8));
+  }
   // sound hole: real openings (fragments are discarded), short walls, dark rosette ring
   curPart = 'hole';
   HOLES.forEach(([x, y, r], i) => cyl([x, y, -1.6], 'z', r, 3.2, i ? 14 : 48, MAT.holeWall, r, true));
@@ -215,8 +240,10 @@ PD._R3D = (() => {
   // slotted headstock: rails, throat, backward hook
   curPart = 'head';
   const SLOT0 = 16, SLOT1 = 108, HT = 136;
-  box(-11.8, (SLOT0 + SLOT1) / 2, -6.5, 10.6, SLOT1 - SLOT0, 17, MAT.oak); box(11.8, (SLOT0 + SLOT1) / 2, -6.5, 10.6, SLOT1 - SLOT0, 17, MAT.oak);
-  box(0, SLOT0 / 2, -6.5, 33, SLOT0, 17, MAT.oak);
+  // rails and throat with softly rounded long edges (a rounded-rectangle section run along the head)
+  const rrect = (cx, cz, w, d, r) => { const P = []; [[1, 1], [-1, 1], [-1, -1], [1, -1]].forEach(([sx, sz], q) => { for (let i = 0; i <= 5; i++) { const a = (q + i / 5) * Math.PI / 2; P.push([cx + sx * (w / 2 - r) + Math.cos(a) * r, cz + sz * (d / 2 - r) + Math.sin(a) * r]); } }); return P; };
+  [-11.8, 11.8].forEach(x => extrude(rrect(x, -6.5, 10.6, 17, 2.6), SLOT0 - 2, SLOT1 + 2, (px, pz, e) => [px, e, pz], MAT.oak));
+  extrude(rrect(0, -6.5, 33, 17, 2.6), 0, SLOT0, (px, pz, e) => [px, e, pz], MAT.oak);
   extrude([[2, SLOT1 - 1], [3, 126], [1, 133], [-8, HT], [-30, HT - 3], [-38, HT - 9], [-37, 122], [-29, 114], [-15, SLOT1 - 1]], -17, 17, (sx, sy, e) => [e, sy, sx], MAT.oak);
   // three geared tuners, as in the Sami Simi tuner: rollers E (nearest the nut) · A (middle) · C♯ (far end);
   // C♯ and E tuners on one side, A alone on the other side
@@ -228,7 +255,9 @@ PD._R3D = (() => {
     cyl([side * 21, y + 6, -6], 'x', 6.4, 2.6, 20, MAT.chrome);
     for (let g = 0; g < 12; g++) { const a = g / 12 * Math.PI * 2; box(side * 21, y + 6 + Math.cos(a) * 6.8, -6 + Math.sin(a) * 6.8, 2.4, 1.6, 1.6, MAT.chrome); }
     cyl([side * 28, y - 5, -9], 'x', 2, 14, 10, MAT.chrome); cyl([side * 34, y - 5, -9], 'x', 3.2, 2, 14, MAT.chrome);
-    sphere([side * 41, y - 5, -9], 8, [.42, 1.15, .95], MAT.key);
+    cyl([side * 36.2, y - 5, -9], 'x', 2.6, 2.4, 16, MAT.chrome, 3.4);
+    // button: a flat oval with rounded rims (superquadric), thin like a real tuner key
+    grid(28, 16, (u, v) => { const a = u * Math.PI * 2, b = v * Math.PI, sp = (q, e) => Math.sign(q) * Math.pow(Math.abs(q), e); const cb = sp(Math.cos(b), .45), sb = sp(Math.sin(b), .45); return [side * (40.4 + cb * 2.6), y - 5 + sb * sp(Math.cos(a), .8) * 9.2, -9 + sb * sp(Math.sin(a), .8) * 6.8]; }, null, MAT.key);
   });
   /* ---- strings: post → nut → 64 segments → bridge → over the end → end button ---- */
   curPart = 'string';

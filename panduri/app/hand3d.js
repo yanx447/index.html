@@ -74,6 +74,11 @@ function build() {
   R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.0;
   R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0x16120f);
+  /* a soft studio environment, so chrome and gloss reflect something (otherwise metal renders black) */
+  scene.environment = (() => { const pm = new THREE.PMREMGenerator(R), es = new THREE.Scene(), c = document.createElement('canvas'); c.width = 64; c.height = 256; const x = c.getContext('2d'), gg = x.createLinearGradient(0, 0, 0, 256); gg.addColorStop(0, '#fff1de'); gg.addColorStop(.42, '#7a6450'); gg.addColorStop(1, '#140e0a'); x.fillStyle = gg; x.fillRect(0, 0, 64, 256);
+    const et = new THREE.CanvasTexture(c); et.colorSpace = THREE.SRGBColorSpace; es.add(new THREE.Mesh(new THREE.SphereGeometry(500, 32, 16), new THREE.MeshBasicMaterial({ map: et, side: THREE.BackSide })));
+    [[-300, 200, 320], [320, 260, -200], [0, -120, 420]].forEach((p, i) => { const q = new THREE.Mesh(new THREE.PlaneGeometry(i === 2 ? 400 : 260, 140), new THREE.MeshBasicMaterial({ color: i === 2 ? 0x8a7360 : 0xffffff, side: THREE.DoubleSide })); q.position.set(...p); q.lookAt(0, 0, 0); es.add(q); });
+    const rt = pm.fromScene(es, .03); pm.dispose(); return rt.texture; })();
   /* the panduri: the app's own model */
   const pan = new THREE.Group(); scene.add(pan); const texCache = {};
   X.meshes.forEach(m => {
@@ -86,6 +91,7 @@ function build() {
     if (mt.tex && X.TEX[mt.tex]) { map = texCache[mt.tex]; if (!map) { map = new THREE.CanvasTexture(X.TEX[mt.tex]); map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 4; texCache[mt.tex] = map; } }
     const color = mt.color ? new THREE.Color().setRGB(mt.color[0], mt.color[1], mt.color[2], THREE.SRGBColorSpace) : new THREE.Color(1, 1, 1);
     const mat = new THREE.MeshPhysicalMaterial({ map, color, vertexColors: true, roughness: mt.rough == null ? .5 : mt.rough, metalness: mt.metal || 0, clearcoat: mt.coat ? .8 : 0, clearcoatRoughness: .2, emissive: mt.emis ? color.clone().multiplyScalar(mt.emis * .3) : new THREE.Color(0), side: THREE.DoubleSide });
+    mat.envMapIntensity = mt.metal ? 1 : mt.coat ? .5 : .28; if (mt.metal === 1) { mat.metalness = .8; mat.roughness = .22; }
     if (m.holes) mat.onBeforeCompile = sh => {
       sh.uniforms.uHole = { value: X.HOLES.map(h => new THREE.Vector3(h[0], h[1], h[2])) };
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vLP;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvLP = position;');
