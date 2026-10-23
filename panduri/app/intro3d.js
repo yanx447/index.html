@@ -109,14 +109,13 @@ export function create(host, opt) {
       [0.0, 2.4, [-22, SH - 40, -66], [-4, SH - 8, -16], [-4, SH + 30, 200], [0, SH - 30, 200], 84, 66, [0, -1, 0]],
       [2.4, 3.4, [-4, SH - 8, -16], [0, SH - 2, -10], [0, SH - 30, 200], [0, SH - 150, 10], 66, 60, [0, 0, 1]],                          // inside the body, looking up at the light in the sound hole
       [3.4, 5.0, [0, SH - 2, -10], [0, SH + 30, 40], [0, SH - 150, 10], [0, SH - 150, 10], 60, 54, [0, 0, 1]],                  // rising out of the hole and turning to the soundboard
-      [5.0, 8.0, [0, SH + 30, 40], [-170, SH - 250, 420], [0, SH - 150, 10], [0, SH - 40, 0], 54, 40, [0, 1, 0]],         // over the top: holes, bridge, the whole soundboard
-      [8.0, 10.4, [26, -330, 20], [24, -150, 26], [0, -100, 8], [0, 40, 2], 46, 44, [0, 0, 1]],                       // low along the strings and frets
-      [10.4, 11.4, [24, -150, 26], [-150, 20, 250], [0, 40, 2], [0, 80, -6], 44, 40, [0, 0, 1]],                      // up to the tuners
-      [11.4, 13.8, [-150, 20, 250], [-118, 44, 226], [0, 80, -6], [0, 74, -6], 40, 38, [0, 0, 1]],                    // tuning: A, C♯, E
-      [13.8, 16.2, [-118, 44, 226], F.p, [0, 74, -6], F.t, 38, F.f, F.up]                                             // and back: the whole instrument
+      [5.0, 9.0, [0, SH + 30, 40], [0, -20, 40], [0, SH - 150, 10], [0, -200, 10], 54, 54, [0, 0, 1]],                // the same view, sliding back along the strings and frets toward the head
+      [9.0, 10.6, [0, -20, 40], [0, 230, 150], [0, -200, 10], [0, 70, -6], 54, 46, [0, 0, 1]],                       // rising behind the head: the tuners below
+      [10.6, 13.2, [0, 230, 150], [24, 214, 138], [0, 70, -6], [0, 70, -6], 46, 44, [0, 0, 1]],                        // tuning: A, C♯, E
+      [13.2, 15.6, [24, 214, 138], F.p, [0, 70, -6], F.t, 44, F.f, F.up]                                               // and back: the whole instrument
     ];
   };
-  const DUR = 16.2, TUNE = [[1, 11.5, 12.3, 'A'], [2, 12.25, 13.05, 'C♯'], [3, 13.0, 13.8, 'E']];
+  const DUR = 15.6, TUNE = [[1, 10.8, 11.6, 'A'], [2, 11.55, 12.35, 'C♯'], [3, 12.3, 13.1, 'E']];
   let fixedT = null, shots = SHOTS(), t0 = 0, raf = 0, stopped = false, endAt = null, onEnd = opt.onEnd || (() => {}), cued = {};
   function size() {
     const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight, dpr = Math.min(opt.still ? 1 : 1.6, window.devicePixelRatio || 1);
@@ -143,11 +142,11 @@ export function create(host, opt) {
       const p = S.curve.getPoint(Math.min(.999, k)); S.tip.position.copy(p); S.tip.material.opacity = k > 0 && k < 1 ? .95 : 0; S.tip.scale.setScalar(1.6 + Math.sin(life * 18 + i) * .3);
       const glowGrow = k > 0 && k < 1 ? 1.2 : Math.max(0, 1 - (t - [3.2, 4.0, 4.8][i]) / 1.4);
       // the run along the neck: light travels up each string
-      const run = t > 8 && t < 10.6 ? .35 + .3 * Math.sin(life * 6 - i * 1.4) : 0, tu = TUNE[i], tk = sm(tu[2] - .15, tu[2] + .1, t) * (1 - sm(tu[2] + .4, tu[2] + 1.4, t));
+      const run = t > 5.2 && t < 9.4 ? .35 + .3 * Math.sin(life * 6 - i * 1.4) : 0, tu = TUNE[i], tk = sm(tu[2] - .15, tu[2] + .1, t) * (1 - sm(tu[2] + .4, tu[2] + 1.4, t));
       S.mat.emissiveIntensity = Math.max(0, glowGrow) * .9 + run + tk * 1.4 + (t >= DUR ? .05 + .05 * Math.sin(life * 2 + i) : 0);
     });
     // a moving light that makes the frets glint during the low pass
-    const lp = sm(7.8, 8.4, t) * (1 - sm(10.4, 11.4, t)); sweep.intensity = 1.6 * lp; sweep.position.set(30, lerp(-330, 40, sm(8, 10.4, t)), 40);
+    const lp = sm(5.0, 5.6, t) * (1 - sm(9.0, 10.0, t)); sweep.intensity = 1.6 * lp; sweep.position.set(30, lerp(SH + 40, 0, sm(5, 9, t)), 40);
     // tuning: each peg turns (as if it had slipped) and its string comes up to pitch: A, then C♯, then E
     TUNE.forEach(([k, a, b, name]) => { const e = ease(Math.min(1, Math.max(0, (t - a) / (b - a)))); const ang = -Math.PI * 2 * 2.25 * e - Math.sin(e * Math.PI) * .3; pegs[k].button.rotation.x = ang; pegs[k].roller.rotation.x = ang * .35; if (t >= b && !cued[name] && t < DUR) { cued[name] = 1; opt.onCue && opt.onCue(name); } });
     fretMats.forEach(m => { m.emissive.setRGB(.25 * lp, .16 * lp, .08 * lp); });
