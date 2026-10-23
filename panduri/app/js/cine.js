@@ -35,7 +35,6 @@ PD.cine = (() => {
     const safe = () => {
       const root = layer.closest('.ag') || layer, W = innerWidth, H = innerHeight, br = root.querySelector('.sp-brand, .cine-title'), go = root.querySelector('.sp-go');
       if (!br) return null; const b = br.getBoundingClientRect(); if (!b.height) return null;
-      if (W > H * 1.15 && b.right < W * .62) return { l: Math.min(.6, b.right / W + .03), r: .98, t: .05, b: .95 };   // wide screen: name on the left, instrument on the right
       const g = go ? go.getBoundingClientRect() : null, bot = g && g.height ? g.top / H - .012 : .92;
       return { l: .03, r: .97, t: Math.min(.5, b.bottom / H + .012), b: Math.max(.55, bot) };
     };

@@ -110,26 +110,29 @@ export function create(host, opt) {
   const TUNE_P = [24, 214, 138], TUNE_T = [0, 70, -6], DIRV = (() => { const d = [TUNE_T[0] - TUNE_P[0], TUNE_T[1] - TUNE_P[1], TUNE_T[2] - TUNE_P[2]], l = Math.hypot(...d); return d.map(x => x / l); })();
   // points sampled from the instrument (for framing it exactly in the free part of the screen)
   const CLOUD = []; pan.updateMatrixWorld(true); pan.traverse(o => { if (!o.isMesh || !o.geometry.attributes.position) return; const P = o.geometry.attributes.position, step = Math.max(1, Math.floor(P.count / 120)), v = new THREE.Vector3(); for (let i = 0; i < P.count; i += step) { v.fromBufferAttribute(P, i).applyMatrix4(o.matrixWorld); CLOUD.push([v.x, v.y, v.z]); } });
-  const FR = (() => { const f = DIRV, up = [0, 0, 1], r = [f[1] * up[2] - f[2] * up[1], f[2] * up[0] - f[0] * up[2], f[0] * up[1] - f[1] * up[0]], rl = Math.hypot(...r); r.forEach((x, i) => r[i] = x / rl); const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]]; return { f, r, u }; })();
+  const nrm3 = v => { const l = Math.hypot(...v) || 1; return v.map(x => x / l); }, crs = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  let FR = null;
+  function basis() { const port = portrait(), f = nrm3(port ? [.06, .1, -1] : [-.1, .06, -1]), up0 = port ? [0, 1, 0] : [-1, 0, 0], r = nrm3(crs(f, up0)), u = crs(r, f); return { f, r, u, port }; }
   function extents(pos) { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const p of CLOUD) { const d = [p[0] - pos[0], p[1] - pos[1], p[2] - pos[2]], z = d[0] * FR.f[0] + d[1] * FR.f[1] + d[2] * FR.f[2]; if (z < 1) continue; const x = (d[0] * FR.r[0] + d[1] * FR.r[1] + d[2] * FR.r[2]) / z, y = (d[0] * FR.u[0] + d[1] * FR.u[1] + d[2] * FR.u[2]) / z; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } return { x0, x1, y0, y1 }; }
   // the end: no turn — the camera keeps the angle it had over the tuners (same direction, same up) and only pulls back
   // (and slides sideways) until the whole instrument fills the free part of the screen (between the name and the buttons)
   let finCache = null, finKey = '';
   function finalShot(extra) {
+    FR = basis();
     const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight, asp = w / h, sf = (opt.safe && opt.safe()) || { l: .04, r: .96, t: .2, b: .86 };
-    const key = [w, h, sf.l, sf.r, sf.t, sf.b].map(x => Math.round(x * 1000)).join();
+    const key = [w, h, sf.l, sf.r, sf.t, sf.b, FR.port ? 1 : 0].map(x => Math.round(x * 1000)).join();
     if (key !== finKey) {
       const fov = 36, th = Math.tan(fov / 2 * Math.PI / 180), wantH = 2 * th * (sf.b - sf.t) * .94, wantW = 2 * th * asp * (sf.r - sf.l) * .94;
-      const tg0 = [0, -220, -10]; let lo = 300, hi = 6000, d = 1200;
+      const tg0 = [0, -250, -10]; let lo = 300, hi = 6000, d = 1200;
       for (let i = 0; i < 26; i++) { d = (lo + hi) / 2; const e = extents(tg0.map((x, k) => x - FR.f[k] * d)); if (e.y1 - e.y0 > wantH || e.x1 - e.x0 > wantW) lo = d; else hi = d; }
       d = hi; let tg = tg0.slice();
       // slide (no rotation) so the instrument's centre lands on the centre of the free area
       for (let it = 0; it < 3; it++) { const pos = tg.map((x, k) => x - FR.f[k] * d), e = extents(pos), cx = (e.x0 + e.x1) / 2, cy = (e.y0 + e.y1) / 2;
         const wx = ((sf.l + sf.r) - 1) * th * asp, wy = (1 - (sf.t + sf.b)) * th, a = (cx - wx) * d, bb = (cy - wy) * d; tg = tg.map((x, k) => x + FR.r[k] * a + FR.u[k] * bb); }
-      finCache = { tg, d, fov }; finKey = key;
+      finCache = { tg, d, fov, F: FR }; finKey = key;
     }
     const { tg, d, fov } = finCache, dd = d * (1 + (extra || 0));
-    return { p: tg.map((x, i) => x - FR.f[i] * dd), t: tg, f: fov, up: [0, 0, 1] };
+    return { p: tg.map((x, i) => x - finCache.F.f[i] * dd), t: tg, f: fov, up: finCache.F.u };
   }
   const SHOTS = () => {
     const F = finalShot();
@@ -140,18 +143,24 @@ export function create(host, opt) {
       [5.0, 9.0, [0, SH + 30, 40], [0, -20, 40], [0, SH - 150, 10], [0, -200, 10], 54, 54, [0, 0, 1]],                // the same view, sliding back along the strings and frets toward the head
       [9.0, 10.6, [0, -20, 40], [0, 230, 150], [0, -200, 10], [0, 70, -6], 54, 46, [0, 0, 1]],                       // rising behind the head: the tuners below
       [10.6, 13.2, [0, 230, 150], TUNE_P, [0, 70, -6], TUNE_T, 46, 44, [0, 0, 1]],                        // tuning: A, C♯, E
-      [13.2, 17.0, TUNE_P, F.p, TUNE_T, F.t, 44, F.f, F.up]                                               // and back: the whole instrument
+      [13.2, 18.4, TUNE_P, F.p, TUNE_T, F.t, 44, F.f, F.up, 'swing']                                               // and back: the whole instrument
     ];
   };
-  const DUR = 17.0, TUNE = [[1, 10.8, 11.6, 'A'], [2, 11.55, 12.35, 'C♯'], [3, 12.3, 13.1, 'E']];
+  const DUR = 18.4, TUNE = [[1, 10.8, 11.6, 'A'], [2, 11.55, 12.35, 'C♯'], [3, 12.3, 13.1, 'E']];
   let frameN = 0, fixedT = null, shots = SHOTS(), t0 = 0, raf = 0, stopped = false, endAt = null, onEnd = opt.onEnd || (() => {}), cued = {};
   function size() {
     const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight, dpr = Math.min(opt.still ? 1 : 1.6, window.devicePixelRatio || 1);
     R.setPixelRatio(dpr); R.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / h; cam.updateProjectionMatrix(); shots = SHOTS();
   }
+  const _m4 = new THREE.Matrix4(); function qOf(p, t, up) { _m4.lookAt(new THREE.Vector3(...p), new THREE.Vector3(...t), new THREE.Vector3(...up)); return new THREE.Quaternion().setFromRotationMatrix(_m4); }
   function camAt(t) {
     let S = shots[shots.length - 1], k = 1;
     for (const s of shots) if (t <= s[1]) { S = s; k = ease((t - s[0]) / (s[1] - s[0])); break; }
+    if (S[9] === 'swing') { // one smooth turn (shortest rotation) from the view over the tuners to the whole instrument, while pulling back
+      const qa = qOf(S[2], S[4], [0, 0, 1]), qb = qOf(S[3], S[5], S[8]), q = qa.clone().slerp(qb, k), tgt = lerp3(S[4], S[5], k);
+      const d0 = Math.hypot(S[2][0] - S[4][0], S[2][1] - S[4][1], S[2][2] - S[4][2]), d1 = Math.hypot(S[3][0] - S[5][0], S[3][1] - S[5][1], S[3][2] - S[5][2]), dd = lerp(d0, d1, k);
+      const fw = new THREE.Vector3(0, 0, -1).applyQuaternion(q); cam.quaternion.copy(q); cam.position.set(tgt[0] - fw.x * dd, tgt[1] - fw.y * dd, tgt[2] - fw.z * dd); cam.fov = lerp(S[6], S[7], k); cam.updateProjectionMatrix(); return;
+    }
     const prevUp = shots[Math.max(0, shots.indexOf(S) - 1)][8], up = lerp3(prevUp, S[8], sm(0, .6, k));
     cam.position.set(...lerp3(S[2], S[3], k)); cam.up.set(...up); cam.lookAt(...lerp3(S[4], S[5], k)); cam.fov = lerp(S[6], S[7], k); cam.updateProjectionMatrix();
   }
