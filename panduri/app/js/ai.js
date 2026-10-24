@@ -37,6 +37,7 @@ PD.i18n.add({
 });
 
 PD.ai = (() => {
+  let CUR = null;   // the song open in the studio: its analysis and its transcription
   const KEEP = 12;   // songs kept on the device for reopening
   const h = PD.h, t = PD.i18n.t, ic = PD.ic, TH = PD.theory;
   const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
@@ -57,7 +58,7 @@ PD.ai = (() => {
     };
   }
   /** mono 22.05 kHz signal → { chords:[{t0,t1,root,q,name}], key, bpm, beats } */
-  async function analyse(mono, sr, onProgress, opt) {
+  async function analyse(mono, sr, onProgress, opt, onStage) {
     opt = Object.assign({ bassW: .12, change: .5, keyBonus: .06, smooth: .2, nc: .35, third: .85 }, opt || {});
     const N = 8192, HOPA = 2048, fft = fftMag(N), mag = new Float32Array(N / 2), frames = Math.max(1, Math.floor((mono.length - N) / HOPA));
     // bins → pitch class, 55 Hz .. 1.76 kHz, weighted toward the middle register
@@ -74,12 +75,14 @@ PD.ai = (() => {
       if (i % 200 === 0) { onProgress && onProgress(i / frames); await new Promise(r => setTimeout(r, 0)); }
     }
     const dt = HOPA / sr;
+    onStage && onStage('tempo');
     // tempo: autocorrelation of the onset strength, 60–180 BPM, a gentle preference for ~100
     const fm = flux.reduce((a, b) => a + b, 0) / frames || 1, on = flux.map(v => Math.max(0, v / fm - 1));
     let bestL = 0, bestS = -1; for (let bpm = 60; bpm <= 180; bpm += .5) { const L = 60 / bpm / dt; let s = 0; for (let i = Math.ceil(L); i < frames; i++) { const a = i - L, i0 = Math.floor(a), f = a - i0; s += on[i] * (on[i0] * (1 - f) + (on[i0 + 1] || 0) * f); } s *= Math.exp(-Math.pow(Math.log2(bpm / 100), 2) * .5); if (s > bestS) { bestS = s; bestL = bpm; } }
     const bpm = Math.round(bestL);
     // smooth the chroma over ~half a beat
     const win = Math.max(0, Math.round(opt.smooth * 60 / bpm / dt)), sm = chroma.map((_, i) => { const o = new Float32Array(12); let n = 0; for (let j = Math.max(0, i - win); j <= Math.min(frames - 1, i + win); j++) { for (let k = 0; k < 12; k++) o[k] += chroma[j][k]; n++; } for (let k = 0; k < 12; k++) o[k] /= n; return o; });
+    onStage && onStage('key');
     // key: Krumhansl–Kessler profiles on the whole chroma
     const tot = new Float32Array(12); chroma.forEach(c => { for (let k = 0; k < 12; k++) tot[k] += c[k]; });
     const MAJ = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88], MIN = [6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
@@ -90,6 +93,7 @@ PD.ai = (() => {
     // 24 triads + no chord; cosine score with the root in the bass helping
     const T = []; for (let r = 0; r < 12; r++) for (const q of ['', 'm']) { const v = new Float32Array(12); v[r] = 1; v[(r + (q ? 3 : 4)) % 12] = opt.third; v[(r + 7) % 12] = .9; T.push({ r, q, v }); }
     const score = (c, b, tpl) => { let d = 0, nc = 0, nt = 0; for (let k = 0; k < 12; k++) { d += c[k] * tpl.v[k]; nc += c[k] * c[k]; nt += tpl.v[k] * tpl.v[k]; } let s = d / Math.sqrt(nc * nt + 1e-9); const bm = Math.max(...b) || 1; s += opt.bassW * (b[tpl.r] / bm); return s; };
+    onStage && onStage('chord');
     const K = T.length, NC = K;   // state K = no chord
     const em = sm.map((c, i) => { const e = new Float32Array(K + 1), energy = c.reduce((a, b) => a + b, 0); for (let k = 0; k < K; k++) e[k] = score(c, bass[i], T[k]) + (dia.has(T[k].r + T[k].q) ? opt.keyBonus : 0); e[NC] = energy < 1.2 ? .75 : opt.nc; return e; });
     // Viterbi: staying is cheap, changing costs
@@ -192,7 +196,8 @@ PD.ai = (() => {
       if (!res) {
         bar(t('ai.analysing'), .1);
         const mono22 = await resample(ab, 22050, 1);
-        res = await analyse(mono22.getChannelData(0), 22050, p => bar(t('ai.analysing'), .1 + .85 * p));
+        let stage = 'ai.sSpec';
+        res = await analyse(mono22.getChannelData(0), 22050, p => bar(t(stage), .1 + .85 * p), null, s2 => { stage = { tempo: 'ai.sTempo', key: 'ai.sKey', chord: 'ai.sChord' }[s2] || stage; bar(t(stage), .95); });
         S0.mono = mono22.getChannelData(0);
       }
       if (!res.beats) {
@@ -201,10 +206,13 @@ PD.ai = (() => {
         res.beats = b.beats; res.phase = b.phase; res.bpm = b.bpm; if (saved) saved.fresh = true;
       }
       status.innerHTML = '';
-      S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null };
+      S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null };
+      try { const all = PD.store.get('ai.recent', []), rec = saved ? saved.id : (all.find(r => r.name === file.name) || {}).id; if (rec) { S.id = rec; S.trSaved = await PD.blobs.get('ai.tr.' + rec); } } catch (_) {}
       S.deck = PD.aiDeck.create(D => S.onDeck && S.onDeck(D));
       S.origSet = { id: 'orig', sr: ab.sampleRate, from: 0, tracks: [{ name: 'mix', L: ab.getChannelData(0), R: ab.numberOfChannels > 1 ? ab.getChannelData(1) : ab.getChannelData(0) }] };
       S.deck.setBeats(res.beats, res.bpm, res.phase); S.deck.setSet(S.origSet);
+      // the shape of the sound itself, drawn behind the chords
+      try { const L = ab.getChannelData(0), NB = 1600, st = Math.max(1, Math.floor(L.length / NB)), pk = new Float32Array(NB); for (let i = 0; i < NB; i++) { let m = 0; const a0 = i * st, a1 = Math.min(L.length, a0 + st); for (let j = a0; j < a1; j += 3) { const v = L[j] < 0 ? -L[j] : L[j]; if (v > m) m = v; } pk[i] = m; } let mx = 0; for (let i = 0; i < NB; i++) if (pk[i] > mx) mx = pk[i]; if (mx > 0) for (let i = 0; i < NB; i++) pk[i] /= mx; S.peaks = pk; } catch (_) { S.peaks = null; }
       // keep the song + its analysis on the device so it can be reopened any time
       try {
         const all = PD.store.get('ai.recent', []), id = saved ? saved.id : 's' + Date.now().toString(36);
@@ -293,6 +301,7 @@ PD.ai = (() => {
           fxTool]),
         chipRow, h('p', { class: 'notice', 'data-t': 'ai.est' })]));
       body.append(stemsPanel());
+      body.append(trPanel());
       PD.i18n.apply(body);
       function fact(k, v) { return h('div', { class: 'ai-fact' }, [h('small', { 'data-t': k }), v]); }
       // everything that follows the deck's state
@@ -312,6 +321,7 @@ PD.ai = (() => {
       function drawRibbon() {
         const r = rWrap.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), W = Math.max(10, r.width), H = 64; ribbon.width = W * dpr; ribbon.height = H * dpr; ribbon.style.height = H + 'px';
         const x = ribbon.getContext('2d'); x.scale(dpr, dpr); x.clearRect(0, 0, W, H);
+        if (S.peaks) { const P = S.peaks, mid = H / 2; x.fillStyle = 'rgba(255,236,210,.14)'; for (let i = 0; i < W; i++) { const k = Math.floor(i / W * P.length), v = P[k] * (H / 2 - 9); x.fillRect(i, mid - v, 1, v * 2); } }
         res.chords.forEach(c => { const a = c.t0 / res.dur * W, b = c.t1 / res.dur * W; if (c.root < 0) { x.fillStyle = 'rgba(255,236,210,.06)'; x.fillRect(a, 8, b - a, H - 16); return; } x.fillStyle = colOf(c.root + c.q); x.globalAlpha = .75; x.fillRect(a + .5, 8, Math.max(1, b - a - 1), H - 16); x.globalAlpha = 1; if (b - a > 26) { x.fillStyle = '#FFF4E6'; x.font = '700 12px ' + "'Noto Sans Georgian', system-ui"; x.textBaseline = 'middle'; x.fillText(cname(c.root, c.q, TR()), a + 4, H / 2); } });
         // bar lines
         const B = res.beats || []; x.fillStyle = 'rgba(255,244,230,.28)'; B.forEach((b, k) => { if ((((k - D.phase) % 4) + 4) % 4 === 0) x.fillRect(b / res.dur * W, H - 7, 1, 5); });
@@ -328,6 +338,7 @@ PD.ai = (() => {
         const bt = dk.beatAt(p);
         if (bt && bt.k !== lastBeat) { lastBeat = bt.k; barEl.textContent = t('ai.barN', { n: Math.max(1, bt.bar) }); [...dots.children].forEach((d, i) => { d.className = i === bt.beat - 1 ? (bt.beat === 1 ? 'on one' : 'on') : ''; }); }
         else if (!bt && lastBeat !== -2) { lastBeat = -2; barEl.textContent = ''; [...dots.children].forEach(d => d.className = ''); }
+        if (S.tr) S.tr.tick(p);
         const i = res.chords.findIndex(c => p >= c.t0 && p < c.t1), c = res.chords[i], n = res.chords.slice(i + 1).find(x => x.root >= 0);
         const key = c ? c.root + c.q + ':' + TR() : 'none';
         if (key !== last) {
@@ -335,10 +346,29 @@ PD.ai = (() => {
           nowEl.innerHTML = ''; nowEl.append(h('small', { text: t('ai.now') }), h('b', { text: c && c.root >= 0 ? cname(c.root, c.q, TR()) : t('ai.nc') }));
           nextEl.innerHTML = ''; if (n) nextEl.append(h('small', { text: t('ai.next') }), h('b', { text: cname(n.root, n.q, TR()) }));
           const sh = c ? shapeOf(r, c.q) : null, v = sh && ((sh.voicings && sh.voicings[0]) || sh);
-          neck.setTarget(v ? v.frets.map((f, k) => ({ s: k + 1, f, fi: (v.fingers || [])[k] || 0 })) : [], []);
+          if (!(S.tr && S.tr.ownsNeck())) neck.setTarget(v ? v.frets.map((f, k) => ({ s: k + 1, f, fi: (v.fingers || [])[k] || 0 })) : [], []);
           nowEl.classList.remove('pop'); void nowEl.offsetWidth; nowEl.classList.add('pop');
         }
       }
+      function trPanel() {
+        if (S.tr) { try { S.tr.destroy(); } catch (_) {} }
+        S.tr = PD.aimus.panel({
+          res, name: S.file.name, saved: S.trSaved || null, neck,
+          pos: () => dk.pos(), seek: tt => dk.seek(tt), invalidate: () => { last = null; },
+          stemNames: () => S.stems ? S.stems.tracks.map(x => x.name) : [],
+          save: M => { S.trSaved = M; if (S.id) { try { PD.blobs.put('ai.tr.' + S.id, M); } catch (_) {} } },
+          getMono: async name => {
+            if (name === 'orig' || !S.stems) return { mono: (await resample(S.ab, 22050, 1)).getChannelData(0), offset: 0 };
+            const tk = S.stems.tracks.find(x => x.name === name); if (!tk) throw new Error('stem');
+            const ac = new (window.AudioContext || window.webkitAudioContext)(), b = ac.createBuffer(2, tk.L.length, S.stems.sr);
+            b.copyToChannel(tk.L, 0); b.copyToChannel(tk.R, 1); try { ac.close(); } catch (_) {}
+            return { mono: (await resample(b, 22050, 1)).getChannelData(0), offset: S.stems.from };
+          }
+        });
+        CUR = { res, get transcription() { return S.tr && S.tr.data; }, file: S.file };
+        return S.tr.el;
+      }
+      own(() => { if (S && S.tr) { try { S.tr.destroy(); } catch (_) {} S.tr = null; } });
       S.ui = { pos: () => dk.pos(), redraw: () => drawRibbon() };
       const loop = () => { S.raf = requestAnimationFrame(loop); if (document.hidden) return; tickOnce(); neck.draw(); };
       S.raf = requestAnimationFrame(loop); drawRibbon(); paint();
@@ -468,5 +498,5 @@ PD.ai = (() => {
     recentList();
     const _render = render; render = function () { _render(); recentList(); };
   }
-  return { page, analyse, allowed, BASE };
+  return { page, analyse, allowed, BASE, _analyse: analyse, _beatsOf: beatsOf, cname, shapeOf, get current() { return CUR; } };
 })();
