@@ -15,6 +15,7 @@
    The instrument is painted once into a bitmap per size; every frame only
    blits it and draws strings, labels and markers (cheap, 60 fps on phones).
    ===================================================================== */
+PD.i18n.add({ 'nk.fret': ['{n} ლადი', 'fret {n}'], 'nk.open': ['0 · ღია სიმი', '0 · open string'] });
 PD.Neck = function (canvas, opt) {
   opt = opt || {};
   const ctx = canvas.getContext('2d');
@@ -22,7 +23,7 @@ PD.Neck = function (canvas, opt) {
   const G = { W: 1, H: 1, k: 1, ky: 3, xNut: 60, yMid: 60, boardH: 100, yNum: 120, head: 60 };
   let dpr = 1, bmp = null;
   const strings = { 1: { amp: 0, ph: 0, stop: 0 }, 2: { amp: 0, ph: 0, stop: 0 }, 3: { amp: 0, ph: 0, stop: 0 } };
-  let markers = [], ghosts = [], openGlow = {}, lastT = performance.now();
+  let markers = [], ghosts = [], openGlow = {}, callout = null, lastT = performance.now();
   const g = () => PD.geom.g, P = () => PD.instrument.profile, NF = () => P().frets.count;
   const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
   const easeOut = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
@@ -212,6 +213,8 @@ PD.Neck = function (canvas, opt) {
     sig = sg;
     markers.forEach(m => { if (m.state !== 'confirm') { m.state = 'leave'; m.t = t; } });
     openGlow = {};
+    // one note: the same words as the prompt above, written on the neck itself (which string · which fret / open)
+    callout = notes && notes.length === 1 ? { s: notes[0].s, f: notes[0].f || 0, t } : null;
     // one finger on several strings at the same fret = a barre (drawn as one bar across those strings)
     const groups = {};
     (notes || []).forEach(n => { if (n.f > 0 && n.fi) (groups[n.fi + ':' + n.f] = groups[n.fi + ':' + n.f] || []).push(n); });
@@ -230,7 +233,7 @@ PD.Neck = function (canvas, opt) {
   }
   function wrong() { const t = now(); markers.forEach(m => { if (m.state !== 'leave' && m.state !== 'confirm') m.shake = t; }); Object.keys(openGlow).forEach(s => { openGlow['x' + s] = t; }); }
   function pluck(s, f, amp) { const st = strings[s]; if (!st) return; st.amp = amp || 1; st.stop = f > 0 ? contactU(f) + 4 : 0; st.ph = 0; }
-  function clear() { markers = []; ghosts = []; openGlow = {}; }
+  function clear() { markers = []; ghosts = []; openGlow = {}; callout = null; }
 
   /* ---------------- draw ---------------- */
   /** nylon string: a soft shadow on the wood, a translucent body, a thin highlight; it fades out with the instrument at the far end */
@@ -302,6 +305,25 @@ PD.Neck = function (canvas, opt) {
   function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a.toFixed(3) + ')'; }
   function mix(a, b, k) { const p = parseInt(a.slice(1), 16), q = parseInt(b.slice(1), 16); const c = i => Math.round(((p >> i) & 255) * (1 - k) + ((q >> i) & 255) * k); return 'rgb(' + c(16) + ',' + c(8) + ',' + c(0) + ')'; }
 
+  /** a label pill on the neck: 'E · 3 ლადი' beside the fingertip marker, or 'E · 0 · ღია სიმი' lying on the open string; always upright on screen */
+  function drawCallout(c, t) {
+    const sp = P().strings[c.s - 1] || {}, col = sp.color || '#ccc', lab = sp.label || '', a = easeOut((t - c.t) / 300);
+    const G0 = g(), u = c.f > 0 ? contactU(c.f) : 0, bx = X(u), by = Y(c.s, u);
+    const M = ctx.getTransform(), p = M.transformPoint({ x: bx, y: by }), q = M.transformPoint({ x: X(u + 10), y: Y(c.s, u + 10) });
+    let dx = q.x - p.x, dy = q.y - p.y; const dl = Math.hypot(dx, dy) || 1; dx /= dl; dy /= dl;
+    const text = lab + ' · ' + (c.f > 0 ? PD.i18n.t('nk.fret', { n: c.f }) : PD.i18n.t('nk.open')), fs = Math.round(13 * dpr);
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.font = '700 ' + fs + 'px ' + FONT;
+    const tw = ctx.measureText(text).width, dot = 8 * dpr, w = tw + dot + 26 * dpr, h = 26 * dpr;
+    let cx = p.x, cy = p.y;
+    { const R = c.f > 0 ? markerR(c.f) * dpr * 1.5 + 8 * dpr : 12 * dpr, ext = Math.abs(dx) * w / 2 + Math.abs(dy) * h / 2; cx += dx * (R + ext); cy += dy * (R + ext); }   // beside the fingertip, or just past the nut, lying on the open string
+    cx = clamp(cx, w / 2 + 4, canvas.width - w / 2 - 4); cy = clamp(cy, h / 2 + 4, canvas.height - h / 2 - 4);
+    ctx.globalAlpha = a; ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 10 * dpr; ctx.shadowOffsetY = 2 * dpr;
+    ctx.fillStyle = 'rgba(250,246,238,.97)'; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(cx - w / 2, cy - h / 2, w, h, h / 2); else ctx.rect(cx - w / 2, cy - h / 2, w, h); ctx.fill();
+    ctx.shadowColor = 'transparent'; ctx.lineWidth = 2 * dpr; ctx.strokeStyle = col; ctx.stroke();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(cx - w / 2 + 11 * dpr + dot / 2, cy, dot / 2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#16100B'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(text, cx - w / 2 + 11 * dpr + dot + 6 * dpr, cy + dpr * .5);
+    ctx.restore();
+  }
   function draw() {
     const t = now(), dt = Math.min(.05, (t - lastT) / 1000); lastT = t;
     if (!bmp) buildBitmap();
@@ -338,6 +360,7 @@ PD.Neck = function (canvas, opt) {
       ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#F4F2EE'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle = '#121317'; ctx.font = '700 ' + Math.round(r * 1.1) + 'px ' + FONT; txt('0', x, y + .5); ctx.restore(); });
     ghosts.forEach(drawGhost);
     markers = markers.filter(m => drawMarker(m, t));
+    if (callout) drawCallout(callout, t);
     // fret numbers under the board: every fret that fits; the dotted frets in the inlay colour; the target fret bright
     const tgt = new Set(markers.filter(m => m.state !== 'leave').map(m => m.f)), mk = g().markers || {}, dotted = new Set([].concat(mk.single || [], mk.double || []));
     for (let n = 1; n <= NF(); n++) {
@@ -349,7 +372,7 @@ PD.Neck = function (canvas, opt) {
       ctx.fillStyle = on ? '#FFFFFF' : dotted.has(n) ? 'rgba(242,206,96,.82)' : 'rgba(214,200,180,.5)';
       txt(String(n), x, G.yNum);
     }
-    return markers.length || ghosts.length || Object.keys(openGlow).length || [1, 2, 3].some(s => strings[s].amp);
+    return (callout && now() - callout.t < 320) || markers.length || ghosts.length || Object.keys(openGlow).length || [1, 2, 3].some(s => strings[s].amp);
   }
 
   /** dev/test only: map a tap to string + fret */
