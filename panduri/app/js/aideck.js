@@ -75,7 +75,7 @@ PD.aiDeck = (() => {
   function create(onChange) {
     const ctx = new AC(), master = ctx.createGain(), clickBus = ctx.createGain();
     master.connect(ctx.destination); clickBus.connect(ctx.destination);
-    const D = { set: null, speed: 1, semis: 0, gain: [], mute: [], solo: -1, pan: [], loop: { on: false, a: 0, b: 0 }, click: { on: false, vol: .6 }, countIn: false, beats: [], bpm: 100, phase: 0, playing: false, preparing: false, at: 0, fx: [], comp: false };
+    const D = { set: null, speed: 1, semis: 0, gain: [], mute: [], solo: -1, pan: [], loop: { on: false, a: 0, b: 0 }, click: { on: false, vol: .6 }, countIn: false, beats: [], bpm: 100, phase: 0, bpb: 4, playing: false, preparing: false, at: 0, fx: [], comp: false };
     let bufs = null, bufKey = '', nodes = null, t0 = 0, off = 0, timer = 0, lastP = -1, token = 0, B = null;
     const cache = new Map();
     const changed = () => { try { onChange && onChange(D); } catch (_) {} };
@@ -117,7 +117,7 @@ PD.aiDeck = (() => {
       g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(accent ? 1 : .6, when + .002); g.gain.exponentialRampToValueAtTime(.001, when + .05);
       o.connect(g).connect(clickBus); o.start(when); o.stop(when + .06);
     }
-    const isBar = k => ((k - D.phase) % 4 + 4) % 4 === 0;
+    const isBar = k => ((k - D.phase) % (D.bpb || 4) + (D.bpb || 4)) % (D.bpb || 4) === 0;
     function schedule() {
       if (!D.playing || !D.click.on || !D.beats.length) return;
       const now = ctx.currentTime; if (now < t0) return;
@@ -171,9 +171,9 @@ PD.aiDeck = (() => {
       clearLoop() { D.loop.on = false; if (D.playing) restart(); changed(); },
       setClick(on, vol) { D.click.on = on; if (vol != null) D.click.vol = vol; clickBus.gain.value = D.click.vol; lastP = -1; changed(); },
       setCountIn(on) { D.countIn = on; changed(); },
-      setBeats(beats, bpm, phase) { D.beats = beats || []; D.bpm = bpm || 100; D.phase = phase || 0; },
+      setBeats(beats, bpm, phase, bpb) { D.beats = beats || []; D.bpm = bpm || 100; D.phase = phase || 0; if (bpb) D.bpb = bpb; },
       /** the beat at time p: { k, bar, beat } */
-      beatAt(p) { const B = D.beats; if (!B.length || p < B[0] - .05) return null; let lo = 0, hi = B.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (B[m] <= p + .02) lo = m; else hi = m - 1; } const rel = lo - D.phase, bar = Math.floor(rel / 4); return { k: lo, bar: bar + 1 + (D.phase > 0 ? 1 : 0), beat: ((rel % 4) + 4) % 4 + 1 }; },
+      beatAt(p) { const B = D.beats; if (!B.length || p < B[0] - .05) return null; let lo = 0, hi = B.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (B[m] <= p + .02) lo = m; else hi = m - 1; } const g = D.bpb || 4, rel = lo - D.phase, bar = Math.floor(rel / g); return { k: lo, bar: bar + 1 + (D.phase > 0 ? 1 : 0), beat: ((rel % g) + g) % g + 1 }; },
       /** render the current mix (speed, pitch, levels, pan) → { L, R, sr } */
       async render() {
         await ensure(); const sr = D.set.sr, n = bufs.length, tail = (D.fx.some(f => f.rev > 0 || f.echo > 0) ? 2.5 : 0), len = bufs[0].length + Math.round(tail * sr), oc = new OfflineAudioContext(2, len, sr);

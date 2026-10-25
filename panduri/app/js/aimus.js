@@ -462,7 +462,7 @@ PD.aimus.panel = function (o) {
   function facts() {
     const box = h('div', { class: 'ai-facts tr-facts' });
     const mt = M.metre, bad = M.notes.filter(n => !n.reach).length;
-    const mSel = h('select', { class: 'tr-sel', onchange: e => { const [n, d] = e.target.value.split('/').map(Number); M.metre = Object.assign({}, M.metre, { num: n, den: d, beatsPerBar: d === 8 ? n / 3 : n, compound: d === 8, byHand: true }); A.quantise(M.notes, M.beats, M.metre); o.save && o.save(M); render(); } });
+    const mSel = h('select', { class: 'tr-sel', onchange: e => { const [n, d] = e.target.value.split('/').map(Number); M.metre = Object.assign({}, M.metre, { num: n, den: d, beatsPerBar: d === 8 ? n / 3 : n, compound: d === 8, byHand: true, unsure: false }); A.quantise(M.notes, M.beats, M.metre); A.mapNotes(M.notes); o.save && o.save(M); o.onMetre && o.onMetre(M.metre); render(); } });
     const opts = [[mt.num, mt.den]].concat([[2, 4], [3, 4], [4, 4], [6, 8], [9, 8], [12, 8]].filter(([n, d]) => !(n === mt.num && d === mt.den)));
     opts.forEach(([n, d]) => mSel.append(h('option', { value: n + '/' + d, text: n + '/' + d, selected: n === mt.num && d === mt.den })));
     box.append(h('div', { class: 'ai-fact' }, [h('small', { text: t('tr.meter') }), mSel, h('em', { class: 'tr-c ' + cClass(mt.byHand ? 1 : mt.conf), text: mt.byHand ? '✓' : cWord(mt.conf) })]));
@@ -647,5 +647,11 @@ PD.aimus.panel = function (o) {
       if (onNeck && o.neck) { const n = i >= 0 ? M.notes[i] : null; o.neck.setTarget(n && n.reach ? [{ s: n.s, f: n.f, fi: n.fi || 0 }] : [], []); }
     }
   }
-  return { el, tick, ownsNeck: () => !!(onNeck && M && M.notes.length), get data() { return M; }, destroy() { if (busy && busy.cancel) busy.cancel(); if (V && V.stop) V.stop(); } };
+  /** the studio re-tracked the beats: the bars, the beats and the written values follow */
+  function regrid(beats, bpm) {
+    if (!M || !M.notes.length) return;
+    M.beats = beats; M.bpm = bpm;
+    A.quantise(M.notes, beats, M.metre); o.save && o.save(M); cur = -1; lastCur = -2; render();
+  }
+  return { el, tick, regrid, ownsNeck: () => !!(onNeck && M && M.notes.length), get data() { return M; }, destroy() { if (busy && busy.cancel) busy.cancel(); if (V && V.stop) V.stop(); } };
 };

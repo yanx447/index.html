@@ -2262,3 +2262,12 @@ details[open]>summary .ce-acc-chev{transform:rotate(-135deg) translate(-2px,-2px
 .tr-ed-h{display:flex;align-items:center;gap:10px}
 .tr-ed-h b{font-size:20px}.tr-ed-h small{color:var(--fg2);flex:1}
 .tr-ed-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+
+/* ===== v30 · correcting what the AI heard: tempo by hand, chords by hand ===== */
+.ai-num{width:80px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.3);color:var(--fg);font:inherit;font-weight:700;font-size:16px;text-align:center}
+.ai-rwrap.editing{outline:1px dashed rgba(246,201,135,.45);outline-offset:2px;border-radius:10px;cursor:pointer}
+.ai-ed{margin:10px 0 2px;padding:12px;border:1px solid var(--acc2);border-radius:14px;background:rgba(246,201,135,.07);display:flex;flex-direction:column;gap:8px}
+.ai-ed-h{display:flex;align-items:baseline;gap:10px}
+.ai-ed-h b{font-size:20px}.ai-ed-h small{color:var(--fg2)}
+.ai-ed-row{display:flex;flex-wrap:wrap;gap:6px}
+.ai-ed-row .chip.on{background:var(--cu);border-color:transparent;color:var(--acc-ink);font-weight:700}

@@ -28,6 +28,13 @@ PD.i18n.add({
   'ai.recent': ['ბოლოს გაანალიზებული', 'Recently analysed'], 'ai.fx': ['ეფექტები', 'Effects'], 'ai.fxOpen': ['EQ · რევერბი · ექო', 'EQ · reverb · echo'], 'ai.comp': ['კომპრესორი', 'Compressor'], 'ai.fxStems': ['AI მიქსში ეფექტები თითოეულ ინსტრუმენტს ცალკე აქვს — FX ღილაკი ინსტრუმენტის ხაზზე.', 'In the AI mix each instrument has its own effects — the FX button on its row.'],
   'ai.fxLow': ['დაბლები', 'Lows'], 'ai.fxMid': ['შუა', 'Mids'], 'ai.fxHigh': ['მაღლები', 'Highs'], 'ai.fxRev': ['რევერბი', 'Reverb'], 'ai.fxEcho': ['ექო', 'Echo'],
   'ai.fxP_clean': ['გასუფთავება', 'Clean'], 'ai.fxP_hall': ['დარბაზი', 'Hall'], 'ai.fxP_echo': ['ექო', 'Echo'], 'ai.fxP_warm': ['თბილი', 'Warm'], 'ai.fxP_bright': ['ნათელი', 'Bright'], 'ai.fxP_radio': ['ძველი რადიო', 'Old radio'], 'ai.beats': ['ვპოულობ დარტყმებს და ტაქტებს…', 'Finding beats and bars…'], 'ai.prep': ['მზადდება…', 'Preparing…'], 'ai.seek': ['პოზიცია', 'Position'],
+  'ai.bpmSet': ['ტემპი ხელით', 'Set the tempo'], 'ai.bpmD': ['AI-ის გაზომვა: {n} BPM. შეცვალე და დარტყმები ამ ტემპზე თავიდან დაეწყობა — ჩანაწერის ატაკებზე მიბმული.', 'The AI measured {n} BPM. Change it and the beats are tracked again at that tempo, still locked onto the attacks in the recording.'],
+  'ai.bpmApply': ['დაყენება', 'Apply'], 'ai.bpmAuto': ['AI-ის ტემპი', 'Back to the AI tempo'], 'ai.tap': ['დააკაკუნე', 'Tap'], 'ai.tapD': ['დააკაკუნე დარტყმაზე 4-ჯერ მაინც', 'Tap on the beat at least 4 times'],
+  'ai.regrid': ['დარტყმებს თავიდან ვაწყობ…', 'Tracking the beats again…'], 'ai.bpmBy': ['ხელით დაყენებული', 'set by hand'],
+  'ai.chEdit': ['აკორდების შესწორება', 'Correct the chords'], 'ai.chEditD': ['ჩართე და ზოლზე შეეხე აკორდს', 'Turn this on and tap a chord on the ribbon'],
+  'ai.chRoot': ['საფუძველი', 'Root'], 'ai.chQual': ['სახეობა', 'Type'], 'ai.chNone': ['აკორდის გარეშე', 'No chord'],
+  'ai.chSplit': ['აქ გაყოფა', 'Split here'], 'ai.chMerge': ['წინას შეერთება', 'Join with the one before'], 'ai.chAuto': ['AI-ის აკორდები', 'Back to the AI chords'],
+
   'ai.pitch': ['ტონი', 'Pitch'], 'ai.pitchD': ['ნახევარტონი — ხმა და აკორდებიც იცვლება', 'semitones — the sound and the chords move together'], 'ai.metro': ['მეტრონომი', 'Metronome'], 'ai.click': ['კლიკი', 'Click'], 'ai.clickVol': ['კლიკის ხმა', 'Click volume'], 'ai.countIn': ['თვლა', 'Count-in'],
   'ai.loop': ['გამეორება', 'Loop'], 'ai.loopA': ['გამეორების დასაწყისი', 'Loop start'], 'ai.loopB': ['გამეორების დასასრული', 'Loop end'], 'ai.loopOff': ['გამეორების გამორთვა', 'Loop off'], 'ai.bars': ['{n} ტაქტი', '{n} bar(s)'], 'ai.barN': ['ტაქტი {n}', 'Bar {n}'],
   'ai.guitar': ['გიტარა', 'Guitar'], 'ai.piano': ['ფორტეპიანო', 'Piano'], 'ai.model': ['ინსტრუმენტები', 'Instruments'], 'ai.m4': ['4 · ვოკ., დრამი, ბასი, დანარჩ.', '4 · vocals, drums, bass, rest'], 'ai.m6': ['6 · + გიტარა, ფორტეპიანო', '6 · + guitar, piano'],
@@ -116,7 +123,7 @@ PD.ai = (() => {
     return { chords: merged, key, bpm, dur: mono.length / sr };
   }
   /** beat times (s) by dynamic programming on a fine onset envelope (Ellis 2007), plus the bar phase from chord changes */
-  async function beatsOf(mono, sr, bpm0, chords) {
+  async function beatsOf(mono, sr, bpm0, chords, lock) {
     const N = 1024, HOPB = 256, fft = fftMag(N), mag = new Float32Array(N / 2), F = Math.max(2, Math.floor((mono.length - N) / HOPB));
     const env = new Float32Array(F); let prev = new Float32Array(N / 2);
     for (let i = 0; i < F; i++) { fft(mono, i * HOPB, mag); let fl = 0; for (let k = 2; k < N / 2; k++) { const v = Math.log1p(mag[k] * 10), d = v - prev[k]; if (d > 0) fl += d; prev[k] = v; } env[i] = fl; if (i % 4000 === 0) await new Promise(r => setTimeout(r, 0)); }
@@ -125,7 +132,7 @@ PD.ai = (() => {
     const W = Math.round(.5 / dt), on = new Float32Array(F); let acc = 0; for (let i = 0; i < F; i++) { acc += env[i]; if (i >= W) acc -= env[i - W]; on[i] = Math.max(0, env[i] - acc / Math.min(i + 1, W)); }
     let sd = 0; for (let i = 0; i < F; i++) sd += on[i] * on[i]; sd = Math.sqrt(sd / F) || 1; for (let i = 0; i < F; i++) on[i] /= sd;
     // refine the tempo within ±8 %
-    let bpm = bpm0, best = -1; for (let b = bpm0 * .92; b <= bpm0 * 1.08; b += .1) { const L = 60 / b / dt; let sc = 0; for (let i = Math.ceil(L); i < F; i++) { const a = i - L, i0 = Math.floor(a), f = a - i0; sc += on[i] * (on[i0] * (1 - f) + on[i0 + 1] * f); } if (sc > best) { best = sc; bpm = b; } }
+    let bpm = bpm0, best = -1; if (!lock) for (let b = bpm0 * .92; b <= bpm0 * 1.08; b += .1) { const L = 60 / b / dt; let sc = 0; for (let i = Math.ceil(L); i < F; i++) { const a = i - L, i0 = Math.floor(a), f = a - i0; sc += on[i] * (on[i0] * (1 - f) + on[i0 + 1] * f); } if (sc > best) { best = sc; bpm = b; } }
     const P = 60 / bpm / dt, score = new Float32Array(F), from = new Int32Array(F).fill(-1), alpha = 100;
     for (let i = 0; i < F; i++) {
       let bs = 0, bj = -1; const lo = Math.max(0, Math.round(i - 2 * P)), hi = Math.round(i - P / 2);
@@ -137,9 +144,9 @@ PD.ai = (() => {
     idx.reverse();
     const beats = idx.map(i => i * dt + N / 2 / sr);
     // bar phase: chords tend to change on the first beat of a bar
-    const ch = (chords || []).map(c => c.t0).filter(x => x > 0); let phase = 0, pb = -1;
-    for (let ph = 0; ph < 4; ph++) { let n = 0; beats.forEach((b, k) => { if ((k - ph) % 4 === 0 && ch.some(x => Math.abs(x - b) < .12)) n++; }); if (n > pb) { pb = n; phase = ph; } }
-    return { beats, bpm: Math.round(bpm), phase };
+    const g = (lock && lock.bpb) || 4, ch = (chords || []).map(c => c.t0).filter(x => x > 0); let phase = 0, pb = -1;
+    for (let ph = 0; ph < g; ph++) { let n = 0; beats.forEach((b, k) => { if ((k - ph) % g === 0 && ch.some(x => Math.abs(x - b) < .12)) n++; }); if (n > pb) { pb = n; phase = ph; } }
+    return { beats, bpm: Math.round(bpm * 10) / 10, phase };
   }
   const cname = (root, q, tr) => root < 0 ? '—' : NAMES[((root + (tr || 0)) % 12 + 12) % 12] + q;
   /** the app's chord library entry for a root and quality */
@@ -206,11 +213,11 @@ PD.ai = (() => {
         res.beats = b.beats; res.phase = b.phase; res.bpm = b.bpm; if (saved) saved.fresh = true;
       }
       status.innerHTML = '';
-      S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null };
+      S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null, mono22: S0.mono || null };
       try { const all = PD.store.get('ai.recent', []), rec = saved ? saved.id : (all.find(r => r.name === file.name) || {}).id; if (rec) { S.id = rec; S.trSaved = await PD.blobs.get('ai.tr.' + rec); } } catch (_) {}
       S.deck = PD.aiDeck.create(D => S.onDeck && S.onDeck(D));
       S.origSet = { id: 'orig', sr: ab.sampleRate, from: 0, tracks: [{ name: 'mix', L: ab.getChannelData(0), R: ab.numberOfChannels > 1 ? ab.getChannelData(1) : ab.getChannelData(0) }] };
-      S.deck.setBeats(res.beats, res.bpm, res.phase); S.deck.setSet(S.origSet);
+      S.deck.setBeats(res.beats, res.bpm, res.phase, (S.trSaved && S.trSaved.metre && S.trSaved.metre.beatsPerBar) || 4); S.deck.setSet(S.origSet);
       // the shape of the sound itself, drawn behind the chords
       try { const L = ab.getChannelData(0), NB = 1600, st = Math.max(1, Math.floor(L.length / NB)), pk = new Float32Array(NB); for (let i = 0; i < NB; i++) { let m = 0; const a0 = i * st, a1 = Math.min(L.length, a0 + st); for (let j = a0; j < a1; j += 3) { const v = L[j] < 0 ? -L[j] : L[j]; if (v > m) m = v; } pk[i] = m; } let mx = 0; for (let i = 0; i < NB; i++) if (pk[i] > mx) mx = pk[i]; if (mx > 0) for (let i = 0; i < NB; i++) pk[i] /= mx; S.peaks = pk; } catch (_) { S.peaks = null; }
       // keep the song + its analysis on the device so it can be reopened any time
@@ -298,18 +305,83 @@ PD.ai = (() => {
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.pitch') }), h('div', { class: 'ai-tc' }, [piBtn(-1), piV, piBtn(1), h('small', { class: 'muted', text: t('ai.pitchD') })])]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.metro') }), h('div', { class: 'ai-tc' }, [clickT, clickV, ciT])]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.loop') }), h('div', { class: 'ai-tc' }, [lA, lB, lBars(1), lBars(4), lOff, loopTxt])]),
-          fxTool]),
+          tempoTool(), chordTool(), fxTool]),
         chipRow, h('p', { class: 'notice', 'data-t': 'ai.est' })]));
       body.append(stemsPanel());
       body.append(trPanel());
       PD.i18n.apply(body);
       function fact(k, v) { return h('div', { class: 'ai-fact' }, [h('small', { 'data-t': k }), v]); }
+
+      /* ---- the tempo, by hand: the beats are tracked again at the tempo you set ---- */
+      function tempoTool() {
+        const auto = res.bpmAuto == null ? res.bpm : res.bpmAuto;
+        const inp = h('input', { type: 'number', class: 'ai-num', min: 30, max: 300, step: 1, value: Math.round(res.bpm), 'aria-label': t('ai.bpmSet') });
+        const msg = h('small', { class: 'muted' });
+        const apply = async v => {
+          v = Math.max(30, Math.min(300, +v || 0)); if (!v) return;
+          inp.value = Math.round(v); msg.textContent = t('ai.regrid');
+          const m = await mono22();
+          const b = await beatsOf(m, 22050, v, res.chords, { bpb: (S.tr && S.tr.data && S.tr.data.metre.beatsPerBar) || 4 });
+          res.bpmAuto = auto; res.beats = b.beats; res.phase = b.phase; res.bpm = v; if (res.bpmBy !== null || Math.abs(v - auto) > .05) res.bpmBy = Math.abs(v - auto) > .05 ? 'hand' : null;
+          msg.textContent = ''; const bk = body.querySelector('.ai-bpmback'); if (bk) bk.hidden = res.bpmBy !== 'hand'; afterGrid();
+        };
+        let taps = [];
+        const tap = h('button', { class: 'btn small', text: t('ai.tap'), title: t('ai.tapD'), onclick: () => {
+          const now = performance.now(); if (taps.length && now - taps[taps.length - 1] > 2500) taps = [];
+          taps.push(now); if (taps.length < 4) { msg.textContent = t('ai.tapD'); return; }
+          const d = []; for (let i = 1; i < taps.length; i++) d.push(taps[i] - taps[i - 1]);
+          d.sort((x, y) => x - y); const mid = d[d.length >> 1];
+          inp.value = Math.round(60000 / mid); msg.textContent = '';
+        } });
+        const row = h('div', { class: 'ai-tc' }, [inp, h('span', { class: 'muted', text: 'BPM' }),
+          h('button', { class: 'btn small', text: '÷2', onclick: () => apply(res.bpm / 2) }),
+          h('button', { class: 'btn small', text: '×2', onclick: () => apply(res.bpm * 2) }),
+          tap, h('button', { class: 'btn small primary', text: t('ai.bpmApply'), onclick: () => apply(inp.value) }),
+          h('button', { class: 'btn small ghost ai-bpmback', text: t('ai.bpmAuto'), hidden: res.bpmBy !== 'hand', onclick: () => { res.bpmBy = null; apply(auto); } })]);
+        return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.bpmSet') }), row, h('small', { class: 'muted', text: t('ai.bpmD', { n: Math.round(auto) }) }), msg]);
+      }
+      async function mono22() { if (!S.mono22) S.mono22 = (await resample(S.ab, 22050, 1)).getChannelData(0); return S.mono22; }
+      /** after the beat grid moved: the deck, the ribbon and the written notes all follow */
+      function afterGrid() {
+        dk.setBeats(res.beats, res.bpm, res.phase, (S.tr && S.tr.data && S.tr.data.metre.beatsPerBar) || 4);
+        saveRes(); drawRibbon(); last = null; paint();
+        if (S.tr && S.tr.regrid) S.tr.regrid(res.beats, res.bpm);
+      }
+      function saveRes() { try { if (S.id) PD.blobs.put('ai.res.' + S.id, res); } catch (_) {} }
+
+      /* ---- correcting a chord the AI heard wrong ---- */
+      let chEdit = false, chBox = null;
+      function chordTool() {
+        const tg = h('button', { class: 'ai-tg', 'aria-pressed': 'false', onclick: () => { chEdit = !chEdit; tg.setAttribute('aria-pressed', String(chEdit)); rWrap.classList.toggle('editing', chEdit); if (!chEdit && chBox) { chBox.remove(); chBox = null; } } }, [h('span', { text: '✎' }), h('span', { text: t('ai.chEdit') })]);
+        const back = h('button', { class: 'btn small ghost ai-chback', text: t('ai.chAuto'), hidden: !res.chordsBy, onclick: async () => { if (!res.chords0) return; res.chords = res.chords0.map(c => Object.assign({}, c)); res.chords0 = null; res.chordsBy = null; back.hidden = true; saveRes(); drawRibbon(); last = null; chips(); } });
+        return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.chords') }), h('div', { class: 'ai-tc' }, [tg, back]), h('small', { class: 'muted', text: t('ai.chEditD') })]);
+      }
+      const QUALS = [['', 'maj'], ['m', 'm'], ['7', '7'], ['m7', 'm7'], ['maj7', 'maj7'], ['sus4', 'sus4'], ['sus2', 'sus2'], ['dim', 'dim']];
+      function chordEditor(i) {
+        const c = res.chords[i]; if (!c) return;
+        if (chBox) chBox.remove();
+        const bt0 = dk.beatAt(c.t0 + .01);
+        const mark = () => { if (!res.chords0) res.chords0 = res.chords.map(x => Object.assign({}, x)); res.chordsBy = 'hand'; };
+        const redraw = () => { saveRes(); drawRibbon(); last = null; chips(); const b = body.querySelector('.ai-chback'); if (b) b.hidden = false; chordEditor(i); };
+        const roots = h('div', { class: 'ai-ed-row' });
+        for (let r = 0; r < 12; r++) roots.append(h('button', { class: 'chip' + (c.root === r ? ' on' : ''), text: NAMES[r], onclick: () => { mark(); c.root = r; redraw(); } }));
+        const quals = h('div', { class: 'ai-ed-row' });
+        QUALS.forEach(([q, lab]) => quals.append(h('button', { class: 'chip' + (c.q === q ? ' on' : ''), text: lab, onclick: () => { mark(); c.q = q; redraw(); } })));
+        const acts = h('div', { class: 'ai-ed-row' }, [
+          h('button', { class: 'btn small ghost', text: t('ai.chNone'), onclick: () => { mark(); c.root = -1; c.q = ''; redraw(); } }),
+          h('button', { class: 'btn small', text: t('ai.chSplit'), onclick: () => { const p = dk.pos(); if (p <= c.t0 + .1 || p >= c.t1 - .1) return; mark(); const n2 = { t0: p, t1: c.t1, root: c.root, q: c.q }; c.t1 = p; res.chords.splice(i + 1, 0, n2); redraw(); } }),
+          i > 0 ? h('button', { class: 'btn small', text: t('ai.chMerge'), onclick: () => { mark(); res.chords[i - 1].t1 = c.t1; res.chords.splice(i, 1); chBox.remove(); chBox = null; saveRes(); drawRibbon(); last = null; chips(); } }) : null,
+          h('button', { class: 'btn small ghost', text: '✕', 'aria-label': t('close'), onclick: () => { chBox.remove(); chBox = null; } })].filter(Boolean));
+        chBox = h('div', { class: 'ai-ed' }, [h('div', { class: 'ai-ed-h' }, [h('b', { text: cname(c.root, c.q, TR()) }), h('small', { text: PD.fmtTime(c.t0) + ' – ' + PD.fmtTime(c.t1) + (bt0 ? ' · ' + t('ai.barN', { n: Math.max(1, bt0.bar) }) : '') })]),
+          h('small', { class: 'muted', text: t('ai.chRoot') }), roots, h('small', { class: 'muted', text: t('ai.chQual') }), quals, acts]);
+        rWrap.after(chBox); PD.i18n.apply(chBox);
+      }
       // everything that follows the deck's state
       function paint() {
         playB.innerHTML = D.playing ? ic.pause : ic.play; prepEl.hidden = !D.preparing;
         spV.textContent = Math.round(D.speed * 100) + '%'; sp.value = Math.round(D.speed * 100);
         const st = Math.round(D.semis); piV.textContent = (st > 0 ? '+' : '') + st;
-        keyB.textContent = cname(res.key.r, res.key.q, st); bpmB.textContent = Math.round(res.bpm * D.speed) + ' BPM';
+        keyB.textContent = cname(res.key.r, res.key.q, st); bpmB.textContent = Math.round(res.bpm * D.speed) + ' BPM' + (res.bpmBy === 'hand' ? ' ·' : ''); bpmB.title = res.bpmBy === 'hand' ? t('ai.bpmBy') : '';
         clickT.setAttribute('aria-pressed', String(D.click.on)); ciT.setAttribute('aria-pressed', String(D.countIn));
         if (D.loop.on) { loopTxt.textContent = PD.fmtTime(D.loop.a) + '–' + PD.fmtTime(D.loop.b); } else loopTxt.textContent = la != null ? 'A ' + PD.fmtTime(la) : '';
         lA.classList.toggle('on', la != null || D.loop.on); lB.classList.toggle('on', D.loop.on);
@@ -324,7 +396,7 @@ PD.ai = (() => {
         if (S.peaks) { const P = S.peaks, mid = H / 2; x.fillStyle = 'rgba(255,236,210,.14)'; for (let i = 0; i < W; i++) { const k = Math.floor(i / W * P.length), v = P[k] * (H / 2 - 9); x.fillRect(i, mid - v, 1, v * 2); } }
         res.chords.forEach(c => { const a = c.t0 / res.dur * W, b = c.t1 / res.dur * W; if (c.root < 0) { x.fillStyle = 'rgba(255,236,210,.06)'; x.fillRect(a, 8, b - a, H - 16); return; } x.fillStyle = colOf(c.root + c.q); x.globalAlpha = .75; x.fillRect(a + .5, 8, Math.max(1, b - a - 1), H - 16); x.globalAlpha = 1; if (b - a > 26) { x.fillStyle = '#FFF4E6'; x.font = '700 12px ' + "'Noto Sans Georgian', system-ui"; x.textBaseline = 'middle'; x.fillText(cname(c.root, c.q, TR()), a + 4, H / 2); } });
         // bar lines
-        const B = res.beats || []; x.fillStyle = 'rgba(255,244,230,.28)'; B.forEach((b, k) => { if ((((k - D.phase) % 4) + 4) % 4 === 0) x.fillRect(b / res.dur * W, H - 7, 1, 5); });
+        const B = res.beats || [], G = D.bpb || 4; x.fillStyle = 'rgba(255,244,230,.28)'; B.forEach((b, k) => { if ((((k - D.phase) % G) + G) % G === 0) x.fillRect(b / res.dur * W, H - 7, 1, 5); });
         // the AI-split part
         if (S.stems) { const a = S.stems.from / res.dur * W, b = (S.stems.from + S.stems.len) / res.dur * W; x.fillStyle = 'rgba(143,224,167,.8)'; x.fillRect(a, 1, Math.max(2, b - a), 3); }
         S.rib = { W, H }; drawLoop();
@@ -356,6 +428,7 @@ PD.ai = (() => {
           res, name: S.file.name, saved: S.trSaved || null, neck,
           pos: () => dk.pos(), seek: tt => dk.seek(tt), invalidate: () => { last = null; },
           stemNames: () => S.stems ? S.stems.tracks.map(x => x.name) : [],
+          onMetre: mt => { dk.setBeats(res.beats, res.bpm, res.phase, mt.beatsPerBar || 4); drawRibbon(); },
           save: M => { S.trSaved = M; if (S.id) { try { PD.blobs.put('ai.tr.' + S.id, M); } catch (_) {} } },
           getMono: async name => {
             if (name === 'orig' || !S.stems) return { mono: (await resample(S.ab, 22050, 1)).getChannelData(0), offset: 0 };
@@ -372,7 +445,7 @@ PD.ai = (() => {
       S.ui = { pos: () => dk.pos(), redraw: () => drawRibbon() };
       const loop = () => { S.raf = requestAnimationFrame(loop); if (document.hidden) return; tickOnce(); neck.draw(); };
       S.raf = requestAnimationFrame(loop); drawRibbon(); paint();
-      rWrap.onclick = e => { const r = rWrap.getBoundingClientRect(); dk.seek((e.clientX - r.left) / r.width * res.dur); };
+      rWrap.onclick = e => { const r = rWrap.getBoundingClientRect(), tt = (e.clientX - r.left) / r.width * res.dur; if (chEdit) { const i = res.chords.findIndex(c => tt >= c.t0 && tt < c.t1); if (i >= 0) return chordEditor(i); } dk.seek(tt); };
       // keyboard: space play/pause, ←/→ 5 s
       const onKey = e => { if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return; if (e.code === 'Space') { e.preventDefault(); dk.toggle(); } else if (e.key === 'ArrowLeft') dk.seek(dk.pos() - 5); else if (e.key === 'ArrowRight') dk.seek(dk.pos() + 5); };
       document.addEventListener('keydown', onKey); own(() => document.removeEventListener('keydown', onKey));
