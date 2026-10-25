@@ -127,10 +127,17 @@ PD.theory = (() => {
              Gm 1-1-3 → T 1 3 · G 2-1-3 → T 1 3.
              A plain barre across all three strings keeps the index on all of them, as before. */
           let fingers = fg.fingers, fsrc = null;
-          const allSame = fr[0] === fr[1] && fr[1] === fr[2];
-          if (fr[0] > 0 && fr[1] > 0 && fr[2] >= fr[1] && fr[2] - fr[1] <= 2 && fr[0] <= 5 && fr[1] <= 5) {
-            // all three on one fret (C♯ 4-4-4): the thumb and the index are already there, so the 1st voice goes to the middle finger
-            fingers = ['T', 1, allSame ? 2 : (fr[2] === fr[1] ? 1 : (fr[2] - fr[1] === 1 ? 2 : 3))]; fsrc = 'teacher-thumb';
+          /* The teacher's own way of taking a chord whose bass is stopped, low on the neck (teaching data, his words):
+             the bass is always the thumb; the two voices above it start at the index on the lowest of their frets and
+             step up a finger per fret — same fret → the index closes both, one above → the middle, two → the ring,
+             three → the little finger. Above the 5th fret the thumb no longer comes over, so the index takes the bass
+             and the shape is fingered as it is computed.
+             His own examples: Bm 2-1-2 → T 1 2 · Em 2-3-3 → T 1 1 · E 2-3-4 → T 1 2 · Gm 1-1-3 → T 1 3 · G 2-1-3 → T 1 3 ·
+             C♯ 4-4-4 → T 1 1 (his second way, the index across all three, is kept as its own position). */
+          if (fr[0] > 0 && Math.max(...fr) <= 5) {
+            const up = [fr[1], fr[2]].filter(f => f > 0), base = up.length ? Math.min(...up) : 0;
+            const pick = f => f > 0 ? Math.min(4, 1 + (f - base)) : 0;
+            fingers = ['T', pick(fr[1]), pick(fr[2])]; fsrc = 'teacher-thumb';
           } else if (fr.every(x => x > 0) && fr[0] === fr[2] && fr[1] === fr[0] - 1 && fr[0] <= 9) { fingers = ['T', 1, 2]; fsrc = 'teacher-bm'; }
           out.push({ frets: fr.slice(), fingers, fsrc, barre: fg.barre, pos, score });
           return;

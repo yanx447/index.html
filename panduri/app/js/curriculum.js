@@ -162,6 +162,15 @@ PD.curriculum = (() => {
       c.voicings = [v0].concat(c.voicings.filter(v => !same(v))).slice(0, 3);
       Object.assign(c, { frets: v0.frets, fingers: v0.fingers, barre: v0.barre, src: sh.src === 'teacher' ? 'teacher' : 'song' });
     }));
+    // his second way of taking a closed chord: the index alone across all three strings
+    lib.forEach(c2 => {
+      if (c2.none || !c2.frets) return;
+      const f = c2.frets;
+      if (!(f[0] > 0 && f[0] === f[1] && f[1] === f[2])) return;
+      if ((c2.voicings || []).some(v => v.fingers && v.fingers.join() === '1,1,1' && v.frets.join() === f.join())) return;
+      c2.voicings = (c2.voicings || []).concat([{ frets: f.slice(), fingers: [1, 1, 1], barre: true, pos: f[0], fsrc: 'teacher-barre1',
+        note: { ka: 'მეორე ხერხი: საჩვენებელი კეტავს სამივე სიმს — ბანსაც.', en: 'The second way: the index closes all three strings, the bass too.' } }]);
+    });
     // the teacher's own extra positions, kept after the computed ones
     Object.entries(TEACHER_CHORDS).forEach(([n, adds]) => {
       const c2 = lib.find(x => x.name === n || x.alias === n); if (!c2 || c2.none) return;
