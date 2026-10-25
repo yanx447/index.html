@@ -19,6 +19,8 @@ PD.i18n.add({
   'ai.now': ['ახლა', 'Now'], 'ai.next': ['შემდეგი', 'Next'], 'ai.nc': ['აკორდი არ არის', 'No chord'], 'ai.used': ['სიმღერაში: {n} აკორდი', 'In the song: {n} chords'],
   'ai.stems': ['ინსტრუმენტები', 'Instruments'], 'ai.stemsD': ['AI სიმღერას ყოფს ინსტრუმენტებად: ვოკალი · დრამი · ბასი · დანარჩენი (ფანდური…), სურვილისამებრ გიტარა და ფორტეპიანოც. თითოეულს აქვს ხმა, მარცხნივ/მარჯვნივ, M (ჩუმად) და S (მხოლოდ ეს) — ამოიღე ვოკალი და იმღერე, ან ინსტრუმენტი და თავად დაუკარი.', 'The AI splits the song into instruments: vocals · drums · bass · the rest (panduri…), optionally guitar and piano too. Each has volume, left/right, M (mute) and S (solo) — take the vocals out and sing, or the instrument out and play it yourself.'],
   'ai.split': ['ინსტრუმენტებად დაყოფა', 'Split into instruments'], 'ai.splitNote': ['პირველად AI მოდელი ერთხელ ჩამოიტვირთება (4 ინსტრ. ~85 MB, 6 ინსტრ. ~55 MB). 4-წუთიანი სიმღერა კომპიუტერზე რამდენიმე წუთი მუშავდება, ტელეფონზე — უფრო დიდხანს; ამ დროს აპი არ დახურო.', 'The first time, the AI model downloads once (4 instr. ~85 MB, 6 instr. ~55 MB). A 4-minute song takes a few minutes on a computer, longer on a phone; keep the app open meanwhile.'],
+  'ai.vidPm': ['ვიდეოს ანალიზი პრემიუმშია. აუდიო ფაილები (mp3, m4a, wav…) უფასოდ მუშაობს.', 'Video analysis is in Premium. Audio files (mp3, m4a, wav…) work for free.'],
+  'ai.dayOut': ['უფასოდ დღეში {n} ახალი სიმღერაა — დღევანდელი ამოიწურა. უკვე გახსნილი სიმღერების ხელახლა გახსნა ყოველთვის უფასოა.', 'Free is {n} new songs a day — today is used up. Reopening a song you already analysed is always free.'],
   'ai.premium': ['პრემიუმი', 'Premium'], 'ai.test': ['სატესტო წვდომა', 'Test access'], 'ai.locked': ['ინსტრუმენტებად დაყოფა პრემიუმის ფუნქციაა.', 'Splitting into instruments is a Premium feature.'],
   'ai.dl': ['მოდელი იტვირთება: {a} / {b} MB', 'Downloading the model: {a} / {b} MB'], 'ai.unpack': ['მოდელი მზადდება…', 'Preparing the model…'], 'ai.init': ['AI ეშვება…', 'Starting the AI…'], 'ai.proc': ['AI ყოფს: {p}% · დარჩა ~{m}', 'The AI is splitting: {p}% · ~{m} left'],
   'ai.fail': ['AI ვერ გაეშვა: {e}', 'The AI could not run: {e}'], 'ai.mem': ['მოწყობილობას მეხსიერება არ ეყო. სცადე უფრო მოკლე ნაწილი ან კომპიუტერი.', 'The device ran out of memory. Try a shorter part or a computer.'],
@@ -71,7 +73,19 @@ PD.ai = (() => {
   const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
   const SR = 44100;
   const BASE = (() => { const p = location.pathname; return location.protocol.startsWith('http') && /\/panduri\/app\//.test(p) ? new URL('../ai/', location.href).href : 'https://yanx447.github.io/index.html/panduri/ai/'; })();
-  const allowed = () => !!(PD.premium && PD.premium.active) || !!PD.store.get('author', false) || !!PD.store.get('ai.test', false);
+  /** one gate for every premium door in the studio (the author and the test switch always pass) */
+  const pro = f => !!(PD.premium && PD.premium.allows(f)) || !!PD.store.get('author', false) || !!PD.store.get('ai.test', false);
+  const lock = f => PD.premium.paywall(f);
+  const allowed = () => pro('ai.stems');
+  /** without Premium: this many new songs a day; reopening a saved one is always free */
+  function dayLeft() {
+    const n = (PD.premium && PD.premium.FREE_AI_DAY) || 3, d = new Date().toDateString(), r = PD.store.get('ai.day', null);
+    return n - (r && r.d === d ? r.n : 0);
+  }
+  function dayUsed() {
+    const d = new Date().toDateString(), r = PD.store.get('ai.day', null);
+    PD.store.set('ai.day', { d, n: (r && r.d === d ? r.n : 0) + 1 });
+  }
 
   /* ======================= analysis: chords · key · tempo ======================= */
   function fftMag(N) {   // a small real FFT for analysis (radix-2)
@@ -266,6 +280,9 @@ PD.ai = (() => {
     async function open(file, saved) {
       stopAll(); body.innerHTML = ''; bar(t('ai.reading'), .05);
       const isVid = /^video\//.test(file.type || '') || /\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i.test(file.name || '');
+      if (isVid && !pro('ai.video')) { status.innerHTML = ''; status.append(h('p', { class: 'notice', 'data-t': 'ai.vidPm' }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => lock('ai.video') })); PD.i18n.apply(status); return; }
+      if (!saved && !pro('ai.more') && dayLeft() <= 0) { status.innerHTML = ''; status.append(h('p', { class: 'notice', text: t('ai.dayOut', { n: (PD.premium && PD.premium.FREE_AI_DAY) || 3 }) }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => lock('ai.more') })); PD.i18n.apply(status); return; }
+      if (!saved && !pro('ai.more')) dayUsed();
       let ab = null;
       if (!PD.store.get('ai.forceCapture', false)) { try { ab = await decode(file); } catch (e) { ab = null; } }
       if (!ab) {
@@ -555,7 +572,7 @@ PD.ai = (() => {
 
       /* ---- correcting a chord the AI heard wrong ---- */
       function chordTool() {
-        const tg = h('button', { class: 'ai-tg', 'aria-pressed': 'false', onclick: () => { chEdit = !chEdit; tg.setAttribute('aria-pressed', String(chEdit)); rWrap.classList.toggle('editing', chEdit); if (!chEdit && chBox) { chBox.remove(); chBox = null; } } }, [h('span', { text: '✎' }), h('span', { text: t('ai.chEdit') })]);
+        const tg = h('button', { class: 'ai-tg', 'aria-pressed': 'false', onclick: () => { if (!pro('ai.edit')) return lock('ai.edit'); chEdit = !chEdit; tg.setAttribute('aria-pressed', String(chEdit)); rWrap.classList.toggle('editing', chEdit); if (!chEdit && chBox) { chBox.remove(); chBox = null; } } }, [h('span', { text: '✎' }), h('span', { text: t('ai.chEdit') })]);
         const back = h('button', { class: 'btn small ghost ai-chback', text: t('ai.chAuto'), hidden: !res.chordsBy, onclick: async () => { if (!res.chords0) return; res.chords = res.chords0.map(c => Object.assign({}, c)); res.chords0 = null; res.chordsBy = null; back.hidden = true; saveRes(); drawRibbon(); last = null; chips(); } });
         return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.chords') }), h('div', { class: 'ai-tc' }, [tg, back]), h('small', { class: 'muted', text: t('ai.chEditD') })]);
       }
@@ -639,6 +656,7 @@ PD.ai = (() => {
         if (S.tr) { try { S.tr.destroy(); } catch (_) {} }
         S.tr = PD.aimus.panel({
           res, name: S.file.name, saved: S.trSaved || null, neck,
+          pro: () => pro('ai.trans'), proEdit: () => pro('ai.edit'), proExp: () => pro('ai.export'), lock,
           pos: () => dk.pos(), seek: tt => dk.seek(tt), invalidate: () => { last = null; },
           stemNames: () => S.stems ? S.stems.tracks.map(x => x.name) : [],
           onMetre: mt => { S.metre = mt; dk.setBeats(res.beats, res.bpm, res.phase, mt.beatsPerBar || 4); drawRibbon(); if (S.rhy) runRhythm(); },

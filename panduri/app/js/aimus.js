@@ -491,12 +491,18 @@ PD.i18n.add({
   'tr.tempoAlt': ['ასევე შეიძლება წაიკითხო როგორც {n} BPM', 'Can also be read as {n} BPM'],
   'tr.pos': ['{s} სიმი · {f} ლადი', 'string {s} · fret {f}'], 'tr.open': ['ღია', 'open'], 'tr.nope': ['ვერ იკვრება', 'not playable'],
   'tr.zoom': ['მასშტაბი', 'Zoom'], 'tr.follow': ['თან მიჰყვება', 'Follow'],
+  'tr.pm': ['პრემიუმი', 'Premium'],
+  'tr.pmTr': ['ნოტების ამოცნობა (ნოტი ნოტზე, ექვსი ხედი და ფანდურზე ჩვენება) პრემიუმშია. ტემპი, ტონალობა, აკორდები და რითმი უფასოდ მუშაობს.', 'Note-by-note transcription (six views, shown on the panduri) is in Premium. Tempo, key, chords and rhythm work for free.'],
+  'tr.pmExp': ['ექსპორტი (MIDI · MusicXML · ტაბი · JSON) პრემიუმშია.', 'Export (MIDI · MusicXML · tab · JSON) is in Premium.'],
   'tr.edit': ['შესწორება', 'Correct'], 'tr.editD': ['შესწორებისას შეეხე ნოტს და შეცვალე სიმაღლე, სიმი ან ლადი', 'In correct mode, tap a note to change its pitch, string or fret']
 });
 PD.aimus.panel = function (o) {
   const h = PD.h, t = PD.i18n.t, TH = PD.theory, A = PD.aimus;
   const SCOL = { 1: '#D9783F', 2: '#78B7DE', 3: '#EFE0B8' }, clamp = (x, a, b) => x < a ? a : x > b ? b : x;
   const el = h('section', { class: 'ai-trans' });
+  const can = k => !o[k] || o[k]();                      // no gate given → open
+  const lock = f => o.lock ? o.lock(f) : null;
+  const buy = f => h('button', { class: 'btn primary', text: t('pm.buy'), onclick: () => lock(f) });
   let M = o.saved || null, busy = null, view = PD.store.get('tr.view', 'roll'), onNeck = PD.store.get('tr.neck', true);
   let cur = -1, px = PD.store.get('tr.zoom', 90), follow = true, editMode = false, edBox = null;
   const RANGES = { mel: [55, 84], high: [64, 93], low: [36, 64] };
@@ -513,7 +519,8 @@ PD.aimus.panel = function (o) {
     box.append(h('p', { class: 'muted', 'data-t': 'tr.lead' }),
       h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.src') }), h('div', { class: 'ai-tc' }, [srcSel])]),
       h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.range') }), h('div', { class: 'ai-tc' }, [rgSel])]),
-      h('button', { class: 'btn primary', text: M ? t('tr.redo') : t('tr.run'), onclick: run }));
+      can('pro') ? h('button', { class: 'btn primary', text: M ? t('tr.redo') : t('tr.run'), onclick: run })
+        : h('div', {}, [h('p', { class: 'notice', text: t('tr.pmTr') }), buy('ai.trans')]));
     return box;
   }
   async function run() {
@@ -692,6 +699,7 @@ PD.aimus.panel = function (o) {
       h('button', { class: 'btn small', text: t('tr.expTab'), onclick: () => dl(new Blob([A.tabText(M, base)], { type: 'text/plain' }), base + ' — ფანდური.txt') }),
       h('button', { class: 'btn small', text: t('tr.expJson'), onclick: () => dl(A.jsonOf(M, base), base + '.json') }),
       h('button', { class: 'btn small ghost', text: t('tr.expPdf'), onclick: () => window.print() })]);
+    if (!can('proExp')) return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.exp') }), h('div', { class: 'ai-tc' }, [buy('ai.export')]), h('small', { class: 'muted', text: t('tr.pmExp') })]);
     return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.exp') }), row, h('small', { class: 'muted', text: t('tr.expNote') })]);
   }
 
@@ -711,7 +719,7 @@ PD.aimus.panel = function (o) {
     V = view === 'roll' ? rollView() : view === 'staff' ? staffView() : view === 'tab' ? tabView() : listView();
     el.append(V.el);
     const nk = h('button', { class: 'ai-tg', 'aria-pressed': String(onNeck), onclick: () => { onNeck = !onNeck; PD.store.set('tr.neck', onNeck); nk.setAttribute('aria-pressed', String(onNeck)); cur = -1; o.invalidate && o.invalidate(); } }, [h('span', { text: '🪕' }), h('span', { text: t('tr.onNeck') })]);
-    const ed = h('button', { class: 'ai-tg', 'aria-pressed': String(editMode), onclick: () => { editMode = !editMode; ed.setAttribute('aria-pressed', String(editMode)); el.classList.toggle('editing', editMode); if (!editMode && edBox) { edBox.remove(); edBox = null; } } }, [h('span', { text: '✎' }), h('span', { text: t('tr.edit') })]);
+    const ed = h('button', { class: 'ai-tg', 'aria-pressed': String(editMode), onclick: () => { if (!can('proEdit')) return lock('ai.edit'); editMode = !editMode; ed.setAttribute('aria-pressed', String(editMode)); el.classList.toggle('editing', editMode); if (!editMode && edBox) { edBox.remove(); edBox = null; } } }, [h('span', { text: '✎' }), h('span', { text: t('tr.edit') })]);
     el.classList.toggle('editing', editMode);
     el.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.follow') }), h('div', { class: 'ai-tc' }, [nk, ed]), h('small', { class: 'muted', text: t('tr.onNeckD') + ' · ' + t('tr.editD') })]));
     if (M.sections && M.sections.length) {

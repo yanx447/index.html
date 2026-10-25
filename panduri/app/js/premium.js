@@ -19,6 +19,16 @@ PD.i18n.add({
   'pm.buy': ['გამოწერა', 'Subscribe'], 'pm.restore': ['შეძენის აღდგენა', 'Restore purchase'], 'pm.active': ['პრემიუმი აქტიურია — {d}-მდე', 'Premium is active — until {d}'], 'pm.vip': ['VIP წევრი', 'VIP member'], 'pm.adminOn': ['ადმინი — ყველაფერი ჩართულია', 'Admin — everything is unlocked'], 'pm.priceSoon': ['ფასი მალე', 'Price soon'], 'pm.forever': ['ვადის გარეშე', 'no end date'],
   'pm.f1': ['ყველა ლეველის პროგრამა (საშუალო და რთული)', 'Every level programme (intermediate and advanced)'], 'pm.f2': ['ტრენაჟორის ყველა დონე: მთელი ტარი, სისწრაფე, სმენა', 'Every trainer level: full neck, speed, ear training'],
   'pm.f3': ['ჭკვიანი ვარჯიში შენი შეცდომებიდან', 'Smart practice from your own mistakes'], 'pm.f4': ['ვიდეო ზარი სხვა მოსწავლეებთან', 'Video calls with other learners'], 'pm.f5': ['ახალი სიმღერები და მასწავლებლის გაკვეთილები, როგორც კი დაემატება', 'New songs and teacher lessons as soon as they are added'], 'pm.f6': ['VIP ნიშანი საზოგადოებაში', 'VIP badge in the community'],
+  'pm.f7': ['ნოტების ამოცნობა სიმღერიდან — ნოტი ნოტზე, ფანდურის სიმებზე და ლადებზე', 'Note-by-note transcription — mapped to panduri strings and frets'],
+  'pm.f8': ['6 ნოტაციის ხედი: სანოტო, roll, ასოები, სოლფეჯიო, ციფრები, ტაბი', 'Six notation views: staff, roll, letters, solfège, numbers, tab'],
+  'pm.f9': ['ექსპორტი: MIDI · MusicXML · ფანდურის ტაბი · JSON', 'Export: MIDI · MusicXML · panduri tab · JSON'],
+  'pm.f10': ['ხელით შესწორება — ნოტი და აკორდი შეასწორე თავად', 'Manual correction — fix any note or chord yourself'],
+  'pm.f11': ['ვიდეოს ანალიზი (mp4, mov, webm…)', 'Video analysis (mp4, mov, webm…)'],
+  'pm.f12': ['სიმღერის დაყოფა ინსტრუმენტებად (ვოკალი · ბანი · დრამი · სხვა)', 'Stem splitting (vocals · bass · drums · other)'],
+  'pm.f13': ['AI სტუდიაში სიმღერების რაოდენობა შეზღუდული არ არის', 'No daily limit in the AI studio'],
+  'pm.freeT': ['უფასოდ რჩება', 'Free forever'],
+  'pm.free': ['დამწყების სრული პროგრამა · აკორდების ბიბლიოთეკა 3D ხელით · სიმების აწყობა · მეტრონომი · რითმები · თეორია და სოლფეჯიო · ვარჯიში მიკროფონით, ლეველები და პროგრესი · AI სტუდიაში ტემპი (BPM), ტონალობა, აკორდები, რითმის ამოცნობა და სრული ფლეირი — დღეში {n} სიმღერა', 'The whole beginner programme · chord library with the 3D hand · tuner · metronome · rhythms · theory and solfège · practice with the microphone, levels and progress · in the AI studio: tempo (BPM), key, chords, rhythm detection and the full player — {n} songs a day'],
+  'pm.perYearM': ['≈ {p} თვეში · {d}% ნაკლები', '≈ {p} a month · {d}% less'],
   'pm.noPay': ['გადახდის სისტემა ჯერ არ არის დაკავშირებული (Google Play / App Store / ბარათით). VIP-ს ადმინისტრატორი ანიჭებს.', 'Payments are not connected yet (Google Play / App Store / card). VIP is granted by the administrator.'],
   'pm.needAccount': ['პრემიუმისთვის საჭიროა ანგარიში — ჯერ შედი.', 'Premium needs an account — sign in first.'], 'pm.locked': ['პრემიუმ ფუნქცია', 'Premium feature'],
   'pa.title': ['პრემიუმის მართვა', 'Premium management'], 'pa.lead': ['ვის აქვს პრემიუმი და ვის არა. ცვლილებებს სერვერი ამოწმებს — მხოლოდ ადმინს შეუძლია.', 'Who has Premium and who does not. The server checks every change — only admins can make them.'],
@@ -97,7 +107,12 @@ PD.levels = (() => {
 PD.premium = (() => {
   const h = PD.h, C = PD.cloud;
   /** what premium unlocks (edit here) */
-  const FEATURES = { 'paths.advanced': 'pm.f1', 'trainer.pro': 'pm.f2', 'coach': 'pm.f3', 'call': 'pm.f4', 'songs.more': 'pm.f5' };
+  const FEATURES = { 'paths.advanced': 'pm.f1', 'trainer.pro': 'pm.f2', 'coach': 'pm.f3', 'call': 'pm.f4', 'songs.more': 'pm.f5',
+    'ai.trans': 'pm.f7', 'ai.export': 'pm.f9', 'ai.edit': 'pm.f10', 'ai.video': 'pm.f11', 'ai.stems': 'pm.f12', 'ai.more': 'pm.f13' };
+  /** what the paywall lists, in this order (f8 comes with f7, f6 is the badge) */
+  const LIST = ['pm.f1', 'pm.f2', 'pm.f3', 'pm.f5', 'pm.f7', 'pm.f8', 'pm.f9', 'pm.f10', 'pm.f11', 'pm.f12', 'pm.f13', 'pm.f4', 'pm.f6'];
+  const FREE_AI_DAY = 3;   // new songs a day in the AI studio without Premium
+  const PRICE = { monthly: '14.99 ₾', yearly: '119.99 ₾' };
   const FREE_SONGS = new Set(['bani-acharuli']);   // the first song stays free
   const PREMIUM_PATHS = new Set(['intermediate', 'advanced']);
   /** the one rule for every door into a lesson (Learn, Home, Songs, Rhythms, resume…): which premium feature it needs, or null */
@@ -126,23 +141,28 @@ PD.premium = (() => {
     manage: (w) => managePage(w),
     /** one line for the profile and the paywall */
     status() { const u = until(), on = u && u > new Date(); if (on) return u.getFullYear() > 2090 ? t('pm.title') + ' · ' + t('pm.forever') : t('pm.active', { d: fmtDate(u) }); return C.isAdmin ? t('pm.adminOn') : ''; },
-    FEATURES
+    FEATURES, LIST, PRICE, FREE_AI_DAY
   };
   const KA_M = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
   function fmtDate(d) { if (!d) return ''; if (d.getFullYear() > 2090) return t('pm.forever'); return PD.i18n.lang === 'ka' ? d.getDate() + ' ' + KA_M[d.getMonth()] + ' ' + d.getFullYear() : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); }
   function paywall(feature) {
     PD.ui.sheet((box, close) => {
-      const cfg = (PD.CONFIG && PD.CONFIG.prices) || {}, pay = PD.CONFIG && PD.CONFIG.payments;
+      const cfg = Object.assign({}, PRICE, (PD.CONFIG && PD.CONFIG.prices) || {}), pay = PD.CONFIG && PD.CONFIG.payments;
       box.classList.add('pw');
       box.append(h('div', { class: 'pw-crown', html: '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z" fill="#D59A68" stroke="#24140A" stroke-width=".8" stroke-linejoin="round"/></svg>' }),
         h('h2', { 'data-t': 'pm.title' }), h('p', { class: 'fg2', 'data-t': 'pm.lead' }));
       if (feature && FEATURES[feature]) box.append(h('p', { class: 'pw-why', text: t('pm.locked') + ' · ' + t(FEATURES[feature]) }));
       if (api.active) box.append(h('p', { class: 'pw-active', text: (api.vip ? t('pm.vip') + ' · ' : '') + api.status() }));
-      box.append(h('ul', { class: 'pw-list' }, Object.values(FEATURES).concat(['pm.f6']).map(k => h('li', { 'data-t': k }))));
+      box.append(h('ul', { class: 'pw-list' }, LIST.map(k => h('li', { 'data-t': k }))));
+      box.append(h('details', { class: 'pw-free' }, [h('summary', { 'data-t': 'pm.freeT' }), h('p', { class: 'fg2', text: t('pm.free', { n: FREE_AI_DAY }) })]));
       let plan = 'yearly';
       const opt = (k, price, per, best) => h('button', { class: 'pw-plan', 'aria-pressed': String(plan === k), onclick: e => { plan = k; box.querySelectorAll('.pw-plan').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } }, [
         h('b', { 'data-t': 'pm.' + k }), h('span', { class: 'pw-price' + (price ? '' : ' soon'), text: price || t('pm.priceSoon') }), h('small', { 'data-t': per }), best ? h('em', { 'data-t': 'pm.best' }) : null].filter(Boolean));
+      const num = v => { const m = String(v || '').match(/[\d.,]+/); return m ? parseFloat(m[0].replace(',', '.')) : 0; };
+      const mN = num(cfg.monthly), yN = num(cfg.yearly), unit = String(cfg.monthly || '').replace(/[\d.,\s]/g, '') || '₾';
+      const perM = mN && yN ? t('pm.perYearM', { p: (yN / 12).toFixed(2) + ' ' + unit, d: Math.round((1 - yN / (mN * 12)) * 100) }) : '';
       const plans = h('div', { class: 'pw-plans' }, [opt('monthly', cfg.monthly, 'pm.perMonth'), opt('yearly', cfg.yearly, 'pm.perYear', true)]);
+      if (perM) plans.lastChild.append(h('i', { class: 'pw-sub', text: perM }));
       const msg = h('p', { class: 'ag-msg info', hidden: true });
       const buy = h('button', { class: 'btn primary big', 'data-t': 'pm.buy', onclick: () => {
         msg.hidden = false;
