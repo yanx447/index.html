@@ -2271,3 +2271,23 @@ details[open]>summary .ce-acc-chev{transform:rotate(-135deg) translate(-2px,-2px
 .ai-ed-h b{font-size:20px}.ai-ed-h small{color:var(--fg2)}
 .ai-ed-row{display:flex;flex-wrap:wrap;gap:6px}
 .ai-ed-row .chip.on{background:var(--cu);border-color:transparent;color:var(--acc-ink);font-weight:700}
+
+/* ===== v31 · the player: video on screen, precise jumps, wider speed ===== */
+.ai-vwrap{margin:0 0 12px;display:flex;flex-direction:column;gap:6px}
+.ai-video{width:100%;max-height:min(46vh,380px);border-radius:14px;background:#000;display:block;object-fit:contain}
+.ai-vrow{display:flex;align-items:center;gap:10px}
+.ai-vrow .ai-tl{flex:1}
+.ai-goto{margin:2px 0 0}
+.ai-time-in{width:76px;text-align:center}
+.ai-bar-in{width:66px}
+.ai-sep{width:1px;align-self:stretch;background:var(--line);margin:0 2px}
+.ai-sprow{align-items:center}
+.ai-sprow input[type=range]{flex:1;min-width:110px}
+.ai-sppre{display:flex;gap:4px;flex-wrap:wrap}
+.ai-sppre .chip{padding:4px 9px;font-size:12px}
+.ai-keys{display:block;margin-top:8px;font-size:11.5px;line-height:1.5}
+.ai-rwrap.scrub{cursor:grabbing}
+.ai-rwrap{touch-action:pan-y}
+@media (max-width:420px){.ai-keys{display:none}}
+.ai-pair{display:flex;gap:6px;align-items:center}
+.tr-solo{font-style:normal;font-weight:700;font-size:11px;opacity:.85}

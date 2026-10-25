@@ -29,7 +29,14 @@ PD.i18n.add({
   'ai.fxLow': ['დაბლები', 'Lows'], 'ai.fxMid': ['შუა', 'Mids'], 'ai.fxHigh': ['მაღლები', 'Highs'], 'ai.fxRev': ['რევერბი', 'Reverb'], 'ai.fxEcho': ['ექო', 'Echo'],
   'ai.fxP_clean': ['გასუფთავება', 'Clean'], 'ai.fxP_hall': ['დარბაზი', 'Hall'], 'ai.fxP_echo': ['ექო', 'Echo'], 'ai.fxP_warm': ['თბილი', 'Warm'], 'ai.fxP_bright': ['ნათელი', 'Bright'], 'ai.fxP_radio': ['ძველი რადიო', 'Old radio'], 'ai.beats': ['ვპოულობ დარტყმებს და ტაქტებს…', 'Finding beats and bars…'], 'ai.prep': ['მზადდება…', 'Preparing…'], 'ai.seek': ['პოზიცია', 'Position'],
   'ai.bpmSet': ['ტემპი ხელით', 'Set the tempo'], 'ai.bpmD': ['AI-ის გაზომვა: {n} BPM. შეცვალე და დარტყმები ამ ტემპზე თავიდან დაეწყობა — ჩანაწერის ატაკებზე მიბმული.', 'The AI measured {n} BPM. Change it and the beats are tracked again at that tempo, still locked onto the attacks in the recording.'],
-  'ai.bpmApply': ['დაყენება', 'Apply'], 'ai.bpmAuto': ['AI-ის ტემპი', 'Back to the AI tempo'], 'ai.tap': ['დააკაკუნე', 'Tap'], 'ai.tapD': ['დააკაკუნე დარტყმაზე 4-ჯერ მაინც', 'Tap on the beat at least 4 times'],
+  'ai.bpmApply': ['დაყენება', 'Apply'],
+  'ai.vid': ['ვიდეო', 'Video'], 'ai.vidHide': ['ვიდეოს დამალვა', 'Hide the video'], 'ai.vidShow': ['ვიდეოს ჩვენება', 'Show the video'],
+  'ai.vidNo': ['ამ ვიდეოს ამ ბრაუზერში ვერ ვუკრავ, მაგრამ ხმა წავიკითხე — ანალიზი მუშაობს.', 'This browser cannot play this video, but its sound was read — the analysis works.'],
+  'ai.vidBad': ['ამ ვიდეოს ხმა ვერ წავიკითხე. ამოიღე აუდიო (MP3/M4A/WAV) და ის ჩააგდე.', 'The sound of this video could not be read. Take the audio out (MP3/M4A/WAV) and drop that instead.'],
+  'ai.goto': ['გადასვლა', 'Go to'], 'ai.gotoD': ['წუთი:წამი — მაგ. 1:24', 'minute:second — e.g. 1:24'], 'ai.gotoBar': ['ტაქტზე', 'To bar'],
+  'ai.jump': ['გადახვევა', 'Jump'], 'ai.start': ['თავიდან', 'To the start'], 'ai.end': ['ბოლოში', 'To the end'],
+  'ai.keys': ['ღილაკები: ჰარი — დაკვრა/პაუზა · ← → — 5 წმ · Shift+← → — 1 წმ · Home/End — თავი/ბოლო', 'Keys: space — play/pause · ← → — 5 s · Shift+← → — 1 s · Home/End — start/end'],
+  'ai.spSlow': ['ნელა', 'Slower'], 'ai.spFast': ['სწრაფად', 'Faster'], 'ai.bpmAuto': ['AI-ის ტემპი', 'Back to the AI tempo'], 'ai.tap': ['დააკაკუნე', 'Tap'], 'ai.tapD': ['დააკაკუნე დარტყმაზე 4-ჯერ მაინც', 'Tap on the beat at least 4 times'],
   'ai.regrid': ['დარტყმებს თავიდან ვაწყობ…', 'Tracking the beats again…'], 'ai.bpmBy': ['ხელით დაყენებული', 'set by hand'],
   'ai.chEdit': ['აკორდების შესწორება', 'Correct the chords'], 'ai.chEditD': ['ჩართე და ზოლზე შეეხე აკორდს', 'Turn this on and tap a chord on the ribbon'],
   'ai.chRoot': ['საფუძველი', 'Root'], 'ai.chQual': ['სახეობა', 'Type'], 'ai.chNone': ['აკორდის გარეშე', 'No chord'],
@@ -192,13 +199,14 @@ PD.ai = (() => {
     const status = h('div', { class: 'ai-status', 'aria-live': 'polite' }), body = h('div', { class: 'ai-body' });
     w.append(input, drop, status, body);
     let S = null;   // the current song
-    const stopAll = () => { if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; } };
+    const stopAll = () => { if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
     own(stopAll); own(() => { if (worker) { try { worker.terminate(); } catch (_) {} worker = null; } });
     function bar(label, p) { status.innerHTML = ''; status.append(h('span', { text: label }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(p * 100) + '%' })])); }
 
     async function open(file, saved) {
       stopAll(); body.innerHTML = ''; bar(t('ai.reading'), .05);
-      let ab; try { ab = await decode(file); } catch (e) { status.textContent = t('ai.bad'); return; }
+      const isVid = /^video\//.test(file.type || '') || /\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i.test(file.name || '');
+      let ab; try { ab = await decode(file); } catch (e) { status.textContent = t(isVid ? 'ai.vidBad' : 'ai.bad'); return; }
       let res = saved && saved.res; const S0 = {};
       if (!res) {
         bar(t('ai.analysing'), .1);
@@ -213,7 +221,8 @@ PD.ai = (() => {
         res.beats = b.beats; res.phase = b.phase; res.bpm = b.bpm; if (saved) saved.fresh = true;
       }
       status.innerHTML = '';
-      S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null, mono22: S0.mono || null };
+      S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null, mono22: S0.mono || null, isVid };
+      if (isVid) { try { S.vidURL = URL.createObjectURL(file); } catch (_) { S.vidURL = null; } }
       try { const all = PD.store.get('ai.recent', []), rec = saved ? saved.id : (all.find(r => r.name === file.name) || {}).id; if (rec) { S.id = rec; S.trSaved = await PD.blobs.get('ai.tr.' + rec); } } catch (_) {}
       S.deck = PD.aiDeck.create(D => S.onDeck && S.onDeck(D));
       S.origSet = { id: 'orig', sr: ab.sampleRate, from: 0, tracks: [{ name: 'mix', L: ab.getChannelData(0), R: ab.numberOfChannels > 1 ? ab.getChannelData(1) : ab.getChannelData(0) }] };
@@ -274,8 +283,12 @@ PD.ai = (() => {
       const seek = h('input', { type: 'range', min: 0, max: 1000, value: 0, class: 'ai-seek', 'aria-label': t('ai.seek'), oninput: e => dk.seek(e.target.value / 1000 * res.dur) });
       const dots = h('div', { class: 'ai-dots' }, [0, 1, 2, 3].map(() => h('i'))), barEl = h('span', { class: 'ai-bar mono' });
       // tempo and pitch
-      const spV = h('b', { class: 'mono' }), sp = h('input', { type: 'range', min: 50, max: 150, step: 5, value: Math.round(D.speed * 100), 'aria-label': t('ai.speed'), oninput: e => { spV.textContent = e.target.value + '%'; }, onchange: e => dk.setSpeed(e.target.value / 100) });
-      const spReset = h('button', { class: 'btn small ghost', text: '100%', onclick: () => { sp.value = 100; spV.textContent = '100%'; dk.setSpeed(1); } });
+      const spV = h('b', { class: 'mono' }), sp = h('input', { type: 'range', min: 25, max: 200, step: 5, value: Math.round(D.speed * 100), 'aria-label': t('ai.speed'), oninput: e => { spV.textContent = e.target.value + '%'; }, onchange: e => dk.setSpeed(e.target.value / 100) });
+      const spSet = v => { sp.value = v; spV.textContent = v + '%'; dk.setSpeed(v / 100); };
+      const spStep = d => spSet(Math.max(25, Math.min(200, Math.round(D.speed * 100 / 5) * 5 + d)));
+      const spReset = h('button', { class: 'btn small ghost', text: '100%', onclick: () => spSet(100) });
+      const spRow = h('div', { class: 'ai-tc ai-sprow' }, [h('button', { class: 'btn small', text: '−', 'aria-label': t('ai.spSlow'), onclick: () => spStep(-5) }), sp, h('button', { class: 'btn small', text: '+', 'aria-label': t('ai.spFast'), onclick: () => spStep(5) }), spV, spReset,
+        h('div', { class: 'ai-sppre' }, [50, 75, 90, 125, 150].map(v => h('button', { class: 'chip', text: v + '%', onclick: () => spSet(v) })))]);
       const piV = h('b', { class: 'mono' });
       const piBtn = d => h('button', { class: 'btn small', text: d > 0 ? '+' : '−', 'aria-label': t('ai.pitch') + (d > 0 ? ' +' : ' −'), onclick: () => { const v = Math.max(-6, Math.min(6, Math.round(D.semis) + d)); dk.setPitch(v); } });
       // metronome · count-in
@@ -297,16 +310,55 @@ PD.ai = (() => {
       const fxTool = h('div', { class: 'ai-tool ai-tool-fx' }, [h('span', { class: 'ai-tl', text: t('ai.fx') }), h('div', { class: 'ai-tc' }, [fxBtn, compT]), fxWrap]);
       const chipRow = h('div', { class: 'ai-chips' });
       const chips = () => { chipRow.innerHTML = ''; chipRow.append(h('small', { class: 'muted', text: t('ai.used', { n: used.length }) })); used.forEach(c => chipRow.append(h('button', { class: 'chip', text: cname(c.root, c.q, TR()), onclick: () => { const r = (c.root + TR() + 12) % 12, sh = shapeOf(r, c.q); if (sh) PD.app.go('chords', sh.id); } }))); };
-      body.append(h('section', { class: 'ai-player' }, [rWrap,
-        h('div', { class: 'ai-tr' }, [playB, h('button', { class: 'btn small', text: '−5', onclick: () => dk.seek(dk.pos() - 5) }), h('button', { class: 'btn small', text: '+5', onclick: () => dk.seek(dk.pos() + 5) }), h('div', { class: 'ai-beat' }, [dots, barEl]), prepEl, timeEl]), seek,
+      // the picture, when a video was dropped: it follows the deck's real position, its sound comes from the deck
+      let vidBox = null;
+      if (S.isVid && S.vidURL) {
+        const v = h('video', { class: 'ai-video', src: S.vidURL, muted: true, playsinline: true, preload: 'auto', tabindex: -1 });
+        v.muted = true; v.playsInline = true;
+        const note = h('p', { class: 'notice', hidden: true, text: t('ai.vidNo') });
+        v.addEventListener('error', () => { note.hidden = false; v.hidden = true; });
+        const hide = h('button', { class: 'btn small ghost ai-vhide', text: t('ai.vidHide'), onclick: () => { const on = v.hidden; v.hidden = !on; hide.textContent = t(on ? 'ai.vidHide' : 'ai.vidShow'); } });
+        S.vid = v; S.vidAt = -1;
+        vidBox = h('div', { class: 'ai-vwrap' }, [v, note, h('div', { class: 'ai-vrow' }, [h('span', { class: 'ai-tl', text: t('ai.vid') }), hide])]);
+      }
+      const jump = (d) => dk.seek(Math.max(0, Math.min(res.dur, dk.pos() + d)));
+      const goIn = h('input', { type: 'text', class: 'ai-num ai-time-in', placeholder: '0:00', 'aria-label': t('ai.goto'), inputmode: 'numeric',
+        onkeydown: e => { if (e.key === 'Enter') { e.preventDefault(); goTo(); } } });
+      function goTo() {
+        const s = (goIn.value || '').trim(); if (!s) return;
+        const m = s.match(/^(\d+):(\d{1,2}(?:[.,]\d+)?)$/), sec = m ? (+m[1]) * 60 + parseFloat(m[2].replace(',', '.')) : parseFloat(s.replace(',', '.'));
+        if (!isFinite(sec)) return; dk.seek(Math.max(0, Math.min(res.dur, sec)));
+      }
+      const barIn = h('input', { type: 'number', class: 'ai-num ai-bar-in', min: 1, step: 1, placeholder: '1', 'aria-label': t('ai.gotoBar'),
+        onkeydown: e => { if (e.key === 'Enter') { e.preventDefault(); goBar(); } } });
+      function goBar() {   // the bar the player itself counts, so the number matches what it shows
+        const n = Math.max(1, Math.round(+barIn.value || 1)), B = res.beats || [];
+        for (let k = 0; k < B.length; k++) { const bt = dk.beatAt(B[k] + .005); if (bt && bt.bar === n && bt.beat === 1) return dk.seek(B[k] + .005); }
+        const g = dk.D.bpb || 4; dk.seek(Math.min(res.dur, (n - 1) * g * 60 / res.bpm));
+      }
+      const transport = h('div', { class: 'ai-tr' }, [playB,
+        h('button', { class: 'btn small', text: '−10', 'aria-label': '-10s', onclick: () => jump(-10) }),
+        h('button', { class: 'btn small', text: '−1', 'aria-label': '-1s', onclick: () => jump(-1) }),
+        h('button', { class: 'btn small', text: '+1', 'aria-label': '+1s', onclick: () => jump(1) }),
+        h('button', { class: 'btn small', text: '+10', 'aria-label': '+10s', onclick: () => jump(10) }),
+        h('div', { class: 'ai-beat' }, [dots, barEl]), prepEl, timeEl]);
+      const gotoRow = h('div', { class: 'ai-tool ai-goto' }, [h('span', { class: 'ai-tl', text: t('ai.jump') }),
+        h('div', { class: 'ai-tc' }, [
+          h('div', { class: 'ai-pair' }, [goIn, h('button', { class: 'btn small', text: t('ai.goto'), onclick: goTo })]),
+          h('div', { class: 'ai-pair' }, [barIn, h('button', { class: 'btn small', text: t('ai.gotoBar'), onclick: goBar })]),
+          h('div', { class: 'ai-pair' }, [h('button', { class: 'btn small ghost', text: '⏮', 'aria-label': t('ai.start'), onclick: () => dk.seek(0) }),
+            h('button', { class: 'btn small ghost', text: '⏭', 'aria-label': t('ai.end'), onclick: () => dk.seek(Math.max(0, res.dur - 2)) })])]),
+        h('small', { class: 'muted', text: t('ai.gotoD') })]);
+      body.append(h('section', { class: 'ai-player' }, [vidBox, rWrap,
+        transport, seek, gotoRow,
         h('div', { class: 'ai-nn' }, [nowEl, nextEl]), nv,
         h('div', { class: 'ai-tools' }, [
-          h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.speed') }), h('div', { class: 'ai-tc' }, [sp, spV, spReset])]),
+          h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.speed') }), spRow]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.pitch') }), h('div', { class: 'ai-tc' }, [piBtn(-1), piV, piBtn(1), h('small', { class: 'muted', text: t('ai.pitchD') })])]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.metro') }), h('div', { class: 'ai-tc' }, [clickT, clickV, ciT])]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.loop') }), h('div', { class: 'ai-tc' }, [lA, lB, lBars(1), lBars(4), lOff, loopTxt])]),
           tempoTool(), chordTool(), fxTool]),
-        chipRow, h('p', { class: 'notice', 'data-t': 'ai.est' })]));
+        chipRow, h('small', { class: 'muted ai-keys', text: t('ai.keys') }), h('p', { class: 'notice', 'data-t': 'ai.est' })]));
       body.append(stemsPanel());
       body.append(trPanel());
       PD.i18n.apply(body);
@@ -315,7 +367,7 @@ PD.ai = (() => {
       /* ---- the tempo, by hand: the beats are tracked again at the tempo you set ---- */
       function tempoTool() {
         const auto = res.bpmAuto == null ? res.bpm : res.bpmAuto;
-        const inp = h('input', { type: 'number', class: 'ai-num', min: 30, max: 300, step: 1, value: Math.round(res.bpm), 'aria-label': t('ai.bpmSet') });
+        const inp = h('input', { type: 'number', class: 'ai-num ai-bpm-in', min: 30, max: 300, step: 1, value: Math.round(res.bpm), 'aria-label': t('ai.bpmSet') });
         const msg = h('small', { class: 'muted' });
         const apply = async v => {
           v = Math.max(30, Math.min(300, +v || 0)); if (!v) return;
@@ -410,6 +462,16 @@ PD.ai = (() => {
         const bt = dk.beatAt(p);
         if (bt && bt.k !== lastBeat) { lastBeat = bt.k; barEl.textContent = t('ai.barN', { n: Math.max(1, bt.bar) }); [...dots.children].forEach((d, i) => { d.className = i === bt.beat - 1 ? (bt.beat === 1 ? 'on one' : 'on') : ''; }); }
         else if (!bt && lastBeat !== -2) { lastBeat = -2; barEl.textContent = ''; [...dots.children].forEach(d => d.className = ''); }
+        if (S.vid && !S.vid.hidden) {
+          const v = S.vid, want = Math.max(0, Math.min((v.duration || res.dur) - .05, p));
+          if (v.readyState >= 1) {
+            const rate = Math.max(.0625, Math.min(16, D.speed));
+            if (Math.abs(v.playbackRate - rate) > .01) { try { v.playbackRate = rate; } catch (_) {} }
+            if (Math.abs(v.currentTime - want) > (D.playing ? .18 : .04)) { try { v.currentTime = want; } catch (_) {} }
+            if (D.playing && v.paused) { const q = v.play(); if (q && q.catch) q.catch(() => {}); }
+            else if (!D.playing && !v.paused) v.pause();
+          }
+        }
         if (S.tr) S.tr.tick(p);
         const i = res.chords.findIndex(c => p >= c.t0 && p < c.t1), c = res.chords[i], n = res.chords.slice(i + 1).find(x => x.root >= 0);
         const key = c ? c.root + c.q + ':' + TR() : 'none';
@@ -445,9 +507,27 @@ PD.ai = (() => {
       S.ui = { pos: () => dk.pos(), redraw: () => drawRibbon() };
       const loop = () => { S.raf = requestAnimationFrame(loop); if (document.hidden) return; tickOnce(); neck.draw(); };
       S.raf = requestAnimationFrame(loop); drawRibbon(); paint();
-      rWrap.onclick = e => { const r = rWrap.getBoundingClientRect(), tt = (e.clientX - r.left) / r.width * res.dur; if (chEdit) { const i = res.chords.findIndex(c => tt >= c.t0 && tt < c.t1); if (i >= 0) return chordEditor(i); } dk.seek(tt); };
+      let skipClick = false;
+      const ribT = e => { const r = rWrap.getBoundingClientRect(); return Math.max(0, Math.min(res.dur, (e.clientX - r.left) / r.width * res.dur)); };
+      rWrap.onclick = e => { if (skipClick) return; const tt = ribT(e); if (chEdit) { const i = res.chords.findIndex(c => tt >= c.t0 && tt < c.t1); if (i >= 0) return chordEditor(i); } dk.seek(tt); };
+      rWrap.onpointerdown = e => {
+        if (chEdit || e.pointerType === 'mouse' && e.button !== 0) return;
+        let moved = false; const id = e.pointerId;
+        const mv = e2 => { if (e2.pointerId !== id) return; moved = true; rWrap.classList.add('scrub'); dk.seek(ribT(e2)); };
+        const up = () => { rWrap.classList.remove('scrub'); rWrap.removeEventListener('pointermove', mv); rWrap.removeEventListener('pointerup', up); rWrap.removeEventListener('pointercancel', up); if (moved) { skipClick = true; setTimeout(() => { skipClick = false; }, 60); } };
+        try { rWrap.setPointerCapture(id); } catch (_) {}
+        rWrap.addEventListener('pointermove', mv); rWrap.addEventListener('pointerup', up); rWrap.addEventListener('pointercancel', up);
+      };
       // keyboard: space play/pause, ←/→ 5 s
-      const onKey = e => { if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return; if (e.code === 'Space') { e.preventDefault(); dk.toggle(); } else if (e.key === 'ArrowLeft') dk.seek(dk.pos() - 5); else if (e.key === 'ArrowRight') dk.seek(dk.pos() + 5); };
+      const onKey = e => {
+        if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return;
+        const st = e.shiftKey ? 1 : 5;
+        if (e.code === 'Space') { e.preventDefault(); dk.toggle(); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); jump(-st); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); jump(st); }
+        else if (e.key === 'Home') { e.preventDefault(); dk.seek(0); }
+        else if (e.key === 'End') { e.preventDefault(); dk.seek(Math.max(0, res.dur - 2)); }
+      };
       document.addEventListener('keydown', onKey); own(() => document.removeEventListener('keydown', onKey));
       own(() => { neck.destroy(); });
     };

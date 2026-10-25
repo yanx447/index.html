@@ -398,6 +398,8 @@ PD.i18n.add({
   'tr.est': ['ეს AI-ის გაზომვაა და არა დადასტურებული ნოტაცია. სანდოობა ყოველ ნოტზე წერია; შეამოწმე ყურით.', 'This is what the AI measured, not a verified score. Every note carries its confidence; check it by ear.'],
   'tr.oct': ['ოქტავით {d}: {n}', 'octave {d}: {n}'], 'tr.sections': ['ნაწილები', 'Parts'], 'tr.part': ['ნაწილი {n}', 'Part {n}'],
   'tr.secNote': ['ნაწილები იქ იყოფა, სადაც მუსიკა იცვლება. სახელებს არ ვარქმევ — აუდიო არ ამბობს, რომელია მისამღერი.', 'The parts are cut where the music changes. They are not named — the audio does not say which one is a chorus.'],
+  'tr.solo': ['მელოდიური', 'melodic'], 'tr.soloD': ['„მელოდიური“ იქ წერია, სადაც ნოტები სხვაგანზე ბევრად ხშირია — ეს გაზომილი სიხშირეა და არა დადასტურებული სოლო. ფრჩხილებში ნოტია წამში.', '"Melodic" marks the parts where the notes come much thicker than elsewhere — that is a measured density, not a verified solo. In brackets: notes per second.'],
+  'tr.nps': ['{n} ნოტი/წმ', '{n} notes/s'],
   'tr.tempoAlt': ['ასევე შეიძლება წაიკითხო როგორც {n} BPM', 'Can also be read as {n} BPM'],
   'tr.pos': ['{s} სიმი · {f} ლადი', 'string {s} · fret {f}'], 'tr.open': ['ღია', 'open'], 'tr.nope': ['ვერ იკვრება', 'not playable'],
   'tr.zoom': ['მასშტაბი', 'Zoom'], 'tr.follow': ['თან მიჰყვება', 'Follow'],
@@ -623,8 +625,14 @@ PD.aimus.panel = function (o) {
     el.classList.toggle('editing', editMode);
     el.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.follow') }), h('div', { class: 'ai-tc' }, [nk, ed]), h('small', { class: 'muted', text: t('tr.onNeckD') + ' · ' + t('tr.editD') })]));
     if (M.sections && M.sections.length) {
-      const row = h('div', { class: 'ai-tc' }); M.sections.forEach(s => row.append(h('button', { class: 'chip', text: t('tr.part', { n: s.n }) + ' · ' + PD.fmtTime(s.t0), onclick: () => o.seek(s.t0 + .02) })));
-      el.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.sections') }), row, h('small', { class: 'muted', text: t('tr.secNote') })]));
+      // how thick the melody runs in each part — measured, so a part can be called melodic without naming it a solo
+      const dens = M.sections.map(s => { const n = M.notes.filter(x => x.t0 >= s.t0 && x.t0 < s.t1).length; return s.t1 > s.t0 ? n / (s.t1 - s.t0) : 0; });
+      const sorted = dens.slice().sort((a, b) => a - b), mid = sorted[sorted.length >> 1] || 0;
+      const row = h('div', { class: 'ai-tc' });
+      M.sections.forEach((s, i) => { const hot = mid > 0 && dens[i] >= mid * 1.35;
+        row.append(h('button', { class: 'chip' + (hot ? ' on' : ''), onclick: () => o.seek(s.t0 + .02) },
+          [h('span', { text: t('tr.part', { n: s.n }) + ' · ' + PD.fmtTime(s.t0) }), h('em', { class: 'tr-solo', text: ' ' + (hot ? t('tr.solo') + ' ' : '') + '(' + dens[i].toFixed(1) + ')' })])); });
+      el.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.sections') }), row, h('small', { class: 'muted', text: t('tr.secNote') + ' ' + t('tr.soloD') })]));
     }
     el.append(exports(), h('p', { class: 'notice', text: t('tr.est') }), h('details', { class: 'ai-det' }, [h('summary', { text: t('tr.redo') }), head()]));
     PD.i18n.apply(el);
