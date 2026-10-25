@@ -153,18 +153,22 @@ PD.aimus = (() => {
   function metre(beats, flux, dt, t0off, chords) {
     if (!beats || beats.length < 6) return { num: 4, den: 4, beatsPerBar: 4, group: 4, conf: 0, alts: [], phase: 0, unsure: true };
     const at = t => { const i = Math.round((t - t0off) / dt); return i >= 0 && i < flux.length ? flux[i] : 0; };
-    const near = (t, r) => { let m = 0; for (let x = t - r; x <= t + r; x += dt) m = Math.max(m, at(x)); return m; };
-    // between every pair of beats: is the energy at the half or at the thirds?
-    let half = 0, third = 0;
+    const near = (t, r) => { let m = 0; for (let x = t - r; x <= t + r; x += dt) { const v = at(x); if (v > m) m = v; } return m; };
+    // what sits between the beats: six points per beat, each beat scaled by its own average, so loud bars cannot decide it
+    const SUB6 = new Float32Array(6); let nb = 0;
     for (let k = 0; k < beats.length - 1; k++) {
-      const a = beats[k], b = beats[k + 1], L = b - a; if (L <= 0 || L > 2) continue;
-      half += near(a + L / 2, L * .07);
-      third += (near(a + L / 3, L * .07) + near(a + 2 * L / 3, L * .07)) / 2;
+      const a = beats[k], L = beats[k + 1] - a; if (L <= 0 || L > 2) continue;
+      const row = new Float32Array(6); let s2 = 0;
+      for (let i = 0; i < 6; i++) { row[i] = near(a + L * i / 6, Math.max(dt * 1.5, L / 6 * .34)); s2 += row[i]; }
+      if (s2 <= 1e-6) continue; for (let i = 0; i < 6; i++) SUB6[i] += row[i] / (s2 / 6); nb++;
     }
-    const subConf = clamp(Math.abs(third - half) / (third + half || 1) * 2.2, 0, 1);
+    if (nb) for (let i = 0; i < 6; i++) SUB6[i] /= nb;
+    const half = SUB6[3], third = (SUB6[2] + SUB6[4]) / 2, beatE = SUB6[0] || 1;
+    const offE = Math.max(half, third) / beatE;       // is there anything between the beats at all?
+    const subConf = offE < .18 ? 0 : clamp(Math.abs(third - half) / (third + half || 1) * 2.2, 0, 1);   // nothing between the beats: neither reading is evidenced, so the simple one stands
     const compound = third > half * 1.18 && subConf > .28;   // only when the thirds really are stronger; otherwise the simple reading is the safer one
     // bar length: accent contrast on the downbeat + chord changes landing there
-    const str = beats.map(b => near(b, .05)), ch = (chords || []).map(c => c.t0).filter(x => x > .2);
+    const str = beats.map(b => near(b, .06)), ch = (chords || []).map(c => c.t0).filter(x => x > .2);
     const trial = [];
     for (const g of [2, 3, 4]) {
       let best = null;
@@ -192,6 +196,90 @@ PD.aimus = (() => {
     if (bpm / 2 >= 40) o.push({ bpm: Math.round(bpm / 2), role: 'half' });
     if (bpm * 2 <= 240) o.push({ bpm: Math.round(bpm * 2), role: 'double' });
     return o;
+  }
+
+  /* =================== the rhythm itself =================== */
+  /** an onset envelope of the recording: where the attacks are, and how strong */
+  function onsets(mono, sr) {
+    const N = 1024, HOP = 256, fft = DSP.fftMag(N), mag = new Float32Array(N / 2);
+    const F = Math.max(2, Math.floor((mono.length - N) / HOP)), env = new Float32Array(F), prev = new Float32Array(N / 2);
+    for (let i = 0; i < F; i++) {
+      fft(mono, i * HOP, mag); let fl = 0;
+      for (let k = 2; k < N / 2; k++) { const v = Math.log1p(mag[k] * 10), d = v - prev[k]; if (d > 0) fl += d; prev[k] = v; }
+      env[i] = fl;
+    }
+    const dt = HOP / sr, W = Math.round(.5 / dt); let acc = 0;
+    for (let i = 0; i < F; i++) { acc += env[i]; if (i >= W) acc -= env[i - W]; env[i] = Math.max(0, env[i] - acc / Math.min(i + 1, W)); }
+    let sd = 0; for (let i = 0; i < F; i++) sd += env[i] * env[i]; sd = Math.sqrt(sd / F) || 1;
+    for (let i = 0; i < F; i++) env[i] /= sd;
+    return { env, dt, t0off: N / 2 / sr };
+  }
+  /** the pattern the bars repeat: which cells of the bar are struck, and which of them are accented.
+      Everything here is measured. Where the stroke goes (down or up) cannot be heard and is never claimed. */
+  function rhythm(on, beats, metre, known) {
+    const env = on.env, dt = on.dt, t0off = on.t0off;
+    if (!beats || beats.length < 8) return null;
+    const g = (metre && metre.beatsPerBar) || 4, ph = (metre && metre.phase) || 0, compound = !!(metre && metre.compound);
+    const at = t => { const i = Math.round((t - t0off) / dt); return i >= 0 && i < env.length ? env[i] : 0; };
+    const peak = (t, r) => { let m = 0; for (let x = t - r; x <= t + r; x += dt) { const v = at(x); if (v > m) m = v; } return m; };
+    const tAt = f => { const k = Math.floor(f); if (k < 0 || k >= beats.length - 1) return null; return beats[k] + (beats[k + 1] - beats[k]) * (f - k); };
+    const barStarts = []; for (let k = ph; k + g < beats.length; k += g) barStarts.push(k);
+    if (barStarts.length < 3) return null;
+    /** sample one bar on a grid of g*sub cells */
+    const grid = (k0, sub) => { const n = g * sub, out = new Float32Array(n);
+      const beatLen = (beats[k0 + 1] || 0) - beats[k0] || .5, win = Math.max(dt * 1.5, beatLen / sub * .34);
+      for (let c = 0; c < n; c++) { const t = tAt(k0 + c / sub); out[c] = t == null ? 0 : peak(t, win); } return out; };
+    const tryGrid = sub => {
+      // each bar is scaled by its own average cell, so one loud bar cannot drown the rest
+      const n = g * sub, rows = [];
+      barStarts.forEach(k => { const r = grid(k, sub); let s2 = 0; for (const v of r) s2 += v; const av = s2 / n; if (av <= 1e-6) return; for (let i = 0; i < n; i++) r[i] /= av; rows.push(r); });
+      if (rows.length < 3) return null;
+      const mean = new Float32Array(n), cons = new Float32Array(n);
+      rows.forEach(r => { for (let i = 0; i < n; i++) { mean[i] += r[i] / rows.length; if (r[i] >= 1) cons[i] += 1 / rows.length; } });
+      let mx = 0; for (const v of mean) if (v > mx) mx = v; if (!mx) return null;
+      // how alike the bars are: the mean correlation of each bar with the average bar
+      let corr = 0; rows.forEach(r => { let d = 0, a = 0, b = 0; for (let i = 0; i < n; i++) { d += r[i] * mean[i]; a += r[i] * r[i]; b += mean[i] * mean[i]; } corr += d / (Math.sqrt(a * b) + 1e-9) / rows.length; });
+      return { sub, n, mean, cons, mx, corr, rows };
+    };
+    // the simplest grid that still explains the attacks wins: a finer one has to earn its extra cells
+    const cands = (compound ? [3, 6] : [2, 4]).map(tryGrid).filter(Boolean);
+    if (!cands.length) return null;
+    let G = cands[0];
+    for (let i = 1; i < cands.length; i++) {
+      const f = cands[i], step = f.sub / G.sub; let extra = 0, nExtra = 0;
+      for (let c = 0; c < f.n; c++) if (c % step !== 0) { extra = Math.max(extra, f.mean[c]); nExtra++; }
+      if (nExtra && extra > f.mx * .5 && f.corr > G.corr - .06) G = f;
+    }
+    const hi = G.mx;
+    const cells = [];
+    for (let c = 0; c < G.n; c++) {
+      const rel = G.mean[c] / hi, strong = rel >= .3 && G.cons[c] >= .33, weak = !strong && rel >= .12 && G.cons[c] >= .28;
+      cells.push({ i: c, beat: Math.floor(c / G.sub) + 1, off: c % G.sub, on: strong, weak, acc: strong && rel >= .72, v: +rel.toFixed(2), cons: +G.cons[c].toFixed(2) });
+    }
+    // does the pattern run over one bar or two? compare the odd bars with the even ones
+    let span = 1;
+    if (barStarts.length >= 6) {
+      const av = idx => { const m = new Float32Array(G.n); let c2 = 0; G.rows.forEach((r, i) => { if (i % 2 === idx) { for (let j = 0; j < G.n; j++) m[j] += r[j]; c2++; } }); if (c2) for (let j = 0; j < G.n; j++) m[j] /= c2; return m; };
+      const a = av(0), b = av(1); let d = 0, na = 0, nb = 0;
+      for (let j = 0; j < G.n; j++) { d += a[j] * b[j]; na += a[j] * a[j]; nb += b[j] * b[j]; }
+      if (d / (Math.sqrt(na * nb) + 1e-9) < .82) span = 2;
+    }
+    // which of the rhythms the app already knows does this beat look like?
+    const perBeat = n => { const v = new Float32Array(n); let c2 = 0;
+      for (let k = 0; k + 1 < beats.length; k++) { const row = new Float32Array(n); let mx = 0;
+        const bl = beats[k + 1] - beats[k]; for (let i = 0; i < n; i++) { const t = beats[k] + bl * i / n; row[i] = peak(t, Math.max(dt * 1.5, bl / n * .34)); if (row[i] > mx) mx = row[i]; }
+        if (mx > 0) { for (let i = 0; i < n; i++) v[i] += row[i] / mx; c2++; } }
+      if (c2) for (let i = 0; i < n; i++) v[i] /= c2; return v; };
+    const matches = (known || []).map(r => {
+      const n = r.strokes.length; if (!n || n > 9) return null;
+      const want = r.strokes.map(s => s.accent ? 1 : .62), got = perBeat(n);
+      let d = 0, a = 0, b = 0; for (let i = 0; i < n; i++) { d += want[i] * got[i]; a += want[i] * want[i]; b += got[i] * got[i]; }
+      const cos = d / (Math.sqrt(a * b) + 1e-9);
+      // how much of the beat's energy lands on this rhythm's own positions
+      let onGrid = 0; for (let i = 0; i < n; i++) onGrid += got[i];
+      return { id: r.id, name: r.name, source: r.source, strokes: r.strokes, score: +(cos * Math.min(1, onGrid / n / .55)).toFixed(3) };
+    }).filter(Boolean).sort((x, y) => y.score - x.score);
+    return { sub: G.sub, beatsPerBar: g, compound, cells, span, bars: barStarts.length, conf: +Math.max(0, Math.min(1, (G.corr - .5) / .4)).toFixed(2), matches: matches.slice(0, 5) };
   }
 
   /* =================== bars, beats, rhythmic values =================== */
@@ -371,7 +459,7 @@ PD.aimus = (() => {
     }, null, 1)], { type: 'application/json' });
   }
 
-  return { transcribe, transcribeAsync, metre, tempoAlts, quantise, mapNotes, places, sections, spell, degreeOf, solfegeOf, midiFile, musicXML, tabText, jsonOf, DURV, LO, HI };
+  return { onsets, rhythm, transcribe, transcribeAsync, metre, tempoAlts, quantise, mapNotes, places, sections, spell, degreeOf, solfegeOf, midiFile, musicXML, tabText, jsonOf, DURV, LO, HI };
 })();
 
 /* =====================================================================
@@ -448,7 +536,9 @@ PD.aimus.panel = function (o) {
     busy = null;
     if (off) tr.notes.forEach(n => { n.t0 = +(n.t0 + off).toFixed(3); n.t1 = +(n.t1 + off).toFixed(3); });
     const R = o.res, beats = R.beats || [];
-    const mt = A.metre(beats, tr.flux, tr.dt, tr.t0off + off, R.chords);
+    let mt;
+    if (o.getOnsets) { const on2 = await o.getOnsets(); mt = A.metre(beats, on2.env, on2.dt, on2.t0off, R.chords); }
+    else mt = A.metre(beats, tr.flux, tr.dt, tr.t0off + off, R.chords);
     A.quantise(tr.notes, beats, mt); A.mapNotes(tr.notes);
     M = { notes: tr.notes, metre: mt, bpm: R.bpm, key: Object.assign({}, R.key, { conf: +(R.key.s || 0).toFixed(2) }),
       beats, dur: R.dur, src, range, sections: off ? [] : A.sections(tr.chroma, tr.dt, tr.t0off, beats, R.dur),

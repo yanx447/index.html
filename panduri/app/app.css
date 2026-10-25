@@ -2291,3 +2291,20 @@ details[open]>summary .ce-acc-chev{transform:rotate(-135deg) translate(-2px,-2px
 @media (max-width:420px){.ai-keys{display:none}}
 .ai-pair{display:flex;gap:6px;align-items:center}
 .tr-solo{font-style:normal;font-weight:700;font-size:11px;opacity:.85}
+
+/* ===== v32 · the rhythm the bars repeat ===== */
+.ai-rhy{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.rhy-strip{display:flex;gap:3px;align-items:flex-end;margin:12px 0 8px;padding:10px 8px 6px;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.26);overflow-x:auto}
+.rhy-cell{flex:1 0 34px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:34px;padding:4px 2px;border-radius:10px}
+.rhy-cell.beat{background:rgba(255,244,230,.04)}
+.rhy-cell.now{background:rgba(246,201,135,.2)}
+.rhy-bar{display:block;width:16px;height:52px;border-radius:5px;background:linear-gradient(180deg,transparent calc(100% - var(--v)),rgba(214,200,180,.22) calc(100% - var(--v)))}
+.rhy-cell.weak .rhy-bar{background:linear-gradient(180deg,transparent calc(100% - var(--v)),rgba(214,200,180,.5) calc(100% - var(--v)))}
+.rhy-cell.on .rhy-bar{background:linear-gradient(180deg,transparent calc(100% - var(--v)),var(--acc2) calc(100% - var(--v)))}
+.rhy-cell.acc .rhy-bar{background:linear-gradient(180deg,transparent calc(100% - var(--v)),var(--fix,#E08C7A) calc(100% - var(--v)))}
+.rhy-ar{display:block;height:26px;line-height:0;opacity:.95}
+.rhy-lab{font-style:normal;text-decoration:none;font-size:12px;font-weight:700;color:var(--fg2)}
+.rhy-cell.beat .rhy-lab{color:var(--fg)}
+.ai-rhy > small.muted{display:block;margin:6px 0 0;line-height:1.5}
+.rhy-cell.weak .rhy-ar{opacity:.45}
+.rhy-cell:not(.on):not(.weak):not(.acc) .rhy-ar{opacity:0}

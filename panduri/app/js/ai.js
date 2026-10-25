@@ -34,6 +34,16 @@ PD.i18n.add({
   'ai.slowReadP': ['ხმას ვიღებ: {p}%  · დარჩა ~{m}', 'Taking the sound: {p}% · ~{m} left'],
   'ai.slowNote': ['ასეთი ფაილი ორჯერ უფრო სწრაფად იკითხება, ვიდრე ისმის. ერთხელ წავიკითხავ და შემდეგ ჩვეულებრივად იმუშავებს.', 'A file like this is read about twice as fast as it plays. It is read once, and then everything works as usual.'],
   'ai.noPlay': ['ამ ფაილს ეს ბრაუზერი საერთოდ ვერ უკრავს. სცადე MP4, WebM, MP3, M4A ან WAV.', 'This browser cannot play this file at all. Try MP4, WebM, MP3, M4A or WAV.'],
+  'ai.rhy': ['რითმი', 'Rhythm'], 'ai.rhyD': ['ტაქტები ერთმანეთს ზემოდან დავადე და ვნახე, სად მეორდება დარტყმა. სიმაღლე გაზომილი ძალაა.', 'The bars were laid on top of each other to see where the strokes repeat. The height is the measured strength.'],
+  'ai.rhyRun': ['რითმის ამოცნობა', 'Find the rhythm'], 'ai.rhyWait': ['რითმს ვზომავ…', 'Measuring the rhythm…'],
+  'ai.rhyNone': ['ამ ჩანაწერში მეორადი რითმული ნახატი ვერ ვიპოვე — დარტყმები ძალიან თავისუფლად მიდის.', 'No repeating rhythmic pattern was found here — the strokes run too freely.'],
+  'ai.rhySub': ['ქვედაყოფა', 'Subdivision'], 'ai.sub2': ['მერვედები', 'eighths'], 'ai.sub3': ['ტრიოლები', 'triplets'], 'ai.sub4': ['მეთექვსმეტედები', 'sixteenths'], 'ai.sub6': ['მერვედი ტრიოლები', 'eighth triplets'],
+  'ai.rhyBars': ['გაზომილი ტაქტები', 'Bars measured'], 'ai.rhySpan': ['ნახატი ორ ტაქტზეა გაწერილი', 'The pattern runs over two bars'],
+  'ai.and': ['და', 'and'], 'ai.rhyAcc': ['აქცენტი', 'accent'], 'ai.rhyHit': ['დარტყმა', 'stroke'], 'ai.rhyWeak': ['სუსტი', 'weak'],
+  'ai.rhyDir': ['ქვემოთ/ზემოთ მიმართულება აუდიოდან არ ისმის — ეს შემოთავაზებაა ტაქტში პოზიციის მიხედვით, და არა გაზომილი.', 'Whether a stroke goes down or up cannot be heard — this is a suggestion from the position in the bar, not a measurement.'],
+  'ai.rhyLike': ['რას ჰგავს', 'What it resembles'], 'ai.rhyLikeD': ['აპში არსებულ რითმებს ვადარებ: რამდენად ემთხვევა დარტყმები და აქცენტები ერთ თვლაში. ეს შედარებაა და არა დასკვნა.', 'Compared with the rhythms already in the app: how well the strokes and accents line up inside one beat. This is a comparison, not a verdict.'],
+  'ai.rhyNoLike': ['ახლო მსგავსება ვერ ვიპოვე.', 'No close resemblance was found.'],
+  'ai.rhyPlay': ['მოსმენა', 'Hear it'], 'ai.rhyStop': ['გაჩერება', 'Stop'],
   'ai.vid': ['ვიდეო', 'Video'], 'ai.vidHide': ['ვიდეოს დამალვა', 'Hide the video'], 'ai.vidShow': ['ვიდეოს ჩვენება', 'Show the video'],
   'ai.vidNo': ['ამ ვიდეოს ამ ბრაუზერში ვერ ვუკრავ, მაგრამ ხმა წავიკითხე — ანალიზი მუშაობს.', 'This browser cannot play this video, but its sound was read — the analysis works.'],
   'ai.vidBad': ['ამ ვიდეოს ხმა ვერ წავიკითხე. ამოიღე აუდიო (MP3/M4A/WAV) და ის ჩააგდე.', 'The sound of this video could not be read. Take the audio out (MP3/M4A/WAV) and drop that instead.'],
@@ -281,7 +291,7 @@ PD.ai = (() => {
       status.innerHTML = '';
       S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null, mono22: S0.mono || null, isVid };
       if (isVid) { try { S.vidURL = URL.createObjectURL(file); } catch (_) { S.vidURL = null; } }
-      try { const all = PD.store.get('ai.recent', []), rec = saved ? saved.id : (all.find(r => r.name === file.name) || {}).id; if (rec) { S.id = rec; S.trSaved = await PD.blobs.get('ai.tr.' + rec); } } catch (_) {}
+      try { const all = PD.store.get('ai.recent', []), rec = saved ? saved.id : (all.find(r => r.name === file.name) || {}).id; if (rec) { S.id = rec; S.trSaved = await PD.blobs.get('ai.tr.' + rec); const rr = await PD.blobs.get('ai.rhy.' + rec); if (rr && rr.rhy) { S.rhy = rr.rhy; S.rhyMt = rr.metre; } } } catch (_) {}
       S.deck = PD.aiDeck.create(D => S.onDeck && S.onDeck(D));
       S.origSet = { id: 'orig', sr: ab.sampleRate, from: 0, tracks: [{ name: 'mix', L: ab.getChannelData(0), R: ab.numberOfChannels > 1 ? ab.getChannelData(1) : ab.getChannelData(0) }] };
       S.deck.setBeats(res.beats, res.bpm, res.phase, (S.trSaved && S.trSaved.metre && S.trSaved.metre.beatsPerBar) || 4); S.deck.setSet(S.origSet);
@@ -323,6 +333,7 @@ PD.ai = (() => {
     let render = function () {
       body.innerHTML = '';
       const { res } = S, dk = S.deck, D = dk.D;
+      let rhyBox = null, rhyTimer = 0, chEdit = false, chBox = null;
       const used = [...new Map(res.chords.filter(c => c.root >= 0).map(c => [c.root + c.q, c])).values()];
       const TR = () => Math.round(D.semis);
       // header: name · key · tempo
@@ -417,6 +428,7 @@ PD.ai = (() => {
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.loop') }), h('div', { class: 'ai-tc' }, [lA, lB, lBars(1), lBars(4), lOff, loopTxt])]),
           tempoTool(), chordTool(), fxTool]),
         chipRow, h('small', { class: 'muted ai-keys', text: t('ai.keys') }), h('p', { class: 'notice', 'data-t': 'ai.est' })]));
+      body.append(rhythmPanel());
       body.append(stemsPanel());
       body.append(trPanel());
       PD.i18n.apply(body);
@@ -456,11 +468,92 @@ PD.ai = (() => {
         dk.setBeats(res.beats, res.bpm, res.phase, (S.tr && S.tr.data && S.tr.data.metre.beatsPerBar) || 4);
         saveRes(); drawRibbon(); last = null; paint();
         if (S.tr && S.tr.regrid) S.tr.regrid(res.beats, res.bpm);
+        S.on = null; S.metre = null; if (S.rhy) { S.rhy = null; drawRhythm(); }
       }
       function saveRes() { try { if (S.id) PD.blobs.put('ai.res.' + S.id, res); } catch (_) {} }
+      async function onsetsOf() { if (!S.on) { const m = await mono22(); S.on = PD.aimus.onsets(m, 22050); } return S.on; }
+
+      /* ---- the rhythm: where the strokes fall inside a bar, measured over every bar ---- */
+      function rhyHead() { return h('div', { class: 'row pg-head' }, [h('h2', { text: t('ai.rhy'), style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]); }
+      function rhythmPanel() {
+        rhyBox = h('section', { class: 'ai-rhy' });
+        drawRhythm();
+        return rhyBox;
+      }
+      function metreNow() { return (S.tr && S.tr.data && S.tr.data.metre) || S.metre || { beatsPerBar: dk.D.bpb || 4, phase: res.phase || 0, num: dk.D.bpb || 4, den: 4, compound: false }; }
+      async function runRhythm() {
+        const st = h('div', { class: 'ai-status' }, [h('span', { text: t('ai.rhyWait') }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:40%' })])]);
+        rhyBox.innerHTML = ''; rhyBox.append(rhyHead(), st); PD.i18n.apply(rhyBox);
+        await new Promise(r => setTimeout(r, 30));
+        try {
+          const on = await onsetsOf();
+          if (!S.metre) S.metre = PD.aimus.metre(res.beats, on.env, on.dt, on.t0off, res.chords);
+          const mt = metreNow();
+          const known = (PD.curriculum.rhythms() || []).concat(PD.curriculum.commonRhythms() || []);
+          S.rhy = PD.aimus.rhythm(on, res.beats, mt, known);
+          S.rhyMt = mt;
+          try { if (S.id) PD.blobs.put('ai.rhy.' + S.id, { rhy: S.rhy, metre: mt }); } catch (_) {}
+        } catch (e) { S.rhy = null; }
+        drawRhythm();
+      }
+      function drawRhythm() {
+        if (!rhyBox) return;
+        rhyBox.innerHTML = ''; rhyBox.append(rhyHead());
+        const R = S.rhy;
+        if (!R) {
+          rhyBox.append(h('p', { class: 'muted', text: t('ai.rhyD') }), h('button', { class: 'btn primary', text: t('ai.rhyRun'), onclick: runRhythm }));
+          PD.i18n.apply(rhyBox); return;
+        }
+        if (!R.cells || !R.cells.some(c => c.on)) {
+          rhyBox.append(h('p', { class: 'notice', text: t('ai.rhyNone') }), h('button', { class: 'btn small ghost', text: t('ai.rhyRun'), onclick: runRhythm }));
+          PD.i18n.apply(rhyBox); return;
+        }
+        const mt = S.rhyMt || metreNow(), subKey = 'ai.sub' + R.sub;
+        const facts = h('div', { class: 'ai-facts tr-facts' }, [
+          h('div', { class: 'ai-fact' }, [h('small', { text: t('tr.meter') }), h('b', { text: mt.num + '/' + mt.den })]),
+          h('div', { class: 'ai-fact' }, [h('small', { text: t('ai.rhySub') }), h('b', { text: t(subKey) })]),
+          h('div', { class: 'ai-fact' }, [h('small', { text: t('ai.bpm') }), h('b', { text: Math.round(res.bpm) + ' BPM' })]),
+          h('div', { class: 'ai-fact' }, [h('small', { text: t('ai.rhyBars') }), h('b', { text: String(R.bars) }),
+            h('em', { class: 'tr-c ' + (R.conf >= .66 ? 'hi' : R.conf >= .4 ? 'mid' : 'lo'), text: t(R.conf >= .66 ? 'tr.cHigh' : R.conf >= .4 ? 'tr.cMid' : 'tr.cLow') })])]);
+        rhyBox.append(facts);
+        if (R.span === 2) rhyBox.append(h('p', { class: 'notice', text: t('ai.rhySpan') }));
+        // the strip: one cell per subdivision, its height the measured strength
+        const strip = h('div', { class: 'rhy-strip' });
+        R.cells.forEach(c => {
+          const lab = c.off === 0 ? String(c.beat) : (R.sub === 2 && c.off === 1) || (R.sub === 4 && c.off === 2) ? t('ai.and') : '·';
+          strip.append(h('div', { class: 'rhy-cell' + (c.acc ? ' acc' : c.on ? ' on' : c.weak ? ' weak' : '') + (c.off === 0 ? ' beat' : ''), 'data-c': String(c.i) }, [
+            h('i', { class: 'rhy-bar', style: '--v:' + Math.round(Math.max(3, c.v * 100)) + '%' }),
+            h('span', { class: 'rhy-ar', html: c.on || c.weak ? PD.rhythmsUI.arrowSVG(c.off === 0 ? 'down' : 'up', !!c.acc, 26) : '' }),
+            h('u', { class: 'rhy-lab', text: lab })]));
+        });
+        rhyBox.append(strip, h('small', { class: 'muted', text: t('ai.rhyD') }), h('small', { class: 'muted', text: t('ai.rhyDir') }));
+        // hear it
+        const play = h('button', { class: 'btn small', text: t('ai.rhyPlay'), onclick: () => {
+          if (rhyTimer) { clearInterval(rhyTimer); rhyTimer = 0; play.textContent = t('ai.rhyPlay'); strip.querySelectorAll('.now').forEach(x => x.classList.remove('now')); return; }
+          play.textContent = t('ai.rhyStop');
+          const beat = 60 / (res.bpm || 100), cell = beat / R.sub; let i = 0;
+          try { PD.audio.ensure(); } catch (_) {}
+          rhyTimer = setInterval(() => {
+            const c = R.cells[i % R.cells.length];
+            strip.querySelectorAll('.now').forEach(x => x.classList.remove('now'));
+            const node = strip.querySelector('[data-c="' + c.i + '"]'); if (node) node.classList.add('now');
+            if (c.on || c.weak) { try { PD.audio.click(PD.audio.now(), !!c.acc, !c.on); } catch (_) {} }
+            i++;
+          }, Math.max(60, cell * 1000));
+        } });
+        own(() => { if (rhyTimer) clearInterval(rhyTimer); });
+        // what it resembles, out of the rhythms the app already has
+        const like = h('div', { class: 'ai-tc' });
+        const good = (R.matches || []).filter(m => m.score >= .6);
+        if (!good.length) like.append(h('small', { class: 'muted', text: t('ai.rhyNoLike') }));
+        else good.slice(0, 3).forEach(m => like.append(h('button', { class: 'chip', text: PD.i18n.pick(m.name) + ' · ' + Math.round(m.score * 100) + '%', onclick: () => PD.app.go('rhythms', m.id) })));
+        rhyBox.append(h('div', { class: 'ai-tool' }, [h('div', { class: 'ai-tc' }, [play])]),
+          h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.rhyLike') }), like, h('small', { class: 'muted', text: t('ai.rhyLikeD') })]),
+          h('button', { class: 'btn small ghost', text: t('ai.rhyRun'), onclick: runRhythm }));
+        PD.i18n.apply(rhyBox);
+      }
 
       /* ---- correcting a chord the AI heard wrong ---- */
-      let chEdit = false, chBox = null;
       function chordTool() {
         const tg = h('button', { class: 'ai-tg', 'aria-pressed': 'false', onclick: () => { chEdit = !chEdit; tg.setAttribute('aria-pressed', String(chEdit)); rWrap.classList.toggle('editing', chEdit); if (!chEdit && chBox) { chBox.remove(); chBox = null; } } }, [h('span', { text: '✎' }), h('span', { text: t('ai.chEdit') })]);
         const back = h('button', { class: 'btn small ghost ai-chback', text: t('ai.chAuto'), hidden: !res.chordsBy, onclick: async () => { if (!res.chords0) return; res.chords = res.chords0.map(c => Object.assign({}, c)); res.chords0 = null; res.chordsBy = null; back.hidden = true; saveRes(); drawRibbon(); last = null; chips(); } });
@@ -548,7 +641,8 @@ PD.ai = (() => {
           res, name: S.file.name, saved: S.trSaved || null, neck,
           pos: () => dk.pos(), seek: tt => dk.seek(tt), invalidate: () => { last = null; },
           stemNames: () => S.stems ? S.stems.tracks.map(x => x.name) : [],
-          onMetre: mt => { dk.setBeats(res.beats, res.bpm, res.phase, mt.beatsPerBar || 4); drawRibbon(); },
+          onMetre: mt => { S.metre = mt; dk.setBeats(res.beats, res.bpm, res.phase, mt.beatsPerBar || 4); drawRibbon(); if (S.rhy) runRhythm(); },
+          getOnsets: onsetsOf,
           save: M => { S.trSaved = M; if (S.id) { try { PD.blobs.put('ai.tr.' + S.id, M); } catch (_) {} } },
           getMono: async name => {
             if (name === 'orig' || !S.stems) return { mono: (await resample(S.ab, 22050, 1)).getChannelData(0), offset: 0 };
