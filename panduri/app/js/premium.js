@@ -25,9 +25,9 @@ PD.i18n.add({
   'pm.f10': ['ხელით შესწორება — ნოტი და აკორდი შეასწორე თავად', 'Manual correction — fix any note or chord yourself'],
   'pm.f11': ['ვიდეოს ანალიზი (mp4, mov, webm…)', 'Video analysis (mp4, mov, webm…)'],
   'pm.f12': ['სიმღერის დაყოფა ინსტრუმენტებად (ვოკალი · ბანი · დრამი · სხვა)', 'Stem splitting (vocals · bass · drums · other)'],
-  'pm.f13': ['AI სტუდიაში სიმღერების რაოდენობა შეზღუდული არ არის', 'No daily limit in the AI studio'],
+  'pm.f13': ['AI სტუდია შეზღუდვების გარეშე — რამდენი სიმღერა გინდა, როდის გინდა', 'The AI studio with no limits — as many songs as you like, whenever you like'],
   'pm.freeT': ['უფასოდ რჩება', 'Free forever'],
-  'pm.free': ['დამწყების სრული პროგრამა · აკორდების ბიბლიოთეკა 3D ხელით · სიმების აწყობა · მეტრონომი · რითმები · თეორია და სოლფეჯიო · ვარჯიში მიკროფონით, ლეველები და პროგრესი · AI სტუდიაში ტემპი (BPM), ტონალობა, აკორდები, რითმის ამოცნობა და სრული ფლეირი — დღეში {n} სიმღერა', 'The whole beginner programme · chord library with the 3D hand · tuner · metronome · rhythms · theory and solfège · practice with the microphone, levels and progress · in the AI studio: tempo (BPM), key, chords, rhythm detection and the full player — {n} songs a day'],
+  'pm.free': ['დამწყების სრული პროგრამა · აკორდების ბიბლიოთეკა 3D ხელით · სიმების აწყობა · მეტრონომი · რითმები · თეორია და სოლფეჯიო · ვარჯიში მიკროფონით, ლეველები და პროგრესი · AI სტუდიაში ტემპი (BPM), ტონალობა, აკორდები, რითმის ამოცნობა და სრული ფლეირი — დღეში ერთი სიმღერა, {n} საათით ღია', 'The whole beginner programme · chord library with the 3D hand · tuner · metronome · rhythms · theory and solfège · practice with the microphone, levels and progress · in the AI studio: tempo (BPM), key, chords, rhythm detection and the full player — one song a day, open for {n} hours'],
   'pm.perYearM': ['≈ {p} თვეში · {d}% ნაკლები', '≈ {p} a month · {d}% less'],
   'pm.noPay': ['გადახდის სისტემა ჯერ არ არის დაკავშირებული (Google Play / App Store / ბარათით). VIP-ს ადმინისტრატორი ანიჭებს.', 'Payments are not connected yet (Google Play / App Store / card). VIP is granted by the administrator.'],
   'pm.needAccount': ['პრემიუმისთვის საჭიროა ანგარიში — ჯერ შედი.', 'Premium needs an account — sign in first.'], 'pm.locked': ['პრემიუმ ფუნქცია', 'Premium feature'],
@@ -111,7 +111,7 @@ PD.premium = (() => {
     'ai.trans': 'pm.f7', 'ai.export': 'pm.f9', 'ai.edit': 'pm.f10', 'ai.video': 'pm.f11', 'ai.stems': 'pm.f12', 'ai.more': 'pm.f13' };
   /** what the paywall lists, in this order (f8 comes with f7, f6 is the badge) */
   const LIST = ['pm.f1', 'pm.f2', 'pm.f3', 'pm.f5', 'pm.f7', 'pm.f8', 'pm.f9', 'pm.f10', 'pm.f11', 'pm.f12', 'pm.f13', 'pm.f4', 'pm.f6'];
-  const FREE_AI_DAY = 1;   // new songs a day in the AI studio without Premium
+  const FREE_AI_HOURS = 4;   // the free studio session: one song, open for this many hours, once a day
   const PRICE = { monthly: '14.99 ₾', yearly: '119.99 ₾' };
   const FREE_SONGS = new Set(['bani-acharuli']);   // the first song stays free
   const PREMIUM_PATHS = new Set(['intermediate', 'advanced']);
@@ -141,7 +141,7 @@ PD.premium = (() => {
     manage: (w) => managePage(w),
     /** one line for the profile and the paywall */
     status() { const u = until(), on = u && u > new Date(); if (on) return u.getFullYear() > 2090 ? t('pm.title') + ' · ' + t('pm.forever') : t('pm.active', { d: fmtDate(u) }); return C.isAdmin ? t('pm.adminOn') : ''; },
-    FEATURES, LIST, PRICE, FREE_AI_DAY
+    FEATURES, LIST, PRICE, FREE_AI_HOURS
   };
   const KA_M = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
   function fmtDate(d) { if (!d) return ''; if (d.getFullYear() > 2090) return t('pm.forever'); return PD.i18n.lang === 'ka' ? d.getDate() + ' ' + KA_M[d.getMonth()] + ' ' + d.getFullYear() : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); }
@@ -154,7 +154,7 @@ PD.premium = (() => {
       if (feature && FEATURES[feature]) box.append(h('p', { class: 'pw-why', text: t('pm.locked') + ' · ' + t(FEATURES[feature]) }));
       if (api.active) box.append(h('p', { class: 'pw-active', text: (api.vip ? t('pm.vip') + ' · ' : '') + api.status() }));
       box.append(h('ul', { class: 'pw-list' }, LIST.map(k => h('li', { 'data-t': k }))));
-      box.append(h('details', { class: 'pw-free' }, [h('summary', { 'data-t': 'pm.freeT' }), h('p', { class: 'fg2', text: t('pm.free', { n: FREE_AI_DAY }) })]));
+      box.append(h('details', { class: 'pw-free' }, [h('summary', { 'data-t': 'pm.freeT' }), h('p', { class: 'fg2', text: t('pm.free', { n: FREE_AI_HOURS }) })]));
       let plan = 'yearly';
       const opt = (k, price, per, best) => h('button', { class: 'pw-plan', 'aria-pressed': String(plan === k), onclick: e => { plan = k; box.querySelectorAll('.pw-plan').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } }, [
         h('b', { 'data-t': 'pm.' + k }), h('span', { class: 'pw-price' + (price ? '' : ' soon'), text: price || t('pm.priceSoon') }), h('small', { 'data-t': per }), best ? h('em', { 'data-t': 'pm.best' }) : null].filter(Boolean));

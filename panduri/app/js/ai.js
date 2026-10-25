@@ -19,6 +19,10 @@ PD.i18n.add({
   'ai.now': ['ახლა', 'Now'], 'ai.next': ['შემდეგი', 'Next'], 'ai.nc': ['აკორდი არ არის', 'No chord'], 'ai.used': ['სიმღერაში: {n} აკორდი', 'In the song: {n} chords'],
   'ai.stems': ['ინსტრუმენტები', 'Instruments'], 'ai.stemsD': ['AI სიმღერას ყოფს ინსტრუმენტებად: ვოკალი · დრამი · ბასი · დანარჩენი (ფანდური…), სურვილისამებრ გიტარა და ფორტეპიანოც. თითოეულს აქვს ხმა, მარცხნივ/მარჯვნივ, M (ჩუმად) და S (მხოლოდ ეს) — ამოიღე ვოკალი და იმღერე, ან ინსტრუმენტი და თავად დაუკარი.', 'The AI splits the song into instruments: vocals · drums · bass · the rest (panduri…), optionally guitar and piano too. Each has volume, left/right, M (mute) and S (solo) — take the vocals out and sing, or the instrument out and play it yourself.'],
   'ai.split': ['ინსტრუმენტებად დაყოფა', 'Split into instruments'], 'ai.splitNote': ['პირველად AI მოდელი ერთხელ ჩამოიტვირთება (4 ინსტრ. ~85 MB, 6 ინსტრ. ~55 MB). 4-წუთიანი სიმღერა კომპიუტერზე რამდენიმე წუთი მუშავდება, ტელეფონზე — უფრო დიდხანს; ამ დროს აპი არ დახურო.', 'The first time, the AI model downloads once (4 instr. ~85 MB, 6 instr. ~55 MB). A 4-minute song takes a few minutes on a computer, longer on a phone; keep the app open meanwhile.'],
+  'ai.passOn': ['უფასო სესია · „{s}“ · დარჩა {left}', 'Free session · “{s}” · {left} left'],
+  'ai.passBusy': ['ეს უფასო სესია „{s}“-სთვისაა (დარჩა {left}). სხვა სიმღერა დღეს ვერ გაიხსნება — პრემიუმში შეზღუდვა არ არის.', 'This free session is for “{s}” ({left} left). Another song cannot be opened today — Premium has no limit.'],
+  'ai.passOut': ['დღევანდელი უფასო {n}-საათიანი სესია დასრულდა. ახალი სესია ხვალ — პრემიუმში შეზღუდვა საერთოდ არ არის.', "Today's free {n}-hour session is over. A new session tomorrow — Premium has no limit at all."],
+  'ai.passH': ['{h} სთ {m} წთ', '{h} h {m} min'], 'ai.passHh': ['{h} საათი', '{h} h'], 'ai.passM': ['{m} წთ', '{m} min'],
   'ai.vidPm': ['ვიდეოს ანალიზი პრემიუმშია. აუდიო ფაილები (mp3, m4a, wav…) უფასოდ მუშაობს.', 'Video analysis is in Premium. Audio files (mp3, m4a, wav…) work for free.'],
   'ai.dayOut': ['უფასოდ დღეში {n} ახალი სიმღერაა — დღევანდელი ამოიწურა. უკვე გახსნილი სიმღერების ხელახლა გახსნა ყოველთვის უფასოა.', 'Free is {n} new songs a day — today is used up. Reopening a song you already analysed is always free.'],
   'ai.premium': ['პრემიუმი', 'Premium'], 'ai.test': ['სატესტო წვდომა', 'Test access'], 'ai.locked': ['ინსტრუმენტებად დაყოფა პრემიუმის ფუნქციაა.', 'Splitting into instruments is a Premium feature.'],
@@ -77,14 +81,26 @@ PD.ai = (() => {
   const pro = f => !!(PD.premium && PD.premium.allows(f)) || !!PD.store.get('author', false) || !!PD.store.get('ai.test', false);
   const lock = f => PD.premium.paywall(f);
   const allowed = () => pro('ai.stems');
-  /** without Premium: this many new songs a day; reopening a saved one is always free */
-  function dayLeft() {
-    const n = (PD.premium && PD.premium.FREE_AI_DAY) || 1, d = new Date().toDateString(), r = PD.store.get('ai.day', null);
-    return n - (r && r.d === d ? r.n : 0);
+  /* ---- the free studio session ------------------------------------------------
+     Without Premium the studio opens one session a day, {FREE_AI_HOURS} hours long.
+     A new song starts it; inside that window the song can be closed and opened
+     again as often as the student likes. When the window ends the studio waits
+     for tomorrow's session. With Premium nothing here applies at all. -------- */
+  const freeH = () => (PD.premium && PD.premium.FREE_AI_HOURS) || 4;
+  const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
+  /** the session that is running right now, or null */
+  function pass() { const p = PD.store.get('ai.pass', null); return p && p.at && Date.now() - p.at < freeH() * 3600e3 ? p : null; }
+  const passLeft = () => { const p = pass(); return p ? freeH() * 3600e3 - (Date.now() - p.at) : 0; };
+  /** 'ok' this song is the session's · 'busy' another song is · 'day' today's session is spent · 'new' a session can start */
+  function passFor(file) {
+    const p = pass(); if (p) return p.name === file.name ? 'ok' : 'busy';
+    const last = PD.store.get('ai.pass', null);
+    return last && last.at && sameDay(last.at, Date.now()) ? 'day' : 'new';
   }
-  function dayUsed() {
-    const d = new Date().toDateString(), r = PD.store.get('ai.day', null);
-    PD.store.set('ai.day', { d, n: (r && r.d === d ? r.n : 0) + 1 });
+  function passStart(file) { PD.store.set('ai.pass', { at: Date.now(), name: file.name }); }
+  function leftText(ms) {
+    const m = Math.max(0, Math.round(ms / 60000)), hh = Math.floor(m / 60);
+    return hh ? (m % 60 ? t('ai.passH', { h: hh, m: m % 60 }) : t('ai.passHh', { h: hh })) : t('ai.passM', { m: Math.max(1, m) });
   }
 
   /* ======================= analysis: chords · key · tempo ======================= */
@@ -271,18 +287,39 @@ PD.ai = (() => {
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); }); drop.addEventListener('dragleave', () => drop.classList.remove('over'));
     drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) open(f); });
     const status = h('div', { class: 'ai-status', 'aria-live': 'polite' }), body = h('div', { class: 'ai-body' });
-    w.append(input, drop, status, body);
+    const passEl = h('div', { class: 'ai-pass', hidden: true });
+    w.append(input, drop, passEl, status, body);
     let S = null;   // the current song
     const stopAll = () => { if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
     own(stopAll); own(() => { if (worker) { try { worker.terminate(); } catch (_) {} worker = null; } });
+    /** the free session's clock: how long is left, and the studio closes when it runs out */
+    function showPass() {
+      if (pro('ai.more')) { passEl.hidden = true; return; }
+      const p = pass();
+      if (p) { passEl.hidden = false; passEl.className = 'ai-pass'; passEl.textContent = t('ai.passOn', { s: p.name, left: leftText(passLeft()) }); return; }
+      const last = PD.store.get('ai.pass', null), spent = last && last.at && sameDay(last.at, Date.now());
+      passEl.hidden = !spent; passEl.className = 'ai-pass out';
+      if (spent) { passEl.innerHTML = ''; passEl.append(h('span', { text: t('ai.passOut', { s: last.name || '', n: freeH() }) }), h('button', { class: 'btn small primary', 'data-t': 'pm.buy', onclick: () => lock('ai.more') })); PD.i18n.apply(passEl); }
+      if (spent && S) { stopAll(); body.innerHTML = ''; }
+    }
+    showPass();
+    const passT = setInterval(showPass, 30000); own(() => clearInterval(passT));
     function bar(label, p) { status.innerHTML = ''; status.append(h('span', { text: label }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(p * 100) + '%' })])); }
 
     async function open(file, saved) {
       stopAll(); body.innerHTML = ''; bar(t('ai.reading'), .05);
       const isVid = /^video\//.test(file.type || '') || /\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i.test(file.name || '');
       if (isVid && !pro('ai.video')) { status.innerHTML = ''; status.append(h('p', { class: 'notice', 'data-t': 'ai.vidPm' }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => lock('ai.video') })); PD.i18n.apply(status); return; }
-      if (!saved && !pro('ai.more') && dayLeft() <= 0) { status.innerHTML = ''; status.append(h('p', { class: 'notice', text: t('ai.dayOut', { n: (PD.premium && PD.premium.FREE_AI_DAY) || 1 }) }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => lock('ai.more') })); PD.i18n.apply(status); return; }
-      if (!saved && !pro('ai.more')) dayUsed();
+      if (!pro('ai.more')) {
+        const st = passFor(file), p0 = PD.store.get('ai.pass', null);
+        if (st === 'busy' || st === 'day') {
+          status.innerHTML = '';
+          status.append(h('p', { class: 'notice', text: t(st === 'busy' ? 'ai.passBusy' : 'ai.passOut', { s: (p0 && p0.name) || '', n: freeH(), left: leftText(passLeft()) }) }),
+            h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => lock('ai.more') }));
+          PD.i18n.apply(status); showPass(); return;
+        }
+        if (st === 'new') passStart(file);
+      }
       let ab = null;
       if (!PD.store.get('ai.forceCapture', false)) { try { ab = await decode(file); } catch (e) { ab = null; } }
       if (!ab) {
@@ -330,7 +367,7 @@ PD.ai = (() => {
           if (ok !== null && ok2 !== null) { const r2 = PD.store.get('ai.recent', []), e2 = r2.find(r => r.id === id); if (e2) { e2.stored = true; PD.store.set('ai.recent', r2); } }
         }
       } catch (_) {}
-      render();
+      render(); showPass();
     }
     async function reopen(r) {
       if (!r.id || !r.stored) { status.textContent = t('ai.reload'); input.click(); return; }

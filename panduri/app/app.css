@@ -2322,3 +2322,8 @@ details[open]>summary .ce-acc-chev{transform:rotate(-135deg) translate(-2px,-2px
 .pw-free>summary::before{content:'▸ ';display:inline-block;transition:transform .15s}
 .pw-free[open]>summary::before{content:'▾ '}
 .pw-free p{font-size:12.5px;line-height:1.5;margin:2px 0 0}
+
+/* ===== v34 · the free AI studio session ===== */
+.ai-pass{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 10px;padding:9px 12px;border-radius:14px;font-size:12.5px;line-height:1.45;border:1px solid var(--line2);background:rgba(201,139,91,.10);color:var(--fg2)}
+.ai-pass.out{background:rgba(180,70,50,.12);border-color:rgba(214,120,90,.35)}
+.ai-pass .btn{flex:0 0 auto}
