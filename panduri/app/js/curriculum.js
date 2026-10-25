@@ -102,6 +102,7 @@ PD.curriculum = (() => {
   const NEED = (ka, en) => ({ kind: 'needs', media: 'teacher', title: { ka, en } });
   /* the order of learning: first the instrument, then notes, scales, rhythm and the ear (solfège) — only then practice on the panduri */
   const CH = id => ({ kind: 'chapter', id }), TIP = id => ({ kind: 'tip', id }), SF = (ex, lv) => ({ kind: 'solfege', id: ex + ':' + lv });
+  const EX = id => ({ kind: 'exam', id });   // a theory unit ends with its exam
   const PATHS = [
     /* Theory, easy → hard. "first" comes before everything: sitting, holding, which hand does what, finger and string numbers, care.
        Those cards are drafts for the teacher to check (tips.js, source 'draft') and editable in Author Studio. */
@@ -110,17 +111,17 @@ PD.curriculum = (() => {
       NEED('ვიდეო: მასწავლებელი აჩვენებს დაჯდომას და დაჭერას', 'Video: the teacher shows sitting and holding')] },
     { id: 'instrument', theory: true, title: { ka: 'გაიცანი ფანდური', en: 'Meet the panduri' }, steps: [
       TIP('parts'), { kind: 'tour', title: { ka: 'ფანდური 3D-ში', en: 'The panduri in 3D' } }, TIP('strings'), TIP('dots'), TIP('tab'),
-      { kind: 'tuner', title: { ka: 'აწყობა: A · C♯ · E (სამი სიმი)', en: 'Tuning: A · C♯ · E (Sami Simi)' } }] },
+      { kind: 'tuner', title: { ka: 'აწყობა: A · C♯ · E (სამი სიმი)', en: 'Tuning: A · C♯ · E (Sami Simi)' } }, EX('ex-inst')] },
     { id: 'rhythms', theory: true, title: { ka: 'რითმი: დათვლა და დარტყმა', en: 'Rhythm: counting and the beat' }, steps: [
-      TIP('beat'), CH('meter'), CH('tempo'), TIP('count'), TIP('rhythm'), TIP('accent'), { kind: 'rhythms', title: { ka: 'ფანდურის და ცნობილი რითმები', en: 'Panduri and famous rhythms' } }] },
+      TIP('beat'), CH('meter'), CH('tempo'), TIP('count'), TIP('rhythm'), TIP('accent'), { kind: 'rhythms', title: { ka: 'ფანდურის და ცნობილი რითმები', en: 'Panduri and famous rhythms' } }, EX('ex-rhythm')] },
     { id: 'notes', theory: true, title: { ka: 'ნოტები', en: 'Notes' }, steps: [
-      TIP('pitch'), CH('names'), CH('octave'), CH('semitone'), CH('accidentals'), CH('neck'), TIP('semitone'), CH('staff'), CH('durations'), CH('rests'), { kind: 'fretboard', title: { ka: 'ნოტები ტარზე: რუკა', en: 'Notes on the neck: the map' } }] },
+      TIP('pitch'), CH('names'), CH('octave'), CH('semitone'), CH('accidentals'), CH('neck'), TIP('semitone'), CH('staff'), CH('durations'), CH('rests'), { kind: 'fretboard', title: { ka: 'ნოტები ტარზე: რუკა', en: 'Notes on the neck: the map' } }, EX('ex-notes')] },
     { id: 'scales', theory: true, title: { ka: 'ინტერვალები, გამები, აკორდები', en: 'Intervals, scales, chords' }, steps: [
-      TIP('chordwhat'), CH('intervals'), TIP('octave'), CH('scales'), CH('key'), CH('chords'), { kind: 'chords', title: { ka: 'აკორდების ბიბლიოთეკა', en: 'Chord library' } }, CH('signs')] },
+      TIP('chordwhat'), CH('intervals'), TIP('octave'), CH('scales'), CH('key'), CH('chords'), { kind: 'chords', title: { ka: 'აკორდების ბიბლიოთეკა', en: 'Chord library' } }, CH('signs'), EX('ex-harmony')] },
     { id: 'solfege', theory: true, title: { ka: 'სოლფეჯიო', en: 'Solfège' }, steps: [
-      SF('hear', 1), SF('hear', 2), SF('iv', 1), SF('sing', 1), SF('hear', 3), SF('iv', 2), SF('sing', 2), TIP('sing')] },
+      SF('hear', 1), SF('hear', 2), SF('iv', 1), SF('sing', 1), SF('hear', 3), SF('iv', 2), SF('sing', 2), TIP('sing'), SF('iv', 3), SF('sing', 3), EX('ex-solfege')] },
     { id: 'deeper', theory: true, title: { ka: 'რთული თეორია', en: 'Harder theory' }, steps: [
-      TIP('dyn'), TIP('sync'), TIP('triplet'), TIP('transpose'), TIP('inversion')] },
+      TIP('dyn'), TIP('sync'), TIP('triplet'), TIP('transpose'), TIP('inversion'), EX('ex-final')] },
     { id: 'foundation', level: 'foundation', title: { ka: 'პრაქტიკა: საფუძვლები', en: 'Practice: foundation' }, steps: [
       CH('app'), TIP('fretpos'), TIP('curve'),
       { kind: 'lesson', id: 'poc-three' }, { kind: 'lesson', id: 'rh-down' }, { kind: 'lesson', id: 'rh-up' }, { kind: 'lesson', id: 'poc-fret' }, { kind: 'lesson', id: 'poc-rhythm' }, { kind: 'rhythm', id: 'g-down4' }, { kind: 'rhythm', id: 'g-du8' }] },
