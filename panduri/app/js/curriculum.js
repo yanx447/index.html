@@ -128,7 +128,7 @@ PD.curriculum = (() => {
       { kind: 'trainer', title: { ka: 'ნოტები და ლადები', en: 'Notes and frets' } }, { kind: 'lesson', id: 'lh-fingers' }, { kind: 'lesson', id: 'm1' }, { kind: 'lesson', id: 'rh-alt' },
       { kind: 'rhythm', id: 'kazbeguri' }, { kind: 'rhythm', id: 'acharuli' }, { kind: 'rhythm', id: 'g-waltz' }, { kind: 'rhythm', id: 'g-folk' }, NEED('მარტივი სიმღერები', 'Simple songs')] },
     { id: 'intermediate', level: 'intermediate', title: { ka: 'პრაქტიკა: საშუალო', en: 'Practice: intermediate' }, steps: [
-      { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, { kind: 'lesson', id: 'bass-move' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }, { kind: 'rhythm', id: 'g-pop' }, { kind: 'rhythm', id: 'g-backbeat' }, { kind: 'rhythm', id: 'g-68' }] },
+      { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, { kind: 'lesson', id: 'bass-move' }, { kind: 'lesson', id: 'prog-geo' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }, { kind: 'rhythm', id: 'g-pop' }, { kind: 'rhythm', id: 'g-backbeat' }, { kind: 'rhythm', id: 'g-68' }] },
     { id: 'advanced', level: 'advanced', title: { ka: 'პრაქტიკა: რთული', en: 'Practice: advanced' }, steps: [
       { kind: 'rhythm', id: 'khorumi' }, NEED('სოლო', 'Solo'), NEED('სწრაფი ტექნიკა', 'Fast technique'), NEED('ტრადიციული სტილები', 'Traditional styles'), { kind: 'lesson', id: 'bani-acharuli' }, { kind: 'rhythm', id: 'g-shuffle' }, { kind: 'rhythm', id: 'g-gallop' }, { kind: 'rhythm', id: 'g-16' }] }
   ];
@@ -146,6 +146,19 @@ PD.curriculum = (() => {
   ];
 
 
+  /* ---- The teacher's chord turn: Am → Em → F → G, which he says runs through Georgian songs and dance
+     melodies (Mtiuluri, Acharuli and the rest). His own shapes; the bass walks C–B–C–B under them, because
+     that is where his thumb sits in each one. Four down-strokes per chord, no rhythm invented. ---- */
+  (() => {
+    const SH = [['Am', [3, 3, 5], ['T', 1, 3]], ['Em', [2, 3, 3], ['T', 1, 1]], ['F', [3, 4, 5], ['T', 1, 2]], ['G', [2, 1, 3], ['T', 1, 3]]];
+    const ev = [];
+    for (let r = 0; r < 4; r++) SH.forEach(([nm, fr, fi], i) => { const t0 = (r * SH.length + i) * 4; for (let k = 0; k < 4; k++) ev.push(...chord(t0 + k, nm, fr, fi, 'down', 1, k === 0, 'strum')); });
+    B.push(L({ id: 'prog-geo', type: 'exercise', demo: false, source: 'teacher', level: 2, bpm: 68, path: 'chords',
+      title: { ka: 'ქართული მოძრაობა: Am → Em → F → G', en: 'The Georgian turn: Am → Em → F → G' },
+      desc: { ka: 'მასწავლებლის აკორდული მოძრაობა — ქართულ სიმღერებსა და საცეკვაო მელოდიებში (მთიულური, აჭარული და სხვა). ბანი ქვემოთ დადის დო–სი–დო–სი, რადგან ცერა ყოველ აკორდში თავის ადგილზეა.', en: 'The teacher\u2019s chord turn — it runs through Georgian songs and dance melodies (Mtiuluri, Acharuli and others). The bass walks C–B–C–B underneath, because that is where his thumb sits in each shape.' },
+      events: ev, skills: ['chords', 'strumming'], stages: ['demo', 'slow', 'perform'] }));
+  })();
+
   /* ---- CHORD SHAPES the teacher gave by hand (teaching data, not computed).
      Everything else in the library is worked out from the tuning; these are his own. ---- */
   const TEACHER_CHORDS = {
@@ -158,9 +171,10 @@ PD.curriculum = (() => {
     const lib = PD.theory.chordLibrary().map(c => Object.assign({}, c));
     Object.values(PD.SONGS || {}).forEach(S => Object.entries(S.chords || {}).forEach(([n, sh]) => {
       const c = lib.find(x => x.name === n || x.alias === n); if (!c || c.none) return;
-      const same = v => v.frets.join() === sh.frets.join(), v0 = { frets: sh.frets, fingers: sh.fingers, barre: new Set(sh.fingers.filter(Boolean)).size === 1 && sh.fingers.filter(Boolean).length > 1, pos: sh.frets.some(f => f > 0) ? Math.min(...sh.frets.filter(f => f > 0)) : 0 };
+      const tf = PD.theory.teacherFingers(sh.frets), fing = tf ? tf.fingers : sh.fingers;   // his fingering rule also decides the song's own shapes
+      const same = v => v.frets.join() === sh.frets.join(), v0 = { frets: sh.frets, fingers: fing, fsrc: tf ? tf.fsrc : undefined, barre: new Set(fing.filter(Boolean)).size === 1 && fing.filter(Boolean).length > 1, pos: sh.frets.some(f => f > 0) ? Math.min(...sh.frets.filter(f => f > 0)) : 0 };
       c.voicings = [v0].concat(c.voicings.filter(v => !same(v))).slice(0, 3);
-      Object.assign(c, { frets: v0.frets, fingers: v0.fingers, barre: v0.barre, src: sh.src === 'teacher' ? 'teacher' : 'song' });
+      Object.assign(c, { frets: v0.frets, fingers: v0.fingers, barre: v0.barre, fsrc: v0.fsrc || c.fsrc, src: sh.src === 'teacher' ? 'teacher' : 'song' });
     }));
     // his second way of taking a closed chord: the index alone across all three strings
     lib.forEach(c2 => {

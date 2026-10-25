@@ -7,7 +7,7 @@ PD.i18n.add({
   'ce.lib': ['აკორდების ბიბლიოთეკა', 'Chord library'],
   'ce.triFing': ['თითები მასწავლებლის Bm-ის მიხედვით: T ცერა — ბანი, 1 საჩვენებელი — მე-2 ხმა, 2 შუა — 1-ლი ხმა. იგივე სამკუთხა ფორმა, სხვა ლადზე.', 'Fingers as the teacher\'s Bm: T thumb — bass, 1 index — 2nd voice, 2 middle — 1st voice. The same triangle shape on another fret.'],
   'ce.thFing': ['დაკეტილი აკორდი მასწავლებლის ხერხით: ცერა — ბანი, საჩვენებელი — მე-2 ხმა, 1-ლი ხმა კი იმავე თითით (თუ იმავე ლადზეა), ერთით ზემოთ შუა თითით, ორით ზემოთ მე-3 თითით.', 'A closed chord the teacher\u2019s way: the thumb takes the bass, the index the 2nd voice, and the 1st voice goes to the same index when it sits on the same fret, to the middle finger one fret above, to the ring finger two frets above.'],
-  'ce.thumb': ['ცერა', 'thumb'], 'ce.bassMove': ['ბანის მოძრაობა', 'Moving the bass'],
+  'ce.thumb': ['ცერა', 'thumb'], 'ce.progT': ['მასწავლებლის', 'the teacher\u2019s'], 'ce.progOwn': ['მასწავლებლის ტონალობებში დაბრუნება', 'Back to the teacher\u2019s own keys'], 'ce.bassMove': ['ბანის მოძრაობა', 'Moving the bass'],
   'ce.bassMoveD': ['მასწავლებლის ხერხი: როცა ბანს მოძრაობა სჭირდება, ცერას ვუტოვებთ ადგილზე და შუა თითს ვამატებთ ორი ლადით ზემოთ, იმავე ბანის სიმზე.', 'The teacher\u2019s way: when the bass needs to move, the thumb stays where it is and the middle finger is added two frets higher on the same bass string.'],
   'ce.bassFrom': ['ბანი ახლა', 'The bass now'], 'ce.bassTo': ['გადაადგილებული ბანი', 'The bass moved'],
   'ce.bassHear': ['მოსმენა: ჯერ ასე, მერე ასე', 'Hear it: first one, then the other'],
@@ -323,20 +323,32 @@ PD.tools = (() => {
       { id: 'i-iv-v-i', ka: 'მინორული', en: 'Minor', deg: [[0, 'm'], [5, 'm'], [7, 'm'], [0, 'm']] },
       { id: 'i-VI-III-VII', ka: 'მინორული პოპი', en: 'Minor pop', deg: [[0, 'm'], [8, ''], [3, ''], [10, '']] },
       { id: 'i-VII-VI-VII', ka: 'ხალხური ფერი', en: 'Folk colour', deg: [[0, 'm'], [10, ''], [8, ''], [10, '']] },
-      { id: 'i-iv-V-i', ka: 'ჰარმონიული მინორი', en: 'Harmonic minor', deg: [[0, 'm'], [5, 'm'], [7, '7'], [0, 'm']] }
+      { id: 'i-iv-V-i', ka: 'ჰარმონიული მინორი', en: 'Harmonic minor', deg: [[0, 'm'], [5, 'm'], [7, '7'], [0, 'm']] },
+      /* ---- the teacher's own progressions: what he says is played on the panduri, in Georgian songs and dance
+         melodies (Mtiuluri, Acharuli and the rest). The key beside each one is the key he named them in. ---- */
+      { id: 'Am–Em–F–G', ka: 'ქართული მოძრაობა', en: 'Georgian turn', deg: [[0, 'm'], [7, 'm'], [8, ''], [10, '']], key: 9, src: 'teacher' },
+      { id: 'Gm–C', ka: 'ორი აკორდი', en: 'Two chords', deg: [[0, 'm'], [5, '']], key: 7, src: 'teacher' },
+      { id: 'Cm–Gm–Dm–E♭m–F–Gm', ka: 'გრძელი მოძრაობა', en: 'The long turn', deg: [[0, 'm'], [7, 'm'], [2, 'm'], [3, 'm'], [5, ''], [7, 'm']], key: 0, src: 'teacher' },
+      { id: 'C♯m–B–A', ka: 'ღია ლაზე დაბრუნება', en: 'Down to the open A', deg: [[0, 'm'], [10, ''], [8, '']], key: 1, src: 'teacher' },
+      { id: 'Cm–B♭–E♭–B♭–Cm', ka: 'წრე მინორში', en: 'A circle in minor', deg: [[0, 'm'], [10, ''], [3, ''], [10, ''], [0, 'm']], key: 0, src: 'teacher' },
+      { id: 'Cm–Fm–Cm–B♭–E♭–Bm–Cm', ka: 'სრული წრე', en: 'The full circle', deg: [[0, 'm'], [5, 'm'], [0, 'm'], [10, ''], [3, ''], [11, 'm'], [0, 'm']], key: 0, src: 'teacher' }
     ];
-    let pKey = PD.store.get('ce.pkey', 9);
+    let pKey = PD.store.get('ce.pkey', 9), tKey = PD.store.get('ce.ptkey', false);
     function progressions() {
-      const keyRow = h('div', { class: 'ce-chips', role: 'group' }, TT.ROOT_NAMES.map((r, i) => h('button', { class: 'chip', 'aria-pressed': String(i === pKey), text: r, onclick: () => { pKey = i; PD.store.set('ce.pkey', i); grid(); } })));
-      g.append(h('p', { class: 'muted', text: t('ce.progD') }), h('span', { class: 'kicker', text: t('ce.key') }), keyRow);
+      const keyRow = h('div', { class: 'ce-chips', role: 'group' }, TT.ROOT_NAMES.map((r, i) => h('button', { class: 'chip', 'aria-pressed': String(i === pKey), text: r, onclick: () => { pKey = i; tKey = true; PD.store.set('ce.pkey', i); PD.store.set('ce.ptkey', true); grid(); } })));
+      g.append(h('p', { class: 'muted', text: t('ce.progD') }), h('span', { class: 'kicker', text: t('ce.key') }), keyRow,
+        tKey ? h('button', { class: 'btn small ghost', text: t('ce.progOwn'), onclick: () => { tKey = false; PD.store.set('ce.ptkey', false); grid(); } }) : null);
       const find = (root, k) => all.find(c => c.root === root && c.q === k && !c.none);
       PROG.forEach(P => {
-        const cs = P.deg.map(([d, k]) => find((pKey + d) % 12, k)).filter(Boolean); if (cs.length !== P.deg.length) return;
-        const names = cs.map(c => c.name).join(' → ');
+        const root = P.src === 'teacher' && !tKey ? P.key : pKey;
+        const cs = P.deg.map(([d, k]) => find((root + d) % 12, k)).filter(Boolean); if (cs.length !== P.deg.length) return;
+        // in a flat key his chords are written with flats, as he writes them
+        const flat = TT.prefersFlat(root, P.deg[0][1] || '');
+        const names = cs.map(c => (flat && c.alias) ? c.alias : c.name).join(' → ');
         let tm = [];
         const play = () => { tm.forEach(clearTimeout); tm = []; cs.forEach((c, i) => tm.push(setTimeout(() => { const v = (c.voicings && c.voicings[0]) || c; cur = c; vi = 0; forced = null; show(); PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); v.frets.forEach((f, k) => view.pluck(k + 1, f)); }, i * 1100))); };
         own(() => tm.forEach(clearTimeout));
-        g.append(h('div', { class: 'card ce-prog' }, [h('div', { class: 'row', style: 'justify-content:space-between' }, [h('b', { text: PD.i18n.pick({ ka: P.ka, en: P.en }) }), h('span', { class: 'mono muted', text: P.id })]), h('div', { class: 'ce-prog-n', text: names }),
+        g.append(h('div', { class: 'card ce-prog' }, [h('div', { class: 'row', style: 'justify-content:space-between' }, [h('b', { text: PD.i18n.pick({ ka: P.ka, en: P.en }) }), P.src === 'teacher' ? h('span', { class: 'chip tiny', text: t('ce.progT') }) : h('span', { class: 'mono muted', text: P.id })]), h('div', { class: 'ce-prog-n', text: names }),
           h('div', { class: 'row' }, [h('button', { class: 'btn small primary', text: t('ce.listen'), onclick: play }), h('button', { class: 'btn small', text: t('ce.practise'), onclick: () => PD.practice.open(LS.progression(cs.map(c => Object.assign({}, c, (c.voicings && c.voicings[0]) || c)), 60, { ka: names, en: names }), { wait: true, tempo: 1, mode: 'learn' }, null, null) })])]));
       });
       count.textContent = '';

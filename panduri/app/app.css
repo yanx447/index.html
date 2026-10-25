@@ -2312,3 +2312,4 @@ details[open]>summary .ce-acc-chev{transform:rotate(-135deg) translate(-2px,-2px
 .ce-bm-row:last-of-type{border-bottom:0}
 .ce-bm-row small{min-width:120px;color:var(--fg2)}
 .ce-bm-row b{font-size:17px}
+.chip.tiny{padding:3px 9px;font-size:11px;background:rgba(246,201,135,.14);border-color:rgba(246,201,135,.35);color:var(--acc2)}
