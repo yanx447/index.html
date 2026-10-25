@@ -30,6 +30,10 @@ PD.i18n.add({
   'ai.fxP_clean': ['გასუფთავება', 'Clean'], 'ai.fxP_hall': ['დარბაზი', 'Hall'], 'ai.fxP_echo': ['ექო', 'Echo'], 'ai.fxP_warm': ['თბილი', 'Warm'], 'ai.fxP_bright': ['ნათელი', 'Bright'], 'ai.fxP_radio': ['ძველი რადიო', 'Old radio'], 'ai.beats': ['ვპოულობ დარტყმებს და ტაქტებს…', 'Finding beats and bars…'], 'ai.prep': ['მზადდება…', 'Preparing…'], 'ai.seek': ['პოზიცია', 'Position'],
   'ai.bpmSet': ['ტემპი ხელით', 'Set the tempo'], 'ai.bpmD': ['AI-ის გაზომვა: {n} BPM. შეცვალე და დარტყმები ამ ტემპზე თავიდან დაეწყობა — ჩანაწერის ატაკებზე მიბმული.', 'The AI measured {n} BPM. Change it and the beats are tracked again at that tempo, still locked onto the attacks in the recording.'],
   'ai.bpmApply': ['დაყენება', 'Apply'],
+  'ai.slowRead': ['ამ ფორმატს ბრაუზერი პირდაპირ ვერ კითხულობს — ხმას დაკვრისას ვიღებ.', 'This browser cannot read this format directly — the sound is being taken as it plays.'],
+  'ai.slowReadP': ['ხმას ვიღებ: {p}%  · დარჩა ~{m}', 'Taking the sound: {p}% · ~{m} left'],
+  'ai.slowNote': ['ასეთი ფაილი ორჯერ უფრო სწრაფად იკითხება, ვიდრე ისმის. ერთხელ წავიკითხავ და შემდეგ ჩვეულებრივად იმუშავებს.', 'A file like this is read about twice as fast as it plays. It is read once, and then everything works as usual.'],
+  'ai.noPlay': ['ამ ფაილს ეს ბრაუზერი საერთოდ ვერ უკრავს. სცადე MP4, WebM, MP3, M4A ან WAV.', 'This browser cannot play this file at all. Try MP4, WebM, MP3, M4A or WAV.'],
   'ai.vid': ['ვიდეო', 'Video'], 'ai.vidHide': ['ვიდეოს დამალვა', 'Hide the video'], 'ai.vidShow': ['ვიდეოს ჩვენება', 'Show the video'],
   'ai.vidNo': ['ამ ვიდეოს ამ ბრაუზერში ვერ ვუკრავ, მაგრამ ხმა წავიკითხე — ანალიზი მუშაობს.', 'This browser cannot play this video, but its sound was read — the analysis works.'],
   'ai.vidBad': ['ამ ვიდეოს ხმა ვერ წავიკითხე. ამოიღე აუდიო (MP3/M4A/WAV) და ის ჩააგდე.', 'The sound of this video could not be read. Take the audio out (MP3/M4A/WAV) and drop that instead.'],
@@ -166,6 +170,52 @@ PD.ai = (() => {
     try { ac.close(); } catch (_) {}
     return ab;
   }
+  /** last resort: a file this browser will not decode but can play — its sound is taken while it plays,
+      at double speed with pitch preservation off, so the captured samples are the original at half the context rate */
+  function captureDecode(file, isVid, onProgress) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file), el = document.createElement(isVid ? 'video' : 'audio');
+      el.src = url; el.preload = 'auto'; el.playsInline = true; el.muted = false;
+      const AC = window.AudioContext || window.webkitAudioContext, ac = new AC(), RATE = 2;
+      let src = null, node = null, sink = null, done = false, total = 0, guard = 0;
+      const L = [], R = [];
+      const cleanup = () => { try { el.pause(); } catch (_) {} try { if (node) node.disconnect(); if (src) src.disconnect(); if (sink) sink.disconnect(); } catch (_) {} try { ac.close(); } catch (_) {} clearTimeout(guard); try { URL.revokeObjectURL(url); } catch (_) {} };
+      const fail = e => { if (done) return; done = true; cleanup(); reject(e); };
+      el.onerror = () => fail(new Error('play'));
+      el.onloadedmetadata = async () => {
+        try {
+          ['preservesPitch', 'mozPreservesPitch', 'webkitPreservesPitch'].forEach(k => { try { el[k] = false; } catch (_) {} });
+          el.playbackRate = RATE;
+          src = ac.createMediaElementSource(el);
+          node = ac.createScriptProcessor(4096, 2, 2);
+          sink = ac.createGain(); sink.gain.value = 0;
+          node.onaudioprocess = e => {
+            if (done) return;
+            const ib = e.inputBuffer, a0 = ib.getChannelData(0), a1 = ib.numberOfChannels > 1 ? ib.getChannelData(1) : a0;
+            L.push(new Float32Array(a0)); R.push(new Float32Array(a1)); total += a0.length;
+            if (el.duration) onProgress && onProgress(Math.min(1, total / (ac.sampleRate / RATE) / el.duration));
+          };
+          src.connect(node); node.connect(sink); sink.connect(ac.destination);
+          el.onended = finish;
+          try { await ac.resume(); } catch (_) {}
+          await el.play();
+          guard = setTimeout(() => { if (!done) finish(); }, Math.max(8000, (el.duration || 60) / RATE * 1000 + 8000));
+        } catch (e) { fail(e); }
+      };
+      function finish() {
+        if (done) return; done = true;
+        if (!total) { cleanup(); return reject(new Error('empty')); }
+        const sr = Math.max(3000, Math.round(ac.sampleRate / RATE));
+        let buf;
+        try {
+          const out = new AC(); buf = out.createBuffer(2, total, sr);
+          [L, R].forEach((ch, c) => { const d = buf.getChannelData(c); let o = 0; ch.forEach(x => { d.set(x, o); o += x.length; }); });
+          try { out.close(); } catch (_) {}
+        } catch (e) { cleanup(); return reject(e); }
+        cleanup(); resolve(buf);
+      }
+    });
+  }
   async function resample(ab, sr, ch) {
     const len = Math.ceil(ab.duration * sr), oc = new OfflineAudioContext(ch, len, sr), s = oc.createBufferSource(); s.buffer = ab; s.connect(oc.destination); s.start(); return oc.startRendering();
   }
@@ -192,7 +242,7 @@ PD.ai = (() => {
     const own = (() => { const offs = []; const un = PD.bus.on('route', () => { offs.forEach(f => { try { f(); } catch (_) {} }); un(); }); return f => offs.push(f); })();
     const back = () => PD.app.back('songs');
     w.append(h('div', { class: 'row pg-head' }, [PD.app.route === 'ai' ? null : h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'ai.title', style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]), h('p', { class: 'muted', 'data-t': 'ai.lead' }));
-    const input = h('input', { type: 'file', accept: 'audio/*,video/*,.mp3,.m4a,.wav,.ogg,.flac,.aac', hidden: true, onchange: e => { const f = e.target.files && e.target.files[0]; if (f) open(f); e.target.value = ''; } });
+    const input = h('input', { type: 'file', accept: 'audio/*,video/*,.mp3,.m4a,.wav,.ogg,.oga,.opus,.flac,.aac,.wma,.mp4,.m4v,.mov,.webm,.mkv,.avi,.3gp,.ogv,.ts', hidden: true, onchange: e => { const f = e.target.files && e.target.files[0]; if (f) open(f); e.target.value = ''; } });
     const drop = h('button', { class: 'ai-drop', onclick: () => input.click() }, [h('span', { class: 'ai-drop-ic', html: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 30V8M15 17l9-9 9 9"/><path d="M8 30v6a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-6"/></svg>' }), h('b', { 'data-t': 'ai.pick' }), h('small', { 'data-t': 'ai.pickD' })]);
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); }); drop.addEventListener('dragleave', () => drop.classList.remove('over'));
     drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) open(f); });
@@ -206,7 +256,15 @@ PD.ai = (() => {
     async function open(file, saved) {
       stopAll(); body.innerHTML = ''; bar(t('ai.reading'), .05);
       const isVid = /^video\//.test(file.type || '') || /\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i.test(file.name || '');
-      let ab; try { ab = await decode(file); } catch (e) { status.textContent = t(isVid ? 'ai.vidBad' : 'ai.bad'); return; }
+      let ab = null;
+      if (!PD.store.get('ai.forceCapture', false)) { try { ab = await decode(file); } catch (e) { ab = null; } }
+      if (!ab) {
+        // the browser would not read the file itself; if it can play it, the sound is taken as it plays
+        bar(t('ai.slowRead'), .05);
+        const t0c = Date.now();
+        try { ab = await captureDecode(file, isVid, p => { const el2 = Date.now() - t0c, left = p > .02 ? el2 / p - el2 : 0; bar(t('ai.slowReadP', { p: Math.round(p * 100), m: PD.fmtTime(Math.max(1, left / 1000)) }), .05 + .45 * p); }); }
+        catch (e) { status.innerHTML = ''; status.append(h('p', { class: 'notice', text: t(/play|empty/.test(String(e && e.message)) ? 'ai.noPlay' : (isVid ? 'ai.vidBad' : 'ai.bad')) })); return; }
+      }
       let res = saved && saved.res; const S0 = {};
       if (!res) {
         bar(t('ai.analysing'), .1);
