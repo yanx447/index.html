@@ -79,7 +79,7 @@ PD.ai = (() => {
   const allowed = () => pro('ai.stems');
   /** without Premium: this many new songs a day; reopening a saved one is always free */
   function dayLeft() {
-    const n = (PD.premium && PD.premium.FREE_AI_DAY) || 3, d = new Date().toDateString(), r = PD.store.get('ai.day', null);
+    const n = (PD.premium && PD.premium.FREE_AI_DAY) || 1, d = new Date().toDateString(), r = PD.store.get('ai.day', null);
     return n - (r && r.d === d ? r.n : 0);
   }
   function dayUsed() {
@@ -281,7 +281,7 @@ PD.ai = (() => {
       stopAll(); body.innerHTML = ''; bar(t('ai.reading'), .05);
       const isVid = /^video\//.test(file.type || '') || /\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i.test(file.name || '');
       if (isVid && !pro('ai.video')) { status.innerHTML = ''; status.append(h('p', { class: 'notice', 'data-t': 'ai.vidPm' }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => lock('ai.video') })); PD.i18n.apply(status); return; }
-      if (!saved && !pro('ai.more') && dayLeft() <= 0) { status.innerHTML = ''; status.append(h('p', { class: 'notice', text: t('ai.dayOut', { n: (PD.premium && PD.premium.FREE_AI_DAY) || 3 }) }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => lock('ai.more') })); PD.i18n.apply(status); return; }
+      if (!saved && !pro('ai.more') && dayLeft() <= 0) { status.innerHTML = ''; status.append(h('p', { class: 'notice', text: t('ai.dayOut', { n: (PD.premium && PD.premium.FREE_AI_DAY) || 1 }) }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => lock('ai.more') })); PD.i18n.apply(status); return; }
       if (!saved && !pro('ai.more')) dayUsed();
       let ab = null;
       if (!PD.store.get('ai.forceCapture', false)) { try { ab = await decode(file); } catch (e) { ab = null; } }

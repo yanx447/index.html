@@ -111,7 +111,7 @@ PD.premium = (() => {
     'ai.trans': 'pm.f7', 'ai.export': 'pm.f9', 'ai.edit': 'pm.f10', 'ai.video': 'pm.f11', 'ai.stems': 'pm.f12', 'ai.more': 'pm.f13' };
   /** what the paywall lists, in this order (f8 comes with f7, f6 is the badge) */
   const LIST = ['pm.f1', 'pm.f2', 'pm.f3', 'pm.f5', 'pm.f7', 'pm.f8', 'pm.f9', 'pm.f10', 'pm.f11', 'pm.f12', 'pm.f13', 'pm.f4', 'pm.f6'];
-  const FREE_AI_DAY = 3;   // new songs a day in the AI studio without Premium
+  const FREE_AI_DAY = 1;   // new songs a day in the AI studio without Premium
   const PRICE = { monthly: '14.99 ₾', yearly: '119.99 ₾' };
   const FREE_SONGS = new Set(['bani-acharuli']);   // the first song stays free
   const PREMIUM_PATHS = new Set(['intermediate', 'advanced']);
