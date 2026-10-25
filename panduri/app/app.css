@@ -2308,3 +2308,7 @@ details[open]>summary .ce-acc-chev{transform:rotate(-135deg) translate(-2px,-2px
 .ai-rhy > small.muted{display:block;margin:6px 0 0;line-height:1.5}
 .rhy-cell.weak .rhy-ar{opacity:.45}
 .rhy-cell:not(.on):not(.weak):not(.acc) .rhy-ar{opacity:0}
+.ce-bm-row{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.ce-bm-row:last-of-type{border-bottom:0}
+.ce-bm-row small{min-width:120px;color:var(--fg2)}
+.ce-bm-row b{font-size:17px}

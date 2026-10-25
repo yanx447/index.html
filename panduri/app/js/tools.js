@@ -6,7 +6,13 @@
 PD.i18n.add({
   'ce.lib': ['აკორდების ბიბლიოთეკა', 'Chord library'],
   'ce.triFing': ['თითები მასწავლებლის Bm-ის მიხედვით: T ცერა — ბანი, 1 საჩვენებელი — მე-2 ხმა, 2 შუა — 1-ლი ხმა. იგივე სამკუთხა ფორმა, სხვა ლადზე.', 'Fingers as the teacher\'s Bm: T thumb — bass, 1 index — 2nd voice, 2 middle — 1st voice. The same triangle shape on another fret.'],
-  'ce.filters': ['ფილტრები', 'Filters'], 'ce.allRoots': ['ყველა ბგერა', 'all roots'], 'ce.accNotes': ['ბგერები და თითები', 'Notes and fingers'], 'ce.accAbout': ['ამ აკორდის შესახებ', 'About this chord'], 'ce.accChange': ['გადასვლა სხვა აკორდზე', 'Change to another chord'], 'ce.accChangeD': ['აჩვენე და ივარჯიშე', 'Show it and practise'],
+  'ce.thFing': ['დაკეტილი აკორდი მასწავლებლის ხერხით: ცერა — ბანი, საჩვენებელი — მე-2 ხმა, 1-ლი ხმა კი იმავე თითით (თუ იმავე ლადზეა), ერთით ზემოთ შუა თითით, ორით ზემოთ მე-3 თითით.', 'A closed chord the teacher\u2019s way: the thumb takes the bass, the index the 2nd voice, and the 1st voice goes to the same index when it sits on the same fret, to the middle finger one fret above, to the ring finger two frets above.'],
+  'ce.thumb': ['ცერა', 'thumb'], 'ce.bassMove': ['ბანის მოძრაობა', 'Moving the bass'],
+  'ce.bassMoveD': ['მასწავლებლის ხერხი: როცა ბანს მოძრაობა სჭირდება, ცერას ვუტოვებთ ადგილზე და შუა თითს ვამატებთ ორი ლადით ზემოთ, იმავე ბანის სიმზე.', 'The teacher\u2019s way: when the bass needs to move, the thumb stays where it is and the middle finger is added two frets higher on the same bass string.'],
+  'ce.bassFrom': ['ბანი ახლა', 'The bass now'], 'ce.bassTo': ['გადაადგილებული ბანი', 'The bass moved'],
+  'ce.bassHear': ['მოსმენა: ჯერ ასე, მერე ასე', 'Hear it: first one, then the other'],
+  'ce.bassLesson': ['გაკვეთილი: ბანის მოძრაობა', 'Lesson: moving the bass'],
+  'ce.bassSrc': ['მასწავლებლის ხერხია, სოლ მინორის მაგალითზე ნაჩვენები. ლადი ცერას პოზიციიდან ორით ზემოთ არის აღებული.', 'The teacher\u2019s technique, shown on his G minor example. The fret is taken two above the thumb\u2019s own.'],  'ce.filters': ['ფილტრები', 'Filters'], 'ce.allRoots': ['ყველა ბგერა', 'all roots'], 'ce.accNotes': ['ბგერები და თითები', 'Notes and fingers'], 'ce.accAbout': ['ამ აკორდის შესახებ', 'About this chord'], 'ce.accChange': ['გადასვლა სხვა აკორდზე', 'Change to another chord'], 'ce.accChangeD': ['აჩვენე და ივარჯიშე', 'Show it and practise'],
   'ce.allCh': ['ყველა აკორდი', 'All chords'], 'ce.h3front': ['წინიდან · სარკეში', 'Front · mirrored'], 'ce.h3player': ['შენი თვალით', 'Your view'], 'ce.h3load': ['3D ხელი იტვირთება…', 'Loading the 3D hand…'], 'ce.h3alt': ['3D-ში ნახე: {p}', 'See it in 3D: {p}'], 'ce.h3none': ['ამ პოზიციისთვის 3D ხელი ზუსტად ვერ დავსვით (ძირითადად მაღალ ლადებზე, სადაც ხელი ფანდურის ტანს ეხება). თითები 2D ხედში ჩანს.', 'The 3D hand could not be placed exactly for this position (mostly high frets, where the hand meets the body). See the fingers in 2D.'], 'ce.h3na': ['3D ხელი ამ ვერსიაში არ ჩაიტვირთა (ფაილი აკლია). 2D ხედი მუშაობს.', 'The 3D hand could not load in this version (file missing). 2D works.'], 'ce.catLead': ['მოძებნე სახელით, აირჩიე კატეგორია ან ბგერა — შეეხე აკორდს და გაიხსნება მისი გვერდი', 'Search by name, pick a category or root — tap a chord to open its page'],
   'ce.sh.none': ['ფორმა ვერ მოიძებნა', 'No form found'], 'ce.sh.noneD': ['ამ წყობით სამ სიმზე დასაკრავი ფორმა არ არსებობს', 'No playable three-string form in this tuning'],
   'ce.noForm': ['ფანდურზე ამ წყობით (A · C♯ · E, 17 ლადი) ხელმისაწვდომი ფორმა ვერ მოიძებნა. ყალბ დიაგრამას არ ვაჩვენებთ.', 'No playable form was found on the panduri in this tuning (A · C♯ · E, 17 frets). We don\'t show a fake diagram.'],
@@ -366,11 +372,31 @@ PD.tools = (() => {
         return h('div', { class: 'ce-r', style: '--c:' + SCOL[k + 1] }, [h('small', { text: TT.stringName(k + 1) + ' · ' + (v.frets[k] ? t('ce.posN', { n: v.frets[k] }) : t('ce.open')) }), h('b', { text: nm(m) }), h('span', { text: nmKa(m) + (role ? ' · ' + t(role) : '') })]);
       }));
       const fingTxt = v.fingers.map(f => f || '0').join(' · ') + (v.barre ? ' · ' + t('ce.barre') : '');
+      /** the teacher's bass movement: the thumb stays, the middle finger is added two frets up on the bass string */
+      function bassMoveAcc(vv) {
+        const f0 = vv.frets[0];
+        if (vv.fingers[0] !== 'T' || !(f0 > 0) || f0 + 2 > TT.FRETS) return null;
+        const f1 = f0 + 2, m0 = Math.round(TT.midi(1, f0)), m1 = Math.round(TT.midi(1, f1));
+        const row = (lab, fr, fi, m) => h('div', { class: 'ce-bm-row' }, [h('small', { text: lab }), h('b', { text: nm(m) }),
+          h('span', { class: 'muted', text: t('ce.posN', { n: fr }) + ' · ' + (fi === 'T' ? t('ce.thumb') : fi) })]);
+        const play = shape => { PD.audio.ensure(); [1, 2, 3].forEach((sn, k) => PD.audio.note(sn, shape[k], { vel: .7, when: PD.audio.now() + k * .02 })); };
+        const hear = h('button', { class: 'btn small', text: t('ce.bassHear'), onclick: () => {
+          play(vv.frets); setTimeout(() => play([f1, vv.frets[1], vv.frets[2]]), 900);
+        } });
+        const les = PD.lessons && PD.lessons.get && PD.lessons.get('bass-move')
+          ? h('button', { class: 'btn small ghost', text: t('ce.bassLesson'), onclick: () => PD.app.go('lesson', 'bass-move') }) : null;
+        return acc('bassmove', t('ce.bassMove'), nm(m0) + ' → ' + nm(m1), [
+          h('p', { class: 'fg2', text: t('ce.bassMoveD') }),
+          row(t('ce.bassFrom'), f0, 'T', m0), row(t('ce.bassTo'), f1, 2, m1),
+          h('div', { class: 'row' }, [hear, les].filter(Boolean)),
+          h('p', { class: 'notice', text: t('ce.bassSrc') })]);
+      }
       const about = T ? PD.i18n.pick({ ka: T.d[0], en: T.d[1] }) : v.frets.every(f => f === 0) ? t('ce.openD') : cur.kind === 'maj' ? t('ce.majD') : t('ce.minD');
       accs.innerHTML = '';
       accs.append(
         acc('notes', t('ce.accNotes'), ms.map(nm).join(' · ') + ' — ' + t('ce.fingers') + ' ' + fingTxt, [h('span', { class: 'kicker', 'data-t': 'ce.roles' }), roles, h('div', { class: 'kv' }, [h('span', { text: t('ce.fingers') }), h('b', { text: fingTxt })])], true),
-        acc('about', t('ce.accAbout'), cur.cat ? t('ce.cat.' + cur.cat) : '', [h('p', { class: 'fg2', text: about }), v.fsrc === 'teacher-bm' ? h('p', { class: 'notice', text: t('ce.triFing') }) : null, h('p', { class: 'notice', text: t(src) })]),
+        acc('about', t('ce.accAbout'), cur.cat ? t('ce.cat.' + cur.cat) : '', [h('p', { class: 'fg2', text: about }), v.fsrc === 'teacher-bm' ? h('p', { class: 'notice', text: t('ce.triFing') }) : v.fsrc === 'teacher-thumb' ? h('p', { class: 'notice', text: t('ce.thFing') }) : null, h('p', { class: 'notice', text: t(src) })]),
+        bassMoveAcc(v),
         acc('change', t('ce.accChange'), t('ce.accChangeD'), [h('label', { class: 'field' }, [h('span', { text: t('ce.to') }), other]), h('div', { class: 'row' }, [h('button', { class: 'btn small', text: t('ce.showCh'), onclick: () => { const b = all.find(c => c.id === other.value); if (b) showChange(v, (b.voicings && b.voicings[0]) || b, cur.name, b.name); } }), h('button', { class: 'btn small', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })])]));
       if (PD.motion && nameBox.dataset.shown) PD.motion.swap(nameBox.querySelector('.ce-name'), swapDir); nameBox.dataset.shown = '1'; swapDir = 0;
       { const sel = g.querySelector('[aria-pressed="true"]'), row = sel && sel.parentNode; if (sel) requestAnimationFrame(() => { row.scrollLeft = Math.max(0, sel.offsetLeft - row.offsetLeft - (row.clientWidth - sel.offsetWidth) / 2); }); }

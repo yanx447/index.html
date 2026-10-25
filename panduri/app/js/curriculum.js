@@ -128,7 +128,7 @@ PD.curriculum = (() => {
       { kind: 'trainer', title: { ka: 'ნოტები და ლადები', en: 'Notes and frets' } }, { kind: 'lesson', id: 'lh-fingers' }, { kind: 'lesson', id: 'm1' }, { kind: 'lesson', id: 'rh-alt' },
       { kind: 'rhythm', id: 'kazbeguri' }, { kind: 'rhythm', id: 'acharuli' }, { kind: 'rhythm', id: 'g-waltz' }, { kind: 'rhythm', id: 'g-folk' }, NEED('მარტივი სიმღერები', 'Simple songs')] },
     { id: 'intermediate', level: 'intermediate', title: { ka: 'პრაქტიკა: საშუალო', en: 'Practice: intermediate' }, steps: [
-      { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }, { kind: 'rhythm', id: 'g-pop' }, { kind: 'rhythm', id: 'g-backbeat' }, { kind: 'rhythm', id: 'g-68' }] },
+      { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, { kind: 'lesson', id: 'bass-move' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }, { kind: 'rhythm', id: 'g-pop' }, { kind: 'rhythm', id: 'g-backbeat' }, { kind: 'rhythm', id: 'g-68' }] },
     { id: 'advanced', level: 'advanced', title: { ka: 'პრაქტიკა: რთული', en: 'Practice: advanced' }, steps: [
       { kind: 'rhythm', id: 'khorumi' }, NEED('სოლო', 'Solo'), NEED('სწრაფი ტექნიკა', 'Fast technique'), NEED('ტრადიციული სტილები', 'Traditional styles'), { kind: 'lesson', id: 'bani-acharuli' }, { kind: 'rhythm', id: 'g-shuffle' }, { kind: 'rhythm', id: 'g-gallop' }, { kind: 'rhythm', id: 'g-16' }] }
   ];
@@ -146,6 +146,13 @@ PD.curriculum = (() => {
   ];
 
 
+  /* ---- CHORD SHAPES the teacher gave by hand (teaching data, not computed).
+     Everything else in the library is worked out from the tuning; these are his own. ---- */
+  const TEACHER_CHORDS = {
+    'C♯': [{ frets: [4, 0, 4], fingers: ['T', 0, 2], src: 'teacher',
+      note: { ka: 'გამარტივებული: საჩვენებელი აწეული — მხოლოდ ცერა და შუა თითი. შუა სიმი ღიაა და ისედაც დო♯-ს იძლევა.', en: 'Simplified: the index lifted — only the thumb and the middle finger. The middle string is open and already sounds C♯.' } }]
+  };
+
   /* chord library: every root × chord type computed from the tuning (PD.theory); shapes the teacher gave win */
   function library() {
     const lib = PD.theory.chordLibrary().map(c => Object.assign({}, c));
@@ -155,6 +162,15 @@ PD.curriculum = (() => {
       c.voicings = [v0].concat(c.voicings.filter(v => !same(v))).slice(0, 3);
       Object.assign(c, { frets: v0.frets, fingers: v0.fingers, barre: v0.barre, src: sh.src === 'teacher' ? 'teacher' : 'song' });
     }));
+    // the teacher's own extra positions, kept after the computed ones
+    Object.entries(TEACHER_CHORDS).forEach(([n, adds]) => {
+      const c2 = lib.find(x => x.name === n || x.alias === n); if (!c2 || c2.none) return;
+      adds.forEach(a => {
+        if ((c2.voicings || []).some(v => v.frets.join() === a.frets.join())) return;
+        const fretted = a.frets.filter(f => f > 0);
+        c2.voicings = (c2.voicings || []).concat([{ frets: a.frets, fingers: a.fingers, barre: false, pos: fretted.length ? Math.min(...fretted) : 0, fsrc: 'teacher', note: a.note }]);
+      });
+    });
     return lib;
   }
   /* (old) demo chord list — kept for reference, no longer used */
@@ -182,6 +198,23 @@ PD.curriculum = (() => {
     { id: 'acharuli', name: { ka: 'აჭარული', en: 'Acharuli' }, usage: { ka: ['მელოდიები', 'სიმღერები'], en: ['Melodies', 'Songs'] },
       strokes: [S('down', false), S('down', true), S('up', true)], source: 'teacher' }
   ].map(r => Object.assign({ timing: { bpm: 60, durations: r.strokes.map(() => 1), src: 'default' } }, r));
+  /* ---- The teacher's own exercise: moving the bass.
+     In Gm the thumb holds the bass at fret 1 (A♯3); to move the bass the middle finger is added two frets up,
+     on the bass string, and the same rhythm is played again. His words, his shapes, his rhythm. ---- */
+  (() => {
+    const R = TEACHER_RHYTHMS.find(r => r.id === 'mtiuluri') || TEACHER_RHYTHMS[0];
+    const BASE = { frets: [1, 1, 3], fingers: ['T', 1, 3] }, MOVED = { frets: [3, 1, 3], fingers: [2, 1, 3] };
+    const per = R.strokes.length, d = 1 / per, ev = [];
+    for (let r = 0; r < 16; r++) {
+      const sh = (r % 2) ? MOVED : BASE;
+      R.strokes.forEach((k, j) => ev.push(...chord(r + j * d, 'Gm', sh.frets, sh.fingers, k.direction, d, k.accent, 'strum')));
+    }
+    B.push(L({ id: 'bass-move', type: 'exercise', demo: false, source: 'teacher', level: 2, bpm: 72, path: 'rhythm',
+      title: { ka: 'ბანის მოძრაობა', en: 'Moving the bass' },
+      desc: { ka: 'სოლ მინორი: ცერა ბანს პირველ ლადში იჭერს. ბანის გასამოძრავებლად შუა თითს ვამატებთ ორი ლადით ზემოთ, იმავე ბანის სიმზე, და იგივე რითმს ვიმეორებთ.', en: 'G minor: the thumb holds the bass at the first fret. To move the bass, the middle finger is added two frets higher on the same bass string, and the same rhythm is played again.' },
+      rhythm: R.id, events: ev, skills: ['chords', 'strumming', 'rhythm'], meter: [5, 4],
+      stages: ['demo', 'slow', 'perform'] }));
+  })();
   /* ---- FAMOUS RHYTHMS: general strumming patterns known from the guitar and popular music (NOT the teacher's data).
      Here the timing IS part of the pattern (durations in beats, 1 = a quarter note), so a stroke can be followed by a gap.
      Shown in their own section, marked "general". The teacher's four rhythms above are untouched. ---- */

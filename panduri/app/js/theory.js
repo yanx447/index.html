@@ -120,10 +120,18 @@ PD.theory = (() => {
           const fg = api.fingersFor(fr); if (!fg) return;
           const pos = fretted.length ? Math.min(...fretted) : 0, bass = pcs[ms.indexOf(Math.min(...ms))];
           const score = pos * 1.1 + span * .9 + new Set(fg.fingers.filter(Boolean)).size * .5 - (bass === root ? 1.4 : 0) - fr.filter(f => f === 0).length * .25 - (fg.barre ? .3 : 0) + (new Set(pcs).size < Math.min(3, T.iv.length) ? 1.2 : 0) + (okMain ? 0 : 2.5);
-          // triangle shape (outer strings on one fret, the middle one fret lower): the teacher's fingering, as for Bm —
-          // thumb on the bass (A) string, index on the 2nd voice (C♯), middle on the 1st voice (E)
+          /* The teacher's own way of taking a closed chord (teaching data, given by him, not derived):
+             the thumb holds the bass (A) string, the index holds the 2nd voice (C♯), and the 1st voice (E)
+             is taken by the index too when it sits on the same fret, by the middle finger one fret above,
+             by the ring finger two frets above. Bm 2-1-2 → T 1 2 · Em 2-3-3 → T 1 1 · E 2-3-4 → T 1 2 ·
+             Gm 1-1-3 → T 1 3 · G 2-1-3 → T 1 3.
+             A plain barre across all three strings keeps the index on all of them, as before. */
           let fingers = fg.fingers, fsrc = null;
-          if (fr.every(x => x > 0) && fr[0] === fr[2] && fr[1] === fr[0] - 1 && fr[0] <= 9) { fingers = ['T', 1, 2]; fsrc = 'teacher-bm'; }
+          const allSame = fr[0] === fr[1] && fr[1] === fr[2];
+          if (fr[0] > 0 && fr[1] > 0 && fr[2] >= fr[1] && fr[2] - fr[1] <= 2 && fr[0] <= 5 && fr[1] <= 5) {
+            // all three on one fret (C♯ 4-4-4): the thumb and the index are already there, so the 1st voice goes to the middle finger
+            fingers = ['T', 1, allSame ? 2 : (fr[2] === fr[1] ? 1 : (fr[2] - fr[1] === 1 ? 2 : 3))]; fsrc = 'teacher-thumb';
+          } else if (fr.every(x => x > 0) && fr[0] === fr[2] && fr[1] === fr[0] - 1 && fr[0] <= 9) { fingers = ['T', 1, 2]; fsrc = 'teacher-bm'; }
           out.push({ frets: fr.slice(), fingers, fsrc, barre: fg.barre, pos, score });
           return;
         }
