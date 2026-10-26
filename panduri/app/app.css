@@ -2374,3 +2374,22 @@ body.exam-on .shell { padding-left: 0 }
 
 /* six tabs: the labels stay on one line on a narrow phone */
 @media (max-width:430px){ .tabbar .navb{font-size:10px;padding-left:1px;padding-right:1px} .tabbar .navb span{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .tabbar .navb svg{width:22px;height:22px} }
+
+/* ===== v36 · the exam screen: its own screen over everything, no way out ===== */
+.exz{position:fixed;inset:0;z-index:70;display:grid;grid-template-rows:auto minmax(0,1fr) auto;color:var(--fg);
+  background:radial-gradient(120% 55% at 50% -5%,#2E1C10 0%,#17100B 55%,#0B0A09 100%);
+  padding:var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l)}
+.exz-top{display:flex;flex-direction:column;gap:4px;padding:12px 16px 8px;border-bottom:1px solid var(--line);max-width:760px;width:100%;margin:0 auto}
+.exz-row{display:flex;align-items:center;gap:8px}
+.exz-row b{font-size:15px;line-height:1.3}
+.exz-row.sub{color:var(--muted);font-size:11.5px}
+.exz-n{font-weight:700;font-variant-numeric:tabular-nums}
+.exz-clock{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;color:#E8C49B}
+.exz-clock.hot{color:#FF8E7A}
+.exz-prog{height:4px;border-radius:3px;background:rgba(255,240,228,.12);overflow:hidden;margin-top:4px}
+.exz-prog i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#C98B5B,#E8C49B);transition:width .2s}
+.exz-body{overflow:auto;-webkit-overflow-scrolling:touch;padding:16px;display:flex;flex-direction:column;gap:12px;max-width:760px;width:100%;margin:0 auto}
+.exz-foot{display:flex;align-items:center;gap:8px;padding:10px 16px calc(10px + var(--safe-b));border-top:1px solid var(--line);max-width:760px;width:100%;margin:0 auto;background:rgba(0,0,0,.25)}
+.exz-foot .btn.big{flex:1}
+.exz .exq{background:rgba(255,240,228,.04)}
+body.exam-on .rail,body.exam-on .tabbar{display:none!important}

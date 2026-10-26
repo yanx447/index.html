@@ -117,9 +117,9 @@ PD.i18n.add({
 });
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
-  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['exams', 'ex.tab', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v9.5"/><path d="M15 3v4h4"/><path d="M6 3v13"/><path d="M6 16h6"/><circle cx="16.5" cy="18" r="3.4"/><path d="M15.1 18l1 1.1 2-2.2"/></svg>'], ['chords', 'nav.chords', ic.chord], ['ai', 'nav.ai', '<span class="nav-ai">AI</span>'], ['profile', 'nav.profile', ic.user]];   // songs live under Learn, the profile behind the avatar   // tuner = „სამი სიმი“, opened over the page
+  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['chords', 'nav.chords', ic.chord], ['ai', 'nav.ai', '<span class="nav-ai">AI</span>'], ['profile', 'nav.profile', ic.user]];   // the exam is not a tab: it covers the screen when it is due
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'learn', tips: 'learn', solfege: 'learn', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'home', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
-    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'exams', exam: 'exams', drill: 'exams', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -166,9 +166,6 @@ PD.app = (() => {
     location.reload();
   }
   function go(r, p, replace) {
-    // an exam that is running holds the app: every other page sends you back to it until it is passed
-    { const ex = PD.exam && PD.exam.active && PD.exam.active();
-      if (ex && r !== 'exam' && r !== 'drill' && !PD.store.get('author', false)) { PD.exam.blocked(); r = 'exam'; p = ex.id; } }
     if (r === 'library') r = 'songs'; if (r === 'more') r = 'profile'; if (r === 'tools') r = 'practice';
     if (r === 'tuner' && PD.samiSimi && PD.samiSimi.available && tunerOK !== false) { PD.samiSimi.open(); return; }   // the tuner „სამი სიმი“ opens full screen over the page, as before
     const same = r === route && (p == null ? null : p) === param;   // tapping the tab that is already open adds no history entry
@@ -231,10 +228,6 @@ PD.app = (() => {
     fetch((PD.CONFIG && PD.CONFIG.tunerUrl) || 'tuner/index.html', { method: 'HEAD', cache: 'no-store' }).then(r => { tunerOK = r.ok; if (r.ok && route === 'tuner' && w.isConnected) embed(); }, () => { tunerOK = false; });
   }
   function render(fromPop) {
-    { const ex = PD.exam && PD.exam.active && PD.exam.active();
-      const hold = !!ex && !PD.store.get('author', false);
-      document.body.classList.toggle('exam-on', hold);
-      if (hold && route !== 'drill' && (route !== 'exam' || param !== ex.id)) { route = 'exam'; param = ex.id; try { history.replaceState({ r: route, p: param }, ''); } catch (_) {} } }
     const main = $('main'), key = route + ':' + (param == null ? '' : param), changed = key !== lastKey;
     let dir = !changed ? null : fromPop ? 'back' : navDir;
     if (quietNext) { dir = null; quietNext = false; }
@@ -259,6 +252,7 @@ PD.app = (() => {
     if (want && page.scrollTop < want - 2) { let n = 0; const again = () => { if (!page.isConnected || n++ > 20) return; page.scrollTop = want; if (page.scrollTop < want - 2) setTimeout(again, 50); }; requestAnimationFrame(again); }
     page.style.scrollBehavior = '';
     if (old && old !== page) animate(main, old, page, dir, oldKey);
+    if (PD.exam && PD.exam.guard) setTimeout(PD.exam.guard, 0);   // an exam that is due covers the screen until it is passed
     // keyboard / screen-reader users land on the new screen's title (touch users keep no focus ring)
     if (changed && document.activeElement && document.activeElement !== document.body && main.contains(document.activeElement) === false && old && old.contains(document.activeElement) || (changed && old && old.contains(document.activeElement))) { const h1 = page.querySelector('h1'); if (h1) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); } }
   }
@@ -579,7 +573,7 @@ PD.app = (() => {
     if (s.kind === 'solfege') { const [e, n] = s.id.split(':'); return t('sf.' + e) + ' · ' + t('sf.lvl', { n }); }
     return PD.i18n.pick(s.title); }
   function stepGo(s) {
-    if (s.kind === 'exam') return go('exam', s.id);
+    if (s.kind === 'exam') return PD.exam.open(s.id);
     if (s.kind === 'lesson') return go('lesson', s.id);
     if (s.kind === 'rhythm') return go('rhythm', s.id);
     PD.store.set('seen.' + s.kind, true);
@@ -976,5 +970,5 @@ PD.app = (() => {
     return h('div', { class: 'ls-foot' }, [h('button', { class: 'btn ls-path', html: ic.learn + '<span data-t="ls.path"></span>', onclick: () => go('learn', pn ? pn.path : null) }),
       pn && pn.next ? h('button', { class: 'btn primary ls-next', onclick: () => { if (markDone) markDone(); pn.next.go(); } }, [h('small', { 'data-t': 'ls.next' }), h('b', { text: pn.next.title })]) : null]);
   }
-  return { shell, go, back, signOut, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, pathNav, pathBar, get route() { return route; }, get param() { return param; } };
+  return { shell, go, back, signOut, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, pathNav, pathBar, stepDone, get route() { return route; }, get param() { return param; } };
 })();

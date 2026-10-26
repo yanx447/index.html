@@ -327,7 +327,7 @@ PD.exam = (() => {
   const list = () => EXAMS.map((e, i) => Object.assign({}, e, { done: results()[e.id] || null, open: i === 0 || passed(EXAMS[i - 1].id) }));
   const get = id => EXAMS.find(e => e.id === id) || null;
   const active = () => { const a = PD.store.get('exam.on', null); return a && a.id && get(a.id) && !passed(a.id) ? a : null; };
-  function begin(id) { const e = get(id); if (!e) return; PD.store.set('exam.on', { id, at: Date.now() }); PD.bus.emit('exam', { id, on: true }); PD.app.go('exam', id); }
+  function begin(id) { const e = get(id); if (!e) return; PD.store.set('exam.on', { id, at: Date.now() }); PD.bus.emit('exam', { id, on: true }); open(id); }
   function finish(id, score) {
     const e = get(id), r = results();
     if (score >= e.pass) { r[id] = { at: Date.now(), p: score }; PD.store.set('exam.done', r); PD.store.set('exam.on', null);
@@ -336,92 +336,93 @@ PD.exam = (() => {
     else PD.bus.emit('exam', { id, on: true, passed: false });
     return score >= e.pass;
   }
-  /** the app calls this when any other page is asked for while an exam is running */
   function blocked() { if (PD.ui && PD.ui.toast) PD.ui.toast(t('ex.lockShort'), 2200); }
 
-  /* ---------------- the list page ---------------- */
-  function page(w, param) {
-    if (param) return examPage(w, param);
-    w.append(h('h1', { 'data-t': 'ex.title' }), h('p', { class: 'fg2', 'data-t': 'ex.lead' }));
-    list().forEach(e => {
-      const d = e.done, open = e.open || d;
-      const card = h('section', { class: 'exc' + (d ? ' done' : '') + (open ? '' : ' locked') }, [
-        h('div', { class: 'exc-top' }, [h('span', { class: 'exc-ic', html: d ? (ic.check || EXIC) : EXIC }),
-          h('div', { class: 'grow' }, [h('b', { 'data-t': e.name }), h('small', { text: t('ex.rule', { n: e.n, m: e.min, p: e.pass }) })]),
-          d ? h('span', { class: 'exc-st', text: t('ex.passedOn', { d: new Date(d.at).toLocaleDateString(PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-GB'), p: d.p }) }) : null]),
-        h('div', { class: 'exc-acts' }, [
-          h('button', { class: 'btn' + (d ? '' : ' primary'), 'data-t': d ? 'ex.again' : 'ex.start', disabled: !open, onclick: () => begin(e.id) }),
-          h('button', { class: 'btn small ghost', 'data-t': 'ex.drill', onclick: () => PD.app.go('drill', e.topic) })]),
-        open ? null : h('small', { class: 'muted', 'data-t': 'ex.locked' })].filter(Boolean));
-      w.append(card);
-    });
-    w.append(h('p', { class: 'muted', style: 'text-align:center', text: t('ex.drillD') }));
-    PD.i18n.apply(w);
+  /* =================================================================
+     The exam screen. It is not a page inside the app: it covers the
+     whole screen, has no way out and no tab bar, and it stays there
+     (also after a reload) until the exam is passed. The only thing
+     that opens from it is the exercise for its own subject.
+     ================================================================= */
+  let Z = null;   // the open exam screen
+  const openNow = () => !!Z;
+  function close() { if (!Z) return; const z = Z; Z = null; clearInterval(z.timer); z.root.remove(); document.body.style.overflow = ''; document.body.classList.remove('exam-on'); if (PD.app && PD.app.render) PD.app.render(); }
+  function open(id) {
+    const e = get(id); if (!e) return;
+    if (Z && Z.id === id) return; if (Z) close();
+    let a = active();
+    if (!a || a.id !== id) { PD.store.set('exam.on', { id, at: Date.now() }); a = active(); }
+    const root = h('div', { class: 'exz', role: 'dialog', 'aria-modal': 'true', 'aria-label': t(e.name) });
+    const head2 = h('header', { class: 'exz-top' }), body = h('div', { class: 'exz-body' }), foot = h('footer', { class: 'exz-foot' });
+    root.append(head2, body, foot);
+    document.body.appendChild(root); document.body.style.overflow = 'hidden'; document.body.classList.add('exam-on');
+    Z = { id, root, head: head2, body, foot, timer: 0 };
+    runExam(e, a);
+    PD.i18n.apply(root);
   }
-
-  /* ---------------- one exam ---------------- */
-  function examPage(w, id) {
-    const e = get(id); if (!e) return page(w);
-    const a = active();
-    if (!a || a.id !== id) { if (!passed(id)) return intro(w, e); return page(w); }
+  /** the exam itself */
+  function runExam(e, a) {
     const qs = draw(e.topic, e.n), answers = new Array(qs.length).fill(-1);
     api._cur = { id: e.id, qs, answers };   // the running exam, for the automated tests
     const until = a.at + e.min * 60000;
     let i = 0, over = false, warned = false;
-    const head = h('div', { class: 'exq-head' }), card = h('section', { class: 'exq' }), foot = h('div', { class: 'exq-foot' });
-    w.append(h('div', { class: 'exq-top' }, [h('b', { 'data-t': e.name }), h('span', { class: 'exq-lock', 'data-t': 'ex.lock' })]), head, card, foot);
-    const fmt = ms => { const s = Math.max(0, Math.round(ms / 1000)); return (s / 60 | 0) + ':' + String(s % 60).padStart(2, '0'); };
-    function drawHead() {
-      head.innerHTML = '';
-      const left = until - Date.now(), done = answers.filter(x => x >= 0).length;
-      head.append(h('div', { class: 'row' }, [h('b', { text: t('ex.qN', { a: i + 1, b: qs.length }) }), h('span', { class: 'spacer' }), h('span', { class: 'exq-t' + (left < 60000 ? ' hot' : ''), text: t('ex.left', { t: fmt(left) }) })]),
-        h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(done / qs.length * 100) + '%' })]));
+    const { head: head2, body, foot } = Z;
+    clearInterval(Z.timer);
+    const fmt = ms => { const s2 = Math.max(0, Math.round(ms / 1000)); return (s2 / 60 | 0) + ':' + String(s2 % 60).padStart(2, '0'); };
+    const clock = h('span', { class: 'exz-clock' }), bar = h('i'), cnt = h('span', { class: 'exz-n' });
+    head2.innerHTML = '';
+    head2.append(h('div', { class: 'exz-row' }, [h('b', { text: t(e.name) }), h('span', { class: 'spacer' }), clock]),
+      h('div', { class: 'exz-row sub' }, [cnt, h('span', { class: 'spacer' }), h('small', { text: t('ex.rule', { n: e.n, m: e.min, p: e.pass }) })]),
+      h('div', { class: 'exz-prog' }, [bar]));
+    function tick() {
+      const left = until - Date.now();
+      clock.textContent = fmt(left); clock.classList.toggle('hot', left < 60000);
+      cnt.textContent = t('ex.qN', { a: i + 1, b: qs.length });
+      bar.style.width = Math.round(answers.filter(x => x >= 0).length / qs.length * 100) + '%';
+      if (left <= 0) done(true);
     }
     function drawQ() {
-      const q = qs[i]; card.innerHTML = '';
-      card.append(h('p', { class: 'exq-q', html: LX(q.q) }));
+      const q = qs[i]; body.innerHTML = '';
+      const card = h('section', { class: 'exq' }, [h('p', { class: 'exq-q', html: LX(q.q) })]);
       if (q.play) card.append(h('button', { class: 'btn small', 'data-t': 'ex.listen', onclick: () => q.play() }));
-      const box = h('div', { class: 'exq-opts' }, q.opts.map((o, k) => h('button', { class: 'btn' + (answers[i] === k ? ' on' : ''), html: LX(o), onclick: () => { answers[i] = k; drawQ(); drawHead(); if (i < qs.length - 1) setTimeout(() => { i++; drawQ(); drawHead(); }, 160); } })));
-      card.append(box);
+      const box = h('div', { class: 'exq-opts' }, q.opts.map((o, k) => h('button', { class: 'btn' + (answers[i] === k ? ' on' : ''), html: LX(o), onclick: () => {
+        answers[i] = k; tick();
+        if (i < qs.length - 1) setTimeout(() => { if (!over) { i++; drawQ(); tick(); } }, 170); else drawQ();
+      } })));
+      card.append(box); body.append(card);
       foot.innerHTML = '';
-      foot.append(h('button', { class: 'btn small', 'data-t': 'ex.prev', disabled: i === 0, onclick: () => { i--; drawQ(); drawHead(); } }),
+      foot.append(h('button', { class: 'btn small', 'data-t': 'ex.prev', disabled: i === 0, onclick: () => { i--; drawQ(); tick(); } }),
         h('span', { class: 'spacer' }),
-        i < qs.length - 1 ? h('button', { class: 'btn small', 'data-t': 'ex.next', onclick: () => { i++; drawQ(); drawHead(); } })
+        i < qs.length - 1 ? h('button', { class: 'btn small', 'data-t': 'ex.next', onclick: () => { i++; drawQ(); tick(); } })
           : h('button', { class: 'btn primary', 'data-t': 'ex.submit', onclick: () => {
             const miss = answers.filter(x => x < 0).length;
-            if (miss && !warned) { warned = true; i = answers.findIndex(x => x < 0); drawQ(); drawHead(); card.append(h('p', { class: 'notice', text: t('ex.unanswered', { n: miss }) })); return; }
+            if (miss && !warned) { warned = true; i = answers.findIndex(x => x < 0); drawQ(); tick(); body.append(h('p', { class: 'notice', text: t('ex.unanswered', { n: miss }) })); return; }
             done(false);
           } }));
-      PD.i18n.apply(card); PD.i18n.apply(foot);
+      PD.i18n.apply(body); PD.i18n.apply(foot);
+      body.scrollTop = 0;
     }
-    const timer = setInterval(() => { if (over) return; drawHead(); if (Date.now() >= until) done(true); }, 1000);
-    const un = PD.bus.on('route', r => { if (r !== 'exam') { clearInterval(timer); un(); } });
     function done(timeUp) {
-      if (over) return; over = true; clearInterval(timer);
+      if (over) return; over = true; clearInterval(Z.timer);
       const right = answers.filter((x, k) => x === qs[k].ok).length, p = Math.round(right / qs.length * 100);
-      const ok = finish(id, p);
-      w.innerHTML = ''; result(w, e, qs, answers, right, p, ok, timeUp);
+      const ok = finish(e.id, p);
+      result(e, qs, answers, right, p, ok, timeUp);
     }
-    drawHead(); drawQ(); PD.i18n.apply(w);
+    Z.timer = setInterval(tick, 1000);
+    tick(); drawQ();
   }
-  function intro(w, e) {
-    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.go('exams') }), h('h1', { 'data-t': e.name, style: 'margin:0' })]),
-      h('p', { class: 'fg2', text: t('ex.rule', { n: e.n, m: e.min, p: e.pass }) }),
-      h('p', { class: 'notice', 'data-t': 'ex.lock' }),
-      h('button', { class: 'btn primary big', 'data-t': 'ex.start', onclick: () => begin(e.id) }));
-    PD.i18n.apply(w);
-  }
-  function result(w, e, qs, answers, right, p, ok, timeUp) {
-    w.append(h('div', { class: 'exr' + (ok ? ' ok' : ' bad') }, [
-      h('span', { class: 'exr-ic', html: ok ? ic.check : '!' }),
+  /** the result, inside the same screen */
+  function result(e, qs, answers, right, p, ok, timeUp) {
+    const { head: head2, body, foot } = Z;
+    head2.innerHTML = ''; head2.append(h('div', { class: 'exz-row' }, [h('b', { text: t(e.name) })]));
+    body.innerHTML = '';
+    body.append(h('div', { class: 'exr' + (ok ? ' ok' : ' bad') }, [
+      h('span', { class: 'exr-ic', html: ok ? (ic.check || '✓') : '!' }),
       h('h1', { text: ok ? t('ex.pass') : t('ex.fail', { p: e.pass }) }),
       h('b', { text: t('ex.result', { a: right, b: qs.length, p }) }),
       timeUp ? h('small', { 'data-t': 'ex.timeUp' }) : null,
       ok ? h('small', { text: t('ex.xp', { n: 60 }) }) : null].filter(Boolean)));
-    w.append(h('div', { class: 'row', style: 'justify-content:center;gap:8px;flex-wrap:wrap' }, [
-      ok ? h('button', { class: 'btn primary', 'data-t': 'ex.go', onclick: () => PD.app.go('exams') }) : h('button', { class: 'btn primary', 'data-t': 'ex.retry', onclick: () => PD.app.go('exam', e.id) }),
-      h('button', { class: 'btn', 'data-t': 'ex.drill', onclick: () => PD.app.go('drill', e.topic) })]));
-    if (!ok) w.append(h('p', { class: 'muted', style: 'text-align:center', text: t('ex.drillD') }));
+    if (!ok) body.append(h('p', { class: 'notice', 'data-t': 'ex.lock' }));
     const rev = h('section', { class: 'exrev' }, [h('h2', { 'data-t': 'ex.review' })]);
     qs.forEach((q, k) => {
       const good = answers[k] === q.ok;
@@ -431,19 +432,95 @@ PD.exam = (() => {
         good ? null : h('small', { class: 'exrev-r', html: t('ex.right') + ': ' + LX(q.opts[q.ok]) }),
         h('small', { class: 'exrev-w', html: LX(q.why) })].filter(Boolean)));
     });
-    w.append(rev);
+    body.append(rev);
+    foot.innerHTML = '';
+    if (ok) foot.append(h('button', { class: 'btn primary big', 'data-t': 'ex.go', onclick: close }));
+    else foot.append(h('button', { class: 'btn', 'data-t': 'ex.drill', onclick: () => drillMode(e) }), h('span', { class: 'spacer' }),
+      h('button', { class: 'btn primary', 'data-t': 'ex.retry', onclick: () => { PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); } }));
+    PD.i18n.apply(Z.root); body.scrollTop = 0;
+  }
+  /** the exercise for this subject, inside the exam screen: nothing else opens from here */
+  function drillMode(e) {
+    const { head: head2, body, foot } = Z;
+    clearInterval(Z.timer);
+    head2.innerHTML = ''; head2.append(h('div', { class: 'exz-row' }, [h('b', { text: t('ex.drill') + ' · ' + t(TOPICS[e.topic].title) })]));
+    let a = 0, b = 0;
+    function next() {
+      const q = draw(e.topic, 1)[0];
+      body.innerHTML = '';
+      const sc = h('div', { class: 'exd-score', text: t('ex.score', { a, b }) });
+      const card = h('section', { class: 'exq' }, [h('p', { class: 'exq-q', html: LX(q.q) })]);
+      if (q.play) { card.append(h('button', { class: 'btn small', 'data-t': 'ex.listen', onclick: () => q.play() })); try { q.play(); } catch (_) {} }
+      const fb = h('p', { class: 'tb-fb', hidden: true });
+      const box = h('div', { class: 'exq-opts' }, q.opts.map((o, k) => h('button', { class: 'btn', html: LX(o), onclick: ev => {
+        const good = k === q.ok; b++; if (good) a++;
+        box.querySelectorAll('button').forEach(x => { x.disabled = true; });
+        ev.currentTarget.classList.add(good ? 'ok' : 'bad');
+        if (!good) box.querySelectorAll('button')[q.ok].classList.add('ok');
+        fb.hidden = false; fb.className = 'tb-fb ' + (good ? 'ok' : 'bad'); fb.innerHTML = LX(q.why);
+        if (good && PD.audio.ok) PD.audio.ok();
+        sc.textContent = t('ex.score', { a, b });
+        card.append(h('button', { class: 'btn primary', 'data-t': 'ex.more', onclick: next }));
+        PD.i18n.apply(card);
+      } })));
+      card.append(box, fb);
+      body.append(sc, card, h('p', { class: 'muted', 'data-t': 'ex.of' }));
+      foot.innerHTML = '';
+      foot.append(h('span', { class: 'spacer' }), h('button', { class: 'btn primary', 'data-t': 'ex.again', onclick: () => { PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); } }));
+      PD.i18n.apply(Z.root); body.scrollTop = 0;
+    }
+    next();
+  }
+
+  /* ---------------- compulsory: the exam opens by itself ----------------
+     As soon as every other step of a learning unit is done, that unit's
+     exam opens and holds the screen until it is passed. */
+  function dueExam() {
+    const PATHS = (PD.lessons && PD.lessons.PATHS) || [], sd = PD.app && PD.app.stepDone;
+    if (!sd) return null;
+    for (const p of PATHS) {
+      const ex = p.steps.find(s2 => s2.kind === 'exam'); if (!ex || passed(ex.id)) continue;
+      const rest = p.steps.filter(s2 => s2.kind !== 'exam' && s2.kind !== 'needs');
+      if (rest.length && rest.every(sd)) return ex.id;
+    }
+    return null;
+  }
+  /** called on every screen the app draws */
+  function guard() {
+    if (PD.store.get('author', false)) return;
+    const a = active();
+    if (a) { if (!Z) open(a.id); return; }
+    if (Z) close();
+    if (document.querySelector('.pz, .ss-full, .ag, .ob')) return;   // not in the middle of a lesson, the tuner or a gate
+    const due = dueExam(); if (due) open(due);
+  }
+
+  /* ---------------- the list (a page inside Learn) ---------------- */
+  function page(w, param) {
+    if (param && get(param)) { open(param); PD.app.go('exams', null, true); return; }
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('learn') }), h('h1', { 'data-t': 'ex.title', style: 'margin:0' })]),
+      h('p', { class: 'fg2', 'data-t': 'ex.lead' }));
+    list().forEach(e => {
+      const d = e.done, open2 = e.open || d;
+      w.append(h('section', { class: 'exc' + (d ? ' done' : '') + (open2 ? '' : ' locked') }, [
+        h('div', { class: 'exc-top' }, [h('span', { class: 'exc-ic', html: d ? (ic.check || EXIC) : EXIC }),
+          h('div', { class: 'grow' }, [h('b', { 'data-t': e.name }), h('small', { text: t('ex.rule', { n: e.n, m: e.min, p: e.pass }) })]),
+          d ? h('span', { class: 'exc-st', text: t('ex.passedOn', { d: new Date(d.at).toLocaleDateString(PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-GB'), p: d.p }) }) : null]),
+        h('div', { class: 'exc-acts' }, [
+          h('button', { class: 'btn' + (d ? '' : ' primary'), 'data-t': d ? 'ex.again' : 'ex.start', disabled: !open2, onclick: () => begin(e.id) }),
+          h('button', { class: 'btn small ghost', 'data-t': 'ex.drill', onclick: () => PD.app.go('drill', e.topic) })]),
+        open2 ? null : h('small', { class: 'muted', 'data-t': 'ex.locked' })].filter(Boolean)));
+    });
+    w.append(h('p', { class: 'muted', style: 'text-align:center', text: t('ex.drillD') }));
     PD.i18n.apply(w);
   }
 
-  /* ---------------- the exercise (no clock, every answer explained) ---------------- */
+  /* ---------------- the exercise as its own page (outside an exam) ---------------- */
   function drill(w, topic) {
-    const on = active();
-    if (on && !topic) topic = (get(on.id) || {}).topic;
     topic = TOPICS[topic] ? topic : 'all';
-    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => on ? PD.app.go('exam', on.id) : PD.app.back('exams') }), h('h1', { text: t('ex.drill') + ' · ' + t(TOPICS[topic].title), style: 'margin:0' })]));
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('exams') }), h('h1', { text: t('ex.drill') + ' · ' + t(TOPICS[topic].title), style: 'margin:0' })]));
     w.append(h('p', { class: 'fg2', 'data-t': 'ex.drillD' }));
-    if (on) w.append(h('p', { class: 'notice', 'data-t': 'ex.lock' }), h('button', { class: 'btn primary', 'data-t': 'ex.again', onclick: () => PD.app.go('exam', on.id) }));
-    const tabs = on ? h('span') : h('div', { class: 'chips-row' }, Object.keys(TOPICS).map(k => h('button', { class: 'chip', 'aria-pressed': String(k === topic), text: t(TOPICS[k].title), onclick: () => PD.app.go('drill', k) })));
+    const tabs = h('div', { class: 'chips-row' }, Object.keys(TOPICS).map(k => h('button', { class: 'chip', 'aria-pressed': String(k === topic), text: t(TOPICS[k].title), onclick: () => PD.app.go('drill', k) })));
     const score = h('div', { class: 'exd-score' }), card = h('section', { class: 'exq' });
     w.append(tabs, score, card, h('p', { class: 'muted', style: 'text-align:center', 'data-t': 'ex.of' }));
     let a = 0, b = 0, q = null;
@@ -470,6 +547,6 @@ PD.exam = (() => {
     next(); PD.i18n.apply(w);
   }
 
-  const api = { page, drill, list, passed, active, begin, blocked, finish, draw, bankSize, EXAMS, TOPICS, get, GEN };
+  const api = { page, drill, list, passed, active, begin, blocked, finish, draw, bankSize, open, close, guard, dueExam, openNow, EXAMS, TOPICS, get, GEN };
   return api;
 })();
