@@ -16,6 +16,7 @@
    ===================================================================== */
 PD.i18n.add({
   'ex.title': ['გამოცდები', 'Exams'],
+  'ex.tab': ['გამოცდა', 'Exams'],
   'ex.lead': ['თეორიის გამოცდები: სიმები და ლადები, ნოტები და ნიშნები, რითმი და ზომა, ინტერვალები, გამები, აკორდები, სოლფეჯიო. ყოველი კითხვა აპის თეორიის მასალიდანაა.', 'Theory exams: strings and frets, notes and signs, rhythm and metre, intervals, scales, chords, solfège. Every question comes from the app\'s own theory material.'],
   'ex.start': ['გამოცდის დაწყება', 'Start the exam'], 'ex.retry': ['ხელახლა', 'Try again'], 'ex.drill': ['ვარჯიში', 'Exercise'],
   'ex.drillD': ['ვარჯიში დროის გარეშე — ყოველი პასუხი მაშინვე აიხსნება. რამდენჯერაც გინდა.', 'Practice with no clock — every answer is explained at once. As often as you like.'],
@@ -86,6 +87,7 @@ PD.exam = (() => {
   const BEATS = { 4: '4', 2: '2', 1: '1', .5: '½', .25: '¼' };
   const TEMPO = [['Largo', ['ძალიან ნელა', 'very slow'], '40–60'], ['Adagio', ['ნელა', 'slow'], '66–76'], ['Andante', ['ნაბიჯის ტემპით', 'walking pace'], '76–108'], ['Moderato', ['ზომიერად', 'moderate'], '108–120'], ['Allegro', ['სწრაფად', 'fast'], '120–156'], ['Presto', ['ძალიან სწრაფად', 'very fast'], '168–200']];
   const DYN = [['pp', ['ძალიან ჩუმად', 'very soft']], ['p', ['ჩუმად', 'soft']], ['mp', ['ზომიერად ჩუმად', 'moderately soft']], ['mf', ['ზომიერად ხმამაღლა', 'moderately loud']], ['f', ['ხმამაღლა', 'loud']], ['ff', ['ძალიან ხმამაღლა', 'very loud']]];
+  const EXIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v9.5"/><path d="M15 3v4h4"/><path d="M6 3v13"/><path d="M6 16h6"/><circle cx="16.5" cy="18" r="3.4"/><path d="M15.1 18l1 1.1 2-2.2"/></svg>';
   const sound = (ms, gap) => () => { PD.audio.ensure(); const c = PD.audio.ctx; if (!c) return; let t0 = c.currentTime + .06; [].concat(ms).forEach(m => { const p = TH.positions(m).sort((a, b) => a.f - b.f)[0]; if (p) PD.audio.note(p.s, p.f, { when: t0 }); t0 += (gap || .6); }); };
 
   /* ---------------- generators ---------------- */
@@ -340,12 +342,11 @@ PD.exam = (() => {
   /* ---------------- the list page ---------------- */
   function page(w, param) {
     if (param) return examPage(w, param);
-    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('learn') }), h('h1', { 'data-t': 'ex.title', style: 'margin:0' })]),
-      h('p', { class: 'fg2', 'data-t': 'ex.lead' }));
+    w.append(h('h1', { 'data-t': 'ex.title' }), h('p', { class: 'fg2', 'data-t': 'ex.lead' }));
     list().forEach(e => {
       const d = e.done, open = e.open || d;
       const card = h('section', { class: 'exc' + (d ? ' done' : '') + (open ? '' : ' locked') }, [
-        h('div', { class: 'exc-top' }, [h('span', { class: 'exc-ic', html: d ? ic.check : (ic.learn || '') }),
+        h('div', { class: 'exc-top' }, [h('span', { class: 'exc-ic', html: d ? (ic.check || EXIC) : EXIC }),
           h('div', { class: 'grow' }, [h('b', { 'data-t': e.name }), h('small', { text: t('ex.rule', { n: e.n, m: e.min, p: e.pass }) })]),
           d ? h('span', { class: 'exc-st', text: t('ex.passedOn', { d: new Date(d.at).toLocaleDateString(PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-GB'), p: d.p }) }) : null]),
         h('div', { class: 'exc-acts' }, [

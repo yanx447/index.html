@@ -66,7 +66,7 @@ p{margin:0}
   .rail{display:none}
   .page{padding:calc(18px + var(--safe-t)) 16px calc(var(--nav-h) + 28px + var(--safe-b))}
   .wrap{gap:24px}
-  .tabbar{display:grid;position:fixed;left:0;right:0;bottom:0;z-index:20;grid-template-columns:repeat(5,minmax(0,1fr));background:rgba(12,13,18,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:0 var(--safe-r) var(--safe-b) var(--safe-l)}
+  .tabbar{display:grid;position:fixed;left:0;right:0;bottom:0;z-index:20;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:rgba(12,13,18,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:0 var(--safe-r) var(--safe-b) var(--safe-l)}
   .tabbar .navb{min-height:var(--nav-h);border-radius:0;font-size:11px;font-weight:600;gap:4px}
   .tabbar .navb svg{width:24px;height:24px}
   .tabbar .navb[aria-current="page"]::after{content:'';position:absolute;top:0;left:30%;right:30%;height:1.5px;background:var(--brass);border-radius:1px}
@@ -2371,3 +2371,6 @@ body.exam-on .shell { padding-left: 0 }
 .exrev-q small{font-size:12px;color:var(--muted);line-height:1.45}
 .exrev-r{color:#9BD79B}
 .exrev-w{color:var(--fg2)}
+
+/* six tabs: the labels stay on one line on a narrow phone */
+@media (max-width:430px){ .tabbar .navb{font-size:10px;padding-left:1px;padding-right:1px} .tabbar .navb span{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .tabbar .navb svg{width:22px;height:22px} }

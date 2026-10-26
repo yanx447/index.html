@@ -117,9 +117,9 @@ PD.i18n.add({
 });
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
-  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['chords', 'nav.chords', ic.chord], ['ai', 'nav.ai', '<span class="nav-ai">AI</span>'], ['profile', 'nav.profile', ic.user]];   // songs live under Learn, the profile behind the avatar   // tuner = „სამი სიმი“, opened over the page
+  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['exams', 'ex.tab', '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v9.5"/><path d="M15 3v4h4"/><path d="M6 3v13"/><path d="M6 16h6"/><circle cx="16.5" cy="18" r="3.4"/><path d="M15.1 18l1 1.1 2-2.2"/></svg>'], ['chords', 'nav.chords', ic.chord], ['ai', 'nav.ai', '<span class="nav-ai">AI</span>'], ['profile', 'nav.profile', ic.user]];   // songs live under Learn, the profile behind the avatar   // tuner = „სამი სიმი“, opened over the page
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'learn', tips: 'learn', solfege: 'learn', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'home', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
-    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'exams', exam: 'exams', drill: 'exams', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
