@@ -79,6 +79,7 @@ PD.exam = (() => {
   const nLab = m => { const pc = TH.pc(m); return TH.ROOT_NAMES[pc] + (PD.i18n.lang === 'ka' ? ' (' + TH.ROOT_NAMES_KA[pc] + ')' : ''); };
   const sLab = s => nLab(TH.midi(s, 0));               // 'A (ლა)' · 'C♯ (დო დიეზი)' · 'E (მი)'
   const sOrd = n => L((n === 1 ? '1-ლი' : 'მე-' + n) + ' სიმი' + (n === 3 ? ' (ბანი)' : ''), 'string ' + n + (n === 3 ? ' (the bass)' : ''));
+  const fLab = f => f === 0 ? L('ღია სიმი (0)', 'the open string (0)') : L((f === 1 ? '1-ლი' : 'მე-' + f) + ' ლადი', 'fret ' + f);
   const noteAt = (s, f) => TH.pcName(TH.midi(s, f));
   const kaAt = (s, f) => TH.nameKa(TH.midi(s, f));
   const FR = () => TH.FRETS;
@@ -129,14 +130,14 @@ PD.exam = (() => {
       L('ბანს ცერით იჭერ; რითმში ხანდახან მეორე (შუა) თითს ამატებ ბანის მოძრაობისთვის.', 'The thumb holds the bass; in the rhythm the middle finger is sometimes added to move the bass.')),
 
     /* --- notes, frets, signs --- */
-    fretNote: () => { const s = 1 + rnd(3), f = rnd(FR() + 1), m = TH.midi(s, f), right = nLab(m);
-      return mc(L(sLab(s) + ' სიმის ' + (f ? 'მე-' + f + ' ლადი' : 'ღია ბგერა') + ' რომელი ნოტია?', (f ? 'Fret ' + f : 'The open sound') + ' of the ' + sName(s) + ' string is which note?'),
+    fretNote: () => { const s = 1 + rnd(3), f = 1 + rnd(FR()), m = TH.midi(s, f), right = nLab(m);
+      return mc(L(sLab(s) + ' სიმზე ' + fLab(f) + ' — რომელი ნოტი გამოვა?', 'On the ' + sName(s) + ' string, ' + (f ? 'fret ' + f : 'the open string') + ' — which note sounds?'),
         right, others(right, () => nLab(m + (1 + rnd(4)) * (Math.random() < .5 ? 1 : -1)), 3),
-        L(sName(s) + ' + ' + f + ' ნახევარტონი = ' + TH.pcName(m) + ' (' + kaAt(s, f) + ').', sName(s) + ' + ' + f + ' semitones = ' + TH.pcName(m) + '.'), sound([m])); },
-    noteWhere: () => { const s = 1 + rnd(3), f = 1 + rnd(FR()), m = TH.midi(s, f), nm = TH.pcName(m);
-      return mc(L(nLab(m) + ' ნოტი ' + sLab(s) + ' სიმზე რომელ ლადზეა?', 'On which fret of the ' + sName(s) + ' string is ' + nm + '?'),
-        String(f), others(f, () => { const x = f + (1 + rnd(3)) * (Math.random() < .5 ? 1 : -1); return x >= 0 && x <= FR() ? String(x) : null; }, 3),
-        L('ღია ' + sName(s) + '-დან ' + f + ' ნახევარტონი ზემოთ = ' + nm + '.', f + ' semitones above the open ' + sName(s) + ' = ' + nm + '.'), sound([m])); },
+        L('ღია ' + sName(s) + '-ს ზემოთ ' + f + ' ნახევარტონი (ლადი) = ' + TH.pcName(m) + ' (' + kaAt(s, f) + ').', f + ' semitones (frets) above the open ' + sName(s) + ' = ' + TH.pcName(m) + '.'), sound([m])); },
+    noteWhere: () => { const s = 1 + rnd(3), f = 1 + rnd(12), m = TH.midi(s, f), nm = TH.pcName(m);   // up to the 12th fret: that is the lowest place for the note, so the answer is not ambiguous
+      return mc(L(sLab(s) + ' სიმზე რომელ ლადზე დააჭირო, რომ ' + nLab(m) + ' გამოვიდეს?', 'Which fret of the ' + sName(s) + ' string do you press to get ' + nm + '?'),
+        fLab(f), others(fLab(f), () => { const x = f + (1 + rnd(3)) * (Math.random() < .5 ? 1 : -1); return x >= 1 && x <= FR() ? fLab(x) : null; }, 3),
+        L('ღია ' + sName(s) + '-ს ზემოთ ' + f + ' ნახევარტონი = ' + nm + '.', f + ' semitones above the open ' + sName(s) + ' = ' + nm + '.'), sound([m])); },
     semitone: () => pickQ([
       () => mc(L('რამდენი ლადია ერთი ტონი?', 'How many frets make a tone?'), '2', ['1', '3', '12'], L('1 ლადი = ნახევარტონი, 2 ლადი = ტონი.', '1 fret = a semitone, 2 frets = a tone.')),
       () => mc(L('რამდენი ლადია ოქტავა?', 'How many frets make an octave?'), '12', ['7', '8', '17'], L('12 ნახევარტონი = ოქტავა; მე-12 ლადზე ღია სიმის ბგერა მეორდება.', '12 semitones = an octave; at fret 12 the open string\'s note returns.')),
@@ -477,15 +478,30 @@ PD.exam = (() => {
   /* ---------------- compulsory: the exam opens by itself ----------------
      As soon as every other step of a learning unit is done, that unit's
      exam opens and holds the screen until it is passed. */
-  function dueExam() {
+  const KNOWN = 'exam.seen';   // the units that were already finished the last time this was looked at
+  /** the units whose every other step is done */
+  function doneUnits() {
     const PATHS = (PD.lessons && PD.lessons.PATHS) || [], sd = PD.app && PD.app.stepDone;
     if (!sd) return null;
+    const out = [];
     for (const p of PATHS) {
-      const ex = p.steps.find(s2 => s2.kind === 'exam'); if (!ex || passed(ex.id)) continue;
+      const ex = p.steps.find(s2 => s2.kind === 'exam'); if (!ex) continue;
       const rest = p.steps.filter(s2 => s2.kind !== 'exam' && s2.kind !== 'needs');
-      if (rest.length && rest.every(sd)) return ex.id;
+      if (rest.length && rest.every(sd)) out.push({ p: p.id, id: ex.id });
     }
-    return null;
+    return out;
+  }
+  /** the exam that is due now: a unit the student has just finished — never one that was
+      already finished before the exams existed, and never again once it is passed */
+  function dueExam() {
+    const done = doneUnits(); if (!done) return null;
+    const known = PD.store.get(KNOWN, null);
+    if (known === null) { PD.store.set(KNOWN, done.map(x => x.p)); return null; }   // the first look only takes stock
+    const fresh = done.filter(x => !known.includes(x.p) && !passed(x.id));
+    // a unit stays "new" until its exam is passed, so closing the app brings the exam back
+    const keep = done.filter(x => known.includes(x.p) || passed(x.id)).map(x => x.p);
+    if (keep.join() !== known.join()) PD.store.set(KNOWN, keep);
+    return fresh.length ? fresh[0].id : null;
   }
   /** called on every screen the app draws */
   function guard() {
@@ -493,8 +509,10 @@ PD.exam = (() => {
     const a = active();
     if (a) { if (!Z) open(a.id); return; }
     if (Z) close();
-    if (document.querySelector('.pz, .ss-wrap, .ag, .ob, .exz')) return;   // not in the middle of a lesson, the tuner, a gate or another exam
-    const due = dueExam(); if (due) open(due);
+    const due = dueExam();                       // always takes stock, even while another screen is up
+    if (!due) return;
+    if (document.querySelector('.pz, .ss-wrap, .ag, .ob, .exz')) return;   // the lesson screen, the tuner, a gate: the exam waits for it
+    open(due);
   }
 
   /* ---------------- the list (a page inside Learn) ---------------- */
@@ -549,6 +567,6 @@ PD.exam = (() => {
     next(); PD.i18n.apply(w);
   }
 
-  const api = { page, drill, list, passed, active, begin, blocked, finish, draw, bankSize, open, close, guard, dueExam, openNow, EXAMS, TOPICS, get, GEN };
+  const api = { page, drill, list, passed, active, begin, blocked, finish, draw, bankSize, open, close, guard, dueExam, doneUnits, openNow, EXAMS, TOPICS, get, GEN };
   return api;
 })();
