@@ -121,7 +121,7 @@ PD.curriculum = (() => {
     { id: 'solfege', theory: true, title: { ka: 'სოლფეჯიო', en: 'Solfège' }, steps: [
       SF('hear', 1), SF('hear', 2), SF('iv', 1), SF('sing', 1), SF('hear', 3), SF('iv', 2), SF('sing', 2), TIP('sing'), SF('iv', 3), SF('sing', 3), EX('ex-solfege')] },
     { id: 'deeper', theory: true, title: { ka: 'რთული თეორია', en: 'Harder theory' }, steps: [
-      TIP('dyn'), TIP('sync'), TIP('triplet'), TIP('transpose'), TIP('inversion'), EX('ex-final')] },
+      TIP('dyn'), TIP('sync'), TIP('triplet'), TIP('transpose'), TIP('inversion')] },
     { id: 'foundation', level: 'foundation', title: { ka: 'პრაქტიკა: საფუძვლები', en: 'Practice: foundation' }, steps: [
       CH('app'), TIP('fretpos'), TIP('curve'),
       { kind: 'lesson', id: 'poc-three' }, { kind: 'lesson', id: 'rh-down' }, { kind: 'lesson', id: 'rh-up' }, { kind: 'lesson', id: 'poc-fret' }, { kind: 'lesson', id: 'poc-rhythm' }, { kind: 'rhythm', id: 'g-down4' }, { kind: 'rhythm', id: 'g-du8' }] },
@@ -131,7 +131,7 @@ PD.curriculum = (() => {
     { id: 'intermediate', level: 'intermediate', title: { ka: 'პრაქტიკა: საშუალო', en: 'Practice: intermediate' }, steps: [
       { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, { kind: 'lesson', id: 'bass-move' }, { kind: 'lesson', id: 'prog-geo' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }, { kind: 'rhythm', id: 'g-pop' }, { kind: 'rhythm', id: 'g-backbeat' }, { kind: 'rhythm', id: 'g-68' }] },
     { id: 'advanced', level: 'advanced', title: { ka: 'პრაქტიკა: რთული', en: 'Practice: advanced' }, steps: [
-      { kind: 'rhythm', id: 'khorumi' }, NEED('სოლო', 'Solo'), NEED('სწრაფი ტექნიკა', 'Fast technique'), NEED('ტრადიციული სტილები', 'Traditional styles'), { kind: 'lesson', id: 'bani-acharuli' }, { kind: 'rhythm', id: 'g-shuffle' }, { kind: 'rhythm', id: 'g-gallop' }, { kind: 'rhythm', id: 'g-16' }] }
+      { kind: 'rhythm', id: 'khorumi' }, NEED('სოლო', 'Solo'), NEED('სწრაფი ტექნიკა', 'Fast technique'), NEED('ტრადიციული სტილები', 'Traditional styles'), { kind: 'lesson', id: 'bani-acharuli' }, { kind: 'rhythm', id: 'g-shuffle' }, { kind: 'rhythm', id: 'g-gallop' }, { kind: 'rhythm', id: 'g-16' }, EX('ex-final')] }
   ];
   const PATHS_OLD = [
     { id: 'start', title: { ka: 'დასაწყისი', en: 'Getting started' }, steps: [

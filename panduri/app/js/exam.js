@@ -56,6 +56,21 @@ PD.i18n.add({
   'ex.blocked': ['ჯერ გამოცდა ჩააბარე', 'Pass the exam first'],
   'ex.blockedD': ['„{s}“ გამოცდა ჩააბარე და ეს ბლოკი გაიხსნება.', 'Pass “{s}” and this unit opens.'],
   'ex.go2': ['გამოცდაზე გადასვლა', 'Go to the exam'],
+  'ex.certT': ['გილოცავ! კურსი დასრულებულია 🎓', 'Congratulations! The course is complete 🎓'],
+  'ex.certD': ['ყველა გამოცდა ჩაბარებულია — პირველი ნაბიჯებიდან რთულ პრაქტიკამდე. გმადლობ, რომ ფანდური ისწავლე ამ აპით.', 'Every exam is passed — from the first steps to the advanced practice. Thank you for learning the panduri with this app.'],
+  'ex.cert': ['სერთიფიკატი', 'Certificate'],
+  'ex.certName': ['ფანდურის სწავლების სრული კურსი', 'The complete panduri course'],
+  'ex.certLine': ['ამ სერთიფიკატს ადასტურებს, რომ', 'This certifies that'],
+  'ex.certFin': ['გაიარა ფანდურის სწავლების სრული კურსი და ჩააბარა ყველა გამოცდა', 'has completed the full panduri course and passed every exam'],
+  'ex.certWho': ['ფანდურის სასწავლო აპლიკაცია', 'The panduri learning app'],
+  'ex.certDate': ['თარიღი', 'Date'],
+  'ex.certLv': ['ლეველი {n} · {x} XP', 'Level {n} · {x} XP'],
+  'ex.certSave': ['სურათად შენახვა', 'Save as a picture'],
+  'ex.certShare': ['გაზიარება', 'Share'],
+  'ex.certSaved': ['სერთიფიკატი შენახულია.', 'The certificate is saved.'],
+  'ex.gift': ['საჩუქარი', 'Your gift'],
+  'ex.giftD': ['კურსდამთავრებულის ნიშანი პროფილში · სერთიფიკატი შენი სახელით · ყველა გამოცდის ხელახლა გავლა ნებისმიერ დროს', 'A graduate badge on your profile · a certificate with your name · every exam open to retake whenever you like'],
+  'ex.grad': ['კურსდამთავრებული', 'Graduate'],
   'ex.sec': ['გამოცდა', 'Exam'], 'ex.of': ['კითხვები ყოველ ჯერზე ახლიდან ირჩევა — თეორიის თავებიდან და ინსტრუმენტის ნამდვილი მონაცემებიდან.', 'The questions are drawn fresh every time — from the theory chapters and from the instrument\'s own data.']
 });
 
@@ -465,17 +480,36 @@ PD.exam = (() => {
     { id: 'ex-notes', topic: 'notes', name: 'ex.e3', n: 14, min: 12, pass: 80, after: 'notes' },
     { id: 'ex-harmony', topic: 'harmony', name: 'ex.e4', n: 14, min: 12, pass: 80, after: 'scales' },
     { id: 'ex-solfege', topic: 'solfege', name: 'ex.e5', n: 12, min: 10, pass: 80, after: 'solfege' },
-    { id: 'ex-final', topic: 'all', name: 'ex.e6', n: 24, min: 20, pass: 85, after: 'deeper' }
+    { id: 'ex-final', topic: 'all', name: 'ex.e6', n: 30, min: 25, pass: 85, after: 'advanced', final: true }
   ];
   const genNames = tp => tp.gens || Object.keys(GEN);
-  /** one fresh set of questions: the chapters' own questions first, then generated ones, no repeats */
-  function draw(topic, n) {
+  /* what this exam has already asked, so the next attempt is a different paper */
+  const ASKED = 'exam.asked';
+  const askedOf = id => (PD.store.get(ASKED, {}) || {})[id] || [];
+  function remember(id, qs) {
+    if (!id) return;
+    const all = PD.store.get(ASKED, {}) || {}, prev = all[id] || [];
+    all[id] = prev.concat(qs.map(q => String(q.q))).slice(-600);
+    PD.store.set(ASKED, all);
+  }
+  const forgetAsked = id => { const all = PD.store.get(ASKED, {}) || {}; delete all[id]; PD.store.set(ASKED, all); };
+  /** one fresh set of questions: the chapters' own first, then generated ones — none of them
+      a question this exam has already asked, until the bank runs out and starts again */
+  function draw(topic, n, examId) {
     const tp = TOPICS[topic] || TOPICS.all, out = [], seen = new Set();
-    const add = q => { const k = String(q.q); if (!q || seen.has(k)) return false; seen.add(k); out.push(q); return true; };
-    shuf(chapterQs(tp.ch)).slice(0, Math.ceil(n * .4)).forEach(add);
-    const gens = shuf(genNames(tp)); let i = 0, guard = 0;
-    while (out.length < n && guard++ < n * 40) { const g = gens[i++ % gens.length]; try { add(GEN[g]()); } catch (_) {} }
-    return shuf(out).slice(0, n);
+    let old2 = new Set(examId ? askedOf(examId) : []);
+    const add = (q, fresh) => { if (!q) return false; const k = String(q.q);
+      if (seen.has(k) || (fresh && old2.has(k))) return false; seen.add(k); out.push(q); return true; };
+    const fill = fresh => {
+      shuf(chapterQs(tp.ch)).slice(0, Math.ceil(n * .4)).forEach(q => { if (out.length < n) add(q, fresh); });
+      const gens = shuf(genNames(tp)); let i = 0, guard = 0;
+      while (out.length < n && guard++ < n * 60) { const g = gens[i++ % gens.length]; try { add(GEN[g](), fresh); } catch (_) {} }
+    };
+    fill(true);
+    if (out.length < n) { if (examId) forgetAsked(examId); old2 = new Set(); fill(false); }   // the whole bank has been seen: start it over
+    const res = shuf(out).slice(0, n);
+    remember(examId, res);
+    return res;
   }
   const bankSize = topic => { const tp = TOPICS[topic] || TOPICS.all; return chapterQs(tp.ch).length + genNames(tp).length * 4; };
 
@@ -560,7 +594,7 @@ PD.exam = (() => {
   }
   /** the exam itself */
   function runExam(e, a) {
-    const qs = draw(e.topic, e.n), answers = new Array(qs.length).fill(-1);
+    const qs = draw(e.topic, e.n, e.id), answers = new Array(qs.length).fill(-1);
     api._cur = { id: e.id, qs, answers };   // the running exam, for the automated tests
     const until = a.at + e.min * 60000;
     let i = 0, over = false, warned = false;
@@ -644,6 +678,7 @@ PD.exam = (() => {
     });
     body.append(rev);
     foot.innerHTML = '';
+    if (ok && graduated()) { certificate(); return; }
     if (ok) foot.append(h('button', { class: 'btn primary big', 'data-act': 'close', 'data-t': 'ex.go' }));
     else foot.append(h('button', { class: 'btn', 'data-act': 'drill', 'data-t': 'ex.drill' }),
       h('button', { class: 'btn small ghost', 'data-act': 'later', 'data-t': 'ex.later' }), h('span', { class: 'spacer' }),
@@ -685,6 +720,98 @@ PD.exam = (() => {
     next();
   }
 
+  /* ---------------- the certificate ----------------
+     Only the student's own name, picture, level and the date; nothing
+     is invented. It is drawn as HTML and saved as a picture by the
+     same drawing, so what is downloaded is what is on screen. */
+  function certData() {
+    const prof = (PD.account && PD.account.profile) || {}, lp = PD.levels ? PD.levels.progress : { level: 0 };
+    const d = PD.store.get('exam.gradAt', 0) || (PD.store.set('exam.gradAt', Date.now()), PD.store.get('exam.gradAt', 0));
+    return { name: (prof.name || '').trim(), avatar: prof.avatar || '', level: lp.level, xp: PD.levels ? PD.levels.xp : 0, at: d };
+  }
+  const fmtDay = ts => { const d = new Date(ts); return PD.i18n.lang === 'ka' ? d.getDate() + ' ' + KA_M2[d.getMonth()] + ' ' + d.getFullYear() : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); };
+  const KA_M2 = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
+  /** the certificate card itself (the same markup on screen and in the picture) */
+  function certCard() {
+    const c = certData();
+    return h('div', { class: 'cert', id: 'pd-cert' }, [
+      h('div', { class: 'cert-in' }, [
+        h('div', { class: 'cert-top' }, [h('span', { class: 'cert-seal', html: SEAL }), h('div', {}, [h('b', { 'data-t': 'ex.certName' }), h('small', { 'data-t': 'ex.certWho' })])]),
+        h('p', { class: 'cert-lead', 'data-t': 'ex.certLine' }),
+        h('div', { class: 'cert-who' }, [
+          h('span', { class: 'cert-av', html: c.avatar ? '<img alt="" src="' + PD.esc(c.avatar) + '">' : '<span>' + PD.esc((c.name || '♪')[0] || '♪') + '</span>' }),
+          h('b', { class: 'cert-name', text: c.name || t('acct.guest') })]),
+        h('p', { class: 'cert-fin', 'data-t': 'ex.certFin' }),
+        h('div', { class: 'cert-foot' }, [
+          h('div', {}, [h('small', { 'data-t': 'ex.certDate' }), h('b', { text: fmtDay(c.at) })]),
+          h('div', {}, [h('small', { 'data-t': 'ex.grad' }), h('b', { text: t('ex.certLv', { n: c.level, x: c.xp }) })])])])]);
+  }
+  const SEAL = '<svg viewBox="0 0 64 64" width="52" height="52" aria-hidden="true"><circle cx="32" cy="30" r="20" fill="none" stroke="#C98B5B" stroke-width="2"/><circle cx="32" cy="30" r="16" fill="none" stroke="#C98B5B" stroke-width="1" stroke-dasharray="2 3"/><path d="M26 22v14a4 4 0 1 0 2-3.5V25l9-2v9a4 4 0 1 0 2-3.5V18z" fill="#E8C49B"/><path d="M20 48l6-4 6 6 6-6 6 4-2 10-10-5-10 5z" fill="#C98B5B" opacity=".85"/></svg>';
+  /** shown inside the exam screen when the last exam is passed */
+  function certificate() {
+    const P = parts(); if (!P) return;
+    PD.store.set('exam.grad', true);
+    const { head: head2, body, foot } = P;
+    head2.innerHTML = ''; head2.append(h('div', { class: 'exz-row' }, [h('b', { 'data-t': 'ex.cert' })]));
+    body.innerHTML = '';
+    body.append(h('div', { class: 'exr ok' }, [h('span', { class: 'exr-ic', html: ic.check || '✓' }), h('h1', { 'data-t': 'ex.certT' }), h('p', { class: 'fg2', 'data-t': 'ex.certD' })]),
+      certCard(),
+      h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'ex.gift' }), h('small', { class: 'muted', 'data-t': 'ex.giftD' })]));
+    foot.innerHTML = '';
+    foot.append(h('button', { class: 'btn', 'data-t': 'ex.certSave', onclick: saveCert }), h('span', { class: 'spacer' }),
+      h('button', { class: 'btn primary', 'data-act': 'close', 'data-t': 'ex.go' }));
+    PD.i18n.apply(Z.root); if (PD.fx) try { PD.fx.celebrate({ y: innerHeight * .4 }); } catch (_) {}
+    body.scrollTop = 0;
+  }
+  /** the certificate as a picture: the card is drawn into a canvas and handed over */
+  async function saveCert() {
+    const card = document.getElementById('pd-cert'); if (!card) return;
+    const W = 1200, H = 820, cv = h('canvas', { width: W, height: H }), x = cv.getContext('2d');
+    const c = certData();
+    const bg = x.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#1C1511'); bg.addColorStop(1, '#0C0A09');
+    x.fillStyle = bg; x.fillRect(0, 0, W, H);
+    x.strokeStyle = '#C98B5B'; x.lineWidth = 3; x.strokeRect(28, 28, W - 56, H - 56);
+    x.strokeStyle = 'rgba(201,139,91,.45)'; x.lineWidth = 1; x.strokeRect(44, 44, W - 88, H - 88);
+    const F = (sz, w2) => (w2 || 400) + ' ' + sz + 'px system-ui, "Noto Sans Georgian", sans-serif';
+    const mid = (txt, y, font, col) => { x.font = font; x.fillStyle = col; x.textAlign = 'center'; x.fillText(txt, W / 2, y); };
+    mid(t('ex.certWho'), 110, F(22), '#C8A383');
+    mid(t('ex.certName'), 165, F(38, 800), '#F4E7D8');
+    mid(t('ex.certLine'), 285, F(22), '#C8A383');
+    mid(c.name || t('acct.guest'), 360, F(52, 800), '#FFE2BA');
+    const words = String(t('ex.certFin')).split(' ');
+    let line = '', y = 430; x.font = F(22); x.fillStyle = '#D9C8B6';
+    words.forEach(w2 => { const test = line ? line + ' ' + w2 : w2; if (x.measureText(test).width > W - 260) { mid(line, y, F(22), '#D9C8B6'); line = w2; y += 34; } else line = test; });
+    if (line) mid(line, y, F(22), '#D9C8B6');
+    mid(t('ex.certDate') + ': ' + fmtDay(c.at), H - 150, F(20), '#C8A383');
+    mid(t('ex.certLv', { n: c.level, x: c.xp }), H - 112, F(20, 700), '#E8C49B');
+    // the student's picture, when the browser lets it be drawn
+    const draw = () => new Promise(res => {
+      if (!c.avatar) return res(false);
+      const im = new Image(); im.crossOrigin = 'anonymous';
+      im.onload = () => { const r = 56, cx = W / 2, cy = 240; x.save(); x.beginPath(); x.arc(cx, cy, r, 0, 7); x.closePath(); x.clip(); x.drawImage(im, cx - r, cy - r, r * 2, r * 2); x.restore();
+        x.beginPath(); x.arc(cx, cy, r, 0, 7); x.strokeStyle = '#C98B5B'; x.lineWidth = 3; x.stroke(); res(true); };
+      im.onerror = () => res(false); im.src = c.avatar;
+    });
+    let okPic = false; try { okPic = await draw(); } catch (_) { okPic = false; }
+    if (!okPic) { const cx = W / 2, cy = 240, r = 56; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fillStyle = 'rgba(201,139,91,.18)'; x.fill(); x.strokeStyle = '#C98B5B'; x.lineWidth = 3; x.stroke(); mid((c.name || '♪')[0] || '♪', cy + 16, F(44, 800), '#E8C49B'); }
+    const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+    if (!blob) return;
+    const file = new File([blob], 'panduri-certificate.png', { type: 'image/png' });
+    try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: t('ex.cert') }); return; } } catch (_) {}
+    const url = URL.createObjectURL(blob), a = h('a', { href: url, download: 'panduri-certificate.png' });
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+    if (PD.ui && PD.ui.toast) PD.ui.toast(t('ex.certSaved'), 2600);
+  }
+  /** the certificate page, reachable from the profile at any time */
+  function certPage(w) {
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('profile') }), h('h1', { 'data-t': 'ex.cert', style: 'margin:0' })]));
+    if (!graduated()) { w.append(h('p', { class: 'fg2', text: t('ex.waitingD', { s: t(EXAMS[EXAMS.length - 1].name) }) })); PD.i18n.apply(w); return; }
+    w.append(h('p', { class: 'fg2', 'data-t': 'ex.certD' }), certCard(),
+      h('div', { class: 'row', style: 'gap:8px;justify-content:center' }, [h('button', { class: 'btn primary', 'data-t': 'ex.certSave', onclick: saveCert })]),
+      h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'ex.gift' }), h('small', { class: 'muted', 'data-t': 'ex.giftD' })]));
+    PD.i18n.apply(w);
+  }
+
   /* ---------------- compulsory: the exam opens by itself ----------------
      As soon as every other step of a learning unit is done, that unit's
      exam opens and holds the screen until it is passed. */
@@ -696,11 +823,24 @@ PD.exam = (() => {
     const out = [];
     for (const p of PATHS) {
       const ex = p.steps.find(s2 => s2.kind === 'exam'); if (!ex) continue;
+      const e = get(ex.id);
       const rest = p.steps.filter(s2 => s2.kind !== 'exam' && s2.kind !== 'needs');
-      if (rest.length && rest.every(sd)) out.push({ p: p.id, id: ex.id });
+      if (!rest.length || !rest.every(sd)) continue;
+      // the final exam closes the course: every other exam passed and every unit finished
+      if (e && e.final && !courseDone()) continue;
+      out.push({ p: p.id, id: ex.id });
     }
     return out;
   }
+  /** every unit of the programme finished and every other exam passed */
+  function courseDone() {
+    const PATHS = (PD.lessons && PD.lessons.PATHS) || [], sd = PD.app && PD.app.stepDone;
+    if (!sd) return false;
+    if (EXAMS.filter(e => !e.final).some(e => !passed(e.id))) return false;
+    return PATHS.every(p => p.steps.filter(s2 => s2.kind !== 'exam' && s2.kind !== 'needs').every(sd));
+  }
+  /** the whole course, the final exam included */
+  const graduated = () => EXAMS.every(e => passed(e.id));
   /** the exam that is due now: a unit the student has just finished — never one that was
       already finished before the exams existed, and never again once it is passed */
   function dueExam() {
@@ -803,6 +943,6 @@ PD.exam = (() => {
     next(); PD.i18n.apply(w);
   }
 
-  const api = { page, drill, list, passed, active, begin, blocked, finish, finishNow, draw, bankSize, open, close, guard, dueExam, doneUnits, openNow, postpone, blocking, blockingLesson, pathOfLesson, waiting, EXAMS, TOPICS, get, GEN };
+  const api = { page, drill, list, passed, active, begin, blocked, finish, finishNow, draw, bankSize, courseDone, graduated, certPage, certCard, saveCert, certificate, askedOf, forgetAsked, open, close, guard, dueExam, doneUnits, openNow, postpone, blocking, blockingLesson, pathOfLesson, waiting, EXAMS, TOPICS, get, GEN };
   return api;
 })();
