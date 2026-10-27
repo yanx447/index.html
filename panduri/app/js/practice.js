@@ -130,6 +130,8 @@ PD.practice = (() => {
   /* ---------- the screen ---------- */
   function open(lesson, opts, srcId, stage, rec) {
     if (!rec && !PD.premium.canOpen(srcId || lesson.id)) { PD.premium.paywall(PD.premium.featureOf(srcId || lesson.id)); return null; }
+    // a unit whose earlier exam is still unpassed stays shut, wherever the lesson is opened from
+    if (!rec && PD.exam && PD.exam.blockingLesson) { const bx = PD.exam.blockingLesson(srcId || lesson.id); if (bx) { PD.exam.open(bx); return null; } }
     if (W) close(true);
     opts = Object.assign({}, opts || {});
     const offs = [], prevAutoDemo = S.autoDemo;

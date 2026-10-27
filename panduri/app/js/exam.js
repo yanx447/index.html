@@ -45,6 +45,13 @@ PD.i18n.add({
   'ex.e5': ['სოლფეჯიო', 'Solfège'],
   'ex.e6': ['საბოლოო გამოცდა — მთელი თეორია', 'Final exam — the whole theory'],
   'ex.t1': ['ფანდური', 'The panduri'], 'ex.t2': ['რითმი', 'Rhythm'], 'ex.t3': ['ნოტები', 'Notes'], 'ex.t4': ['ჰარმონია', 'Harmony'], 'ex.t5': ['სოლფეჯიო', 'Solfège'], 'ex.t6': ['ყველაფერი', 'Everything'],
+  'ex.later': ['მოგვიანებით', 'Later'],
+  'ex.laterD': ['გამოცდა დარჩება — სანამ არ ჩააბარებ, შემდეგი ბლოკის გაკვეთილები დაკეტილია.', 'The exam stays — until you pass it the next unit\'s lessons are locked.'],
+  'ex.waiting': ['გამოცდა გელოდება', 'An exam is waiting'],
+  'ex.waitingD': ['„{s}“ — სანამ არ ჩააბარებ, შემდეგი ბლოკი დაკეტილია.', '“{s}” — the next unit is locked until you pass it.'],
+  'ex.blocked': ['ჯერ გამოცდა ჩააბარე', 'Pass the exam first'],
+  'ex.blockedD': ['„{s}“ გამოცდა ჩააბარე და ეს ბლოკი გაიხსნება.', 'Pass “{s}” and this unit opens.'],
+  'ex.go2': ['გამოცდაზე გადასვლა', 'Go to the exam'],
   'ex.sec': ['გამოცდა', 'Exam'], 'ex.of': ['კითხვები ყოველ ჯერზე ახლიდან ირჩევა — თეორიის თავებიდან და ინსტრუმენტის ნამდვილი მონაცემებიდან.', 'The questions are drawn fresh every time — from the theory chapters and from the instrument\'s own data.']
 });
 
@@ -347,7 +354,8 @@ PD.exam = (() => {
      (also after a reload) until the exam is passed. The only thing
      that opens from it is the exercise for its own subject.
      ================================================================= */
-  let Z = null;   // the open exam screen
+  let Z = null;        // the open exam screen
+  let snoozed = null;  // "later": it stays away until the app is opened again
   const openNow = () => !!Z;
   function close() { if (!Z) return; const z = Z; Z = null; clearInterval(z.timer); z.root.remove(); document.body.style.overflow = ''; document.body.classList.remove('exam-on'); if (PD.app && PD.app.render) PD.app.render(); }
   function open(id) {
@@ -374,7 +382,8 @@ PD.exam = (() => {
     const fmt = ms => { const s2 = Math.max(0, Math.round(ms / 1000)); return (s2 / 60 | 0) + ':' + String(s2 % 60).padStart(2, '0'); };
     const clock = h('span', { class: 'exz-clock' }), bar = h('i'), cnt = h('span', { class: 'exz-n' });
     head2.innerHTML = '';
-    head2.append(h('div', { class: 'exz-row' }, [h('b', { text: t(e.name) }), h('span', { class: 'spacer' }), clock]),
+    head2.append(h('div', { class: 'exz-row' }, [h('b', { text: t(e.name) }), h('span', { class: 'spacer' }), clock,
+        h('button', { class: 'btn small ghost exz-later', 'data-t': 'ex.later', onclick: postpone })]),
       h('div', { class: 'exz-row sub' }, [cnt, h('span', { class: 'spacer' }), h('small', { text: t('ex.rule', { n: e.n, m: e.min, p: e.pass }) })]),
       h('div', { class: 'exz-prog' }, [bar]));
     function tick() {
@@ -438,7 +447,8 @@ PD.exam = (() => {
     body.append(rev);
     foot.innerHTML = '';
     if (ok) foot.append(h('button', { class: 'btn primary big', 'data-t': 'ex.go', onclick: close }));
-    else foot.append(h('button', { class: 'btn', 'data-t': 'ex.drill', onclick: () => drillMode(e) }), h('span', { class: 'spacer' }),
+    else foot.append(h('button', { class: 'btn', 'data-t': 'ex.drill', onclick: () => drillMode(e) }),
+      h('button', { class: 'btn small ghost', 'data-t': 'ex.later', onclick: postpone }), h('span', { class: 'spacer' }),
       h('button', { class: 'btn primary', 'data-t': 'ex.retry', onclick: () => { PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); } }));
     PD.i18n.apply(Z.root); body.scrollTop = 0;
   }
@@ -469,7 +479,8 @@ PD.exam = (() => {
       card.append(box, fb);
       body.append(sc, card, h('p', { class: 'muted', 'data-t': 'ex.of' }));
       foot.innerHTML = '';
-      foot.append(h('span', { class: 'spacer' }), h('button', { class: 'btn primary', 'data-t': 'ex.again', onclick: () => { PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); } }));
+      foot.append(h('button', { class: 'btn small ghost', 'data-t': 'ex.later', onclick: postpone }), h('span', { class: 'spacer' }),
+        h('button', { class: 'btn primary', 'data-t': 'ex.again', onclick: () => { PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); } }));
       PD.i18n.apply(Z.root); body.scrollTop = 0;
     }
     next();
@@ -503,14 +514,40 @@ PD.exam = (() => {
     if (keep.join() !== known.join()) PD.store.set(KNOWN, keep);
     return fresh.length ? fresh[0].id : null;
   }
+  /** "later": the screen closes, the exam stays waiting and the next unit stays shut */
+  function postpone() { const a = active(); if (a) snoozed = a.id; close(); if (PD.ui && PD.ui.toast) PD.ui.toast(t('ex.laterD'), 4200); }
+  /** the exam a unit has to wait for: an earlier unit is finished but its exam is not passed */
+  function blocking(pathId) {
+    const PATHS = (PD.lessons && PD.lessons.PATHS) || [], i = PATHS.findIndex(p => p.id === pathId);
+    if (i < 0) return null;
+    const sd = PD.app && PD.app.stepDone; if (!sd) return null;
+    for (let k = 0; k < i; k++) {
+      const p = PATHS[k], ex = p.steps.find(s2 => s2.kind === 'exam');
+      if (!ex || passed(ex.id)) continue;
+      const rest = p.steps.filter(s2 => s2.kind !== 'exam' && s2.kind !== 'needs');
+      if (rest.length && rest.every(sd)) return ex.id;
+    }
+    return null;
+  }
+  /** which unit a lesson belongs to, so the lock also holds when it is opened from elsewhere */
+  function pathOfLesson(id) {
+    const PATHS = (PD.lessons && PD.lessons.PATHS) || [], rid = /^rhythm-/.test(id || '') ? String(id).slice(7) : null;
+    const p = PATHS.find(q => q.steps.some(s2 => (s2.kind === 'lesson' && s2.id === id) || (s2.kind === 'rhythm' && s2.id === rid)));
+    return p ? p.id : null;
+  }
+  /** the exam that stands in front of this lesson, or null */
+  function blockingLesson(id) { const p = pathOfLesson(id); return p ? blocking(p) : null; }
+  /** the exam that is waiting right now (for the banner and the reminder) */
+  function waiting() { const a = active(); if (a) return a.id; const d = dueExam(); return d || null; }
+
   /** called on every screen the app draws */
   function guard() {
     if (PD.store.get('author', false)) return;
     const a = active();
-    if (a) { if (!Z) open(a.id); return; }
+    if (a) { if (!Z && snoozed !== a.id) open(a.id); return; }
     if (Z) close();
     const due = dueExam();                       // always takes stock, even while another screen is up
-    if (!due) return;
+    if (!due || snoozed === due) return;
     if (document.querySelector('.pz, .ss-wrap, .ag, .ob, .exz')) return;   // the lesson screen, the tuner, a gate: the exam waits for it
     open(due);
   }
@@ -567,6 +604,6 @@ PD.exam = (() => {
     next(); PD.i18n.apply(w);
   }
 
-  const api = { page, drill, list, passed, active, begin, blocked, finish, draw, bankSize, open, close, guard, dueExam, doneUnits, openNow, EXAMS, TOPICS, get, GEN };
+  const api = { page, drill, list, passed, active, begin, blocked, finish, draw, bankSize, open, close, guard, dueExam, doneUnits, openNow, postpone, blocking, blockingLesson, pathOfLesson, waiting, EXAMS, TOPICS, get, GEN };
   return api;
 })();

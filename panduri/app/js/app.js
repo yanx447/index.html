@@ -502,6 +502,11 @@ PD.app = (() => {
   const DIFF = { first: 1, instrument: 1, rhythms: 1, notes: 2, scales: 2, solfege: 2, deeper: 3, foundation: 1, beginner: 1, intermediate: 2, advanced: 3 };
   function learn(w) {
     w.append(h('div', { class: 'ln-head' }, [h('h1', { 'data-t': 'ln.title' }), h('p', { class: 'muted', 'data-t': 'ln.lead' })]));
+    { const wid = PD.exam.waiting(), we = wid && PD.exam.get(wid);
+      if (we) w.append(h('button', { class: 'ex-banner', onclick: () => PD.exam.open(wid) }, [
+        h('span', { class: 'ex-banner-ic', html: ic.check || '' }),
+        h('span', { class: 'grow' }, [h('b', { 'data-t': 'ex.waiting' }), h('small', { text: t('ex.waitingD', { s: t(we.name) }) })]),
+        h('span', { class: 'btn small primary', 'data-t': 'ex.go2' })])); }
     const lp = PD.levels.progress;
     const TOOL = { exam: ic.check || ic.learn, tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord, chapter: ic.learn || ic.chord, tip: ic.star, solfege: ic.mic, rhythms: ic.pulse };
     const libCard = (r, pa, k, d, art) => h('button', { class: 'lib-card', onclick: () => go(r, pa) }, [h('span', { class: 'lib-art', html: art }), h('span', { class: 'grow' }, [h('b', { 'data-t': k }), h('small', { 'data-t': d })])]);
@@ -529,6 +534,7 @@ PD.app = (() => {
     }
     function unit(p, ui, st) {
       const real = p.steps.filter(s2 => s2.kind !== 'needs'), d = real.filter(stepDone).length;
+      const exWait = PD.exam.blocking(p.id), exW = exWait && PD.exam.get(exWait);   // an earlier unit's exam has to be passed first
       const path = h('ol', { class: 'lp-path' });
       let hasCur = false;
       p.steps.forEach(s2 => {
@@ -537,15 +543,18 @@ PD.app = (() => {
           const thumb = l ? h('div', { class: 'lp-th', html: coverSVG(l) }) : h('div', { class: 'lp-th tool' + (need ? ' need' : ''), html: need ? '…' : (TOOL[s2.kind] || ic.learn) });
           const tipC = s2.kind === 'tip' ? PD.tips.all(true).find(x => x.id === s2.id) : null;
           const meta2 = need ? t('ln.awaiting') : l ? t('lvl.' + Math.min(4, l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : '') + (l.demo ? ' · ' + t('demo.badge') : '') + (l.source === 'general' ? ' · ' + t('rh.gen') : '') : s2.kind === 'theory' ? t('ln.theory', { n: PD.theoryBook.CHAPTERS.length, d: Math.round(PD.theoryBook.progress() * PD.theoryBook.CHAPTERS.length) }) : s2.kind === 'chapter' ? t('ln.chapter') : s2.kind === 'tip' ? t('ln.tip') + (tipC && tipC.src === 'draft' ? ' · ' + t('tp.src.draft') : '') : s2.kind === 'solfege' ? t('ln.solfege') : t('ln.tool');
-          const locked = !need && (l ? !PD.premium.canOpen(l.id) : PREMIUM_PATHS.has(p.id) && !PD.premium.active);
+          const locked = !need && (exWait || (l ? !PD.premium.canOpen(l.id) : PREMIUM_PATHS.has(p.id) && !PD.premium.active));
           const li = h('li', { class: 'lp-s' + (done ? ' done' : '') + (cur ? ' cur' : '') + (need ? ' need' : '') + (locked ? ' locked' : '') }, [
             h('span', { class: 'lp-dot', html: done ? ic.check : '' }),
-            h(need ? 'div' : 'button', need ? { class: 'lp-c' } : { class: 'lp-c', onclick: () => locked ? PD.premium.paywall('paths.advanced') : stepGo(s2) }, [thumb, h('div', { class: 'lp-tx' }, [h('b', { text: stepTitle(s2) }), h('small', { text: meta2 })]), locked ? h('span', { class: 'lp-lock', html: LOCK }) : cur ? h('span', { class: 'lp-go', 'data-t': 'home.start' }) : null])]);
+            h(need ? 'div' : 'button', need ? { class: 'lp-c' } : { class: 'lp-c', onclick: () => exWait ? PD.exam.open(exWait) : locked ? PD.premium.paywall('paths.advanced') : stepGo(s2) }, [thumb, h('div', { class: 'lp-tx' }, [h('b', { text: stepTitle(s2) }), h('small', { text: meta2 })]), locked ? h('span', { class: 'lp-lock', html: LOCK }) : cur ? h('span', { class: 'lp-go', 'data-t': 'home.start' }) : null])]);
           if (cur) focusEl = li;
           path.appendChild(li);
       });
       const open = byPath ? byPath.id === p.id : hasCur;
-      return h('details', { class: 'lu' + (d >= real.length && real.length ? ' full' : ''), id: 'lp-' + p.id, open: open || null }, [
+      if (exW) path.prepend(h('li', { class: 'lp-s need' }, [h('span', { class: 'lp-dot' }), h('button', { class: 'lp-c ex-wait', onclick: () => PD.exam.open(exWait) }, [
+        h('div', { class: 'lp-th tool', html: ic.lock || ic.check || '' }),
+        h('div', { class: 'lp-tx' }, [h('b', { 'data-t': 'ex.blocked' }), h('small', { text: t('ex.blockedD', { s: t(exW.name) }) })])])]));
+      return h('details', { class: 'lu' + (d >= real.length && real.length ? ' full' : '') + (exW ? ' wait' : ''), id: 'lp-' + p.id, open: open || null }, [
         h('summary', {}, [h('span', { class: 'lu-n', text: String(ui + 1) }), h('span', { class: 'lu-t' }, [h('b', { text: PD.i18n.pick(p.title) }), h('small', {}, [h('span', { class: 'lu-tag ' + (p.theory ? 'th' : 'pr'), 'data-t': p.theory ? 'ln.tab.theory' : 'ln.tab.practice' }), ' ' + t('learn.steps', { d, n: real.length })])]),
           h('span', { class: 'lu-bar', 'aria-hidden': 'true' }, [h('i', { style: 'width:' + (real.length ? Math.round(d / real.length * 100) : 0) + '%' })]), h('span', { class: 'ce-acc-chev', 'aria-hidden': 'true' })]),
         path]);
