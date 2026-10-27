@@ -28,6 +28,9 @@ PD.i18n.add({
   'ex.lockShort': ['ჯერ გამოცდა დაასრულე', 'Finish the exam first'],
   'ex.submit': ['დასრულება', 'Finish'], 'ex.next': ['შემდეგი', 'Next'], 'ex.prev': ['უკან', 'Back'],
   'ex.unanswered': ['{n} კითხვა უპასუხოდ დარჩა', '{n} question(s) left unanswered'],
+  'ex.unansN': ['{n} უპასუხო', '{n} unanswered'],
+  'ex.goUnans': ['უპასუხოზე გადასვლა', 'Go to it'],
+  'ex.anyway': ['მაინც დასრულება', 'Finish anyway'],
   'ex.timeUp': ['დრო ამოიწურა', 'Time is up'],
   'ex.result': ['{a} / {b} სწორი · {p}%', '{a} / {b} correct · {p}%'],
   'ex.pass': ['გამოცდა ჩაბარებულია!', 'Exam passed!'], 'ex.fail': ['ჯერ არ ჩაბარდა — საჭიროა {p}%', 'Not passed yet — {p}% is needed'],
@@ -363,6 +366,7 @@ PD.exam = (() => {
     if (Z && Z.id === id) return; if (Z) close();
     let a = active();
     if (!a || a.id !== id) { PD.store.set('exam.on', { id, at: Date.now() }); a = active(); }
+    document.querySelectorAll('.exz').forEach(x => x.remove());   // a screen left over from an older session never stays behind
     const root = h('div', { class: 'exz', role: 'dialog', 'aria-modal': 'true', 'aria-label': t(e.name) });
     const head2 = h('header', { class: 'exz-top' }), body = h('div', { class: 'exz-body' }), foot = h('footer', { class: 'exz-foot' });
     root.append(head2, body, foot);
@@ -377,7 +381,8 @@ PD.exam = (() => {
     api._cur = { id: e.id, qs, answers };   // the running exam, for the automated tests
     const until = a.at + e.min * 60000;
     let i = 0, over = false, warned = false;
-    const { head: head2, body, foot } = Z;
+    const P = parts(); if (!P) return;
+    const { head: head2, body, foot } = P;
     clearInterval(Z.timer);
     const fmt = ms => { const s2 = Math.max(0, Math.round(ms / 1000)); return (s2 / 60 | 0) + ':' + String(s2 % 60).padStart(2, '0'); };
     const clock = h('span', { class: 'exz-clock' }), bar = h('i'), cnt = h('span', { class: 'exz-n' });
@@ -389,7 +394,8 @@ PD.exam = (() => {
     function tick() {
       const left = until - Date.now();
       clock.textContent = fmt(left); clock.classList.toggle('hot', left < 60000);
-      cnt.textContent = t('ex.qN', { a: i + 1, b: qs.length });
+      const miss0 = answers.filter(x => x < 0).length;
+      cnt.textContent = t('ex.qN', { a: i + 1, b: qs.length }) + (miss0 ? ' · ' + t('ex.unansN', { n: miss0 }) : '');
       bar.style.width = Math.round(answers.filter(x => x >= 0).length / qs.length * 100) + '%';
       if (left <= 0) done(true);
     }
@@ -408,24 +414,49 @@ PD.exam = (() => {
         i < qs.length - 1 ? h('button', { class: 'btn small', 'data-t': 'ex.next', onclick: () => { i++; drawQ(); tick(); } })
           : h('button', { class: 'btn primary', 'data-t': 'ex.submit', onclick: () => {
             const miss = answers.filter(x => x < 0).length;
-            if (miss && !warned) { warned = true; i = answers.findIndex(x => x < 0); drawQ(); tick(); body.append(h('p', { class: 'notice', text: t('ex.unanswered', { n: miss }) })); return; }
-            done(false);
+            if (!miss) return done(false);
+            body.querySelectorAll('.exq-ask').forEach(x => x.remove());
+            body.append(h('div', { class: 'exq-ask' }, [h('p', { class: 'notice', text: t('ex.unanswered', { n: miss }) }),
+              h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap' }, [
+                h('button', { class: 'btn small', 'data-t': 'ex.goUnans', onclick: () => { i = answers.findIndex(x => x < 0); drawQ(); tick(); } }),
+                h('button', { class: 'btn small primary', 'data-t': 'ex.anyway', onclick: () => done(false) })])]));
+            PD.i18n.apply(body); body.scrollTop = body.scrollHeight;
           } }));
       PD.i18n.apply(body); PD.i18n.apply(foot);
       body.scrollTop = 0;
     }
     function done(timeUp) {
-      if (over) return; over = true; clearInterval(Z.timer);
+      if (over && Z && Z.root && Z.root.querySelector('.exr')) return;   // already finished and the result is on screen
+      over = true; try { clearInterval(Z.timer); } catch (_) {}
       const right = answers.filter((x, k) => x === qs[k].ok).length, p = Math.round(right / qs.length * 100);
-      const ok = finish(e.id, p);
-      result(e, qs, answers, right, p, ok, timeUp);
+      let ok = false;
+      try { ok = finish(e.id, p); } catch (err) { console.error(err); ok = p >= e.pass; }
+      try { result(e, qs, answers, right, p, ok, timeUp); }
+      catch (err) {   // the result must appear whatever happens: a bare one rather than a dead screen
+        console.error(err);
+        const P2 = parts(); if (!P2) return;
+        P2.body.innerHTML = ''; P2.foot.innerHTML = '';
+        P2.body.append(h('div', { class: 'exr ' + (ok ? 'ok' : 'bad') }, [h('h1', { text: ok ? t('ex.pass') : t('ex.fail', { p: e.pass }) }), h('b', { text: t('ex.result', { a: right, b: qs.length, p }) })]));
+        P2.foot.append(ok ? h('button', { class: 'btn primary big', 'data-t': 'ex.go', onclick: close })
+          : h('button', { class: 'btn primary big', 'data-t': 'ex.retry', onclick: () => { PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); } }));
+        PD.i18n.apply(P2.body); PD.i18n.apply(P2.foot);
+      }
     }
     Z.timer = setInterval(tick, 1000);
     tick(); drawQ();
   }
   /** the result, inside the same screen */
+  /** the screen's three parts, found again from the DOM: a stale piece can never swallow a tap */
+  function parts() {
+    if (!Z || !Z.root || !Z.root.isConnected) return null;
+    const head2 = Z.root.querySelector('.exz-top'), body = Z.root.querySelector('.exz-body'), foot = Z.root.querySelector('.exz-foot');
+    if (!head2 || !body || !foot) return null;
+    Z.head = head2; Z.body = body; Z.foot = foot;
+    return { head: head2, body, foot };
+  }
   function result(e, qs, answers, right, p, ok, timeUp) {
-    const { head: head2, body, foot } = Z;
+    const P = parts(); if (!P) { open(e.id); return; }
+    const { head: head2, body, foot } = P;
     head2.innerHTML = ''; head2.append(h('div', { class: 'exz-row' }, [h('b', { text: t(e.name) })]));
     body.innerHTML = '';
     body.append(h('div', { class: 'exr' + (ok ? ' ok' : ' bad') }, [
@@ -454,7 +485,8 @@ PD.exam = (() => {
   }
   /** the exercise for this subject, inside the exam screen: nothing else opens from here */
   function drillMode(e) {
-    const { head: head2, body, foot } = Z;
+    const P = parts(); if (!P) { open(e.id); return; }
+    const { head: head2, body, foot } = P;
     clearInterval(Z.timer);
     head2.innerHTML = ''; head2.append(h('div', { class: 'exz-row' }, [h('b', { text: t('ex.drill') + ' · ' + t(TOPICS[e.topic].title) })]));
     let a = 0, b = 0;
