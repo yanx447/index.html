@@ -493,7 +493,7 @@ PD.exam = (() => {
     const a = active();
     if (a) { if (!Z) open(a.id); return; }
     if (Z) close();
-    if (document.querySelector('.pz, .ss-full, .ag, .ob')) return;   // not in the middle of a lesson, the tuner or a gate
+    if (document.querySelector('.pz, .ss-wrap, .ag, .ob, .exz')) return;   // not in the middle of a lesson, the tuner, a gate or another exam
     const due = dueExam(); if (due) open(due);
   }
 
