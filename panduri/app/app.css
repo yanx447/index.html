@@ -2436,3 +2436,10 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .cert-foot{display:flex;gap:12px;justify-content:space-between;margin-top:18px;padding-top:14px;border-top:1px solid rgba(201,139,91,.25)}
 .cert-foot small{display:block;font-size:10.5px;color:var(--muted)}
 .cert-foot b{font-size:12.5px;color:#E8C49B}
+
+/* the picture that belongs to a question (a staff, a note sign, a keyboard) */
+.exq-art{display:flex;justify-content:center;padding:10px 6px;border-radius:14px;background:rgba(255,240,228,.05);border:1px solid var(--line2)}
+.exq-art svg{max-width:100%;height:auto}
+.exq-art .tb-sym{width:54px;height:70px}
+.exq-art.small{padding:6px;margin:4px 0}
+.exq-art.small svg{max-height:86px}

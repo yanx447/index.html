@@ -82,17 +82,18 @@ PD.exam = (() => {
   const pickQ = a => pick(a)();   // one of several question shapes
   const shuf = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = rnd(i + 1); [b[i], b[j]] = [b[j], b[i]]; } return b; };
   /** a question: text, options (string or [ka,en]), the index of the right one, why, and an optional sound */
-  const Q = (q, opts, ok, why, play) => ({ q, opts, ok, why, play: play || null });
+  const Q = (q, opts, ok, why, play, art) => ({ q, opts, ok, why, play: play || null, art: art || null });
   /** three wrong answers that are not the right one and not repeated */
   function others(right, poolFn, n) {
     const out = []; let guard = 0;
     while (out.length < (n || 2) && guard++ < 200) { const v = poolFn(); if (v != null && String(v) !== String(right) && !out.some(x => String(x) === String(v))) out.push(v); }
     return out;
   }
-  function mc(q, right, wrong, why, play) {   // multiple choice from one right and some wrong answers
+  function mc(q, right, wrong, why, play, art) {   // multiple choice from one right and some wrong answers
     const opts = shuf([right].concat(wrong));
-    return Q(q, opts, opts.findIndex(o => o === right), why, play);
+    return Q(q, opts, opts.findIndex(o => o === right), why, play, art);
   }
+  const ART = () => PD.notesArt;
 
   /* ---------------- the instrument's own facts ---------------- */
   // the teacher counts the strings from the floor up: 1st = E (first voice), 2nd = C♯, 3rd = the bass A.
@@ -209,7 +210,7 @@ PD.exam = (() => {
       ['ძლიერი დარტყმა თვლებს შორის („და“-ზე) მოდის', 'The strong stroke falls between the counts (on the “and”)'],
       [['ტაქტის პირველი დარტყმა', 'The first beat of the bar'], ['ორი რითმი ერთად', 'Two rhythms at once'], ['პაუზა ტაქტის ბოლოს', 'A rest at the end of the bar']],
       ['თვალე: 1 და 2 და 3 და 4 და.', 'Count: 1 and 2 and 3 and 4 and.']],
-    ['deep', ['თუ სამივე სიმს ერთნაირად აწევ, ბგერა…', 'If you move all three strings up by the same amount, the sound…'],
+    ['deep', ['თუ სამივე სიმს ერთნაირად აწევ (ბარეთი), ბგერა როგორ შეიცვლება?', 'If you barre all three strings higher, how does the sound change?'],
       ['იმდენი ნახევარტონით მაღლდება, რამდენი ლადიც აიწიე', 'rises by as many semitones as frets you moved'],
       [['არ იცვლება', 'does not change'], ['ოქტავით მაღლდება', 'rises by an octave'], ['ადაბლდება', 'goes lower']],
       ['ღია = A, ყველა მე-2 ლადზე = B, მე-3-ზე = C.', 'Open = A, all on fret 2 = B, on fret 3 = C.']],
@@ -310,7 +311,7 @@ PD.exam = (() => {
       () => mc(L('რამდენი ლადია ერთი ტონი?', 'How many frets make a tone?'), '2', ['1', '3', '12'], L('1 ლადი = ნახევარტონი, 2 ლადი = ტონი.', '1 fret = a semitone, 2 frets = a tone.')),
       () => mc(L('რამდენი ლადია ოქტავა?', 'How many frets make an octave?'), '12', ['7', '8', '17'], L('12 ნახევარტონი = ოქტავა; მე-12 ლადზე ღია სიმის ბგერა მეორდება.', '12 semitones = an octave; at fret 12 the open string\'s note returns.')),
       () => mc(L('ოქტავაში რამდენი სხვადასხვა ბგერაა?', 'How many different notes are in an octave?'), '12', ['7', '8', '5'], L('7 ძირითადი სახელი, სულ 12 ბგერა (ქრომატული გამა).', '7 basic names, 12 notes in all (the chromatic scale).')),
-      () => mc(L('რომელ ნოტებს შორის არის მხოლოდ ნახევარტონი?', 'Which notes are only a semitone apart?'), L('მი–ფა და სი–დო (E–F, B–C)', 'E–F and B–C'), [L('დო–რე და ფა–სოლ', 'C–D and F–G'), L('ლა–სი', 'A–B'), L('სოლ–ლა', 'G–A')], L('E–F და B–C შორის შავი კლავიში არ არის.', 'There is no black key between E–F and B–C.'))]),
+      () => mc(L('რომელ ნოტებს შორის არის მხოლოდ ნახევარტონი?', 'Which notes are only a semitone apart?'), L('მი–ფა და სი–დო (E–F, B–C)', 'E–F and B–C'), [L('დო–რე და ფა–სოლ', 'C–D and F–G'), L('ლა–სი', 'A–B'), L('სოლ–ლა', 'G–A')], L('E–F და B–C შორის შავი კლავიში არ არის.', 'There is no black key between E–F and B–C.'), null, ART() ? ART().keyboard({ hi: ['E', 'F', 'B', 'C'] }) : null)]),
     accidental: () => pickQ([
       () => mc(L('რას აკეთებს დიეზი (♯)?', 'What does a sharp (♯) do?'), L('ნახევარტონით ამაღლებს (+1 ლადი)', 'Raises by a semitone (+1 fret)'), [L('ნახევარტონით ადაბლებს', 'Lowers by a semitone'), L('ტონით ამაღლებს', 'Raises by a tone'), L('აუქმებს ნიშნებს', 'Cancels the signs')], L('♯ = +1 ნახევარტონი, ♭ = −1, ♮ აუქმებს.', '♯ = +1 semitone, ♭ = −1, ♮ cancels.')),
       () => mc(L('რას ნიშნავს ბეკარი (♮)?', 'What does a natural (♮) mean?'), L('აუქმებს დიეზს ან ბემოლს', 'Cancels a sharp or a flat'), [L('ამაღლებს ტონით', 'Raises by a tone'), L('ადაბლებს ნახევარტონით', 'Lowers by a semitone'), L('ხმამაღლა დაკვრას', 'Play loudly')], L('ბეკარი ნოტს ჩვეულ სახეს უბრუნებს.', 'A natural returns the note to its plain form.')),
@@ -319,11 +320,25 @@ PD.exam = (() => {
         return mc(L(sh + ' იმავე ბგერას რომელი სახელით წერენ ბემოლით?', 'Which flat name is the same sound as ' + sh + '?'), fl, others(fl, () => TH.NN_FLAT[(i + 1 + rnd(10)) % 12], 3), L(sh + ' = ' + fl + ' — ენჰარმონიულად თანაბარი: ჟღერს ერთნაირად, იწერება სხვანაირად.', sh + ' = ' + fl + ' — enharmonic: the same sound, written differently.'), sound([60 + i])); },
       () => mc(L('ალტერაციის ნიშანი, რომელიც ნოტის წინ წერია, სადამდე მოქმედებს?', 'A sign written before a note lasts until…'), L('ამ ტაქტის ბოლომდე', 'the end of that bar'), [L('მთელ ნაწარმოებზე', 'the end of the piece'), L('მხოლოდ ამ ნოტზე', 'only that one note'), L('შემდეგ სტრიქონამდე', 'the next line')], L('გასაღებთან დაწერილი ნიშნები კი მთელ ნაწარმოებზე მოქმედებს.', 'Signs in the key signature apply to the whole piece.'))]),
     staff: () => pickQ([
-      () => mc(L('სოლის გასაღებში ხაზებზე მდგარი ნოტები (ქვემოდან):', 'In the treble clef the notes on the lines (bottom up) are:'), 'E G B D F', ['F A C E', 'E G B D E', 'G B D F A'], L('ხაზები: მი სოლ სი რე ფა.', 'Lines: E G B D F.')),
-      () => mc(L('სოლის გასაღებში შუალედების ნოტები:', 'In the treble clef the notes in the spaces are:'), 'F A C E', ['E G B D F', 'A C E G', 'D F A C'], L('შუალედები: ფა ლა დო მი.', 'Spaces: F A C E.')),
-      () => mc(L('სოლის გასაღები რომელ ხაზზე ამბობს „აქ სოლია (G4)“?', 'Which line does the treble clef name as G4?'), L('მეორეზე (ქვემოდან)', 'The second (from the bottom)'), [L('პირველზე', 'The first'), L('მესამეზე', 'The third'), L('მეოთხეზე', 'The fourth')], L('𝄞 მეორე ხაზს უვლის გარშემო.', '𝄞 curls around the second line.')),
-      () => mc(L('ფას (ბანის) გასაღების ორი წერტილი რომელ ხაზს აკრავს?', 'The two dots of the bass clef surround which line?'), L('მეოთხეს — F3', 'The fourth — F3'), [L('მეორეს — G4', 'The second — G4'), L('მესამეს', 'The third'), L('პირველს', 'The first')], L('𝄢 = ფას გასაღები, მეოთხე ხაზი ფაა.', '𝄢 = bass clef, the fourth line is F.')),
-      () => mc(L('ხუთხაზედის ხაზებს და შუალედებს როგორ ვითვლით?', 'How are the staff\'s lines and spaces counted?'), L('ქვემოდან ზემოთ', 'From the bottom up'), [L('ზემოდან ქვემოთ', 'From the top down'), L('შუიდან', 'From the middle'), L('მარჯვნიდან მარცხნივ', 'Right to left')], L('ქვემოდან ზემოთ — რაც მაღლაა, მით მაღალი ბგერაა.', 'Bottom up — the higher it sits, the higher it sounds.'))]),
+      () => { const A = ART(); const L5 = [['E', 4], ['G', 4], ['B', 4], ['D', 5], ['F', 5]], S4 = [['F', 4], ['A', 4], ['C', 5], ['E', 5]];
+        const KA7 = ['დო', 'რე', 'მი', 'ფა', 'სოლ', 'ლა', 'სი'], LET7 = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        const lab = l2 => l2 + ' (' + L(KA7[LET7.indexOf(l2)], l2) + ')';
+        const set = Math.random() < .5 ? L5 : S4, one = pick(set), ltr = one[0], oc = one[1];
+        return mc(L('სოლის გასაღებში — რომელი ნოტია სურათზე?', 'In the treble clef — which note is shown?'), lab(ltr),
+          others(lab(ltr), () => lab(pick(L5.concat(S4))[0]), 3),
+          L('ხაზები ქვემოდან: მი სოლ სი რე ფა (E G B D F) · შუალედები: ფა ლა დო მი (F A C E).', 'Lines bottom up: E G B D F · spaces: F A C E.'),
+          sound([60 + { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[ltr] + (oc - 4) * 12]),
+          A ? A.staff([{ l: ltr, o: oc, d: 'w' }], { width: 200 }) : null); },
+      () => mc(L('სოლის გასაღებში ხაზებზე მდგარი ნოტები, ქვემოდან ზემოთ — რომელი რიგია სწორი?', 'In the treble clef, the notes on the lines from the bottom up — which row is right?'), 'E G B D F', ['F A C E', 'E G B D E', 'G B D F A'],
+        L('ხაზები: მი სოლ სი რე ფა.', 'Lines: E G B D F.'), null, ART() ? ART().staff([{ l: 'E', o: 4, d: 'w' }, { l: 'G', o: 4, d: 'w' }, { l: 'B', o: 4, d: 'w' }, { l: 'D', o: 5, d: 'w' }, { l: 'F', o: 5, d: 'w' }], { width: 290 }) : null),
+      () => mc(L('სოლის გასაღებში შუალედებში მდგარი ნოტები, ქვემოდან ზემოთ — რომელი რიგია სწორი?', 'In the treble clef, the notes in the spaces from the bottom up — which row is right?'), 'F A C E', ['E G B D F', 'A C E G', 'D F A C'],
+        L('შუალედები: ფა ლა დო მი.', 'Spaces: F A C E.'), null, ART() ? ART().staff([{ l: 'F', o: 4, d: 'w' }, { l: 'A', o: 4, d: 'w' }, { l: 'C', o: 5, d: 'w' }, { l: 'E', o: 5, d: 'w' }], { width: 250 }) : null),
+      () => mc(L('სოლის გასაღები რომელ ხაზს უვლის გარშემო (სადაც სოლია, G4)?', 'Which line does the treble clef curl around (where G4 sits)?'), L('მეორეს, ქვემოდან', 'The second from the bottom'), [L('პირველს, ქვემოდან', 'The first from the bottom'), L('მესამეს', 'The third'), L('მეოთხეს', 'The fourth')],
+        L('𝄞 მეორე ხაზს უვლის — ამიტომ ჰქვია სოლის გასაღები.', '𝄞 curls around the second line — that is why it is the G clef.'), null, ART() ? ART().staff([{ l: 'G', o: 4, d: 'w' }], { width: 190 }) : null),
+      () => mc(L('ფას (ბანის) გასაღების ორი წერტილი რომელ ხაზს აკრავს?', 'The two dots of the bass clef surround which line?'), L('მეოთხეს — F3', 'The fourth — F3'), [L('მეორეს — G4', 'The second — G4'), L('მესამეს', 'The third'), L('პირველს', 'The first')],
+        L('𝄢 = ფას გასაღები, მეოთხე ხაზი ფაა.', '𝄢 = bass clef, the fourth line is F.'), null, ART() ? ART().staff([{ l: 'F', o: 3, d: 'w' }], { clef: 'bass', width: 190 }) : null),
+      () => mc(L('ხუთხაზედის ხაზებს და შუალედებს როგორ ვითვლით?', 'How are the staff\'s lines and spaces counted?'), L('ქვემოდან ზემოთ', 'From the bottom up'), [L('ზემოდან ქვემოთ', 'From the top down'), L('შუიდან', 'From the middle'), L('მარჯვნიდან მარცხნივ', 'Right to left')],
+        L('ქვემოდან ზემოთ — რაც მაღლაა, მით მაღალი ბგერაა.', 'Bottom up — the higher it sits, the higher it sounds.'))]),
     octave: () => pickQ([
       () => mc(L('A4 = 440 ჰც. რამდენია A5?', 'A4 = 440 Hz. What is A5?'), L('880 ჰც', '880 Hz'), [L('660 ჰც', '660 Hz'), L('220 ჰც', '220 Hz'), L('440 ჰც', '440 Hz')], L('ოქტავით ზემოთ — ორჯერ მეტი სიხშირე.', 'One octave up — twice the frequency.')),
       () => mc(L('ორ ერთსახელიან ნოტს შორის მანძილი რა ჰქვია?', 'What is the distance between two notes with the same name called?'), L('ოქტავა', 'An octave'), [L('კვინტა', 'A fifth'), L('ტერცია', 'A third'), L('პრიმა', 'A unison')], L('ოქტავა = 12 ნახევარტონი.', 'An octave = 12 semitones.')),
@@ -340,18 +355,20 @@ PD.exam = (() => {
 
     /* --- rhythm, metre, durations --- */
     duration: () => pickQ([
-      () => { const [nm, v] = pick(DUR);
-        return mc(L(LX(nm) + ' ნოტი 4/4-ში რამდენი დარტყმაა?', 'How many beats is a ' + nm[1] + ' note in 4/4?'), BEATS[v], others(BEATS[v], () => BEATS[pick(DUR)[1]], 3),
-          L('მთელი 4, ნახევარი 2, მეოთხედი 1, მერვედი ½, მეთექვსმეტედი ¼.', 'Whole 4, half 2, quarter 1, eighth ½, sixteenth ¼.')); },
+      () => { const i = rnd(DUR.length), nm = DUR[i][0], v = DUR[i][1], d = ['w', 'h', 'q', 'e', 's'][i];
+        return mc(L('ეს ნოტი 4/4-ში რამდენი დარტყმაა?', 'How many beats is this note in 4/4?'), BEATS[v], others(BEATS[v], () => BEATS[pick(DUR)[1]], 3),
+          L(LX(nm) + ' = ' + BEATS[v] + ' დარტყმა. მთელი 4, ნახევარი 2, მეოთხედი 1, მერვედი ½, მეთექვსმეტედი ¼.', nm[1] + ' = ' + BEATS[v] + '. Whole 4, half 2, quarter 1, eighth ½, sixteenth ¼.'),
+          null, ART() ? ART().symbol('note', d) : null); },
       () => mc(L('რამდენი მერვედია ერთ ნახევარში?', 'How many eighths are in a half note?'), '4', ['2', '8', '6'], L('ნახევარი = 2 მეოთხედი = 4 მერვედი.', 'Half = 2 quarters = 4 eighths.')),
       () => mc(L('რამდენი მეთექვსმეტედია მთელ ნოტში?', 'How many sixteenths are in a whole note?'), '16', ['8', '4', '12'], L('1 მთელი = 2 ნახევარი = 4 მეოთხედი = 8 მერვედი = 16 მეთექვსმეტედი.', '1 whole = 2 halves = 4 quarters = 8 eighths = 16 sixteenths.')),
       () => mc(L('წერტილიანი მეოთხედი რამდენი დარტყმაა?', 'How many beats is a dotted quarter?'), '1½', ['2', '1¼', '3'], L('წერტილი ხანგრძლივობას ნახევრით ზრდის: 1 + ½.', 'A dot adds half the value: 1 + ½.')),
       () => mc(L('რას აკეთებს ლიგა (რკალი ორ ერთნაირ ნოტს შორის)?', 'What does a tie (an arc between two equal notes) do?'), L('ხანგრძლივობებს აერთებს — მეორე ნოტი აღარ იკვრება', 'Adds their lengths — the second note is not struck again'), [L('ორჯერ ამოკვრას ნიშნავს', 'Means striking twice'), L('ტრიოლია', 'Is a triplet'), L('პაუზაა', 'Is a rest')], L('ლიგით ბგერა გრძელდება.', 'A tie lengthens the sound.')),
       () => mc(L('ტრიოლი რას ნიშნავს?', 'What is a triplet?'), L('სამი თანაბარი ნოტი ორის ადგილას', 'Three equal notes in the time of two'), [L('სამი ტაქტი', 'Three bars'), L('სამი სიმი ერთად', 'Three strings together'), L('სამჯერ გამეორება', 'Three repeats')], L('6/8-ში დარტყმა ისედაც სამ მერვედად იყოფა — ტრიოლის ნიშნის გარეშე.', 'In 6/8 a beat is already three eighths — no triplet sign needed.'))]),
     rest: () => pickQ([
-      () => { const [nm, v] = pick(DUR);
-        return mc(L(LX(nm) + ' პაუზა რამდენი დარტყმაა?', 'How many beats is a ' + nm[1] + ' rest?'), BEATS[v], others(BEATS[v], () => BEATS[pick(DUR)[1]], 3),
-          L('ყოველ ხანგრძლივობას თავისი პაუზა აქვს — იმავე ხანგრძლივობის.', 'Every note value has a rest of the same length.')); },
+      () => { const i = rnd(DUR.length), nm = DUR[i][0], v = DUR[i][1], d = ['w', 'h', 'q', 'e', 's'][i];
+        return mc(L('ეს პაუზა რამდენი დარტყმაა?', 'How many beats is this rest?'), BEATS[v], others(BEATS[v], () => BEATS[pick(DUR)[1]], 3),
+          L(LX(nm) + ' პაუზა = ' + BEATS[v] + ' დარტყმა — ნოტის იმავე ხანგრძლივობა.', 'The ' + nm[1] + ' rest = ' + BEATS[v] + ' — the same length as the note.'),
+          null, ART() ? ART().symbol('rest', d) : null); },
       () => mc(L('რომელი პაუზა „კიდია“ ხაზზე?', 'Which rest hangs below a line?'), L('მთელი', 'The whole rest'), [L('ნახევარი', 'The half rest'), L('მეოთხედი', 'The quarter rest'), L('მერვედი', 'The eighth rest')], L('მთელი კიდია, ნახევარი ხაზზე ზის.', 'The whole rest hangs, the half rest sits.')),
       () => mc(L('პაუზის დროს ფანდურზე რას აკეთებ?', 'What do you do on the panduri during a rest?'), L('სიმებს ხელს ოდნავ ადებ, რომ ბგერა გაჩუმდეს', 'Lightly touch the strings so the sound stops'), [L('უფრო ძლიერად უკრავ', 'Play louder'), L('ტემპს ანელებ', 'Slow the tempo'), L('ლადს ცვლი', 'Change fret')], L('პაუზა დუმილია — მუსიკა გრძელდება, ბგერა არა.', 'A rest is silence — the music goes on, the sound does not.'))]),
     meter: () => pickQ([
@@ -413,8 +430,8 @@ PD.exam = (() => {
         L('აწყობა A C♯ E თავად მაჟორული ტრიადაა, ამიტომ ბარე ყოველთვის მაჟორს იძლევა: ' + f + ' ლადი = ' + root + '.', 'The tuning A C♯ E is itself a major triad, so a barre always gives a major chord: fret ' + f + ' = ' + root + '.'),
         () => { PD.audio.ensure(); PD.audio.strum([f, f, f], 'down', { gap: .03 }); }); },
     scale: () => pickQ([
-      () => mc(L('მაჟორული გამის ნაბიჯები:', 'The major scale\'s steps:'), L('ტ ტ ნ ტ ტ ტ ნ', 'T T S T T T S'), [L('ტ ნ ტ ტ ნ ტ ტ', 'T S T T S T T'), L('ტ ტ ტ ნ ტ ტ ნ', 'T T T S T T S'), L('ნ ტ ტ ნ ტ ტ ტ', 'S T T S T T T')], L('C D E F G A B C — ტ ტ ნ ტ ტ ტ ნ.', 'C D E F G A B C — T T S T T T S.'), sound([60, 62, 64, 65, 67, 69, 71, 72], .32)),
-      () => mc(L('ნატურალური მინორის ნაბიჯები:', 'The natural minor\'s steps:'), L('ტ ნ ტ ტ ნ ტ ტ', 'T S T T S T T'), [L('ტ ტ ნ ტ ტ ტ ნ', 'T T S T T T S'), L('ნ ტ ტ ტ ნ ტ ტ', 'S T T T S T T'), L('ტ ტ ნ ნ ტ ტ ნ', 'T T S S T T S')], L('A B C D E F G A — ტ ნ ტ ტ ნ ტ ტ.', 'A B C D E F G A — T S T T S T T.'), sound([57, 59, 60, 62, 64, 65, 67, 69], .32)),
+      () => mc(L('მაჟორული გამა რომელი ნაბიჯებით იგება? (ტ = ტონი, ნ = ნახევარტონი)', 'Which steps build a major scale? (T = tone, S = semitone)'), L('ტ ტ ნ ტ ტ ტ ნ', 'T T S T T T S'), [L('ტ ნ ტ ტ ნ ტ ტ', 'T S T T S T T'), L('ტ ტ ტ ნ ტ ტ ნ', 'T T T S T T S'), L('ნ ტ ტ ნ ტ ტ ტ', 'S T T S T T T')], L('C D E F G A B C — ტ ტ ნ ტ ტ ტ ნ.', 'C D E F G A B C — T T S T T T S.'), sound([60, 62, 64, 65, 67, 69, 71, 72], .32)),
+      () => mc(L('ნატურალური მინორი რომელი ნაბიჯებით იგება? (ტ = ტონი, ნ = ნახევარტონი)', 'Which steps build a natural minor? (T = tone, S = semitone)'), L('ტ ნ ტ ტ ნ ტ ტ', 'T S T T S T T'), [L('ტ ტ ნ ტ ტ ტ ნ', 'T T S T T T S'), L('ნ ტ ტ ტ ნ ტ ტ', 'S T T T S T T'), L('ტ ტ ნ ნ ტ ტ ნ', 'T T S S T T S')], L('A B C D E F G A — ტ ნ ტ ტ ნ ტ ტ.', 'A B C D E F G A — T S T T S T T.'), sound([57, 59, 60, 62, 64, 65, 67, 69], .32)),
       () => mc(L('ჰარმონიულ მინორში რომელი საფეხურია ამაღლებული?', 'Which degree is raised in the harmonic minor?'), L('მე-7', 'The 7th'), [L('მე-6', 'The 6th'), L('მე-3', 'The 3rd'), L('მე-5', 'The 5th')], L('A B C D E F G♯ A.', 'A B C D E F G♯ A.')),
       () => mc(L('რამდენი ბემოლია რე მინორში (ბანი-აჭარულის გამა)?', 'How many flats does D minor have (the scale of Bani-Acharuli)?'), '1 (B♭)', ['2', '0', '3'], L('D E F G A B♭ C D.', 'D E F G A B♭ C D.')),
       () => mc(L('პენტატონიკა რამდენი ნოტისგან შედგება?', 'How many notes does a pentatonic scale have?'), '5', ['7', '6', '8'], L('მაჟორული პენტატონიკა: C D E G A.', 'Major pentatonic: C D E G A.')),
@@ -441,7 +458,7 @@ PD.exam = (() => {
       return mc(L('„დო“-დან „' + SYL[i][0] + '“-მდე რამდენი ნახევარტონია?', 'How many semitones from “do” to “' + SYL[i][1] + '”?'), String(STEP[i]), others(String(STEP[i]), () => String(STEP[1 + rnd(6)]), 3),
         L('დო-რე 2 · დო-მი 4 · დო-ფა 5 · დო-სოლ 7 · დო-ლა 9 · დო-სი 11 · დო-დო 12.', 'do-re 2 · do-mi 4 · do-fa 5 · do-sol 7 · do-la 9 · do-si 11 · do-do 12.'), sound([60, 60 + STEP[i], [60, 60 + STEP[i]]], .5)); },
     solfIv: () => { const names = [['სეკუნდა', '2nd'], ['ტერცია', '3rd'], ['კვარტა', '4th'], ['კვინტა', '5th'], ['სექსტა', '6th'], ['სეპტიმა', '7th'], ['ოქტავა', 'octave']], k = rnd(7);
-      return mc(L('„' + names[k][0] + '“ რამდენ საფეხურს მოიცავს?', 'How many steps does a ' + names[k][1] + ' span?'), String(k + 2), others(String(k + 2), () => String(2 + rnd(7)), 3),
+      return mc(L('„' + names[k][0] + '“ რამდენ საფეხურს მოიცავს ორივე ნოტის ჩათვლით?', 'How many steps does a ' + names[k][1] + ' span, counting both notes?'), String(k + 2), others(String(k + 2), () => String(2 + rnd(7)), 3),
         L('სეკუნდა 2, ტერცია 3, კვარტა 4, კვინტა 5, სექსტა 6, სეპტიმა 7, ოქტავა 8 საფეხური.', 'A 2nd spans 2 steps, a 3rd 3, a 4th 4, a 5th 5, a 6th 6, a 7th 7, an octave 8.')); },
     ear: () => { const i = 1 + rnd(6), m = 60 + STEP[i];
       return mc(L('მოუსმინე: ჯერ „დო“ ჟღერს, მერე ნოტი. რომელია მეორე?', 'Listen: “do” sounds first, then a note. Which is the second?'),
@@ -619,6 +636,7 @@ PD.exam = (() => {
     function drawQ() {
       const q = qs[i]; body.innerHTML = '';
       const card = h('section', { class: 'exq' }, [h('p', { class: 'exq-q', html: LX(q.q) })]);
+      if (q.art) card.append(h('div', { class: 'exq-art', html: q.art }));
       if (q.play) card.append(h('button', { class: 'btn small', 'data-t': 'ex.listen', onclick: () => q.play() }));
       const box = h('div', { class: 'exq-opts' }, q.opts.map((o, k) => h('button', { class: 'btn' + (answers[i] === k ? ' on' : ''), html: LX(o), onclick: () => {
         answers[i] = k; tick();
@@ -672,6 +690,7 @@ PD.exam = (() => {
       const good = answers[k] === q.ok;
       rev.append(h('div', { class: 'exrev-q' + (good ? ' ok' : ' bad') }, [
         h('b', { html: LX(q.q) }),
+        q.art ? h('div', { class: 'exq-art small', html: q.art }) : null,
         h('small', { html: t('ex.yours') + ': ' + (answers[k] >= 0 ? LX(q.opts[answers[k]]) : t('ex.none')) }),
         good ? null : h('small', { class: 'exrev-r', html: t('ex.right') + ': ' + LX(q.opts[q.ok]) }),
         h('small', { class: 'exrev-w', html: LX(q.why) })].filter(Boolean)));
@@ -697,6 +716,7 @@ PD.exam = (() => {
       body.innerHTML = '';
       const sc = h('div', { class: 'exd-score', text: t('ex.score', { a, b }) });
       const card = h('section', { class: 'exq' }, [h('p', { class: 'exq-q', html: LX(q.q) })]);
+      if (q.art) card.append(h('div', { class: 'exq-art', html: q.art }));
       if (q.play) { card.append(h('button', { class: 'btn small', 'data-t': 'ex.listen', onclick: () => q.play() })); try { q.play(); } catch (_) {} }
       const fb = h('p', { class: 'tb-fb', hidden: true });
       const box = h('div', { class: 'exq-opts' }, q.opts.map((o, k) => h('button', { class: 'btn', html: LX(o), onclick: ev => {
@@ -923,6 +943,7 @@ PD.exam = (() => {
     function next() {
       q = draw(topic, 1)[0]; card.innerHTML = '';
       card.append(h('p', { class: 'exq-q', html: LX(q.q) }));
+      if (q.art) card.append(h('div', { class: 'exq-art', html: q.art }));
       if (q.play) { card.append(h('button', { class: 'btn small', 'data-t': 'ex.listen', onclick: () => q.play() })); try { q.play(); } catch (_) {} }
       const fb = h('p', { class: 'tb-fb', hidden: true });
       const box = h('div', { class: 'exq-opts' }, q.opts.map((o, k) => h('button', { class: 'btn', html: LX(o), onclick: ev => {
