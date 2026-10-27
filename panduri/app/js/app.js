@@ -119,7 +119,7 @@ PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
   const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['chords', 'nav.chords', ic.chord], ['ai', 'nav.ai', '<span class="nav-ai">AI</span>'], ['profile', 'nav.profile', ic.user]];   // the exam is not a tab: it covers the screen when it is due
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'learn', tips: 'learn', solfege: 'learn', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'home', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
-    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', inbox: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -245,7 +245,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
     const want = !changed ? keepScroll : (fromPop && scrolls[key]) || 0;
     page.style.scrollBehavior = 'auto'; page.scrollTop = want;   // Back returns to where you were
@@ -417,6 +417,9 @@ PD.app = (() => {
     const ring = (v) => { const r = 16, c = 2 * Math.PI * r, k = Math.max(0, Math.min(1, v)); return '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="rgba(255,240,228,.1)" stroke-width="3"/><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linecap="round" stroke-dasharray="' + (c * k).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/></svg>'; };
     w.append(h('div', { class: 'hx-top' }, [
       h('div', { class: 'hx-hello' }, [h('h1', { html: PD.esc(t('hx.hi')) + (name ? ',<br>' + PD.esc(name) : '') })]),
+      (() => { const n = PD.notify.unread();
+        return h('button', { class: 'hx-bell' + (n ? ' has' : ''), 'aria-label': t('nt.title') + (n ? ' (' + n + ')' : ''), onclick: () => go('inbox'),
+          html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>' + (n ? '<i class="hx-bn">' + (n > 9 ? '9+' : n) + '</i>' : '') }); })(),
       h('button', { class: 'avatar', 'aria-label': t('nav.profile'), onclick: () => go('profile'), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : ic.user })]));
     // hero: continue learning
     const pa = primaryAction(), hasResume = pa && pa.kicker === t('hm.resume'), ts = !hasResume && nextTheoryStep();
@@ -870,6 +873,7 @@ PD.app = (() => {
     if (PD.cloud.isOwner) w.append(sect('pa.title', [h('button', { class: 'li pa-entry', onclick: () => go('pmadmin') }, [h('span', { class: 'pa-entry-ic', text: '♾️' }), h('div', { class: 'grow' }, [h('span', { 'data-t': 'pa.title' }), h('small', { 'data-t': 'pa.row' })]), h('span', { html: ic.chevron, class: 'chev' })])]));
     { const C = PD.cloud; const goalSeg = h('div', { class: 'seg', role: 'group', 'aria-label': t('pf.goal') }, [5, 10, 15, 20, 30].map(m => h('button', { 'aria-pressed': String(PD.store.get('goalMin', 15) === m), text: t('dl.min', { n: m }), onclick: e => { PD.store.set('goalMin', m); goalSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
       w.append(sect('pf.goal', [h('div', { class: 'li' }, [goalSeg])]));
+      w.append(PD.notify.settingsSection({ sect, row, toggle }));
       w.append(sect('set.data', [
       h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'acct.export' })]), h('span', { class: 'row', style: 'gap:6px' }, [
         h('button', { class: 'btn small', html: ic.dl + '<span data-t="acct.export"></span>', onclick: () => PD.ui.download('panduri-data.json', JSON.stringify({ schema: 'panduri-data', v: 1, data: PD.store.exportAll() }, null, 1)) }),

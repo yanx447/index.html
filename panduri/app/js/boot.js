@@ -16,6 +16,8 @@
     if (PD.cloud.takeRecovery()) setTimeout(() => PD.auth.newPassword(), 300);   // came from the password-reset e-mail
     window.addEventListener('keydown', e => { if (e.key === '?' && !PD.practice.active) PD.ui.toast(t('kbd.list'), 6000); });
     PD.bus.on('lessons', () => PD.pwa.persist());
+    setTimeout(() => { try { PD.notify.catchUp(); PD.notify.subscribePush(); PD.notify.watch(); } catch (_) {} }, 2500);   // what the learner should be told, and the push subscription
+    PD.bus.on('notify.new', () => { if (PD.app.route === 'home') PD.app.render(); });
     if (sp) requestAnimationFrame(() => { sp.style.opacity = '0'; setTimeout(() => sp.remove(), 300); });
   } catch (e) {
     console.error(e);

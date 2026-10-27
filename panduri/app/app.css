@@ -2393,3 +2393,16 @@ body.exam-on .shell { padding-left: 0 }
 .exz-foot .btn.big{flex:1}
 .exz .exq{background:rgba(255,240,228,.04)}
 body.exam-on .rail,body.exam-on .tabbar{display:none!important}
+
+/* ===== v37 · notifications: the bell, its badge and the inbox ===== */
+.hx-bell{position:relative;display:grid;place-items:center;width:42px;height:42px;flex:0 0 auto;border-radius:50%;border:1px solid var(--line2);background:var(--card);color:var(--fg2)}
+.hx-bell.has{color:#E8C49B;border-color:rgba(201,139,91,.5)}
+.hx-bn{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 4px;display:grid;place-items:center;border-radius:9px;background:#D1553F;color:#fff;font:700 10.5px/1 system-ui;font-style:normal;border:2px solid var(--bg)}
+.nt-list{display:flex;flex-direction:column;gap:8px}
+.nt-row{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:12px 14px;border-radius:16px;border:1px solid var(--line2);background:var(--card);color:var(--fg)}
+.nt-row.new{border-color:rgba(201,139,91,.45);background:linear-gradient(180deg,rgba(201,139,91,.10),transparent)}
+.nt-row b{display:block;font-size:14px;line-height:1.35}
+.nt-row small{display:block;font-size:12.5px;line-height:1.45;color:var(--fg2)}
+.nt-row small.muted{color:var(--muted);font-size:11.5px;margin-top:2px}
+.nt-dot{width:8px;height:8px;margin-top:6px;border-radius:50%;background:transparent;flex:0 0 auto}
+.nt-row.new .nt-dot{background:#C98B5B}

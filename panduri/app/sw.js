@@ -3,9 +3,9 @@
    Teacher media: served from the 'pd-media-*' cache ONLY when the learner explicitly downloaded it;
    large audio/video is never cached silently. Old shell caches are deleted on activate;
    learner data (localStorage / IndexedDB) is never touched. */
-const VERSION = '9e300546ee';
+const VERSION = '755e7d3918';
 const SHELL_CACHE = 'pd-shell-' + VERSION;
-const SHELL = ["./", "index.html", "app.css", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "js/core.js", "js/instrument.js", "js/theory.js", "js/geom.js", "js/songdata.js", "js/curriculum.js", "js/lessons.js", "js/audio.js", "js/samples.js", "js/media.js", "js/detector.js", "js/engine.js", "js/coach.js", "js/ui.js", "js/motion.js", "js/fx.js", "js/cloud.js", "js/auth.js", "js/premium.js", "js/tv.js", "js/rhythms.js", "js/neck.js", "js/lanes.js", "js/trainers.js", "js/three3d.js", "js/practice.js", "js/camera.js", "js/community.js", "js/tools.js", "js/notesart.js", "js/simple.js", "js/notes.js", "js/fig.js", "js/tips.js", "js/solfege.js", "js/exam.js", "js/aiworker.js", "js/aideck.js", "js/aimus.js", "js/ai.js", "js/samisimi.js", "js/studio.js", "js/authortools.js", "js/onboard.js", "js/intro.js", "js/cine.js", "js/pwa.js", "js/app.js", "js/boot.js", "js/assets.js", "js/config.js"];
+const SHELL = ["./", "index.html", "app.css", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "js/core.js", "js/instrument.js", "js/theory.js", "js/geom.js", "js/songdata.js", "js/curriculum.js", "js/lessons.js", "js/audio.js", "js/samples.js", "js/media.js", "js/detector.js", "js/engine.js", "js/coach.js", "js/ui.js", "js/motion.js", "js/fx.js", "js/cloud.js", "js/auth.js", "js/premium.js", "js/tv.js", "js/rhythms.js", "js/neck.js", "js/lanes.js", "js/trainers.js", "js/three3d.js", "js/practice.js", "js/camera.js", "js/community.js", "js/tools.js", "js/notesart.js", "js/simple.js", "js/notes.js", "js/fig.js", "js/tips.js", "js/solfege.js", "js/exam.js", "js/notify.js", "js/aiworker.js", "js/aideck.js", "js/aimus.js", "js/ai.js", "js/samisimi.js", "js/studio.js", "js/authortools.js", "js/onboard.js", "js/intro.js", "js/cine.js", "js/pwa.js", "js/app.js", "js/boot.js", "js/assets.js", "js/config.js"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL_CACHE).then(c => c.addAll(SHELL))); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('pd-shell-') && k !== SHELL_CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
@@ -31,4 +31,42 @@ self.addEventListener('fetch', e => {
     return;
   }
   if (url.origin === location.origin) e.respondWith(caches.match(req).then(hit => hit || fetch(req)));
+});
+
+/* ---- notifications ---------------------------------------------------
+   push: a message from the server (friend request, acceptance, a new
+   message, a reminder). click: open the app where the notification
+   points. periodicsync: show what the plan says is due, when the
+   browser allows the check. ------------------------------------------ */
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { title: e.data ? e.data.text() : '' }; }
+  const title = d.title || 'ფანდური';
+  e.waitUntil(self.registration.showNotification(title, {
+    body: d.body || '', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png',
+    tag: d.tag || d.kind || 'pd', data: { go: d.go || null, kind: d.kind || null }, renotify: !!d.tag
+  }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const go = (e.notification.data && e.notification.data.go) || null;
+  e.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of all) { if ('focus' in c) { await c.focus(); if (go) c.postMessage({ type: 'notification', go }); return; } }
+    await self.clients.openWindow(go ? 'index.html?go=' + encodeURIComponent(go) : 'index.html');
+  })());
+});
+self.addEventListener('periodicsync', e => {
+  if (e.tag !== 'pd-check') return;
+  e.waitUntil((async () => {
+    try {
+      const c = await caches.open('pd-notify'), r = await c.match('/__plan'); if (!r) return;
+      const plan = await r.json(), now = Date.now(), hh = new Date().getHours();
+      if (plan.quiet && (hh >= 23 || hh < 8)) return;
+      const due = (plan.list || []).filter(x => x.at <= now && x.at > now - 36e5 * 18);
+      const shown = [];
+      for (const x of due) { await self.registration.showNotification(x.title, { body: x.body || '', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: x.kind + ':' + x.id, data: { go: x.go, kind: x.kind } }); shown.push(x.id); }
+      if (shown.length) { plan.list = (plan.list || []).filter(x => !shown.includes(x.id)); await c.put('/__plan', new Response(JSON.stringify(plan), { headers: { 'content-type': 'application/json' } })); }
+    } catch (_) {}
+  })());
 });
