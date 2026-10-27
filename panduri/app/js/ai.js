@@ -77,6 +77,10 @@ PD.i18n.add({
   'ai.voc': ['რა აკორდებს ვეძებ', 'Which chords to look for'],
   'ai.vocS': ['მაჟორი/მინორი', 'Major/minor'], 'ai.vocE': ['გაფართოებული', 'Extended'], 'ai.vocA': ['ყველა', 'Everything'],
   'ai.vocD': ['გაფართოებული: სეპტაკორდები, sus, 6, dim, aug, add9. „ყველა“ ნონაკორდებსაც ეძებს — მეტს პოულობს, მაგრამ უფრო ხშირად ცდება.', 'Extended: sevenths, sus, 6, dim, aug, add9. “Everything” also looks for ninths — it finds more, but is wrong more often.'],
+  'ai.sheetSlow': ['აკორდი იშვიათად იცვლება. თუ მელოდია სწრაფია (აჭარული, ტეხილები), ზემოთ აირჩიე „სწრაფი“ და დააჭირე „ხელახლა წაკითხვას“.', 'The chord rarely changes. If the melody is fast (Acharuli, tekhili), choose “Fast” above and press “Read again”.'],
+  'ai.fast': ['რამდენად ხშირად იცვლება', 'How often it changes'],
+  'ai.fast0': ['ნელი', 'Slow'], 'ai.fast1': ['ჩვეულებრივი', 'Normal'], 'ai.fast2': ['სწრაფი', 'Fast'],
+  'ai.fastD': ['აჭარული და სხვა სწრაფი მელოდიები — „სწრაფი“: აკორდი თითქმის ყოველ თვლაზე იცვლება. „ნელი“ — როცა ერთი აკორდი მთელ ტაქტს იკავებს.', 'Acharuli and other fast melodies — “Fast”: the chord changes on almost every beat. “Slow” — when one chord holds a whole bar.'],
   'ai.vocAgain': ['ხელახლა წაკითხვა', 'Read again'], 'ai.vocWait': ['ვკითხულობ…', 'Reading…'],
   'ai.chEdit': ['აკორდების შესწორება', 'Correct the chords'], 'ai.chEditD': ['ჩართე და ზოლზე შეეხე აკორდს', 'Turn this on and tap a chord on the ribbon'],
   'ai.chRoot': ['საფუძველი', 'Root'], 'ai.chQual': ['სახეობა', 'Type'], 'ai.chNone': ['აკორდის გარეშე', 'No chord'],
@@ -176,16 +180,22 @@ PD.ai = (() => {
   }
   /** mono 22.05 kHz signal → { chords:[{t0,t1,root,q,name}], key, bpm, beats } */
   async function analyse(mono, sr, onProgress, opt, onStage) {
-    opt = Object.assign({ bassW: .12, change: .5, keyBonus: .06, smooth: .2, nc: .35, third: .85, voc: 'ext' }, opt || {});
-    const N = 8192, HOPA = 2048, fft = fftMag(N), mag = new Float32Array(N / 2), frames = Math.max(1, Math.floor((mono.length - N) / HOPA));
+    opt = Object.assign({ bassW: .12, change: .34, keyBonus: .06, smooth: .12, nc: .35, third: .85, voc: 'ext', minBeats: .28, fast: 1 }, opt || {});
+    // the window has to be shorter than the chord. At 8192 (371 ms) two fast chords always arrived
+    // mixed together and only the slow ones survived; 4096 is 186 ms, about half a beat at 160 BPM.
+    // time resolution comes from the step, not from shortening the window further: below 4096 the
+    // bins can no longer tell one semitone from the next in the low register and the chroma blurs.
+    const N = opt.fast <= 0 ? 8192 : 4096, HOPA = opt.fast >= 2 ? N / 8 : N / 4;
+    const fft = fftMag(N), mag = new Float32Array(N / 2), frames = Math.max(1, Math.floor((mono.length - N) / HOPA));
     // bins → pitch class, 55 Hz .. 1.76 kHz, weighted toward the middle register
     const pcOf = new Int8Array(N / 2).fill(-1), wOf = new Float32Array(N / 2);
-    for (let k = 1; k < N / 2; k++) { const f = k * sr / N; if (f < 55 || f > 1760) continue; const m = 69 + 12 * Math.log2(f / 440), r = Math.round(m); if (Math.abs(m - r) > .35) continue; pcOf[k] = ((r % 12) + 12) % 12; wOf[k] = Math.exp(-Math.pow((m - 60) / 20, 2)); }
+    const tol = N >= 8192 ? .35 : .42;
+    for (let k = 1; k < N / 2; k++) { const f = k * sr / N; if (f < 55 || f > 1760) continue; const m = 69 + 12 * Math.log2(f / 440), r = Math.round(m); if (Math.abs(m - r) > tol) continue; pcOf[k] = ((r % 12) + 12) % 12; wOf[k] = Math.exp(-Math.pow((m - 60) / 20, 2)); }
     const chroma = [], bass = [], flux = new Float32Array(frames); let prev = new Float32Array(N / 2);
     for (let i = 0; i < frames; i++) {
       fft(mono, i * HOPA, mag);
       const c = new Float32Array(12), bs = new Float32Array(12); let fl = 0;
-      for (let k = 1; k < N / 2; k++) { const v = mag[k]; if (pcOf[k] >= 0) { const s = Math.sqrt(v) * wOf[k]; c[pcOf[k]] += s; if (k * sr / N < 200) bs[pcOf[k]] += Math.sqrt(v); } const d = v - prev[k]; if (d > 0 && k < 1200) fl += d; }
+      for (let k = 1; k < N / 2; k++) { const v = mag[k]; if (pcOf[k] >= 0) { const s = Math.sqrt(v) * wOf[k]; c[pcOf[k]] += s; const fb = k * sr / N; if (fb >= 60 && fb < 260) bs[pcOf[k]] += Math.sqrt(v); } const d = v - prev[k]; if (d > 0 && k < 1200) fl += d; }
       prev.set(mag); flux[i] = fl;
       const mx = Math.max(...c) || 1; for (let j = 0; j < 12; j++) c[j] /= mx;
       chroma.push(c); bass.push(bs);
@@ -198,7 +208,7 @@ PD.ai = (() => {
     let bestL = 0, bestS = -1; for (let bpm = 60; bpm <= 180; bpm += .5) { const L = 60 / bpm / dt; let s = 0; for (let i = Math.ceil(L); i < frames; i++) { const a = i - L, i0 = Math.floor(a), f = a - i0; s += on[i] * (on[i0] * (1 - f) + (on[i0 + 1] || 0) * f); } s *= Math.exp(-Math.pow(Math.log2(bpm / 100), 2) * .5); if (s > bestS) { bestS = s; bestL = bpm; } }
     const bpm = Math.round(bestL);
     // smooth the chroma over ~half a beat
-    const win = Math.max(0, Math.round(opt.smooth * 60 / bpm / dt)), sm = chroma.map((_, i) => { const o = new Float32Array(12); let n = 0; for (let j = Math.max(0, i - win); j <= Math.min(frames - 1, i + win); j++) { for (let k = 0; k < 12; k++) o[k] += chroma[j][k]; n++; } for (let k = 0; k < 12; k++) o[k] /= n; return o; });
+    const win = Math.max(0, Math.min(3, Math.round(opt.smooth * 60 / bpm / dt))), sm = chroma.map((_, i) => { const o = new Float32Array(12); let n = 0; for (let j = Math.max(0, i - win); j <= Math.min(frames - 1, i + win); j++) { for (let k = 0; k < 12; k++) o[k] += chroma[j][k]; n++; } for (let k = 0; k < 12; k++) o[k] /= n; return o; });
     onStage && onStage('key');
     // key: Krumhansl–Kessler profiles on the whole chroma
     const tot = new Float32Array(12); chroma.forEach(c => { for (let k = 0; k < 12; k++) tot[k] += c[k]; });
@@ -215,7 +225,7 @@ PD.ai = (() => {
     const K = T.length, NC = K;   // state K = no chord
     const em = sm.map((c, i) => { const e = new Float32Array(K + 1), energy = c.reduce((a, b) => a + b, 0); for (let k = 0; k < K; k++) e[k] = score(c, bass[i], T[k]) + (dia.has(T[k].r + T[k].base) ? opt.keyBonus : 0) - T[k].cost; e[NC] = energy < 1.2 ? .75 : opt.nc; return e; });
     // Viterbi: staying is cheap, changing costs
-    const stay = 0, change = -opt.change;
+    const stay = 0, change = -opt.change * (HOPA / sr) / .0929;   // scaled to the old frame step, so the setting keeps its meaning
     let dp = em[0].slice(), back = [];
     for (let i = 1; i < frames; i++) {
       let bi = 0; for (let k = 1; k <= K; k++) if (dp[k] > dp[bi]) bi = k;
@@ -237,10 +247,22 @@ PD.ai = (() => {
       st = i;
     }
     // drop blips shorter than half a beat (merge into the neighbour)
-    const minD = (opt.minBeats == null ? .5 : opt.minBeats) * 60 / bpm; const merged = [];
+    const minD = (opt.minBeats == null ? .28 : opt.minBeats) * 60 / bpm; const merged = [];
     chords.forEach(c => { const l = merged[merged.length - 1]; if (l && (c.t1 - c.t0 < minD || (l.root === c.root && l.q === c.q))) { l.t1 = c.t1; l.conf = Math.min(l.conf == null ? 1 : l.conf, c.conf == null ? 1 : c.conf); } else merged.push(Object.assign({}, c)); });
     onProgress && onProgress(1);
     return { chords: merged, key, bpm, dur: mono.length / sr };
+  }
+  /** pull every chord edge onto the nearest beat, when it is already close to one.
+      A chord that changes on the beat should be written on the beat, not 40 ms before it. */
+  function snapToBeats(chords, beats, bpm) {
+    if (!chords || !beats || beats.length < 4) return chords;
+    const tol = Math.min(.18, 60 / (bpm || 100) * .38);
+    const near = tt => { let lo = 0, hi = beats.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (beats[m] < tt) lo = m + 1; else hi = m; }
+      let best = beats[lo]; if (lo > 0 && Math.abs(beats[lo - 1] - tt) < Math.abs(best - tt)) best = beats[lo - 1];
+      return Math.abs(best - tt) <= tol ? best : tt; };
+    const out = chords.map(c => Object.assign({}, c));
+    for (let i = 1; i < out.length; i++) { const e = near(out[i].t0); if (e > out[i - 1].t0 + .04 && e < out[i].t1 - .04) { out[i - 1].t1 = e; out[i].t0 = e; } }
+    return out.filter(c => c.t1 - c.t0 > .05);
   }
   /** beat times (s) by dynamic programming on a fine onset envelope (Ellis 2007), plus the bar phase from chord changes */
   async function beatsOf(mono, sr, bpm0, chords, lock) {
@@ -411,14 +433,17 @@ PD.ai = (() => {
         bar(t('ai.analysing'), .1);
         const mono22 = await resample(ab, 22050, 1);
         let stage = 'ai.sSpec';
-        res = await analyse(mono22.getChannelData(0), 22050, p => bar(t(stage), .1 + .85 * p), { voc: PD.store.get('ai.voc', 'ext') }, s2 => { stage = { tempo: 'ai.sTempo', key: 'ai.sKey', chord: 'ai.sChord' }[s2] || stage; bar(t(stage), .95); });
-        res.voc = PD.store.get('ai.voc', 'ext');
+        const o0 = { voc: PD.store.get('ai.voc', 'ext'), fast: PD.store.get('ai.fast', 1) };
+        o0.change = o0.fast >= 2 ? .24 : o0.fast <= 0 ? .5 : .34; o0.smooth = o0.fast >= 2 ? .07 : o0.fast <= 0 ? .2 : .12; o0.minBeats = o0.fast >= 2 ? .18 : o0.fast <= 0 ? .5 : .28;
+        res = await analyse(mono22.getChannelData(0), 22050, p => bar(t(stage), .1 + .85 * p), o0, s2 => { stage = { tempo: 'ai.sTempo', key: 'ai.sKey', chord: 'ai.sChord' }[s2] || stage; bar(t(stage), .95); });
+        res.voc = o0.voc; res.fast = o0.fast;
         S0.mono = mono22.getChannelData(0);
       }
       if (!res.beats) {
         bar(t('ai.beats'), .96);
         const m = S0.mono || (await resample(ab, 22050, 1)).getChannelData(0), b = await beatsOf(m, 22050, res.bpm, res.chords);
         res.beats = b.beats; res.phase = b.phase; res.bpm = b.bpm; if (saved) saved.fresh = true;
+        res.chords = snapToBeats(res.chords, res.beats, res.bpm);
       }
       status.innerHTML = '';
       S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null, mono22: S0.mono || null, isVid };
@@ -465,7 +490,7 @@ PD.ai = (() => {
     let render = function () {
       body.innerHTML = '';
       const { res } = S, dk = S.deck, D = dk.D;
-      let rhyBox = null, rhyTimer = 0, chEdit = false, chBox = null, sheetBox = null, sheetCur = -1;
+      let rhyBox = null, rhyTimer = 0, chEdit = false, chBox = null, sheetBox = null, sheetCur = -1, reread = null;
       const used = [...new Map(res.chords.filter(c => c.root >= 0).map(c => [c.root + c.q, c])).values()];
       const TR = () => Math.round(D.semis);
       // header: name · key · tempo
@@ -737,6 +762,19 @@ PD.ai = (() => {
         drawSheet();
         return sheetBox;
       }
+      function readOpt() {
+        const f = PD.store.get('ai.fast', 1);
+        return { voc: PD.store.get('ai.voc', 'ext'), fast: f,
+          change: f >= 2 ? .24 : f <= 0 ? .5 : .34,
+          smooth: f >= 2 ? .07 : f <= 0 ? .2 : .12,
+          minBeats: f >= 2 ? .18 : f <= 0 ? .5 : .28 };
+      }
+      function speedTool() {
+        let v = res.fast == null ? PD.store.get('ai.fast', 1) : res.fast;
+        const seg = h('div', { class: 'seg' }, [[0, 'ai.fast0'], [1, 'ai.fast1'], [2, 'ai.fast2']].map(([k, lab]) =>
+          h('button', { 'aria-pressed': String(k === v), text: t(lab), onclick: e => { v = k; PD.store.set('ai.fast', k); seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); reread.hidden = (v === (res.fast == null ? 1 : res.fast)); } })));
+        return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.fast') }), h('div', { class: 'ai-tc' }, [seg]), h('small', { class: 'muted', text: t('ai.fastD') })]);
+      }
       function vocTool() {
         let v = (res.voc || PD.store.get('ai.voc', 'ext'));
         const seg = h('div', { class: 'seg' }, [['simple', 'ai.vocS'], ['ext', 'ai.vocE'], ['all', 'ai.vocA']].map(([k, lab]) =>
@@ -745,25 +783,29 @@ PD.ai = (() => {
           again.disabled = true; again.textContent = t('ai.vocWait');
           try {
             const m = S.mono22 || (await resample(S.ab, 22050, 1)).getChannelData(0); S.mono22 = m;
-            const r2 = await analyse(m, 22050, null, { voc: PD.store.get('ai.voc', 'ext') });
-            res.chords = r2.chords; res.key = r2.key; res.voc = r2.voc = PD.store.get('ai.voc', 'ext');
+            const o = readOpt(), r2 = await analyse(m, 22050, null, o);
+            res.chords = snapToBeats(r2.chords, res.beats, res.bpm); res.key = r2.key; res.voc = o.voc; res.fast = o.fast;
             res.chords0 = null; res.chordsBy = null;
             saveRes(); drawRibbon(); last = null; drawSheet(); chips();
           } catch (_) {}
           again.disabled = false; again.textContent = t('ai.vocAgain'); again.hidden = true;
         } });
+        reread = again;
         return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.voc') }), h('div', { class: 'ai-tc' }, [seg, again]), h('small', { class: 'muted', text: t('ai.vocD') })]);
       }
       function drawSheet() {
         if (!sheetBox) return;
         sheetBox.innerHTML = '';
         sheetBox.append(h('div', { class: 'row pg-head' }, [h('h2', { text: t('ai.sheet'), style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]),
-          h('p', { class: 'fg2', text: t('ai.sheetD') }), vocTool());
+          h('p', { class: 'fg2', text: t('ai.sheetD') }), h('div', { class: 'ai-tools' }, [vocTool(), speedTool()]));
         const list = (res.chords || []).filter(c => c.root >= 0);
         if (!list.length) { sheetBox.append(h('p', { class: 'notice', text: t('ai.sheetNone') })); PD.i18n.apply(sheetBox); return; }
         const seen = new Map();
         list.forEach(c => { const k = ((c.root + TR()) % 12 + 12) % 12 + c.q; if (!seen.has(k)) seen.set(k, c); });
         sheetBox.append(h('p', { class: 'muted', text: t('ai.sheetN', { n: list.length, u: seen.size }) }));
+        // few changes on a quick tune almost always means the reading was too slow for it
+        const bars = Math.max(1, res.dur / (60 / (res.bpm || 100) * (dk.D.bpb || 4)));
+        if ((res.fast == null ? 1 : res.fast) < 2 && list.length / bars < .8) sheetBox.append(h('p', { class: 'notice', text: t('ai.sheetSlow') }));
         const grid = h('div', { class: 'ai-sgrid' });
         list.forEach((c, i) => {
           const r = ((c.root + TR()) % 12 + 12) % 12, nm = cname(c.root, c.q, TR());
