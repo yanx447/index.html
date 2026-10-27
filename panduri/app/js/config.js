@@ -9,3 +9,5 @@ PD.CONFIG = Object.assign(PD.CONFIG || {}, Object.fromEntries(Object.entries({
   payments: null,    // { monthly: 'https://buy.stripe.com/...', yearly: 'https://buy.stripe.com/...' }
   turn: null         // { urls: 'turn:turn.example.com:3478', username: '...', credential: '...' }
 }).filter(function (e) { return e[1]; })));
+
+PD.BUILD = "b7bf558545";

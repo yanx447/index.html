@@ -361,19 +361,57 @@ PD.exam = (() => {
   let snoozed = null;  // "later": it stays away until the app is opened again
   const openNow = () => !!Z;
   function close() { if (!Z) return; const z = Z; Z = null; clearInterval(z.timer); z.root.remove(); document.body.style.overflow = ''; document.body.classList.remove('exam-on'); if (PD.app && PD.app.render) PD.app.render(); }
-  function open(id) {
-    const e = get(id); if (!e) return;
-    if (Z && Z.id === id) return; if (Z) close();
-    let a = active();
-    if (!a || a.id !== id) { PD.store.set('exam.on', { id, at: Date.now() }); a = active(); }
-    document.querySelectorAll('.exz').forEach(x => x.remove());   // a screen left over from an older session never stays behind
+  /** builds (or rebuilds) the screen itself; the content is drawn into it afterwards */
+  function shell(e) {
+    document.querySelectorAll('.exz').forEach(x => x.remove());   // never two screens, and never one left from an older session
     const root = h('div', { class: 'exz', role: 'dialog', 'aria-modal': 'true', 'aria-label': t(e.name) });
     const head2 = h('header', { class: 'exz-top' }), body = h('div', { class: 'exz-body' }), foot = h('footer', { class: 'exz-foot' });
     root.append(head2, body, foot);
+    // the buttons that must always work are handled here, on the screen itself: no button needs a live closure
+    root.addEventListener('click', ev => {
+      const b2 = ev.target && ev.target.closest ? ev.target.closest('[data-act]') : null; if (!b2 || !root.contains(b2)) return;
+      const act = b2.dataset.act;
+      if (act === 'finish') { ev.preventDefault(); ev.stopPropagation(); finishNow(false); }
+      else if (act === 'later') { ev.preventDefault(); ev.stopPropagation(); postpone(); }
+      else if (act === 'retry') { ev.preventDefault(); ev.stopPropagation(); PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); }
+      else if (act === 'close') { ev.preventDefault(); ev.stopPropagation(); close(); }
+      else if (act === 'drill') { ev.preventDefault(); ev.stopPropagation(); drillMode(e); }
+    }, true);
     document.body.appendChild(root); document.body.style.overflow = 'hidden'; document.body.classList.add('exam-on');
-    Z = { id, root, head: head2, body, foot, timer: 0 };
+    Z = { id: e.id, root, head: head2, body, foot, timer: 0 };
+    return Z;
+  }
+  function open(id) {
+    const e = get(id); if (!e) return;
+    if (Z && Z.id === id && Z.root && Z.root.isConnected) return; if (Z) close();
+    let a = active();
+    if (!a || a.id !== id) { PD.store.set('exam.on', { id, at: Date.now() }); a = active(); }
+    shell(e);
     runExam(e, a);
-    PD.i18n.apply(root);
+    PD.i18n.apply(Z.root);
+  }
+  /** finishing, on its own: it reads the running exam from the module, not from a closure,
+      and rebuilds the screen if the one on display is broken */
+  function finishNow(timeUp) {
+    const cur = api._cur; if (!cur) return;
+    const e = get(cur.id); if (!e) return;
+    if (Z && Z.root && Z.root.querySelector('.exr')) return;        // the result is already there
+    const right = cur.answers.filter((x, k) => x === (cur.qs[k] || {}).ok).length;
+    const p = cur.qs.length ? Math.round(right / cur.qs.length * 100) : 0;
+    let ok = false;
+    try { ok = finish(e.id, p); } catch (err) { console.error(err); ok = p >= e.pass; }
+    if (!parts()) shell(e);
+    try { result(e, cur.qs, cur.answers, right, p, ok, timeUp); }
+    catch (err) {
+      console.error(err);
+      const P2 = parts(); if (!P2) return;
+      P2.head.innerHTML = ''; P2.head.append(h('div', { class: 'exz-row' }, [h('b', { text: t(e.name) })]));
+      P2.body.innerHTML = ''; P2.foot.innerHTML = '';
+      P2.body.append(h('div', { class: 'exr ' + (ok ? 'ok' : 'bad') }, [h('h1', { text: ok ? t('ex.pass') : t('ex.fail', { p: e.pass }) }), h('b', { text: t('ex.result', { a: right, b: cur.qs.length, p }) })]));
+      P2.foot.append(ok ? h('button', { class: 'btn primary big', 'data-act': 'close', 'data-t': 'ex.go' })
+        : h('button', { class: 'btn primary big', 'data-act': 'retry', 'data-t': 'ex.retry' }));
+      PD.i18n.apply(P2.head); PD.i18n.apply(P2.body); PD.i18n.apply(P2.foot);
+    }
   }
   /** the exam itself */
   function runExam(e, a) {
@@ -388,7 +426,7 @@ PD.exam = (() => {
     const clock = h('span', { class: 'exz-clock' }), bar = h('i'), cnt = h('span', { class: 'exz-n' });
     head2.innerHTML = '';
     head2.append(h('div', { class: 'exz-row' }, [h('b', { text: t(e.name) }), h('span', { class: 'spacer' }), clock,
-        h('button', { class: 'btn small ghost exz-later', 'data-t': 'ex.later', onclick: postpone })]),
+        h('button', { class: 'btn small ghost exz-later', 'data-act': 'later', 'data-t': 'ex.later' })]),
       h('div', { class: 'exz-row sub' }, [cnt, h('span', { class: 'spacer' }), h('small', { text: t('ex.rule', { n: e.n, m: e.min, p: e.pass }) })]),
       h('div', { class: 'exz-prog' }, [bar]));
     function tick() {
@@ -414,34 +452,18 @@ PD.exam = (() => {
         i < qs.length - 1 ? h('button', { class: 'btn small', 'data-t': 'ex.next', onclick: () => { i++; drawQ(); tick(); } })
           : h('button', { class: 'btn primary', 'data-t': 'ex.submit', onclick: () => {
             const miss = answers.filter(x => x < 0).length;
-            if (!miss) return done(false);
+            if (!miss) return finishNow(false);
             body.querySelectorAll('.exq-ask').forEach(x => x.remove());
             body.append(h('div', { class: 'exq-ask' }, [h('p', { class: 'notice', text: t('ex.unanswered', { n: miss }) }),
               h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap' }, [
                 h('button', { class: 'btn small', 'data-t': 'ex.goUnans', onclick: () => { i = answers.findIndex(x => x < 0); drawQ(); tick(); } }),
-                h('button', { class: 'btn small primary', 'data-t': 'ex.anyway', onclick: () => done(false) })])]));
+                h('button', { class: 'btn small primary', 'data-act': 'finish', 'data-t': 'ex.anyway' })])]));
             PD.i18n.apply(body); body.scrollTop = body.scrollHeight;
           } }));
       PD.i18n.apply(body); PD.i18n.apply(foot);
       body.scrollTop = 0;
     }
-    function done(timeUp) {
-      if (over && Z && Z.root && Z.root.querySelector('.exr')) return;   // already finished and the result is on screen
-      over = true; try { clearInterval(Z.timer); } catch (_) {}
-      const right = answers.filter((x, k) => x === qs[k].ok).length, p = Math.round(right / qs.length * 100);
-      let ok = false;
-      try { ok = finish(e.id, p); } catch (err) { console.error(err); ok = p >= e.pass; }
-      try { result(e, qs, answers, right, p, ok, timeUp); }
-      catch (err) {   // the result must appear whatever happens: a bare one rather than a dead screen
-        console.error(err);
-        const P2 = parts(); if (!P2) return;
-        P2.body.innerHTML = ''; P2.foot.innerHTML = '';
-        P2.body.append(h('div', { class: 'exr ' + (ok ? 'ok' : 'bad') }, [h('h1', { text: ok ? t('ex.pass') : t('ex.fail', { p: e.pass }) }), h('b', { text: t('ex.result', { a: right, b: qs.length, p }) })]));
-        P2.foot.append(ok ? h('button', { class: 'btn primary big', 'data-t': 'ex.go', onclick: close })
-          : h('button', { class: 'btn primary big', 'data-t': 'ex.retry', onclick: () => { PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); } }));
-        PD.i18n.apply(P2.body); PD.i18n.apply(P2.foot);
-      }
-    }
+    function done(timeUp) { over = true; try { clearInterval(Z.timer); } catch (_) {} finishNow(timeUp); }
     Z.timer = setInterval(tick, 1000);
     tick(); drawQ();
   }
@@ -477,10 +499,10 @@ PD.exam = (() => {
     });
     body.append(rev);
     foot.innerHTML = '';
-    if (ok) foot.append(h('button', { class: 'btn primary big', 'data-t': 'ex.go', onclick: close }));
-    else foot.append(h('button', { class: 'btn', 'data-t': 'ex.drill', onclick: () => drillMode(e) }),
-      h('button', { class: 'btn small ghost', 'data-t': 'ex.later', onclick: postpone }), h('span', { class: 'spacer' }),
-      h('button', { class: 'btn primary', 'data-t': 'ex.retry', onclick: () => { PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); } }));
+    if (ok) foot.append(h('button', { class: 'btn primary big', 'data-act': 'close', 'data-t': 'ex.go' }));
+    else foot.append(h('button', { class: 'btn', 'data-act': 'drill', 'data-t': 'ex.drill' }),
+      h('button', { class: 'btn small ghost', 'data-act': 'later', 'data-t': 'ex.later' }), h('span', { class: 'spacer' }),
+      h('button', { class: 'btn primary', 'data-act': 'retry', 'data-t': 'ex.retry' }));
     PD.i18n.apply(Z.root); body.scrollTop = 0;
   }
   /** the exercise for this subject, inside the exam screen: nothing else opens from here */
@@ -511,8 +533,8 @@ PD.exam = (() => {
       card.append(box, fb);
       body.append(sc, card, h('p', { class: 'muted', 'data-t': 'ex.of' }));
       foot.innerHTML = '';
-      foot.append(h('button', { class: 'btn small ghost', 'data-t': 'ex.later', onclick: postpone }), h('span', { class: 'spacer' }),
-        h('button', { class: 'btn primary', 'data-t': 'ex.again', onclick: () => { PD.store.set('exam.on', { id: e.id, at: Date.now() }); runExam(e, active()); } }));
+      foot.append(h('button', { class: 'btn small ghost', 'data-act': 'later', 'data-t': 'ex.later' }), h('span', { class: 'spacer' }),
+        h('button', { class: 'btn primary', 'data-act': 'retry', 'data-t': 'ex.again' }));
       PD.i18n.apply(Z.root); body.scrollTop = 0;
     }
     next();
@@ -636,6 +658,6 @@ PD.exam = (() => {
     next(); PD.i18n.apply(w);
   }
 
-  const api = { page, drill, list, passed, active, begin, blocked, finish, draw, bankSize, open, close, guard, dueExam, doneUnits, openNow, postpone, blocking, blockingLesson, pathOfLesson, waiting, EXAMS, TOPICS, get, GEN };
+  const api = { page, drill, list, passed, active, begin, blocked, finish, finishNow, draw, bankSize, open, close, guard, dueExam, doneUnits, openNow, postpone, blocking, blockingLesson, pathOfLesson, waiting, EXAMS, TOPICS, get, GEN };
   return api;
 })();

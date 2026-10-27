@@ -18,7 +18,9 @@ PD.pwa = (() => {
       if (!('serviceWorker' in navigator) || window.top !== window || !document.querySelector('link[rel="manifest"]')) return;   // only the installable build
       if (!(location.protocol === 'https:' || location.hostname === 'localhost')) return;
       navigator.serviceWorker.register('sw.js').then(reg => {
-        if (reg.waiting) offer(reg);
+        // a fresh launch is a safe moment to take a waiting update: the learner gets fixes without having to notice a toast
+        if (reg.waiting) { asked = true; try { reg.waiting.postMessage({ type: 'skipWaiting' }); } catch (_) { offer(reg); } }
+        try { reg.update(); } catch (_) {}
         reg.addEventListener('updatefound', () => { const nw = reg.installing; if (nw) nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) offer(reg); }); });
       }).catch(() => {});
       // reload only for an update the learner asked for — never during the first visit (the first install also takes control of the page)
@@ -27,5 +29,19 @@ PD.pwa = (() => {
   }
   /** ask the browser not to evict the learner's data */
   function persist() { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (_) {} }
-  return { register, persist };
+  /** ask the browser for a new version now; true when one was found and applied */
+  async function update() {
+    try {
+      if (!('serviceWorker' in navigator)) return false;
+      const reg = await navigator.serviceWorker.getRegistration(); if (!reg) return false;
+      await reg.update();
+      const w = reg.waiting || reg.installing;
+      if (!w) return false;
+      asked = true;
+      if (reg.waiting) reg.waiting.postMessage({ type: 'skipWaiting' });
+      else w.addEventListener('statechange', () => { if (w.state === 'installed' && reg.waiting) reg.waiting.postMessage({ type: 'skipWaiting' }); });
+      return true;
+    } catch (_) { return false; }
+  }
+  return { register, persist, update };
 })();

@@ -883,6 +883,11 @@ PD.app = (() => {
     { const C = PD.cloud; const goalSeg = h('div', { class: 'seg', role: 'group', 'aria-label': t('pf.goal') }, [5, 10, 15, 20, 30].map(m => h('button', { 'aria-pressed': String(PD.store.get('goalMin', 15) === m), text: t('dl.min', { n: m }), onclick: e => { PD.store.set('goalMin', m); goalSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
       w.append(sect('pf.goal', [h('div', { class: 'li' }, [goalSeg])]));
       w.append(PD.notify.settingsSection({ sect, row, toggle }));
+      w.append(sect('set.app', [row('set.version', PD.BUILD ? 'build ' + PD.BUILD : '', h('button', { class: 'btn small', 'data-t': 'set.update', onclick: async e2 => {
+        const btn = e2.currentTarget; btn.disabled = true; btn.textContent = t('set.updating');
+        const got = await PD.pwa.update();
+        if (!got) { btn.disabled = false; btn.textContent = t('set.update'); PD.ui.toast(t('set.upToDate'), 2600); }
+      } }))]));
       w.append(sect('set.data', [
       h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'acct.export' })]), h('span', { class: 'row', style: 'gap:6px' }, [
         h('button', { class: 'btn small', html: ic.dl + '<span data-t="acct.export"></span>', onclick: () => PD.ui.download('panduri-data.json', JSON.stringify({ schema: 'panduri-data', v: 1, data: PD.store.exportAll() }, null, 1)) }),

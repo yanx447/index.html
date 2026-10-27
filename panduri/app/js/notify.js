@@ -63,7 +63,12 @@ PD.i18n.add({
   'nt.helpT': ['პასუხი შენს კითხვაზე', 'An answer to your question'],
   'nt.testT': ['შეტყობინებები მუშაობს ✓', 'Notifications work ✓'],
   'nt.testB': ['ასე მოგივა შეხსენება.', 'This is how a reminder will look.'],
-  'nt.openApp': ['გახსნა', 'Open']
+  'nt.openApp': ['გახსნა', 'Open'],
+  'set.app': ['აპლიკაცია', 'The app'],
+  'set.version': ['ვერსია', 'Version'],
+  'set.update': ['განახლების შემოწმება', 'Check for an update'],
+  'set.updating': ['მოწმდება…', 'Checking…'],
+  'set.upToDate': ['უახლესი ვერსია გაქვს.', 'You have the newest version.']
 });
 
 PD.notify = (() => {
