@@ -73,10 +73,12 @@ PD.exam = (() => {
   // inside the app the strings are numbered the other way (s = 1 is A), so this is the bridge between the two.
   const TNUM = { 1: 3, 2: 2, 3: 1 };                   // internal string → the teacher's number
   const SIN = { 1: 3, 2: 2, 3: 1 };                    // the teacher's number → internal string
-  const VOICE = { 1: ['1-ლი ხმა', 'first voice'], 2: ['მე-2 ხმა', 'second voice'], 3: ['ბანი', 'the bass'] };   // by the teacher's number
   const ORD = n => L(n === 1 ? '1-ლი' : 'მე-' + n, String(n));
   const ORDS = ns => ns.length ? ns.map(ORD).join(L(' და ', ' and ')) + L(' დარტყმაზე', '') : L('არცერთზე', 'none');
   const sName = s => TH.stringName(s);                 // 'A' · 'C♯' · 'E'
+  const nLab = m => { const pc = TH.pc(m); return TH.ROOT_NAMES[pc] + (PD.i18n.lang === 'ka' ? ' (' + TH.ROOT_NAMES_KA[pc] + ')' : ''); };
+  const sLab = s => nLab(TH.midi(s, 0));               // 'A (ლა)' · 'C♯ (დო დიეზი)' · 'E (მი)'
+  const sOrd = n => L((n === 1 ? '1-ლი' : 'მე-' + n) + ' სიმი' + (n === 3 ? ' (ბანი)' : ''), 'string ' + n + (n === 3 ? ' (the bass)' : ''));
   const noteAt = (s, f) => TH.pcName(TH.midi(s, f));
   const kaAt = (s, f) => TH.nameKa(TH.midi(s, f));
   const FR = () => TH.FRETS;
@@ -94,13 +96,13 @@ PD.exam = (() => {
   const GEN = {
     /* --- the instrument --- */
     stringNum: () => { const n = 1 + rnd(3), s = SIN[n];
-      return mc(L('მე-' + n + ' სიმი (მასწავლებლის ანგარიშით) რომელია?', 'Which string is string ' + n + ' (as the teacher counts)?'),
-        sName(s), [1, 2, 3].filter(x => x !== n).map(x => sName(SIN[x])),
-        L('ითვლი ქვემოდან: E = 1, C♯ = 2, A = 3 (ბანი).', 'Count from the bottom: E = 1, C♯ = 2, A = 3 (the bass).'), sound([TH.midi(s, 0)])); },
-    stringVoice: () => { const n = 1 + rnd(3);
-      return mc(L('მე-' + n + ' სიმი რომელ ხმას უკრავს?', 'Which voice does string ' + n + ' play?'),
-        LX(VOICE[n]), [1, 2, 3].filter(x => x !== n).map(x => LX(VOICE[x])),
-        L('1-ლი სიმი — 1-ლი ხმა (E), მე-2 — მე-2 ხმა (C♯), მე-3 — ბანი (A).', 'String 1 — first voice (E), string 2 — second voice (C♯), string 3 — the bass (A).')); },
+      return mc(L((n === 1 ? '1-ლი' : 'მე-' + n) + ' სიმი რომელ ნოტზეა აწყობილი?', 'Which note is string ' + n + ' tuned to?'),
+        sLab(s), [1, 2, 3].filter(x => x !== n).map(x => sLab(SIN[x])),
+        L('ქვემოდან ითვლი: 1-ლი სიმი E (მი), მე-2 C♯ (დო დიეზი), მე-3 A (ლა) — ბანი.', 'Count from the bottom: string 1 is E, string 2 C♯, string 3 A — the bass.'), sound([TH.midi(s, 0)])); },
+    stringVoice: () => { const n = 1 + rnd(3), s = SIN[n];
+      return mc(L(sLab(s) + ' რომელი სიმია?', 'Which string is ' + sName(s) + '?'),
+        sOrd(n), [1, 2, 3].filter(x => x !== n).map(sOrd),
+        L('E (მი) — 1-ლი სიმი, 1-ლი ხმა · C♯ (დო დიეზი) — მე-2 სიმი, მე-2 ხმა · A (ლა) — მე-3 სიმი, ბანი.', 'E — string 1, the first voice · C♯ — string 2, the second voice · A — string 3, the bass.'), sound([TH.midi(s, 0)])); },
     tuning: () => mc(L('ფანდურის სამი ღია სიმი ერთად რომელი აკორდია?', 'The three open strings together make which chord?'),
       'A ' + L('მაჟორი', 'major'), ['A ' + L('მინორი', 'minor'), 'D ' + L('მაჟორი', 'major'), 'E ' + L('მინორი', 'minor')],
       L('A · C♯ · E = A მაჟორული ტრიადა.', 'A · C♯ · E = an A major triad.'), sound([TH.midi(1, 0), TH.midi(2, 0), TH.midi(3, 0)], .18)),
@@ -122,17 +124,17 @@ PD.exam = (() => {
     zero: () => mc(L('ტაბულატურაში „0“ რას ნიშნავს?', 'What does “0” mean in the tab?'),
       L('ღია სიმი — თითს არ აჭერ', 'An open string — no finger'), [L('პირველი ლადი', 'The first fret'), L('პაუზა', 'A rest'), L('ცერა თითი', 'The thumb')],
       L('0 = ღია სიმი; 1–' + FR() + ' = ლადის ნომერი.', '0 = open string; 1–' + FR() + ' = the fret number.')),
-    thumb: () => mc(L('მასწავლებლის წესით ბანს (მე-3 სიმს) რომელი თითით იჭერ?', 'By the teacher\'s rule, which finger holds the bass (string 3)?'),
+    thumb: () => mc(L('მასწავლებლის წესით ბანს — მე-3 სიმს, A (ლა) — რომელი თითით იჭერ?', 'By the teacher\'s rule, which finger holds the bass — string 3, A?'),
       L('T — ცერა თითი', 'T — the thumb'), [L('1 — საჩვენებელი', '1 — index'), L('2 — შუა', '2 — middle'), L('4 — ნეკი', '4 — little')],
       L('ბანს ცერით იჭერ; რითმში ხანდახან მეორე (შუა) თითს ამატებ ბანის მოძრაობისთვის.', 'The thumb holds the bass; in the rhythm the middle finger is sometimes added to move the bass.')),
 
     /* --- notes, frets, signs --- */
-    fretNote: () => { const s = 1 + rnd(3), f = rnd(FR() + 1), m = TH.midi(s, f), right = TH.pcName(m);
-      return mc(L(sName(s) + ' სიმის ' + (f ? 'მე-' + f + ' ლადი' : 'ღია ბგერა') + ' რომელი ნოტია?', (f ? 'Fret ' + f : 'The open sound') + ' of the ' + sName(s) + ' string is which note?'),
-        right, others(right, () => TH.pcName(m + (1 + rnd(4)) * (Math.random() < .5 ? 1 : -1)), 3),
-        L(sName(s) + ' + ' + f + ' ნახევარტონი = ' + right + ' (' + kaAt(s, f) + ').', sName(s) + ' + ' + f + ' semitones = ' + right + '.'), sound([m])); },
+    fretNote: () => { const s = 1 + rnd(3), f = rnd(FR() + 1), m = TH.midi(s, f), right = nLab(m);
+      return mc(L(sLab(s) + ' სიმის ' + (f ? 'მე-' + f + ' ლადი' : 'ღია ბგერა') + ' რომელი ნოტია?', (f ? 'Fret ' + f : 'The open sound') + ' of the ' + sName(s) + ' string is which note?'),
+        right, others(right, () => nLab(m + (1 + rnd(4)) * (Math.random() < .5 ? 1 : -1)), 3),
+        L(sName(s) + ' + ' + f + ' ნახევარტონი = ' + TH.pcName(m) + ' (' + kaAt(s, f) + ').', sName(s) + ' + ' + f + ' semitones = ' + TH.pcName(m) + '.'), sound([m])); },
     noteWhere: () => { const s = 1 + rnd(3), f = 1 + rnd(FR()), m = TH.midi(s, f), nm = TH.pcName(m);
-      return mc(L(nm + ' ნოტი ' + sName(s) + ' სიმზე რომელ ლადზეა?', 'On which fret of the ' + sName(s) + ' string is ' + nm + '?'),
+      return mc(L(nLab(m) + ' ნოტი ' + sLab(s) + ' სიმზე რომელ ლადზეა?', 'On which fret of the ' + sName(s) + ' string is ' + nm + '?'),
         String(f), others(f, () => { const x = f + (1 + rnd(3)) * (Math.random() < .5 ? 1 : -1); return x >= 0 && x <= FR() ? String(x) : null; }, 3),
         L('ღია ' + sName(s) + '-დან ' + f + ' ნახევარტონი ზემოთ = ' + nm + '.', f + ' semitones above the open ' + sName(s) + ' = ' + nm + '.'), sound([m])); },
     semitone: () => pickQ([
