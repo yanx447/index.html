@@ -47,6 +47,12 @@ PD.i18n.add({
   'ai.rhyBars': ['გაზომილი ტაქტები', 'Bars measured'], 'ai.rhySpan': ['ნახატი ორ ტაქტზეა გაწერილი', 'The pattern runs over two bars'],
   'ai.and': ['და', 'and'], 'ai.rhyAcc': ['აქცენტი', 'accent'], 'ai.rhyHit': ['დარტყმა', 'stroke'], 'ai.rhyWeak': ['სუსტი', 'weak'],
   'ai.rhyDir': ['ქვემოთ/ზემოთ მიმართულება აუდიოდან არ ისმის — ეს შემოთავაზებაა ტაქტში პოზიციის მიხედვით, და არა გაზომილი.', 'Whether a stroke goes down or up cannot be heard — this is a suggestion from the position in the bar, not a measurement.'],
+  'ai.geoIs': ['ეს რითმი ყველაზე ახლოსაა:', 'This rhythm is closest to:'],
+  'ai.geoMaybe': ['შესაძლოა იყოს:', 'It may be:'],
+  'ai.geoOpen': ['გახსნა', 'Open'],
+  'ai.geoNo': ['ქართულ რითმებთან ახლო დამთხვევა ვერ ვიპოვე.', 'No close match with the Georgian rhythms was found.'],
+  'ai.geoD': ['ვადარებ იმ ოთხ რითმს, რომელიც მასწავლებელმა მოგვცა: ყაზბეგური, მთიულური, ხორუმი, აჭარული. ნარნარი, ოსური და დანარჩენები ჯერ არ გვაქვს — როგორც კი მათი დარტყმები შემოვა, AI მათაც იცნობს.', 'Compared with the four rhythms the teacher gave: Kazbeguri, Mtiuluri, Khorumi, Acharuli. Narnari, Osuri and the others are not in the app yet — as soon as their strokes are added, the AI will know them too.'],
+  'ai.rhyNoStems': ['ინსტრუმენტების დაყოფა ამისთვის საჭირო არ არის — AI უსმენს მთლიან ჩანაწერში დრამისა და დოლის დარტყმებს.', 'No instrument separation is needed for this — the AI listens to the drum and doli strokes in the whole recording.'],
   'ai.rhyLike': ['რას ჰგავს', 'What it resembles'], 'ai.rhyLikeD': ['აპში არსებულ რითმებს ვადარებ: რამდენად ემთხვევა დარტყმები და აქცენტები ერთ თვლაში. ეს შედარებაა და არა დასკვნა.', 'Compared with the rhythms already in the app: how well the strokes and accents line up inside one beat. This is a comparison, not a verdict.'],
   'ai.rhyNoLike': ['ახლო მსგავსება ვერ ვიპოვე.', 'No close resemblance was found.'],
   'ai.rhyPlay': ['მოსმენა', 'Hear it'], 'ai.rhyStop': ['გაჩერება', 'Stop'],
@@ -58,6 +64,20 @@ PD.i18n.add({
   'ai.keys': ['ღილაკები: ჰარი — დაკვრა/პაუზა · ← → — 5 წმ · Shift+← → — 1 წმ · Home/End — თავი/ბოლო', 'Keys: space — play/pause · ← → — 5 s · Shift+← → — 1 s · Home/End — start/end'],
   'ai.spSlow': ['ნელა', 'Slower'], 'ai.spFast': ['სწრაფად', 'Faster'], 'ai.bpmAuto': ['AI-ის ტემპი', 'Back to the AI tempo'], 'ai.tap': ['დააკაკუნე', 'Tap'], 'ai.tapD': ['დააკაკუნე დარტყმაზე 4-ჯერ მაინც', 'Tap on the beat at least 4 times'],
   'ai.regrid': ['დარტყმებს თავიდან ვაწყობ…', 'Tracking the beats again…'], 'ai.bpmBy': ['ხელით დაყენებული', 'set by hand'],
+  'ai.hand': ['3D ხელი', '3D hand'], 'ai.handOn': ['ხელი უკრავს თან', 'The hand plays along'],
+  'ai.handD': ['მარცხენა ხელი რეალურ 3D-ში იჭერს იმ აკორდს, რომელიც ახლა ჟღერს — იგივე ამოხსნილი პოზიციები, რაც აკორდების გვერდებზეა.', 'The left hand holds, in real 3D, the chord that is sounding — the same solved positions the chord pages use.'],
+  'ai.h3now': ['{n} — ასე უჭირავს მარცხენა ხელს.', '{n} — this is how the left hand holds it.'],
+  'ai.h3no': ['{n} — ამ აკორდს სამ სიმზე დასაჭერი ფორმა არ აქვს.', '{n} — this chord has no three-string shape to hold.'],
+  'ai.sheet': ['აკორდების გადასვლები', 'Chord changes'],
+  'ai.sheetD': ['ყოველი გადასვლა რიგზე: სად იცვლება, რა აკორდია და როგორ იჭერ ფანდურზე. შეეხე — იქვე გადახვალ.', 'Every change in order: where it falls, which chord it is and how you hold it on the panduri. Tap one to jump there.'],
+  'ai.sheetN': ['{n} გადასვლა · {u} სხვადასხვა აკორდი', '{n} changes · {u} different chords'],
+  'ai.sheetNone': ['აკორდი ვერ ამოვიცანი ამ ჩანაწერში.', 'No chord could be read in this recording.'],
+  'ai.sheetNoShape': ['სამ სიმზე ფორმა არ აქვს', 'No three-string shape'],
+  'ai.sheetTap': ['შეეხე აკორდს, რომ იმ ადგილას გადახვიდე.', 'Tap a chord to jump to that place.'],
+  'ai.voc': ['რა აკორდებს ვეძებ', 'Which chords to look for'],
+  'ai.vocS': ['მაჟორი/მინორი', 'Major/minor'], 'ai.vocE': ['გაფართოებული', 'Extended'], 'ai.vocA': ['ყველა', 'Everything'],
+  'ai.vocD': ['გაფართოებული: სეპტაკორდები, sus, 6, dim, aug, add9. „ყველა“ ნონაკორდებსაც ეძებს — მეტს პოულობს, მაგრამ უფრო ხშირად ცდება.', 'Extended: sevenths, sus, 6, dim, aug, add9. “Everything” also looks for ninths — it finds more, but is wrong more often.'],
+  'ai.vocAgain': ['ხელახლა წაკითხვა', 'Read again'], 'ai.vocWait': ['ვკითხულობ…', 'Reading…'],
   'ai.chEdit': ['აკორდების შესწორება', 'Correct the chords'], 'ai.chEditD': ['ჩართე და ზოლზე შეეხე აკორდს', 'Turn this on and tap a chord on the ribbon'],
   'ai.chRoot': ['საფუძველი', 'Root'], 'ai.chQual': ['სახეობა', 'Type'], 'ai.chNone': ['აკორდის გარეშე', 'No chord'],
   'ai.chSplit': ['აქ გაყოფა', 'Split here'], 'ai.chMerge': ['წინას შეერთება', 'Join with the one before'], 'ai.chAuto': ['AI-ის აკორდები', 'Back to the AI chords'],
@@ -115,9 +135,48 @@ PD.ai = (() => {
       for (let k = 0; k < N / 2; k++) out[k] = Math.sqrt(re[k] * re[k] + im[k] * im[k]);
     };
   }
+  /* ---- the chord vocabulary --------------------------------------------------------------
+     'simple' = the two triads · 'ext' = the everyday set (sevenths, sus, sixths, dim, aug)
+     · 'all'  = every quality in the app's theory, extended chords included.
+     A chord with more notes must explain more of what is heard before it wins: that is `cost`. */
+  const VOC = {
+    simple: ['', 'm'],
+    ext: ['', 'm', '7', 'm7', 'maj7', 'sus2', 'sus4', '7sus4', '6', 'm6', 'dim', 'aug', 'add9', 'm(add9)', 'm7♭5', 'dim7', '5'],
+    all: null   // filled from PD.theory.CHORD_TYPES
+  };
+  function qualities(voc) {
+    const TY = (PD.theory && PD.theory.CHORD_TYPES) || [];
+    if (voc === 'simple') return VOC.simple;
+    if (voc === 'all') return TY.map(x => x.k);
+    return VOC.ext.filter(k => TY.some(x => x.k === k));
+  }
+  /* How much a quality has to beat the plain triad by before it is believed. A seventh turns up in
+     every second song; a diminished seventh almost never. Without this the richer templates win on
+     one stray overtone and every bar comes back as an add9. */
+  const PRIOR = {
+    '': 0, 'm': 0, '7': .06, 'm7': .065, 'maj7': .065, 'sus4': .07, 'sus2': .08,
+    '6': .10, 'm6': .11, '7sus4': .11, 'add9': .12, 'm(add9)': .13, 'dim': .12, 'aug': .13, 'm7♭5': .13,
+    'm(maj7)': .17, 'dim7': .15, '7♯5': .16, '7♭5': .17, '5': .14,
+    '9': .18, 'maj9': .19, 'm9': .19, '11': .21, '13': .21
+  };
+  /** one template per root and quality: the chord's intervals, weighted, with its own prior */
+  function buildTemplates(voc, thirdW) {
+    const TY = (PD.theory && PD.theory.CHORD_TYPES) || [], want = qualities(voc), out = [];
+    const W = iv => iv === 0 ? 1 : (iv === 3 || iv === 4) ? thirdW : iv === 7 ? .9 : .62;
+    want.forEach(q => {
+      const ty = TY.find(x => x.k === q); const iv = ty ? ty.iv : (q === 'm' ? [0, 3, 7] : [0, 4, 7]);
+      const base = /^(m|dim|m7|m6|m9|m11|m13|m\(add9\)|m\(maj7\)|m7♭5|dim7)$/.test(q) ? 'm' : '';
+      for (let r = 0; r < 12; r++) {
+        const v = new Float32Array(12);
+        iv.forEach(i => { const pc = (r + i) % 12; v[pc] = Math.max(v[pc], W(i % 12)); });
+        out.push({ r, q, base, v, cost: PRIOR[q] != null ? PRIOR[q] : .2 });
+      }
+    });
+    return out;
+  }
   /** mono 22.05 kHz signal → { chords:[{t0,t1,root,q,name}], key, bpm, beats } */
   async function analyse(mono, sr, onProgress, opt, onStage) {
-    opt = Object.assign({ bassW: .12, change: .5, keyBonus: .06, smooth: .2, nc: .35, third: .85 }, opt || {});
+    opt = Object.assign({ bassW: .12, change: .5, keyBonus: .06, smooth: .2, nc: .35, third: .85, voc: 'ext' }, opt || {});
     const N = 8192, HOPA = 2048, fft = fftMag(N), mag = new Float32Array(N / 2), frames = Math.max(1, Math.floor((mono.length - N) / HOPA));
     // bins → pitch class, 55 Hz .. 1.76 kHz, weighted toward the middle register
     const pcOf = new Int8Array(N / 2).fill(-1), wOf = new Float32Array(N / 2);
@@ -148,12 +207,13 @@ PD.ai = (() => {
     let key = { r: 0, q: '', s: -2 }; for (let r = 0; r < 12; r++) for (const [q, P] of [['', MAJ], ['m', MIN]]) { const rot = P.map((_, i) => P[(i - r + 12) % 12]); const c = corr(Array.from(tot), rot); if (c > key.s) key = { r, q, s: c }; }
     // chords that belong to the key get a small head start
     const dia = new Set((key.q ? [[0, 'm'], [3, ''], [5, 'm'], [7, 'm'], [7, ''], [8, ''], [10, '']] : [[0, ''], [2, 'm'], [4, 'm'], [5, ''], [7, ''], [9, 'm']]).map(([d, q]) => ((key.r + d) % 12) + q));
-    // 24 triads + no chord; cosine score with the root in the bass helping
-    const T = []; for (let r = 0; r < 12; r++) for (const q of ['', 'm']) { const v = new Float32Array(12); v[r] = 1; v[(r + (q ? 3 : 4)) % 12] = opt.third; v[(r + 7) % 12] = .9; T.push({ r, q, v }); }
+    // the chord vocabulary: every quality the app knows, or just the triads — the caller chooses.
+    // Each template is the chord's own intervals; the more notes a chord has, the more evidence it needs.
+    const T = buildTemplates(opt.voc, opt.third);
     const score = (c, b, tpl) => { let d = 0, nc = 0, nt = 0; for (let k = 0; k < 12; k++) { d += c[k] * tpl.v[k]; nc += c[k] * c[k]; nt += tpl.v[k] * tpl.v[k]; } let s = d / Math.sqrt(nc * nt + 1e-9); const bm = Math.max(...b) || 1; s += opt.bassW * (b[tpl.r] / bm); return s; };
     onStage && onStage('chord');
     const K = T.length, NC = K;   // state K = no chord
-    const em = sm.map((c, i) => { const e = new Float32Array(K + 1), energy = c.reduce((a, b) => a + b, 0); for (let k = 0; k < K; k++) e[k] = score(c, bass[i], T[k]) + (dia.has(T[k].r + T[k].q) ? opt.keyBonus : 0); e[NC] = energy < 1.2 ? .75 : opt.nc; return e; });
+    const em = sm.map((c, i) => { const e = new Float32Array(K + 1), energy = c.reduce((a, b) => a + b, 0); for (let k = 0; k < K; k++) e[k] = score(c, bass[i], T[k]) + (dia.has(T[k].r + T[k].base) ? opt.keyBonus : 0) - T[k].cost; e[NC] = energy < 1.2 ? .75 : opt.nc; return e; });
     // Viterbi: staying is cheap, changing costs
     const stay = 0, change = -opt.change;
     let dp = em[0].slice(), back = [];
@@ -166,10 +226,19 @@ PD.ai = (() => {
     let s = 0; for (let k = 1; k <= K; k++) if (dp[k] > dp[s]) s = k;
     const path = new Int16Array(frames); path[frames - 1] = s; for (let i = frames - 2; i >= 0; i--) { s = back[i][s]; path[i] = s; }
     const chords = []; let st = 0;
-    for (let i = 1; i <= frames; i++) if (i === frames || path[i] !== path[st]) { const k = path[st]; const t0 = st * dt + N / 2 / sr, t1 = i * dt + N / 2 / sr; if (k !== NC) chords.push({ t0, t1, root: T[k].r, q: T[k].q }); else chords.push({ t0, t1, root: -1, q: '' }); st = i; }
+    for (let i = 1; i <= frames; i++) if (i === frames || path[i] !== path[st]) {
+      const k = path[st], t0 = st * dt + N / 2 / sr, t1 = i * dt + N / 2 / sr;
+      // how sure: the chosen template against the best other one, averaged over the segment
+      let mine = 0, other = 0;
+      for (let j = st; j < i; j++) { mine += em[j][k]; let b2 = -1e9; for (let m = 0; m <= K; m++) if (m !== k && em[j][m] > b2) b2 = em[j][m]; other += b2; }
+      const n2 = Math.max(1, i - st), conf = Math.max(0, Math.min(1, ((mine - other) / n2) / .12));
+      if (k !== NC) chords.push({ t0, t1, root: T[k].r, q: T[k].q, conf: +conf.toFixed(2) });
+      else chords.push({ t0, t1, root: -1, q: '', conf: +conf.toFixed(2) });
+      st = i;
+    }
     // drop blips shorter than half a beat (merge into the neighbour)
     const minD = (opt.minBeats == null ? .5 : opt.minBeats) * 60 / bpm; const merged = [];
-    chords.forEach(c => { const l = merged[merged.length - 1]; if (l && (c.t1 - c.t0 < minD || (l.root === c.root && l.q === c.q))) l.t1 = c.t1; else merged.push(Object.assign({}, c)); });
+    chords.forEach(c => { const l = merged[merged.length - 1]; if (l && (c.t1 - c.t0 < minD || (l.root === c.root && l.q === c.q))) { l.t1 = c.t1; l.conf = Math.min(l.conf == null ? 1 : l.conf, c.conf == null ? 1 : c.conf); } else merged.push(Object.assign({}, c)); });
     onProgress && onProgress(1);
     return { chords: merged, key, bpm, dur: mono.length / sr };
   }
@@ -201,7 +270,15 @@ PD.ai = (() => {
   }
   const cname = (root, q, tr) => root < 0 ? '—' : NAMES[((root + (tr || 0)) % 12 + 12) % 12] + q;
   /** the app's chord library entry for a root and quality */
-  function shapeOf(root, q) { if (root < 0) return null; const all = PD.curriculum.chords(); return all.find(c => c.root === root && (q === 'm' ? (c.q === 'm' || c.kind === 'min') : (c.q === '' || c.kind === 'maj'))) || null; }
+  function shapeOf(root, q) {
+    if (root < 0) return null;
+    const all = PD.curriculum.chords();
+    const exact = all.find(c => c.root === root && c.q === q && !c.none && c.frets && c.frets.some(f => f >= 0));
+    if (exact) return exact;
+    // no playable three-string form for that quality: fall back to its own triad, so the neck still shows something
+    const tri = /^(m|dim|m7|m6|m9|m11|m13|m\(add9\)|m\(maj7\)|m7♭5|dim7)$/.test(q) ? 'm' : '';
+    return all.find(c => c.root === root && c.q === tri && !c.none) || null;
+  }
 
   /* ======================= audio: decode, resample ======================= */
   async function decode(file) {
@@ -334,7 +411,8 @@ PD.ai = (() => {
         bar(t('ai.analysing'), .1);
         const mono22 = await resample(ab, 22050, 1);
         let stage = 'ai.sSpec';
-        res = await analyse(mono22.getChannelData(0), 22050, p => bar(t(stage), .1 + .85 * p), null, s2 => { stage = { tempo: 'ai.sTempo', key: 'ai.sKey', chord: 'ai.sChord' }[s2] || stage; bar(t(stage), .95); });
+        res = await analyse(mono22.getChannelData(0), 22050, p => bar(t(stage), .1 + .85 * p), { voc: PD.store.get('ai.voc', 'ext') }, s2 => { stage = { tempo: 'ai.sTempo', key: 'ai.sKey', chord: 'ai.sChord' }[s2] || stage; bar(t(stage), .95); });
+        res.voc = PD.store.get('ai.voc', 'ext');
         S0.mono = mono22.getChannelData(0);
       }
       if (!res.beats) {
@@ -387,7 +465,7 @@ PD.ai = (() => {
     let render = function () {
       body.innerHTML = '';
       const { res } = S, dk = S.deck, D = dk.D;
-      let rhyBox = null, rhyTimer = 0, chEdit = false, chBox = null;
+      let rhyBox = null, rhyTimer = 0, chEdit = false, chBox = null, sheetBox = null, sheetCur = -1;
       const used = [...new Map(res.chords.filter(c => c.root >= 0).map(c => [c.root + c.q, c])).values()];
       const TR = () => Math.round(D.semis);
       // header: name · key · tempo
@@ -400,6 +478,28 @@ PD.ai = (() => {
       const nv = h('div', { class: 'neckview ai-neck' }), ncv = h('canvas'); nv.appendChild(ncv);
       const neck = PD.Neck(ncv, { sticky: true }); neck.mirror = PD.store.get('lefty', false);
       const ro = new ResizeObserver(() => { const nh = neck.natH(nv.clientWidth) + 'px'; if (nv.style.height !== nh) nv.style.height = nh; neck.layout(); drawRibbon(); last = null; }); ro.observe(nv); own(() => ro.disconnect());
+      // the left hand in 3D, moving along with the song — the same solved positions the chord pages use
+      const h3on = h('input', { type: 'checkbox', checked: PD.store.get('ai.hand3d', true) });
+      let H3 = null, h3want = null, h3box = null;
+      const h3wrap = h('div', { class: 'ai-h3', hidden: !h3on.checked });
+      const h3note = h('small', { class: 'muted' });
+      function mountH3() {
+        if (H3 || !h3on.checked) return;
+        h3box = PD.shapes.handBox({ cls: 'ai-h3box' });
+        h3wrap.innerHTML = ''; h3wrap.append(h3box.box, h3note);
+        // handBox mounts by itself; wait for it, then follow the chord that is playing
+        const wait = setInterval(() => { if (!h3wrap.isConnected) return clearInterval(wait);
+          if (h3box.box.querySelector('canvas')) { clearInterval(wait); H3 = h3box; if (h3want) setH3(h3want[0], h3want[1], h3want[2]); } }, 250);
+        own(() => clearInterval(wait));
+      }
+      function setH3(frets, fingers, name) {
+        h3want = [frets, fingers, name];
+        if (!H3) return;
+        const ok = frets && frets.some(f => f > 0) ? H3.set(frets, fingers) : H3.set([0, 0, 0], [0, 0, 0]);
+        h3note.textContent = !frets ? '' : ok === false ? t('ai.h3no', { n: name || '' }) : t('ai.h3now', { n: name || '' });
+      }
+      h3on.onchange = () => { PD.store.set('ai.hand3d', h3on.checked); h3wrap.hidden = !h3on.checked; if (h3on.checked) mountH3(); };
+      if (h3on.checked) setTimeout(mountH3, 700);
       // transport
       const playB = h('button', { class: 'btn primary ai-play', html: ic.play, 'aria-label': 'play', onclick: () => dk.toggle() });
       const timeEl = h('span', { class: 'ai-time mono' }), prepEl = h('span', { class: 'ai-prep', hidden: true, text: t('ai.prep') });
@@ -475,6 +575,9 @@ PD.ai = (() => {
       body.append(h('section', { class: 'ai-player' }, [vidBox, rWrap,
         transport, seek, gotoRow,
         h('div', { class: 'ai-nn' }, [nowEl, nextEl]), nv,
+        h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.hand') }),
+          h('div', { class: 'ai-tc' }, [h('label', { class: 'sw' }, [h3on, h('i'), h('span', { text: t('ai.handOn') })]), h('small', { class: 'muted', text: t('ai.handD') })])]),
+        h3wrap,
         h('div', { class: 'ai-tools' }, [
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.speed') }), spRow]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.pitch') }), h('div', { class: 'ai-tc' }, [piBtn(-1), piV, piBtn(1), h('small', { class: 'muted', text: t('ai.pitchD') })])]),
@@ -482,6 +585,7 @@ PD.ai = (() => {
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.loop') }), h('div', { class: 'ai-tc' }, [lA, lB, lBars(1), lBars(4), lOff, loopTxt])]),
           tempoTool(), chordTool(), fxTool]),
         chipRow, h('small', { class: 'muted ai-keys', text: t('ai.keys') }), h('p', { class: 'notice', 'data-t': 'ai.est' })]));
+      body.append(sheetPanel());
       body.append(rhythmPanel());
       body.append(stemsPanel());
       body.append(trPanel());
@@ -532,6 +636,8 @@ PD.ai = (() => {
       function rhythmPanel() {
         rhyBox = h('section', { class: 'ai-rhy' });
         drawRhythm();
+        // it listens to the strokes in the whole mix, so there is nothing to wait for and nothing to split first
+        if (!S.rhy) setTimeout(() => { if (rhyBox && rhyBox.isConnected && !S.rhy) runRhythm(); }, 400);
         return rhyBox;
       }
       function metreNow() { return (S.tr && S.tr.data && S.tr.data.metre) || S.metre || { beatsPerBar: dk.D.bpb || 4, phase: res.phase || 0, num: dk.D.bpb || 4, den: 4, compound: false }; }
@@ -555,7 +661,7 @@ PD.ai = (() => {
         rhyBox.innerHTML = ''; rhyBox.append(rhyHead());
         const R = S.rhy;
         if (!R) {
-          rhyBox.append(h('p', { class: 'muted', text: t('ai.rhyD') }), h('button', { class: 'btn primary', text: t('ai.rhyRun'), onclick: runRhythm }));
+          rhyBox.append(h('p', { class: 'muted', text: t('ai.rhyD') }), h('p', { class: 'muted', text: t('ai.rhyNoStems') }), h('button', { class: 'btn primary', text: t('ai.rhyRun'), onclick: runRhythm }));
           PD.i18n.apply(rhyBox); return;
         }
         if (!R.cells || !R.cells.some(c => c.on)) {
@@ -570,6 +676,18 @@ PD.ai = (() => {
           h('div', { class: 'ai-fact' }, [h('small', { text: t('ai.rhyBars') }), h('b', { text: String(R.bars) }),
             h('em', { class: 'tr-c ' + (R.conf >= .66 ? 'hi' : R.conf >= .4 ? 'mid' : 'lo'), text: t(R.conf >= .66 ? 'tr.cHigh' : R.conf >= .4 ? 'tr.cMid' : 'tr.cLow') })])]);
         rhyBox.append(facts);
+        // what this is, out of the rhythms the teacher gave — the question this panel is really for
+        {
+          const g0 = (R.geo || (R.matches || []).filter(m => m.geo))[0];
+          const head = h('div', { class: 'ai-geo' + (g0 && g0.score >= .62 ? ' sure' : '') });
+          if (g0 && g0.score >= .45) {
+            head.append(h('small', { text: t(g0.score >= .62 ? 'ai.geoIs' : 'ai.geoMaybe') }),
+              h('b', { text: PD.i18n.pick(g0.name) }),
+              h('span', { class: 'mono', text: Math.round(g0.score * 100) + '%' }),
+              h('button', { class: 'btn small ghost', text: t('ai.geoOpen'), onclick: () => PD.app.go('rhythms', g0.id) }));
+          } else head.append(h('small', { text: t('ai.geoNo') }));
+          rhyBox.append(head, h('small', { class: 'muted', text: t('ai.geoD') }));
+        }
         if (R.span === 2) rhyBox.append(h('p', { class: 'notice', text: t('ai.rhySpan') }));
         // the strip: one cell per subdivision, its height the measured strength
         const strip = h('div', { class: 'rhy-strip' });
@@ -613,7 +731,63 @@ PD.ai = (() => {
         const back = h('button', { class: 'btn small ghost ai-chback', text: t('ai.chAuto'), hidden: !res.chordsBy, onclick: async () => { if (!res.chords0) return; res.chords = res.chords0.map(c => Object.assign({}, c)); res.chords0 = null; res.chordsBy = null; back.hidden = true; saveRes(); drawRibbon(); last = null; chips(); } });
         return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.chords') }), h('div', { class: 'ai-tc' }, [tg, back]), h('small', { class: 'muted', text: t('ai.chEditD') })]);
       }
-      const QUALS = [['', 'maj'], ['m', 'm'], ['7', '7'], ['m7', 'm7'], ['maj7', 'maj7'], ['sus4', 'sus4'], ['sus2', 'sus2'], ['dim', 'dim']];
+      /* ---- the chord sheet: every change, written out and drawn on the neck ---- */
+      function sheetPanel() {
+        sheetBox = h('section', { class: 'ai-sheet' });
+        drawSheet();
+        return sheetBox;
+      }
+      function vocTool() {
+        let v = (res.voc || PD.store.get('ai.voc', 'ext'));
+        const seg = h('div', { class: 'seg' }, [['simple', 'ai.vocS'], ['ext', 'ai.vocE'], ['all', 'ai.vocA']].map(([k, lab]) =>
+          h('button', { 'aria-pressed': String(k === v), text: t(lab), onclick: e => { v = k; PD.store.set('ai.voc', k); seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); again.hidden = (v === (res.voc || 'ext')); } })));
+        const again = h('button', { class: 'btn small', text: t('ai.vocAgain'), hidden: true, onclick: async () => {
+          again.disabled = true; again.textContent = t('ai.vocWait');
+          try {
+            const m = S.mono22 || (await resample(S.ab, 22050, 1)).getChannelData(0); S.mono22 = m;
+            const r2 = await analyse(m, 22050, null, { voc: PD.store.get('ai.voc', 'ext') });
+            res.chords = r2.chords; res.key = r2.key; res.voc = r2.voc = PD.store.get('ai.voc', 'ext');
+            res.chords0 = null; res.chordsBy = null;
+            saveRes(); drawRibbon(); last = null; drawSheet(); chips();
+          } catch (_) {}
+          again.disabled = false; again.textContent = t('ai.vocAgain'); again.hidden = true;
+        } });
+        return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.voc') }), h('div', { class: 'ai-tc' }, [seg, again]), h('small', { class: 'muted', text: t('ai.vocD') })]);
+      }
+      function drawSheet() {
+        if (!sheetBox) return;
+        sheetBox.innerHTML = '';
+        sheetBox.append(h('div', { class: 'row pg-head' }, [h('h2', { text: t('ai.sheet'), style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]),
+          h('p', { class: 'fg2', text: t('ai.sheetD') }), vocTool());
+        const list = (res.chords || []).filter(c => c.root >= 0);
+        if (!list.length) { sheetBox.append(h('p', { class: 'notice', text: t('ai.sheetNone') })); PD.i18n.apply(sheetBox); return; }
+        const seen = new Map();
+        list.forEach(c => { const k = ((c.root + TR()) % 12 + 12) % 12 + c.q; if (!seen.has(k)) seen.set(k, c); });
+        sheetBox.append(h('p', { class: 'muted', text: t('ai.sheetN', { n: list.length, u: seen.size }) }));
+        const grid = h('div', { class: 'ai-sgrid' });
+        list.forEach((c, i) => {
+          const r = ((c.root + TR()) % 12 + 12) % 12, nm = cname(c.root, c.q, TR());
+          const sh = shapeOf(r, c.q), v = sh && ((sh.voicings && sh.voicings[0]) || sh);
+          const bt = dk.beatAt(c.t0 + .005);
+          const cell = h('button', { class: 'ai-scell', 'data-t0': String(c.t0), onclick: () => dk.seek(Math.max(0, c.t0 + .01)) }, [
+            h('span', { class: 'ai-sn mono', text: String(i + 1) }),
+            h('b', { class: 'ai-sname', text: nm }),
+            h('small', { class: 'mono', text: PD.fmtTime(c.t0) + (bt ? ' · ' + t('ai.barN', { n: Math.max(1, bt.bar) }) : '') }),
+            v ? h('div', { class: 'ai-sdia', html: PD.tools.chordDiagram(Object.assign({}, sh, { frets: v.frets, fingers: v.fingers })) })
+              : h('small', { class: 'notice', text: t('ai.sheetNoShape') }),
+            h('small', { class: 'muted', text: v ? v.frets.map(f => f === 0 ? '0' : f < 0 ? '×' : f).join(' · ') : '' })]);
+          grid.append(cell);
+        });
+        sheetBox.append(grid, h('small', { class: 'muted', text: t('ai.sheetTap') }));
+        PD.i18n.apply(sheetBox);
+      }
+      function markSheet(i) {
+        if (!sheetBox || i === sheetCur) return; sheetCur = i;
+        const cells = sheetBox.querySelectorAll('.ai-scell');
+        cells.forEach(c => c.classList.remove('on'));
+        if (i >= 0 && cells[i]) cells[i].classList.add('on');
+      }
+      const QUALS = [['', 'maj'], ['m', 'm'], ['7', '7'], ['m7', 'm7'], ['maj7', 'maj7'], ['m(maj7)', 'm(maj7)'], ['6', '6'], ['m6', 'm6'], ['sus4', 'sus4'], ['sus2', 'sus2'], ['7sus4', '7sus4'], ['add9', 'add9'], ['m(add9)', 'm(add9)'], ['9', '9'], ['maj9', 'maj9'], ['m9', 'm9'], ['dim', 'dim'], ['dim7', 'dim7'], ['m7♭5', 'm7♭5'], ['aug', 'aug'], ['7♯5', '7♯5'], ['5', '5']];
       function chordEditor(i) {
         const c = res.chords[i]; if (!c) return;
         if (chBox) chBox.remove();
@@ -686,7 +860,9 @@ PD.ai = (() => {
           nextEl.innerHTML = ''; if (n) nextEl.append(h('small', { text: t('ai.next') }), h('b', { text: cname(n.root, n.q, TR()) }));
           const sh = c ? shapeOf(r, c.q) : null, v = sh && ((sh.voicings && sh.voicings[0]) || sh);
           if (!(S.tr && S.tr.ownsNeck())) neck.setTarget(v ? v.frets.map((f, k) => ({ s: k + 1, f, fi: (v.fingers || [])[k] || 0 })) : [], []);
+          setH3(v ? v.frets : null, v ? (v.fingers || []).map(x => x || 0) : null, c && c.root >= 0 ? cname(c.root, c.q, TR()) : '');
           nowEl.classList.remove('pop'); void nowEl.offsetWidth; nowEl.classList.add('pop');
+          markSheet(c && c.root >= 0 ? res.chords.filter(x => x.root >= 0).indexOf(c) : -1);
         }
       }
       function trPanel() {

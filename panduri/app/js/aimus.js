@@ -208,11 +208,14 @@ PD.aimus = (() => {
       for (let k = 2; k < N / 2; k++) { const v = Math.log1p(mag[k] * 10), d = v - prev[k]; if (d > 0) fl += d; prev[k] = v; }
       env[i] = fl;
     }
-    const dt = HOP / sr, W = Math.round(.5 / dt); let acc = 0;
-    for (let i = 0; i < F; i++) { acc += env[i]; if (i >= W) acc -= env[i - W]; env[i] = Math.max(0, env[i] - acc / Math.min(i + 1, W)); }
-    let sd = 0; for (let i = 0; i < F; i++) sd += env[i] * env[i]; sd = Math.sqrt(sd / F) || 1;
-    for (let i = 0; i < F; i++) env[i] /= sd;
-    return { env, dt, t0off: N / 2 / sr };
+    // take the slow trend out of the envelope. The running sum must be kept over the ORIGINAL
+    // values: subtracting an already-rectified one makes it run away and flattens the whole
+    // envelope to zero after half a second — which left every rhythm unreadable.
+    const dt = HOP / sr, W = Math.round(.5 / dt), out = new Float32Array(F); let acc = 0;
+    for (let i = 0; i < F; i++) { acc += env[i]; if (i >= W) acc -= env[i - W]; out[i] = Math.max(0, env[i] - acc / Math.min(i + 1, W)); }
+    let sd = 0; for (let i = 0; i < F; i++) sd += out[i] * out[i]; sd = Math.sqrt(sd / F) || 1;
+    for (let i = 0; i < F; i++) out[i] /= sd;
+    return { env: out, dt, t0off: N / 2 / sr };
   }
   /** the pattern the bars repeat: which cells of the bar are struck, and which of them are accented.
       Everything here is measured. Where the stroke goes (down or up) cannot be heard and is never claimed. */
@@ -277,9 +280,11 @@ PD.aimus = (() => {
       const cos = d / (Math.sqrt(a * b) + 1e-9);
       // how much of the beat's energy lands on this rhythm's own positions
       let onGrid = 0; for (let i = 0; i < n; i++) onGrid += got[i];
-      return { id: r.id, name: r.name, source: r.source, strokes: r.strokes, score: +(cos * Math.min(1, onGrid / n / .55)).toFixed(3) };
-    }).filter(Boolean).sort((x, y) => y.score - x.score);
-    return { sub: G.sub, beatsPerBar: g, compound, cells, span, bars: barStarts.length, conf: +Math.max(0, Math.min(1, (G.corr - .5) / .4)).toFixed(2), matches: matches.slice(0, 5) };
+      // the Georgian rhythms the teacher gave are what this app is for: on a tie they come first
+      const geo = r.source === 'teacher';
+      return { id: r.id, name: r.name, source: r.source, geo, strokes: r.strokes, score: +(cos * Math.min(1, onGrid / n / .55)).toFixed(3) };
+    }).filter(Boolean).sort((x, y) => (y.score + (y.geo ? .04 : 0)) - (x.score + (x.geo ? .04 : 0)));
+    return { sub: G.sub, beatsPerBar: g, compound, cells, span, bars: barStarts.length, conf: +Math.max(0, Math.min(1, (G.corr - .5) / .4)).toFixed(2), matches: matches.slice(0, 5), geo: matches.filter(m => m.geo).slice(0, 3) };
   }
 
   /* =================== bars, beats, rhythmic values =================== */
