@@ -17,6 +17,11 @@ PD.i18n.add({
   'rh.accent': ['აქცენტი', 'Accent'], 'rh.stroke': ['დარტყმა {a} / {b}', 'Stroke {a} / {b}'], 'rh.normal': ['ჩვეულებრივი', 'Normal'], 'rh.now': ['ახლა', 'Now'], 'rh.next': ['შემდეგი', 'Next'],
   'rh.listen': ['▶ მოსმენა', '▶ Listen'], 'rh.stop': ['■ გაჩერება', '■ Stop'], 'rh.tempo': ['ტემპი', 'Tempo'], 'rh.hold': ['როგორც ხელში გიჭირავს: A ზემოთ, E ქვემოთ', 'As you hold it: A on top, E below'],
   'rh.timingDefault': ['დარტყმების ხანგრძლივობა მასწავლებელს ჯერ არ მიუთითებია — ახლა ყველა დარტყმა თანაბარია (60 BPM). მასწავლებელი ამას სტუდიაში შეცვლის.', 'Stroke durations have not been given by the teacher yet — all strokes are equal for now (60 BPM). The teacher can set them in the Studio.'],
+  'rh.meter': ['თვლა (მუსიკალური ზომა)', 'The count (time signature)'],
+  'rh.meterD': ['{b}/{u} — ითვლება {g} დაჯგუფებით: {c}. შებრუნებითაც ითვლება: {c2}.', '{b}/{u} — counted in groups of {g}: {c}. It is also counted the other way round: {c2}.'],
+  'rh.meterPlay': ['მოუსმინე თვლას', 'Hear the count'],
+  'rh.meterStop': ['გაჩერება', 'Stop'],
+  'rh.meterNote': ['თვლა მასწავლებლის მონაცემია. რომელი დარტყმა ზუსტად რომელ თვლაზე მოდის, ჯერ არ არის მითითებული — ამას მასწავლებელი სტუდიაში დააყენებს.', 'The count is the teacher\'s own. Exactly which stroke falls on which number has not been given yet — the teacher sets that in the Studio.'],
   'rh.practice': ['ვარჯიში', 'Practice'], 'rh.noPitch': ['აქ ნოტის სიზუსტე არ მოწმდება — მხოლოდ მარჯვენა ხელი. მიკროფონი ზომავს დროს და აქცენტის სიძლიერეს; მიმართულებას (↓/↑) ხმიდან ვერ ვიგებთ — ისრებს მიჰყევი.', 'Pitch is not checked here — only the right hand. The microphone measures timing and accent strength; the direction (↓/↑) cannot be heard — follow the arrows.'],
   'rh.timing': ['დრო (ავტორი)', 'Timing (author)'], 'rh.bpm': ['BPM', 'BPM'], 'rh.dur': ['ხანგრძლივობა (დარტყმა)', 'Duration (beats)'], 'rh.saveTiming': ['შენახვა', 'Save'], 'rh.orderLocked': ['დარტყმების რიგი და აქცენტები მასწავლებლის მონაცემია და აქ არ იცვლება.', 'Stroke order and accents are teacher data and are not edited here.'],
   'st.watch': ['ხელის მოძრაობის ნახვა', 'Watch the hand'], 'std.watch': ['ნელა: აპი თავად უკრავს, ისარი აჩვენებს მარჯვენა ხელის მოძრაობას და აქცენტს ყოველ დარტყმაზე.', 'Slowly: the app plays it, and the arrow shows the right-hand motion and the accent on every stroke.'],
@@ -98,6 +103,37 @@ PD.rhythmsUI = (() => {
       h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'ws.speed' }), h('div', { class: 'row', style: 'gap:8px' }, [speed, custom])]),
       h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'rh.loopBars' }), bars]),
       h('div', { class: 'row' }, [h('button', { class: 'btn primary', html: PD.ic.mic + '<span data-t="rh.micGo"></span>', onclick: goMic })])]));
+    /* the dance's own count, when the teacher has given it */
+    const meterStops = [];
+    /** the dance's own count: 5/8 as 3+2 — numbers you can see and hear, with the first of each group heavy */
+    function meterCard(r) {
+      const M = r.meter, nums = [];
+      M.groups.forEach((g, gi) => { for (let k = 1; k <= g; k++) nums.push({ n: k, first: k === 1, g: gi }); });
+      const say = gs => gs.map(g => Array.from({ length: g }, (_, k) => k + 1).join('-')).join(', ');
+      const row = h('div', { class: 'rh-count', role: 'list' });
+      nums.forEach((x, i) => {
+        if (x.first && i) row.append(h('span', { class: 'rh-bar', 'aria-hidden': 'true' }));
+        row.append(h('span', { class: 'rh-cn' + (x.first ? ' acc' : ''), role: 'listitem', 'data-i': String(i), text: String(x.n) }));
+      });
+      let tid = 0, step = 0;
+      const btn = h('button', { class: 'btn small', 'data-t': 'rh.meterPlay' });
+      const paint = k => row.querySelectorAll('.rh-cn').forEach((c, j) => c.classList.toggle('on', j === k));
+      const stopC = () => { if (!tid) return; clearInterval(tid); tid = 0; paint(-1); btn.textContent = t('rh.meterPlay'); };
+      btn.onclick = () => {
+        if (tid) return stopC();
+        if (!PD.audio.ensure()) return;
+        btn.textContent = t('rh.meterStop'); step = 0;
+        const tick = () => { const k = step % nums.length; PD.audio.click(PD.audio.now() + .02, nums[k].first); paint(k); step++; };
+        tick(); tid = setInterval(tick, 60000 / (+tempo.value || 60) / 2);   // one count = an eighth at the page's tempo
+      };
+      meterStops.push(stopC);
+      return h('section', { class: 'card', style: 'padding:16px;display:flex;flex-direction:column;gap:10px' }, [
+        h('b', { 'data-t': 'rh.meter' }),
+        h('p', { class: 'muted', style: 'font-size:13px;line-height:1.5', text: t('rh.meterD', { b: M.beats, u: M.unit, g: M.groups.join('+'), c: say(M.groups), c2: say(M.groups.slice().reverse()) }) }),
+        row, h('div', { class: 'row' }, [btn]),
+        h('small', { class: 'muted', style: 'line-height:1.5', 'data-t': 'rh.meterNote' })]);
+    }
+    if (r.meter) w.append(meterCard(r));
     /* practice stages */
     const p = LS.progress.lesson(L.id), list = h('div', { class: 'list' });
     L.stages.forEach((s, i) => {
@@ -130,7 +166,7 @@ PD.rhythmsUI = (() => {
       }, 25);
       play.textContent = t('rh.stop'); loop();
     }
-    function stop() { if (!run) return; clearInterval(run.iv); run = null; cancelAnimationFrame(raf); play.textContent = t('rh.listen'); draw(-1); mark(-1); }
+    function stop() { meterStops.forEach(f => f()); if (!run) return; clearInterval(run.iv); run = null; cancelAnimationFrame(raf); play.textContent = t('rh.listen'); draw(-1); mark(-1); }
     play.onclick = () => run ? stop() : start();
     tempo.oninput = () => { bpmOut.textContent = tempo.value + ' BPM'; if (run) { stop(); start(); } };
     function mark(i) {

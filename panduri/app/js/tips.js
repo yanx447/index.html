@@ -171,6 +171,22 @@ PD.tips = (() => {
       w.forEach((x, i) => { const cx = 50 + i * 74, big = i % 2 === 0; s += '<circle cx="' + cx + '" cy="52" r="' + (big ? 20 : 13) + '" fill="rgba(201,139,91,.15)"/><g opacity="' + (M() ? 0 : 1) + '">' + turn(i, 4, 2) + '<circle cx="' + cx + '" cy="52" r="' + (big ? 22 : 15) + '" fill="#C98B5B"/></g><text x="' + cx + '" y="53" class="tp-big" fill="#F4EFE9" style="font-size:' + (big ? 18 : 13) + 'px">' + x + '</text>'; });
       return svg(320, 100, s);
     },
+    /** the khorumi count: three, then two */
+    khorumi() {
+      let s = ''; const g = [3, 2]; let i = 0, x = 44;
+      g.forEach((n, gi) => {
+        for (let k = 1; k <= n; k++) {
+          const big = k === 1;
+          s += '<circle cx="' + x + '" cy="52" r="' + (big ? 20 : 14) + '" fill="rgba(201,139,91,' + (big ? '.22' : '.12') + ')" stroke="' + (big ? '#C98B5B' : 'rgba(201,139,91,.4)') + '"/>';
+          s += '<g opacity="' + (M() ? 0 : 1) + '">' + turn(i, 5, 2) + '<circle cx="' + x + '" cy="52" r="' + (big ? 22 : 16) + '" fill="#C98B5B"/></g>';
+          s += '<text x="' + x + '" y="53" class="tp-big" fill="#F4EFE9" style="font-size:' + (big ? 18 : 14) + 'px">' + k + '</text>';
+          x += 50; i++;
+        }
+        if (!gi) { s += '<line x1="' + (x - 25) + '" y1="26" x2="' + (x - 25) + '" y2="78" stroke="rgba(242,232,218,.3)" stroke-width="2"/>'; }
+      });
+      s += '<text x="160" y="96" class="tp-cap">5/8 · 3 + 2</text>';
+      return svg(320, 106, s);
+    },
     /** a little every day */
     daily() {
       let s = ''; const d = L(['ორ სა ოთ ხუ პა შა კვ', 'Mo Tu We Th Fr Sa Su']).split(' ');
@@ -498,6 +514,14 @@ PD.tips = (() => {
       [['აირჩიე ორი აკორდი, მაგ. Dm და B♭.', 'Pick two chords, e.g. Dm and B♭.'], ['ჩართე წამზომი — 1 წუთი.', 'Start a one-minute timer.'], ['ჩაიწერე რამდენჯერ მოასწარი. ხვალ — ერთით მეტი.', 'Write down how many. Tomorrow — one more.']], null, { route: 'chords', param: 'Dm', label: ['აკორდები', 'Chords'] }),
     T('count', 'rhythm', 'general', 'count', ['თვალე ხმამაღლა', 'Count aloud'], ['„1 და 2 და“ — ხმამაღლა თვლა რიტმს თავში ამაგრებს.', '“1 and 2 and” — counting aloud fixes the rhythm in your head.'],
       [['ჩართე მეტრონომი.', 'Turn on the metronome.'], ['თვალე და ფეხით თქვი დარტყმა.', 'Count and tap the beat with your foot.'], ['მერე დაუმატე დაკვრა.', 'Then add the playing.']], null, { route: 'metronome', label: ['მეტრონომი', 'Metronome'] }),
+    T('khorumi', 'rhythm', 'teacher', 'khorumi', ['ხორუმის თვლა', 'The khorumi count'],
+      ['ხორუმის მუსიკალური ზომაა 5/8. ითვლება 3/8 და 2/8 დაჯგუფებით: 1-2-3, 1-2 (ან პირიქით: 1-2, 1-2-3). ყოველი ჯგუფის პირველი თვლა მძიმეა.', 'Khorumi is in 5/8. It is counted as 3/8 plus 2/8: 1-2-3, 1-2 (or the other way round: 1-2, 1-2-3). The first count of each group is the heavy one.'],
+      [['თქვი ხმამაღლა: 1-2-3, 1-2 — და ფეხი დაარტყი მხოლოდ ყოველი ჯგუფის პირველზე.', 'Say it aloud: 1-2-3, 1-2 — and tap your foot only on the first of each group.'],
+       ['ცეკვა ოთხი ნაწილისგან შედგება: 1. მეომართა დაბანაკება · 2. მტრის დაზვერვა · 3. იერიში · 4. გამარჯვება და ზეიმი („გადახვეული ხორუმი“).', 'The dance has four parts: 1. the warriors make camp · 2. scouting the enemy · 3. the attack · 4. victory and celebration (known as “gadakhveuli khorumi”).'],
+       ['ტრადიციულად დოლითა და ჭიბონით (ან სალამურით) სრულდება, მოცეკვავეთა რაოდენობა კი კენტია.', 'Traditionally it is performed with the doli and the chiboni (or the salamuri), and the number of dancers is odd.'],
+       ['დღეს დოლისა და ჭიბონის გარდა უკრავენ ფანდურით, გარმონით, დუდუკით, ბას-გიტარითა და სტრინგებითაც.', 'Today, besides the doli and chiboni, it is also played on the panduri, the garmoni, the duduki, the bass guitar and strings.']],
+      ['ხორუმი 2/4-ად ან 4/4-ად არ ითვლება — სწორი თვლის გარეშე დარტყმები ადგილიდან იცვლება.', 'Khorumi is not counted in 2/4 or 4/4 — without the right count the strokes land in the wrong place.'],
+      { route: 'rhythm', param: 'khorumi', label: ['ხორუმი', 'Khorumi'] }),
     T('tempo', 'rhythm', 'general', 'tempo', ['ჯერ ნელა — მერე სწრაფად', 'Slow first, then faster'], ['ტემპი მხოლოდ მაშინ აწიე, როცა 3-ჯერ ზედიზედ სუფთად გამოგივა.', 'Raise the tempo only after 3 clean times in a row.'],
       [['დაიწყე 60%-ზე.', 'Start at 60%.'], ['3 სუფთა გამეორება → +10%.', '3 clean repeats → +10%.'], ['თუ არეულდება — ერთი საფეხურით უკან.', 'If it falls apart — one step back.']], ['ნელი და სწორი ვარჯიში უფრო სწრაფად გასწავლის, ვიდრე სწრაფი და არეული.', 'Slow and right teaches you faster than fast and messy.'], { route: 'metronome', label: ['მეტრონომი', 'Metronome'] }),
     T('daily', 'practice', 'general', 'daily', ['ყოველდღე ცოტ-ცოტა', 'A little every day'], ['15 წუთი ყოველდღე სჯობს 2 საათს კვირაში ერთხელ.', '15 minutes every day beats 2 hours once a week.'],
@@ -567,6 +591,8 @@ PD.tips = (() => {
         const acts = h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap' });
         if (c.art) acts.append(h('button', { class: 'btn small', text: t('tp.again'), onclick: () => { artBox.innerHTML = ART[c.art](); } }));
         if (c.id === 'rhythm' || c.art === 'strum' || c.art === 'accent') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: playRhythm }));
+        if (c.id === 'khorumi') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.now() + .06, st = .28;
+          for (let r = 0; r < 4; r++) [1, 0, 0, 1, 0].forEach((acc, i) => PD.audio.click(t0 + (r * 5 + i) * st, !!acc)); } }));
         if (c.id === 'chordwhat') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; [0, 1, 2].forEach(k => PD.audio.note(k + 1, 0, { when: t0 + k * .45 })); PD.audio.strum([0, 0, 0], 'down', { when: t0 + 1.5 }); } }));
         if (c.id === 'pitch') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; PD.audio.note(1, 0, { when: t0 }); PD.audio.note(3, 0, { when: t0 + .8 }); } }));
         if (c.id === 'transpose') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; [0, 2, 3].forEach((f, i) => PD.audio.strum([f, f, f], 'down', { when: t0 + i * .9 })); } }));

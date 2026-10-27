@@ -113,7 +113,7 @@ PD.curriculum = (() => {
       TIP('parts'), { kind: 'tour', title: { ka: 'ფანდური 3D-ში', en: 'The panduri in 3D' } }, TIP('strings'), TIP('dots'), TIP('tab'),
       { kind: 'tuner', title: { ka: 'აწყობა: A · C♯ · E (სამი სიმი)', en: 'Tuning: A · C♯ · E (Sami Simi)' } }, EX('ex-inst')] },
     { id: 'rhythms', theory: true, title: { ka: 'რითმი: დათვლა და დარტყმა', en: 'Rhythm: counting and the beat' }, steps: [
-      TIP('beat'), CH('meter'), CH('tempo'), TIP('count'), TIP('rhythm'), TIP('accent'), { kind: 'rhythms', title: { ka: 'ფანდურის და ცნობილი რითმები', en: 'Panduri and famous rhythms' } }, EX('ex-rhythm')] },
+      TIP('beat'), CH('meter'), CH('tempo'), TIP('count'), TIP('rhythm'), TIP('accent'), TIP('khorumi'), { kind: 'rhythms', title: { ka: 'ფანდურის და ცნობილი რითმები', en: 'Panduri and famous rhythms' } }, EX('ex-rhythm')] },
     { id: 'notes', theory: true, title: { ka: 'ნოტები', en: 'Notes' }, steps: [
       TIP('pitch'), CH('names'), CH('octave'), CH('semitone'), CH('accidentals'), CH('neck'), TIP('semitone'), CH('staff'), CH('durations'), CH('rests'), { kind: 'fretboard', title: { ka: 'ნოტები ტარზე: რუკა', en: 'Notes on the neck: the map' } }, EX('ex-notes')] },
     { id: 'scales', theory: true, title: { ka: 'ინტერვალები, გამები, აკორდები', en: 'Intervals, scales, chords' }, steps: [
@@ -218,7 +218,10 @@ PD.curriculum = (() => {
     { id: 'mtiuluri', name: { ka: 'მთიულური', en: 'Mtiuluri' }, usage: { ka: ['მელოდიები', 'სიმღერები'], en: ['Melodies', 'Songs'] },
       strokes: [S('down', true), S('down', false), S('up', true), S('down', false), S('up', false)], source: 'teacher' },
     { id: 'khorumi', name: { ka: 'ხორუმი', en: 'Khorumi' }, usage: { ka: ['მელოდიები'], en: ['Melodies'] },
-      strokes: [S('down', true), S('down', false), S('up', false), S('down', false), S('down', true), S('down', false), S('up', false)], source: 'teacher' },
+      strokes: [S('down', true), S('down', false), S('up', false), S('down', false), S('down', true), S('down', false), S('up', false)], source: 'teacher',
+      /* the teacher's own count for this dance: 5/8, grouped 3+2 (or 2+3). The stroke order above is his too;
+         how the seven strokes sit inside this count he has not said, so nothing here guesses it. */
+      meter: { beats: 5, unit: 8, groups: [3, 2], src: 'teacher' } },
     { id: 'acharuli', name: { ka: 'აჭარული', en: 'Acharuli' }, usage: { ka: ['მელოდიები', 'სიმღერები'], en: ['Melodies', 'Songs'] },
       strokes: [S('down', false), S('down', true), S('up', true)], source: 'teacher' }
   ].map(r => Object.assign({ timing: { bpm: 60, durations: r.strokes.map(() => 1), src: 'default' } }, r));
