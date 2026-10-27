@@ -41,13 +41,14 @@ PD.i18n.add({
   'ex.listen': ['▶ მოსმენა', '▶ Listen'], 'ex.again1': ['▶ კიდევ', '▶ Again'],
   'ex.score': ['{a} / {b}', '{a} / {b}'], 'ex.more': ['შემდეგი კითხვა', 'Next question'],
   'ex.why': ['რატომ', 'Why'], 'ex.exit': ['გასვლა', 'Leave'],
+  'ex.e0': ['პირველი ნაბიჯები: დაჯდომა, ხელები, მოვლა', 'First steps: sitting, the hands, care'],
   'ex.e1': ['ფანდური: სიმები, ლადები, თითები', 'The panduri: strings, frets, fingers'],
   'ex.e2': ['რითმი, ზომა და ხანგრძლივობა', 'Rhythm, metre and note values'],
   'ex.e3': ['ნოტები, ნიშნები და ტარის რუკა', 'Notes, signs and the map of the neck'],
   'ex.e4': ['ინტერვალები, გამები, აკორდები', 'Intervals, scales and chords'],
   'ex.e5': ['სოლფეჯიო', 'Solfège'],
   'ex.e6': ['საბოლოო გამოცდა — მთელი თეორია', 'Final exam — the whole theory'],
-  'ex.t1': ['ფანდური', 'The panduri'], 'ex.t2': ['რითმი', 'Rhythm'], 'ex.t3': ['ნოტები', 'Notes'], 'ex.t4': ['ჰარმონია', 'Harmony'], 'ex.t5': ['სოლფეჯიო', 'Solfège'], 'ex.t6': ['ყველაფერი', 'Everything'],
+  'ex.t0': ['პირველი ნაბიჯები', 'First steps'], 'ex.t1': ['ფანდური', 'The panduri'], 'ex.t2': ['რითმი', 'Rhythm'], 'ex.t3': ['ნოტები', 'Notes'], 'ex.t4': ['ჰარმონია', 'Harmony'], 'ex.t5': ['სოლფეჯიო', 'Solfège'], 'ex.t6': ['ყველაფერი', 'Everything'],
   'ex.later': ['მოგვიანებით', 'Later'],
   'ex.laterD': ['გამოცდა დარჩება — სანამ არ ჩააბარებ, შემდეგი ბლოკის გაკვეთილები დაკეტილია.', 'The exam stays — until you pass it the next unit\'s lessons are locked.'],
   'ex.waiting': ['გამოცდა გელოდება', 'An exam is waiting'],
@@ -103,6 +104,119 @@ PD.exam = (() => {
   const EXIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v9.5"/><path d="M15 3v4h4"/><path d="M6 3v13"/><path d="M6 16h6"/><circle cx="16.5" cy="18" r="3.4"/><path d="M15.1 18l1 1.1 2-2.2"/></svg>';
   const sound = (ms, gap) => () => { PD.audio.ensure(); const c = PD.audio.ctx; if (!c) return; let t0 = c.currentTime + .06; [].concat(ms).forEach(m => { const p = TH.positions(m).sort((a, b) => a.f - b.f)[0]; if (p) PD.audio.note(p.s, p.f, { when: t0 }); t0 += (gap || .6); }); };
 
+  /* ---------------- the teaching cards' own material ----------------
+     Every line below is taken from a card the learner reads in the app
+     (tips.js) — the teacher's own words about sitting, holding, the
+     hands, the fingers, caring for the instrument, the beat and so on.
+     g = which part of the programme it belongs to. ------------------ */
+  const TIPQ = [
+    ['first', ['როგორ უნდა დაჯდე დაკვრისას?', 'How should you sit when you play?'],
+      ['სკამის წინა ნაწილზე, წელი სწორი, ფეხები იატაკზე', 'On the front of the chair, back straight, feet on the floor'],
+      [['სავარძელში, ზურგით მიყრდნობილი', 'In an armchair, leaning back'], ['იატაკზე, ფეხმორთხმული', 'On the floor, cross-legged'], ['ფეხზე მდგომი', 'Standing up']],
+      ['სკამი სახელურების გარეშე, მხრები მოდუნებული.', 'A chair without armrests, shoulders relaxed.']],
+    ['first', ['ფანდურის ტარი საით არის მიმართული?', 'Where does the panduri\'s neck point?'],
+      ['მარცხნივ და ოდნავ ზემოთ', 'To the left and slightly up'],
+      [['მარჯვნივ და ქვემოთ', 'To the right and down'], ['პირდაპირ წინ', 'Straight forward'], ['ზემოთ, ვერტიკალურად', 'Straight up']],
+      ['ტანი შენს სხეულს ეხება, მარჯვენა მკლავი ზემოდან აკავებს.', 'The body touches you and the right arm holds it from above.']],
+    ['first', ['რომელი ხელი უკრავს სიმებს?', 'Which hand plays the strings?'],
+      ['მარჯვენა — ჩამოკვრა ↓ და ამოკვრა ↑', 'The right — down ↓ and up ↑'],
+      [['მარცხენა', 'The left'], ['ორივე თანაბრად', 'Both the same'], ['მარცხენა ცერა თითი', 'The left thumb']],
+      ['მარცხენა ხელი თითებით ლადებზე აჭერს სიმებს.', 'The left hand presses the strings on the frets.']],
+    ['first', ['ამოკვრა ↑ რომელი თითით კეთდება?', 'Which finger makes the up-stroke ↑?'],
+      ['ცერა თითით, ფრჩხილის წვერით', 'With the thumb, on the nail tip'],
+      [['საჩვენებელი თითით', 'With the index finger'], ['ნეკით', 'With the little finger'], ['მთელი ხელისგულით', 'With the whole palm']],
+      ['ჩამოკვრისას თითები იშლება და სიმებს ფრჩხილის წვერები ეხება.', 'On the down-stroke the fingers open and the nail tips touch the strings.']],
+    ['first', ['ჩამოკვრისა და ამოკვრის დროს რა მოძრაობს?', 'What moves on a down- and up-stroke?'],
+      ['მხოლოდ მაჯა', 'Only the wrist'],
+      [['მთელი მკლავი', 'The whole arm'], ['მხარი', 'The shoulder'], ['სხეული', 'The body']],
+      ['მკლავი ადგილზე რჩება — მოძრაობს მაჯა.', 'The arm stays put — the wrist moves.']],
+    ['first', ['მარცხენა ხელის ფრჩხილები როგორი უნდა იყოს?', 'What about the left hand\'s nails?'],
+      ['მოკლე', 'Short'],
+      [['გრძელი', 'Long'], ['მნიშვნელობა არ აქვს', 'It does not matter'], ['ლაკით დაფარული', 'Polished']],
+      ['გრძელი ფრჩხილი წვერით დაჭერას არ გაძლევს.', 'A long nail stops you pressing with the tip.']],
+    ['first', ['თითი ლადთან სად უნდა იდგეს?', 'Where does the finger go in relation to the fret?'],
+      ['ზუსტად ლადის უკან, ახლოს', 'Just behind the fret, close to it'],
+      [['ზუსტად ლადზე', 'Right on the fret'], ['ორ ლადს შუაში', 'In the middle between two frets'], ['ლადის წინ', 'In front of the fret']],
+      ['ლადის უკან დაჭერა სუფთა ბგერას იძლევა.', 'Pressing behind the fret gives a clean sound.']],
+    ['first', ['როგორ უნდა შეეხო თითი სიმს?', 'How should the finger touch the string?'],
+      ['მოხრილი თითი, წვერით', 'A curved finger, on its tip'],
+      [['ბრტყელი თითით', 'Flat'], ['თითის ბალიშით', 'With the pad'], ['ფრჩხილით', 'With the nail']],
+      ['ბრტყელი თითი გვერდით სიმს აჩუმებს.', 'A flat finger mutes the string next to it.']],
+    ['first', ['რამდენად ძლიერად უნდა დააჭირო სიმს?', 'How hard should you press the string?'],
+      ['იმდენად, რამდენიც საჭიროა სუფთა ბგერისთვის', 'Only as hard as a clean sound needs'],
+      [['რაც შეიძლება ძლიერად', 'As hard as you can'], ['ძალიან სუსტად', 'Very lightly'], ['ორივე ხელით', 'With both hands']],
+      ['ზედმეტი ძალა ხელს ღლის და ბგერასაც ამაღლებს.', 'Too much force tires the hand and raises the pitch.']],
+    ['first', ['დაკვრამდე რა უნდა გააკეთო?', 'What should you do before playing?'],
+      ['1–2 წუთი ხელები გაახურო', 'Warm the hands up for 1–2 minutes'],
+      [['პირდაპირ სწრაფად დაუკრა', 'Start fast straight away'], ['სიმები შეცვალო', 'Change the strings'], ['არაფერი', 'Nothing']],
+      ['გაშალე და მოკუმე ხელები, დაატრიალე მაჯები.', 'Open and close the hands, roll the wrists.']],
+    ['first', ['სად ინახება ფანდური?', 'Where should the panduri be kept?'],
+      ['ბუდეში ან ჩანთაში, მშრალ ადგილას', 'In a case or bag, somewhere dry'],
+      [['მანქანაში', 'In the car'], ['გამათბობელთან', 'By the heater'], ['მზეზე, აივანზე', 'In the sun, on the balcony']],
+      ['ხის ინსტრუმენტს სიცხე, სიცივე და ნესტი აზიანებს.', 'Heat, cold and damp harm a wooden instrument.']],
+    ['first', ['რა სჯობს ვარჯიშში?', 'Which is better practice?'],
+      ['15 წუთი ყოველდღე', '15 minutes every day'],
+      [['2 საათი კვირაში ერთხელ', 'Two hours once a week'], ['5 საათი თვეში ერთხელ', 'Five hours once a month'], ['ერთნაირია', 'They are the same']],
+      ['ყოველდღე ცოტ-ცოტა — ხელი ასე იმახსოვრებს.', 'A little every day — that is how the hand remembers.']],
+    ['inst', ['რომელია ფანდურის ნაწილები?', 'Which are the parts of the panduri?'],
+      ['თავი, მექანიკები, ტარი, ლადები, დეკა, ხიდი', 'Head, tuners, neck, frets, soundboard, bridge'],
+      [['თავი, კლავიატურა, პედალი', 'Head, keyboard, pedal'], ['ტარი, სიმები, მიკროფონი', 'Neck, strings, microphone'], ['დეკა, ზარები, ჩაქუჩები', 'Soundboard, bells, hammers']],
+      ['ეს ნაწილები შენი ინსტრუმენტის ფოტოებზეა ნაჩვენები.', 'These parts are shown on the photographs of your own instrument.']],
+    ['inst', ['რისთვის არის ტარზე ყვითელი წერტილები?', 'What are the dots on the neck for?'],
+      ['ორიენტირისთვის — ლადს წერტილით პოულობ', 'As markers — you find the fret by the dot'],
+      [['მორთულობისთვის', 'For decoration'], ['იქ დაჭერა არ შეიძლება', 'You must not press there'], ['სიმების გასამაგრებლად', 'To hold the strings']],
+      ['წერტილები 3 · 5 · 7 · 9 · 15 ლადზეა, ორმაგი — მე-12-ზე.', 'The dots sit at frets 3 · 5 · 7 · 9 · 15, a double one at 12.']],
+    ['inst', ['აპის ზოლებში ციფრი ხაზზე რას ნიშნავს?', 'In the app\'s lanes, what does a number on a line mean?'],
+      ['რომელ ლადზე დააჭირო', 'Which fret to press'],
+      [['რამდენჯერ დაუკრა', 'How many times to play'], ['რომელი თითით დააჭირო', 'Which finger to use'], ['ტემპს', 'The tempo']],
+      ['ხაზი = სიმი, ციფრი = ლადი, 0 = ღია სიმი.', 'The line is the string, the number the fret, 0 the open string.']],
+    ['inst', ['ლადზე დაჭერა რას უშვრება ბგერას?', 'What does pressing a fret do to the sound?'],
+      ['ამაღლებს — სიმი მოკლდება', 'Raises it — the string gets shorter'],
+      [['ადაბლებს', 'Lowers it'], ['არ ცვლის', 'Changes nothing'], ['ხმამაღალს ხდის', 'Makes it louder']],
+      ['რაც უფრო ჩქარა ირხევა სიმი, მით მაღალია ბგერა.', 'The faster the string vibrates, the higher the sound.']],
+    ['inst', ['როდის უნდა ააწყო ფანდური?', 'When should you tune the panduri?'],
+      ['ყოველ ჯერზე, დაკვრამდე', 'Every time, before playing'],
+      [['თვეში ერთხელ', 'Once a month'], ['მხოლოდ სიმის გაწყვეტის შემდეგ', 'Only after a string breaks'], ['კონცერტის წინ', 'Only before a concert']],
+      ['აწყობილი ფანდური ნახევარ სამუშაოს აკეთებს.', 'A tuned panduri does half the work.']],
+    ['inst', ['Dm-ში 1-ლი თითი რას აკეთებს?', 'In Dm, what does the first finger do?'],
+      ['ერთდროულად აჭერს C♯ და E სიმებს 1-ლ ლადზე', 'Presses both the C♯ and E strings on fret 1'],
+      [['მხოლოდ E სიმს აჭერს', 'Presses only the E string'], ['ბანს აჭერს', 'Presses the bass'], ['არაფერს — სიმები ღიაა', 'Nothing — the strings are open']],
+      ['ერთი თითი ორ სიმზე — ეს ბარეა.', 'One finger across two strings — that is a barre.']],
+    ['rhythm', ['ხმამაღლა თვლა რაში გეხმარება?', 'What does counting aloud do?'],
+      ['რიტმს თავში ამაგრებს', 'It fixes the rhythm in your head'],
+      [['ტემპს აჩქარებს', 'It speeds the tempo up'], ['ბგერას ასწორებს', 'It corrects the pitch'], ['არაფერში', 'Nothing']],
+      ['„1 და 2 და“ — ხმამაღლა თვლა.', '“1 and 2 and” — counted aloud.']],
+    ['rhythm', ['როდის უნდა აიწიო ტემპი?', 'When should you raise the tempo?'],
+      ['როცა 3-ჯერ ზედიზედ სუფთად გამოგივა', 'When it comes out clean three times in a row'],
+      [['მაშინვე, პირველივე დღეს', 'Straight away, on the first day'], ['როცა მოგწყინდება', 'When you get bored'], ['ყოველ გამეორებაზე', 'On every repeat']],
+      ['ჯერ ნელა — მერე სწრაფად.', 'Slowly first — fast after.']],
+    ['rhythm', ['რა არის სინკოპა?', 'What is syncopation?'],
+      ['ძლიერი დარტყმა თვლებს შორის („და“-ზე) მოდის', 'The strong stroke falls between the counts (on the “and”)'],
+      [['ტაქტის პირველი დარტყმა', 'The first beat of the bar'], ['ორი რითმი ერთად', 'Two rhythms at once'], ['პაუზა ტაქტის ბოლოს', 'A rest at the end of the bar']],
+      ['თვალე: 1 და 2 და 3 და 4 და.', 'Count: 1 and 2 and 3 and 4 and.']],
+    ['deep', ['თუ სამივე სიმს ერთნაირად აწევ, ბგერა…', 'If you move all three strings up by the same amount, the sound…'],
+      ['იმდენი ნახევარტონით მაღლდება, რამდენი ლადიც აიწიე', 'rises by as many semitones as frets you moved'],
+      [['არ იცვლება', 'does not change'], ['ოქტავით მაღლდება', 'rises by an octave'], ['ადაბლდება', 'goes lower']],
+      ['ღია = A, ყველა მე-2 ლადზე = B, მე-3-ზე = C.', 'Open = A, all on fret 2 = B, on fret 3 = C.']],
+    ['deep', ['აკორდის მიქცევას რა განსაზღვრავს?', 'What decides a chord\'s inversion?'],
+      ['ყველაზე დაბალი (ქვედა) ნოტი', 'The lowest note'],
+      [['ყველაზე მაღალი ნოტი', 'The highest note'], ['ნოტების რაოდენობა', 'How many notes it has'], ['რომელი თითებით იღებ', 'Which fingers you use']],
+      ['ძირითადი სახე — ქვემოთ ტონიკაა; სექსტაკორდი — ტერცია; კვარტსექსტაკორდი — კვინტა.', 'Root position has the root at the bottom, then the third, then the fifth.']],
+    ['deep', ['სანამ ნაწარმოებს დაუკრავ, რა სჯობს?', 'Before you play a piece, what is best?'],
+      ['ჯერ რამდენჯერმე მოუსმინო', 'Listen to it a few times first'],
+      [['პირდაპირ სწრაფად დაუკრა', 'Play it fast straight away'], ['ნოტები ზეპირად ისწავლო', 'Learn the notes by heart first'], ['ტემპი აიწიო', 'Raise the tempo']],
+      ['ყურში ჩამჯდარი მელოდია ხელსაც ასწავლის.', 'A melody in the ear teaches the hand too.']],
+    ['deep', ['რთულ ადგილს როგორ ვივარჯიშებთ?', 'How do you practise a hard spot?'],
+      ['იპოვი სად გეშლება და მხოლოდ იმ ადგილს იმეორებ', 'Find where it goes wrong and repeat only that'],
+      [['მთელ სიმღერას იმეორებ თავიდან', 'Play the whole song from the top again'], ['ტემპს აჩქარებ', 'Speed it up'], ['გამოტოვებ', 'Skip it']],
+      ['წრეზე გამეორება სწორედ იმ ადგილს ასწორებს.', 'Looping that one place is what fixes it.']]
+  ];
+  const cnt2 = (r, pat) => mc(L('„' + PD.i18n.pick(r.name) + '“ რამდენი დარტყმაა?', 'How many strokes is “' + PD.i18n.pick(r.name) + '”?'),
+    String(r.strokes.length), others(String(r.strokes.length), () => String(1 + rnd(8)), 3),
+    L('„' + PD.i18n.pick(r.name) + '“ = ' + pat + '.', '“' + PD.i18n.pick(r.name) + '” = ' + pat + '.'));
+  const tipQ = g => { const all = TIPQ.filter(x => x[0] === g), r = pick(all);
+    return mc(L(r[1][0], r[1][1]), L(r[2][0], r[2][1]), r[3].map(w => L(w[0], w[1])), L(r[4][0], r[4][1])); };
+
   /* ---------------- generators ---------------- */
   const GEN = {
     /* --- the instrument --- */
@@ -138,6 +252,35 @@ PD.exam = (() => {
     thumb: () => mc(L('მასწავლებლის წესით ბანს — მე-3 სიმს, A (ლა) — რომელი თითით იჭერ?', 'By the teacher\'s rule, which finger holds the bass — string 3, A?'),
       L('T — ცერა თითი', 'T — the thumb'), [L('1 — საჩვენებელი', '1 — index'), L('2 — შუა', '2 — middle'), L('4 — ნეკი', '4 — little')],
       L('ბანს ცერით იჭერ; რითმში ხანდახან მეორე (შუა) თითს ამატებ ბანის მოძრაობისთვის.', 'The thumb holds the bass; in the rhythm the middle finger is sometimes added to move the bass.')),
+
+    /* --- the teaching cards --- */
+    tipFirst: () => tipQ('first'),
+    tipInst: () => tipQ('inst'),
+    tipRhythm: () => tipQ('rhythm'),
+    tipDeep: () => tipQ('deep'),
+    /** the famous rhythms (known from the guitar, not the teacher's own) */
+    rhythmGen: () => { const RS = ((PD.curriculum.commonRhythms && PD.curriculum.commonRhythms()) || []).filter(r => r.strokes && r.strokes.length);
+      if (!RS.length) return GEN.rhythm();
+      const r = pick(RS), arrow = k => k.direction === 'down' ? '↓' : '↑', pat = r.strokes.map(arrow).join(' ');
+      const unique = RS.filter(x => x.strokes.map(arrow).join(' ') === pat).length === 1;   // two patterns that look alike differ only in their timing: never ask by arrows alone
+      return pick(unique ? [
+        () => mc(L('რომელი რითმია ' + pat + '?', 'Which rhythm is ' + pat + '?'), PD.i18n.pick(r.name), others(PD.i18n.pick(r.name), () => PD.i18n.pick(pick(RS).name), 3),
+          L('ზოგადი (გიტარიდან ცნობილი) რითმი — მასწავლებლის ოთხი რითმისგან განსხვავებული.', 'A general strumming pattern, not one of the teacher\'s four rhythms.')),
+        () => cnt2(r, pat)] : [() => cnt2(r, pat)])(); },
+    /** the chord progressions the teacher gave */
+    prog: () => { const PR = ((PD.tools && PD.tools.PROGRESSIONS) || []).filter(x => x.src === 'teacher');
+      if (!PR.length) return GEN.key();
+      const r = pick(PR);
+      return pick([
+        () => mc(L('„' + L(r.ka, r.en) + '“ რომელი აკორდებია?', 'Which chords are “' + r.en + '”?'), r.id, others(r.id, () => pick(PR).id, 3),
+          L('მასწავლებლის აკორდული პროგრესიები: ' + PR.map(x => x.id).join(' · ') + '.', 'The teacher\'s progressions: ' + PR.map(x => x.id).join(' · ') + '.')),
+        () => mc(L(r.id + ' — რა ჰქვია ამ მოძრაობას?', 'What is the progression ' + r.id + ' called?'), L(r.ka, r.en), others(L(r.ka, r.en), () => { const o = pick(PR); return L(o.ka, o.en); }, 3),
+          L('ეს პროგრესია სწავლების გვერდზეა — „' + L(r.ka, r.en) + '“.', 'This progression is in the lessons — “' + r.en + '”.'))])(); },
+    /** the teacher's own exercise: moving the bass */
+    bassMove: () => mc(L('სოლ მინორში ბანის გასამოძრავებლად რას ვამატებთ?', 'In G minor, what is added to move the bass?'),
+      L('მე-2 (შუა) თითს ბანის სიმზე, ორი ლადით ზემოთ', 'The middle finger on the bass string, two frets higher'),
+      [L('მე-4 თითს ზედა სიმზე', 'The little finger on the top string'), L('ცერა თითს ვხსნით', 'The thumb is lifted'), L('სხვა აკორდზე გადავდივართ', 'You change to another chord')],
+      L('ბანს ცერა თითი იჭერს; რითმი იგივე რჩება.', 'The thumb holds the bass; the rhythm stays the same.')),
 
     /* --- notes, frets, signs --- */
     fretNote: () => { const s = 1 + rnd(3), f = 1 + rnd(FR()), m = TH.midi(s, f), right = nLab(m);
@@ -307,14 +450,16 @@ PD.exam = (() => {
 
   /* ---------------- topics and exams ---------------- */
   const TOPICS = {
-    inst: { title: 'ex.t1', gens: ['stringNum', 'stringVoice', 'tuning', 'fretCount', 'range', 'markers', 'fingers', 'zero', 'thumb', 'strokes'], ch: ['octave', 'neck', 'app'] },
-    rhythm: { title: 'ex.t2', gens: ['duration', 'rest', 'meter', 'tempo', 'rhythm', 'strokes'], ch: ['durations', 'rests', 'meter', 'tempo', 'app'] },
+    first: { title: 'ex.t0', gens: ['tipFirst', 'fingers', 'zero', 'thumb', 'stringNum', 'stringVoice'], ch: [] },
+    inst: { title: 'ex.t1', gens: ['stringNum', 'stringVoice', 'tuning', 'fretCount', 'range', 'markers', 'fingers', 'zero', 'thumb', 'strokes', 'tipInst'], ch: ['octave', 'neck', 'app'] },
+    rhythm: { title: 'ex.t2', gens: ['duration', 'rest', 'meter', 'tempo', 'rhythm', 'rhythmGen', 'strokes', 'tipRhythm'], ch: ['durations', 'rests', 'meter', 'tempo', 'app'] },
     notes: { title: 'ex.t3', gens: ['fretNote', 'noteWhere', 'semitone', 'accidental', 'staff', 'octave', 'names'], ch: ['names', 'octave', 'semitone', 'accidentals', 'neck', 'staff'] },
-    harmony: { title: 'ex.t4', gens: ['interval', 'chordType', 'barre', 'scale', 'key', 'signs'], ch: ['intervals', 'scales', 'chords', 'key', 'signs'] },
+    harmony: { title: 'ex.t4', gens: ['interval', 'chordType', 'barre', 'scale', 'key', 'signs', 'prog', 'bassMove', 'tipDeep'], ch: ['intervals', 'scales', 'chords', 'key', 'signs'] },
     solfege: { title: 'ex.t5', gens: ['solfSyl', 'solfStep', 'solfIv', 'names', 'ear', 'earIv', 'interval'], ch: [] },
     all: { title: 'ex.t6', gens: null, ch: null }
   };
   const EXAMS = [
+    { id: 'ex-first', topic: 'first', name: 'ex.e0', n: 10, min: 8, pass: 80, after: 'first' },
     { id: 'ex-inst', topic: 'inst', name: 'ex.e1', n: 10, min: 8, pass: 80, after: 'instrument' },
     { id: 'ex-rhythm', topic: 'rhythm', name: 'ex.e2', n: 12, min: 10, pass: 80, after: 'rhythms' },
     { id: 'ex-notes', topic: 'notes', name: 'ex.e3', n: 14, min: 12, pass: 80, after: 'notes' },

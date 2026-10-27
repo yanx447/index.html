@@ -315,24 +315,7 @@ PD.tools = (() => {
       });
     }
     /* progressions: common sequences in any key, played on the neck, or practised with the microphone */
-    const PROG = [
-      { id: 'I-IV-V-I', ka: 'კლასიკური', en: 'Classic', deg: [[0, ''], [5, ''], [7, ''], [0, '']] },
-      { id: 'I-V-vi-IV', ka: 'პოპი', en: 'Pop', deg: [[0, ''], [7, ''], [9, 'm'], [5, '']] },
-      { id: 'I-vi-IV-V', ka: '50-იანების', en: '50s', deg: [[0, ''], [9, 'm'], [5, ''], [7, '']] },
-      { id: 'ii-V-I', ka: 'ჯაზური', en: 'Jazz ii–V–I', deg: [[2, 'm7'], [7, '7'], [0, 'maj7']] },
-      { id: 'i-iv-v-i', ka: 'მინორული', en: 'Minor', deg: [[0, 'm'], [5, 'm'], [7, 'm'], [0, 'm']] },
-      { id: 'i-VI-III-VII', ka: 'მინორული პოპი', en: 'Minor pop', deg: [[0, 'm'], [8, ''], [3, ''], [10, '']] },
-      { id: 'i-VII-VI-VII', ka: 'ხალხური ფერი', en: 'Folk colour', deg: [[0, 'm'], [10, ''], [8, ''], [10, '']] },
-      { id: 'i-iv-V-i', ka: 'ჰარმონიული მინორი', en: 'Harmonic minor', deg: [[0, 'm'], [5, 'm'], [7, '7'], [0, 'm']] },
-      /* ---- the teacher's own progressions: what he says is played on the panduri, in Georgian songs and dance
-         melodies (Mtiuluri, Acharuli and the rest). The key beside each one is the key he named them in. ---- */
-      { id: 'Am–Em–F–G', ka: 'ქართული მოძრაობა', en: 'Georgian turn', deg: [[0, 'm'], [7, 'm'], [8, ''], [10, '']], key: 9, src: 'teacher' },
-      { id: 'Gm–C', ka: 'ორი აკორდი', en: 'Two chords', deg: [[0, 'm'], [5, '']], key: 7, src: 'teacher' },
-      { id: 'Cm–Gm–Dm–E♭m–F–Gm', ka: 'გრძელი მოძრაობა', en: 'The long turn', deg: [[0, 'm'], [7, 'm'], [2, 'm'], [3, 'm'], [5, ''], [7, 'm']], key: 0, src: 'teacher' },
-      { id: 'C♯m–B–A', ka: 'ღია ლაზე დაბრუნება', en: 'Down to the open A', deg: [[0, 'm'], [10, ''], [8, '']], key: 1, src: 'teacher' },
-      { id: 'Cm–B♭–E♭–B♭–Cm', ka: 'წრე მინორში', en: 'A circle in minor', deg: [[0, 'm'], [10, ''], [3, ''], [10, ''], [0, 'm']], key: 0, src: 'teacher' },
-      { id: 'Cm–Fm–Cm–B♭–E♭–Bm–Cm', ka: 'სრული წრე', en: 'The full circle', deg: [[0, 'm'], [5, 'm'], [0, 'm'], [10, ''], [3, ''], [11, 'm'], [0, 'm']], key: 0, src: 'teacher' }
-    ];
+    const PROG = PROGRESSIONS;
     let pKey = PD.store.get('ce.pkey', 9), tKey = PD.store.get('ce.ptkey', false);
     function progressions() {
       const keyRow = h('div', { class: 'ce-chips', role: 'group' }, TT.ROOT_NAMES.map((r, i) => h('button', { class: 'chip', 'aria-pressed': String(i === pKey), text: r, onclick: () => { pKey = i; tKey = true; PD.store.set('ce.pkey', i); PD.store.set('ce.ptkey', true); grid(); } })));
@@ -493,6 +476,25 @@ PD.tools = (() => {
   }
 
   /* =================== 3D EXPLORER + TOUR =================== */
+  /** chord progressions: the teacher's own, and the ones every learner meets */
+  const PROGRESSIONS = [
+      { id: 'I-IV-V-I', ka: 'კლასიკური', en: 'Classic', deg: [[0, ''], [5, ''], [7, ''], [0, '']] },
+      { id: 'I-V-vi-IV', ka: 'პოპი', en: 'Pop', deg: [[0, ''], [7, ''], [9, 'm'], [5, '']] },
+      { id: 'I-vi-IV-V', ka: '50-იანების', en: '50s', deg: [[0, ''], [9, 'm'], [5, ''], [7, '']] },
+      { id: 'ii-V-I', ka: 'ჯაზური', en: 'Jazz ii–V–I', deg: [[2, 'm7'], [7, '7'], [0, 'maj7']] },
+      { id: 'i-iv-v-i', ka: 'მინორული', en: 'Minor', deg: [[0, 'm'], [5, 'm'], [7, 'm'], [0, 'm']] },
+      { id: 'i-VI-III-VII', ka: 'მინორული პოპი', en: 'Minor pop', deg: [[0, 'm'], [8, ''], [3, ''], [10, '']] },
+      { id: 'i-VII-VI-VII', ka: 'ხალხური ფერი', en: 'Folk colour', deg: [[0, 'm'], [10, ''], [8, ''], [10, '']] },
+      { id: 'i-iv-V-i', ka: 'ჰარმონიული მინორი', en: 'Harmonic minor', deg: [[0, 'm'], [5, 'm'], [7, '7'], [0, 'm']] },
+      /* ---- the teacher's own progressions: what he says is played on the panduri, in Georgian songs and dance
+         melodies (Mtiuluri, Acharuli and the rest). The key beside each one is the key he named them in. ---- */
+      { id: 'Am–Em–F–G', ka: 'ქართული მოძრაობა', en: 'Georgian turn', deg: [[0, 'm'], [7, 'm'], [8, ''], [10, '']], key: 9, src: 'teacher' },
+      { id: 'Gm–C', ka: 'ორი აკორდი', en: 'Two chords', deg: [[0, 'm'], [5, '']], key: 7, src: 'teacher' },
+      { id: 'Cm–Gm–Dm–E♭m–F–Gm', ka: 'გრძელი მოძრაობა', en: 'The long turn', deg: [[0, 'm'], [7, 'm'], [2, 'm'], [3, 'm'], [5, ''], [7, 'm']], key: 0, src: 'teacher' },
+      { id: 'C♯m–B–A', ka: 'ღია ლაზე დაბრუნება', en: 'Down to the open A', deg: [[0, 'm'], [10, ''], [8, '']], key: 1, src: 'teacher' },
+      { id: 'Cm–B♭–E♭–B♭–Cm', ka: 'წრე მინორში', en: 'A circle in minor', deg: [[0, 'm'], [10, ''], [3, ''], [10, ''], [0, 'm']], key: 0, src: 'teacher' },
+      { id: 'Cm–Fm–Cm–B♭–E♭–Bm–Cm', ka: 'სრული წრე', en: 'The full circle', deg: [[0, 'm'], [5, 'm'], [0, 'm'], [10, ''], [3, ''], [11, 'm'], [0, 'm']], key: 0, src: 'teacher' }
+  ];
   function explore(w, param) {
     const own = scope(), R = PD.R3D;
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': 'x3.title', style: 'margin:0' }), h('span', { class: 'spacer' }), h('button', { class: 'btn small primary', 'data-t': 'x3.tour', onclick: () => tour(0) })]));
@@ -541,5 +543,5 @@ PD.tools = (() => {
     if (param === 'tour') setTimeout(() => tour(0), 300);
   }
 
-  return { tuner, chords, fretboard, explore, chordDiagram };
+  return { tuner, chords, fretboard, explore, chordDiagram, PROGRESSIONS };
 })();
