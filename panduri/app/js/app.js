@@ -119,7 +119,7 @@ PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
   const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['chords', 'nav.chords', ic.chord], ['ai', 'nav.ai', '<span class="nav-ai">AI</span>'], ['profile', 'nav.profile', ic.user]];   // the exam is not a tab: it covers the screen when it is due
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'learn', tips: 'learn', solfege: 'learn', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'home', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
-    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'learn', chordhow: 'learn', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -245,7 +245,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
     const want = !changed ? keepScroll : (fromPop && scrolls[key]) || 0;
     page.style.scrollBehavior = 'auto'; page.scrollTop = want;   // Back returns to where you were
@@ -508,7 +508,7 @@ PD.app = (() => {
         h('span', { class: 'grow' }, [h('b', { 'data-t': 'ex.waiting' }), h('small', { text: t('ex.waitingD', { s: t(we.name) }) })]),
         h('span', { class: 'btn small primary', 'data-t': 'ex.go2' })])); }
     const lp = PD.levels.progress;
-    const TOOL = { exam: ic.check || ic.learn, tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord, chapter: ic.learn || ic.chord, tip: ic.star, solfege: ic.mic, rhythms: ic.pulse };
+    const TOOL = { exam: ic.check || ic.learn, scalepage: ic.frets, chordhow: ic.chord, tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord, chapter: ic.learn || ic.chord, tip: ic.star, solfege: ic.mic, rhythms: ic.pulse };
     const libCard = (r, pa, k, d, art) => h('button', { class: 'lib-card', onclick: () => go(r, pa) }, [h('span', { class: 'lib-art', html: art }), h('span', { class: 'grow' }, [h('b', { 'data-t': k }), h('small', { 'data-t': d })])]);
     // the three levels = the difficulty the curriculum already gives each part; inside a level the parts keep their order (theory parts, then practice)
     const LV = [1, 2, 3].map(n => { const ps = LS.PATHS.filter(p => (DIFF[p.id] || 1) === n); const real = [].concat(...ps.map(p => p.steps.filter(s2 => s2.kind !== 'needs'))); return { n, ps, total: real.length, done: real.filter(stepDone).length }; });
@@ -574,6 +574,8 @@ PD.app = (() => {
       libCard('songs', null, 'nav.songs', 'lnx.songsD', '<span class="lib-ic">' + ic.song + '</span>'), libCard('tips', 'sit', 'tp.c.start', 'ln.firstD', PD.tips.ART.sit()), libCard('tips', null, 'tp.title', 'tp.lead', PD.tips.ART.strum()), libCard('theory', null, 'tb.title', 'tb.tool', PD.tips.ART.semitone()),
       libCard('tips', 'parts', 'tp.parts', 'tp.partsD', ph && ph.front ? '<img src="' + ph.front + '" alt="">' : ''),
       libCard('exams', null, 'ex.title', 'ex.lead', '<span class="lib-ic">' + (ic.check || ic.learn) + '</span>'),
+      libCard('scales', null, 'sh.scales', 'sh.scalesD', '<span class="lib-ic">' + ic.frets + '</span>'),
+      libCard('chordhow', null, 'sh.chords', 'sh.chordsD', '<span class="lib-ic">' + ic.chord + '</span>'),
       libCard('practice', null, 'hd.practice', 'ph.lead', '<span class="lib-ic">' + ic.pulse + '</span>'), libCard('rhythms', null, 'nav.rhythms', 'rh.commonSec', PD.tips.ART.beat()), libCard('tuner', null, 'nav.tuner', 'tools.tunerD', '<span class="lib-ic">' + ic.tune + '</span>')])]));
     if (byPath && document.getElementById('lp-' + param)) requestAnimationFrame(() => document.getElementById('lp-' + param).scrollIntoView({ block: 'start' }));
     else if (focusEl) requestAnimationFrame(() => { const pg = document.getElementById('page'); if (pg && focusEl.offsetTop > pg.clientHeight * .75) focusEl.scrollIntoView({ block: 'center' }); });
@@ -589,6 +591,8 @@ PD.app = (() => {
     if (s.kind === 'lesson') return go('lesson', s.id);
     if (s.kind === 'rhythm') return go('rhythm', s.id);
     PD.store.set('seen.' + s.kind, true);
+    if (s.kind === 'scalepage') return go('scales', s.id === 'minor' ? '9:minor' : '0:major');
+    if (s.kind === 'chordhow') return go('chordhow');
     if (s.kind === 'chapter') return go('theory', s.id); if (s.kind === 'tip') { PD.store.set('seen.tip.' + s.id, true); return go('tips', s.id); } if (s.kind === 'solfege') return go('solfege', s.id); if (s.kind === 'rhythms') return go('rhythms');
     if (s.kind === 'theory') go('theory'); else if (s.kind === 'tour') go('explore', 'tour'); else if (s.kind === 'tuner') go('tuner'); else if (s.kind === 'chords') go('chords'); else if (s.kind === 'fretboard') go('fretboard'); else if (s.kind === 'trainer') go('trainer');
   }

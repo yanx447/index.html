@@ -117,7 +117,7 @@ PD.curriculum = (() => {
     { id: 'notes', theory: true, title: { ka: 'ნოტები', en: 'Notes' }, steps: [
       TIP('pitch'), CH('names'), CH('octave'), CH('semitone'), CH('accidentals'), CH('neck'), TIP('semitone'), CH('staff'), CH('durations'), CH('rests'), { kind: 'fretboard', title: { ka: 'ნოტები ტარზე: რუკა', en: 'Notes on the neck: the map' } }, EX('ex-notes')] },
     { id: 'scales', theory: true, title: { ka: 'ინტერვალები, გამები, აკორდები', en: 'Intervals, scales, chords' }, steps: [
-      TIP('chordwhat'), CH('intervals'), TIP('octave'), CH('scales'), CH('key'), CH('chords'), { kind: 'chords', title: { ka: 'აკორდების ბიბლიოთეკა', en: 'Chord library' } }, CH('signs'), EX('ex-harmony')] },
+      TIP('chordwhat'), CH('intervals'), TIP('octave'), CH('scales'), { kind: 'scalepage', id: 'major', title: { ka: 'მაჟორული გამა ფანდურზე', en: 'The major scale on the panduri' } }, { kind: 'scalepage', id: 'minor', title: { ka: 'მინორული გამა ფანდურზე', en: 'The minor scale on the panduri' } }, CH('key'), CH('chords'), { kind: 'chordhow', title: { ka: 'აკორდი როგორ აიღო', en: 'How to take a chord' } }, { kind: 'chords', title: { ka: 'აკორდების ბიბლიოთეკა', en: 'Chord library' } }, CH('signs'), EX('ex-harmony')] },
     { id: 'solfege', theory: true, title: { ka: 'სოლფეჯიო', en: 'Solfège' }, steps: [
       SF('hear', 1), SF('hear', 2), SF('iv', 1), SF('sing', 1), SF('hear', 3), SF('iv', 2), SF('sing', 2), TIP('sing'), SF('iv', 3), SF('sing', 3), EX('ex-solfege')] },
     { id: 'deeper', theory: true, title: { ka: 'რთული თეორია', en: 'Harder theory' }, steps: [

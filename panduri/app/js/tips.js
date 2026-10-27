@@ -17,6 +17,7 @@ PD.i18n.add({
   'tp.src.fact': ['შენი ფანდურიდან და აპის მონაცემებიდან', 'From your panduri and the app\'s data'], 'tp.src.general': ['ზოგადი რჩევა სიმიანი ინსტრუმენტისთვის', 'General advice for string instruments'],
   'tp.src.draft': ['მასწავლებელმა უნდა შეამოწმოს', 'For the teacher to check'], 'tp.src.teacher': ['მასწავლებლის დამოწმებული', 'Checked by the teacher'],
   'tp.c.start': ['პირველი ნაბიჯები', 'First steps'], 'tp.c.basics': ['მუსიკის საფუძვლები', 'Music basics'], 'tp.c.deep': ['რთული თეორია', 'Harder theory'],
+  'tp.h3cap': ['{n} — 3D ხელი: ასე დგას თითები ტარზე.', '{n} — the 3D hand: this is how the fingers stand on the neck.'],
   'tp.c.inst': ['ინსტრუმენტი', 'Instrument'], 'tp.c.left': ['მარცხენა ხელი', 'Left hand'], 'tp.c.right': ['მარჯვენა ხელი', 'Right hand'], 'tp.c.chords': ['აკორდები', 'Chords'], 'tp.c.rhythm': ['რიტმი', 'Rhythm'], 'tp.c.practice': ['ვარჯიში', 'Practice'], 'tp.c.ear': ['სმენა და თეორია', 'Ear & theory'],
   'tp.listen': ['▶ მოსმენა', '▶ Listen'], 'tp.again': ['↻ თავიდან', '↻ Again'], 'tp.tap': ['შეეხე ნომერს — რა არის ეს ნაწილი', 'Tap a number to see what that part is'],
   'tp.ph.front': ['შენი ფანდური — წინიდან', 'Your panduri — from the front'], 'tp.ph.head': ['თავი: ღია ჭრილი, სამი ღერძი და მექანიკები (2 + 1)', 'Headstock: an open slot, three rollers and the tuners (2 + 1)'], 'tp.ph.body': ['დეკა, სახმო ხვრელი 26 პატარა ხვრელის წრით და ხიდი', 'Soundboard, the sound hole with its ring of 26 small holes, and the bridge'],
@@ -574,6 +575,14 @@ PD.tips = (() => {
         if (c.id === 'octave') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; PD.audio.note(1, 0, { when: t0 }); PD.audio.note(1, 12, { when: t0 + .7 }); } }));
         if (c.id === 'semitone') acts.append(h('button', { class: 'btn small', text: t('tp.listen'), onclick: () => { PD.audio.ensure(); const t0 = PD.audio.ctx.currentTime + .05; for (let f = 0; f <= 12; f++) PD.audio.note(1, f, { when: t0 + f * .32, vel: .7 }); } }));
         if (acts.childNodes.length) w.append(acts);
+        // the chord this lesson talks about, in 3D, right here on the page
+        if (c.go && c.go.route === 'chords' && c.go.param && PD.shapes && PD.shapes.handBox) {
+          const ch = (PD.curriculum.chords() || []).find(x => x.id === c.go.param || x.name === c.go.param);
+          if (ch && ch.frets && ch.frets.some(f => f > 0)) {
+            const hb = PD.shapes.handBox({ frets: ch.frets, fingers: ch.fingers });
+            w.append(hb.box, h('p', { class: 'sh-cap muted', text: t('tp.h3cap', { n: ch.name }) }));
+          }
+        }
         if (c.steps && c.steps.length) w.append(h('section', { class: 'tp-sec' }, [h('h3', { 'data-t': 'tp.steps' }), h('ol', { class: 'tp-steps' }, c.steps.map(s => h('li', { text: L(s) })))]));
         if (c.why) w.append(h('section', { class: 'tp-sec' }, [h('h3', { 'data-t': 'tp.why' }), h('p', { text: L(c.why) })]));
       }

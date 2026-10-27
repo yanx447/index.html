@@ -48,6 +48,9 @@ PD.i18n.add({
   'ce.R': ['ტონიკა', 'root'], 'ce.i2': ['სეკუნდა/ნონა', '2nd/9th'], 'ce.i3m': ['პატ. ტერცია', 'minor 3rd'], 'ce.i3': ['დიდი ტერცია', 'major 3rd'], 'ce.i4': ['კვარტა', '4th'], 'ce.i5d': ['შემც. კვინტა', 'dim. 5th'], 'ce.i5': ['კვინტა', '5th'], 'ce.i5a': ['გად. კვინტა', 'aug. 5th'], 'ce.i6': ['სექსტა', '6th'], 'ce.i7m': ['პატ. სეპტიმა', 'minor 7th'], 'ce.i7': ['დიდი სეპტიმა', 'major 7th'],
   'fx.title': ['ტარის მკვლევარი', 'Fretboard explorer'], 'fx.names': ['სახელები', 'Names'], 'fx.ka': ['ქართ.', 'Georgian'], 'fx.oct': ['ოქტავა', 'Octave'], 'fx.none': ['არაფერი', 'None'],
   'fx.scale': ['გამა', 'Scale'], 'fx.root': ['ტონიკა', 'Root'], 'sc.none': ['არა', 'None'], 'sc.major': ['მაჟორი', 'Major'], 'sc.minor': ['ნატურალური მინორი', 'Natural minor'], 'sc.penta': ['მაჟორული პენტატონიკა', 'Major pentatonic'], 'sc.mpenta': ['მინორული პენტატონიკა', 'Minor pentatonic'],
+  'fx.cap0': ['{n} — {s} ღიად ჟღერს, მარცხენა ხელი არ იჭერს.', '{n} — {s} rings open; the left hand holds nothing.'],
+  'fx.capN': ['{n} — {s}, {f} ლადი, თითი {g} (პირველი პოზიცია: თითო ლადზე თითო თითი).', '{n} — {s}, fret {f}, finger {g} (first position: one finger per fret).'],
+  'fx.capHi': ['{n} — {s}, {f} ლადი. მე-4 ლადს ზემოთ ხელი გადაინაცვლებს და 1-ლი თითი ამ ლადზე დგება.', '{n} — {s}, fret {f}. Above the 4th fret the hand shifts and finger 1 stands on this fret.'],
   'fx.same': ['იგივე ბგერა: {p}', 'Same pitch: {p}'], 'fx.find': ['იპოვე ეს ნოტი', 'Find this note'], 'fx.findGo': ['თამაშის დაწყება', 'Start game'], 'fx.findStop': ['დასრულება', 'Stop'],
   'fx.target': ['იპოვე: {n}', 'Find: {n}'], 'fx.exact': ['ზუსტი ოქტავა', 'Exact octave'], 'fx.any': ['ნებისმიერი ოქტავა', 'Any octave'], 'fx.score': ['{a}/{b} · სერია {s}', '{a}/{b} · streak {s}'],
   'fx.right': ['✓ სწორია', '✓ Correct'], 'fx.wrong': ['× ეს არის {n}', '× That is {n}'], 'fx.micHint': ['შეგიძლია ფანდურზეც დაუკრა — მიკროფონი ბგერას შეამოწმებს (სიმს ვერ განსაზღვრავს).', 'You can also play it on the panduri — the mic checks the pitch (it cannot tell which string).'],
@@ -412,7 +415,12 @@ PD.tools = (() => {
     const fb = h('div', { class: 'fb card', style: 'padding:10px' });
     const info = h('p', { class: 'fg2', role: 'status', 'aria-live': 'polite' });
     const gameBox = h('div', { class: 'card', style: 'display:flex;flex-direction:column;gap:10px' });
-    w.append(h('div', { class: 'row' }, [seg([['names', 'fx.names'], ['ka', 'fx.ka'], ['oct', 'fx.oct'], ['none', 'fx.none']], () => label, v => label = v), h('label', { class: 'field', style: 'flex-direction:row;align-items:center' }, [h('span', { 'data-t': 'fx.scale' }), scSel]), h('label', { class: 'field', style: 'flex-direction:row;align-items:center' }, [h('span', { 'data-t': 'fx.root' }), rootSel])]), fb, info, gameBox);
+    w.append(h('div', { class: 'row' }, [seg([['names', 'fx.names'], ['ka', 'fx.ka'], ['oct', 'fx.oct'], ['none', 'fx.none']], () => label, v => label = v), h('label', { class: 'field', style: 'flex-direction:row;align-items:center' }, [h('span', { 'data-t': 'fx.scale' }), scSel]), h('label', { class: 'field', style: 'flex-direction:row;align-items:center' }, [h('span', { 'data-t': 'fx.root' }), rootSel])]), fb, info);
+    // the 3D hand for the note that is tapped: every place on the neck has one
+    const h3 = PD.shapes && PD.shapes.handBox ? PD.shapes.handBox({ cls: 'fx-3d' }) : null;
+    const h3cap = h('p', { class: 'sh-cap muted' });
+    if (h3) w.append(h3.box, h3cap);
+    w.append(gameBox);
 
     function draw() {
       const W = 980, H = 190, x0 = 46, x1 = 960, k = (x1 - x0) / TH.fretFrac(TH.FRETS), fx = n => x0 + k * TH.fretFrac(n), yS = s => 150 - (s - 1) * 55;
@@ -435,6 +443,15 @@ PD.tools = (() => {
       } });
       fb.innerHTML = s + '</svg>';
     }
+    function show3d(s, f, m) {
+      if (!h3) return;
+      const g = PD.shapes.noteFinger(f), fr = [0, 0, 0], fg = [0, 0, 0];
+      fr[s - 1] = f; fg[s - 1] = g;
+      h3.set(fr, fg);
+      h3cap.textContent = f === 0
+        ? t('fx.cap0', { n: TH.pcName(m), s: TH.stringName(s) })
+        : t(f <= 4 ? 'fx.capN' : 'fx.capHi', { n: TH.pcName(m), s: TH.stringName(s), f: f, g: g });
+    }
     // keyboard and TV remote: every cell is a button (Enter / Space / OK)
     fb.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('.cell')) { e.preventDefault(); e.target.closest('.cell').dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
     fb.addEventListener('click', e => {
@@ -446,6 +463,7 @@ PD.tools = (() => {
       if (game) return guess(m, s, f);
       sel = { s, f }; draw();
       info.textContent = TH.name(m) + ' · ' + TH.nameKa(m) + ' · ' + TH.freq(m).toFixed(1) + ' Hz — ' + t('fx.same', { p: TH.positions(m).map(p => TH.stringName(p.s) + ' ' + p.f).join(', ') });
+      show3d(s, f, m);
     });
     /* ---- Find this note ---- */
     let exact = false;
