@@ -92,6 +92,15 @@ PD.i18n.add({
   'ai.vocS': ['მაჟორი/მინორი', 'Major/minor'], 'ai.vocE': ['გაფართოებული', 'Extended'], 'ai.vocA': ['ყველა', 'Everything'],
   'ai.vocD': ['გაფართოებული: სეპტაკორდები, sus, 6, dim, aug, add9. „ყველა“ ნონაკორდებსაც ეძებს — მეტს პოულობს, მაგრამ უფრო ხშირად ცდება.', 'Extended: sevenths, sus, 6, dim, aug, add9. “Everything” also looks for ninths — it finds more, but is wrong more often.'],
   'ai.sheetSlow': ['აკორდი იშვიათად იცვლება. თუ მელოდია სწრაფია (აჭარული, ტეხილები), ზემოთ აირჩიე „სწრაფი“ და დააჭირე „ხელახლა წაკითხვას“.', 'The chord rarely changes. If the melody is fast (Acharuli, tekhili), choose “Fast” above and press “Read again”.'],
+  'ai.engine': ['რით დავყო', 'Which engine'],
+  'ai.engLight': ['მსუბუქი (ტელეფონზეც)', 'Light (works on a phone)'], 'ai.engHeavy': ['ზუსტი (კომპიუტერი)', 'Accurate (computer)'],
+  'ai.engLightD': ['თითო ინსტრუმენტი ცალკე, ~39 MB თითოეული — იტვირთება, მუშავდება და თავისუფლდება. ტელეფონს ყოფნის. ხარისხი ზუსტ ვარიანტზე დაბალია.', 'One instrument at a time, about 39 MB each — loaded, used and released. A phone can hold it. The quality is below the accurate engine.'],
+  'ai.engHeavyD': ['ერთი დიდი მოდელი, ~340 MB მეხსიერებაში. ხარისხი უკეთესია, მაგრამ ტელეფონზე არ ეტევა.', 'One large model, about 340 MB in memory. Better quality, but it does not fit on a phone.'],
+  'ai.engStart': ['მზადდება…', 'Getting ready…'],
+  'ai.engGet': ['{n}: მოდელი იტვირთება ({i}/{k})', '{n}: downloading the model ({i}/{k})'],
+  'ai.engDl': ['{n}: {a}/{b} MB ({i}/{k})', '{n}: {a}/{b} MB ({i}/{k})'],
+  'ai.engRun': ['{n}: ვყოფ ({i}/{k})', '{n}: separating ({i}/{k})'],
+  'ai.engRunP': ['{n}: ვყოფ {p}% ({i}/{k})', '{n}: separating {p}% ({i}/{k})'],
   'ai.lowmem': ['ამ მოწყობილობას დაყოფისთვის მეხსიერება არ ჰყოფნის — მოდელს დაახლოებით {n} MB სჭირდება და ბრაუზერმა ამდენი ვერ გამოყო. სცადე კომპიუტერიდან; ტელეფონზე ეს მოდელი ვერ ეტევა.', 'This device does not have enough memory to split — the model needs about {n} MB and the browser could not reserve it. Try from a computer; this model does not fit on a phone.'],
   'ai.stuck': ['დაყოფა გაჩერდა — სავარაუდოდ მოწყობილობას მეხსიერება არ ეყო. სცადე უფრო მოკლე მონაკვეთი.', 'The split stopped — most likely the device ran out of memory. Try a shorter piece.'],
   'ai.try30': ['სცადე 30 წამი', 'Try 30 seconds'],
@@ -383,6 +392,13 @@ PD.ai = (() => {
 
   /* ======================= the separation worker ======================= */
   let worker = null, wready = null;
+  let splWorker = null;
+  function getSpl(onMsg) {
+    if (!splWorker) { const src = '(' + AISPL.toString() + ')()'; splWorker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' }))); }
+    splWorker.onmessage = e => { if (e.data && e.data.type === 'ready') splWorker.ready = true; onMsg(e.data); };
+    splWorker.onerror = e => onMsg({ type: 'error', msg: e.message || 'worker' });
+    return splWorker;
+  }
   function getWorker(onMsg) {
     if (!worker) { const src = '(' + AIW.toString() + ')()'; worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' }))); }
     worker.onmessage = e => { if (e.data && e.data.type === 'ready') worker.ready = true; onMsg(e.data); }; worker.onerror = e => onMsg({ type: 'error', msg: e.message || 'worker' });
@@ -1088,11 +1104,18 @@ PD.ai = (() => {
       let pick = choices[0][0], model = PD.store.get('ai.model', '4');
       const seg = h('div', { class: 'seg' }, choices.map(([k, l]) => h('button', { 'aria-pressed': String(k === pick), text: l, onclick: e => { pick = k; seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
       const mseg = h('div', { class: 'seg' }, [['4', 'ai.m4'], ['6', 'ai.m6']].map(([k, l]) => h('button', { 'aria-pressed': String(k === model), 'data-v': k, text: t(l), onclick: e => { model = k; PD.store.set('ai.model', k); mseg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
+      // which engine: the big one is better but needs a computer's memory; the light one loads one
+      // instrument at a time and fits on a phone
+      let engine = PD.store.get('ai.engine', small ? 'light' : 'heavy');
+      const eseg = h('div', { class: 'seg' }, [['light', 'ai.engLight'], ['heavy', 'ai.engHeavy']].map(([k, l]) =>
+        h('button', { 'aria-pressed': String(k === engine), text: t(l), onclick: e => { engine = k; PD.store.set('ai.engine', k); eseg.querySelectorAll('button').forEach(b2 => b2.setAttribute('aria-pressed', String(b2 === e.currentTarget))); mrow.hidden = engine !== 'heavy' || !has6; eNote.textContent = t(engine === 'light' ? 'ai.engLightD' : 'ai.engHeavyD'); } })));
+      const eNote = h('small', { class: 'muted', text: t(engine === 'light' ? 'ai.engLightD' : 'ai.engHeavyD') });
+      const erow = h('div', { class: 'ai-row' }, [h('span', { class: 'muted', text: t('ai.engine') }), eseg]);
       const mrow = h('div', { class: 'ai-row', hidden: true }, [h('span', { class: 'muted', text: t('ai.model') }), mseg]);
-      check6().then(ok => { mrow.hidden = !ok; if (!ok) model = '4'; });
+      check6().then(ok => { mrow.hidden = !ok || engine !== 'heavy'; if (!ok) model = '4'; });
       const prog = h('div', { class: 'ai-prog', hidden: true }), msg = h('div', { class: 'ai-msg', 'aria-live': 'polite' });
       const go = h('button', { class: 'btn primary big', html: '<span class="ai-spark">✦</span> <span data-t="ai.split"></span>', onclick: () => run() });
-      box.append(mrow, h('div', { class: 'ai-row' }, [h('span', { class: 'muted', 'data-t': 'ai.range' }), seg]), go, h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'ai.splitNote' }), h('p', { class: 'notice', style: 'font-size:12.5px', text: t('ai.memWarn') }), prog, msg);
+      box.append(erow, eNote, mrow, h('div', { class: 'ai-row' }, [h('span', { class: 'muted', 'data-t': 'ai.range' }), seg]), go, h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'ai.splitNote' }), h('p', { class: 'notice', style: 'font-size:12.5px', text: t('ai.memWarn') }), prog, msg);
       async function run() {
         go.disabled = true; prog.hidden = false; msg.textContent = '';
         // work out the window first, then resample only that window
@@ -1104,6 +1127,7 @@ PD.ai = (() => {
         st44 = null;
         const from = 0, to = Ls.length;
         const setP = (label, p) => { prog.innerHTML = ''; prog.append(h('span', { text: label }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(p * 100) + '%' })])); };
+        if (engine === 'light') return runLight(Ls, Rs, a0, to - from, setP);
         setP(t('ai.dl', { a: 0, b: 85 }), 0);
         const prefer = hasGPU() ? 'webgpu' : 'wasm', dir = model === '6' && has6 ? 'model6' : 'model';
         if (worker && worker.dir !== dir) { try { worker.terminate(); } catch (_) {} worker = null; }
@@ -1133,6 +1157,29 @@ PD.ai = (() => {
         own(stopWatch);
         watch = setInterval(() => { if (Date.now() - seen > 90000) fail(t('ai.stuck')); }, 5000);
         if (!wk.ready) { wk.dir = dir; wk.postMessage({ cmd: 'load', base: BASE, prefer, dir }); } else wk.onmessage({ data: { type: 'ready' } });
+      }
+      function runLight(Ls, Rs, at, nlen, setP) {
+        let seen = Date.now(), watch = 0;
+        const stop = () => { if (watch) clearInterval(watch); watch = 0; };
+        own(stop);
+        const wk = getSpl(m => {
+          seen = Date.now();
+          if (m.type === 'ready') { setP(t('ai.engStart'), .02); const a = Ls, b2 = Rs === Ls ? Ls.slice() : Rs; wk.postMessage({ cmd: 'separate', L: a, R: b2 }, [a.buffer, b2.buffer]); }
+          else if (m.type === 'dl') setP(t('ai.engDl', { n: t(LBL[m.name] || 'ai.other'), a: Math.round(m.got / 1048576), b: Math.round((m.total || 39322000) / 1048576), i: m.i + 1, k: m.n }), (m.i + (m.total ? m.got / m.total : 0) * .5) / m.n);
+          else if (m.type === 'stage') setP(t(m.s === 'dl' ? 'ai.engGet' : 'ai.engRun', { n: t(LBL[m.name] || 'ai.other'), i: m.i + 1, k: m.n }), m.i / m.n);
+          else if (m.type === 'progress') setP(t('ai.engRunP', { n: t(LBL[m.name] || 'ai.other'), p: Math.round(m.done / m.total * 100), i: m.i + 1, k: m.n }), (m.i + .5 + .5 * m.done / m.total) / m.n);
+          else if (m.type === 'done') {
+            stop();
+            const tracks = ORDER.map(n2 => m.sources.indexOf(n2)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] }));
+            S.stems = { id: 'stems' + Date.now(), sr: SR, from: at, len: nlen / SR, tracks, engine: 'light' };
+            S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
+            useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
+          }
+          else if (m.type === 'error') { stop(); go.disabled = false; prog.hidden = true; msg.textContent = t('ai.fail', { e: m.msg }); try { splWorker && splWorker.terminate(); } catch (_) {} splWorker = null; }
+        });
+        watch = setInterval(() => { if (Date.now() - seen > 120000) { stop(); go.disabled = false; prog.hidden = true; msg.textContent = t('ai.stuck'); try { splWorker && splWorker.terminate(); } catch (_) {} splWorker = null; } }, 5000);
+        setP(t('ai.engStart'), .01);
+        if (!wk.ready) wk.postMessage({ cmd: 'load', base: BASE }); else wk.onmessage({ data: { type: 'ready' } });
       }
       return box;
     }

@@ -1,0 +1,29 @@
+{
+ "model": "spleeter-4stems",
+ "license": "MIT (Deezer/spleeter)",
+ "sr": 44100,
+ "frame": 4096,
+ "hop": 1024,
+ "T": 512,
+ "F": 1024,
+ "channels": 2,
+ "exponent": 2,
+ "sources": [
+  "vocals",
+  "drums",
+  "bass",
+  "other"
+ ],
+ "files": {
+  "vocals": "vocals.onnx",
+  "drums": "drums.onnx",
+  "bass": "bass.onnx",
+  "other": "other.onnx"
+ },
+ "sizes": {
+  "vocals": 39311670,
+  "drums": 39311669,
+  "bass": 39311668,
+  "other": 39311669
+ }
+}
