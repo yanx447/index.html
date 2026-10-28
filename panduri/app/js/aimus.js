@@ -267,24 +267,70 @@ PD.aimus = (() => {
       for (let j = 0; j < G.n; j++) { d += a[j] * b[j]; na += a[j] * a[j]; nb += b[j] * b[j]; }
       if (d / (Math.sqrt(na * nb) + 1e-9) < .82) span = 2;
     }
-    // which of the rhythms the app already knows does this beat look like?
-    const perBeat = n => { const v = new Float32Array(n); let c2 = 0;
-      for (let k = 0; k + 1 < beats.length; k++) { const row = new Float32Array(n); let mx = 0;
-        const bl = beats[k + 1] - beats[k]; for (let i = 0; i < n; i++) { const t = beats[k] + bl * i / n; row[i] = peak(t, Math.max(dt * 1.5, bl / n * .34)); if (row[i] > mx) mx = row[i]; }
-        if (mx > 0) { for (let i = 0; i < n; i++) v[i] += row[i] / mx; c2++; } }
-      if (c2) for (let i = 0; i < n; i++) v[i] /= c2; return v; };
-    const matches = (known || []).map(r => {
+    /* Which of the rhythms the app knows does this recording match?
+
+       The old test squeezed every pattern into a single beat and compared with a cosine. Both were
+       wrong: the loudest point of a beat is the beat itself, so the measured shape was always
+       "strong, weak, weak", and a cosine of two non-negative vectors is near 1 for almost anything.
+       A rhythm accented on its first stroke therefore won every time, whatever was playing.
+
+       What is measured now: the strength at each stroke position across the whole recording, folded
+       into the pattern's length at every rotation, and compared with the accents by a mean-centred
+       correlation. A flat recording scores 0 instead of 0.99, and two patterns that accent different
+       strokes get opposite scores, so they can actually be told apart. The length of one cycle in
+       beats is not in the teacher's data, so each candidate is tried as one stroke per beat, as the
+       whole pattern inside one beat, and across two beats; the reading that fits best is reported
+       with it. */
+    const strengthAt = (t, win) => peak(t, win);
+    function profile(n, beatsPerCycle) {
+      // one sample per stroke, walked across the whole recording
+      const per = beatsPerCycle / n, xs = [];
+      for (let f = 0; f + per < beats.length - 1; f += per) { const tt = tAt(f); if (tt == null) { xs.push(0); continue; }
+        const k = Math.floor(f), bl = (beats[k + 1] - beats[k]) || .5;
+        xs.push(strengthAt(tt, Math.max(dt * 1.5, bl * per * .3))); }
+      return xs;
+    }
+    function corr(a, b) {
+      const n = a.length; let ma = 0, mb = 0;
+      for (let i = 0; i < n; i++) { ma += a[i] / n; mb += b[i] / n; }
+      let d = 0, va = 0, vb = 0;
+      for (let i = 0; i < n; i++) { const x = a[i] - ma, y = b[i] - mb; d += x * y; va += x * x; vb += y * y; }
+      if (va < 1e-9 || vb < 1e-9) return 0;
+      return d / Math.sqrt(va * vb);
+    }
+    function fit(r) {
       const n = r.strokes.length; if (!n || n > 9) return null;
-      const want = r.strokes.map(s => s.accent ? 1 : .62), got = perBeat(n);
-      let d = 0, a = 0, b = 0; for (let i = 0; i < n; i++) { d += want[i] * got[i]; a += want[i] * want[i]; b += got[i] * got[i]; }
-      const cos = d / (Math.sqrt(a * b) + 1e-9);
-      // how much of the beat's energy lands on this rhythm's own positions
-      let onGrid = 0; for (let i = 0; i < n; i++) onGrid += got[i];
-      // the Georgian rhythms the teacher gave are what this app is for: on a tie they come first
-      const geo = r.source === 'teacher';
-      return { id: r.id, name: r.name, source: r.source, geo, strokes: r.strokes, score: +(cos * Math.min(1, onGrid / n / .55)).toFixed(3) };
-    }).filter(Boolean).sort((x, y) => (y.score + (y.geo ? .04 : 0)) - (x.score + (x.geo ? .04 : 0)));
-    return { sub: G.sub, beatsPerBar: g, compound, cells, span, bars: barStarts.length, conf: +Math.max(0, Math.min(1, (G.corr - .5) / .4)).toFixed(2), matches: matches.slice(0, 5), geo: matches.filter(m => m.geo).slice(0, 3) };
+      const want = r.strokes.map(s2 => s2.accent ? 1 : 0);
+      if (want.every(v => v === want[0])) return null;   // nothing to recognise it by
+      let best = { s: -2, span: n, rot: 0, cycles: 0 };
+      [n, 1, 2].forEach(bpc => {
+        const xs = profile(n, bpc); const cyc = Math.floor(xs.length / n);
+        if (cyc < 3) return;
+        const fold = new Float64Array(n);
+        for (let c = 0; c < cyc; c++) { let sum = 0; for (let j = 0; j < n; j++) sum += xs[c * n + j];
+          if (sum <= 1e-9) continue; for (let j = 0; j < n; j++) fold[j] += xs[c * n + j] / sum; }
+        // every stroke of a rhythm is a stroke: if a position is all but silent, the recording is
+        // not playing this pattern at this speed. Without this test, sampling three points inside
+        // one beat always gave "loud, silent, silent", which matched anything accented on stroke 1.
+        let mean = 0; for (let j = 0; j < n; j++) mean += fold[j] / n;
+        if (mean <= 1e-9) return;
+        let lo = Infinity; for (let j = 0; j < n; j++) lo = Math.min(lo, fold[j] / mean);
+        if (lo < .3) return;
+        for (let rot = 0; rot < n; rot++) {
+          const got = []; for (let j = 0; j < n; j++) got.push(fold[(j + rot) % n]);
+          const sc = corr(got, want);
+          if (sc > best.s) best = { s: sc, span: bpc, rot, cycles: cyc };
+        }
+      });
+      if (best.s < -1) return null;
+      return { id: r.id, name: r.name, source: r.source, geo: r.source === 'teacher', strokes: r.strokes,
+        score: +Math.max(0, best.s).toFixed(3), span: best.span, cycles: best.cycles };
+    }
+    const matches = (known || []).map(fit).filter(Boolean).sort((x, y) => y.score - x.score);
+    // naming one only when it is both good enough and clearly ahead of the next
+    const top = matches[0], second = matches.find(m => m && top && m.id !== top.id);
+    const sure = !!(top && top.score >= .45 && (!second || top.score - second.score >= .1));
+    return { sub: G.sub, beatsPerBar: g, compound, cells, span, bars: barStarts.length, conf: +Math.max(0, Math.min(1, (G.corr - .5) / .4)).toFixed(2), matches: matches.slice(0, 5), geo: matches.filter(m => m.geo).slice(0, 3), best: sure ? top : null, sure };
   }
 
   /* =================== bars, beats, rhythmic values =================== */

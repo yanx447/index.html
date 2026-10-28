@@ -50,6 +50,13 @@ PD.i18n.add({
   'ai.geoIs': ['ეს რითმი ყველაზე ახლოსაა:', 'This rhythm is closest to:'],
   'ai.geoMaybe': ['შესაძლოა იყოს:', 'It may be:'],
   'ai.geoOpen': ['გახსნა', 'Open'],
+  'ai.rhyFrom': ['რას ვუსმენ', 'What I listen to'], 'ai.rhyAuto': ['ავტომატურად', 'Automatic'],
+  'ai.rhyFromD': ['დარტყმები ყველაზე სუფთად იმ ინსტრუმენტზე ისმის, რომელიც მათ უკრავს. დაყოფის შემდეგ ვუსმენ „დანარჩენს“ და არა მთლიან მიქსს.', 'The strokes are clearest on the instrument that plays them. After a split I listen to “the rest” rather than the whole mix.'],
+  'ai.rhySplitHint': ['მთლიან მიქსში ვოკალი და დრამი დარტყმებს ფარავს. „ინსტრუმენტების“ ტაბში დაყავი სიმღერა და რითმი გაცილებით ზუსტად წაიკითხება.', 'In a full mix the vocals and drums cover the strokes. Split the song in the Instruments tab and the rhythm reads far more accurately.'],
+  'ai.cHi': ['დამთხვევა მაღალია', 'a strong match'], 'ai.cMid': ['დამთხვევა საშუალოა', 'a fair match'], 'ai.cLo': ['დამთხვევა სუსტია', 'a weak match'],
+  'ai.geoPer': ['წაკითხულია როგორც თითო დარტყმა — თითო თვლა; გაზომილია {n} წრე.', 'Read as one stroke per beat; {n} cycles measured.'],
+  'ai.geoIn1': ['წაკითხულია როგორც მთელი ნახატი ერთ თვლაში; გაზომილია {n} წრე.', 'Read as the whole pattern inside one beat; {n} cycles measured.'],
+  'ai.geoIn2': ['წაკითხულია როგორც ნახატი ორ თვლაზე; გაზომილია {n} წრე.', 'Read as the pattern across two beats; {n} cycles measured.'],
   'ai.geoNo': ['ქართულ რითმებთან ახლო დამთხვევა ვერ ვიპოვე.', 'No close match with the Georgian rhythms was found.'],
   'ai.geoD': ['ვადარებ იმ ოთხ რითმს, რომელიც მასწავლებელმა მოგვცა: ყაზბეგური, მთიულური, ხორუმი, აჭარული. ნარნარი, ოსური და დანარჩენები ჯერ არ გვაქვს — როგორც კი მათი დარტყმები შემოვა, AI მათაც იცნობს.', 'Compared with the four rhythms the teacher gave: Kazbeguri, Mtiuluri, Khorumi, Acharuli. Narnari, Osuri and the others are not in the app yet — as soon as their strokes are added, the AI will know them too.'],
   'ai.rhyNoStems': ['ინსტრუმენტების დაყოფა ამისთვის საჭირო არ არის — AI უსმენს მთლიან ჩანაწერში დრამისა და დოლის დარტყმებს.', 'No instrument separation is needed for this — the AI listens to the drum and doli strokes in the whole recording.'],
@@ -690,7 +697,28 @@ PD.ai = (() => {
         S.on = null; S.metre = null; if (S.rhy) { S.rhy = null; drawRhythm(); }
       }
       function saveRes() { try { if (S.id) PD.blobs.put('ai.res.' + S.id, res); } catch (_) {} }
-      async function onsetsOf() { if (!S.on) { const m = await mono22(); S.on = PD.aimus.onsets(m, 22050); } return S.on; }
+      // the strokes are clearest on the instrument that plays them. When the song has been split,
+      // the rhythm is read off the accompaniment stem rather than the full mix.
+      let rhySrc = PD.store.get('ai.rhySrc', 'auto');
+      function rhyStem() {
+        if (!S.stems) return 'orig';
+        const names = S.stems.tracks.map(x => x.name);
+        if (rhySrc !== 'auto' && names.includes(rhySrc)) return rhySrc;
+        return names.includes('other') ? 'other' : names.includes('drums') ? 'drums' : 'orig';
+      }
+      async function onsetsOf() {
+        const want = rhyStem();
+        if (S.on && S.onSrc === want) return S.on;
+        let m, off = 0;
+        if (want === 'orig') m = await mono22();
+        else { const g = await S.tr.getMono ? null : null; const tk = S.stems.tracks.find(x => x.name === want);
+          const ac = new (window.AudioContext || window.webkitAudioContext)(), bb = ac.createBuffer(2, tk.L.length, S.stems.sr);
+          bb.copyToChannel(tk.L, 0); bb.copyToChannel(tk.R, 1); try { ac.close(); } catch (_) {}
+          m = (await resample(bb, 22050, 1)).getChannelData(0); off = S.stems.from || 0; void g; }
+        S.on = PD.aimus.onsets(m, 22050); S.onSrc = want;
+        if (off) S.on = { env: S.on.env, dt: S.on.dt, t0off: S.on.t0off + off };
+        return S.on;
+      }
 
       /* ---- the rhythm: where the strokes fall inside a bar, measured over every bar ---- */
       function rhyHead() { return h('div', { class: 'row pg-head' }, [h('h2', { text: t('ai.rhy'), style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]); }
@@ -739,15 +767,25 @@ PD.ai = (() => {
         rhyBox.append(facts);
         // what this is, out of the rhythms the teacher gave — the question this panel is really for
         {
-          const g0 = (R.geo || (R.matches || []).filter(m => m.geo))[0];
+          // only named when the measurement is clearly ahead of the next candidate; never a percentage,
+          // because the number is a correlation and not a probability
+          const g0 = R.best && R.best.geo ? R.best : null;
           const head = h('div', { class: 'ai-geo' + (g0 && g0.score >= .62 ? ' sure' : '') });
-          if (g0 && g0.score >= .45) {
+          if (g0) {
             head.append(h('small', { text: t(g0.score >= .62 ? 'ai.geoIs' : 'ai.geoMaybe') }),
               h('b', { text: PD.i18n.pick(g0.name) }),
-              h('span', { class: 'mono', text: Math.round(g0.score * 100) + '%' }),
+              h('span', { class: 'mono', text: t(g0.score >= .72 ? 'ai.cHi' : g0.score >= .55 ? 'ai.cMid' : 'ai.cLo') }),
               h('button', { class: 'btn small ghost', text: t('ai.geoOpen'), onclick: () => PD.app.go('rhythms', g0.id) }));
           } else head.append(h('small', { text: t('ai.geoNo') }));
-          rhyBox.append(head, h('small', { class: 'muted', text: t('ai.geoD') }));
+          rhyBox.append(head);
+          if (g0) rhyBox.append(h('small', { class: 'muted', text: t(g0.span === 1 ? 'ai.geoIn1' : g0.span === 2 ? 'ai.geoIn2' : 'ai.geoPer', { n: g0.cycles }) }));
+          rhyBox.append(h('small', { class: 'muted', text: t('ai.geoD') }));
+        if (S.stems) {
+          const names = ['auto'].concat(S.stems.tracks.map(x => x.name));
+          const row = h('div', { class: 'chips-row' }, names.map(n2 => h('button', { class: 'chip' + (rhySrc === n2 ? ' on' : ''), text: n2 === 'auto' ? t('ai.rhyAuto') : t(LBL[n2] || 'ai.other'), onclick: () => { rhySrc = n2; PD.store.set('ai.rhySrc', n2); S.on = null; runRhythm(); } })));
+          rhyBox.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.rhyFrom') }), row,
+            h('small', { class: 'muted', text: t('ai.rhyFromD') })]));
+        } else rhyBox.append(h('small', { class: 'muted', text: t('ai.rhySplitHint') }));
         }
         if (R.span === 2) rhyBox.append(h('p', { class: 'notice', text: t('ai.rhySpan') }));
         // the strip: one cell per subdivision, its height the measured strength
@@ -779,7 +817,7 @@ PD.ai = (() => {
         const like = h('div', { class: 'ai-tc' });
         const good = (R.matches || []).filter(m => m.score >= .6);
         if (!good.length) like.append(h('small', { class: 'muted', text: t('ai.rhyNoLike') }));
-        else good.slice(0, 3).forEach(m => like.append(h('button', { class: 'chip', text: PD.i18n.pick(m.name) + ' · ' + Math.round(m.score * 100) + '%', onclick: () => PD.app.go('rhythms', m.id) })));
+        else good.slice(0, 3).forEach(m => like.append(h('button', { class: 'chip', text: PD.i18n.pick(m.name), onclick: () => PD.app.go('rhythms', m.id) })));
         rhyBox.append(h('div', { class: 'ai-tool' }, [h('div', { class: 'ai-tc' }, [play])]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.rhyLike') }), like, h('small', { class: 'muted', text: t('ai.rhyLikeD') })]),
           h('button', { class: 'btn small ghost', text: t('ai.rhyRun'), onclick: runRhythm }));
