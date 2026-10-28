@@ -630,6 +630,15 @@ button.li:hover{background:rgba(255,240,228,.02)}
 .mt-dots i{width:14px;height:14px;border-radius:50%;background:var(--surface3);transition:background .06s,transform .06s}
 .mt-dots i.acc{box-shadow:0 0 0 1.5px rgba(185,122,74,.5)}
 .mt-dots i.on{background:var(--brass);transform:scale(1.25)}
+.mt-dots.pat{gap:8px;flex-wrap:wrap}
+.mt-dots.pat i{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--surface);border:1px solid var(--line2);color:var(--fg2);font:700 15px/1 var(--f-ui,inherit);font-style:normal}
+.mt-dots.pat i.acc{border-color:#C98B5B;color:var(--fg);background:rgba(201,139,91,.14);box-shadow:none}
+.mt-dots.pat i.on{background:#C98B5B;color:#140D08;border-color:#C98B5B;transform:scale(1.1)}
+.mt-pats{justify-content:center;margin-top:6px}
+.li.off{opacity:.42}
+.mt-pn{display:block;margin-top:6px;line-height:1.45}
+.mt-pn:empty{display:none}
+@media (prefers-reduced-motion:reduce){.mt-dots.pat i{transition:none}.mt-dots.pat i.on{transform:none}}
 .mt-go{min-width:140px}
 .mt input[type=range]{width:100%}
 /* trainer */

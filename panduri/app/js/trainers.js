@@ -5,6 +5,11 @@
    microphone; touch answers exist only in the explicit demo mode.
    ===================================================================== */
 PD.i18n.add({
+  'mt.pat': ['ქართული რითმები', 'Georgian rhythms'],
+  'mt.patD': ['მეტრონომი თვითონ დააწკაპუნებს რითმის დარტყმებს, მასწავლებლის აქცენტებით. BPM = ერთი დარტყმა.', 'The metronome clicks the rhythm itself, with the teacher\'s accents. BPM = one stroke.'],
+  'mt.patOff': ['გამორთული', 'Off'],
+  'mt.patStrokes': ['{n} დარტყმა წრეზე · ↓ ჩაკვრა, ↑ ამოკვრა. მიმართულება სურათია — კლიკი ერთნაირია, აქცენტი უფრო ძლიერი.', '{n} strokes in the loop · ↓ down, ↑ up. The arrows are a picture — the click is the same, the accent is louder.'],
+  'mt.patCount': ['{n} თვლა წრეზე — ყოველი ჯგუფის პირველი მძიმეა.', '{n} counts in the loop — the first of each group is the heavy one.'],
   'mt.title': ['მეტრონომი', 'Metronome'], 'mt.tap': ['ტაპი', 'Tap tempo'], 'mt.sig': ['ზომა', 'Time signature'], 'mt.accent': ['პირველი დარტყმის აქცენტი', 'Accent the first beat'],
   'mt.sub': ['დაყოფა', 'Subdivision'], 'mt.sound': ['ხმა', 'Sound'], 'mt.haptic': ['ვიბრაცია', 'Haptic pulse'], 'mt.start': ['დაწყება', 'Start'], 'mt.stop': ['გაჩერება', 'Stop'], 'mt.vol': ['ხმის დონე', 'Volume'],
   'snd.click': ['კლიკი', 'Click'], 'snd.wood': ['ხე', 'Wood'], 'snd.beep': ['ტონი', 'Beep'], 'snd.soft': ['რბილი', 'Soft'],
@@ -27,7 +32,23 @@ PD.pageScope = () => { const offs = []; const un = PD.bus.on('route', () => { of
 PD.metronome = (() => {
   const h = PD.h, ic = PD.ic;
   const st = { on: false, timer: 0, next: 0, beat: 0, sub: 0, taps: [], pulse: null };
-  const cfg = () => ({ bpm: PD.store.get('mBpm', 80), sig: PD.store.get('mSig', 4), accent: PD.store.get('mAccent', true), sub: PD.store.get('mSub', 1), haptic: PD.store.get('mHaptic', false) });
+  const cfg = () => ({ bpm: PD.store.get('mBpm', 80), sig: PD.store.get('mSig', 4), accent: PD.store.get('mAccent', true), sub: PD.store.get('mSub', 1), haptic: PD.store.get('mHaptic', false), pat: PD.store.get('mPat', '') });
+  /* The teacher's own rhythms, clicked out: one click per stroke, his accents, his order.
+     Khorumi also offers his 5/8 count (1-2-3, 1-2) — that is the dance's metre, not its strokes. */
+  function patterns() {
+    const R = (PD.curriculum.rhythms && PD.curriculum.rhythms()) || [];
+    const out = [];
+    ['kazbeguri', 'mtiuluri', 'khorumi', 'acharuli'].forEach(id => {
+      const r = R.find(x => x.id === id); if (!r) return;
+      out.push({ id, name: r.name, steps: r.strokes.map(x => ({ acc: !!x.accent, dir: x.direction })), durs: (r.timing && r.timing.durations) || r.strokes.map(() => 1), src: r.source });
+      if (id === 'khorumi' && r.meter) {
+        const st2 = []; r.meter.groups.forEach(g => { for (let k = 1; k <= g; k++) st2.push({ acc: k === 1, n: k }); });
+        out.push({ id: 'khorumi-count', count: true, name: { ka: 'ხორუმი 5/8', en: 'Khorumi 5/8' }, steps: st2, durs: st2.map(() => .5), src: r.source });
+      }
+    });
+    return out;
+  }
+  const patOf = id => patterns().find(p => p.id === id) || null;
   function start() {
     const ctx = PD.audio.ensure(); if (!ctx || st.on) return;
     st.on = true; st.next = ctx.currentTime + .08; st.beat = 0; st.sub = 0;
@@ -35,7 +56,19 @@ PD.metronome = (() => {
   }
   function stop() { clearInterval(st.timer); st.on = false; PD.bus.emit('metro', false); }
   function tick() {
-    const ctx = PD.audio.ctx, c = cfg(), spb = 60 / c.bpm, n = c.sub, sig = c.sig;
+    const ctx = PD.audio.ctx, c = cfg(), spb = 60 / c.bpm;
+    const P = c.pat ? patOf(c.pat) : null;
+    if (P) {
+      while (st.next < ctx.currentTime + .12) {
+        const i = st.beat % P.steps.length, s2 = P.steps[i], accent = !!s2.acc && c.accent;
+        PD.audio.click(st.next, accent, false);
+        const delay = Math.max(0, (st.next - ctx.currentTime) * 1000);
+        setTimeout(() => { if (st.pulse) st.pulse(i, accent); if (c.haptic && navigator.vibrate) try { navigator.vibrate(accent ? 22 : 10); } catch (_) {} }, delay);
+        st.next += spb * (P.durs[i] == null ? 1 : P.durs[i]); st.beat = (st.beat + 1) % P.steps.length;
+      }
+      return;
+    }
+    const n = c.sub, sig = c.sig;
     while (st.next < ctx.currentTime + .12) {
       const first = st.sub === 0, beat = st.beat, accent = first && c.accent && (beat === 0 || (sig === 6 && beat === 3));
       PD.audio.click(st.next, accent, !first);
@@ -60,8 +93,31 @@ PD.metronome = (() => {
     const go = h('button', { class: 'btn primary mt-go', onclick: () => { st.on ? stop() : start(); upd(); } });
     const seg = (key, opts, cur, on) => { const sg = h('div', { class: 'seg', role: 'group', 'aria-label': t(key) }, opts.map(([v, l]) => h('button', { 'data-v': String(v), 'aria-pressed': String(cur === v), html: l, onclick: e => { on(v); sg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); upd(); } }))); return sg; };
     const tg = (k, key, def) => { const i = h('input', { type: 'checkbox', 'aria-label': t(k) }); i.checked = PD.store.get(key, def); i.onchange = () => PD.store.set(key, i.checked); return h('label', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': k })]), i]); };
-    function upd() { const c2 = cfg(); bpmEl.textContent = c2.bpm; rng.value = String(c2.bpm); go.textContent = t(st.on ? 'mt.stop' : 'mt.start'); dots.innerHTML = ''; for (let i = 0; i < c2.sig; i++) dots.appendChild(h('i', { class: (i === 0 || (c2.sig === 6 && i === 3)) && c2.accent ? 'acc' : '' })); }
-    st.pulse = (b, acc) => { const d = dots.children[b]; if (!d) return; d.classList.remove('on'); void d.offsetWidth; d.classList.add('on'); };
+    const sigRow = h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'mt.sig' })]), seg('mt.sig', [[2, '2/4'], [3, '3/4'], [4, '4/4'], [6, '6/8']], c.sig, v => PD.store.set('mSig', v))]);
+    const subRow = h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'mt.sub' })]), seg('mt.sub', [[1, '♩'], [2, '♪♪'], [3, '3'], [4, '♬']], c.sub, v => PD.store.set('mSub', v))]);
+    const patRow = h('div', { class: 'chips-row mt-pats', role: 'group' });
+    const patNote = h('small', { class: 'muted mt-pn' });
+    function drawPats() {
+      const cur = PD.store.get('mPat', '');
+      patRow.innerHTML = '';
+      patRow.append(h('button', { class: 'chip' + (cur ? '' : ' on'), 'aria-pressed': String(!cur), 'data-t': 'mt.patOff', onclick: () => setPat('') }));
+      patterns().forEach(P => patRow.append(h('button', { class: 'chip' + (cur === P.id ? ' on' : ''), 'aria-pressed': String(cur === P.id), text: PD.i18n.pick(P.name), onclick: () => setPat(P.id) })));
+      PD.i18n.apply(patRow);
+    }
+    function setPat(id) { PD.store.set('mPat', id); st.beat = 0; st.sub = 0; if (st.on) { stop(); start(); } drawPats(); upd(); }
+    function upd() {
+      const c2 = cfg(); bpmEl.textContent = c2.bpm; rng.value = String(c2.bpm); go.textContent = t(st.on ? 'mt.stop' : 'mt.start');
+      dots.innerHTML = '';
+      const P = c2.pat ? patOf(c2.pat) : null;
+      dots.classList.toggle('pat', !!P);
+      if (P) {
+        P.steps.forEach(s2 => dots.appendChild(h('i', { class: s2.acc && c2.accent ? 'acc' : '', text: P.count ? String(s2.n) : (s2.dir === 'up' ? '↑' : '↓') })));
+        patNote.textContent = t(P.count ? 'mt.patCount' : 'mt.patStrokes', { n: P.steps.length });
+      } else { for (let i = 0; i < c2.sig; i++) dots.appendChild(h('i', { class: (i === 0 || (c2.sig === 6 && i === 3)) && c2.accent ? 'acc' : '' })); patNote.textContent = ''; }
+      // the rhythm carries its own bar and its own division, so those two settings step back
+      [sigRow, subRow].forEach(r => { r.classList.toggle('off', !!P); r.querySelectorAll('button').forEach(b2 => { b2.disabled = !!P; }); });
+    }
+    st.pulse = (b, acc) => { const d = dots.children[b]; if (!d) return; [...dots.children].forEach(x => { if (x !== d) x.classList.remove('on'); }); d.classList.remove('on'); void d.offsetWidth; d.classList.add('on'); };
     w.append(h('section', { class: 'mt' }, [
       h('div', { class: 'mt-main' }, [
         h('button', { class: 'btn icon', 'aria-label': '−1', text: '−', onclick: () => { PD.store.set('mBpm', Math.max(30, cfg().bpm - 1)); upd(); } }),
@@ -69,13 +125,13 @@ PD.metronome = (() => {
         h('button', { class: 'btn icon', 'aria-label': '+1', text: '+', onclick: () => { PD.store.set('mBpm', Math.min(240, cfg().bpm + 1)); upd(); } })]),
       dots, rng,
       h('div', { class: 'row', style: 'justify-content:center' }, [go, h('button', { class: 'btn', 'data-t': 'mt.tap', onclick: () => { tap(); upd(); } })]),
+      h('div', { class: 'set-sec' }, [h('b', { 'data-t': 'mt.pat' }), h('small', { class: 'muted', 'data-t': 'mt.patD' }), patRow, patNote]),
       h('div', { class: 'set-sec' }, [h('div', { class: 'list' }, [
-        h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'mt.sig' })]), seg('mt.sig', [[2, '2/4'], [3, '3/4'], [4, '4/4'], [6, '6/8']], c.sig, v => PD.store.set('mSig', v))]),
-        h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'mt.sub' })]), seg('mt.sub', [[1, '♩'], [2, '♪♪'], [3, '3'], [4, '♬']], c.sub, v => PD.store.set('mSub', v))]),
+        sigRow, subRow,
         h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'mt.sound' })]), seg('mt.sound', ['click', 'wood', 'beep', 'soft'].map(k => [k, PD.esc(t('snd.' + k))]), PD.store.get('metroSound', 'click'), v => { PD.store.set('metroSound', v); PD.audio.ensure(); PD.audio.click(PD.audio.now() + .02, true); })]),
         tg('mt.accent', 'mAccent', true), tg('mt.haptic', 'mHaptic', false),
         h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'mt.vol' })]), h('span', { class: 'set-ctl' }, [h('input', { type: 'range', min: '0', max: '1', step: '.05', value: String(PD.audio.vol.metro), oninput: e => PD.audio.setVol('metro', +e.target.value) })])])])])]));
-    upd();
+    drawPats(); upd();
     own(() => { stop(); st.pulse = null; });
   }
   return { page, start, stop, get on() { return st.on; } };
