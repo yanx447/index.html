@@ -78,6 +78,9 @@ PD.i18n.add({
   'ai.vocS': ['მაჟორი/მინორი', 'Major/minor'], 'ai.vocE': ['გაფართოებული', 'Extended'], 'ai.vocA': ['ყველა', 'Everything'],
   'ai.vocD': ['გაფართოებული: სეპტაკორდები, sus, 6, dim, aug, add9. „ყველა“ ნონაკორდებსაც ეძებს — მეტს პოულობს, მაგრამ უფრო ხშირად ცდება.', 'Extended: sevenths, sus, 6, dim, aug, add9. “Everything” also looks for ninths — it finds more, but is wrong more often.'],
   'ai.sheetSlow': ['აკორდი იშვიათად იცვლება. თუ მელოდია სწრაფია (აჭარული, ტეხილები), ზემოთ აირჩიე „სწრაფი“ და დააჭირე „ხელახლა წაკითხვას“.', 'The chord rarely changes. If the melody is fast (Acharuli, tekhili), choose “Fast” above and press “Read again”.'],
+  'ai.stuck': ['დაყოფა გაჩერდა — სავარაუდოდ მოწყობილობას მეხსიერება არ ეყო. სცადე უფრო მოკლე მონაკვეთი.', 'The split stopped — most likely the device ran out of memory. Try a shorter piece.'],
+  'ai.try30': ['სცადე 30 წამი', 'Try 30 seconds'],
+  'ai.memWarn': ['დაყოფა მძიმე სამუშაოა: მოდელი და ოთხივე ინსტრუმენტი ერთდროულად უნდა დაეტიოს მეხსიერებაში. ტელეფონზე დაიწყე 30 წამით — თუ გაივლის, მერე უფრო გრძელი სცადე. დაყოფის დროს აპლიკაცია ღია დატოვე.', 'Splitting is heavy work: the model and all four instruments have to fit in memory at once. On a phone start with 30 seconds — if that goes through, try a longer piece. Leave the app open while it runs.'],
   'ai.fast': ['რამდენად ხშირად იცვლება', 'How often it changes'],
   'ai.fast0': ['ნელი', 'Slow'], 'ai.fast1': ['ჩვეულებრივი', 'Normal'], 'ai.fast2': ['სწრაფი', 'Fast'],
   'ai.fastD': ['აჭარული და სხვა სწრაფი მელოდიები — „სწრაფი“: აკორდი თითქმის ყოველ თვლაზე იცვლება. „ნელი“ — როცა ერთი აკორდი მთელ ტაქტს იკავებს.', 'Acharuli and other fast melodies — “Fast”: the chord changes on almost every beat. “Slow” — when one chord holds a whole bar.'],
@@ -355,8 +358,12 @@ PD.ai = (() => {
       }
     });
   }
-  async function resample(ab, sr, ch) {
-    const len = Math.ceil(ab.duration * sr), oc = new OfflineAudioContext(ch, len, sr), s = oc.createBufferSource(); s.buffer = ab; s.connect(oc.destination); s.start(); return oc.startRendering();
+  async function resample(ab, sr, ch, t0, t1) {
+    // when only a window is needed, render only that window: resampling a whole song to 44.1 kHz
+    // stereo makes a second full copy of it, and on a phone that copy alone can end the tab
+    const a = Math.max(0, t0 || 0), b = Math.min(ab.duration, t1 == null ? ab.duration : t1);
+    const len = Math.max(1, Math.ceil((b - a) * sr)), oc = new OfflineAudioContext(ch, len, sr), s = oc.createBufferSource();
+    s.buffer = ab; s.connect(oc.destination); s.start(0, a, b - a); return oc.startRendering();
   }
 
   /* ======================= the separation worker ======================= */
@@ -986,36 +993,63 @@ PD.ai = (() => {
       box.append(head, h('p', { class: 'fg2', 'data-t': 'ai.stemsD' }));
       if (S.stems) { box.append(mixer()); return box; }
       if (!allowed()) { box.append(h('p', { class: 'muted', 'data-t': 'ai.locked' }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => PD.premium.paywall('ai.stems') })); return box; }
-      const dur = S.res.dur, choices = [['all', t('ai.all')]].concat(dur > 75 ? [['60', t('ai.first', { n: 60 })], ['here', t('ai.fromHere', { n: 60 })]] : []);
-      let pick = dur > 240 ? '60' : 'all', model = PD.store.get('ai.model', '4');
+      // Splitting holds the model and four stereo stems in memory at once. On a phone that is the
+      // difference between finishing and the tab being killed, so the choice starts small there.
+      const mem = navigator.deviceMemory || 0, small = (mem && mem <= 4) || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const maxSec = small ? 45 : 90;
+      const dur = S.res.dur;
+      const choices = [];
+      if (dur > 32) choices.push(['30', t('ai.first', { n: 30 })], ['here30', t('ai.fromHere', { n: 30 })]);
+      if (dur > 62 && maxSec >= 60) choices.push(['60', t('ai.first', { n: 60 })], ['here', t('ai.fromHere', { n: 60 })]);
+      if (dur <= maxSec) choices.unshift(['all', t('ai.all')]);
+      if (!choices.length) choices.push(['30', t('ai.first', { n: 30 })]);
+      let pick = choices[0][0], model = PD.store.get('ai.model', '4');
       const seg = h('div', { class: 'seg' }, choices.map(([k, l]) => h('button', { 'aria-pressed': String(k === pick), text: l, onclick: e => { pick = k; seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
       const mseg = h('div', { class: 'seg' }, [['4', 'ai.m4'], ['6', 'ai.m6']].map(([k, l]) => h('button', { 'aria-pressed': String(k === model), 'data-v': k, text: t(l), onclick: e => { model = k; PD.store.set('ai.model', k); mseg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
       const mrow = h('div', { class: 'ai-row', hidden: true }, [h('span', { class: 'muted', text: t('ai.model') }), mseg]);
       check6().then(ok => { mrow.hidden = !ok; if (!ok) model = '4'; });
       const prog = h('div', { class: 'ai-prog', hidden: true }), msg = h('div', { class: 'ai-msg', 'aria-live': 'polite' });
       const go = h('button', { class: 'btn primary big', html: '<span class="ai-spark">✦</span> <span data-t="ai.split"></span>', onclick: () => run() });
-      box.append(mrow, h('div', { class: 'ai-row' }, [h('span', { class: 'muted', 'data-t': 'ai.range' }), seg]), go, h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'ai.splitNote' }), prog, msg);
+      box.append(mrow, h('div', { class: 'ai-row' }, [h('span', { class: 'muted', 'data-t': 'ai.range' }), seg]), go, h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'ai.splitNote' }), h('p', { class: 'notice', style: 'font-size:12.5px', text: t('ai.memWarn') }), prog, msg);
       async function run() {
         go.disabled = true; prog.hidden = false; msg.textContent = '';
-        const st44 = await resample(S.ab, SR, 2), L = st44.getChannelData(0), R = st44.numberOfChannels > 1 ? st44.getChannelData(1) : L;
-        let from = 0, to = L.length; if (pick === '60') to = Math.min(L.length, 60 * SR); if (pick === 'here') { from = Math.floor(S.deck.pos() * SR); to = Math.min(L.length, from + 60 * SR); }
+        // work out the window first, then resample only that window
+        const secs = (pick === '60' || pick === 'here') ? 60 : (pick === '30' || pick === 'here30') ? 30 : S.res.dur;
+        const at = (pick === 'here' || pick === 'here30') ? Math.max(0, S.deck.pos()) : 0;
+        const a0 = Math.min(at, Math.max(0, S.res.dur - .25)), a1 = Math.min(S.res.dur, a0 + secs);
+        let st44 = await resample(S.ab, SR, 2, a0, a1);
+        const Ls = st44.getChannelData(0).slice(), Rs = st44.numberOfChannels > 1 ? st44.getChannelData(1).slice() : Ls.slice();
+        st44 = null;
+        const from = 0, to = Ls.length;
         const setP = (label, p) => { prog.innerHTML = ''; prog.append(h('span', { text: label }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(p * 100) + '%' })])); };
         setP(t('ai.dl', { a: 0, b: 85 }), 0);
         const prefer = hasGPU() ? 'webgpu' : 'wasm', dir = model === '6' && has6 ? 'model6' : 'model';
         if (worker && worker.dir !== dir) { try { worker.terminate(); } catch (_) {} worker = null; }
         const wk = getWorker(m => {
+          seen = Date.now();
           if (m.type === 'dl') setP(t('ai.dl', { a: Math.round(m.got / 1048576), b: Math.round(m.total / 1048576) }), m.got / m.total * .3);
           else if (m.type === 'stage') setP(t(m.s === 'unpack' ? 'ai.unpack' : 'ai.init'), .32);
-          else if (m.type === 'ready') { setP(t('ai.proc', { p: 0, m: '…' }), .35); wk.postMessage({ cmd: 'separate', L: L.slice(from, to), R: R.slice(from, to) }); }
+          else if (m.type === 'ready') { setP(t('ai.proc', { p: 0, m: '…' }), .35); const a = Ls, b2 = Rs === Ls ? Ls.slice() : Rs; wk.postMessage({ cmd: 'separate', L: a, R: b2 }, [a.buffer, b2.buffer]); }
           else if (m.type === 'progress') setP(t('ai.proc', { p: Math.round(m.done / m.total * 100), m: PD.fmtTime(Math.max(1, m.eta)) }), .35 + .65 * m.done / m.total);
           else if (m.type === 'done') {
             const tracks = ORDER.map(n => m.sources.indexOf(n)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] }));
-            S.stems = { id: 'stems' + Date.now(), sr: SR, from: from / SR, len: (to - from) / SR, tracks };
+            S.stems = { id: 'stems' + Date.now(), sr: SR, from: a0, len: (to - from) / SR, tracks };
             S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
-            useStems(true); prog.hidden = true; const sp = stemsPanel(); box.replaceWith(sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
+            stopWatch(); useStems(true); prog.hidden = true; const sp = stemsPanel(); box.replaceWith(sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
           }
-          else if (m.type === 'error') { go.disabled = false; prog.hidden = true; msg.textContent = /memory|Out of|alloc/i.test(m.msg) ? t('ai.mem') : t('ai.fail', { e: m.msg }); worker && worker.terminate(); worker = null; }
+          else if (m.type === 'error') { fail(/memory|Out of|alloc|RuntimeError|abort/i.test(m.msg) ? t('ai.mem') : t('ai.fail', { e: m.msg })); }
         });
+        // a worker that runs out of memory can die without saying anything; nothing must wait for ever
+        let seen = Date.now(), watch = 0;
+        const stopWatch = () => { if (watch) clearInterval(watch); watch = 0; };
+        const fail = text => {
+          stopWatch(); go.disabled = false; prog.hidden = true;
+          msg.innerHTML = ''; msg.append(h('span', { text }));
+          if (pick !== '30' && pick !== 'here30') msg.append(h('button', { class: 'btn small', style: 'margin-inline-start:8px', text: t('ai.try30'), onclick: () => { pick = '30'; seg.querySelectorAll('button').forEach(b2 => b2.setAttribute('aria-pressed', String(b2.textContent === t('ai.first', { n: 30 })))); msg.textContent = ''; run(); } }));
+          try { worker && worker.terminate(); } catch (_) {} worker = null;
+        };
+        own(stopWatch);
+        watch = setInterval(() => { if (Date.now() - seen > 90000) fail(t('ai.stuck')); }, 5000);
         if (!wk.ready) { wk.dir = dir; wk.postMessage({ cmd: 'load', base: BASE, prefer, dir }); } else wk.onmessage({ data: { type: 'ready' } });
       }
       return box;

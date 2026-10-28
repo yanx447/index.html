@@ -78,19 +78,21 @@ const AIW = function () {
     const total = man.blobSize; let got = 0, last = 0;
     const tick = n => { got += n; const now = Date.now(); if (now - last > 200) { last = now; post('dl', { got, total }); } };
     const graph = new Uint8Array(await fetchCached(M + 'graph.onnx'));
-    const blob = new Uint8Array(total); let o = 0;
+    let blob = new Uint8Array(total); let o = 0;
     for (const p of man.parts) { const b2 = new Uint8Array(await fetchCached(M + p, tick)); blob.set(b2, o); o += b2.length; }
     post('dl', { got: total, total });
     post('stage', { s: 'unpack' });
-    const data = new Uint8Array(man.dataSize), dv = new DataView(data.buffer);
+    const data = new Uint8Array(man.dataSize);
     for (const [off, ln, p, bl, f16] of man.tensors) {
       if (!f16) { data.set(blob.subarray(p, p + bl), off); continue; }
       const h = new Uint16Array(blob.buffer, p, bl / 2), f = new Float32Array(data.buffer, off, ln / 4); for (let i = 0; i < h.length; i++) f[i] = H2F[h[i]];
     }
+    blob = null;   // let the packed copy go before the runtime asks for its own memory
+    await new Promise(r => setTimeout(r, 0));
     post('stage', { s: 'init' });
     const eps = prefer === 'webgpu' ? ['webgpu', 'wasm'] : ['wasm'];
     sess = await ort.InferenceSession.create(graph, { executionProviders: eps, externalData: [{ path: 'htdemucs.data', data }], graphOptimizationLevel: 'all' });
-    void dv; post('ready', { ep: prefer, inputs: sess.inputNames, outputs: sess.outputNames });
+    post('ready', { ep: prefer, inputs: sess.inputNames, outputs: sess.outputNames });
   }
   /** separate a stereo mix (Float32Array L, R at 44.1 kHz) → 4 sources × 2 channels */
   async function separate(L, R, from, to) {
@@ -99,7 +101,7 @@ const AIW = function () {
     const wsum = new Float32Array(len), stride = Math.floor(.75 * SEG), W = new Float32Array(SEG);
     for (let i = 0; i < SEG; i++) W[i] = i < SEG / 2 ? (i + 1) : (SEG - i); let wm = 0; for (let i = 0; i < SEG; i++) wm = Math.max(wm, W[i]); for (let i = 0; i < SEG; i++) W[i] /= wm;
     const offsets = []; for (let o = 0; o < len; o += stride) offsets.push(o);
-    const mixT = new Float32Array(2 * SEG), mag = new Float32Array(4 * NB * LE), zr = new Float32Array(NB * LE), zi = new Float32Array(NB * LE), seg = [new Float32Array(SEG), new Float32Array(SEG)];
+    const mixT = new Float32Array(2 * SEG), mag = new Float32Array(4 * NB * LE), zr = new Float32Array(NB * LE), zi = new Float32Array(NB * LE), seg = [new Float32Array(SEG), new Float32Array(SEG)], scratch = new Float32Array(SEG);
     const t0 = Date.now();
     for (let k = 0; k < offsets.length; k++) {
       const off = offsets[k], clen = Math.min(SEG, len - off), delta = SEG - clen, start = off - Math.floor(delta / 2);
@@ -110,7 +112,7 @@ const AIW = function () {
       let ox = null, oxt = null; for (const n of sess.outputNames) { const tns = res[n]; if (tns.dims.length === 5) ox = tns.data; else oxt = tns.data; }
       const tr = Math.floor(delta / 2);
       for (let s = 0; s < S; s++) for (let c = 0; c < 2; c++) {
-        const tmp = new Float32Array(SEG); tmp.set(oxt.subarray((s * 2 + c) * SEG, (s * 2 + c + 1) * SEG));
+        const tmp = scratch; tmp.set(oxt.subarray((s * 2 + c) * SEG, (s * 2 + c + 1) * SEG));
         const pr = ((s * 2 + c) * 2) * NB * LE, pi = ((s * 2 + c) * 2 + 1) * NB * LE;
         ispec(ox.subarray(pr, pr + NB * LE), ox.subarray(pi, pi + NB * LE), tmp);
         const out = outs[s][c]; for (let i = 0; i < clen; i++) out[off + i] += W[i] * tmp[tr + i];
@@ -119,12 +121,13 @@ const AIW = function () {
       const el = (Date.now() - t0) / 1000; post('progress', { done: k + 1, total: offsets.length, eta: el / (k + 1) * (offsets.length - k - 1) });
     }
     for (let s = 0; s < S; s++) for (let c = 0; c < 2; c++) { const o = outs[s][c]; for (let i = 0; i < len; i++) o[i] /= wsum[i] || 1; }
-    return outs;
+    return outs;   // the caller transfers these out, so nothing is copied again
   }
   self.onmessage = async e => {
     const m = e.data;
     try {
-      if (m.cmd === 'load') await load(m.base, m.prefer, m.dir);
+      if (m.cmd === 'load') { await load(m.base, m.prefer, m.dir); }
+      else if (m.cmd === 'ping') post('pong', {});
       else if (m.cmd === 'separate') { const outs = await separate(m.L, m.R, m.from || 0, m.to || m.L.length); post('done', { stems: outs, sources: man.sources }, outs.flat().map(a => a.buffer)); }
       else if (m.cmd === 'selftest') { const x = new Float32Array(SEG); for (let i = 0; i < SEG; i++) x[i] = Math.sin(i * .01) * .5 + Math.sin(i * .37) * .2; const zr = new Float32Array(NB * LE), zi = new Float32Array(NB * LE); spec(x, zr, zi); const y = new Float32Array(SEG); ispec(zr, zi, y); let err = 0, mx = 0; for (let i = 0; i < SEG; i++) { err = Math.max(err, Math.abs(x[i] - y[i])); mx = Math.max(mx, Math.abs(x[i])); } post('selftest', { err, mx }); }
     } catch (err) { post('error', { msg: String(err && err.message || err) }); }
