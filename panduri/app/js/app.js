@@ -242,6 +242,8 @@ PD.app = (() => {
     if (old) old.removeAttribute('id');
     main.appendChild(page);
     PD.bus.emit('route', route);
+    // the helper rides along on every screen, and keeps out of the way inside a lesson
+    try { if (PD.sima) { PD.sima.close(); if (route === 'practice' || PD.practice.active) { const f = document.querySelector('.sm-fab'); if (f) f.remove(); } else { PD.sima.mount(); setTimeout(() => PD.sima.nudge(), 1800); } } } catch (_) {}
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
@@ -888,6 +890,13 @@ PD.app = (() => {
     { const C = PD.cloud; const goalSeg = h('div', { class: 'seg', role: 'group', 'aria-label': t('pf.goal') }, [5, 10, 15, 20, 30].map(m => h('button', { 'aria-pressed': String(PD.store.get('goalMin', 15) === m), text: t('dl.min', { n: m }), onclick: e => { PD.store.set('goalMin', m); goalSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
       w.append(sect('pf.goal', [h('div', { class: 'li' }, [goalSeg])]));
       w.append(PD.notify.settingsSection({ sect, row, toggle }));
+      w.append(sect('sm.title', [
+        row('sm.on', '', toggle('sima.on', true, () => PD.sima.refresh())),
+        row('sm.voice', PD.sima.kaVoice() ? '' : t('sm.noVoice'), toggle('sima.voice', true)),
+        row('sm.nudgeOn', '', toggle('sima.nudge', true)),
+        PD.sima.canHear()
+          ? row('sm.wake', t('sm.wakeD'), toggle('sima.wake', false, on => PD.sima.listen(on)))
+          : row('sm.wake', t('sm.wakeNo'), h('span', { class: 'muted', text: '—' }))]));
       w.append(sect('set.app', [row('set.version', PD.BUILD ? 'build ' + PD.BUILD : '', h('button', { class: 'btn small', 'data-t': 'set.update', onclick: async e2 => {
         const btn = e2.currentTarget; btn.disabled = true; btn.textContent = t('set.updating');
         const got = await PD.pwa.update();
@@ -993,5 +1002,5 @@ PD.app = (() => {
     return h('div', { class: 'ls-foot' }, [h('button', { class: 'btn ls-path', html: ic.learn + '<span data-t="ls.path"></span>', onclick: () => go('learn', pn ? pn.path : null) }),
       pn && pn.next ? h('button', { class: 'btn primary ls-next', onclick: () => { if (markDone) markDone(); pn.next.go(); } }, [h('small', { 'data-t': 'ls.next' }), h('b', { text: pn.next.title })]) : null]);
   }
-  return { shell, go, back, signOut, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, pathNav, pathBar, stepDone, get route() { return route; }, get param() { return param; } };
+  return { shell, go, back, signOut, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, pathNav, pathBar, stepDone, stepTitle, stepGo, get route() { return route; }, get param() { return param; } };
 })();
