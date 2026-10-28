@@ -1343,6 +1343,10 @@ input[type=checkbox]::before{transition:transform .3s var(--spring),background .
 .ai-badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:11px;font:700 11px/1 var(--f-mono);letter-spacing:.06em;color:var(--brass-ink);background:linear-gradient(135deg,var(--brass2),var(--brass))}
 .ai-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;min-height:150px;margin:14px 0 10px;padding:22px 16px;border-radius:16px;border:1.5px dashed rgba(201,139,91,.45);background:radial-gradient(120% 90% at 50% 0%,rgba(201,139,91,.12),transparent 70%),var(--surface);color:var(--fg);text-align:center;transition:border-color .15s,transform .15s var(--ease),background .15s}
 .ai-drop:hover,.ai-drop.over{border-color:var(--brass);transform:translateY(-1px)}
+/* once a song is open the drop zone folds into one line, so the work starts at the top */
+.ai-drop.mini{flex-direction:row;gap:10px;min-height:0;margin:8px 0 2px;padding:10px 14px;border-style:solid;border-color:var(--line2);background:var(--surface)}
+.ai-drop.mini .ai-drop-ic{width:20px;height:20px;animation:none}
+.ai-drop.mini b{font-size:calc(var(--fs)*.9)} .ai-drop.mini small{display:none}
 .ai-drop:active{transform:scale(.99)}
 .ai-drop-ic{width:46px;height:46px;color:var(--brass2);animation:aiBob 2.4s var(--ease) infinite}
 .ai-drop-ic svg{width:100%;height:100%}
@@ -1358,6 +1362,21 @@ input[type=checkbox]::before{transition:transform .3s var(--spring),background .
 .ai-fact{padding:9px 11px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
 .ai-fact small{display:block;color:var(--muted);font-size:calc(var(--fs)*.76)} .ai-fact b{font-size:calc(var(--fs)*1.1)}
 .ai-player,.ai-stems{display:grid;gap:12px;padding:14px;border-radius:16px;background:var(--bg2);border:1px solid var(--line)}
+/* the deck keeps the transport on screen while a tab is scrolled */
+.ai-deck{position:sticky;top:0;z-index:6;display:grid;gap:10px;padding:12px 12px 10px;margin:0 -2px;border-radius:0 0 18px 18px;background:linear-gradient(180deg,var(--bg) 70%,rgba(10,10,10,.96));border:1px solid var(--line);border-top:0;box-shadow:0 10px 24px -18px rgba(0,0,0,.9)}
+.ai-deck .ai-nn{grid-template-columns:1.5fr 1fr;gap:8px}
+.ai-deck .ai-now,.ai-deck .ai-next{min-height:58px;padding:8px 12px}
+.ai-deck .ai-now b{font-size:calc(var(--fs)*1.6)} .ai-deck .ai-next b{font-size:calc(var(--fs)*1.15)}
+.ai-tabs{position:sticky;top:0;z-index:5;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:8px 2px;margin:0 -2px;background:var(--bg)}
+.ai-tabs::-webkit-scrollbar{display:none}
+.ai-tabs .tab{flex:0 0 auto;position:relative;min-height:36px;padding:0 14px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--muted);font-size:calc(var(--fs)*.88);font-weight:600;white-space:nowrap;transition:color .15s,background .15s,border-color .15s}
+.ai-tabs .tab:hover{color:var(--fg2)}
+.ai-tabs .tab.on{color:var(--fg);background:var(--brass-wash);border-color:rgba(201,139,91,.5)}
+.ai-tabs .tab.on::after{content:'';position:absolute;left:14px;right:14px;bottom:-7px;height:2px;border-radius:2px;background:var(--brass2)}
+.ai-panes{display:grid;min-width:0}
+.ai-pane{min-width:0;animation:aiIn .22s var(--ease)}
+.ai-pane[hidden]{display:none}
+@media (max-width:420px){.ai-deck{padding:10px 10px 8px}.ai-tabs .tab{padding:0 11px;min-height:34px}}
 .ai-rwrap{position:relative;border-radius:10px;overflow:hidden;background:var(--surface);--ph:0px}
 .ai-ribbon{display:block;width:100%;height:56px}
 .ai-rwrap::after{content:'';position:absolute;top:0;bottom:0;left:var(--ph);width:2px;margin-left:-1px;background:var(--fg);box-shadow:0 0 0 1px rgba(0,0,0,.35);pointer-events:none}
@@ -1458,6 +1477,9 @@ input[type=checkbox]::before{transition:transform .3s var(--spring),background .
 .ai-sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;min-width:0}
 .ai-scell{display:grid;gap:4px;justify-items:center;min-width:0;padding:10px 8px 11px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-align:center;transition:border-color .15s,transform .12s var(--ease),background .15s}
 .ai-scell:hover{border-color:var(--brass)} .ai-scell:active{transform:scale(.98)}
+.ai-scell.unsure{border-style:dashed;border-color:var(--line2)}
+.ai-scell.unsure .ai-sname{color:var(--fg2)}
+.ai-unsure{color:var(--almost,#E0B85C)}
 .ai-scell.on{border-color:var(--brass);background:linear-gradient(160deg,var(--brass-wash),transparent 70%),var(--surface);box-shadow:0 0 0 1px rgba(201,139,91,.35)}
 .ai-sn{align-self:start;justify-self:start;color:var(--muted);font-size:calc(var(--fs)*.72)}
 .ai-sname{font-size:calc(var(--fs)*1.15);color:var(--brass2);line-height:1.1}

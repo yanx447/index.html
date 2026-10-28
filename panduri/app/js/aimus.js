@@ -764,5 +764,5 @@ PD.aimus.panel = function (o) {
     M.beats = beats; M.bpm = bpm;
     A.quantise(M.notes, beats, M.metre); o.save && o.save(M); cur = -1; lastCur = -2; render();
   }
-  return { el, tick, regrid, ownsNeck: () => !!(onNeck && M && M.notes.length), get data() { return M; }, destroy() { if (busy && busy.cancel) busy.cancel(); if (V && V.stop) V.stop(); } };
+  return { el, tick, regrid, setView(k) { if (k && k !== view) { view = k; PD.store.set('tr.view', k); render(); } }, ownsNeck: () => !!(onNeck && M && M.notes.length), get data() { return M; }, destroy() { if (busy && busy.cancel) busy.cancel(); if (V && V.stop) V.stop(); } };
 };

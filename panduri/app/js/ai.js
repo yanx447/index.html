@@ -64,6 +64,11 @@ PD.i18n.add({
   'ai.keys': ['ღილაკები: ჰარი — დაკვრა/პაუზა · ← → — 5 წმ · Shift+← → — 1 წმ · Home/End — თავი/ბოლო', 'Keys: space — play/pause · ← → — 5 s · Shift+← → — 1 s · Home/End — start/end'],
   'ai.spSlow': ['ნელა', 'Slower'], 'ai.spFast': ['სწრაფად', 'Faster'], 'ai.bpmAuto': ['AI-ის ტემპი', 'Back to the AI tempo'], 'ai.tap': ['დააკაკუნე', 'Tap'], 'ai.tapD': ['დააკაკუნე დარტყმაზე 4-ჯერ მაინც', 'Tap on the beat at least 4 times'],
   'ai.regrid': ['დარტყმებს თავიდან ვაწყობ…', 'Tracking the beats again…'], 'ai.bpmBy': ['ხელით დაყენებული', 'set by hand'],
+  'ai.unsure': ['დარწმუნებული არ ვარ', 'Not sure'],
+  'ai.unsureN': ['{n} აკორდში დარწმუნებული არ ვარ — ისინი მონიშნულია. შეეხე ზოლს „აკორდების შესწორებაში“ და თვითონ დააყენე.', 'I am not sure about {n} of these — they are marked. Tap the ribbon under “Correct the chords” and set them yourself.'],
+  'ai.stop': ['გაჩერება და თავში დაბრუნება', 'Stop and go back to the start'],
+  'ai.tOver': ['მიმოხილვა', 'Overview'], 'ai.tInst': ['ინსტრუმენტები', 'Instruments'], 'ai.tChords': ['აკორდები', 'Chords'],
+  'ai.tRhythm': ['რითმი', 'Rhythm'], 'ai.tSolo': ['სოლო / მელოდია', 'Solo / melody'], 'ai.tRoll': ['პიანო რულონი', 'Piano roll'], 'ai.tNote': ['ნოტაცია', 'Notation'],
   'ai.hand': ['3D ხელი', '3D hand'], 'ai.handOn': ['ხელი უკრავს თან', 'The hand plays along'],
   'ai.handD': ['მარცხენა ხელი რეალურ 3D-ში იჭერს იმ აკორდს, რომელიც ახლა ჟღერს — იგივე ამოხსნილი პოზიციები, რაც აკორდების გვერდებზეა.', 'The left hand holds, in real 3D, the chord that is sounding — the same solved positions the chord pages use.'],
   'ai.h3now': ['{n} — ასე უჭირავს მარცხენა ხელს.', '{n} — this is how the left hand holds it.'],
@@ -387,7 +392,9 @@ PD.ai = (() => {
   function page(w) {
     const own = (() => { const offs = []; const un = PD.bus.on('route', () => { offs.forEach(f => { try { f(); } catch (_) {} }); un(); }); return f => offs.push(f); })();
     const back = () => PD.app.back('songs');
-    w.append(h('div', { class: 'row pg-head' }, [PD.app.route === 'ai' ? null : h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'ai.title', style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]), h('p', { class: 'muted', 'data-t': 'ai.lead' }));
+    const leadP = h('p', { class: 'muted', 'data-t': 'ai.lead' });
+    const headRow = h('div', { class: 'row pg-head' }, [PD.app.route === 'ai' ? null : h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'ai.title', style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]);
+    w.append(headRow, leadP);
     const input = h('input', { type: 'file', accept: 'audio/*,video/*,.mp3,.m4a,.wav,.ogg,.oga,.opus,.flac,.aac,.wma,.mp4,.m4v,.mov,.webm,.mkv,.avi,.3gp,.ogv,.ts', hidden: true, onchange: e => { const f = e.target.files && e.target.files[0]; if (f) open(f); e.target.value = ''; } });
     const drop = h('button', { class: 'ai-drop', onclick: () => input.click() }, [h('span', { class: 'ai-drop-ic', html: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 30V8M15 17l9-9 9 9"/><path d="M8 30v6a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-6"/></svg>' }), h('b', { 'data-t': 'ai.pick' }), h('small', { 'data-t': 'ai.pickD' })]);
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); }); drop.addEventListener('dragleave', () => drop.classList.remove('over'));
@@ -591,10 +598,11 @@ PD.ai = (() => {
         for (let k = 0; k < B.length; k++) { const bt = dk.beatAt(B[k] + .005); if (bt && bt.bar === n && bt.beat === 1) return dk.seek(B[k] + .005); }
         const g = dk.D.bpb || 4; dk.seek(Math.min(res.dur, (n - 1) * g * 60 / res.bpm));
       }
-      const transport = h('div', { class: 'ai-tr' }, [playB,
+      const stopB = h('button', { class: 'btn small', text: '■', 'aria-label': t('ai.stop'), onclick: () => { if (D.playing) dk.toggle(); dk.seek(0); } });
+      const transport = h('div', { class: 'ai-tr' }, [playB, stopB,
         h('button', { class: 'btn small', text: '−10', 'aria-label': '-10s', onclick: () => jump(-10) }),
-        h('button', { class: 'btn small', text: '−1', 'aria-label': '-1s', onclick: () => jump(-1) }),
-        h('button', { class: 'btn small', text: '+1', 'aria-label': '+1s', onclick: () => jump(1) }),
+        h('button', { class: 'btn small', text: '−5', 'aria-label': '-5s', onclick: () => jump(-5) }),
+        h('button', { class: 'btn small', text: '+5', 'aria-label': '+5s', onclick: () => jump(5) }),
         h('button', { class: 'btn small', text: '+10', 'aria-label': '+10s', onclick: () => jump(10) }),
         h('div', { class: 'ai-beat' }, [dots, barEl]), prepEl, timeEl]);
       const gotoRow = h('div', { class: 'ai-tool ai-goto' }, [h('span', { class: 'ai-tl', text: t('ai.jump') }),
@@ -604,9 +612,12 @@ PD.ai = (() => {
           h('div', { class: 'ai-pair' }, [h('button', { class: 'btn small ghost', text: '⏮', 'aria-label': t('ai.start'), onclick: () => dk.seek(0) }),
             h('button', { class: 'btn small ghost', text: '⏭', 'aria-label': t('ai.end'), onclick: () => dk.seek(Math.max(0, res.dur - 2)) })])]),
         h('small', { class: 'muted', text: t('ai.gotoD') })]);
-      body.append(h('section', { class: 'ai-player' }, [vidBox, rWrap,
-        transport, seek, gotoRow,
-        h('div', { class: 'ai-nn' }, [nowEl, nextEl]), nv,
+      /* ---- the deck stays on screen: the transport, the ribbon and what is playing now.
+              Everything else lives in a tab, and switching a tab never touches the sound. ---- */
+      leadP.hidden = true; drop.classList.add('mini'); if (recentBox) recentBox.hidden = true;
+      own(() => { leadP.hidden = false; drop.classList.remove('mini'); if (recentBox) recentBox.hidden = !PD.store.get('ai.recent', []).length; });
+      const deck = h('section', { class: 'ai-deck' }, [vidBox, rWrap, transport, seek, h('div', { class: 'ai-nn' }, [nowEl, nextEl])]);
+      const overview = h('section', { class: 'ai-pane ai-player' }, [gotoRow, nv,
         h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.hand') }),
           h('div', { class: 'ai-tc' }, [h('label', { class: 'sw' }, [h3on, h('i'), h('span', { text: t('ai.handOn') })]), h('small', { class: 'muted', text: t('ai.handD') })])]),
         h3wrap,
@@ -616,11 +627,29 @@ PD.ai = (() => {
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.metro') }), h('div', { class: 'ai-tc' }, [clickT, clickV, ciT])]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.loop') }), h('div', { class: 'ai-tc' }, [lA, lB, lBars(1), lBars(4), lOff, loopTxt])]),
           tempoTool(), chordTool(), fxTool]),
-        chipRow, h('small', { class: 'muted ai-keys', text: t('ai.keys') }), h('p', { class: 'notice', 'data-t': 'ai.est' })]));
-      body.append(sheetPanel());
-      body.append(rhythmPanel());
-      body.append(stemsPanel());
-      body.append(trPanel());
+        chipRow, h('small', { class: 'muted ai-keys', text: t('ai.keys') }), h('p', { class: 'notice', 'data-t': 'ai.est' })]);
+      const chordsPane = sheetPanel(), rhythmPane = rhythmPanel(), stemsPane = stemsPanel(), trPane = trPanel();
+      [chordsPane, rhythmPane, stemsPane, trPane].forEach(e => e.classList.add('ai-pane'));
+      const TABS = [['overview', 'ai.tOver'], ['instruments', 'ai.tInst'], ['chords', 'ai.tChords'], ['rhythm', 'ai.tRhythm'], ['solo', 'ai.tSolo'], ['roll', 'ai.tRoll'], ['notation', 'ai.tNote']];
+      const PANE = { overview, instruments: stemsPane, chords: chordsPane, rhythm: rhythmPane, solo: trPane, roll: trPane, notation: trPane };
+      const TRVIEW = { solo: 'let', roll: 'roll', notation: 'staff' };
+      const tabBar = h('nav', { class: 'ai-tabs', role: 'tablist' });
+      const paneBox = h('div', { class: 'ai-panes' }, [overview, stemsPane, chordsPane, rhythmPane, trPane]);
+      let tab = PD.store.get('ai.tab', 'overview'); if (!PANE[tab]) tab = 'overview';
+      function showTab(k) {
+        tab = k; PD.store.set('ai.tab', k);
+        const want = PANE[k];
+        panes.forEach(e => { e.hidden = e !== want; });
+        tabBar.querySelectorAll('button').forEach(b2 => { const on = b2.dataset.k === k; b2.classList.toggle('on', on); b2.setAttribute('aria-selected', String(on)); if (on) try { b2.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (_) {} });
+        if (TRVIEW[k] && S.tr && S.tr.setView) S.tr.setView(TRVIEW[k]);
+        // a canvas that was hidden has no width: give everything a chance to measure again
+        requestAnimationFrame(() => { try { neck.layout(); } catch (_) {} last = null; drawRibbon(); if (S.tr && S.tr.regrid) S.tr.regrid(); });
+      }
+      TABS.forEach(([k, lab]) => tabBar.append(h('button', { class: 'tab', role: 'tab', 'data-k': k, 'data-t': lab, onclick: () => showTab(k) })));
+      S.swapPane = (oldEl, newEl) => { Object.keys(PANE).forEach(k => { if (PANE[k] === oldEl) PANE[k] = newEl; }); const i = panes.indexOf(oldEl); if (i >= 0) panes[i] = newEl; };
+      const panes = [overview, stemsPane, chordsPane, rhythmPane, trPane];
+      body.append(deck, tabBar, paneBox);
+      showTab(tab);
       PD.i18n.apply(body);
       function fact(k, v) { return h('div', { class: 'ai-fact' }, [h('small', { 'data-t': k }), v]); }
 
@@ -818,16 +847,20 @@ PD.ai = (() => {
           const r = ((c.root + TR()) % 12 + 12) % 12, nm = cname(c.root, c.q, TR());
           const sh = shapeOf(r, c.q), v = sh && ((sh.voicings && sh.voicings[0]) || sh);
           const bt = dk.beatAt(c.t0 + .005);
-          const cell = h('button', { class: 'ai-scell', 'data-t0': String(c.t0), onclick: () => dk.seek(Math.max(0, c.t0 + .01)) }, [
+          const unsure = c.conf != null && c.conf < .45;
+          const cell = h('button', { class: 'ai-scell' + (unsure ? ' unsure' : ''), 'data-t0': String(c.t0), title: unsure ? t('ai.unsure') : '', onclick: () => dk.seek(Math.max(0, c.t0 + .01)) }, [
             h('span', { class: 'ai-sn mono', text: String(i + 1) }),
             h('b', { class: 'ai-sname', text: nm }),
             h('small', { class: 'mono', text: PD.fmtTime(c.t0) + (bt ? ' · ' + t('ai.barN', { n: Math.max(1, bt.bar) }) : '') }),
             v ? h('div', { class: 'ai-sdia', html: PD.tools.chordDiagram(Object.assign({}, sh, { frets: v.frets, fingers: v.fingers })) })
               : h('small', { class: 'notice', text: t('ai.sheetNoShape') }),
-            h('small', { class: 'muted', text: v ? v.frets.map(f => f === 0 ? '0' : f < 0 ? '×' : f).join(' · ') : '' })]);
+            h('small', { class: 'muted', text: v ? v.frets.map(f => f === 0 ? '0' : f < 0 ? '×' : f).join(' · ') : '' }),
+            unsure ? h('small', { class: 'ai-unsure', text: t('ai.unsure') }) : null].filter(Boolean));
           grid.append(cell);
         });
+        const nU = list.filter(c => c.conf != null && c.conf < .45).length;
         sheetBox.append(grid, h('small', { class: 'muted', text: t('ai.sheetTap') }));
+        if (nU) sheetBox.append(h('small', { class: 'muted', text: t('ai.unsureN', { n: nU }) }));
         PD.i18n.apply(sheetBox);
       }
       function markSheet(i) {
@@ -1035,7 +1068,7 @@ PD.ai = (() => {
             const tracks = ORDER.map(n => m.sources.indexOf(n)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] }));
             S.stems = { id: 'stems' + Date.now(), sr: SR, from: a0, len: (to - from) / SR, tracks };
             S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
-            stopWatch(); useStems(true); prog.hidden = true; const sp = stemsPanel(); box.replaceWith(sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
+            stopWatch(); useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
           }
           else if (m.type === 'error') { fail(/memory|Out of|alloc|RuntimeError|abort/i.test(m.msg) ? t('ai.mem') : t('ai.fail', { e: m.msg })); }
         });
