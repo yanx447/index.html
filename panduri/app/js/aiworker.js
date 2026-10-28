@@ -70,11 +70,21 @@ const AIW = function () {
     try { cache && await cache.put(url, new Response(out.slice().buffer)); } catch (_) {}
     return out.buffer;
   }
+  /** can this device hold the model at all? Asked before anything is downloaded, because the
+      answer on a phone is usually no, and finding out by having the tab killed is no answer. */
+  function canHold(bytes) {
+    const pages = Math.ceil(bytes / 65536); let m = null;
+    try { m = new WebAssembly.Memory({ initial: pages }); } catch (_) { return false; }
+    m = null; return true;
+  }
   async function load(b, prefer, dir) {
     base = b; const M = base + (dir || 'model') + '/';
     importScripts(base + 'ort/' + (prefer === 'webgpu' ? 'ort.webgpu.min.js' : 'ort.min.js'));
     ort = self.ort; ort.env.wasm.wasmPaths = base + 'ort/'; ort.env.wasm.numThreads = 1;
     man = JSON.parse(new TextDecoder().decode(await fetchCached(M + 'manifest.json')));
+    // the weights live twice while the session is built: once on the way in, once inside the
+    // runtime. If that much cannot even be reserved, say so now instead of downloading 85 MB first.
+    if (!canHold(man.dataSize * 2 + 48 * 1048576)) { post('error', { msg: 'LOWMEM', need: Math.round(man.dataSize * 2 / 1048576) }); return; }
     const total = man.blobSize; let got = 0, last = 0;
     const tick = n => { got += n; const now = Date.now(); if (now - last > 200) { last = now; post('dl', { got, total }); } };
     const graph = new Uint8Array(await fetchCached(M + 'graph.onnx'));
@@ -82,16 +92,29 @@ const AIW = function () {
     for (const p of man.parts) { const b2 = new Uint8Array(await fetchCached(M + p, tick)); blob.set(b2, o); o += b2.length; }
     post('dl', { got: total, total });
     post('stage', { s: 'unpack' });
-    const data = new Uint8Array(man.dataSize);
-    for (const [off, ln, p, bl, f16] of man.tensors) {
-      if (!f16) { data.set(blob.subarray(p, p + bl), off); continue; }
-      const h = new Uint16Array(blob.buffer, p, bl / 2), f = new Float32Array(data.buffer, off, ln / 4); for (let i = 0; i < h.length; i++) f[i] = H2F[h[i]];
+    // Unpack tensor by tensor into a Blob instead of one 168 MB array. The blob is held by the
+    // browser, not by this heap, so the weights exist once here rather than twice while the
+    // runtime builds its own copy. The runtime is then handed a URL and streams them in itself.
+    const order = man.tensors.slice().sort((a, b2) => a[0] - b2[0]);
+    const chunks = []; let at = 0;
+    for (const [off, ln, p, bl, f16] of order) {
+      if (off > at) { chunks.push(new Uint8Array(off - at)); at = off; }   // keep the file contiguous
+      if (!f16) chunks.push(blob.slice(p, p + bl));
+      else { const hh = new Uint16Array(blob.buffer, p, bl / 2), f = new Float32Array(ln / 4);
+        for (let i = 0; i < hh.length; i++) f[i] = H2F[hh[i]];
+        chunks.push(new Uint8Array(f.buffer)); }
+      at = off + ln;
     }
-    blob = null;   // let the packed copy go before the runtime asks for its own memory
+    if (at < man.dataSize) chunks.push(new Uint8Array(man.dataSize - at));
+    const bag = new Blob(chunks);
+    chunks.length = 0; blob = null;   // the packed copy and the pieces go before the runtime starts
     await new Promise(r => setTimeout(r, 0));
+    const url = URL.createObjectURL(bag);
     post('stage', { s: 'init' });
     const eps = prefer === 'webgpu' ? ['webgpu', 'wasm'] : ['wasm'];
-    sess = await ort.InferenceSession.create(graph, { executionProviders: eps, externalData: [{ path: 'htdemucs.data', data }], graphOptimizationLevel: 'all' });
+    try {
+      sess = await ort.InferenceSession.create(graph, { executionProviders: eps, externalData: [{ path: 'htdemucs.data', data: url }], graphOptimizationLevel: 'all' });
+    } finally { try { URL.revokeObjectURL(url); } catch (_) {} }
     post('ready', { ep: prefer, inputs: sess.inputNames, outputs: sess.outputNames });
   }
   /** separate a stereo mix (Float32Array L, R at 44.1 kHz) → 4 sources × 2 channels */

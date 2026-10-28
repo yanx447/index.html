@@ -50,6 +50,8 @@ PD.i18n.add({
   'ai.geoIs': ['ეს რითმი ყველაზე ახლოსაა:', 'This rhythm is closest to:'],
   'ai.geoMaybe': ['შესაძლოა იყოს:', 'It may be:'],
   'ai.geoOpen': ['გახსნა', 'Open'],
+  'ai.rhyPerc': ['დარტყმები', 'The strokes'], 'ai.rhyMix': ['მთლიანი ჩანაწერი', 'The whole recording'],
+  'ai.rhyPercD': ['„დარტყმები“ იმავე ჩანაწერიდან გამოყოფს მხოლოდ დარტყმით ბგერას — მოდელის გარეშე, ჩამოტვირთვის გარეშე, ტელეფონზეც მუშაობს. ეს არ არის ინსტრუმენტებად დაყოფა: ეს იგივე ჩანაწერია, ოღონდ გაჭიმული ბგერა ჩაჩუმებული.', '“The strokes” pulls just the struck sound out of the same recording — no model, no download, works on a phone. It is not instrument separation: it is the same recording with the sustained part held back.'],
   'ai.rhyFrom': ['რას ვუსმენ', 'What I listen to'], 'ai.rhyAuto': ['ავტომატურად', 'Automatic'],
   'ai.rhyFromD': ['დარტყმები ყველაზე სუფთად იმ ინსტრუმენტზე ისმის, რომელიც მათ უკრავს. დაყოფის შემდეგ ვუსმენ „დანარჩენს“ და არა მთლიან მიქსს.', 'The strokes are clearest on the instrument that plays them. After a split I listen to “the rest” rather than the whole mix.'],
   'ai.rhySplitHint': ['მთლიან მიქსში ვოკალი და დრამი დარტყმებს ფარავს. „ინსტრუმენტების“ ტაბში დაყავი სიმღერა და რითმი გაცილებით ზუსტად წაიკითხება.', 'In a full mix the vocals and drums cover the strokes. Split the song in the Instruments tab and the rhythm reads far more accurately.'],
@@ -90,6 +92,7 @@ PD.i18n.add({
   'ai.vocS': ['მაჟორი/მინორი', 'Major/minor'], 'ai.vocE': ['გაფართოებული', 'Extended'], 'ai.vocA': ['ყველა', 'Everything'],
   'ai.vocD': ['გაფართოებული: სეპტაკორდები, sus, 6, dim, aug, add9. „ყველა“ ნონაკორდებსაც ეძებს — მეტს პოულობს, მაგრამ უფრო ხშირად ცდება.', 'Extended: sevenths, sus, 6, dim, aug, add9. “Everything” also looks for ninths — it finds more, but is wrong more often.'],
   'ai.sheetSlow': ['აკორდი იშვიათად იცვლება. თუ მელოდია სწრაფია (აჭარული, ტეხილები), ზემოთ აირჩიე „სწრაფი“ და დააჭირე „ხელახლა წაკითხვას“.', 'The chord rarely changes. If the melody is fast (Acharuli, tekhili), choose “Fast” above and press “Read again”.'],
+  'ai.lowmem': ['ამ მოწყობილობას დაყოფისთვის მეხსიერება არ ჰყოფნის — მოდელს დაახლოებით {n} MB სჭირდება და ბრაუზერმა ამდენი ვერ გამოყო. სცადე კომპიუტერიდან; ტელეფონზე ეს მოდელი ვერ ეტევა.', 'This device does not have enough memory to split — the model needs about {n} MB and the browser could not reserve it. Try from a computer; this model does not fit on a phone.'],
   'ai.stuck': ['დაყოფა გაჩერდა — სავარაუდოდ მოწყობილობას მეხსიერება არ ეყო. სცადე უფრო მოკლე მონაკვეთი.', 'The split stopped — most likely the device ran out of memory. Try a shorter piece.'],
   'ai.try30': ['სცადე 30 წამი', 'Try 30 seconds'],
   'ai.memWarn': ['დაყოფა მძიმე სამუშაოა: მოდელი და ოთხივე ინსტრუმენტი ერთდროულად უნდა დაეტიოს მეხსიერებაში. ტელეფონზე დაიწყე 30 წამით — თუ გაივლის, მერე უფრო გრძელი სცადე. დაყოფის დროს აპლიკაცია ღია დატოვე.', 'Splitting is heavy work: the model and all four instruments have to fit in memory at once. On a phone start with 30 seconds — if that goes through, try a longer piece. Leave the app open while it runs.'],
@@ -701,15 +704,22 @@ PD.ai = (() => {
       // the rhythm is read off the accompaniment stem rather than the full mix.
       let rhySrc = PD.store.get('ai.rhySrc', 'auto');
       function rhyStem() {
-        if (!S.stems) return 'orig';
-        const names = S.stems.tracks.map(x => x.name);
+        const names = S.stems ? S.stems.tracks.map(x => x.name) : [];
+        if (rhySrc === 'perc' || rhySrc === 'orig') return rhySrc;
         if (rhySrc !== 'auto' && names.includes(rhySrc)) return rhySrc;
-        return names.includes('other') ? 'other' : names.includes('drums') ? 'drums' : 'orig';
+        if (names.includes('other')) return 'other';
+        if (names.includes('drums')) return 'drums';
+        return 'perc';   // no split: the strokes still come out cleaner than the full mix
       }
       async function onsetsOf() {
         const want = rhyStem();
         if (S.on && S.onSrc === want) return S.on;
         let m, off = 0;
+        if (want === 'perc') {
+          // the strokes alone, taken from the same recording with no model and no download
+          const base = await mono22();
+          S.on = await PD.aimus.percOnsets(base, 22050); S.onSrc = want; return S.on;
+        }
         if (want === 'orig') m = await mono22();
         else { const g = await S.tr.getMono ? null : null; const tk = S.stems.tracks.find(x => x.name === want);
           const ac = new (window.AudioContext || window.webkitAudioContext)(), bb = ac.createBuffer(2, tk.L.length, S.stems.sr);
@@ -780,12 +790,13 @@ PD.ai = (() => {
           rhyBox.append(head);
           if (g0) rhyBox.append(h('small', { class: 'muted', text: t(g0.span === 1 ? 'ai.geoIn1' : g0.span === 2 ? 'ai.geoIn2' : 'ai.geoPer', { n: g0.cycles }) }));
           rhyBox.append(h('small', { class: 'muted', text: t('ai.geoD') }));
-        if (S.stems) {
-          const names = ['auto'].concat(S.stems.tracks.map(x => x.name));
-          const row = h('div', { class: 'chips-row' }, names.map(n2 => h('button', { class: 'chip' + (rhySrc === n2 ? ' on' : ''), text: n2 === 'auto' ? t('ai.rhyAuto') : t(LBL[n2] || 'ai.other'), onclick: () => { rhySrc = n2; PD.store.set('ai.rhySrc', n2); S.on = null; runRhythm(); } })));
+        {
+          const names = ['auto', 'perc', 'orig'].concat(S.stems ? S.stems.tracks.map(x => x.name) : []);
+          const lab = n2 => n2 === 'auto' ? t('ai.rhyAuto') : n2 === 'perc' ? t('ai.rhyPerc') : n2 === 'orig' ? t('ai.rhyMix') : t(LBL[n2] || 'ai.other');
+          const row = h('div', { class: 'chips-row' }, names.map(n2 => h('button', { class: 'chip' + (rhySrc === n2 ? ' on' : ''), text: lab(n2), onclick: () => { rhySrc = n2; PD.store.set('ai.rhySrc', n2); S.on = null; runRhythm(); } })));
           rhyBox.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.rhyFrom') }), row,
-            h('small', { class: 'muted', text: t('ai.rhyFromD') })]));
-        } else rhyBox.append(h('small', { class: 'muted', text: t('ai.rhySplitHint') }));
+            h('small', { class: 'muted', text: t(S.stems ? 'ai.rhyFromD' : 'ai.rhyPercD') })]));
+        }
         }
         if (R.span === 2) rhyBox.append(h('p', { class: 'notice', text: t('ai.rhySpan') }));
         // the strip: one cell per subdivision, its height the measured strength
@@ -1108,7 +1119,7 @@ PD.ai = (() => {
             S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
             stopWatch(); useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
           }
-          else if (m.type === 'error') { fail(/memory|Out of|alloc|RuntimeError|abort/i.test(m.msg) ? t('ai.mem') : t('ai.fail', { e: m.msg })); }
+          else if (m.type === 'error') { fail(m.msg === 'LOWMEM' ? t('ai.lowmem', { n: m.need || 340 }) : /memory|Out of|alloc|RuntimeError|abort/i.test(m.msg) ? t('ai.mem') : t('ai.fail', { e: m.msg })); }
         });
         // a worker that runs out of memory can die without saying anything; nothing must wait for ever
         let seen = Date.now(), watch = 0;
@@ -1116,7 +1127,7 @@ PD.ai = (() => {
         const fail = text => {
           stopWatch(); go.disabled = false; prog.hidden = true;
           msg.innerHTML = ''; msg.append(h('span', { text }));
-          if (pick !== '30' && pick !== 'here30') msg.append(h('button', { class: 'btn small', style: 'margin-inline-start:8px', text: t('ai.try30'), onclick: () => { pick = '30'; seg.querySelectorAll('button').forEach(b2 => b2.setAttribute('aria-pressed', String(b2.textContent === t('ai.first', { n: 30 })))); msg.textContent = ''; run(); } }));
+          if (!/MB/.test(text) && pick !== '30' && pick !== 'here30') msg.append(h('button', { class: 'btn small', style: 'margin-inline-start:8px', text: t('ai.try30'), onclick: () => { pick = '30'; seg.querySelectorAll('button').forEach(b2 => b2.setAttribute('aria-pressed', String(b2.textContent === t('ai.first', { n: 30 })))); msg.textContent = ''; run(); } }));
           try { worker && worker.terminate(); } catch (_) {} worker = null;
         };
         own(stopWatch);

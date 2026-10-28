@@ -200,6 +200,47 @@ PD.aimus = (() => {
 
   /* =================== the rhythm itself =================== */
   /** an onset envelope of the recording: where the attacks are, and how strong */
+  /* ---- the strokes on their own, without any model -----------------------------------------
+     Median filtering on the spectrogram (Fitzgerald 2010): what holds steady across time is the
+     sustained part, what holds steady across frequency is a strike. Reading a rhythm needs the
+     strike envelope and not the sound, so nothing is resynthesised — the mask is applied to the
+     magnitudes and the envelope is taken straight from them. No download, no model, and fast
+     enough for a phone, which the 168 MB separation model is not. */
+  async function percOnsets(mono, sr) {
+    const N = 1024, HOP = 256, K = N / 2, LT = 15, LF = 15;
+    const F = Math.max(2, Math.floor((mono.length - N) / HOP));
+    const fft = DSP.fftMag(N), mag = new Float32Array(K);
+    const S2 = new Float32Array(F * K);
+    for (let f = 0; f < F; f++) { fft(mono, f * HOP, mag); for (let k = 0; k < K; k++) S2[f * K + k] = mag[k]; }
+    // a small insertion median: the generic sort with a comparator is what made this slow
+    const buf = new Float32Array(Math.max(LT, LF));
+    function med(n2) {
+      for (let i = 1; i < n2; i++) { const v = buf[i]; let j = i - 1; while (j >= 0 && buf[j] > v) { buf[j + 1] = buf[j]; j--; } buf[j + 1] = v; }
+      return buf[n2 >> 1];
+    }
+    const H = new Float32Array(F * K), P = new Float32Array(F * K), ht = LT >> 1, hf = LF >> 1;
+    const breathe = () => new Promise(r => setTimeout(r, 0));   // the screen stays alive while this runs
+    for (let k = 0; k < K; k++) { for (let f = 0; f < F; f++) { let n2 = 0;
+        for (let d = -ht; d <= ht; d++) { const g = f + d; if (g >= 0 && g < F) buf[n2++] = S2[g * K + k]; }
+        H[f * K + k] = med(n2); }
+      if ((k & 63) === 63) await breathe(); }
+    for (let f = 0; f < F; f++) { for (let k = 0; k < K; k++) { let n2 = 0;
+        for (let d = -hf; d <= hf; d++) { const g = k + d; if (g >= 0 && g < K) buf[n2++] = S2[f * K + g]; }
+        P[f * K + k] = med(n2); }
+      if ((f & 255) === 255) await breathe(); }
+    // soft mask, then the same flux · detrend · normalise as the plain envelope
+    const env = new Float32Array(F), prev = new Float32Array(K);
+    for (let f = 0; f < F; f++) { let fl = 0;
+      for (let k = 2; k < K; k++) { const h2 = H[f * K + k], p2 = P[f * K + k];
+        const m = (p2 * p2) / (h2 * h2 + p2 * p2 + 1e-12);
+        const v = Math.log1p(S2[f * K + k] * m * 10), d = v - prev[k]; if (d > 0) fl += d; prev[k] = v; }
+      env[f] = fl; }
+    const dt = HOP / sr, W = Math.round(.5 / dt), out = new Float32Array(F); let acc = 0;
+    for (let i = 0; i < F; i++) { acc += env[i]; if (i >= W) acc -= env[i - W]; out[i] = Math.max(0, env[i] - acc / Math.min(i + 1, W)); }
+    let sd = 0; for (let i = 0; i < F; i++) sd += out[i] * out[i]; sd = Math.sqrt(sd / F) || 1;
+    for (let i = 0; i < F; i++) out[i] /= sd;
+    return { env: out, dt, t0off: N / 2 / sr };
+  }
   function onsets(mono, sr) {
     const N = 1024, HOP = 256, fft = DSP.fftMag(N), mag = new Float32Array(N / 2);
     const F = Math.max(2, Math.floor((mono.length - N) / HOP)), env = new Float32Array(F), prev = new Float32Array(N / 2);
@@ -510,7 +551,7 @@ PD.aimus = (() => {
     }, null, 1)], { type: 'application/json' });
   }
 
-  return { onsets, rhythm, transcribe, transcribeAsync, metre, tempoAlts, quantise, mapNotes, places, sections, spell, degreeOf, solfegeOf, midiFile, musicXML, tabText, jsonOf, DURV, LO, HI };
+  return { onsets, percOnsets, rhythm, transcribe, transcribeAsync, metre, tempoAlts, quantise, mapNotes, places, sections, spell, degreeOf, solfegeOf, midiFile, musicXML, tabText, jsonOf, DURV, LO, HI };
 })();
 
 /* =====================================================================
