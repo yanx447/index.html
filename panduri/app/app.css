@@ -2609,6 +2609,7 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .bk-sec{margin:10px 0;border-radius:16px;border:1px solid var(--line2);background:var(--card,rgba(255,255,255,.03));overflow:hidden}
 .bk-ch{display:flex;gap:12px;align-items:center;width:100%;padding:14px 14px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
 .bk-cn{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:10px;background:rgba(232,196,155,.14);color:#E8C49B;font-weight:800;font-size:.95rem}
+.bk-ch .grow{flex:1;min-width:0}
 .bk-ch b{display:block;font-size:1rem}
 .bk-ch small{color:var(--muted);font-size:.78rem}
 .bk-more{color:var(--muted);transition:transform .18s var(--ease)}
@@ -2622,6 +2623,7 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .bk-row:last-child{border-bottom:0}
 .bk-row:hover{background:rgba(255,255,255,.035)}
 .bk-no{flex:0 0 auto;min-width:30px;color:var(--muted);font-size:.74rem;font-variant-numeric:tabular-nums;padding-top:2px}
+.bk-row .grow{flex:1;min-width:0}
 .bk-row b{display:block;font-size:.93rem;font-weight:700}
 .bk-row small{display:block;color:var(--muted);font-size:.78rem;line-height:1.35;margin-top:1px}
 .bk-src{display:inline-block;margin-top:4px;padding:1px 7px;border-radius:999px;font-style:normal;font-size:.66rem;font-weight:700;letter-spacing:.02em}
@@ -2641,3 +2643,83 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .bk-in{background:rgba(255,255,255,.05);color:var(--fg2);font-weight:600}
 .rh-mu{padding:16px;display:flex;flex-direction:column;gap:10px}
 .rh-mu .warn{color:#D68D7F}
+
+/* =====================================================================
+   Desktop geometry — one centre line.
+   On a phone there is a single column and nothing to align. On a wide
+   screen the app used to mix widths: a title across 1080px, a drawing
+   capped at 620px and pinned to the left, prose capped at 820px and
+   pinned to the left too — three different centres on one page. Here
+   the column takes a width that suits what is on the page (prose reads
+   at ~56 characters, cards get the room), and every block that has a
+   cap of its own is pulled onto the same axis.
+   ===================================================================== */
+@media (min-width:821px){
+  :root{--col:1040px}
+  :root[data-col="read"]{--col:860px}
+  :root[data-col="wide"]{--col:1180px}
+  .wrap{max-width:var(--col)}
+  /* A capped block is pulled onto the column's axis. The width:100% matters: .wrap is a flex
+     column, and an auto margin on the cross axis switches off the item's stretch — without a
+     width of its own the block would collapse to the size of its text. Only block-level tags are
+     named, so a button keeps its own shrink-to-fit width instead of spanning the page. */
+  .wrap > :is(div,section,article,ul,ol,dl,p,h1,h2,h3,h4,table,figure,form,label,nav,aside){width:100%;margin-inline:auto}
+  :is(.tb-body,.tbs-det,.tbs-easy,.tbs-rem,.tbs-words,.tb-quiz,.bk-body,.tp-grid,.gn-src) > :is(div,section,article,ul,ol,dl,p,h2,h3,h4,table,figure,svg){margin-inline:auto}
+  .tp-sec,.tp-hero,.sh-box,.bz-det,.tb-tw,.tb-art,.tb-list,.rh-mu,.gn-src{margin-inline:auto}
+  /* One left edge and one right edge on the page. The phone layout caps a drawing at 620px and
+     a section at 680px because that is as wide as a phone gets; on a desktop those caps left the
+     drawing and the text starting in different places, which is what reads as crooked. In the
+     reading column every block takes the column's full width, so the drawing sits exactly over
+     the sentence that explains it. */
+  .tp-hero, .tp-sec, .tb-art, .tb-anim, .sh-box, .bz-det, .rh-mu{max-width:100%;width:100%}
+  .tp-hero svg, .tb-art svg, .tb-svg{display:block;width:100%;height:auto;margin-inline:auto}
+  .tb-body, .bk-body, .tbs-det, .tb-p, .tb-ul, .tbs-rem, .tbs-easy{max-width:100%}
+  /* a drawing that is wider than it is useful stops growing, and keeps its own centre */
+  :root[data-col="wide"] .tp-hero, :root[data-col="wide"] .sh-box{max-width:760px}
+  .page{padding-inline:clamp(24px,5vw,72px)}
+}
+
+/* ---------------------------------------------------------------------
+   The desktop home is a dashboard, not a tall phone screen: what you are
+   learning stands on the left at the size it deserves, and what you reach
+   for — the goal, the four tools, the last results — sits beside it
+   instead of below the fold. Below 1100px the stack returns.
+   --------------------------------------------------------------------- */
+@media (min-width:1100px){
+  :root[data-route="home"] .wrap{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(0,1fr);gap:20px 24px;align-items:start}
+  :root[data-route="home"] .wrap > .hx-top{grid-column:1/-1}
+  :root[data-route="home"] .wrap > .hx-hero{grid-column:1;grid-row:2/5;height:100%}
+  :root[data-route="home"] .wrap > .hx-goal2{grid-column:2;grid-row:2}
+  :root[data-route="home"] .wrap > .hq-row{grid-column:2;grid-row:3}
+  :root[data-route="home"] .wrap > .hx-res{grid-column:2;grid-row:4;align-self:end}
+  :root[data-route="home"] .wrap > .hx-road,
+  :root[data-route="home"] .wrap > .hx-note,
+  :root[data-route="home"] .wrap > h1,
+  :root[data-route="home"] .wrap > h2{grid-column:1/-1}
+  :root[data-route="home"] .hq-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  :root[data-route="home"] .hx-hero{display:flex;flex-direction:column;justify-content:center}
+  /* the neck illustration is a picture, not a wall: it keeps its proportions and stops growing */
+  :root[data-route="home"] .wrap > .hx-road{max-height:420px;overflow:hidden}
+}
+
+/* the library's contents in two columns on a wide screen: 132 entries in one column is a scroll,
+   in two it is a page you can read */
+@media (min-width:1180px){
+  :root[data-route="book"] .bk-toc{column-count:2;column-gap:20px}
+  :root[data-route="book"] .bk-sec{break-inside:avoid;margin:0 0 20px}
+  :root[data-route="book"] .bk-hits{column-count:2;column-gap:20px}
+  :root[data-route="book"] .bk-hits > .bk-row{break-inside:avoid;border:1px solid var(--line2);border-radius:12px;margin-bottom:8px}
+}
+
+/* ---------- install: the same app on every device ---------- */
+.in-act{display:flex;flex-direction:column;gap:8px;margin:4px 0 8px}
+.in-go{align-self:flex-start;min-width:200px}
+.in-h2{font-size:1rem;color:var(--fg2);margin:18px 0 6px}
+.in-card{padding:14px 16px;border-radius:16px;border:1px solid var(--line2);background:var(--card,rgba(255,255,255,.03));margin-bottom:10px;opacity:.72}
+.in-card.on{opacity:1;border-color:#E8C49B;background:rgba(232,196,155,.07)}
+.in-card h3{margin:0 0 8px;font-size:.98rem;color:#E8C49B}
+.in-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px}
+.in-steps li{line-height:1.55;font-size:.92rem}
+.in-alt{list-style:none;margin-left:-20px;color:var(--muted);font-size:.86rem;border-top:1px solid var(--line2);padding-top:8px}
+.in-link{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.03);margin:10px 0}
+.in-link code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.84rem;color:var(--fg2)}

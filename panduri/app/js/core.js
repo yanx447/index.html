@@ -103,6 +103,9 @@ PD.i18n = (() => {
     set(l) { lang = l === 'en' ? 'en' : 'ka'; PD.store.set('lang', lang); document.documentElement.lang = lang; api.apply(document); PD.bus.emit('lang', lang); },
     apply(root) {
       root.querySelectorAll('[data-t]').forEach(el => { el.textContent = api.t(el.dataset.t); });
+      // data-th is the same thing for a line that carries its own markup (a bold word inside a step);
+      // the strings are the app's own, never anything a person typed
+      root.querySelectorAll('[data-th]').forEach(el => { el.innerHTML = api.t(el.dataset.th); });
       root.querySelectorAll('[data-t-aria]').forEach(el => { el.setAttribute('aria-label', api.t(el.dataset.tAria)); });
       root.querySelectorAll('[data-t-ph]').forEach(el => { el.setAttribute('placeholder', api.t(el.dataset.tPh)); });
       root.querySelectorAll('[data-t-title]').forEach(el => { el.setAttribute('title', api.t(el.dataset.tTitle)); });

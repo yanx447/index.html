@@ -279,6 +279,7 @@ PD.book = (() => {
       found.slice(0, 40).forEach(x => hits.append(row(x.e, true)));
       PD.i18n.apply(hits);
     }
+    draw();                       // an empty results block would otherwise leave a hole above the contents
     PD.i18n.apply(w);
   }
 
