@@ -45,7 +45,7 @@ PD.i18n.add({
 
 
 PD.i18n.add({
-  'nav.chords': ['აკორდები', 'Chords'], 'nav.songs': ['სიმღერები', 'Songs'], 'nav.practice': ['ვარჯიში', 'Practice'], 'nav.profile': ['პროფილი', 'Profile'], 'nav.tuner': ['ტიუნერი', 'Tuner'], 'nav.ai': ['AI ანალიზი', 'AI analysis'],
+  'nav.chords': ['აკორდები', 'Chords'], 'nav.songs': ['სიმღერები', 'Songs'], 'nav.practice': ['ვარჯიში', 'Practice'], 'nav.profile': ['პროფილი', 'Profile'], 'nav.tuner': ['ტიუნერი', 'Tuner'], 'nav.ai': ['AI ანალიზი', 'AI analysis'], 'nav.aiT': ['ანალიზი', 'Analysis'],
   'gr.morning': ['დილა მშვიდობისა', 'Good morning'], 'gr.day': ['გამარჯობა', 'Hello'], 'gr.evening': ['საღამო მშვიდობისა', 'Good evening'],
   'hm.goal': ['დღეს: {a} / {b} წთ', 'Today: {a} / {b} min'], 'hm.streak': ['{n} დღე ზედიზედ', '{n}-day streak'], 'hm.daily': ['დღევანდელი ვარჯიში', 'Daily practice'], 'hm.dailyD': ['{d} / {n} ეტაპი · {m} წთ', '{d} / {n} parts · {m} min'],
   'hm.song': ['ისწავლე სიმღერა', 'Learn a song'], 'hm.songD': ['სიმღერები და მელოდიები', 'Songs and melodies'], 'hm.rhythms': ['რიტმები', 'Rhythms'], 'hm.rhythmsD': ['მასწავლებლის 4 რიტმი', 'The teacher’s 4 rhythms'],
@@ -117,9 +117,9 @@ PD.i18n.add({
 });
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
-  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['chords', 'nav.chords', ic.chord], ['ai', 'nav.ai', '<span class="nav-ai">AI</span>'], ['profile', 'nav.profile', ic.user]];   // the exam is not a tab: it covers the screen when it is due
-  const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'learn', tips: 'learn', solfege: 'learn', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'home', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
-    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'learn', chordhow: 'learn', music: 'learn', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
+  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['chords', 'nav.chords', ic.chord], ['tuner', 'nav.tuner', ic.tune], ['ai', 'nav.aiT', '<span class="nav-ai">AI</span>'], ['profile', 'nav.profile', ic.user]];   // the exam is not a tab: it covers the screen when it is due
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'learn', tips: 'learn', solfege: 'learn', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'learn', chordhow: 'learn', music: 'learn', book: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -247,7 +247,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), book: () => PD.book.page(wrap, param), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), progress, settings, profile }[route] || home)(wrap);
     PD.i18n.apply(main);
     const want = !changed ? keepScroll : (fromPop && scrolls[key]) || 0;
     page.style.scrollBehavior = 'auto'; page.scrollTop = want;   // Back returns to where you were
@@ -810,6 +810,7 @@ PD.app = (() => {
     const I = d => '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
     const item = (icon, k, sub, fn, cls) => h('button', { class: 'pf2-i' + (cls ? ' ' + cls : ''), onclick: fn }, [h('span', { class: 'pf2-ic', html: icon }), h('span', { class: 'grow' }, [h('span', { text: t(k) }), sub ? h('small', { text: sub }) : null]), h('span', { class: 'chev', html: ic.chevron })]);
     w.append(h('section', { class: 'pf2-menu' }, [
+      item(I('<path d="M4 5a2 2 0 0 1 2-2h4v18H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-4v18h4a2 2 0 0 1 2 2z"/><path d="M10 3v18M14 3v18"/>'), 'bk.profile', t('bk.profileD'), () => go('book'), 'accent'),
       item(I('<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'), 'nav.progress', t('hm.streak', { n: sk.cur }), () => go('progress')),
       item(I('<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>'), PM.vip ? 'pm.vip' : 'pm.title', PM.active ? PM.status() : t('pm.lead'), () => PM.paywall()),
       PD.exam.graduated() ? item(I('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>'), 'ex.cert', t('ex.grad'), () => go('cert'), 'accent') : null,

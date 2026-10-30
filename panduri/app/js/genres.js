@@ -165,7 +165,7 @@ PD.genres = (() => {
           ['1950-იანები', L('როკ-ენ-როლი: 12 ტაქტი + ბლუზური გამა. „ბლუზი უკანა ბითით“', 'Rock and roll: 12 bars plus the blues scale — “blues with a back beat”')]]),
         H('ბლუზური ნოტები', 'The blue notes'),
         P('ბლუზის ხმა სამი „დაწეული“ ბგერით გამოიცნობა: <b>♭3, ♭5 და ♭7</b>. მინორული პენტატონიკა + ♭5 = <b>ბლუზური გამა</b>. ფანდურზე ეს ნოტები ლადზე ზუსტად არის — სიმის „მოწევა“ (bend), რითაც გიტარაზე ბლუზს უკრავენ, ფანდურის ხერხი არ არის და მასწავლებლისგან ასეთი არ გვაქვს.', 'The blues sound is recognised by three “lowered” notes: <b>♭3, ♭5 and ♭7</b>. The minor pentatonic plus the ♭5 is the <b>blues scale</b>. On the panduri those notes sit exactly on frets — bending a string, the way the blues is played on a guitar, is not a panduri technique and we have none from the teacher.'),
-        h('div', { class: 'tb-nav' }, [GOTO('ბლუზური გამა ფანდურზე ▸', 'The blues scale on the panduri ▸', 'scales', '5:mblues'), GOTO('12-ტაქტიანი ბლუზი ▸', 'The 12-bar blues ▸', 'music', 'blues')]),
+        h('div', { class: 'tb-nav' }, [GOTO('ბლუზური გამა ფანდურზე ▸', 'The blues scale on the panduri ▸', 'scales', '5:mblues'), GOTO('12-ტაქტიანი ბლუზი ▸', 'The 12-bar blues ▸', 'music', '12bar')]),
         REM([['ბლუზი ~1870–1900, აშშ-ის სამხრეთი, აფროამერიკელთა თემები.', 'The blues: ~1870–1900, the American South, African-American communities.'],
           ['12-ტაქტიანი ფორმა მხოლოდ 1930-იანებში გახდა სტანდარტი.', 'The 12-bar form became standard only in the 1930s.'],
           ['ბლუზური ნოტები: ♭3, ♭5, ♭7. ბლუზური გამა = მინორული პენტატონიკა + ♭5.', 'Blue notes: ♭3, ♭5, ♭7. The blues scale is the minor pentatonic plus ♭5.']]),
@@ -198,7 +198,7 @@ PD.genres = (() => {
           ['<b>ჩანაცვლებები</b> — იმავე ფუნქციის აკორდის სხვა აკორდით გამოცვლა (ტრიტონური ჩანაცვლება, შემცირებული აკორდი გადასასვლელად).', '<b>Substitutions</b> — replacing a chord with another of the same function (the tritone substitution, a diminished chord as a passing chord).'],
           ['<b>იმპროვიზაცია ჰარმონიაზე</b> — თემა ერთხელ ჟღერს, შემდეგ მუსიკოსები იმავე აკორდებზე თავისას უკრავენ.', '<b>Improvising on the harmony</b> — the theme is played once, then the players improvise over the same chords.']]),
         P('ყველაზე მოკლე გზა ჯაზის ჰარმონიაში შესვლისთვის — სწორედ 12-ტაქტიანი ბლუზი ჯაზური აკორდებით. ის ამ აპში უკვე არის:', 'The shortest way into jazz harmony is exactly the 12-bar blues with jazz chords. It is already in this app:'),
-        h('div', { class: 'tb-nav' }, [GOTO('12-ტაქტიანი ბლუზი და ჯაზი ▸', 'The 12-bar blues and jazz ▸', 'music', 'blues'), GOTO('მიქსოლიდიური გამა ▸', 'The Mixolydian scale ▸', 'scales', '5:mixo')]),
+        h('div', { class: 'tb-nav' }, [GOTO('12-ტაქტიანი ბლუზი და ჯაზი ▸', 'The 12-bar blues and jazz ▸', 'music', '12bar'), GOTO('მიქსოლიდიური გამა ▸', 'The Mixolydian scale ▸', 'scales', '5:mixo')]),
         REM([['ჯაზი: ახალი ორლეანი, 1910-იანები; პირველი ჩანაწერი 1917.', 'Jazz: New Orleans, the 1910s; the first record in 1917.'],
           ['ჯაზმა ბლუზისგან ბლუზური ნოტები აიღო, ევროპისგან — ჰარმონია, აფრიკისგან — რითმი.', 'Jazz took the blue notes from the blues, harmony from Europe and rhythm from Africa.'],
           ['ჯაზის მთავარი მოძრაობა ii–V–I-ია.', 'The central move of jazz is ii–V–I.']]),
@@ -222,7 +222,7 @@ PD.genres = (() => {
         H('„Bird changes“ — საიდან მოდის სახელი', 'Where the name “Bird changes” comes from'),
         P('ჩარლი პარკერს („Bird“) ბებოპის მთავარ ფიგურად თვლიან. მისი თემა <b>„Blues for Alice“</b> 12 ტაქტს ii–V წყვილების ჯაჭვით ავსებს; ამ ჰარმონიას დღემდე <b>„Bird blues“</b> ან „Bird changes“ ჰქვია და ყველა ჯაზის მოსწავლეს სწავლობს.', 'Charlie “Bird” Parker is regarded as the central figure of bebop. His theme <b>“Blues for Alice”</b> fills the twelve bars with a chain of ii–V pairs; that harmony is still called the <b>“Bird blues”</b> or “Bird changes”, and every jazz student learns it.'),
         NOTICE('ამ აპში სტანდარტების <b>მელოდიებს</b> არ ვწერთ — ისინი ავტორებისა და გამომცემლებისაა. ვწერთ მხოლოდ <b>ფორმას</b> (აკორდების რიგს), რომელიც ზოგადი ჰარმონიული პრაქტიკაა და ყველა სახელმძღვანელოშია.', 'This app does not write out the <b>melodies</b> of standards — those belong to their authors and publishers. It gives only the <b>form</b> (the run of chords), which is general harmonic practice and appears in every textbook.'),
-        h('div', { class: 'tb-nav' }, [GOTO('სამივე ფორმა ფანდურზე ▸', 'All three forms on the panduri ▸', 'music', 'blues')]),
+        h('div', { class: 'tb-nav' }, [GOTO('სამივე ფორმა ფანდურზე ▸', 'All three forms on the panduri ▸', 'music', '12bar')]),
         REM([['სტანდარტი = ფორმა, რომელიც ყველამ იცის; ამიტომ შეიძლება ჯემი.', 'A standard is a form everyone knows; that is what makes a jam possible.'],
           ['სამი მთავარი ფორმა: 12-ტაქტიანი ბლუზი, AABA (32), rhythm changes.', 'Three main forms: the 12-bar blues, AABA (32), rhythm changes.'],
           ['„Bird changes“ — ჩარლი პარკერის ბლუზური ჰარმონია ii–V ჯაჭვით.', '“Bird changes” — Charlie Parker’s blues harmony, a chain of ii–Vs.']]),
@@ -316,7 +316,8 @@ PD.genres = (() => {
   function progress() { const d = done(); return CH.filter(c => d[c.id]).length / CH.length; }
 
   function page(w, param) {
-    if (param === 'blues' || FORMS.some(f => f.id === param)) return blues(w, param === 'blues' ? null : param);
+    // '12bar' is the twelve-bar page; 'blues' is the history chapter, which must stay reachable
+    if (param === '12bar' || FORMS.some(f => f.id === param)) return blues(w, param === '12bar' ? null : param);
     const c = CH.find(x => x.id === param);
     if (c) return chapter(w, c);
     const d = done(), n = CH.filter(x => d[x.id]).length;
@@ -327,7 +328,7 @@ PD.genres = (() => {
       h('div', { class: 'tb-list' }, CH.map((x, i) => h('button', { class: 'tb-card' + (d[x.id] ? ' done' : ''), onclick: () => PD.app.go('music', x.id) }, [
         h('span', { class: 'tb-num', text: d[x.id] ? '✓' : String(i + 1) }),
         h('span', { class: 'tb-ct' }, [h('b', { 'data-t': x.t }), x.lead ? h('small', { text: L(x.lead[0], x.lead[1]).split('.')[0] + '.' }) : null])]))),
-      h('button', { class: 'tbs-glb', onclick: () => PD.app.go('music', 'blues') }, [h('b', { 'data-t': 'gn.12' }), h('small', { 'data-t': 'gn.12d' })]),
+      h('button', { class: 'tbs-glb', onclick: () => PD.app.go('music', '12bar') }, [h('b', { 'data-t': 'gn.12' }), h('small', { 'data-t': 'gn.12d' })]),
       h('button', { class: 'tbs-glb', onclick: () => PD.app.go('scales', '5:mblues') }, [h('b', { 'data-t': 'gn.scaleGo' }), h('small', { 'data-t': 'sh.scalesD' })]));
     PD.i18n.apply(w);
   }
