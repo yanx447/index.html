@@ -2639,3 +2639,5 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .bk-tags:empty{display:none}
 .bk-src{margin-top:0}
 .bk-in{background:rgba(255,255,255,.05);color:var(--fg2);font-weight:600}
+.rh-mu{padding:16px;display:flex;flex-direction:column;gap:10px}
+.rh-mu .warn{color:#D68D7F}

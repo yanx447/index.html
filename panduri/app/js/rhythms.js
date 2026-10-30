@@ -26,6 +26,21 @@ PD.i18n.add({
   'rh.timing': ['დრო (ავტორი)', 'Timing (author)'], 'rh.bpm': ['BPM', 'BPM'], 'rh.dur': ['ხანგრძლივობა (დარტყმა)', 'Duration (beats)'], 'rh.saveTiming': ['შენახვა', 'Save'], 'rh.orderLocked': ['დარტყმების რიგი და აქცენტები მასწავლებლის მონაცემია და აქ არ იცვლება.', 'Stroke order and accents are teacher data and are not edited here.'],
   'st.watch': ['ხელის მოძრაობის ნახვა', 'Watch the hand'], 'std.watch': ['ნელა: აპი თავად უკრავს, ისარი აჩვენებს მარჯვენა ხელის მოძრაობას და აქცენტს ყოველ დარტყმაზე.', 'Slowly: the app plays it, and the arrow shows the right-hand motion and the accent on every stroke.'],
   'st.metro': ['მეტრონომთან ვარჯიში', 'With the metronome'], 'std.metro': ['უწყვეტად, მეტრონომით — დრო ფასდება.', 'Continuous, with the metronome — timing is scored.'],
+  'rh.mu': ['შენს მუსიკასთან ერთად', 'Along with your own music'],
+  'rh.muD': ['აირჩიე ჩანაწერი — აპი იპოვის ტემპს და ამ რითმის დარტყმებს მუსიკაზე ზემოდან დაუკრავს. ფაილი შენს ტელეფონში რჩება, არსად არ იგზავნება.', 'Pick a recording — the app finds the tempo and plays this rhythm\u2019s strokes over the music. The file stays on your phone; nothing is sent anywhere.'],
+  'rh.muPick': ['აირჩიე მუსიკა', 'Choose music'],
+  'rh.muHalf': ['ორჯერ ნელა', 'Half speed'], 'rh.muDouble': ['ორჯერ სწრაფად', 'Double speed'],
+  'rh.muWork': ['ვუსმენ…', 'Listening…'],
+  'rh.muFound': ['ტემპი: {b} BPM', 'Tempo: {b} BPM'],
+  'rh.muGuess': ['ტემპი აპმა იპოვა — თუ არ ემთხვევა, გაასწორე.', 'The app worked the tempo out — if it does not fit, correct it.'],
+  'rh.muPlay': ['▶ მუსიკა + დარტყმები', '▶ Music + strokes'],
+  'rh.muStop': ['■ გაჩერება', '■ Stop'],
+  'rh.muVol': ['მუსიკის ხმა', 'Music volume'],
+  'rh.muOff': ['დარტყმის დრო', 'Stroke timing'],
+  'rh.muOffD': ['თუ დარტყმები ადრე ან გვიან ხვდება — გადაწიე.', 'If the strokes land early or late, nudge them.'],
+  'rh.muOnly': ['მხოლოდ დარტყმები', 'Strokes only'],
+  'rh.muErr': ['ამ ფაილს ვერ წავიკითხე. სცადე mp3 ან m4a.', 'Could not read that file. Try an mp3 or m4a.'],
+  'rh.muNote': ['ტემპს აპი თვითონ პოულობს და ცოცხალ ჩანაწერს მიჰყვება. თუ მუსიკაში ტემპი ძლიერ იცვლება, დარტყმები შეიძლება ჩამორჩეს — მაშინ ხელით გაასწორე.', 'The app finds the tempo itself and follows the live recording. If the tempo moves a lot the strokes can drift — then correct them by hand.'],
   'rh.micT': ['ვარჯიში ფანდურით', 'Practise on your panduri'], 'rh.micD': ['1-2-3-4 ათვლა, მეტრონომი, წრეზე. მიკროფონი ზომავს თითოეული დარტყმის დროს, აქცენტის სიძლიერეს, გამოტოვებულ და ზედმეტ დარტყმებს. ↓/↑ მიმართულებას ხმიდან ვერ ვიგებთ — ისრებს მიჰყევი.', 'Count-in 1-2-3-4, metronome, looped. The microphone measures each stroke’s timing, accent strength, missed and extra strokes. ↓/↑ direction cannot be heard — follow the arrows.'],
   'rh.loopBars': ['წრის სიგრძე', 'Loop length'], 'rh.bars': ['{n} ტაქტი', '{n} bar(s)'], 'rh.micGo': ['დაწყება მიკროფონით', 'Start with microphone'],
   'st.loop': ['წრეზე (Loop)', 'Loop'], 'std.loop': ['ერთი ციკლი განუწყვეტლივ; ტემპი შეცვალე ↑ ↓ ან ტემპის ღილაკით.', 'One cycle over and over; change the tempo with ↑ ↓ or the tempo button.']
@@ -103,6 +118,9 @@ PD.rhythmsUI = (() => {
       h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'ws.speed' }), h('div', { class: 'row', style: 'gap:8px' }, [speed, custom])]),
       h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'rh.loopBars' }), bars]),
       h('div', { class: 'row' }, [h('button', { class: 'btn primary', html: PD.ic.mic + '<span data-t="rh.micGo"></span>', onclick: goMic })])]));
+    /* play along with a recording of his own — built below, once the engine exists */
+    const muBox = h('section', { class: 'card rh-mu' });
+    w.append(muBox);
     /* the dance's own count, when the teacher has given it */
     const meterStops = [];
     /** the dance's own count: 5/8 as 3+2 — numbers you can see and hear, with the first of each group heavy */
@@ -166,7 +184,7 @@ PD.rhythmsUI = (() => {
       }, 25);
       play.textContent = t('rh.stop'); loop();
     }
-    function stop() { meterStops.forEach(f => f()); if (!run) return; clearInterval(run.iv); run = null; cancelAnimationFrame(raf); play.textContent = t('rh.listen'); draw(-1); mark(-1); }
+    function stop() { meterStops.forEach(f => f()); stopMusic(); if (muBox._sync) setTimeout(muBox._sync, 0); if (!run) return; clearInterval(run.iv); run = null; cancelAnimationFrame(raf); play.textContent = t('rh.listen'); draw(-1); mark(-1); }
     play.onclick = () => run ? stop() : start();
     tempo.oninput = () => { bpmOut.textContent = tempo.value + ' BPM'; if (run) { stop(); start(); } };
     function mark(i) {
@@ -189,6 +207,110 @@ PD.rhythmsUI = (() => {
       const inC = ((bt % per) + per) % per; let i = 0; for (let k = 0; k < starts.length; k++) if (inC >= starts[k] - 1e-6) i = k;
       if (row._i !== i) { row._i = i; mark(i); draw(i); }
     }
+    /* ---- play along with a recording of his own ----
+       The file is decoded here and never leaves the device. The tempo comes from the same beat
+       tracker the AI studio uses, and the strokes are anchored to the tracked beats rather than
+       to a fixed metronome, so they follow a live performance as it breathes. Detection can be
+       wrong, so the tempo and the stroke timing are both adjustable by hand. */
+    let MU = null;
+    function stopMusic() { if (MU && MU.src) { try { MU.src.stop(); } catch (_) {} MU.src = null; } }
+    (function musicPanel() {
+      const file = h('input', { type: 'file', accept: 'audio/*,.mp3,.m4a,.wav,.ogg', hidden: true });
+      const pick = h('button', { class: 'btn', 'data-t': 'rh.muPick', onclick: () => file.click() });
+      const state = h('span', { class: 'muted', style: 'font-size:12.5px' });
+      const body = h('div', { style: 'display:flex;flex-direction:column;gap:10px' }); body.hidden = true;
+      const bpmIn = h('input', { type: 'number', class: 'input', style: 'width:92px', min: '30', max: '240', step: '.5' });
+      const offIn = h('input', { type: 'range', min: '-300', max: '300', step: '5', value: '0', style: 'max-width:200px' });
+      const offOut = h('span', { class: 'mono muted', text: '0 ms' });
+      const vol = h('input', { type: 'range', min: '0', max: '100', step: '5', value: '80', style: 'max-width:160px' });
+      const only = h('input', { type: 'checkbox' });
+      const go = h('button', { class: 'btn primary', 'data-t': 'rh.muPlay' });
+      muBox.append(h('div', { class: 'row', style: 'justify-content:space-between' }, [h('b', { 'data-t': 'rh.mu' }), state]),
+        h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'rh.muD' }),
+        h('div', { class: 'row' }, [pick, file]), body);
+      body.append(
+        h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'rh.tempo' }), h('div', { class: 'row', style: 'gap:8px' }, [bpmIn,
+          h('button', { class: 'btn small', text: '÷2', title: t('rh.muHalf'), onclick: () => setBpm(MU && MU.bpm / 2) }),
+          h('button', { class: 'btn small', text: '×2', title: t('rh.muDouble'), onclick: () => setBpm(MU && MU.bpm * 2) })])]),
+        h('small', { class: 'muted', 'data-t': 'rh.muGuess' }),
+        h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'rh.muOff' }), h('div', { class: 'row', style: 'gap:8px' }, [offIn, offOut])]),
+        h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'rh.muVol' }), h('div', { class: 'row', style: 'gap:8px' }, [vol, h('label', { class: 'row', style: 'gap:6px' }, [only, h('span', { 'data-t': 'rh.muOnly' })])])]),
+        h('div', { class: 'row' }, [go]),
+        h('p', { class: 'muted', style: 'font-size:12px;line-height:1.5', 'data-t': 'rh.muNote' }));
+      offIn.oninput = () => { offOut.textContent = offIn.value + ' ms'; if (MU) MU.off = +offIn.value / 1000; };
+      vol.oninput = () => { if (MU) { MU.vol = +vol.value / 100; if (MU.gain) MU.gain.gain.value = only.checked ? 0 : MU.vol; } };
+      only.onchange = () => { if (MU && MU.gain) MU.gain.gain.value = only.checked ? 0 : MU.vol; };
+      function setBpm(v) {
+        if (!MU || !(v >= 30 && v <= 240)) return;
+        // a tempo the player chose by hand: the tracked beats belong to the old tempo, so they go
+        MU.bpm = v; MU.beats = null; bpmIn.value = String(Math.round(v * 10) / 10);
+        state.textContent = t('rh.muFound', { b: Math.round(v) });
+        if (MU.src) playMusic();
+      }
+      bpmIn.oninput = () => setBpm(+bpmIn.value);
+      file.onchange = async e => {
+        const f = e.target.files[0]; if (!f) return;
+        stop(); body.hidden = true; state.textContent = t('rh.muWork'); state.classList.remove('warn');
+        try {
+          if (!PD.audio.ensure()) return;
+          const buf = await PD.audio.ctx.decodeAudioData(await f.arrayBuffer());
+          const sr = buf.sampleRate, n = buf.length, mono = new Float32Array(n), ch = buf.numberOfChannels;
+          for (let c = 0; c < ch; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) mono[i] += d[i] / ch; }
+          const seed = await seedTempo(mono, sr);
+          let beats = null, bpm = seed;
+          if (PD.ai && PD.ai._beatsOf) { const b = await PD.ai._beatsOf(mono, sr, seed, [], null); beats = b.beats; bpm = b.bpm; }
+          MU = { buf, beats, bpm, off: +offIn.value / 1000, vol: +vol.value / 100, src: null, gain: null, name: f.name };
+          bpmIn.value = String(Math.round(bpm * 10) / 10);
+          state.textContent = t('rh.muFound', { b: Math.round(bpm) });
+          body.hidden = false;
+        } catch (_) { state.textContent = t('rh.muErr'); state.classList.add('warn'); }
+      };
+      go.onclick = () => { if (run && run.music) { stop(); } else { playMusic(); } };
+      /** a coarse tempo from the percussive onset envelope: the beat tracker needs a seed to refine */
+      async function seedTempo(mono, sr) {
+        const on = await PD.aimus.percOnsets(mono, sr), env = on.env, dt = on.dt;
+        let best = 100, bs = -1;
+        for (let bpm = 50; bpm <= 200; bpm += .5) {
+          const lag = 60 / bpm / dt; let sc = 0;
+          for (let i = Math.ceil(lag); i < env.length; i++) { const a = i - lag, i0 = Math.floor(a), fr = a - i0; sc += env[i] * (env[i0] * (1 - fr) + env[i0 + 1] * fr); }
+          sc /= Math.max(1, env.length - lag);
+          // without this every tempo's own half scores higher, and the strokes come out at half speed
+          sc *= Math.exp(-.5 * Math.pow(Math.log2(bpm / 120) / .9, 2));
+          if (sc > bs) { bs = sc; best = bpm; }
+        }
+        return best;
+      }
+      function playMusic() {
+        if (!MU || !PD.audio.ensure()) return;
+        stop();
+        const ctx = PD.audio.ctx, T = ctx.currentTime + .3, bps = MU.bpm / 60;
+        const src = ctx.createBufferSource(); src.buffer = MU.buf;
+        const g = ctx.createGain(); g.gain.value = only.checked ? 0 : MU.vol;
+        src.connect(g); g.connect(ctx.destination); src.start(T);
+        MU.src = src; MU.gain = g;
+        const b0 = (MU.beats && MU.beats.length ? MU.beats[0] : 0);
+        // the cycle's anchor: a tracked beat where there is one, otherwise straight metronome time
+        const at = c => { const k = Math.round(c * per); const bt = MU.beats && MU.beats[k] != null ? MU.beats[k] : b0 + c * per / bps; return T + bt + MU.off; };
+        run = { t0: T + b0 + MU.off, bps, n: 0, b: 0, music: true };
+        run.iv = setInterval(() => {
+          const nowT = ctx.currentTime;
+          while (true) {
+            const c = Math.floor(run.n / r.strokes.length), i = run.n % r.strokes.length, when = at(c) + starts[i] / bps;
+            if (when > nowT + .2) break;
+            if (when > nowT - .06) stroke(i, when);
+            run.n++;
+            if (run.n > 1e5) break;
+          }
+        }, 25);
+        src.onended = () => { if (run && run.music) stop(); };
+        go.textContent = t('rh.muStop'); play.textContent = t('rh.listen');
+        loop();
+      }
+      PD.bus.on('route', () => stopMusic());
+      muBox._sync = () => { go.textContent = t(run && run.music ? 'rh.muStop' : 'rh.muPlay'); };
+      PD.i18n.apply(muBox);
+    })();
+
     requestAnimationFrame(() => { draw(-1); mark(-1); });
     const un = PD.bus.on('route', () => { stop(); un(); });
   }
