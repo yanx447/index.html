@@ -17,7 +17,14 @@ PD.sima = (() => {
 
   /* ---------------- what she knows ---------------- */
   const norm = s => String(s || '').toLowerCase().replace(/[«»„“”"'`.,!?()\[\]:;]/g, ' ').replace(/\s+/g, ' ').trim();
-  const words = s => norm(s).split(' ').filter(w => w.length > 2);
+  /* Words that carry no subject of their own — in a question they only add noise, and without
+     dropping them "რა არის ბლუზი" scores every card that happens to say "არის". */
+  const STOP = ['არის', 'არაა', 'როგორ', 'რატომ', 'რომელი', 'რომ', 'უნდა', 'მინდა', 'გინდა', 'მითხარი', 'ამიხსენი', 'ახსენი', 'ვიცი', 'იყო', 'არა', 'კიდევ', 'ასევე', 'what', 'how', 'why', 'the', 'and', 'for'];
+  /* Georgian puts its endings on the back of the word, so a query word and the word in the text
+     rarely match letter for letter (სტანდარტი / სტანდარტები). Cutting the last two letters off a
+     long word is crude, but it finds the stem both of them share. */
+  const stem = w => w.length >= 6 ? w.slice(0, w.length - 2) : w;
+  const words = s => norm(s).split(' ').filter(w => w.length > 2 && !STOP.includes(w));
 
   /** one searchable card per thing the app already teaches */
   function index() {
@@ -29,12 +36,17 @@ PD.sima = (() => {
       go: ['tips', c.id],
       text: norm([L(c.title), L(c.short), (c.steps || []).map(L).join(' '), c.why ? L(c.why) : ''].join(' '))
     }));
-    ((PD.theoryBook && PD.theoryBook.CHAPTERS) || []).forEach(c => ix.push({
-      kind: 'chapter', id: c.id, src: 'fact', title: L(c.title),
-      body: [L(c.lead || c.short || {})].filter(Boolean),
-      go: ['theory', c.id],
-      text: norm([L(c.title), L(c.lead || c.short || {})].join(' '))
-    }));
+    // the theory book keeps a chapter's title in `t` as [ka, en] — not in `title`
+    ((PD.theoryBook && PD.theoryBook.CHAPTERS) || []).forEach(c => {
+      const ti = L(c.t || c.title || {}), S = PD.theorySimple && PD.theorySimple.get(c.id);
+      const lead = S && S.easy && S.easy[0] ? L(S.easy[0]).replace(/<[^>]+>/g, '') : '';
+      ix.push({ kind: 'chapter', id: c.id, src: 'fact', title: ti, body: lead ? [lead] : [], go: ['theory', c.id], text: norm(ti + ' ' + lead) });
+    });
+    // where music comes from — general music history and the blues/jazz forms
+    ((PD.genres && PD.genres.CHAPTERS) || []).forEach(c => {
+      const ti = PD.i18n.t(c.t), lead = c.lead ? L(c.lead) : '';
+      ix.push({ kind: 'chapter', id: c.id, src: 'general', title: ti, body: lead ? [lead] : [], go: ['music', c.id], text: norm(ti + ' ' + lead + ' ' + (c.kw || '')) });
+    });
     (PD.curriculum.rhythms() || []).forEach(r => ix.push({
       kind: 'rhythm', id: r.id, src: r.source, title: L(r.name),
       body: [], go: ['rhythms', r.id], text: norm(L(r.name))
@@ -135,10 +147,14 @@ PD.sima = (() => {
     const n = noteAnswer(Q); if (n) return n;
     // otherwise: the closest thing the teacher has written
     const ws = words(Q); if (!ws.length) return miss();
+    /* A word in the title means far more than the same word somewhere in the body: asking about
+       "ჯაზი" should open the jazz chapter, not every chapter that happens to mention it. On a tie
+       the shorter, more exact title wins. */
     const scored = index().map(x => {
-      let s2 = 0; ws.forEach(w => { if (x.text.includes(w)) s2 += Math.min(3, w.length / 3); });
-      if (norm(x.title).includes(Q)) s2 += 4;
-      return { x, s: s2 };
+      const ti = norm(x.title); let s2 = 0;
+      ws.forEach(w => { const st = stem(w); if (x.text.includes(st)) s2 += Math.min(3, 1 + w.length / 4); if (ti.includes(st)) s2 += 2; });
+      if (ti === Q) s2 += 5; else if (ti.includes(Q)) s2 += 3;
+      return { x, s: s2 - Math.min(1, ti.length / 200) };
     }).sort((a, b) => b.s - a.s);
     const top = scored[0];
     if (!top || top.s < 2) return miss();

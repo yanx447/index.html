@@ -2572,3 +2572,26 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .sm-in{flex:1;min-width:0}
 @media (min-width:640px){.sm-wrap{align-items:center}.sm-card{border-radius:22px;border-bottom:1px solid var(--line)}}
 @media (prefers-reduced-motion:reduce){.sm-wrap,.sm-tip{animation:none}.sm-fab{transition:none}}
+
+/* ---------- where music comes from: the 12-bar grid and the sources block ---------- */
+.gn-src{margin:18px 0 6px;padding:12px 14px;border-radius:14px;border:1px solid var(--line2);background:var(--card2,rgba(255,255,255,.03))}
+.gn-src b{display:block;font-size:.86rem;color:var(--muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+.gn-src ul{margin:0;padding-left:18px}
+.gn-src li{margin:3px 0;font-size:.9rem}
+.gn-src a{color:#E8C49B;word-break:break-word}
+.bz-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:6px;margin:10px 0}
+.bz-bar{position:relative;display:flex;flex-direction:column;gap:2px;align-items:flex-start;min-height:70px;padding:8px 8px 7px;border-radius:12px;border:1px solid var(--line2);background:var(--card,rgba(255,255,255,.04));color:inherit;text-align:left;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.bz-bar:hover{border-color:var(--line)}
+.bz-bar.on{border-color:#E8C49B;background:rgba(232,196,155,.1)}
+.bz-bar.now{border-color:#7FD6A2;background:rgba(127,214,162,.14);transform:translateY(-1px)}
+.bz-no{position:absolute;top:5px;right:7px;font-size:.66rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.bz-ch{display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline;padding-right:12px;margin-bottom:auto}
+.bz-ch b{font-size:clamp(.74rem,3.1vw,.96rem);font-weight:800;letter-spacing:0;white-space:nowrap}
+.bz-ch .bz-x{color:var(--muted);text-decoration:line-through}
+.bz-rn{color:var(--muted);font-size:.7rem;letter-spacing:.03em}
+.bz-det{margin:8px 0 0}
+.bz-3d{min-height:170px}
+.bz-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:7px 0;border-bottom:1px solid var(--line2)}
+.bz-row>b{min-width:62px;font-weight:800}
+.bz-row .notice{flex:1 1 100%;margin:2px 0 0}
+@media (max-width:380px){.bz-grid{gap:5px}.bz-bar{min-height:64px;padding:7px 6px}}

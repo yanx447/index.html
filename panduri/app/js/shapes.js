@@ -12,14 +12,25 @@
    ===================================================================== */
 PD.i18n.add({
   'sh.scales': ['გამები ფანდურზე', 'Scales on the panduri'],
-  'sh.scalesD': ['მაჟორი და მინორი — რომელ სიმზე, რომელ ლადზე და რომელი თითით.', 'Major and minor — on which string, which fret and with which finger.'],
+  'sh.scalesD': ['19 გამა — მაჟორიდან ბლუზურამდე: რომელ სიმზე, რომელ ლადზე და რომელი თითით.', '19 scales, from major to the blues — on which string, which fret and with which finger.'],
   'sh.chords': ['აკორდი როგორ აიღო', 'How to take a chord'],
   'sh.chordsD': ['თითოეული აკორდი: ლადები, თითები და 3D ხელი.', 'Every chord: the frets, the fingers and the 3D hand.'],
   'sh.root': ['ტონიკა', 'Root'],
   'sh.kind': ['გამა', 'Scale'],
-  'sh.major': ['მაჟორი', 'Major'], 'sh.minor': ['ნატურალური მინორი', 'Natural minor'],
+  'sh.major': ['მაჟორი (იონიური)', 'Major (Ionian)'], 'sh.minor': ['ნატურალური მინორი (ეოლიური)', 'Natural minor (Aeolian)'],
   'sh.harm': ['ჰარმონიული მინორი', 'Harmonic minor'], 'sh.mel': ['მელოდიური მინორი', 'Melodic minor'],
   'sh.penta': ['მაჟორული პენტატონიკა', 'Major pentatonic'], 'sh.mpenta': ['მინორული პენტატონიკა', 'Minor pentatonic'],
+  'sh.dorian': ['დორიული', 'Dorian'], 'sh.phrygian': ['ფრიგიული', 'Phrygian'], 'sh.lydian': ['ლიდიური', 'Lydian'],
+  'sh.mixo': ['მიქსოლიდიური', 'Mixolydian'], 'sh.locrian': ['ლოკრიული', 'Locrian'],
+  'sh.blues': ['მაჟორული ბლუზური', 'Major blues'], 'sh.mblues': ['ბლუზური (მინორული)', 'Blues (minor)'],
+  'sh.whole': ['მთელტონიანი', 'Whole tone'], 'sh.dimwh': ['შემცირებული ტ–ნ', 'Diminished W–H'], 'sh.dimhw': ['შემცირებული ნ–ტ', 'Diminished H–W'],
+  'sh.chrom': ['ქრომატული', 'Chromatic'],
+  'sh.grp': ['ჯგუფი', 'Group'],
+  'sh.g.base': ['მაჟორი და მინორი', 'Major & minor'], 'sh.g.mode': ['მოდუსები (7 კილო)', 'The modes'],
+  'sh.g.penta': ['პენტატონიკა და ბლუზი', 'Pentatonic & blues'], 'sh.g.sym': ['სიმეტრიული', 'Symmetrical'],
+  'sh.mode7': ['მოდუსები ერთი და იგივე შვიდი ნოტია, უბრალოდ სხვა ნოტიდან დათვლილი: დორიული = მაჟორი მე-2 საფეხურიდან, ფრიგიული — მე-3-დან და ასე შემდეგ. ამიტომ ჟღერს ყოველი სხვანაირად.', 'The modes are the same seven notes counted from a different one: Dorian is the major scale from its 2nd degree, Phrygian from the 3rd, and so on. That is why each has its own colour.'],
+  'sh.symN': ['სიმეტრიულ გამებს ტონიკა სუსტად აქვს — ერთი და იგივე ნაბიჯი მეორდება, ამიტომ ყველა ნოტი თანაბრად ჟღერს. ჯაზში დომინანტ-აკორდებზე იყენებენ.', 'A symmetrical scale has a weak home note — the same step repeats, so every note weighs the same. In jazz they are used over dominant chords.'],
+  'sh.bluesN': ['ბლუზური გამა = მინორული პენტატონიკა + ♭5 („ბლუზური ნოტი“). ფანდურზე ეს ნოტი ლადზე ზუსტად არის, ხმის „მოწევა“ (bend) კი ფანდურის ხერხი არ არის — მასწავლებლისგან ასეთი ხერხი ჩვენ არ გვაქვს.', 'The blues scale = the minor pentatonic plus the ♭5, the "blue note". On the panduri that note sits exactly on a fret; bending it is not a panduri technique — we have no such technique from the teacher.'],
   'sh.steps': ['ნაბიჯები: {s}', 'Steps: {s}'],
   'sh.notes': ['გამის ნოტები', 'The notes of the scale'],
   'sh.play': ['▶ მოსმენა (ზემოთ და ქვემოთ)', '▶ Listen (up and down)'],
@@ -51,52 +62,73 @@ PD.shapes = (() => {
   const KA7 = ['დო', 'რე', 'მი', 'ფა', 'სოლ', 'ლა', 'სი'], LET7 = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
   const nLab = pc => TH.ROOT_NAMES[pc] + (PD.i18n.lang === 'ka' ? ' (' + TH.ROOT_NAMES_KA[pc] + ')' : '');
   const fLab = f => f === 0 ? t('sh.openF') : t('sh.fret', { n: f });
+  /* Every scale here is its plain interval definition — the same one every music theory book gives.
+     g = which group it is shown in; where a scale has a second standard name the name carries it
+     (major = Ionian, natural minor = Aeolian). Nothing about panduri technique is invented: the
+     positions and the fingers are computed from the instrument's own tuning by the rule below. */
   const SCALES = {
-    major: { k: 'sh.major', iv: [0, 2, 4, 5, 7, 9, 11, 12], steps: ['ტ ტ ნ ტ ტ ტ ნ', 'T T S T T T S'] },
-    minor: { k: 'sh.minor', iv: [0, 2, 3, 5, 7, 8, 10, 12], steps: ['ტ ნ ტ ტ ნ ტ ტ', 'T S T T S T T'] },
-    harm: { k: 'sh.harm', iv: [0, 2, 3, 5, 7, 8, 11, 12], steps: ['ტ ნ ტ ტ ნ ტ+ნ ნ', 'T S T T S T+S S'] },
-    mel: { k: 'sh.mel', iv: [0, 2, 3, 5, 7, 9, 11, 12], steps: ['ტ ნ ტ ტ ტ ტ ნ', 'T S T T T T S'] },
-    penta: { k: 'sh.penta', iv: [0, 2, 4, 7, 9, 12], steps: ['ტ ტ ტ+ნ ტ ტ+ნ', 'T T T+S T T+S'] },
-    mpenta: { k: 'sh.mpenta', iv: [0, 3, 5, 7, 10, 12], steps: ['ტ+ნ ტ ტ ტ+ნ ტ', 'T+S T T T+S T'] }
+    major: { g: 'base', k: 'sh.major', iv: [0, 2, 4, 5, 7, 9, 11, 12], steps: ['ტ ტ ნ ტ ტ ტ ნ', 'T T S T T T S'] },
+    minor: { g: 'base', k: 'sh.minor', iv: [0, 2, 3, 5, 7, 8, 10, 12], steps: ['ტ ნ ტ ტ ნ ტ ტ', 'T S T T S T T'] },
+    harm: { g: 'base', k: 'sh.harm', iv: [0, 2, 3, 5, 7, 8, 11, 12], steps: ['ტ ნ ტ ტ ნ ტ+ნ ნ', 'T S T T S T+S S'] },
+    mel: { g: 'base', k: 'sh.mel', iv: [0, 2, 3, 5, 7, 9, 11, 12], steps: ['ტ ნ ტ ტ ტ ტ ნ', 'T S T T T T S'] },
+    ionian: { g: 'mode', k: 'sh.major', iv: [0, 2, 4, 5, 7, 9, 11, 12], steps: ['ტ ტ ნ ტ ტ ტ ნ', 'T T S T T T S'], deg: 1 },
+    dorian: { g: 'mode', k: 'sh.dorian', iv: [0, 2, 3, 5, 7, 9, 10, 12], steps: ['ტ ნ ტ ტ ტ ნ ტ', 'T S T T T S T'], deg: 2 },
+    phrygian: { g: 'mode', k: 'sh.phrygian', iv: [0, 1, 3, 5, 7, 8, 10, 12], steps: ['ნ ტ ტ ტ ნ ტ ტ', 'S T T T S T T'], deg: 3 },
+    lydian: { g: 'mode', k: 'sh.lydian', iv: [0, 2, 4, 6, 7, 9, 11, 12], steps: ['ტ ტ ტ ნ ტ ტ ნ', 'T T T S T T S'], deg: 4 },
+    mixo: { g: 'mode', k: 'sh.mixo', iv: [0, 2, 4, 5, 7, 9, 10, 12], steps: ['ტ ტ ნ ტ ტ ნ ტ', 'T T S T T S T'], deg: 5 },
+    aeolian: { g: 'mode', k: 'sh.minor', iv: [0, 2, 3, 5, 7, 8, 10, 12], steps: ['ტ ნ ტ ტ ნ ტ ტ', 'T S T T S T T'], deg: 6 },
+    locrian: { g: 'mode', k: 'sh.locrian', iv: [0, 1, 3, 5, 6, 8, 10, 12], steps: ['ნ ტ ტ ნ ტ ტ ტ', 'S T T S T T T'], deg: 7 },
+    penta: { g: 'penta', k: 'sh.penta', iv: [0, 2, 4, 7, 9, 12], steps: ['ტ ტ ტ+ნ ტ ტ+ნ', 'T T T+S T T+S'] },
+    mpenta: { g: 'penta', k: 'sh.mpenta', iv: [0, 3, 5, 7, 10, 12], steps: ['ტ+ნ ტ ტ ტ+ნ ტ', 'T+S T T T+S T'] },
+    blues: { g: 'penta', k: 'sh.blues', iv: [0, 2, 3, 4, 7, 9, 12], steps: ['ტ ნ ნ ტ+ნ ტ ტ+ნ', 'T S S T+S T T+S'] },
+    mblues: { g: 'penta', k: 'sh.mblues', iv: [0, 3, 5, 6, 7, 10, 12], steps: ['ტ+ნ ტ ნ ნ ტ+ნ ტ', 'T+S T S S T+S T'] },
+    whole: { g: 'sym', k: 'sh.whole', iv: [0, 2, 4, 6, 8, 10, 12], steps: ['ტ ტ ტ ტ ტ ტ', 'T T T T T T'] },
+    dimwh: { g: 'sym', k: 'sh.dimwh', iv: [0, 2, 3, 5, 6, 8, 9, 11, 12], steps: ['ტ ნ ტ ნ ტ ნ ტ ნ', 'T S T S T S T S'] },
+    dimhw: { g: 'sym', k: 'sh.dimhw', iv: [0, 1, 3, 4, 6, 7, 9, 10, 12], steps: ['ნ ტ ნ ტ ნ ტ ნ ტ', 'S T S T S T S T'] },
+    chrom: { g: 'sym', k: 'sh.chrom', iv: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], steps: ['ნ ნ ნ ნ ნ ნ ნ ნ ნ ნ ნ ნ', 'S S S S S S S S S S S S'] }
   };
+  const GROUPS = [['base', 'sh.g.base'], ['mode', 'sh.g.mode'], ['penta', 'sh.g.penta'], ['sym', 'sh.g.sym']];
+  const GNOTE = { mode: 'sh.mode7', penta: 'sh.bluesN', sym: 'sh.symN' };
   /** the scale across the three strings: each note on the nearest place above the last one,
       with the finger the hand takes it with; where the hand has to move up the neck the note
       is marked as a position change (that is how it is really played) */
   function scalePath(root, kind) {
     const iv = (SCALES[kind] || SCALES.major).iv, S = TH.STRINGS, F = TH.FRETS;
-    // start on the lowest string where the root can be reached
-    let s0 = 1, f0 = -1;
-    for (let st = 1; st <= S; st++) for (let f = 0; f <= F; f++) {
+    /* The scale starts on the lowest string that can give the root — the bass, the teacher's
+       "ban" — and not merely on the lowest fret. Starting on the thin string would trap the
+       whole scale there (nothing is higher to cross to) and the hand would walk thirteen frets
+       up one string instead of taking the scale across the three voices, which is how it is
+       really played. */
+    let s0 = 0, f0 = -1;
+    for (let st = 1; st <= S && f0 < 0; st++) for (let f = 0; f <= F; f++) {
       if (TH.pc(TH.midi(st, f)) !== root % 12) continue;
-      if (f0 < 0 || f < f0) { s0 = st; f0 = f; }                 // start where the hand has least to do: the lowest fret
-      break;
+      s0 = st; f0 = f; break;
     }
     if (f0 < 0) return null;
-    const notes = [{ s: s0, f: f0, m: TH.midi(s0, f0) }];
-    let s = s0, lastM = notes[0].m, lastF = f0;
+    /* The hand stands in one position — a window of four frets — and takes every note of the
+       scale inside it, crossing from string to string, exactly as a position is played. The
+       next note is always the nearest pitch up (so the scale stays a scale); among the places
+       that give that pitch, one inside the window wins, an open string is free, and only when
+       the window has nothing left does the hand move up the neck (marked ↷). */
+    let base = f0 || 1;
+    const notes = [{ s: s0, f: f0, m: TH.midi(s0, f0), base }];
+    let lastM = notes[0].m;
     for (let i = 1; i < iv.length; i++) {
       const want = (root + iv[i]) % 12;
-      // the lowest place on this or a higher string: that is how the scale climbs across the three strings
       let got = null;
-      for (let st = s; st <= S; st++) {
-        for (let f = 0; f <= F; f++) {
-          const m = TH.midi(st, f);
-          if (TH.pc(m) !== want || m <= lastM) continue;
-          const score = f * 10 + (st - s) * 2;
-          if (!got || score < got.score) got = { s: st, f, m, score };
-          break;
-        }
+      for (let st = 1; st <= S; st++) for (let f = 0; f <= F; f++) {
+        const m = TH.midi(st, f);
+        if (TH.pc(m) !== want || m <= lastM) continue;
+        const open = f === 0, inWin = open || (f >= base && f <= base + 3);
+        const score = (m - lastM) * 1000 + (inWin ? 0 : 500) + (open ? -2 : 0) + Math.abs(f - base);
+        if (!got || score < got.score) got = { s: st, f, m, score, inWin };
       }
       if (!got) return null;
-      s = got.s; lastM = got.m; lastF = got.f; notes.push(got);
+      if (!got.inWin) { got.shift = true; base = got.f; }
+      got.base = base; lastM = got.m; notes.push(got);
     }
-    // fingers: one finger per fret from where the hand stands; a note out of reach moves the hand
-    let base = 0, started = false;
-    notes.forEach(n => {
-      if (n.f === 0) { n.fi = 0; return; }
-      if (!started || n.f < base || n.f > base + 3) { if (started && n.f !== base) n.shift = true; base = n.f; started = true; }
-      n.fi = Math.max(1, Math.min(4, n.f - base + 1));
-    });
+    // one finger per fret from where the hand stands; an open string needs no finger
+    notes.forEach(n => { n.fi = n.f === 0 ? 0 : Math.max(1, Math.min(4, n.f - n.base + 1)); });
     notes.forEach(n => { n.name = nLab(TH.pc(n.m)); });
     const fr = notes.filter(n => n.f > 0).map(n => n.f);
     return { base: fr.length ? Math.min(...fr) : 0, notes, shifts: notes.filter(n => n.shift).length };
@@ -122,12 +154,21 @@ PD.shapes = (() => {
     let H3 = null, sel = 0, path = null, touched = false;
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('learn') }), h('h1', { 'data-t': 'sh.scales', style: 'margin:0' })]),
       h('p', { class: 'fg2', 'data-t': 'sh.scalesD' }));
-    const roots = h('div', { class: 'chips-row' }), kinds = h('div', { class: 'chips-row' });
+    let grp = SCALES[kind].g;
+    const roots = h('div', { class: 'chips-row' }), kinds = h('div', { class: 'chips-row' }), grps = h('div', { class: 'chips-row' });
     TH.ROOT_NAMES.forEach((n, i) => roots.append(h('button', { class: 'chip', 'aria-pressed': String(i === root), text: n, onclick: () => { root = i; redraw(); } })));
-    Object.keys(SCALES).forEach(k => kinds.append(h('button', { class: 'chip', 'aria-pressed': String(k === kind), text: t(SCALES[k].k), onclick: () => { kind = k; redraw(); } })));
+    GROUPS.forEach(([g, lab]) => grps.append(h('button', { class: 'chip', 'aria-pressed': String(g === grp), 'data-t': lab, onclick: () => { grp = g; kind = Object.keys(SCALES).find(k => SCALES[k].g === g); drawKinds(); redraw(); } })));
+    const gnote = h('small', { class: 'muted' });
+    function drawKinds() {
+      kinds.innerHTML = '';
+      Object.keys(SCALES).filter(k => SCALES[k].g === grp).forEach(k => kinds.append(h('button', { class: 'chip', 'aria-pressed': String(k === kind), text: (SCALES[k].deg ? SCALES[k].deg + '. ' : '') + t(SCALES[k].k), onclick: () => { kind = k; redraw(); } })));
+      grps.querySelectorAll('.chip').forEach((b, i) => b.setAttribute('aria-pressed', String(GROUPS[i][0] === grp)));
+      gnote.hidden = !GNOTE[grp]; if (GNOTE[grp]) gnote.textContent = t(GNOTE[grp]);
+    }
     const head = h('div', { class: 'sh-head' }), notes = h('div', { class: 'sh-notes' }), box3 = h('section', { class: 'sh-box' }), cap = h('p', { class: 'sh-cap muted' }), foot = h('div', { class: 'sh-foot' });
     w.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'sh.root' }), roots]),
-      h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'sh.kind' }), kinds]),
+      h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'sh.grp' }), grps]),
+      h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'sh.kind' }), kinds]), gnote,
       head, box3, cap, notes, foot,
       h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'sh.rule' }), h('small', { class: 'muted', 'data-t': 'sh.ruleD' })]));
     stage3d(box3, mod => { H3 = mod; H3.setView('front'); show(sel); });
@@ -145,7 +186,8 @@ PD.shapes = (() => {
     }
     function redraw() {
       roots.querySelectorAll('.chip').forEach((b, i) => b.setAttribute('aria-pressed', String(i === root)));
-      kinds.querySelectorAll('.chip').forEach((b, i) => b.setAttribute('aria-pressed', String(Object.keys(SCALES)[i] === kind)));
+      const ks = Object.keys(SCALES).filter(k => SCALES[k].g === grp);
+      kinds.querySelectorAll('.chip').forEach((b, i) => b.setAttribute('aria-pressed', String(ks[i] === kind)));
       path = scalePath(root, kind);
       head.innerHTML = ''; notes.innerHTML = ''; foot.innerHTML = '';
       const SC = SCALES[kind];
@@ -168,7 +210,7 @@ PD.shapes = (() => {
       if (!touched) { const k = path.notes.findIndex(n => n.f > 0); sel = k < 0 ? 0 : k; }
       show(Math.min(sel, path.notes.length - 1));
     }
-    redraw();
+    drawKinds(); redraw();
   }
 
   /* ---------------- how a chord is taken ---------------- */
