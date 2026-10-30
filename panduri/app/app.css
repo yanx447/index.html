@@ -2723,3 +2723,32 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .in-alt{list-style:none;margin-left:-20px;color:var(--muted);font-size:.86rem;border-top:1px solid var(--line2);padding-top:8px}
 .in-link{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.03);margin:10px 0}
 .in-link code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.84rem;color:var(--fg2)}
+
+/* ---------------------------------------------------------------------
+   The navigation sits at the bottom on every screen, not only on a
+   phone. On a wide screen it is not stretched across the whole width —
+   six buttons pinned to the far corners of a 1500px window are further
+   from each other than from anything else on the page — it is a bar of
+   its own, centred above the bottom edge, with the content running the
+   full width behind it.
+   --------------------------------------------------------------------- */
+@media (min-width:821px){
+  .shell{grid-template-columns:1fr}
+  .rail{display:none}
+  .tabbar{display:grid;position:fixed;left:50%;bottom:calc(16px + var(--safe-b));transform:translateX(-50%);
+    z-index:20;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);
+    width:min(680px,calc(100% - 48px));padding:5px;gap:2px;
+    background:rgba(20,17,15,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+    border:1px solid var(--line);border-radius:22px;box-shadow:0 16px 44px rgba(0,0,0,.55)}
+  .tabbar .navb{min-height:54px;border-radius:17px;font-size:11px;font-weight:600;gap:4px;padding-inline:2px;min-width:0}
+  .tabbar .navb>span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tabbar .navb svg{width:22px;height:22px}
+  .tabbar .navb:hover{background:rgba(255,255,255,.05)}
+  .tabbar .navb[aria-current="page"]{background:rgba(232,196,155,.13);color:var(--brass2)}
+  .tabbar .navb[aria-current="page"]::after{display:none}
+  .tabbar .navb[aria-current="page"]::before{display:none}
+  /* room for the bar, so the last card on a page is never under it */
+  .page{padding-bottom:calc(var(--nav-h) + 56px + var(--safe-b))}
+  /* the helper's button steps aside so the two never sit on top of each other */
+  .sm-fab{bottom:calc(var(--nav-h) + 34px + var(--safe-b))}
+}
