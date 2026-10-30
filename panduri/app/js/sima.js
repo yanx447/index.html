@@ -163,33 +163,84 @@ PD.sima = (() => {
     } catch (_) { return false; }
   }
 
-  /* ---------------- being called by name ---------------- */
-  let rec = null;
+  /* ---------------- being called by name, and talked to ----------------
+     One recogniser, two modes. In 'wake' it listens for her name wherever the
+     learner is; in 'talk' it takes the next thing said as a question, so the
+     conversation can carry on without touching the screen. It stands aside
+     while a lesson or the tuner is using the microphone, and picks up again
+     when they are done. ------------------------------------------------- */
   const canHear = () => !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  function listen(on) {
-    if (!canHear()) return false;
-    if (!on) { try { rec && rec.stop(); } catch (_) {} rec = null; return true; }
-    if (rec) return true;
-    const R = window.SpeechRecognition || window.webkitSpeechRecognition;
-    rec = new R(); rec.lang = 'ka-GE'; rec.continuous = true; rec.interimResults = false;
-    rec.onresult = e => {
+  const W = { rec: null, mode: null, want: false, tries: 0, timer: 0, heard: 0 };
+  // "სიმა" as it comes back from a recogniser: on its own, or with a case ending
+  const CALLED = /(^|\s)სიმ(ა|ას|ავ|აა|ა,)?(\s|$)|(^|\s)sima(\s|$)/;
+  const micBusy = () => !!((PD.detector && PD.detector.active) || (PD.practice && PD.practice.active));
+
+  function fab() { return document.querySelector('.sm-fab'); }
+  function mark(on) { const f = fab(); if (f) f.classList.toggle('listening', !!on); }
+
+  function stopRec() {
+    if (!W.rec) return;
+    const r = W.rec; W.rec = null; W.mode = null;
+    try { r.onend = null; r.onerror = null; r.onresult = null; r.stop(); } catch (_) {}
+    mark(false);
+  }
+  function startRec(mode) {
+    if (!canHear() || micBusy()) return false;
+    if (W.rec && W.mode === mode) return true;
+    stopRec();
+    const R = window.SpeechRecognition || window.webkitSpeechRecognition, r = new R();
+    r.lang = 'ka-GE'; r.interimResults = false; r.continuous = mode === 'wake';
+    r.onresult = e => {
+      W.tries = 0;
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        const said = norm(e.results[i][0].transcript);
-        if (said.includes(norm(NAME))) {
-          const rest = said.slice(said.indexOf(norm(NAME)) + NAME.length).trim();
-          open(rest || '');
+        const raw = e.results[i][0].transcript, said = norm(raw);
+        if (mode === 'talk') { W.heard = Date.now(); put(raw.trim()); return; }
+        if (CALLED.test(said)) {
+          W.heard = Date.now();
+          const at = said.search(CALLED), after = said.slice(at).replace(CALLED, ' ').trim();
+          stopRec(); open(after || '');
         }
       }
     };
-    rec.onend = () => { if (rec && S.get('sima.wake', false)) { try { rec.start(); } catch (_) {} } };
-    rec.onerror = () => {};
-    try { rec.start(); } catch (_) { rec = null; return false; }
+    r.onerror = ev => { if (ev && (ev.error === 'not-allowed' || ev.error === 'service-not-allowed')) { W.want = false; S.set('sima.wake', false); PD.ui.toast(t('sm.micNo'), 4000); stopRec(); } };
+    r.onend = () => { if (W.rec === r) { W.rec = null; W.mode = null; mark(false); schedule(); } };
+    try { r.start(); } catch (_) { return false; }
+    W.rec = r; W.mode = mode; mark(mode === 'wake' || mode === 'talk');
     return true;
   }
+  /** keep her ear open: restart after a pause, back off if the browser keeps refusing */
+  function schedule() {
+    clearTimeout(W.timer);
+    if (!W.want || !canHear()) return;
+    const wait = Math.min(8000, 400 * Math.pow(1.7, Math.min(6, W.tries++)));
+    W.timer = setTimeout(() => {
+      if (!W.want) return;
+      if (micBusy()) { W.tries = 0; return schedule(); }
+      startRec(box ? 'talk' : 'wake');
+    }, wait);
+  }
+  function listen(on) {
+    W.want = !!on && canHear();
+    clearTimeout(W.timer);
+    if (!W.want) { stopRec(); return canHear(); }
+    W.tries = 0;
+    if (!startRec(box ? 'talk' : 'wake')) schedule();
+    return true;
+  }
+  // a lesson or the tuner takes the microphone; she waits and comes back
+  setInterval(() => {
+    if (!W.want) return;
+    if (micBusy()) { if (W.rec) stopRec(); return; }
+    if (!W.rec) schedule();
+  }, 2500);
 
   /* ---------------- the panel ---------------- */
   let box = null, noted = false;
-  function close() { if (box) { box.remove(); box = null; } try { speechSynthesis.cancel(); } catch (_) {} }
+  function close() {
+    if (box) { box.remove(); box = null; }
+    try { speechSynthesis.cancel(); } catch (_) {}
+    if (W.want) { stopRec(); schedule(); }
+  }
   function open(q) {
     close();
     const log = h('div', { class: 'sm-log' });
@@ -205,19 +256,28 @@ PD.sima = (() => {
         h('div', { class: 'sm-chips' }, [
           [t('sm.q1'), 'რა ვივარჯიშო დღეს'], [t('sm.q2'), 'გამოცდა'], [t('sm.q3'), 'როგორ ავიღო Bm'], [t('sm.q4'), 'აჭარული']
         ].map(([lab, q2]) => h('button', { class: 'chip', text: lab, onclick: () => put(q2) }))),
-        h('div', { class: 'sm-row' }, [input, mic, h('button', { class: 'btn primary', text: t('sm.send'), onclick: send })].filter(Boolean))])]);
+        h('div', { class: 'sm-row' }, [input, mic, h('button', { class: 'btn primary', text: t('sm.send'), onclick: send })].filter(Boolean)),
+        canHear() && !S.get('sima.wake', false)
+          ? h('button', { class: 'btn small sm-wake', text: t('sm.wakeAsk', { n: NAME }), onclick: async e2 => { if (await wakeOn()) e2.currentTarget.remove(); } })
+          : canHear() ? h('small', { class: 'muted sm-note', text: t('sm.wakeLive', { n: NAME }) }) : null])]);
     document.body.appendChild(box);
     input.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); send(); } };
     PD.i18n.apply(box);
-    if (q) put(q); else bubble(t('sm.hello', { n: NAME }), null);
+    if (q) put(q); else { bubble(t('sm.hello', { n: NAME }), null); if (W.want) { stopRec(); setTimeout(() => { if (W.want && box) startRec('talk'); }, 250); } }
     setTimeout(() => { try { input.focus({ preventScroll: true }); } catch (_) {} }, 60);
   }
   function once() {
     if (!canHear()) return;
-    const R = window.SpeechRecognition || window.webkitSpeechRecognition, r = new R();
-    r.lang = 'ka-GE'; r.interimResults = false;
-    r.onresult = e => put(e.results[0][0].transcript);
-    try { r.start(); PD.ui.toast(t('sm.listening')); } catch (_) {}
+    if (micBusy()) return PD.ui.toast(t('sm.micBusy'), 3000);
+    stopRec();
+    if (startRec('talk')) PD.ui.toast(t('sm.listening'), 2200);
+  }
+  /** ask for the microphone and keep her ear open from then on */
+  async function wakeOn() {
+    if (!canHear()) { PD.ui.toast(t('sm.wakeNo'), 4000); return false; }
+    try { const st = await navigator.mediaDevices.getUserMedia({ audio: true }); st.getTracks().forEach(x => x.stop()); }
+    catch (_) { PD.ui.toast(t('sm.micNo'), 4000); return false; }
+    S.set('sima.wake', true); listen(true); PD.ui.toast(t('sm.wakeOn', { n: NAME }), 3400); return true;
   }
   const SRC = { teacher: 'tp.src.teacher', draft: 'tp.src.draft', general: 'tp.src.general', fact: 'tp.src.fact' };
   function bubble(text, a, who) {
@@ -240,6 +300,7 @@ PD.sima = (() => {
     const text = a.lines.join('\n');
     bubble(text, a);
     const spoke = say(a.title + '. ' + a.lines.join('. '));
+    if (W.want && box) { stopRec(); setTimeout(() => { if (W.want && box) startRec('talk'); }, spoke ? 1600 : 350); }
     if (!spoke && !noted && S.get('sima.voice', true)) {
       noted = true;
       const lg = box && box.querySelector('.sm-log');
@@ -253,7 +314,10 @@ PD.sima = (() => {
     const b = h('button', { class: 'sm-fab', 'aria-label': NAME, onclick: () => open('') }, [h('span', { text: 'ს' })]);
     document.body.appendChild(b);
   }
-  function refresh() { const b = document.querySelector('.sm-fab'); if (b) b.remove(); mount(); if (S.get('sima.wake', false)) listen(true); else listen(false); }
+  function refresh() { const b = fab(); if (b) b.remove(); mount(); listen(S.get('sima.wake', false)); }
+  // she starts listening as soon as the app does, if the learner has allowed it
+  PD.bus.on('ready', () => { if (S.get('sima.wake', false)) listen(true); });
+  setTimeout(() => { if (S.get('sima.wake', false)) listen(true); }, 1500);
 
   /* ---------------- she speaks first, when it helps ---------------- */
   function nudge() {
@@ -271,7 +335,7 @@ PD.sima = (() => {
     setTimeout(() => tip.remove(), 12000);
   }
 
-  const api = { NAME, open, close, answer, say, listen, canHear, kaVoice, mount, refresh, nudge, index };
+  const api = { NAME, open, close, answer, say, listen, wakeOn, once, canHear, kaVoice, mount, refresh, nudge, index, get hearing() { return !!W.rec; } };
   return api;
 })();
 
@@ -303,5 +367,10 @@ PD.i18n.add({
   'sm.nudgeOn': ['თვითონ იწყებს რჩევას', 'Offers advice on her own'],
   'sm.wake': ['სახელით გამოძახება', 'Call her by name'],
   'sm.wakeD': ['ჩართვის შემდეგ მიკროფონი ღიად რჩება და სიტყვა „სიმა“ გახსნის მას. ყურადღება: ამ ფუნქციისთვის ბრაუზერი ხმას თავის სერვისს უგზავნის (Google/Apple) — ეს ერთადერთი ადგილია აპში, სადაც ხმა მოწყობილობიდან გადის. ნაგულისხმევად გამორთულია.', 'With this on the microphone stays open and the word “Sima” opens her. Note: for this the browser sends the audio to its own service (Google/Apple) — the one place in this app where sound leaves the device. Off by default.'],
+  'sm.wakeAsk': ['🎤 სახელით გამომიძახე — თქვი „{n}“', '🎤 Call me by name — say “{n}”'],
+  'sm.wakeLive': ['ყურს გიგდებ: სადაც არ უნდა იყო, თქვი „{n}“ და გამოვჩნდები.', 'I am listening: wherever you are, say “{n}” and I will come.'],
+  'sm.wakeOn': ['მზად ვარ — თქვი „{n}“ და გამოვჩნდები. გაკვეთილისა და ტიუნერის დროს ყურს ვიღებ, რომ მიკროფონი არ წაგართვა.', 'Ready — say “{n}” and I will come. During a lesson or the tuner I step aside so the microphone stays yours.'],
+  'sm.micNo': ['მიკროფონზე უფლება ვერ მივიღე — ბრაუზერის პარამეტრებში დაამატე.', 'I could not get the microphone — allow it in the browser settings.'],
+  'sm.micBusy': ['ახლა მიკროფონი გაკვეთილს უჭირავს — ჯერ დაასრულე.', 'The lesson is using the microphone right now — finish it first.'],
   'sm.wakeNo': ['ამ ბრაუზერს ხმის ამოცნობა არ აქვს — ღილაკით გამოიძახე.', 'This browser cannot listen — use the button instead.']
 });
