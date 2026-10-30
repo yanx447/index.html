@@ -2752,3 +2752,92 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
   /* the helper's button steps aside so the two never sit on top of each other */
   .sm-fab{bottom:calc(var(--nav-h) + 34px + var(--safe-b))}
 }
+
+/* =====================================================================
+   Wide screens: the page spreads across the glass.
+   The column stops being a fixed 1080px and takes the window, with a
+   gutter that grows with it. Prose keeps a measure you can still read —
+   a 1600px line of Georgian is not a line, it is a search — but it is
+   the only thing that is bounded; everything made of cards spreads.
+   ===================================================================== */
+@media (min-width:1280px){
+  :root{--col:1360px}
+  :root[data-col="wide"]{--col:100%}
+  :root[data-col="mid"]{--col:1500px}
+  :root[data-col="read"]{--col:1140px}
+  .page{padding-inline:clamp(32px,4.5vw,80px)}
+  .wrap{gap:30px}
+  /* the drawings grow with the page instead of sitting in the middle of a wide empty card */
+  :root[data-col="read"] .tp-hero,:root[data-col="read"] .sh-box{max-width:100%}
+  :root[data-col="wide"] .tp-hero,:root[data-col="wide"] .sh-box{max-width:900px}
+  /* the four blocks of a library chapter read as a spread, two by two */
+  .bk-body{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .bk-body .bk-b{margin:0}
+  /* one more column in everything that is a grid of cards */
+  .tb-list{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .tp-grid{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+}
+@media (min-width:1560px){
+  :root[data-col="read"]{--col:1260px}
+  /* the dashboard opens into three: what you are learning · the tools · what you have done */
+  :root[data-route="home"] .wrap{grid-template-columns:minmax(0,1.5fr) minmax(0,.9fr) minmax(0,.9fr)}
+  :root[data-route="home"] .wrap > .hx-hero{grid-column:1;grid-row:2/5}
+  :root[data-route="home"] .wrap > .hx-goal2{grid-column:2;grid-row:2}
+  :root[data-route="home"] .wrap > .hq-row{grid-column:2;grid-row:3/5;align-self:start}
+  :root[data-route="home"] .wrap > .hx-res{grid-column:3;grid-row:2/5;align-self:stretch}
+  :root[data-route="home"] .hq-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  :root[data-route="book"] .bk-toc,:root[data-route="book"] .bk-hits{column-count:3}
+}
+
+/* =====================================================================
+   Motion. Cards arrive rather than appear: each block of a page rises a
+   little, in order, so the eye is led down the page instead of being
+   handed all of it at once. Anything you can press answers to the
+   pointer. All of it is switched off by the app's reduced-motion rule
+   further up, which wins on !important.
+   ===================================================================== */
+@media (min-width:821px){
+  .wrap > *{animation:wrapIn .46s var(--ease-out) both}
+  .wrap > *:nth-child(1){animation-delay:.02s}
+  .wrap > *:nth-child(2){animation-delay:.07s}
+  .wrap > *:nth-child(3){animation-delay:.12s}
+  .wrap > *:nth-child(4){animation-delay:.17s}
+  .wrap > *:nth-child(5){animation-delay:.22s}
+  .wrap > *:nth-child(6){animation-delay:.26s}
+  .wrap > *:nth-child(n+7){animation-delay:.3s}
+  @keyframes wrapIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  /* a pressable card lifts and warms its edge */
+  .hq,.tb-card,.bk-sec,.lvcard,.in-card,.tp-sec,.tbs-glb,.pf2-i,.lib .li,.sh-list .chip{
+    transition:transform .22s var(--ease),border-color .22s var(--ease),box-shadow .22s var(--ease),background .22s var(--ease)}
+  .hq:hover,.tb-card:hover,.lvcard:hover,.tbs-glb:hover,.pf2-i:hover{
+    transform:translateY(-3px);border-color:var(--line3,rgba(232,196,155,.35));box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .bk-sec:hover{border-color:rgba(232,196,155,.3)}
+  .bk-row{transition:background .18s var(--ease),padding-left .18s var(--ease)}
+  .bk-row:hover{padding-left:20px}
+  .bz-bar{transition:transform .18s var(--ease),border-color .18s var(--ease),background .18s var(--ease)}
+  .bz-bar:hover{transform:translateY(-2px)}
+  /* the hero carries a slow light across it, once, as the page settles */
+  .hx-hero{position:relative;overflow:hidden}
+  .hx-hero::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(105deg,transparent 35%,rgba(255,228,196,.09) 50%,transparent 65%);
+    transform:translateX(-120%);animation:sheen 1.5s var(--ease-out) .35s both}
+  @keyframes sheen{to{transform:translateX(120%)}}
+  /* the bottom bar settles into place with the page */
+  .tabbar{animation:barIn .5s var(--spring) both}
+  @keyframes barIn{from{opacity:0;transform:translate(-50%,18px)}to{opacity:1;transform:translate(-50%,0)}}
+}
+
+/* wide screens, two more spreads: a library chapter's pages lay out as cards instead of one
+   very long row each, and a card's explanation sections pair up side by side */
+@media (min-width:1280px){
+  .wrap > .bk-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;border:0}
+  .wrap > .bk-list .bk-row{border:1px solid var(--line2);border-radius:14px}
+  .wrap > .bk-list .bk-row:hover{padding-left:14px;background:rgba(255,255,255,.05)}
+}
+@media (min-width:1400px){
+  :root[data-route="tips"] .wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 28px;align-items:start}
+  :root[data-route="tips"] .wrap > *{grid-column:1/-1}
+  :root[data-route="tips"] .wrap > .tp-sec{grid-column:span 1}
+  /* a grid stretches its items, and a button that spans the page is a wall, not a button */
+  :root[data-route="tips"] .wrap > .btn,:root[data-route="tips"] .wrap > button:not(.tp-sec){justify-self:start}
+}
