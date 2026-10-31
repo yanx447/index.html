@@ -56,7 +56,8 @@ PD.sima = (() => {
 
   /* ---------------- the things she can work out herself ---------------- */
   const TH = () => PD.theory;
-  const fLab = f => f === 0 ? t('sh.open') : t('sh.fretN', { n: f });
+  /* the fret labels belong to shapes.js: sh.openF / sh.fret (sh.open / sh.fretN never existed) */
+  const fLab = f => f === 0 ? t('sh.openF') : t('sh.fret', { n: f });
 
   /** a chord by name, written out and drawn */
   function chordAnswer(q) {
@@ -282,15 +283,36 @@ PD.sima = (() => {
     if (q) put(q); else { bubble(t('sm.hello', { n: NAME }), null); if (W.want) { stopRec(); setTimeout(() => { if (W.want && box) startRec('talk'); }, 250); } }
     setTimeout(() => { try { input.focus({ preventScroll: true }); } catch (_) {} }, 60);
   }
+  /* The listening is done by the browser's own recogniser, and that recogniser sends the sound
+     to its vendor's service (Google / Apple). It is the one place in this app where sound leaves
+     the device, so it is said plainly and agreed to before the microphone is ever opened. The
+     toggle in Settings shows the same words beside it (sm.wakeD); this is the path taken from her
+     own panel and from the one-shot 🎤, which until now opened the recogniser with no warning. */
+  function wakeConsent() {
+    if (S.get('sima.wakeOK', false)) return Promise.resolve(true);
+    return new Promise(res => {
+      let agreed = false;
+      PD.ui.sheet((b, close) => {
+        b.append(h('h2', { text: t('sm.wakeWarnT') }), h('p', { class: 'fg2', text: t('sm.wakeD') }),
+          h('div', { class: 'row' }, [
+            h('button', { class: 'btn primary', text: t('sm.wakeYes'), onclick: () => { agreed = true; S.set('sima.wakeOK', true); close(); res(true); } }),
+            h('button', { class: 'btn', text: t('cancel'), onclick: close })]));
+      }, { onClose: () => { if (!agreed) res(false); } });
+    });
+  }
   function once() {
     if (!canHear()) return;
     if (micBusy()) return PD.ui.toast(t('sm.micBusy'), 3000);
-    stopRec();
-    if (startRec('talk')) PD.ui.toast(t('sm.listening'), 2200);
+    wakeConsent().then(ok => {
+      if (!ok) return;
+      stopRec();
+      if (startRec('talk')) PD.ui.toast(t('sm.listening'), 2200);
+    });
   }
   /** ask for the microphone and keep her ear open from then on */
   async function wakeOn() {
     if (!canHear()) { PD.ui.toast(t('sm.wakeNo'), 4000); return false; }
+    if (!(await wakeConsent())) return false;
     try { const st = await navigator.mediaDevices.getUserMedia({ audio: true }); st.getTracks().forEach(x => x.stop()); }
     catch (_) { PD.ui.toast(t('sm.micNo'), 4000); return false; }
     S.set('sima.wake', true); listen(true); PD.ui.toast(t('sm.wakeOn', { n: NAME }), 3400); return true;
@@ -388,5 +410,7 @@ PD.i18n.add({
   'sm.wakeOn': ['მზად ვარ — თქვი „{n}“ და გამოვჩნდები. გაკვეთილისა და ტიუნერის დროს ყურს ვიღებ, რომ მიკროფონი არ წაგართვა.', 'Ready — say “{n}” and I will come. During a lesson or the tuner I step aside so the microphone stays yours.'],
   'sm.micNo': ['მიკროფონზე უფლება ვერ მივიღე — ბრაუზერის პარამეტრებში დაამატე.', 'I could not get the microphone — allow it in the browser settings.'],
   'sm.micBusy': ['ახლა მიკროფონი გაკვეთილს უჭირავს — ჯერ დაასრულე.', 'The lesson is using the microphone right now — finish it first.'],
-  'sm.wakeNo': ['ამ ბრაუზერს ხმის ამოცნობა არ აქვს — ღილაკით გამოიძახე.', 'This browser cannot listen — use the button instead.']
+  'sm.wakeNo': ['ამ ბრაუზერს ხმის ამოცნობა არ აქვს — ღილაკით გამოიძახე.', 'This browser cannot listen — use the button instead.'],
+  'sm.wakeWarnT': ['სანამ ყურს დავუგდებ', 'Before I start listening'],
+  'sm.wakeYes': ['მესმის, ჩართე', 'I understand — switch it on']
 });

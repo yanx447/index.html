@@ -13,7 +13,9 @@ PD.i18n.add({
   'mt.title': ['მეტრონომი', 'Metronome'], 'mt.tap': ['ტაპი', 'Tap tempo'], 'mt.sig': ['ზომა', 'Time signature'], 'mt.accent': ['პირველი დარტყმის აქცენტი', 'Accent the first beat'],
   'mt.sub': ['დაყოფა', 'Subdivision'], 'mt.sound': ['ხმა', 'Sound'], 'mt.haptic': ['ვიბრაცია', 'Haptic pulse'], 'mt.start': ['დაწყება', 'Start'], 'mt.stop': ['გაჩერება', 'Stop'], 'mt.vol': ['ხმის დონე', 'Volume'],
   'snd.click': ['კლიკი', 'Click'], 'snd.wood': ['ხე', 'Wood'], 'snd.beep': ['ტონი', 'Beep'], 'snd.soft': ['რბილი', 'Soft'],
-  'tr.title': ['ნოტები და ლადები', 'Notes and frets'], 'tr.lead': ['აპი გეკითხება, შენ ნამდვილ ფანდურზე უკრავ — მიკროფონი ამოწმებს.', 'The app asks, you play it on your real panduri — the microphone checks.'],
+  /* the trainer screen's own heading: prefix trn.*, because aimus.js owns tr.title / tr.lead
+     for the transcription panel and it loads later — the same key there silently won */
+  'trn.title': ['ნოტები და ლადები', 'Notes and frets'], 'trn.lead': ['აპი გეკითხება, შენ ნამდვილ ფანდურზე უკრავ — მიკროფონი ამოწმებს.', 'The app asks, you play it on your real panduri — the microphone checks.'],
   'tl.open': ['ღია სიმები', 'Open strings'], 'tl.f13': ['ლადები 1–3', 'Frets 1–3'], 'tl.f15': ['ლადები 1–5', 'Frets 1–5'], 'tl.f17': ['ლადები 1–7', 'Frets 1–7'], 'tl.full': ['მთელი ტარი', 'Full neck'],
   'tl.random': ['შემთხვევითი', 'Random notes'], 'tl.speed': ['სისწრაფე · 60 წმ', 'Speed · 60 s'], 'tl.ear': ['სმენით', 'Ear training'],
   'tr.playNote': ['დაუკარი {n}', 'Play {n}'], 'tr.playPos': ['დაუკარი {s} სიმის {f} ლადი', 'Play the {s} string, fret {f}'], 'tr.playOpen': ['დაუკარი ღია {s} სიმი', 'Play the open {s} string'],
@@ -162,8 +164,8 @@ PD.trainer = (() => {
     const own = PD.pageScope();
     let level = param && LEVELS.some(l => l.id === param) ? param : PD.store.get('tr.level', 'open');
     let cur = null, last = null, stats = { a: 0, c: 0, streak: 0 }, t0 = 0, timer = 0, wrongN = 0, startedAt = Date.now(), done = false, locked = false, micMine = false;
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': 'tr.title', style: 'margin:0' })]),
-      h('p', { class: 'muted', 'data-t': 'tr.lead' }));
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': 'trn.title', style: 'margin:0' })]),
+      h('p', { class: 'muted', 'data-t': 'trn.lead' }));
     const tabs = h('div', { class: 'chips-row', role: 'tablist' }, LEVELS.map(L => h('button', { class: 'chip' + (FREE_TR.has(L.id) || PD.premium.active ? '' : ' locked'), role: 'tab', 'aria-pressed': String(L.id === level), 'data-t': 'tl.' + L.id, onclick: () => { if (!FREE_TR.has(L.id) && !PD.premium.active) return PD.premium.paywall('trainer.pro'); level = L.id; PD.store.set('tr.level', level); tabs.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.t === 'tl.' + level))); reset(); } })));
     const prompt = h('div', { class: 'tr-prompt' }), sub = h('div', { class: 'tr-sub' }), fb = h('div', { class: 'tr-fb', 'aria-live': 'polite' });
     const score = h('div', { class: 'tr-score mono' });
@@ -235,7 +237,7 @@ PD.daily = (() => {
     if (warm) out.push({ id: 'warm', key: 'dl.warm', min: mins(2), title: PD.i18n.pick(warm.title), go: () => PD.app.startStage(warm, 'wait') });
     // notes: the trainer level that matches the frets the learner gets wrong most
     const weak = PD.trainer.weakest(), maxF = weak.length ? Math.max(...weak.map(x => +x.split(':')[1])) : 3, lvl = maxF <= 0 ? 'open' : maxF <= 3 ? 'f13' : maxF <= 5 ? 'f15' : maxF <= 7 ? 'f17' : 'full';
-    out.push({ id: 'notes', key: 'dl.notes', min: mins(3), title: t('tr.title') + ' · ' + t('tl.' + lvl), focus: weak.length ? weak.map(x => { const [s, f] = x.split(':'); return PD.theory.stringName(+s) + ' ' + f; }).join(', ') : null, go: () => PD.app.go('trainer', lvl) });
+    out.push({ id: 'notes', key: 'dl.notes', min: mins(3), title: t('trn.title') + ' · ' + t('tl.' + lvl), focus: weak.length ? weak.map(x => { const [s, f] = x.split(':'); return PD.theory.stringName(+s) + ' ' + f; }).join(', ') : null, go: () => PD.app.go('trainer', lvl) });
     // rhythm: the teacher rhythm practised least
     const rh = PD.curriculum.rhythms().map(r => ({ r, p: LS.progress.lesson('rhythm-' + r.id).plays || 0 })).sort((a, b) => a.p - b.p)[0];
     const pr = LS.get('poc-rhythm');

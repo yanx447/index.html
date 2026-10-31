@@ -18,7 +18,9 @@ PD.i18n.add({
   'ws.play': ['დაკვრა', 'Play'], 'ws.pause': ['პაუზა', 'Pause'], 'ws.close': ['დახურვა', 'Close'],
   'ws.repMeasure': ['ტაქტის გამეორება', 'Repeat measure'], 'ws.repPhrase': ['ფრაზის გამეორება', 'Repeat phrase'], 'ws.repMistake': ['შეცდომის გამეორება', 'Repeat mistake'],
   'ws.noMistake': ['შეცდომა ჯერ არ ყოფილა', 'No mistake yet'],
-  'ws.assist': ['დახმარება', 'Assistance'], 'as.auto': ['ავტომატური', 'Automatic'], 'as.beginner': ['დამწყები', 'Beginner'], 'as.intermediate': ['საშუალო', 'Intermediate'], 'as.advanced': ['მოწინავე', 'Advanced'], 'as.performance': ['შესრულება', 'Performance'],
+  /* as.* (the assistance levels) lives in app.js — the settings screen is its only reader.
+     A second copy here only collided with it and lost. */
+  'ws.assist': ['დახმარება', 'Assistance'],
   'ws.countIn': ['ათვლა', 'Count-in'], 'ws.autoDemo': ['ავტო-ჩვენება', 'Auto show-me'],
   'ws.muteRef': ['ჩანაწერის დადუმება', 'Mute reference'], 'ws.vol.inst': ['ფანდური', 'Panduri'], 'ws.vol.metro': ['მეტრონომი', 'Metronome'], 'ws.vol.ref': ['ჩანაწერი', 'Reference'],
   'ws.mirror': ['მარცხენა ხელისთვის', 'Left-handed'], 'ws.keys': ['კლავიშები', 'Keys'], 'ws.latency': ['დაყოვნება', 'Latency'],
