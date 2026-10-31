@@ -1,0 +1,24 @@
+const { chromium } = require('/opt/node-tools/node_modules/playwright');
+const OUT = '/tmp/claude-0/-home-claude/d17ed486-e6cb-5d9f-80bb-ed664a9aab9c/scratchpad/qa/';
+(async () => {
+  const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })).newPage();
+  p.on('pageerror', e => console.log('PAGEERR', e.message));
+  await p.goto('http://localhost:8770/panduri/app/'); await p.waitForTimeout(1500);
+  await p.evaluate(() => { localStorage.clear(); PD.store.set('onboarded', true); PD.store.set('auth.skip', true); PD.store.set('author', true); document.querySelector('.ag')?.remove(); document.querySelector('.ob')?.remove(); PD.app.go('ai'); });
+  await p.waitForTimeout(800); await p.screenshot({ path: OUT + 'ai-0.png' });
+  await p.setInputFiles('#page input[type=file]', '/tmp/claude-0/-home-claude/d17ed486-e6cb-5d9f-80bb-ed664a9aab9c/scratchpad/bani40.mp3');
+  await p.waitForSelector('.ai-facts', { timeout: 120000 });
+  console.log(await p.evaluate(() => [document.querySelector('.ai-facts').innerText.replace(/\n/g, ' '), document.querySelector('.ai-chips').innerText.replace(/\n/g, ' ')]));
+  await p.evaluate(() => { document.querySelector('.ai-play').click(); }); await p.waitForTimeout(4000);
+  await p.screenshot({ path: OUT + 'ai-1.png' });
+  await p.evaluate(() => { document.querySelector('.ai-play').click(); document.querySelector('.ai-stems').scrollIntoView(); });
+  await p.screenshot({ path: OUT + 'ai-2.png' });
+  await p.evaluate(() => [...document.querySelectorAll('.ai-stems .seg button')].find(x => /60|პირველი|First/.test(x.textContent))?.click());
+  await p.click('.ai-stems .btn.primary.big');
+  await p.waitForTimeout(8000); await p.screenshot({ path: OUT + 'ai-3.png' }); console.log(await p.evaluate(() => document.querySelector('.ai-prog')?.innerText));
+  await p.waitForSelector('.ai-mix', { timeout: 1200000 });
+  await p.evaluate(() => document.querySelector('.ai-mix').scrollIntoView({ block: 'center' })); await p.waitForTimeout(500);
+  await p.screenshot({ path: OUT + 'ai-4.png' });
+  await b.close();
+})();

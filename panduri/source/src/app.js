@@ -1,0 +1,1015 @@
+/* =====================================================================
+   App shell: router, navigation, Home (content browser), Learn
+   (paths), Lesson page (stages), Progress, Settings, Account.
+   ===================================================================== */
+PD.i18n.add({
+  'nav.library': ['ბიბლიოთეკა', 'Library'], 'nav.more': ['მეტი', 'More'],
+  'hm.resume': ['გააგრძელე იქიდან, სადაც გაჩერდი', 'Continue where you stopped'], 'hm.resumeD': ['{s} · ტაქტი {b}', '{s} · bar {b}'],
+  'hm.today': ['დღევანდელი ვარჯიში', "Today's practice"], 'hm.where': ['შენი სავარჯიშო ოთახი', 'Your practice room'], 'hm.path': ['სწავლის გზა', 'Learning path'], 'hm.nextIs': ['შემდეგი: {l}', 'next: {l}'], 'hm.noRecent': ['ჯერ არ გივარჯიშია. დაიწყე ზემოთ.', 'No practice yet. Start above.'], 'hm.days': ['დღე', 'days'], 'hm.allProgress': ['სრული პროგრესი', 'Full progress'], 'hm.quick': ['სწრაფი წვდომა', 'Quick access'], 'hm.next': ['შემდეგი ნაბიჯი', 'Next step'], 'hm.song': ['გააგრძელე სიმღერა', 'Continue song'],
+  'hm.demo': ['ახლა ჩატვირთულია სადემონსტრაციო მასალა. მასწავლებლის კურიკულუმი ჯერ არ არის დამატებული — სავარჯიშოები, თითები და აკორდები დამოწმებული არ არის.', 'Demo material is loaded. The teacher’s curriculum has not been added yet — exercises, fingerings and chords are not verified.'],
+  'demo.badge': ['დემო', 'Demo'], 'demo.badgeD': ['სადემონსტრაციო — მასწავლებლის მიერ არ არის დამოწმებული', 'Demo — not verified by the teacher'],
+  'st.intro': ['შესავალი', 'Introduction'], 'st.demo': ['დემონსტრაცია', 'Demonstration'], 'st.technique': ['ტექნიკა ცალკე', 'Isolated technique'], 'st.guided': ['ნელი, ნაბიჯ-ნაბიჯ', 'Guided slow practice'],
+  'std.intro': ['რას ვისწავლით და რატომ — მასწავლებლის ტექსტი და ვიდეო.', 'What we will learn and why — teacher text and video.'],
+  'std.demo': ['მოისმინე და ნახე: დაკვრა სრულ ტემპზე, ვიდეოსთან და ხელებთან ერთად.', 'Listen and watch: full tempo, together with video and hands.'],
+  'std.technique': ['ერთი რამ ცალკე (მაგ. მხოლოდ დარტყმები) — ავტორის მიერ არჩეული.', 'One thing on its own (e.g. strokes only) — chosen by the author.'],
+  'std.guided': ['„მაჩვენე“ → „შენი ჯერი“, ყოველ ნოტზე.', '“Show me” → “Your turn”, note by note.'],
+  'les.resumeAt': ['გაგრძელება: {s} · ტაქტი {b}', 'Resume: {s} · bar {b}'], 'les.coach': ['ჭკვიანი ვარჯიში', 'Smart practice'],
+  'more.tools': ['ხელსაწყოები', 'Tools'], 'more.profile': ['პროფილი', 'Profile'], 'more.settings': ['პარამეტრები', 'Settings'], 'more.settingsD': ['აუდიო, მიკროფონი, ენა, წვდომა, კონფიდენციალურობა', 'Audio, microphone, language, accessibility, privacy'],
+  'pr.songs': ['ნასწავლი სიმღერები', 'Songs learned'], 'pr.cleanTempo': ['უმაღლესი სუფთა ტემპი', 'Highest clean tempo'], 'pr.firstAvg': ['პირველივე ცდით (ბოლო 10)', 'First try (last 10)'],
+  'pr.timingStab': ['დროის სტაბილურობა', 'Timing stability'], 'pr.pitchStab': ['ბგერის სტაბილურობა', 'Pitch stability'], 'pr.difficult': ['რთული მონაკვეთები', 'Difficult sections'], 'pr.difficultD': ['შენი ისტორიიდან: სადაც ყველაზე ხშირად გჭირდება მეორე ცდა, გამოგრჩება ნოტი ან ანელებ ტემპს.', 'From your history: where you most often need a second try, miss notes or lower the tempo.'],
+  'pr.title': ['პროგრესი', 'Progress'], 'pr.lead': ['მუსიკალური წინსვლა — არა ქულები.', 'Musical improvement — not points.'],
+  'pr.lessons': ['გაკვეთილები', 'Lessons'], 'pr.completed': ['ათვისებული', 'Mastered'], 'pr.time': ['ვარჯიშის დრო', 'Practice time'], 'pr.tempo': ['კომფორტული ტემპი', 'Comfortable tempo'],
+  'pr.pitchTrend': ['ბგერის სიზუსტე · ბოლო სესიები', 'Pitch accuracy · recent sessions'], 'pr.timingTrend': ['დრო (±90 მწ) · ბოლო სესიები', 'Timing (±90 ms) · recent sessions'],
+  'pr.noData': ['ჯერ საკმარისი სესია არ არის. ტრენდი გამოჩნდება 2+ ვარჯიშის შემდეგ.', 'Not enough sessions yet. Trends appear after 2+ practice sessions.'],
+  'pr.noTiming': ['დრო ფასდება მხოლოდ WAIT-ის გარეშე დაკვრისას.', 'Timing is scored only when playing without WAIT.'],
+  'pr.chords': ['ათვისებული აკორდები', 'Mastered chords'], 'pr.melodies': ['ათვისებული მელოდიები', 'Mastered melodies'], 'pr.problems': ['პრობლემური ლადები', 'Problem frets'], 'pr.problemsD': ['სადაც ყველაზე ხშირად დაგჭირდა მეორე ცდა.', 'Where you most often needed a second try.'],
+  'pr.sessions': ['ბოლო სესიები', 'Recent sessions'], 'pr.bests': ['პირადი რეკორდები', 'Personal bests'], 'pr.none': ['ჯერ არაფერი.', 'Nothing yet.'], 'pr.streak': ['სერია: {n} დღე', 'Streak: {n} days'],
+  'pr.firstTry': ['პირველივე ცდით', 'first try'],
+  'set.title': ['პარამეტრები', 'Settings'], 'set.general': ['ზოგადი', 'General'], 'set.lang': ['ენა', 'Language'], 'set.account': ['ანგარიში და მონაცემები', 'Account and data'], 'set.audio': ['აუდიო', 'Audio'], 'set.panduri': ['ფანდური', 'Panduri'], 'set.learning': ['სწავლა', 'Learning'], 'set.visual': ['ვიზუალი', 'Visuals'], 'set.a11y': ['წვდომა', 'Accessibility'], 'set.privacy': ['კონფიდენციალურობა', 'Privacy'], 'set.author': ['ავტორის რეჟიმი', 'Author mode'],
+  'set.calib': ['მიკროფონის კალიბრაცია', 'Microphone calibration'], 'set.calibD': ['ხმაური, მგრძნობელობა, ღია სიმები, დაყოვნება.', 'Noise, sensitivity, open strings, latency.'], 'set.calibLast': ['ბოლო: {d} · დაყოვნება {l} მწ', 'Last: {d} · latency {l} ms'], 'set.calibNever': ['ჯერ არ ჩატარებულა', 'Not done yet'],
+  'set.sens': ['მიკროფონის მგრძნობელობა', 'Mic sensitivity'], 'set.tol': ['ბგერის დაშვება (ცენტი)', 'Pitch tolerance (cents)'], 'set.guard': ['მეტრონომის დაწკაპუნების იგნორირება', 'Ignore metronome clicks'], 'set.guardD': ['დინამიკებით ვარჯიშისას', 'When practicing on speakers'],
+  'set.vInst': ['ინსტრუმენტის ხმა', 'Instrument volume'], 'set.vMetro': ['მეტრონომი', 'Metronome'], 'set.vRef': ['ჩანაწერი', 'Reference audio'], 'set.vUi': ['ინტერფეისის ხმები', 'UI sounds'],
+  'set.tuning': ['აწყობა', 'Tuning'], 'set.a4': ['A4 სიხშირე', 'A4 reference'], 'set.lefty': ['ცაციის რეჟიმი', 'Left-handed view'], 'set.leftyD': ['ტარი და ხელები სარკისებურად; ტექსტი არა', 'Neck and hands mirrored; text is not'],
+  'set.samples': ['ჩაწერილი ნიმუშები', 'Recorded samples'], 'set.samplesD': ['ფანდურის ჩაწერილი ნიმუშები: {n}. სადაც ჩანაწერი არ არის, ხმა ფიზიკური მოდელით იქმნება. ნიმუშები სტუდიაში ემატება.', 'Recorded panduri samples: {n}. Where no recording exists the sound is physically modelled. Samples are added in the Studio.'],
+  'set.assist': ['დახმარების დონე', 'Assistance level'], 'as.auto': ['ავტომატური', 'Automatic'], 'as.beginner': ['დამწყები', 'Beginner'], 'as.intermediate': ['საშუალო', 'Intermediate'], 'as.advanced': ['გამოცდილი', 'Advanced'], 'as.performance': ['შესრულება', 'Performance'],
+  'set.assistD': ['ავტომატური: ათვისებასთან ერთად თანდათან იმალება სახელები, ლადები, თითები და ხელი.', 'Automatic: names, frets, fingers and hand fade out as you master a lesson.'],
+  'set.countIn': ['ათვლა', 'Count-in'], 'set.metro': ['მეტრონომი ნაგულისხმევად', 'Metronome by default'], 'set.autoDemo': ['„მაჩვენე“ ავტომატურად ყოველ ნოტაზე', 'Auto “Show me” at every note'], 'set.touchSound': ['ხმა შეხებისას', 'Sound on touch'],
+  'set.quality': ['გრაფიკის ხარისხი', 'Graphics quality'], 'q.auto': ['ავტო', 'Auto'], 'q.high': ['მაღალი', 'High'], 'q.medium': ['საშუალო', 'Medium'], 'q.low': ['დაბალი', 'Low'],
+  'set.hc': ['მაღალი კონტრასტი', 'High contrast'], 'set.text': ['ტექსტის ზომა', 'Text size'], 'ts.m': ['ჩვეულებრივი', 'Normal'], 'ts.l': ['დიდი', 'Large'], 'ts.xl': ['ძალიან დიდი', 'Extra large'],
+  'set.motion': ['მოძრაობის შემცირება სისტემის პარამეტრით კონტროლდება.', 'Reduced motion follows your system setting.'],
+  'set.privacyD': ['მიკროფონის აუდიო მხოლოდ ამ მოწყობილობაზე ანალიზდება. არაფერი იწერება და არაფერი იგზავნება. ანალიტიკა არ გროვდება.', 'Microphone audio is analysed only on this device. Nothing is recorded or sent. No analytics are collected.'],
+  'set.micNow': ['მიკროფონი ახლა: {s}', 'Microphone now: {s}'], 'set.micStop': ['მიკროფონის გამორთვა', 'Turn microphone off'], 'set.wipe': ['ყველა მონაცემის წაშლა', 'Delete all data'], 'set.wipeD': ['პროგრესი, პარამეტრები, შენი გაკვეთილები.', 'Progress, settings, your lessons.'],
+  'set.authorD': ['ჩართავს სტუდიას: გაკვეთილების შექმნა და რედაქტირება.', 'Enables the Studio: create and edit lessons.'], 'set.onboard': ['საწყისი გაცნობა თავიდან', 'Run the welcome again'], 'set.keys': ['კლავიატურა', 'Keyboard'],
+  'set.install': ['აპად დაყენება', 'Install as an app'], 'set.installD': ['ბრაუზერის მენიუდან: „Add to Home Screen“ / „Install“. ოფლაინ მუშაობს შენახული გაკვეთილებით.', 'From the browser menu: “Add to Home Screen” / “Install”. Saved lessons work offline.']
+});
+
+
+PD.i18n.add({
+  'nav.chords': ['აკორდები', 'Chords'], 'nav.songs': ['სიმღერები', 'Songs'], 'nav.practice': ['ვარჯიში', 'Practice'], 'nav.profile': ['პროფილი', 'Profile'], 'nav.tuner': ['ტიუნერი', 'Tuner'], 'nav.ai': ['AI ანალიზი', 'AI analysis'], 'nav.aiT': ['ანალიზი', 'Analysis'],
+  'gr.morning': ['დილა მშვიდობისა', 'Good morning'], 'gr.day': ['გამარჯობა', 'Hello'], 'gr.evening': ['საღამო მშვიდობისა', 'Good evening'],
+  'hm.goal': ['დღეს: {a} / {b} წთ', 'Today: {a} / {b} min'], 'hm.streak': ['{n} დღე ზედიზედ', '{n}-day streak'], 'hm.daily': ['დღევანდელი ვარჯიში', 'Daily practice'], 'hm.dailyD': ['{d} / {n} ეტაპი · {m} წთ', '{d} / {n} parts · {m} min'],
+  'hm.song': ['ისწავლე სიმღერა', 'Learn a song'], 'hm.songD': ['სიმღერები და მელოდიები', 'Songs and melodies'], 'hm.rhythms': ['რიტმები', 'Rhythms'], 'hm.rhythmsD': ['მასწავლებლის 4 რიტმი', 'The teacher’s 4 rhythms'],
+  'hm.exercises': ['სავარჯიშოები', 'Exercises'], 'hm.exercisesD': ['ნოტები, ლადები, სმენა', 'Notes, frets, ear'], 'hm.recent': ['ბოლოს დაკრული', 'Recently played'], 'hm.recommended': ['რეკომენდებული შემდეგი', 'Recommended next'],
+  'cat.rhythm': ['რიტმები', 'Rhythms'], 'cat.technique': ['ტექნიკა', 'Technique'], 'sg.title': ['სიმღერები და სავარჯიშოები', 'Songs and exercises'], 'sg.search': ['ძიება', 'Search'],
+  'f.skill': ['უნარი', 'Skill'], 'f.anySkill': ['ნებისმიერი უნარი', 'Any skill'], 'f.dur': ['ხანგრძლივობა', 'Duration'], 'f.anyDur': ['ნებისმიერი ხანგრძლივობა', 'Any duration'], 'f.short': ['≤ 30 წმ', '≤ 30 s'], 'f.mid': ['30 წმ – 2 წთ', '30 s – 2 min'], 'f.long': ['> 2 წთ', '> 2 min'],
+  'sk.notes': ['ნოტები', 'Notes'], 'sk.strings': ['სიმები', 'Strings'], 'sk.frets': ['ლადები', 'Frets'], 'sk.fingering': ['თითები', 'Fingering'], 'sk.rhythm': ['რიტმი', 'Rhythm'], 'sk.strumming': ['ჩაკვრა/ამოკვრა', 'Strumming'],
+  'sk.accents': ['აქცენტები', 'Accents'], 'sk.positions': ['პოზიციები', 'Positions'], 'sk.chords': ['აკორდები', 'Chords'], 'sk.melody': ['მელოდია', 'Melody'], 'sk.speed': ['სისწრაფე', 'Speed'],
+  'ls.learn': ['რას ისწავლი', 'What you will learn'], 'ls.technique': ['საჭირო ტექნიკა', 'Technique needed'], 'ls.duration': ['ხანგრძლივობა', 'Duration'], 'ls.tempo': ['ტემპი', 'Tempo'], 'ls.est': ['~{m} წთ ვარჯიში', '~{m} min of practice'],
+  'ls.learnBtn': ['სწავლა', 'Learn'], 'ls.practiceBtn': ['ვარჯიში', 'Practice'], 'ls.fullBtn': ['სრულად დაკვრა', 'Play full song'], 'ls.listen': ['მოსმენა', 'Listen'], 'ls.sections': ['გაკვეთილის ნაწილები', 'Lesson sections'],
+  'ls.intro': ['შესავალი', 'Intro'], 'ls.rhythm': ['რიტმი', 'Rhythm'], 'ls.combined': ['ერთად', 'Combined'], 'ls.full': ['სრული შესრულება', 'Full performance'], 'ls.introD': ['რას ვისწავლით — მასწავლებლის ტექსტი და ვიდეო', 'What we will learn — teacher text and video'],
+  'ls.phraseD': ['ლოდინის რეჟიმი: ნოტი-ნოტ', 'Wait mode: note by note'], 'ls.rhythmD': ['მხოლოდ მარჯვენა ხელი, ღია სიმებზე', 'Right hand only, on open strings'], 'ls.combinedD': ['ყველა ნაწილი ერთად, უწყვეტად, ნელ ტემპზე', 'All parts together, continuous, slower tempo'], 'ls.fullD': ['სრული ტემპი, საბოლოო შეფასება', 'Full tempo, final score'],
+  'ls.best': ['საუკეთესო: {p}%', 'Best: {p}%'],
+  'pr.level': ['დონე', 'Level'], 'pr.rhythms': ['ნასწავლი რიტმები', 'Rhythms learned'], 'pr.noteAcc': ['ნოტების სიზუსტე', 'Note accuracy'], 'pr.timeAcc': ['დროის სიზუსტე', 'Timing accuracy'], 'pr.avgTempo': ['საშუალო ტემპი', 'Average tempo'],
+  'pr.longest': ['ყველაზე გრძელი სერია', 'Longest streak'], 'pr.skills': ['უნარების რუკა', 'Skill map'], 'pr.trend': ['{k} ბოლო 7 დღეში: {a} → {b}', '{k} over the last 7 days: {a} → {b}'], 'pr.days': ['{n} დღე', '{n} days'],
+  'lv.foundation': ['საფუძვლები', 'Foundation'], 'lv.beginner': ['დამწყები', 'Beginner'], 'lv.intermediate': ['საშუალო', 'Intermediate'], 'lv.advanced': ['რთული', 'Advanced'],
+  'pf.title': ['პროფილი', 'Profile'], 'pf.photo': ['ფოტოს შეცვლა', 'Change photo'], 'pf.goal': ['დღიური მიზანი', 'Daily goal'], 'pf.achievements': ['მიღწევები', 'Achievements'], 'pf.saved': ['შენახული', 'Saved'],
+  'pf.downloads': ['ოფლაინ', 'Offline'], 'pf.downloadsD': ['ჩაშენებული გაკვეთილები, რიტმები და ტრენაჟორები ოფლაინ მუშაობს, როცა აპი დაყენებულია. მასწავლებლის ვიდეოები ცალკე ინახება, მხოლოდ შენი არჩევით.', 'Built-in lessons, rhythms and trainers work offline when the app is installed. Teacher videos are saved separately, only when you choose.'],
+  'pf.account': ['ანგარიში', 'Account'], 'pr.stage': ['პროგრამის ეტაპი', 'Programme stage'], 'pf.open': ['პროფილი', 'Profile'], 'pm.none': ['პრემიუმი არ არის ჩართული', 'Premium is not active'], 'pf.guest': ['სტუმარი · ამ მოწყობილობაზე', 'Guest · on this device'], 'pf.signin': ['შესვლა ან ანგარიშის შექმნა', 'Sign in or create account'], 'pf.links': ['მეტი', 'More'],
+  'ac.firstMelody': ['პირველი მელოდია', 'First melody'], 'ac.firstMelodyD': ['მელოდია ბოლომდე დაკარი', 'Played a melody to the end'], 'ac.sessions10': ['10 ვარჯიში', '10 practice sessions'], 'ac.sessions10D': ['10 დასრულებული სესია', '10 finished sessions'],
+  'ac.perfectRhythm': ['სუფთა რიტმი', 'Perfect rhythm'], 'ac.perfectRhythmD': ['რიტმი შეცდომის გარეშე, დროის გაზომვით', 'A rhythm without a mistake, timing measured'], 'ac.notes100': ['100 სწორი ნოტი', '100 notes correct'], 'ac.notes100D': ['მიკროფონით დადასტურებული', 'Confirmed by the microphone'],
+  'ac.fullSong': ['სრული სიმღერა', 'Full song completed'], 'ac.fullSongD': ['სიმღერა სრულ ტემპზე, 80%+', 'A song at full tempo, 80%+'], 'ac.week': ['კვირა ზედიზედ', 'A week in a row'], 'ac.weekD': ['7 დღე ზედიზედ ვარჯიში', 'Practised 7 days in a row'],
+  'ph.title': ['ვარჯიში', 'Practice'], 'ph.lead': ['ტრენაჟორები და ხელსაწყოები — ყველაფერი ნამდვილ ფანდურზე.', 'Trainers and tools — all on your real panduri.'],
+  'ph.trainerD': ['„დაუკარი C♯“ — მიკროფონი ამოწმებს', '“Play C♯” — the microphone checks'], 'ph.rhythmsD': ['ჩაკვრა/ამოკვრა, აქცენტები, დრო', 'Down/up, accents, timing'], 'ph.metroD': ['BPM, ზომა, დაყოფა, ტაპი', 'BPM, signature, subdivision, tap'],
+  'ln.title': ['სწავლა', 'Learn'], 'ln.lead': ['ეტაპობრივად: საფუძვლებიდან სოლომდე. სადაც მასწავლებლის მასალა ჯერ არ არის, ასე წერია.', 'Step by step: from foundations to solo. Where the teacher’s material is not in yet, it says so.'],
+  'ln.awaiting': ['მასწავლებლის მასალას ელოდება', 'Awaiting the teacher’s material'], 'ln.open': ['გახსნა', 'Open'],
+  'set.microphone': ['მიკროფონი', 'Microphone'], 'set.noise': ['ხმაურის ფილტრი', 'Noise filtering'], 'set.latency': ['დაყოვნების კალიბრაცია', 'Latency calibration'], 'set.vFeedback': ['უკუკავშირის ხმა', 'Feedback volume'],
+  'set.waitDefault': ['ლოდინის რეჟიმი ნაგულისხმევად', 'Wait mode by default'], 'set.autoAdvance': ['სწორი ნოტის შემდეგ ავტომატურად გაგრძელება', 'Continue automatically after a correct note'], 'set.noteNames': ['ნოტების სახელები', 'Note names'], 'set.fretNums': ['ლადების ნომრები', 'Fret numbers'],
+  'set.fps': ['კადრების სიხშირე', 'Frame rate'], 'fps.auto': ['ავტო', 'Auto'], 'fps.30': ['ეკონომიური · 30', 'Battery · 30'], 'set.reduceMotion': ['მოძრაობის შემცირება', 'Reduce motion'], 'set.hands': ['ხელების ჩვენება', 'Show hands'], 'set.haptics': ['ვიბრაცია', 'Haptic feedback'],
+  'q.ultra': ['ულტრა', 'Ultra'], 'q.balanced': ['დაბალანსებული', 'Balanced'], 'set.colorblind': ['ფერის ნაცვლად ფორმებიც', 'Shapes as well as colours'], 'set.accountSec': ['ანგარიში', 'Account'], 'set.learningSec': ['სწავლა', 'Learning'], 'set.visualSec': ['ვიზუალი', 'Visual']
+});
+
+PD.i18n.add({
+  'st.chords': ['აკორდები რიტმით', 'Chords with the rhythm'], 'std.chords': ['Dm (2 რითმი) → B♭ (1) → C (1), ყველა დარტყმით. ნელა (60%), მუსიკასთან ერთად — შესავალი და პირველი მუხლი.', 'Dm (2 rhythms) → B♭ (1) → C (1), every stroke. Slowly (60%), with the music — the intro and the first verse.'],
+  'std.songDemo': ['მოუსმინე და უყურე: ზოლზე ჩანს აკორდი და ყოველი დარტყმა.', 'Listen and watch: the line shows the chord and every stroke.'],
+  'std.songRhythm': ['ჯერ მხოლოდ მარჯვენა ხელი: ჩაკვრა · ჩაკვრა · ამოკვრა Dm-ზე, ნელა, წრეზე.', 'First the right hand only: down · down · up on Dm, slowly, looped.'],
+  'std.songSlow': ['მთელი სიმღერა მუსიკასთან ერთად, 70% ტემპით.', 'The whole song with the music, at 70% tempo.'],
+  'std.songFull': ['მთელი სიმღერა ორიგინალ ტემპში.', 'The whole song at the original tempo.'],
+  'st.songRhythm': ['რიტმი: ჩაკვრა · ჩაკვრა · ამოკვრა', 'Rhythm: down · down · up'], 'st.songSlow': ['მთელი სიმღერა ნელა', 'The whole song, slowly'], 'st.songFull': ['სრული სიმღერა', 'The full song'],
+  'sg.mix': ['ხმა', 'Sound'], 'mix.full': ['ვოკალით', 'With vocals'], 'mix.music': ['ვოკალის გარეშე', 'No vocals'], 'mix.vocals': ['მხოლოდ ვოკალი', 'Vocals only'], 'mix.off': ['მხოლოდ მეტრონომი', 'Metronome only'], 'mix.synth': ['სინთეზატორი', 'Synthesizer'],
+  'snd.orig': ['ორიგინალი ჩანაწერი', 'Original recording'], 'snd.synth': ['სინთეზატორი', 'Synthesizer'],
+  'snd.origD': ['ნამდვილი სიმღერა. ნელ ტემპზე ნელდება ბგერის სიმაღლის შეუცვლელად.', 'The real song. At a slower tempo it slows down without changing pitch.'],
+  'snd.synthD': ['აპი თავად უკრავს ფანდურის აკორდებს და რიტმს — სუფთად, ნებისმიერ ტემპზე.', 'The app plays the panduri chords and rhythm itself — clean, at any tempo.'],
+  'snd.full': ['ორიგინალი · ვოკალით', 'Original · with vocals'], 'snd.music': ['ორიგინალი · ვოკალის გარეშე', 'Original · no vocals'], 'snd.vocals': ['ორიგინალი · მხოლოდ ვოკალი', 'Original · vocals only'], 'snd.off': ['მხოლოდ მეტრონომი', 'Metronome only'],
+  'snd.guideOn': ['აპი თან გიკრავს (სინთეზატორი)', 'The app plays along (synthesizer)'], 'snd.guideOff': ['მხოლოდ მეტრონომი', 'Metronome only'],
+  'sg.auto': ['აკორდები და მათი თანმიმდევრობა მასწავლებლისაა. დრო აღებულია ჩანაწერიდან: აპი მიჰყვება ცოცხალი შესრულების ყველა დარტყმას, ამიტომ მეტრონომი და აკორდები მუსიკას ემთხვევა.', 'Chords and their order are the teacher\'s. Timing comes from the recording: the app follows every beat of the live performance, so the metronome and chords match the music.'],
+  'sg.cycle': ['თანმიმდევრობა — მთელ სიმღერაში მეორდება', 'Progression — repeats through the whole song'], 'sg.rhythms': ['{n} რითმი', '{n} rhythm'], 'sg.oneRhythm': ['1 რითმი = ჩაკვრა · ჩაკვრა · ამოკვრა', '1 rhythm = down · down · up'],
+  'sg.cycles': ['{n} წრე', '{n} cycles'],
+  'sg.shapes': ['აკორდები', 'Chords'], 'sg.bars': ['{n} ტაქტი', '{n} bars'], 'sg.parts': ['სიმღერის ნაწილები', 'Parts of the song'], 'sg.derived': ['შესამოწმებელია', 'to confirm'],
+  'sg.headphones': ['ჩანაწერთან ერთად დაკვრისას ყურსასმენი აჯობებს — მიკროფონი მაშინ მხოლოდ შენს ფანდურს გაიგებს.', 'When playing along with the recording, headphones work best — then the microphone hears only your panduri.']
+});
+PD.i18n.add({
+  'set.dev': ['დეველოპერი', 'Developer'], 'set.server': ['სერვერი (Supabase)', 'Server (Supabase)'], 'set.serverD': ['ჩასვი პროექტის URL და anon key — ანგარიშები, VIP და მიმოწერა ჩაირთვება.', 'Paste the project URL and anon key — accounts, VIP and messaging switch on.'], 'set.serverOn': ['დაკავშირებულია', 'Connected'], 'set.serverSave': ['შენახვა', 'Save'], 'set.devTouch': ['შეხებით ტესტი (მიკროფონის გარეშე)', 'Touch test (without microphone)'],
+  'set.devTouchD': ['მხოლოდ შემოწმებისთვის: ტარზე შეხება ნოტად ითვლება. სწავლისას ეს არ გამოიყენება — ნოტს მხოლოდ ნამდვილი ფანდურის ხმა ასრულებს.', 'For testing only: tapping the neck counts as a note. Not used for learning — only the sound of a real panduri completes a note.']
+});
+PD.i18n.add({
+  'hx.hi': ['გამარჯობა', 'Hello'], 'hd.practice': ['სავარჯიშოები', 'Exercises'], 'hd.practiceD': ['ტრენაჟორები და მეტრონომი', 'Trainers and metronome'], 'hd.songsN': ['{n} სიმღერა', '{n} songs'], 'hd.chordsN': ['{n} აკორდი', '{n} chords'], 'hd.theory': ['თეორია', 'Theory'], 'hd.theoryD': ['ნოტები და გამები', 'Notes and scales'], 'hd.popular': ['სიმღერები', 'Songs'],
+  'set.uiSounds': ['ღილაკების ხმა', 'Button sounds'], 'set.uiSoundsD': ['მსუბუქი ხმა დაჭერისას; სიმძლავრე — „უკუკავშირის ხმა“', 'A soft sound on tap; level = “feedback volume”'],
+  'au.signoutQ': ['ანგარიშიდან გასვლა? პროგრესი ანგარიშში რჩება — შესვლისას დაბრუნდება.', 'Sign out? Your progress stays in the account and comes back when you sign in.'], 'au.signedOut': ['გამოხვედი ანგარიშიდან', 'Signed out'],
+  'pf.owner': ['მფლობელი · პრემიუმი სამუდამოდ', 'Owner · lifetime Premium'],
+  'pf.student': ['მოსწავლე', 'Student'], 'pf.level': ['ლეველი', 'Level'], 'pf.lessons': ['ნასწავლი', 'Learned'], 'pf.progress': ['პროგრესი', 'Progress'], 'set.data': ['მონაცემები', 'Your data'],
+  'lnx.songsD': ['სიმღერები, მელოდიები და სოლოები — დონეების მიხედვით', 'Songs, melodies and solos — by level'],
+  'hxq.cam': ['კამერით', 'Camera'], 'hxq.camD': ['დაუკარი აპთან ერთად', 'Play along with the app'], 'hxq.ai': ['AI სტუდია', 'AI studio'], 'hxq.aiD': ['შენი სიმღერის აკორდები', 'Chords of your song'],
+  'hx.hello': ['გამარჯობა, {n}', 'Hello, {n}'], 'hx.goal': ['დღევანდელი მიზანი', "Today's goal"], 'hx.goalV': ['{a} / {b} წუთი', '{a} / {b} min'],
+  'hx.continue': ['გააგრძელე სწავლა', 'Continue learning'], 'hx.quick': ['სწრაფი წვდომა', 'Quick access'], 'set.gAccount': ['ანგარიში', 'Account'], 'set.gLearn': ['სწავლა', 'Learning'], 'set.gAudio': ['აუდიო', 'Audio'], 'set.gVisual': ['ვიზუალი და ხელმისაწვდომობა', 'Visual and accessibility'], 'set.gData': ['მონაცემები და კონფიდენციალურობა', 'Data and privacy'], 'set.gOwner': ['მფლობელი და ავტორი', 'Owner and author'], 'ls.path': ['სასწავლო გზის ნახვა', 'View learning path'], 'ls.next': ['შემდეგი ნაბიჯი', 'Next step'], 'hx.metro': ['მეტრონომი', 'Metronome'], 'hx.recent': ['ბოლო შედეგები', 'Recent results'], 'hx.noRes': ['ჯერ შედეგი არ გაქვს — დაუკარი ნებისმიერი სავარჯიშო და აქ გამოჩნდება.', 'No results yet — play any exercise and it will show here.'], 'hx.trainer': ['ტრენაჟორი', 'Trainer'], 'hx.roadK': ['დაუკარი აპთან ერთად', 'Play along'], 'hx.roadD': ['ნოტები მოდის შენკენ — აპი გისმენს და გეუბნება, ზუსტად დაუკარი თუ არა', 'Notes come toward you — the app listens and tells you if you hit them'], 'hx.start': ['დაიწყე აქედან', 'Start here'], 'hx.go': ['გაგრძელება', 'Continue'], 'hx.all': ['ყველა', 'All'],
+  'hx.forYou': ['შენთვის', 'For you'], 'hx.songs': ['სიმღერები', 'Songs'], 'hx.melodies': ['მელოდიები', 'Melodies'], 'hx.rhythms': ['რიტმები', 'Rhythms'], 'hx.exercises': ['სავარჯიშოები', 'Exercises'], 'hx.recent': ['ბოლოს ნავარჯიშები', 'Recently practised'],
+  'ln.tab.theory': ['თეორია', 'Theory'], 'ln.levels': ['სწავლის ლეველები', 'Learning levels'], 'ln.xp': ['ქულების დონე {n} (XP)', 'Points level {n} (XP)'], 'ln.lvN': ['ლეველი {n}', 'Level {n}'], 'ln.lvT1': ['დამწყები', 'Beginner'], 'ln.lvT2': ['საშუალო', 'Intermediate'], 'ln.lvT3': ['რთული', 'Advanced'], 'ln.tab.practice': ['პრაქტიკა', 'Practice'], 'ln.diff1': ['მარტივი', 'Easy'], 'ln.diff2': ['საშუალო', 'Medium'], 'ln.diff3': ['რთული', 'Hard'], 'ln.firstD': ['დაჯდომა, დაჭერა, თითები, სიმები, მოვლა', 'Sitting, holding, fingers, strings, care'],
+  'ln.tool': ['ხელსაწყო', 'Tool'], 'ln.chapter': ['თეორიის თავი · ხმით', 'Theory chapter · with sound'], 'ln.tip': ['მოკლე ბარათი · ანიმაცია', 'Short card · animation'], 'ln.solfege': ['სმენის ვარჯიში', 'Ear training'], 'ln.part1': ['ნაწილი 1 · თეორია', 'Part 1 · Theory'], 'ln.part1D': ['ჯერ გაიცანი ინსტრუმენტი, ნოტები, გამები, რითმი და სმენა', 'First the instrument, notes, scales, rhythm and the ear'], 'ln.part2': ['ნაწილი 2 · პრაქტიკა', 'Part 2 · Practice'], 'ln.part2D': ['ახლა — ფანდურზე, მიკროფონთან ერთად', 'Now on the panduri, with the microphone'], 'ln.theory': ['თეორია · {d}/{n} თავი', 'Theory · {d}/{n} chapters']
+});
+PD.app = (() => {
+  const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
+  const NAV = [['home', 'nav.home', ic.home], ['learn', 'nav.learn', ic.learn], ['chords', 'nav.chords', ic.chord], ['tuner', 'nav.tuner', ic.tune], ['ai', 'nav.aiT', '<span class="nav-ai">AI</span>'], ['profile', 'nav.profile', ic.user]];   // the exam is not a tab: it covers the screen when it is due
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'learn', tips: 'learn', solfege: 'learn', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'learn', chordhow: 'learn', music: 'learn', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'profile', pmadmin: 'profile' };
+  let route = 'home', param = null;
+  const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
+
+  function shell() {
+    document.documentElement.lang = PD.i18n.lang;
+    document.documentElement.dataset.theme = 'copper';
+    if (PD.store.get('hc', false)) document.documentElement.classList.add('hc');
+    if (PD.store.get('reduceMotion', false)) document.documentElement.classList.add('rm');
+    const ts = PD.store.get('textSize', 'm'); if (ts !== 'm') document.documentElement.classList.add('ts-' + ts);
+    const rail = h('nav', { class: 'rail', 'aria-label': 'main' }, [h('div', { class: 'mark', html: '<span data-t="app.name"></span><small>A · C♯ · E</small>' })]);
+    const bar = h('nav', { class: 'tabbar', 'aria-label': 'main' });
+    NAV.forEach(([id, key, icon]) => {
+      const mk = () => h('button', { class: 'navb', 'data-go': id, html: icon + '<span data-t="' + key + '"></span>', onclick: () => go(id) });
+      rail.appendChild(mk()); bar.appendChild(mk());
+    });
+    const main = h('main', { class: 'main', id: 'main' });
+    document.body.append(h('div', { class: 'shell', id: 'shell' }, [rail, main]), bar);
+    swipeBack();
+    if (PD.samiSimi && PD.samiSimi.available) fetch((PD.CONFIG && PD.CONFIG.tunerUrl) || 'tuner/index.html', { method: 'HEAD', cache: 'no-store' }).then(r => { tunerOK = r.ok && !/text\/plain/.test(r.headers.get('content-type') || ''); }, () => { tunerOK = false; });   // where the tuner's files are not served (single-file build), the built-in tuner is used
+    PD.i18n.apply(document);
+    PD.bus.on('lang', () => render());
+    let cloudT = 0, cloudSig = '';
+    PD.bus.on('cloud', e => { if (!(e && e.session) && !document.querySelector('.ag')) setTimeout(() => { if (!PD.cloud.session && !document.querySelector('.ag')) PD.auth.gate(() => render(), { view: 'methods' }); }, 0); });
+    PD.bus.on('cloud', e => { const sig = (e && e.session && e.session.user ? e.session.user.id : '-') + ':' + JSON.stringify(e && e.profile ? [e.profile.role, e.profile.vip_until, e.profile.display_name, e.profile.owner, e.profile.premium_banned] : 0); if (sig === cloudSig) return; cloudSig = sig; clearTimeout(cloudT); cloudT = setTimeout(() => { if (['profile', 'settings', 'community', 'home', 'learn', 'songs'].includes(route) && !PD.practice.active && !document.querySelector('.sheet-back:not(.out)')) render(true); }, 60); });
+    PD.bus.on('lessons', () => { if (['home', 'lesson', 'learn', 'path', 'songs'].includes(route)) render(); });
+    window.addEventListener('popstate', e => {
+      if (!e.state && /access_token=|error_description=/.test(location.hash)) return;   // a sign-in link opened in this tab (handled by the account code)
+      if (PD.layers.onPop(e)) return;   // Back closed an overlay (sheet, lesson screen, studio…): the page stays
+      const s = e.state || { r: 'home' }; if (s.r === route && (s.p == null ? null : s.p) === param && $('page')) return;   // same page: keep it (and its scroll)
+      route = s.r || 'home'; param = s.p == null ? null : s.p;
+      { const k = route + ':' + (param == null ? '' : param); if (navStack.length > 1 && navStack[navStack.length - 2] === k) navStack.pop(); else navStack.push(k); }
+      if (e.hasUAVisualTransition) quietNext = true;   // the browser already animated its own swipe
+      render(true);
+    });
+    // Android hardware Back (installed app): the same as the browser's Back; on the first page it leaves the app
+    try { const A = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App; if (A && A.addListener) A.addListener('backButton', ev => { if (ev && ev.canGoBack) history.back(); else if (route !== 'home') go('home', null, true); else A.exitApp(); }); } catch (_) {}
+  }
+  /** "Delete all data": settings, progress, recordings, downloaded media, cached app files */
+  async function wipeAll() {
+    PD.store.keys().forEach(k => PD.store.del(k)); PD.store.del('progress.mt');   // a local wipe is not a change to sync: signing in again brings the account's copy back
+    try { await new Promise(res => { const r = indexedDB.deleteDatabase('pd2-blobs'); r.onsuccess = r.onerror = r.onblocked = () => res(); }); } catch (_) {}
+    try { if (indexedDB.databases) { const dbs = await indexedDB.databases(); await Promise.all(dbs.filter(d => d.name && /^pd/.test(d.name)).map(d => new Promise(res => { const r = indexedDB.deleteDatabase(d.name); r.onsuccess = r.onerror = r.onblocked = () => res(); }))); } } catch (_) {}
+    try { if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); } } catch (_) {}
+    location.reload();
+  }
+  function go(r, p, replace) {
+    if (r === 'library') r = 'songs'; if (r === 'more') r = 'profile'; if (r === 'tools') r = 'practice';
+    if (r === 'tuner' && PD.samiSimi && PD.samiSimi.available && tunerOK !== false) { PD.samiSimi.open(); return; }   // the tuner „სამი სიმი“ opens full screen over the page, as before
+    const same = r === route && (p == null ? null : p) === param;   // tapping the tab that is already open adds no history entry
+    navDir = TOP[r] === r || replace ? 'tab' : 'fwd';
+    route = r; param = p == null ? null : p;
+    try { (replace || same || PD.layers.dangling() ? history.replaceState : history.pushState).call(history, { r, p: param }, ''); } catch (_) {}
+    { const k = r + ':' + (param == null ? '' : param); if (replace || same || !navStack.length) { if (navStack.length) navStack[navStack.length - 1] = k; else navStack.push(k); } else navStack.push(k); }
+    render();
+  }
+  /* ---------- screen transitions ----------
+     deeper (push): the new screen slides in from the right over the old one, which moves a third of the way left and dims;
+     Back (pop): the reverse; another tab: a short cross-fade with the cards arriving in order; a re-draw of the same
+     screen does not move. A new navigation finishes any running one first, so screens never pile up. Scroll positions are
+     remembered per screen and restored on Back; the last screens are kept (static) for the swipe-back gesture. */
+  let lastKey = null, navDir = 'tab', quietNext = false;
+  const motionOK = () => !document.documentElement.classList.contains('rm') && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const M = { push: 380, tab: 260, ease: 'cubic-bezier(.32,.72,0,1)', out: 'cubic-bezier(.22,1,.36,1)', par: '-28%' };
+  const scrolls = {}, cache = new Map(), navStack = [];
+  let running = [];   // [{ A: animations, done }]
+  function settle() { const R = running; running = []; R.forEach(x => x.done()); const main = $('main'); if (main) main.querySelectorAll('.page.leave, .pg-dim').forEach(x => x.remove()); }
+  function keep(key, el) {   // a static copy of a screen we left, for the swipe-back gesture
+    if (!el || !key) return; el.classList.remove('leave', 'top-edge'); el.style.transform = ''; el.style.zIndex = ''; el.style.visibility = ''; el.inert = true; el.setAttribute('aria-hidden', 'true');
+    cache.delete(key); cache.set(key, el); while (cache.size > 6) cache.delete(cache.keys().next().value);
+  }
+  function animate(main, old, page, dir, oldKey) {
+    if (!old) return;
+    if (!dir || !motionOK()) { if (dir === 'fwd') { old.remove(); keep(oldKey, old); } else old.remove(); return; }
+    old.removeAttribute('id'); old.classList.add('leave'); old.inert = true; old.setAttribute('aria-hidden', 'true');
+    const o = { duration: dir === 'tab' ? M.tab : M.push, easing: M.ease, fill: 'both' }, A = []; let dim = null;
+    if (dir === 'fwd' || dir === 'back') {
+      dim = h('div', { class: 'pg-dim', 'aria-hidden': 'true' });
+      if (dir === 'fwd') { main.insertBefore(dim, page); page.classList.add('top-edge'); A.push(page.animate([{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }], o), old.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(' + M.par + ')' }], o), dim.animate([{ opacity: 0 }, { opacity: 1 }], o)); }
+      else { main.appendChild(dim); main.appendChild(old); old.style.zIndex = 3; old.classList.add('top-edge'); A.push(old.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }], o), page.animate([{ transform: 'translateX(' + M.par + ')' }, { transform: 'translateX(0)' }], o), dim.animate([{ opacity: 1 }, { opacity: 0 }], o)); }
+    } else {   // tab: the old screen fades quickly, the new one rises a few pixels, its first cards follow in order
+      A.push(old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: 'ease-out', fill: 'both' }), page.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: M.tab, easing: M.out, delay: 50, fill: 'both' }));
+      [...page.querySelectorAll('.wrap > *')].slice(1, 8).forEach((el, k) => A.push(el.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: M.out, delay: 90 + k * 35, fill: 'backwards' })));
+    }
+    let fin = false;
+    const done = () => { if (fin) return; fin = true; A.forEach(a => { try { a.cancel(); } catch (_) {} }); page.classList.remove('top-edge'); if (dim) dim.remove(); old.remove(); if (dir === 'fwd') keep(oldKey, old); running = running.filter(x => x.done !== done); };
+    running.push({ A, done });
+    Promise.all(A.map(a => a.finished)).then(done, done);
+  }
+  /** the tuner tab: the teacher's own tuner „სამი სიმი“ inside the page when its files are served beside the app, else the built-in one */
+  let tunerOK = null;
+  function tunerTab(w) {
+    w.parentNode.classList.add('page-tuner');
+    const built = () => { w.innerHTML = ''; PD.tools.tuner(w); PD.i18n.apply(w); };
+    const embed = () => {
+      try { if (PD.detector && PD.detector.active) PD.detector.stop(); } catch (_) {}
+      try { const K = 'sami-simi:v1', o = JSON.parse(localStorage.getItem(K) || '{}') || {}; if (!o.lang || o.lang === 'auto') { o.lang = PD.i18n.lang === 'en' ? 'en' : 'ka'; localStorage.setItem(K, JSON.stringify(o)); } } catch (_) {}
+      w.innerHTML = ''; w.classList.add('tun-wrap');
+      const fr = h('iframe', { class: 'ss-inline', src: (PD.CONFIG && PD.CONFIG.tunerUrl) || 'tuner/index.html', title: PD.i18n.t('ss.title') + ' — ' + PD.i18n.t('ss.sub'), allow: 'microphone; autoplay; fullscreen; clipboard-write' });
+      w.append(fr);
+      const un = PD.bus.on('route', r => { if (r !== 'tuner') { try { fr.src = 'about:blank'; } catch (_) {} un(); } });   // leaving the tab releases the microphone
+    };
+    if (!(PD.samiSimi && PD.samiSimi.available)) return built();
+    if (tunerOK === true) return embed();
+    if (tunerOK === false) return built();
+    built();   // shown at once; replaced by the teacher's tuner when its files answer
+    fetch((PD.CONFIG && PD.CONFIG.tunerUrl) || 'tuner/index.html', { method: 'HEAD', cache: 'no-store' }).then(r => { tunerOK = r.ok; if (r.ok && route === 'tuner' && w.isConnected) embed(); }, () => { tunerOK = false; });
+  }
+  function render(fromPop) {
+    const main = $('main'), key = route + ':' + (param == null ? '' : param), changed = key !== lastKey;
+    let dir = !changed ? null : fromPop ? 'back' : navDir;
+    if (quietNext) { dir = null; quietNext = false; }
+    const oldKey = lastKey; lastKey = key; navDir = 'fwd';
+    settle();
+    const old = $('page') || main.querySelector('.page:not(.leave)'), keepScroll = !changed && old ? old.scrollTop : 0;
+    if (old && oldKey) scrolls[oldKey] = old.scrollTop;
+    const top = TOP[route] || 'home';
+    document.querySelectorAll('.navb').forEach(b => { if (b.dataset.go === top) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    tabInd(top);
+    const page = h('div', { class: 'page', id: 'page' }), wrap = h('div', { class: 'wrap' }); page.appendChild(wrap);
+    if (old) old.removeAttribute('id');
+    main.appendChild(page);
+    /* the desktop layout reads this: a page of prose gets a reading column, a page of cards gets
+       the full width. On a phone it changes nothing — there is only ever one column there. */
+    const READ = { theory: 1, tips: 1, music: 1, book: 1, rhythm: 1, scales: 1, chordhow: 1, solfege: 1, cert: 1 };
+    const WIDE = { chords: 1, library: 1, songs: 1, learn: 1, home: 1, explore: 1, community: 1, ai: 1, progress: 1 };
+    document.documentElement.dataset.route = route;
+    document.documentElement.dataset.col = READ[route] ? 'read' : WIDE[route] ? 'wide' : 'mid';
+    PD.bus.emit('route', route);
+    // the helper rides along on every screen, and keeps out of the way inside a lesson
+    try { if (PD.sima) { PD.sima.close(); if (route === 'practice' || PD.practice.active) { const f = document.querySelector('.sm-fab'); if (f) f.remove(); } else { PD.sima.mount(); setTimeout(() => PD.sima.nudge(), 1800); } } } catch (_) {}
+    ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
+      daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
+      tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
+      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), book: () => PD.book.page(wrap, param), install: () => PD.install.page(wrap), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), progress, settings, profile }[route] || home)(wrap);
+    PD.i18n.apply(main);
+    const want = !changed ? keepScroll : (fromPop && scrolls[key]) || 0;
+    page.style.scrollBehavior = 'auto'; page.scrollTop = want;   // Back returns to where you were
+    if (want && page.scrollTop < want - 2) { let n = 0; const again = () => { if (!page.isConnected || n++ > 20) return; page.scrollTop = want; if (page.scrollTop < want - 2) setTimeout(again, 50); }; requestAnimationFrame(again); }
+    page.style.scrollBehavior = '';
+    if (old && old !== page) animate(main, old, page, dir, oldKey);
+    if (PD.exam && PD.exam.guard) setTimeout(PD.exam.guard, 0);   // an exam that is due covers the screen until it is passed
+    // keyboard / screen-reader users land on the new screen's title (touch users keep no focus ring)
+    if (changed && document.activeElement && document.activeElement !== document.body && main.contains(document.activeElement) === false && old && old.contains(document.activeElement) || (changed && old && old.contains(document.activeElement))) { const h1 = page.querySelector('h1'); if (h1) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); } }
+  }
+  /* ---------- swipe back from the left edge (installed app only: in a browser tab the browser has its own) ---------- */
+  function swipeBack() {
+    const main = $('main'); if (!main) return;
+    const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    let g = null;
+    main.addEventListener('touchstart', e => {
+      if (g || e.touches.length !== 1 || !standalone() || !motionOK() || PD.layers.depth || (PD.practice && PD.practice.active)) return;
+      const x = e.touches[0].clientX; if (x > 24 || navStack.length < 2) return;
+      const prevKey = navStack[navStack.length - 2], under = cache.get(prevKey), cur = main.querySelector('.page:not(.leave)'); if (!under || !cur) return;
+      settle();
+      const dim = h('div', { class: 'pg-dim', 'aria-hidden': 'true' });
+      main.insertBefore(under, cur); main.insertBefore(dim, cur); under.scrollTop = scrolls[prevKey] || 0; cur.classList.add('top-edge');
+      g = { x0: x, y0: e.touches[0].clientY, t0: performance.now(), cur, under, dim, W: main.clientWidth, on: false, dx: 0, v: 0, lt: performance.now(), lx: x };
+      under.style.transform = 'translateX(' + M.par + ')'; dim.style.opacity = 1;
+    }, { passive: true });
+    main.addEventListener('touchmove', e => {
+      if (!g) return; const x = e.touches[0].clientX, y = e.touches[0].clientY;
+      if (!g.on) { if (Math.abs(y - g.y0) > Math.abs(x - g.x0) && Math.abs(y - g.y0) > 8) return cancel(true); if (x - g.x0 < 6) return; g.on = true; }
+      e.preventDefault();
+      const now = performance.now(); g.v = (x - g.lx) / Math.max(1, now - g.lt); g.lx = x; g.lt = now;
+      g.dx = Math.max(0, x - g.x0); const p = Math.min(1, g.dx / g.W);
+      g.cur.style.transform = 'translateX(' + g.dx + 'px)'; g.under.style.transform = 'translateX(' + (-28 * (1 - p)) + '%)'; g.dim.style.opacity = 1 - p;
+    }, { passive: false });
+    const end = () => {
+      if (!g) return; if (!g.on) return cancel(true);
+      const p = g.dx / g.W, go2 = p > .38 || g.v > .45, rest = go2 ? 1 - p : p, dur = Math.max(120, Math.min(320, rest * 420)), G = g; g = null;
+      const o = { duration: dur, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' };
+      const a = [G.cur.animate([{ transform: G.cur.style.transform }, { transform: go2 ? 'translateX(100%)' : 'translateX(0)' }], o), G.under.animate([{ transform: G.under.style.transform }, { transform: go2 ? 'translateX(0)' : 'translateX(' + M.par + ')' }], o), G.dim.animate([{ opacity: G.dim.style.opacity }, { opacity: go2 ? 0 : 1 }], o)];
+      Promise.all(a.map(x => x.finished)).then(() => {
+        if (go2) { a.forEach(x => x.cancel()); G.cur.remove(); G.under.style.transform = ''; G.under.classList.add('leave'); G.dim.style.opacity = 0; quietNext = true; history.back(); }
+        else { a.forEach(x => x.cancel()); G.cur.style.transform = ''; G.cur.classList.remove('top-edge'); G.under.remove(); G.under.style.transform = ''; G.dim.remove(); }
+      });
+    };
+    function cancel() { if (!g) return; g.cur.style.transform = ''; g.cur.classList.remove('top-edge'); g.under.remove(); g.under.style.transform = ''; g.dim.remove(); g = null; }
+    main.addEventListener('touchend', end); main.addEventListener('touchcancel', () => cancel());
+  }
+  /** the active tab is marked by three short strings (A · C♯ · E) that slide to it and ring for a moment */
+  let tabNow = null;
+  function tabInd(top) {
+    document.querySelectorAll('.tabbar, .rail').forEach(nav => {
+      let ind = nav.querySelector('.tab-ind'); if (!ind) { ind = h('span', { class: 'tab-ind', 'aria-hidden': 'true', html: '<i></i><i></i><i></i>' }); nav.appendChild(ind); }
+      const b = nav.querySelector('.navb[data-go="' + top + '"]'); if (!b) { ind.style.opacity = '0'; return; }
+      const place = () => { const vert = nav.classList.contains('rail'); ind.style.opacity = '1'; ind.style.transform = vert ? 'translateY(' + (b.offsetTop + b.offsetHeight / 2 - 14) + 'px)' : 'translateX(' + (b.offsetLeft + b.offsetWidth / 2 - 14) + 'px)'; };
+      if (!b.offsetWidth) requestAnimationFrame(place); else place();
+      if (tabNow && tabNow !== top && motionOK() && PD.motion) PD.motion.spring(b.querySelector('svg'));
+    });
+    tabNow = top;
+  }
+  window.addEventListener('resize', () => { if (tabNow) { const t0 = tabNow; tabNow = null; tabInd(t0); } });
+
+  /* ---------- shared bits ---------- */
+  const TECH = new Set(['rh-down', 'rh-up', 'rh-alt', 'lh-fingers', 'lh-strings', 'pos-shift']);
+  const catOf = l => l.rhythm ? 'rhythm' : ['song', 'melody', 'solo'].includes(l.type) ? l.type : TECH.has(l.id) ? 'technique' : 'exercise';
+  function skillsOf(l) {
+    if (l.skills) return l.skills;
+    const ss = LS.steps(l), out = [];
+    if (ss.some(s => s.kind === 'note')) out.push('notes');
+    if (ss.some(s => s.notes.some(n => n.f > 0))) out.push('fingering');
+    if (ss.some(s => s.kind === 'chord')) out.push('chords');
+    if (ss.some(s => s.kind !== 'note') || ss.some(s => s.st === 'up')) out.push('strumming');
+    if (ss.some(s => s.acc)) out.push('accents');
+    if (ss.some(s => s.notes.some(n => n.f > 5))) out.push('positions');
+    if (['melody', 'song', 'solo'].includes(l.type)) out.push('melody');
+    return out;
+  }
+  function glyph(l) {
+    const ss = LS.steps(l).slice(0, 7);
+    if (!ss.length) return '<span>● REC</span>';
+    const col = ['', '#D9783F', '#78B7DE', '#E3D3A6'], y = s => 40 - s * 9;
+    let svg = '<svg viewBox="0 0 56 44" width="52" height="40" aria-hidden="true"><g stroke="rgba(242,232,218,.14)">' + [1, 2, 3].map(s => '<line x1="2" x2="54" y1="' + y(s) + '" y2="' + y(s) + '"/>').join('') + '</g>';
+    ss.forEach((st, i) => { const x = 6 + i * 7; if (st.kind === 'note') svg += '<circle cx="' + x + '" cy="' + y(st.notes[0].s) + '" r="2.6" fill="' + col[st.notes[0].s] + '"/>'; else svg += '<rect x="' + (x - 1.5) + '" y="' + (y(3) - 3) + '" width="3" height="' + (y(1) - y(3) + 6) + '" rx="1.5" fill="#C98B5B"/>'; });
+    return svg + '</svg>';
+  }
+  /** cover artwork, generated from the lesson id and category (no stock images, no copyrighted art) */
+  const ART = {
+    song: [['#B87A4B', '#1A1411'], 'hills'], melody: [['#8A6A52', '#141110'], 'waves'], solo: [['#C98B5B', '#24170F'], 'burst'],
+    rhythm: [['#A86A3E', '#171210'], 'beats'], exercise: [['#7E6A5A', '#121010'], 'dots'], technique: [['#B08A6A', '#161312'], 'rings']
+  };
+  function seedOf(str) { let x = 7; for (const c of String(str)) x = (x * 31 + c.charCodeAt(0)) % 2147483647; return () => (x = (x * 16807) % 2147483647) / 2147483647; }
+  function coverSVG(l) {
+    const cat = catOf(l), [cols, motif] = ART[cat] || ART.exercise, R = seedOf(l.id || 'x'), id = 'g' + Math.floor(R() * 1e9);
+    const [a, b] = cols; let art = '';
+    if (motif === 'hills') { for (let k = 0; k < 4; k++) { const y = 110 + k * 22, amp = 26 - k * 4; let d = 'M0 ' + y; for (let x = 0; x <= 320; x += 40) d += ' Q' + (x + 20) + ' ' + (y - amp * (R() + .3)) + ' ' + (x + 40) + ' ' + y; art += '<path d="' + d + ' V200 H0Z" fill="rgba(8,6,5,' + (.18 + k * .14).toFixed(2) + ')"/>'; } art = '<circle cx="' + (200 + R() * 70) + '" cy="' + (60 + R() * 20) + '" r="' + (26 + R() * 12) + '" fill="rgba(255,236,200,.85)"/>' + art; }
+    else if (motif === 'waves') { for (let k = 0; k < 7; k++) { const y = 40 + k * 22, ph = R() * 6; let d = 'M0 ' + y; for (let x = 0; x <= 320; x += 10) d += ' L' + x + ' ' + (y + Math.sin(x / 34 + ph) * (8 + k)).toFixed(1); art += '<path d="' + d + '" fill="none" stroke="rgba(255,255,255,' + (.12 + k * .06).toFixed(2) + ')" stroke-width="' + (2 + k * .4).toFixed(1) + '"/>'; } }
+    else if (motif === 'burst') { const cx = 220 + R() * 50, cy = 80 + R() * 30; for (let k = 0; k < 18; k++) { const an = k / 18 * Math.PI * 2 + R() * .2, r2 = 140 + R() * 60; art += '<path d="M' + cx + ' ' + cy + ' L' + (cx + Math.cos(an) * r2).toFixed(1) + ' ' + (cy + Math.sin(an) * r2).toFixed(1) + '" stroke="rgba(255,255,255,' + (.08 + R() * .18).toFixed(2) + ')" stroke-width="' + (2 + R() * 6).toFixed(1) + '"/>'; } art += '<circle cx="' + cx + '" cy="' + cy + '" r="22" fill="rgba(255,240,250,.9)"/>'; }
+    else if (motif === 'beats') { for (let k = 0; k < 6; k++) { const x = 30 + k * 50, up = R() < .4, acc = R() < .35, y = 100, s2 = acc ? 34 : 24, w2 = acc ? 9 : 5; art += '<path d="M' + x + ' ' + (y - (up ? -s2 : s2)) + ' L' + x + ' ' + (y + (up ? -s2 : s2)) + ' M' + (x - s2 * .5) + ' ' + (y + (up ? -s2 * .45 : s2 * .45)) + ' L' + x + ' ' + (y + (up ? -s2 : s2)) + ' L' + (x + s2 * .5) + ' ' + (y + (up ? -s2 * .45 : s2 * .45)) + '" fill="none" stroke="rgba(255,255,255,' + (acc ? .85 : .4) + ')" stroke-width="' + w2 + '" stroke-linecap="round" stroke-linejoin="round"/>'; } }
+    else if (motif === 'dots') { for (let k = 0; k < 3; k++) art += '<line x1="0" x2="320" y1="' + (60 + k * 40) + '" y2="' + (60 + k * 40) + '" stroke="rgba(255,255,255,.22)" stroke-width="2"/>'; for (let k = 1; k < 8; k++) art += '<line x1="' + k * 40 + '" x2="' + k * 40 + '" y1="44" y2="156" stroke="rgba(255,255,255,.12)" stroke-width="2"/>'; const fc = ['#E5534B', '#3FBF7A', '#E8C547', '#4C8EEA']; for (let k = 0; k < 4; k++) art += '<circle cx="' + (20 + Math.floor(R() * 7) * 40) + '" cy="' + (60 + Math.floor(R() * 3) * 40) + '" r="13" fill="' + fc[k] + '" opacity=".9"/>'; }
+    else { for (let k = 0; k < 6; k++) art += '<circle cx="' + (230 + R() * 20) + '" cy="' + (100 + R() * 10) + '" r="' + (20 + k * 22) + '" fill="none" stroke="rgba(255,255,255,' + (.35 - k * .05).toFixed(2) + ')" stroke-width="' + (3 + R() * 3).toFixed(1) + '"/>'; }
+    return '<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + a + '"/><stop offset="1" stop-color="' + b + '"/></linearGradient></defs><rect width="320" height="200" fill="url(#' + id + ')"/>' + art + '</svg>';
+  }
+  function cover(l, big) { return h('div', { class: 'art' + (big ? ' big' : ''), html: coverSVG(l) }); }
+  function durSec(l) { return LS.end(l) / (l.bpm / 60); }
+  function meta(l) {
+    const p = [t('type.' + l.type), t('lvl.' + (l.level || 1)), Math.round(l.bpm) + ' BPM'];
+    if (l.events.length) p.push(PD.fmtTime(durSec(l))); else p.push(t('l.empty'));
+    return p.join(' · ');
+  }
+  const demoBadge = l => l && l.demo ? h('span', { class: 'tag demo', title: t('demo.badgeD'), text: t('demo.badge') }) : null;
+  function lessonRow(l) {
+    const p = LS.progress.lesson(l.id), fav = LS.progress.favorites().includes(l.id), m = Math.round((p.mastery || 0) * 100);
+    const row = h('div', { class: 'lrow', role: 'listitem' });
+    const open = h('button', { class: 'lrow', style: 'padding:0;border:0;min-height:0;grid-template-columns:44px minmax(0,1fr);display:grid;align-items:center;gap:14px', onclick: () => go('lesson', l.id) }, [
+      h('div', { class: 'glyph', html: glyph(l) }),
+      h('div', { style: 'min-width:0;display:flex;flex-direction:column;gap:2px' }, [h('span', { class: 't' }, [PD.i18n.pick(l.title) + ' ', demoBadge(l)]), h('span', { class: 'meta', text: meta(l) })])]);
+    const side = h('div', { class: 'side' }, [h('div', { class: 'mast', html: '<span>' + (p.plays ? m + '%' : '—') + '</span><div class="bar"><i style="width:' + m + '%"></i></div>' }), favBtn(l, fav)]);
+    row.style.display = 'grid'; row.style.gridTemplateColumns = 'minmax(0,1fr) auto'; row.append(open, side);
+    return row;
+  }
+  function favBtn(l, fav) { return h('button', { class: 'fav', 'aria-pressed': String(fav), 'aria-label': t('f.fav'), html: fav ? ic.starF : ic.star, onclick: e => { e.stopPropagation(); const on = LS.progress.toggleFav(l.id); e.currentTarget.setAttribute('aria-pressed', String(on)); e.currentTarget.innerHTML = on ? ic.starF : ic.star; } }); }
+  /** artwork card: cover · title · difficulty · progress */
+  function songRow(l) {
+    const p = LS.progress.lesson(l.id), m = Math.round((p.mastery || 0) * 100), open = () => l.rhythm ? go('rhythm', l.rhythm) : go('lesson', l.id);
+    return h('button', { class: 'srow', onclick: open }, [h('span', { class: 'srow-art', html: coverSVG(l) }),
+      h('span', { class: 'grow' }, [h('b', { text: PD.i18n.pick(l.title) }), h('small', { text: t('lvl.' + (l.level || 1)) + (l.demo ? ' · ' + t('demo.badge') : '') + (m ? ' · ' + m + '%' : '') })]),
+      h('span', { class: 'srow-t', text: l.events.length ? PD.fmtTime(durSec(l)) : '' }), h('span', { class: 'srow-play', html: '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>' })]);
+  }
+  function card(l, wide) {
+    const p = LS.progress.lesson(l.id), m = Math.round((p.mastery || 0) * 100);
+    const open = () => l.rhythm ? go('rhythm', l.rhythm) : go('lesson', l.id);
+    return h('button', { class: 'acard' + (wide ? ' wide' : ''), onclick: open }, [
+      h('div', { class: 'acard-art', html: coverSVG(l) + (l.demo ? '<span class="art-tag">' + PD.esc(t('demo.badge')) + '</span>' : '') + (m >= 90 ? '<span class="art-done">✓</span>' : '') }),
+      h('span', { class: 'acard-t', text: PD.i18n.pick(l.title) }),
+      h('span', { class: 'acard-m', text: t('lvl.' + (l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : ' · ' + t('l.empty')) }),
+      p.plays ? h('div', { class: 'acard-p' }, [h('i', { style: 'width:' + m + '%' })]) : null]);
+  }
+  const visible = l => !l.derived;
+  function stat(v, k) { return h('div', { class: 'stat' }, [h('b', { text: v }), h('span', { text: k })]); }
+  function streaks() {
+    const days = [...new Set(LS.progress.sessions().map(s => new Date(s.date).toDateString()))].map(d => new Date(d).getTime()).sort((a, b) => a - b);
+    let cur = 0; const d = new Date(); const set = new Set(days.map(x => new Date(x).toDateString()));
+    if (!set.has(d.toDateString())) d.setDate(d.getDate() - 1);   // today not practised yet: the streak is still alive from yesterday
+    while (set.has(d.toDateString())) { cur++; d.setDate(d.getDate() - 1); }
+    let longest = 0, run = 0; for (let i = 0; i < days.length; i++) { run = i && days[i] - days[i - 1] <= 864e5 * 1.5 ? run + 1 : 1; longest = Math.max(longest, run); }
+    return { cur, longest };
+  }
+  const streak = () => streaks().cur;
+  function recommended() {
+    const out = [];
+    for (const p of LS.PATHS) for (const s of p.steps) { if (s.kind !== 'lesson') continue; const l = LS.get(s.id); if (!l || !l.events.length || !PD.premium.canOpen(l.id)) continue; const pr = LS.progress.lesson(l.id); if (pr.mastery < .9) { out.push(l); break; } }
+    return out;
+  }
+  function stepDone(s) { if (s.kind === 'exam') return PD.exam.passed(s.id); if (s.kind === 'theory') return PD.theoryBook.progress() >= .8; if (s.kind === 'chapter') return !!PD.store.get('theory.done', {})[s.id]; if (s.kind === 'tip') return !!PD.store.get('seen.tip.' + s.id, false); if (s.kind === 'solfege') { const [e, l] = s.id.split(':'); return PD.solfege.done(e, +l); } if (s.kind === 'lesson') return LS.progress.lesson(s.id).mastery >= .9; if (s.kind === 'rhythm') return LS.progress.lesson('rhythm-' + s.id).mastery >= .9; if (s.kind === 'needs') return false; return !!PD.store.get('seen.' + s.kind, false); }
+  function levelName() { const ps = LS.PATHS; let lv = ps[0]; for (const p of ps) { lv = p; if (p.steps.some(s => s.kind !== 'needs' && !stepDone(s))) break; } return lv && lv.level ? t('lv.' + lv.level) : PD.i18n.pick(lv.title); }
+  const todayMin = () => Math.round(LS.progress.sessions().filter(s => new Date(s.date).toDateString() === new Date().toDateString()).reduce((a, s) => a + (s.dur || 0), 0) / 60);
+
+  /* ---------- Home ---------- */
+  function primaryAction() {
+    const res = LS.all.concat(LS.rhythmLessons()).map(l => ({ l, r: LS.progress.lesson(l.id).resume })).filter(x => x.r && x.l.events.length && x.r.at > Date.now() - 21 * 864e5).sort((a, b) => b.r.at - a.r.at)[0];
+    if (res) return { kicker: t('hm.resume'), l: res.l, sub: t('hm.resumeD', { s: t('st.' + res.r.stage), b: Math.floor(res.r.beat / LS.bpb(res.l)) + 1 }), go: () => startStage(res.l, res.r.stage, res.r.beat), label: t('home.go') };
+    const sug = PD.coach.today();
+    if (sug) return { kicker: t('hm.today'), l: sug.lesson, sub: t(sug.key) + ' · ' + t('co.where', { l: '', a: sug.barA, b: sug.barB }).replace(/^ · /, ''), go: () => PD.coach.start(sug), label: t('co.go') };
+    const nx = recommended()[0];
+    if (nx) return { kicker: LS.progress.lesson(nx.id).plays ? t('hm.next') : t('home.firstTime'), l: nx, sub: meta(nx), go: () => go('lesson', nx.id), label: t(LS.progress.lesson(nx.id).plays ? 'home.go' : 'home.start') };
+    return null;
+  }
+  function home(w) {
+    const prof = PD.account.profile, goal = PD.store.get('goalMin', 15), tm = todayMin();
+    const name = (prof.name || '').trim().split(/\s+/)[0];
+    const ring = (v) => { const r = 16, c = 2 * Math.PI * r, k = Math.max(0, Math.min(1, v)); return '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="rgba(255,240,228,.1)" stroke-width="3"/><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linecap="round" stroke-dasharray="' + (c * k).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/></svg>'; };
+    w.append(h('div', { class: 'hx-top' }, [
+      h('div', { class: 'hx-hello' }, [h('h1', { html: PD.esc(t('hx.hi')) + (name ? ',<br>' + PD.esc(name) : '') })]),
+      (() => { const n = PD.notify.unread();
+        return h('button', { class: 'hx-bell' + (n ? ' has' : ''), 'aria-label': t('nt.title') + (n ? ' (' + n + ')' : ''), onclick: () => go('inbox'),
+          html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>' + (n ? '<i class="hx-bn">' + (n > 9 ? '9+' : n) + '</i>' : '') }); })(),
+      h('button', { class: 'avatar', 'aria-label': t('nav.profile'), onclick: () => go('profile'), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : ic.user })]));
+    // hero: continue learning
+    const pa = primaryAction(), hasResume = pa && pa.kicker === t('hm.resume'), ts = !hasResume && nextTheoryStep();
+    if (ts) {   // the path starts with theory: the next theory step is the main card
+      const { p: tp, s: st, d, n } = ts, ph = PD.assets && PD.assets.photos, A = PD.tips.ART;
+      const art = (st.kind === 'tip' && st.id === 'parts') || st.kind === 'tour' ? (ph && ph.body ? '<img class="hx-photo" src="' + ph.body + '" alt="">' : '') : st.kind === 'tip' ? ((PD.tips.all(true).find(x => x.id === st.id) || {}).art && A[(PD.tips.all(true).find(x => x.id === st.id)).art] ? A[(PD.tips.all(true).find(x => x.id === st.id)).art]() : A.strings()) : st.kind === 'solfege' ? A.sing() : st.kind === 'tuner' ? A.tune() : st.kind === 'chapter' ? A.semitone() : A.dots();
+      w.append(h('section', { class: 'hx-hero theory' + (art.startsWith('<img') ? ' photo' : ''), onclick: e => { if (!e.target.closest('button')) stepGo(st); } }, [
+        h('div', { class: 'hx-art', html: art }),
+        h('div', { class: 'hx-body' }, [h('span', { class: 'hx-k', text: t('ln.lvN', { n: DIFF[tp.id] || 1 }) + ' · ' + PD.i18n.pick(tp.title) }), h('h2', { text: stepTitle(st) }),
+          h('div', { class: 'hx-pr' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(d / n * 100) + '%' })]), h('span', { text: d + ' / ' + n })]),
+          h('div', { class: 'row', style: 'gap:8px' }, [h('button', { class: 'btn hx-btn', text: d ? t('hx.go') : t('home.start'), onclick: () => stepGo(st) }), h('button', { class: 'btn small hx-sec', 'data-t': 'nav.learn', onclick: () => go('learn', tp.id) })])])]));
+    } else if (pa) {
+      const p = LS.progress.lesson(pa.l.id), m = Math.round((p.mastery || 0) * 100);
+      w.append(h('section', { class: 'hx-hero', onclick: e => { if (!e.target.closest('button')) pa.go(); } }, [
+        h('div', { class: 'hx-art', html: coverSVG(pa.l) }),
+        h('div', { class: 'hx-body' }, [h('span', { class: 'hx-k', text: p.plays ? t('hx.continue') : t('hx.start') }), h('h2', { text: PD.i18n.pick(pa.l.title) }),
+          h('div', { class: 'hx-pr' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + m + '%' })]), h('span', { text: m + '%' })]),
+          h('button', { class: 'btn hx-btn', text: p.plays ? t('hx.go') : t('home.start'), onclick: pa.go })])]));
+    }
+    w.append(h('button', { class: 'hx-goal2', onclick: () => go('daily') }, [h('span', { html: ring(tm / goal) }), h('span', { class: 'grow' }, [h('small', { 'data-t': 'hx.goal' }), h('b', { text: t('hx.goalV', { a: Math.min(tm, goal), b: goal }) })]), h('span', { class: 'chev', html: ic.chevron })]));
+    // six doors
+    const I = d => '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    const nSongs = LS.all.filter(l => visible(l) && catOf(l) === 'song').length, nChords = (PD.curriculum.chords() || []).length;
+    const door = (r, icon, k, sub, fn) => h('button', { class: 'door', onclick: fn || (() => go(r)) }, [h('span', { class: 'door-ic', html: icon }), h('b', { text: t(k) }), h('small', { text: sub })]);
+    const quick = (r, icon, k) => h('button', { class: 'hq', onclick: () => go(r) }, [h('span', { class: 'hq-ic', html: icon }), h('span', { 'data-t': k })]);
+    w.append(h('section', { class: 'hq-row', 'aria-label': t('hx.quick') }, [
+      quick('tuner', I('<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/><circle cx="12" cy="18" r="1.4" fill="currentColor"/>'), 'nav.tuner'),
+      quick('metronome', I('<path d="M8 21h8l-3-17h-2z"/><path d="M12 15l5-8"/>'), 'hx.metro'),
+      quick('chords', I('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 8h14M5 13h14M10 3v18M14 3v18"/>'), 'nav.chords'),
+      quick('ai', '<b class="hq-ai">AI</b>', 'nav.ai')]));
+    // play along: the note road (the next practice lesson with notes)
+    { const ids = [].concat(...LS.PATHS.filter(p => !p.theory).map(p => p.steps.filter(s2 => s2.kind === 'lesson').map(s2 => s2.id))), nextL = ids.map(id => LS.get(id)).find(l => l && l.events.length && !stepDone({ kind: 'lesson', id: l.id })) || LS.get(ids[0]);
+      if (nextL) {
+        const pill = (x, y, w, c, n, ink) => '<rect x="' + x + '" y="' + (y - 9) + '" width="' + w + '" height="18" rx="9" fill="' + c + '"/><text x="' + (x + 9) + '" y="' + (y + 4.5) + '" font-size="12" font-weight="800" text-anchor="middle" fill="' + ink + '">' + n + '</text>';
+        const svg = '<svg viewBox="0 0 320 110" aria-hidden="true"><defs><linearGradient id="rdk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2A1F18"/><stop offset="1" stop-color="#120E0B"/></linearGradient></defs><path d="M0 14H60L320 30V82L60 98H0Z" fill="url(#rdk)"/>'
+          + [[30, '#EFE0B8', 36], [56, '#78B7DE', 56], [82, '#D9783F', 76]].map(([y, c, y2]) => '<path d="M0 ' + y + 'H60L320 ' + y2 + '" stroke="' + c + '" stroke-opacity=".6" stroke-width="2" fill="none"/>').join('')
+          + '<rect x="58" y="8" width="4" height="96" rx="2" fill="#F6C987" opacity=".85"/>'
+          + pill(64, 30, 50, '#E5534B', '1', '#fff') + pill(128, 34, 40, '#3FBF7A', '2', '#06140C') + pill(182, 58, 36, '#78B7DE', '0', '#14110E') + pill(232, 41, 30, '#E8C547', '3', '#191200') + pill(274, 74, 26, '#D9783F', '0', '#14110E')
+          + '<path d="M70 14 Q100 -6 136 20" stroke="#fff" stroke-dasharray="1 5" stroke-linecap="round" stroke-width="2.4" fill="none" opacity=".6"/><circle cx="70" cy="15" r="6" fill="#fff"/><text x="70" y="104" font-size="11" font-weight="800" fill="#8EF0B4" text-anchor="middle">' + PD.esc(t('g.perfect')) + '!</text></svg>';
+        w.append(h('button', { class: 'hx-road', onclick: () => go('lesson', nextL.id) }, [h('span', { class: 'hx-road-art', html: svg }), h('span', { class: 'hx-road-tx' }, [h('small', { 'data-t': 'hx.roadK' }), h('b', { text: PD.i18n.pick(nextL.title) }), h('span', { 'data-t': 'hx.roadD' })]), h('span', { class: 'hx-road-go', html: ic.play })]));
+      } }
+    // songs
+    const ses = LS.progress.sessions().filter(x => x && x.id && x.date).slice(-3).reverse();
+    const sec = h('section', { class: 'hx-res' }, [h('div', { class: 'hrow-h' }, [h('h2', { 'data-t': 'hx.recent' }), h('button', { class: 'linkbtn', 'data-t': 'hx.all', onclick: () => go('progress') })])]);
+    if (!ses.length) sec.append(h('p', { class: 'hx-empty', 'data-t': 'hx.noRes' }));
+    else ses.forEach(x => {
+      const l = LS.get(String(x.id)), name = l ? PD.i18n.pick(l.title) : String(x.id).startsWith('trainer:') ? t('hx.trainer') : String(x.id);
+      const pct = x.firstTry != null ? Math.round(x.firstTry * 100) : null, d = new Date(x.date);
+      sec.append(h('button', { class: 'hx-ri', onclick: () => l ? go('lesson', l.id) : go('progress') }, [h('span', { class: 'grow' }, [h('b', { text: name }), h('small', { text: d.toLocaleDateString(PD.i18n.lang === 'en' ? 'en-GB' : 'ka-GE', { day: 'numeric', month: 'short' }) + ' · ' + PD.fmtTime(x.dur || 0) })]), pct != null ? h('span', { class: 'hx-rp' + (pct >= 80 ? ' ok' : ''), text: pct + '%' }) : null]));
+    });
+    w.append(sec);
+    if (PD.curriculum.isDemo) w.append(h('p', { class: 'hx-note', html: '<b>' + PD.esc(t('demo.badge')) + '</b> · ' + PD.esc(t('hm.demo')) }));
+  }
+
+  /* ---------- Songs: music-app browsing — songs · melodies · solos, by difficulty ---------- */
+  function songs(w) {
+    const cats = ['song', 'melody', 'solo']; if (!cats.includes(st.cat)) st.cat = 'song';
+    const tabs = h('div', { class: 'sx-tabs', role: 'tablist' }, cats.map(k => h('button', { role: 'tab', 'aria-pressed': String(st.cat === k), 'data-t': 'cat.' + k, onclick: () => { st.cat = k; PD.store.set('home.cat', k); render(); } })));
+    const lv = h('div', { class: 'sx-chips' }, [[0, 'f.all'], [1, 'lvl.1'], [2, 'lvl.2'], [3, 'lvl.3']].map(([v, k]) => h('button', { class: 'chip', 'aria-pressed': String(st.level === v), 'data-t': k, onclick: () => { st.level = v; render(); } })));
+    const search = h('label', { class: 'search' }, [h('span', { html: ic.search }), h('input', { type: 'search', value: st.q, 'data-t-ph': 'home.search', 'aria-label': t('home.search'), oninput: e => { st.q = e.target.value; list(); } })]);
+    const box = h('div', { class: 'slist', role: 'list' });
+    w.append(h('h1', { 'data-t': 'nav.songs' }), h('button', { class: 'ai-card', onclick: () => go('ai') }, [h('span', { class: 'ai-badge', text: 'AI' }), h('span', { class: 'grow' }, [h('b', { 'data-t': 'ai.home' }), h('small', { 'data-t': 'ai.homeD' })]), h('span', { html: ic.chevron || '›' })]), search, tabs, lv, box);
+    function list() {
+      box.innerHTML = '';
+      const q = st.q.trim().toLowerCase();
+      let ls = LS.all.filter(visible).filter(l => q ? (l.title.ka + ' ' + l.title.en).toLowerCase().includes(q) : catOf(l) === st.cat);
+      if (st.level) ls = ls.filter(l => (l.level || 1) === st.level);
+      ls.sort((a, b) => (a.level || 1) - (b.level || 1));
+      ls.forEach(l => box.appendChild(songRow(l)));
+      if (!ls.length) box.appendChild(h('div', { class: 'empty', text: !q && st.cat === 'solo' ? t('lib.noSolos') : t('lib.none') }));
+      if (PD.store.get('author', false) && !q) box.appendChild(h('button', { class: 'acard add', onclick: () => PD.studio.open(null, st.cat), html: '<div class="acard-art">' + ic.plus + '</div><span class="acard-t">' + PD.esc(t('lib.new')) + '</span>' }));
+      PD.i18n.apply(box);
+    }
+    list();
+  }
+
+  const PREMIUM_PATHS = PD.premium.PREMIUM_PATHS;
+  const LOCK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  /* ---------- Learn: one visual path, Foundation → Beginner → Intermediate → Advanced ---------- */
+  const DIFF = { first: 1, instrument: 1, rhythms: 1, notes: 2, scales: 2, solfege: 2, deeper: 3, foundation: 1, beginner: 1, intermediate: 2, advanced: 3 };
+  function learn(w) {
+    w.append(h('div', { class: 'ln-head' }, [h('h1', { 'data-t': 'ln.title' }), h('p', { class: 'muted', 'data-t': 'ln.lead' })]));
+    { const wid = PD.exam.waiting(), we = wid && PD.exam.get(wid);
+      if (we) w.append(h('button', { class: 'ex-banner', onclick: () => PD.exam.open(wid) }, [
+        h('span', { class: 'ex-banner-ic', html: ic.check || '' }),
+        h('span', { class: 'grow' }, [h('b', { 'data-t': 'ex.waiting' }), h('small', { text: t('ex.waitingD', { s: t(we.name) }) })]),
+        h('span', { class: 'btn small primary', 'data-t': 'ex.go2' })])); }
+    const lp = PD.levels.progress;
+    const TOOL = { exam: ic.check || ic.learn, scalepage: ic.frets, chordhow: ic.chord, tour: ic.cube, tuner: ic.tune, trainer: ic.target, chords: ic.chord, fretboard: ic.frets, theory: ic.learn || ic.chord, chapter: ic.learn || ic.chord, tip: ic.star, solfege: ic.mic, rhythms: ic.pulse };
+    const libCard = (r, pa, k, d, art) => h('button', { class: 'lib-card', onclick: () => go(r, pa) }, [h('span', { class: 'lib-art', html: art }), h('span', { class: 'grow' }, [h('b', { 'data-t': k }), h('small', { 'data-t': d })])]);
+    // the three levels = the difficulty the curriculum already gives each part; inside a level the parts keep their order (theory parts, then practice)
+    const LV = [1, 2, 3].map(n => { const ps = LS.PATHS.filter(p => (DIFF[p.id] || 1) === n); const real = [].concat(...ps.map(p => p.steps.filter(s2 => s2.kind !== 'needs'))); return { n, ps, total: real.length, done: real.filter(stepDone).length }; });
+    const curLv = (LV.find(L => L.done < L.total) || LV[2]).n;
+    const byPath = param && LS.PATHS.find(p2 => p2.id === param);
+    let sel = byPath ? (DIFF[byPath.id] || 1) : /^[123]$/.test(String(param)) ? +param : PD.store.get('learn.lv', curLv);
+    if (!LV.some(L => L.n === sel)) sel = curLv;
+    // experience points (XP) — the app's reward level, separate from the learning levels below
+    w.append(h('section', { class: 'lvcard' }, [h('span', { class: 'lvcard-b', html: PD.levels.badge(48) }), h('div', { class: 'grow' }, [h('b', { text: t('ln.xp', { n: lp.level }) }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(lp.pct * 100) + '%' })]), h('small', { text: t('lv.toNext', { n: Math.max(0, lp.need - lp.into) }) })])]));
+    const map = h('div', { class: 'lv-map', role: 'tablist', 'aria-label': t('ln.levels') });
+    const body = h('div', { class: 'ln-body' });
+    w.append(h('h2', { class: 'ln-sec', 'data-t': 'ln.levels' }), map, body);
+    let focusEl = null;
+    function drawMap() {
+      map.innerHTML = '';
+      LV.forEach((L, k) => {
+        const pct = L.total ? L.done / L.total : 0, full = L.total && L.done >= L.total, R = 22, C = 2 * Math.PI * R;
+        if (k) map.append(h('span', { class: 'lv-link' + (LV[k - 1].done >= LV[k - 1].total ? ' on' : ''), 'aria-hidden': 'true' }));
+        map.append(h('button', { class: 'lv-node' + (L.n === sel ? ' sel' : '') + (L.n === curLv ? ' cur' : '') + (full ? ' full' : ''), role: 'tab', 'aria-selected': String(L.n === sel), onclick: () => { sel = L.n; PD.store.set('learn.lv', sel); drawMap(); draw(true); } }, [
+          h('span', { class: 'lv-ring', html: '<svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="' + R + '" class="tr"/><circle cx="26" cy="26" r="' + R + '" class="pr" stroke-dasharray="' + (C * pct).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 26 26)"/></svg><b>' + (full ? '✓' : L.n) + '</b>' }),
+          h('span', { class: 'lv-name', text: t('ln.lvN', { n: L.n }) }), h('small', { class: 'lv-tier', text: t('ln.lvT' + L.n) }), h('small', { class: 'lv-cnt', text: L.done + ' / ' + L.total })]));
+      });
+    }
+    function unit(p, ui, st) {
+      const real = p.steps.filter(s2 => s2.kind !== 'needs'), d = real.filter(stepDone).length;
+      const exWait = PD.exam.blocking(p.id), exW = exWait && PD.exam.get(exWait);   // an earlier unit's exam has to be passed first
+      const path = h('ol', { class: 'lp-path' });
+      let hasCur = false;
+      p.steps.forEach(s2 => {
+        const done = stepDone(s2), need = s2.kind === 'needs', cur = !need && !done && !st.cur; if (cur) { st.cur = true; hasCur = true; }
+          const l = s2.kind === 'lesson' ? LS.get(s2.id) : s2.kind === 'rhythm' ? LS.get('rhythm-' + s2.id) : null;
+          const thumb = l ? h('div', { class: 'lp-th', html: coverSVG(l) }) : h('div', { class: 'lp-th tool' + (need ? ' need' : ''), html: need ? '…' : (TOOL[s2.kind] || ic.learn) });
+          const tipC = s2.kind === 'tip' ? PD.tips.all(true).find(x => x.id === s2.id) : null;
+          const meta2 = need ? t('ln.awaiting') : l ? t('lvl.' + Math.min(4, l.level || 1)) + (l.events.length ? ' · ' + PD.fmtTime(durSec(l)) : '') + (l.demo ? ' · ' + t('demo.badge') : '') + (l.source === 'general' ? ' · ' + t('rh.gen') : '') : s2.kind === 'theory' ? t('ln.theory', { n: PD.theoryBook.CHAPTERS.length, d: Math.round(PD.theoryBook.progress() * PD.theoryBook.CHAPTERS.length) }) : s2.kind === 'chapter' ? t('ln.chapter') : s2.kind === 'tip' ? t('ln.tip') + (tipC && tipC.src === 'draft' ? ' · ' + t('tp.src.draft') : '') : s2.kind === 'solfege' ? t('ln.solfege') : t('ln.tool');
+          const locked = !need && (exWait || (l ? !PD.premium.canOpen(l.id) : PREMIUM_PATHS.has(p.id) && !PD.premium.active));
+          const li = h('li', { class: 'lp-s' + (done ? ' done' : '') + (cur ? ' cur' : '') + (need ? ' need' : '') + (locked ? ' locked' : '') }, [
+            h('span', { class: 'lp-dot', html: done ? ic.check : '' }),
+            h(need ? 'div' : 'button', need ? { class: 'lp-c' } : { class: 'lp-c', onclick: () => exWait ? PD.exam.open(exWait) : locked ? PD.premium.paywall('paths.advanced') : stepGo(s2) }, [thumb, h('div', { class: 'lp-tx' }, [h('b', { text: stepTitle(s2) }), h('small', { text: meta2 })]), locked ? h('span', { class: 'lp-lock', html: LOCK }) : cur ? h('span', { class: 'lp-go', 'data-t': 'home.start' }) : null])]);
+          if (cur) focusEl = li;
+          path.appendChild(li);
+      });
+      const open = byPath ? byPath.id === p.id : hasCur;
+      if (exW) path.prepend(h('li', { class: 'lp-s need' }, [h('span', { class: 'lp-dot' }), h('button', { class: 'lp-c ex-wait', onclick: () => PD.exam.open(exWait) }, [
+        h('div', { class: 'lp-th tool', html: ic.lock || ic.check || '' }),
+        h('div', { class: 'lp-tx' }, [h('b', { 'data-t': 'ex.blocked' }), h('small', { text: t('ex.blockedD', { s: t(exW.name) }) })])])]));
+      return h('details', { class: 'lu' + (d >= real.length && real.length ? ' full' : '') + (exW ? ' wait' : ''), id: 'lp-' + p.id, open: open || null }, [
+        h('summary', {}, [h('span', { class: 'lu-n', text: String(ui + 1) }), h('span', { class: 'lu-t' }, [h('b', { text: PD.i18n.pick(p.title) }), h('small', {}, [h('span', { class: 'lu-tag ' + (p.theory ? 'th' : 'pr'), 'data-t': p.theory ? 'ln.tab.theory' : 'ln.tab.practice' }), ' ' + t('learn.steps', { d, n: real.length })])]),
+          h('span', { class: 'lu-bar', 'aria-hidden': 'true' }, [h('i', { style: 'width:' + (real.length ? Math.round(d / real.length * 100) : 0) + '%' })]), h('span', { class: 'ce-acc-chev', 'aria-hidden': 'true' })]),
+        path]);
+    }
+    function draw(anim) {
+      body.innerHTML = ''; focusEl = null;
+      const L = LV.find(x => x.n === sel), st = { cur: false };
+      body.append(h('div', { class: 'lv-head' }, [h('b', { text: t('ln.lvN', { n: L.n }) + ' · ' + t('ln.lvT' + L.n) }), h('small', { text: L.ps.map(p => PD.i18n.pick(p.title)).join(' · ') }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + (L.total ? Math.round(L.done / L.total * 100) : 0) + '%' })])]));
+      L.ps.forEach((p, ui) => body.append(unit(p, ui, st)));
+      PD.i18n.apply(body);
+      if (anim && PD.ui && PD.ui.motion && PD.ui.motion()) body.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'cubic-bezier(.22,1,.36,1)' });
+    }
+    drawMap(); draw();
+    // the library: every guide in one row (the same cards as before)
+    const ph = PD.assets && PD.assets.photos;
+    w.append(h('section', { class: 'lib' }, [h('h2', { 'data-t': 'tp.lib' }), h('div', { class: 'lib-row' }, [
+      libCard('songs', null, 'nav.songs', 'lnx.songsD', '<span class="lib-ic">' + ic.song + '</span>'), libCard('tips', 'sit', 'tp.c.start', 'ln.firstD', PD.tips.ART.sit()), libCard('tips', null, 'tp.title', 'tp.lead', PD.tips.ART.strum()), libCard('theory', null, 'tb.title', 'tb.tool', PD.tips.ART.semitone()),
+      libCard('tips', 'parts', 'tp.parts', 'tp.partsD', ph && ph.front ? '<img src="' + ph.front + '" alt="">' : ''),
+      libCard('exams', null, 'ex.title', 'ex.lead', '<span class="lib-ic">' + (ic.check || ic.learn) + '</span>'),
+      libCard('scales', null, 'sh.scales', 'sh.scalesD', '<span class="lib-ic">' + ic.frets + '</span>'),
+      libCard('music', null, 'gn.title', 'gn.lead', '<span class="lib-ic">' + (ic.world || ic.learn) + '</span>'),
+      libCard('chordhow', null, 'sh.chords', 'sh.chordsD', '<span class="lib-ic">' + ic.chord + '</span>'),
+      libCard('practice', null, 'hd.practice', 'ph.lead', '<span class="lib-ic">' + ic.pulse + '</span>'), libCard('rhythms', null, 'nav.rhythms', 'rh.commonSec', PD.tips.ART.beat()), libCard('tuner', null, 'nav.tuner', 'tools.tunerD', '<span class="lib-ic">' + ic.tune + '</span>')])]));
+    if (byPath && document.getElementById('lp-' + param)) requestAnimationFrame(() => document.getElementById('lp-' + param).scrollIntoView({ block: 'start' }));
+    else if (focusEl) requestAnimationFrame(() => { const pg = document.getElementById('page'); if (pg && focusEl.offsetTop > pg.clientHeight * .75) focusEl.scrollIntoView({ block: 'center' }); });
+  }
+  function stepTitle(s) { const l = s.kind === 'lesson' ? LS.get(s.id) : s.kind === 'rhythm' ? LS.get('rhythm-' + s.id) : null; if (l) return PD.i18n.pick(l.title);
+    if (s.kind === 'exam') { const e = PD.exam.get(s.id); return e ? t('ex.sec') + ' · ' + t(e.name) : s.id; }
+    if (s.kind === 'chapter') { const c = PD.theoryBook.CHAPTERS.find(x => x.id === s.id); return c ? PD.i18n.pick({ ka: c.t[0], en: c.t[1] }) : s.id; }
+    if (s.kind === 'tip') { const c = PD.tips.all(true).find(x => x.id === s.id); return c ? PD.i18n.pick({ ka: c.title[0], en: c.title[1] }) : s.id; }
+    if (s.kind === 'solfege') { const [e, n] = s.id.split(':'); return t('sf.' + e) + ' · ' + t('sf.lvl', { n }); }
+    return PD.i18n.pick(s.title); }
+  function stepGo(s) {
+    if (s.kind === 'exam') return PD.exam.open(s.id);
+    if (s.kind === 'lesson') return go('lesson', s.id);
+    if (s.kind === 'rhythm') return go('rhythm', s.id);
+    PD.store.set('seen.' + s.kind, true);
+    if (s.kind === 'scalepage') return go('scales', s.id === 'minor' ? '9:minor' : '0:major');
+    if (s.kind === 'chordhow') return go('chordhow');
+    if (s.kind === 'chapter') return go('theory', s.id); if (s.kind === 'tip') { PD.store.set('seen.tip.' + s.id, true); return go('tips', s.id); } if (s.kind === 'solfege') return go('solfege', s.id); if (s.kind === 'rhythms') return go('rhythms');
+    if (s.kind === 'theory') go('theory'); else if (s.kind === 'tour') go('explore', 'tour'); else if (s.kind === 'tuner') go('tuner'); else if (s.kind === 'chords') go('chords'); else if (s.kind === 'fretboard') go('fretboard'); else if (s.kind === 'trainer') go('trainer');
+  }
+  function stepChip(s) {
+    if (s.kind === 'needs') return h('span', { class: 'schip need', title: t('ln.awaiting'), text: PD.i18n.pick(s.title) });
+    const l = s.kind === 'lesson' ? LS.get(s.id) : null;
+    return h('button', { class: 'schip' + (stepDone(s) ? ' done' : ''), onclick: () => stepGo(s) }, [stepTitle(s), l && l.demo ? h('span', { class: 'tag demo', text: t('demo.badge') }) : null]);
+  }
+  function pathView(w) { return learn(w); }
+
+  /* ---------- Song / lesson intro: what you learn → Learn · Practice · Play full song → sections ---------- */
+  const OLD = { listen: 'demo', notes: 'guided', rhythm: 'technique' };
+  const stagePct = (p, s) => { const st2 = p.stages || {}; let v = st2[s]; Object.keys(OLD).forEach(k => { if (OLD[k] === s && st2[k] != null) v = Math.max(v || 0, st2[k]); }); return v; };
+  function lessonView(w) {
+    const l = LS.get(param); if (!l) return home(w);
+    if (l.rhythm) return go('rhythm', l.rhythm, true);
+    const p = LS.progress.lesson(l.id), has = l.events.length > 0, sk = skillsOf(l), m = Math.round((p.mastery || 0) * 100);
+    const ss = LS.steps(l);
+    const stages = LS.stagesOf(l);
+    w.append(h('div', { class: 'lx-hero' }, [h('div', { class: 'lx-art', html: coverSVG(l) }),
+      h('div', { class: 'lx-bar' }, [h('button', { class: 'pz-ic lx-ic', 'aria-label': t('back'), html: ic.back, onclick: () => back('songs') }), h('span', { class: 'spacer' }), favBtn(l, LS.progress.favorites().includes(l.id))])]));
+    w.append(h('div', { class: 'lx-head' }, [h('h1', { text: PD.i18n.pick(l.title) }),
+      h('div', { class: 'lx-meta' }, [h('span', { class: 'lx-lv lv' + (l.level || 1), text: t('lvl.' + (l.level || 1)) }), h('span', { text: t('type.' + l.type) }), has ? h('span', { text: PD.fmtTime(durSec(l)) }) : null, h('span', { text: Math.round(l.bpm) + ' BPM' }), l.demo ? h('span', { class: 'tag demo', title: t('demo.badgeD'), text: t('demo.badge') }) : null]),
+      l.desc ? h('p', { class: 'fg2', text: PD.i18n.pick(l.desc) }) : null,
+      sk.length ? h('div', { class: 'lx-skills' }, sk.map(k => h('span', { text: t('sk.' + k) }))) : null,
+      p.plays ? h('div', { class: 'lx-prog' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + m + '%' })]), h('span', { text: m + '%' })]) : null]));
+    const chips = h('div', { class: 'row' });
+    if (l.link) chips.append(h('a', { class: 'btn small', href: l.link, target: '_blank', rel: 'noopener', 'data-t': 'les.ref' }));
+    if (l.user) chips.append(h('button', { class: 'btn small', html: PD.ic.mic + '<span data-t="les.record"></span>', onclick: () => PD.practice.record(l) }));
+    if (PD.store.get('author', false)) chips.append(h('button', { class: 'btn small', html: ic.edit + '<span data-t="les.edit"></span>', onclick: () => PD.studio.open(l.id) }));
+    if (!has) { w.append(chips, h('div', { class: 'empty', text: t('les.noNotes') })); return; }
+    if (l.song) return songPage(w, l, p, chips);
+    const firstUndone = stages.find(s => !(stagePct(p, s) >= 80)) || 'wait';
+    w.append(h('div', { class: 'ls-actions lx-actions' }, [
+      h('button', { class: 'btn primary big', 'data-t': 'ls.learnBtn', onclick: () => startStage(l, p.resume && stages.includes(p.resume.stage) ? p.resume.stage : firstUndone === 'demo' || firstUndone === 'intro' ? 'wait' : firstUndone, p.resume ? p.resume.beat : 0) }),
+      h('button', { class: 'btn', 'data-t': 'ls.practiceBtn', onclick: () => startStage(l, 'loop') }),
+      h('button', { class: 'btn', 'data-t': 'ls.fullBtn', onclick: () => startStage(l, 'perform') }),
+      h('button', { class: 'btn quiet', html: ic.play + '<span data-t="ls.listen"></span>', onclick: () => startStage(l, 'demo') })]), chips);
+    if (p.resume && stages.includes(p.resume.stage)) w.append(h('p', { class: 'muted', style: 'font-size:13px', text: t('les.resumeAt', { s: t('st.' + p.resume.stage), b: Math.floor(p.resume.beat / LS.bpb(l)) + 1 }) }));
+    const sug = PD.coach.analyze(l);
+    if (sug) w.append(h('section', { class: 'coach' }, [h('span', { class: 'kicker', 'data-t': 'les.coach' }), h('b', { text: t(sug.key) + ' ' + t('w.bars', { a: sug.barA, b: sug.barB }) }), h('p', { class: 'muted', style: 'font-size:13px', text: t('co.ladder', { a: sug.ladder.from, b: sug.ladder.to, s: sug.ladder.step, t: sug.ladder.thr }) }), h('div', { class: 'row' }, [h('button', { class: 'btn', 'data-t': 'co.go', onclick: () => PD.coach.start(sug) })])]));
+    // lesson sections: Intro · Phrase 1… · Rhythm · Combined · Full performance (beginners are never dropped straight into the whole song)
+    const secs = [];
+    if (l.intro || (l.media && l.media.length)) secs.push({ k: 'ls.intro', d: 'ls.introD', go: () => startStage(l, 'intro'), pct: stagePct(p, 'intro') });
+    (l.sections || []).forEach(sc => secs.push({ title: PD.i18n.pick(sc.name), d: 'ls.phraseD', go: () => PD.practice.open(l, { wait: true, tempo: .7, mode: 'learn', drill: { a: sc.from, b: sc.to } }, l.id, 'phrase') }));
+    if (ss.some(s => s.st)) secs.push({ k: 'ls.rhythm', d: 'ls.rhythmD', go: () => startStage(l, 'technique'), pct: stagePct(p, 'technique') });
+    secs.push({ k: 'ls.combined', d: 'ls.combinedD', go: () => startStage(l, 'slow'), pct: stagePct(p, 'slow') });
+    secs.push({ k: 'ls.full', d: 'ls.fullD', go: () => startStage(l, 'perform'), pct: stagePct(p, 'perform') });
+    const list = h('div', { class: 'list' });
+    secs.forEach((x, i) => {
+      const done = x.pct >= 80, body = h('div', { class: 'body' }, [h('b', x.k ? { 'data-t': x.k } : { text: x.title }), h('p', { 'data-t': x.d })]);
+      if (x.pct != null) body.append(h('div', { class: 'row', style: 'max-width:240px' }, [h('div', { class: 'bar', style: 'flex:1' }, [h('i', { style: 'width:' + x.pct + '%' })]), h('span', { class: 'mono muted', style: 'font-size:11px', text: x.pct + '%' })]));
+      list.appendChild(h('div', { class: 'step' }, [h('span', { class: 'num' + (done ? ' done' : ''), text: done ? '✓' : String(i + 1) }), body, h('button', { class: 'btn small', 'data-t': 'home.start', onclick: x.go })]));
+    });
+    w.append(h('h3', { 'data-t': 'ls.sections', style: 'margin-top:4px' }), list);
+    if (p.lastResult) w.append(h('p', { class: 'muted', style: 'font-size:13px', text: t('st.result') + ': ' + PD.practice.summary(p.lastResult) }));
+    if (pathNav('lesson', l.id)) w.append(pathBar('lesson', l.id));
+  }
+  /** a chord shape as a small fretboard picture (E on top, A at the bottom, like the practice neck) */
+  function chordSVG(sh) {
+    const maxF = Math.max(4, ...sh.frets), x0 = 40, fw = 30, W = x0 + fw * maxF + 6, H = 92, ys = { 3: 22, 2: 46, 1: 70 };   // string name · open-string ring · nut: each has its own room
+    let g = '<svg viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true"><rect x="' + x0 + '" y="10" width="' + (fw * maxF) + '" height="72" rx="4" fill="#4A1C0E"/>';
+    g += '<rect x="' + (x0 - 4) + '" y="8" width="5" height="76" rx="1.5" fill="#EFE5D0"/>';
+    for (let f = 1; f <= maxF; f++) g += '<line x1="' + (x0 + f * fw) + '" x2="' + (x0 + f * fw) + '" y1="10" y2="82" stroke="#C9C1B3" stroke-width="2"/>';
+    [1, 2, 3].forEach(s2 => { g += '<line x1="' + (x0 - 4) + '" x2="' + (x0 + fw * maxF) + '" y1="' + ys[s2] + '" y2="' + ys[s2] + '" stroke="#F1E7D4" stroke-width="' + (s2 === 1 ? 2.6 : s2 === 2 ? 2.2 : 1.8) + '"/><text x="4" y="' + (ys[s2] + 4) + '" fill="#C9B49B" font-size="11" font-weight="600">' + TH.stringName(s2) + '</text>'; });
+    const byF = {}; sh.frets.forEach((f, i) => { if (f > 0) (byF[f + ':' + sh.fingers[i]] = byF[f + ':' + sh.fingers[i]] || []).push(i + 1); });
+    Object.keys(byF).forEach(k => { const [f, fi] = k.split(':').map(Number), ss = byF[k], cx = x0 + (f - .5) * fw, col = PD.fingers.color(fi), ink = PD.fingers.ink(fi);
+      const ya = Math.min(...ss.map(q => ys[q])), yb = Math.max(...ss.map(q => ys[q]));
+      g += '<rect x="' + (cx - 10) + '" y="' + (ya - 10) + '" width="20" height="' + (yb - ya + 20) + '" rx="10" fill="' + col + '" stroke="rgba(255,255,255,.6)"/><text x="' + cx + '" y="' + ((ya + yb) / 2 + 4) + '" fill="' + ink + '" font-size="12" font-weight="700" text-anchor="middle">' + (fi || '') + '</text>'; });
+    sh.frets.forEach((f, i) => { if (f === 0) g += '<circle cx="' + (x0 - 14) + '" cy="' + ys[i + 1] + '" r="5" fill="none" stroke="#F1E7D4" stroke-width="1.8"/>'; });
+    return g + '</svg>';
+  }
+  /** song page: recording mix · the chords · five steps (listen → chord changes → rhythm → slow → full) · sections */
+  function songPage(w, l, p, chips) {
+    const SD = PD.SONGS[l.song], stages = LS.stagesOf(l), ORIG = ['full', 'music', 'vocals'];
+    const mixNow = () => PD.store.get('songMix', 'full');
+    PD.audio.ref.preload(l.stems, ORIG.includes(mixNow()) ? mixNow() : 'music');   // decode now, so the first play starts at once
+    const DESC = { demo: 'std.songDemo', chords: 'std.chords', technique: 'std.songRhythm', slow: 'std.songSlow', perform: 'std.songFull' };
+    const NAME = { demo: 'st.listen', chords: 'st.chords', technique: 'st.songRhythm', slow: 'st.songSlow', perform: 'st.songFull' };
+    const next = stages.find(s2 => !(stagePct(p, s2) >= 80)) || 'perform';
+    w.append(h('div', { class: 'ls-actions lx-actions' }, [
+      h('button', { class: 'btn primary big', text: t(p.plays ? 'hx.go' : 'home.start') + ' · ' + t(NAME[next]), onclick: () => startStage(l, next) }),
+      h('button', { class: 'btn camb', html: ic.camera + '<span data-t="cam.title"></span>', onclick: () => PD.camera.launcher() })]), chips);
+    // the progression on one line: chord · how many rhythms · every stroke
+    if (l.cycle) {
+      const runs = []; l.cycle.forEach(c => { const r = runs[runs.length - 1]; if (r && r.c === c) r.n++; else runs.push({ c, n: 1 }); });
+      const R = (LS.rhythmsAll ? LS.rhythmsAll() : PD.curriculum.rhythms()).find(r => r.id === l.songRhythm), strokes = R ? R.strokes : [];
+      const one = () => h('span', { class: 'cy-st' }, strokes.map(k => h('i', { class: (k.accent ? 'acc ' : '') + k.direction, text: k.direction === 'up' ? '↑' : '↓' })));
+      w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.cycle' }),
+        h('div', { class: 'cy' }, runs.map(r => h('div', { class: 'cy-c', style: 'flex:' + r.n }, [h('b', { text: r.c }), h('small', { text: t('sg.rhythms', { n: r.n }) }), h('div', { class: 'cy-rs' }, Array.from({ length: r.n }, one))]))),
+        h('small', { class: 'muted', 'data-t': 'sg.oneRhythm' })]));
+    }
+    // sound: the original recording (with / without vocals / vocals only) or the synthesizer
+    const snd = h('section', { class: 'sx-block snd' });
+    const setMix = m => { PD.store.set('songMix', m); if (ORIG.includes(m)) { PD.store.set('songMix.orig', m); PD.audio.ref.preload(l.stems, m); } PD.audio.ref.mix = m; drawSnd(); };
+    function drawSnd() {
+      const m = mixNow(), orig = ORIG.includes(m); snd.innerHTML = '';
+      const opt = (on, k, d, fn) => h('button', { class: 'snd-opt', 'aria-pressed': String(on), onclick: fn }, [h('b', { 'data-t': k }), h('small', { 'data-t': d })]);
+      snd.append(h('h3', { 'data-t': 'sg.mix' }), h('div', { class: 'snd-src', role: 'group', 'aria-label': t('sg.mix') }, [
+        opt(orig, 'snd.orig', 'snd.origD', () => setMix(PD.store.get('songMix.orig', 'full'))), opt(m === 'synth', 'snd.synth', 'snd.synthD', () => setMix('synth'))]));
+      if (orig) { const seg = h('div', { class: 'seg', role: 'group', 'aria-label': t('snd.orig') }, ORIG.map(k => h('button', { 'aria-pressed': String(m === k), 'data-t': 'mix.' + k, onclick: () => setMix(k) }))); snd.append(seg); }
+      snd.append(h('small', { class: 'muted', 'data-t': 'sg.headphones' }));
+      PD.i18n.apply(snd);
+    }
+    drawSnd(); w.append(snd);
+    // steps
+    const list = h('div', { class: 'list' });
+    stages.forEach((s2, i) => {
+      const pct = stagePct(p, s2), done = pct >= 80;
+      const body = h('div', { class: 'body' }, [h('b', { 'data-t': NAME[s2] }), h('p', { 'data-t': DESC[s2] })]);
+      if (pct != null) body.append(h('div', { class: 'row', style: 'max-width:240px' }, [h('div', { class: 'bar', style: 'flex:1' }, [h('i', { style: 'width:' + pct + '%' })]), h('span', { class: 'mono muted', style: 'font-size:11px', text: pct + '%' })]));
+      list.appendChild(h('div', { class: 'step' + (s2 === next ? ' cur' : '') }, [h('span', { class: 'num' + (done ? ' done' : ''), text: done ? '✓' : String(i + 1) }), body, h('button', { class: 'btn small' + (s2 === next ? ' primary' : ''), 'data-t': 'home.start', onclick: () => startStage(l, s2) })]));
+    });
+    w.append(h('h3', { 'data-t': 'ls.sections' }), list);
+    // the chord shapes
+    w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.shapes' }), h('div', { class: 'chd-row' }, Object.keys(SD.chords).map(n => { const sh = SD.chords[n]; return h('div', { class: 'chd' }, [h('b', { text: n }), h('div', { html: chordSVG(sh) }), h('small', { class: 'muted', text: sh.frets.map((f, i) => TH.stringName(i + 1) + ' ' + f).join(' · ') + (sh.src === 'derived' ? ' · ' + t('sg.derived') : '') })]); })),
+      h('small', { class: 'muted', 'data-t': 'sg.auto' })]));
+    // sections of the song: play along from here (looped)
+    const secs = h('div', { class: 'sx-secs' }, l.sections.map(sc => {
+      const bars = Math.round((sc.to - sc.from) / LS.bpb(l)), chs = [...new Set(LS.steps(l).filter(x => x.t >= sc.from && x.t < sc.to).map(x => x.name))];
+      return h('button', { class: 'sx-sec' + (sc.kind === 'listen' ? ' listen' : ''), onclick: () => PD.practice.open(l, sc.kind === 'listen' ? { autoplay: true, tempo: 1, wait: false, mode: 'learn', resumeBeat: sc.from } : { wait: false, tempo: .7, mode: 'practice', loop: { a: sc.from, b: sc.to, on: true } }, l.id, 'phrase') }, [
+        h('b', { text: PD.i18n.pick(sc.name) }), h('small', { text: PD.fmtTime(Math.max(0, LS.timeOf(l, sc.from))) + ' · ' + (l.cycle ? t('sg.cycles', { n: Math.round((sc.to - sc.from) / l.cycle.length) }) : t('sg.bars', { n: bars })) + (chs.length ? ' · ' + chs.join(' · ') : '') })]);
+    }));
+    w.append(h('h3', { 'data-t': 'sg.parts' }), secs);
+    if (p.lastResult) w.append(h('p', { class: 'muted', style: 'font-size:13px', text: t('st.result') + ': ' + PD.practice.summary(p.lastResult) }));
+    if (pathNav('lesson', l.id)) w.append(pathBar('lesson', l.id));
+  }
+  function introSheet(l) {
+    PD.ui.sheet((box, close) => {
+      box.append(h('h2', { text: PD.i18n.pick(l.title) }));
+      if (l.intro) box.append(h('p', { class: 'fg2', style: 'white-space:pre-line;line-height:1.6', text: PD.i18n.pick(l.intro) }));
+      else if (l.desc) box.append(h('p', { class: 'fg2', text: PD.i18n.pick(l.desc) }));
+      const vid = h('div'); box.append(vid);
+      if (l.media && l.media.length) { PD.media.load(l); PD.media.mount(vid); PD.media.sync(0, 1, false, true); }
+      box.append(h('button', { class: 'btn primary', 'data-t': 'done', onclick: () => { const p = LS.progress.lesson(l.id); p.stages = p.stages || {}; p.stages.intro = 100; LS.progress.saveLesson(l.id, p); close(); } }));
+    }, { onClose: () => { PD.media.unload(); render(); } });
+  }
+  function startStage(l, s, resumeBeat) {
+    const p = LS.progress.lesson(l.id); p.lastStage = s; LS.progress.saveLesson(l.id, p);
+    if (s === 'intro') return introSheet(l);
+    const waitDef = PD.store.get('waitDefault', true);
+    const o = { demo: { autoplay: true, tempo: 1, wait: false, mode: 'learn' }, guided: { stepMode: true, wait: true, tempo: .6, mode: 'learn', autoDemo: true }, wait: { wait: waitDef, tempo: .7, mode: waitDef ? 'learn' : 'practice' },
+      slow: { wait: false, tempo: .6, mode: 'practice' }, perform: { wait: false, tempo: 1, mode: 'perform' }, technique: { wait: true, tempo: .7, mode: 'learn' },
+      watch: { autoplay: true, tempo: .7, wait: false, mode: 'learn' }, metro: { wait: false, tempo: l.metro ? 1 : .8, mode: 'practice', metro: true },
+      loop: { wait: false, tempo: .7, mode: 'practice', loop: { a: 0, b: LS.end(l), on: true } } }[s] || { wait: true, tempo: .7 };
+    if (resumeBeat > 0) o.resumeBeat = resumeBeat;
+    if (l.song) {
+      // songs with a recording: listen · chord changes (WAIT, the recording pauses for you) · the rhythm alone · play along slow · full song
+      const firstPlay = (l.sections.find(x => x.kind !== 'listen') || { from: 0 }).from;
+      // chords with the rhythm: every stroke, slowly, with the music — the intro and the first verse (the progression repeats there many times)
+      if (s === 'chords') { const v = (l.sections || []).find(x => x.kind === 'verse'), end = v ? v.to : Math.min(LS.end(l), (l.cycle ? l.cycle.length : 4) * 12);
+        return PD.practice.open(LS.songPart(l, 0, end, { ka: l.title.ka + ' · ' + t('st.chords'), en: l.title.en + ' · chords with the rhythm' }), { wait: false, tempo: .6, mode: 'practice', resumeBeat: resumeBeat > 0 && resumeBeat < end ? resumeBeat : 0 }, l.id, s); }
+      // the rhythm alone on the first chord, one cycle looped; the app plays along unless the learner switched that off
+      if (s === 'technique') return PD.practice.open(LS.songRhythm(l), { wait: false, tempo: .6, mode: 'practice', metro: true, guideKey: 'guide.songRhythm', guide: true, loop: { a: 0, b: l.cycle ? l.cycle.length : LS.bpb(l) * 2, on: true } }, l.id, s);
+      if (s === 'slow') return PD.practice.open(l, { wait: false, tempo: .7, mode: 'practice', resumeBeat: resumeBeat || firstPlay }, l.id, s);
+      if (s === 'perform') return PD.practice.open(l, { wait: false, tempo: 1, mode: 'perform' }, l.id, s);
+      if (s === 'demo') return PD.practice.open(l, { autoplay: true, tempo: 1, wait: false, mode: 'learn' }, l.id, s);
+    }
+    if (s === 'technique') {
+      const tq = l.technique || { kind: 'rhythm' };
+      if (tq.kind === 'section' && tq.from != null) return PD.practice.open(l, { wait: true, tempo: tq.tempo || .6, mode: 'learn', drill: { a: tq.from, b: tq.to } }, l.id, s);
+      return PD.practice.open(LS.rhythmOf(l), o, l.id, s);
+    }
+    if (s === 'phrase') {
+      const sug = PD.premium.allows('coach') ? PD.coach.analyze(l) : null;   // the smart drill is premium; otherwise the weakest section
+      if (sug) return PD.practice.open(l, { mode: 'practice', wait: false, drill: { a: sug.from, b: sug.to, ladder: sug.ladder } }, l.id, s);
+      const heat = p.heat || [], bpb = LS.bpb(l); let worst = l.sections[0];
+      if (heat.length) { const sc = l.sections.map(x => { const bars = heat.slice(Math.floor(x.from / bpb), Math.ceil(x.to / bpb)).filter(v => v >= 0); return { x, v: bars.length ? bars.reduce((a, b) => a + b, 0) / bars.length : 2 }; }); worst = sc.sort((a, b) => a.v - b.v)[0].x; }
+      return PD.practice.open(l, { wait: true, tempo: .7, mode: 'practice', drill: { a: worst.from, b: worst.to } }, l.id, s);
+    }
+    PD.practice.open(l, o, l.id, s);
+  }
+
+  /* ---------- Practice hub ---------- */
+  function practiceHub(w) {
+    w.append(h('div', { class: 'pg-top' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('learn') }), h('h1', { 'data-t': 'hd.practice' })]));
+    const plan = PD.daily.plan(), dn = plan.filter(x => x.done).length, nextSeg = plan.find(x => !x.done && x.go);
+    const rowI = (cls, icon, k, d, right, fn) => h('button', { class: 'prow' + (cls ? ' ' + cls : ''), onclick: fn }, [h('span', { class: 'prow-ic', html: icon }), h('span', { class: 'grow' }, [h('b', { text: t(k) }), h('small', { text: d })]), right ? h('span', { class: 'prow-n', text: right }) : null, h('span', { class: 'chev', html: ic.chevron })]);
+    const list = h('div', { class: 'plist' });
+    list.append(rowI('on', ic.target || ic.pulse, 'hm.daily', t('dl.lead', { m: PD.store.get('goalMin', 15) }), dn + '/' + plan.length, () => nextSeg ? PD.daily.start(nextSeg) : go('daily')));
+    const items = [['ai', '<b class="ai-badge">AI</b>', 'ai.title', 'ai.homeD'], ['exams', ic.check || ic.learn, 'ex.title', 'ex.lead'], ['drill', ic.target || ic.learn, 'ex.drill', 'ex.drillD'], ['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
+    items.forEach(([r, icon, k, d]) => list.append(rowI('', icon, k, t(d), '', () => go(r))));
+    w.append(list);
+    if (PD.store.get('author', false)) w.append(h('div', { class: 'paths' }, [['studio', ic.edit, 'tools.studio', 'tools.studioD'], ['at:instrument', ic.frets, 'sd.instrument', 'at.instrument'], ['at:curriculum', ic.learn, 'sd.curriculum', 'at.curD'], ['at:samples', ic.mic, 'sd.samples', 'set.samples']].map(([r, icon, k, d]) => h('button', { class: 'card path tool', onclick: () => r === 'studio' ? PD.studio.open(null) : PD.authorTools[r.slice(3)]() }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]))));
+  }
+
+  /* ---------- Profile ---------- */
+  function achievements() {
+    const ss = LS.progress.sessions(), sk = streaks();
+    const melodyDone = ss.some(s => (s.type === 'melody' || s.type === 'song') && s.firstTry > 0);
+    const notes = ss.reduce((a, s) => a + (s.correct || 0), 0) + ss.filter(s => String(s.id).startsWith('trainer:')).reduce((a, s) => a + Math.round((s.firstTry || 0) * 10), 0);
+    const perfectRhythm = ss.some(s => s.rhythm && !s.waited && s.firstTry >= .999 && s.timing != null && s.timing >= .99);
+    const fullSong = LS.all.some(l => l.type === 'song' && (LS.progress.lesson(l.id).stages || {}).perform >= 80);
+    return [['firstMelody', melodyDone], ['sessions10', ss.length >= 10], ['perfectRhythm', perfectRhythm], ['notes100', notes >= 100], ['fullSong', fullSong], ['week', sk.longest >= 7]];
+  }
+  function profile(w) {
+    const prof = PD.account.profile, sk = streaks(), C = PD.cloud, PM = PD.premium, lp = PD.levels.progress;
+    const photo = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async e => { const f = e.target.files[0]; if (!f) return; const url = await shrink(f); PD.account.setProfile({ avatar: url }); render(); } });
+    const name = h('input', { class: 'pf-name', value: prof.name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { const v = e.target.value.trim(); PD.account.setProfile({ name: v }); if (v && C.session) C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }).then(() => C.loadProfile()).catch(() => {}); } });
+    const role = (PD.exam.graduated() ? '🎓 ' + t('ex.grad') + ' · ' : '') + (C.isOwner ? t('pf.owner') : C.isAdmin ? t('ad.admin') : PM.active ? t('pm.title') : t('pf.student'));
+    w.append(h('h1', { class: 'sr', 'data-t': 'nav.profile' }));
+    w.append(h('div', { class: 'pf2-head' }, [h('button', { class: 'pf2-av', 'aria-label': t('pf.photo'), onclick: () => photo.click(), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : ic.user }), photo,
+      h('div', { class: 'grow' }, [name, h('small', { text: role })])]));
+    // three numbers
+    const done = LS.all.filter(l => visible(l) && LS.progress.lesson(l.id).mastery >= .9).length;
+    const pp = (() => { let n = 0, d = 0; LS.PATHS.forEach(p2 => p2.steps.forEach(st2 => { n++; if (stepDone(st2)) d++; })); return n ? Math.round(d / n * 100) : 0; })();
+    w.append(h('section', { class: 'pf2-stats' }, [
+      h('div', {}, [h('small', { 'data-t': 'pf.level' }), h('b', { text: String(lp.level) })]),
+      h('div', {}, [h('small', { 'data-t': 'pf.lessons' }), h('b', { text: String(done) })]),
+      h('div', {}, [h('small', { 'data-t': 'pf.progress' }), h('b', { text: pp + '%' }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + pp + '%' })])])]));
+    // one menu
+    const I = d => '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    const item = (icon, k, sub, fn, cls) => h('button', { class: 'pf2-i' + (cls ? ' ' + cls : ''), onclick: fn }, [h('span', { class: 'pf2-ic', html: icon }), h('span', { class: 'grow' }, [h('span', { text: t(k) }), sub ? h('small', { text: sub }) : null]), h('span', { class: 'chev', html: ic.chevron })]);
+    w.append(h('section', { class: 'pf2-menu' }, [
+      item(I('<path d="M4 5a2 2 0 0 1 2-2h4v18H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-4v18h4a2 2 0 0 1 2 2z"/><path d="M10 3v18M14 3v18"/>'), 'bk.profile', t('bk.profileD'), () => go('book'), 'accent'),
+      PD.install && !PD.install.standalone() ? item(I('<path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>'), 'ins.title', t('ins.lead').split(':')[0], () => go('install')) : null,
+      item(I('<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'), 'nav.progress', t('hm.streak', { n: sk.cur }), () => go('progress')),
+      item(I('<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>'), PM.vip ? 'pm.vip' : 'pm.title', PM.active ? PM.status() : t('pm.lead'), () => PM.paywall()),
+      PD.exam.graduated() ? item(I('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>'), 'ex.cert', t('ex.grad'), () => go('cert'), 'accent') : null,
+      item(I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), 'more.settings', null, () => go('settings')),
+      item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', null, () => go('community')),
+      C.isOwner ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'pa.title', null, () => go('pmadmin')) : null,
+      C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => signOut())
+        : item(I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'), 'pf.signin', t('au.guestD'), () => PD.auth.open(), 'accent')].filter(Boolean)));
+    const favs = LS.progress.favorites().map(id => LS.get(id)).filter(Boolean);
+    if (favs.length) w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.saved' }), h('div', { class: 'list' }, favs.map(lessonRow))]));
+  }
+  function shrink(file) { return new Promise(res => { const img = new Image(), r = new FileReader(); r.onload = () => { img.onload = () => { const c = document.createElement('canvas'), k = 160 / Math.max(img.width, img.height); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', .85)); }; img.src = r.result; }; r.readAsDataURL(file); }); }
+
+  /* ---------- Progress: real improvement, no game ---------- */
+  function progress(w) {
+    const ss = LS.progress.sessions(), played = LS.all.filter(l => visible(l) && LS.progress.lesson(l.id).plays);
+    const mastered = played.filter(l => LS.progress.lesson(l.id).mastery >= .9), totalSec = ss.reduce((a, s) => a + (s.dur || 0), 0), sk = streaks();
+    const avg = arr => { const a = arr.filter(v => v != null); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : null; };
+    const noteAcc = avg(ss.map(s => s.pitch)), timeAcc = avg(ss.filter(s => !s.waited).map(s => s.timing)), avgBpm = avg(ss.map(s => s.bpm));
+    const rhythmsLearned = PD.curriculum.rhythms().filter(r => LS.progress.lesson('rhythm-' + r.id).mastery >= .9).length;
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('profile') }), h('div', { class: 'grow' }, [h('h1', { 'data-t': 'pr.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'pr.lead' })])]));
+    const pc = v => v == null ? '—' : Math.round(v * 100) + '%';
+    w.append(h('div', { class: 'pgrid' }, [
+      stat(Math.floor(totalSec / 3600) + ':' + String(Math.floor(totalSec % 3600 / 60)).padStart(2, '0'), t('pr.time')), stat(levelName(), t('pr.stage')),
+      stat(mastered.length + ' / ' + LS.all.filter(l => visible(l) && l.events.length).length, t('pr.completed')), stat(String(mastered.filter(l => l.type === 'song').length), t('pr.songs')),
+      stat(String(rhythmsLearned) + ' / ' + PD.curriculum.rhythms().length, t('pr.rhythms')), stat(pc(noteAcc), t('pr.noteAcc')),
+      stat(pc(timeAcc), t('pr.timeAcc')), stat(avgBpm ? Math.round(avgBpm) + ' BPM' : '—', t('pr.avgTempo')), stat(t('pr.days', { n: sk.longest }), t('pr.longest'))]));
+    // real improvement: last 7 days vs the 7 before
+    const wk = 7 * 864e5, now = Date.now(), lastW = ss.filter(s => s.date > now - wk), prevW = ss.filter(s => s.date <= now - wk && s.date > now - 2 * wk);
+    const trends = [['pr.timeAcc', s => s.waited ? null : s.timing], ['pr.noteAcc', s => s.pitch]].map(([k, f]) => { const a = avg(prevW.map(f)), b = avg(lastW.map(f)); return a != null && b != null ? h('p', { class: 'trend', text: t('pr.trend', { k: t(k), a: pc(a), b: pc(b) }) }) : null; }).filter(Boolean);
+    if (trends.length) w.append(h('section', { class: 'panel' }, trends));
+    // skill map (calm horizontal bars; each from measured data)
+    const mOf = pred => avg(LS.all.filter(l => visible(l) && l.events.length && pred(l) && LS.progress.lesson(l.id).plays).map(l => LS.progress.lesson(l.id).mastery));
+    const skills = [['sk.notes', noteAcc], ['r.timing', timeAcc], ['sk.rhythm', avg(ss.filter(s => s.rhythm).map(s => s.firstTry))], ['sk.fingering', mOf(l => LS.steps(l).some(s => s.notes.some(n => n.f > 0)))],
+      ['sk.strumming', mOf(l => LS.steps(l).some(s => s.kind !== 'note'))], ['sk.speed', avg(played.map(l => (LS.progress.lesson(l.id).maxTempo || 0) / 100).filter(v => v > 0))], ['nav.songs', mOf(l => l.type === 'song')]];
+    w.append(h('section', { class: 'panel' }, [h('h2', { 'data-t': 'pr.skills' }), h('div', { class: 'skillmap' }, skills.map(([k, v]) => h('div', { class: 'sm-row' }, [h('span', { 'data-t': k }), h('div', { class: 'bar' }, [h('i', { style: 'width:' + (v == null ? 0 : Math.round(Math.min(1, v) * 100)) + '%' })]), h('span', { class: 'mono muted', text: pc(v) })])))]));
+    const pitch = ss.filter(s => s.pitch != null).slice(-30), timing = ss.filter(s => s.timing != null && !s.waited).slice(-30);
+    w.append(h('div', { class: 'two' }, [chartCard(t('pr.pitchTrend'), pitch.map(s => ({ v: s.pitch, d: s.date, id: s.id })), t('pr.noData')), chartCard(t('pr.timingTrend'), timing.map(s => ({ v: s.timing, d: s.date, id: s.id })), timing.length ? '' : t('pr.noTiming'))]));
+    const diff = played.map(l => PD.coach.analyze(l)).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 4);
+    w.append(h('section', { class: 'panel' }, [h('h2', { 'data-t': 'pr.difficult' }), h('p', { class: 'muted', style: 'font-size:13px', 'data-t': 'pr.difficultD' }),
+      h('div', { class: 'list' }, diff.length ? diff.map(d => h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { text: PD.i18n.pick(d.lesson.title) + ' · ' + t('w.bars', { a: d.barA, b: d.barB }) }), h('small', { text: t(d.key) })]), h('button', { class: 'btn small', 'data-t': 'co.go', onclick: () => PD.coach.start(d) })])) : [h('div', { class: 'li muted', 'data-t': 'pr.none' })])]));
+    const probs = {}; ss.forEach(s => Object.keys(s.probs || {}).forEach(k => probs[k] = (probs[k] || 0) + s.probs[k]));
+    w.append(h('section', { class: 'panel fretheat' }, [h('h2', { 'data-t': 'pr.problems' }), h('p', { class: 'muted', style: 'font-size:13px', 'data-t': 'pr.problemsD' }), h('div', { html: fretHeat(probs) })]));
+    const recent = ss.slice(-8).reverse();
+    w.append(h('section', { class: 'panel' }, [h('h2', { 'data-t': 'pr.sessions' }), h('div', { class: 'list' }, recent.length ? recent.map(s => { const l = LS.get(s.id); return h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { text: l ? PD.i18n.pick(l.title) : String(s.id).startsWith('trainer:') ? t('tr.title') : s.id }), h('small', { text: PD.ui.daysAgo(s.date) + (s.tempo ? ' · ' + s.tempo + '%' : '') + ' · ' + t('l.min', { n: Math.max(1, Math.round((s.dur || 0) / 60)) }) })]), h('span', { class: 'mono', text: Math.round((s.firstTry || 0) * 100) + '%' })]); }) : [h('div', { class: 'li muted', 'data-t': 'pr.none' })])]));
+    w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.achievements' }), h('div', { class: 'ach' }, achievements().map(([k, ok]) => h('div', { class: 'ach-i' + (ok ? ' ok' : '') }, [h('span', { class: 'ach-mark', html: ok ? ic.check : '' }), h('div', {}, [h('b', { 'data-t': 'ac.' + k }), h('small', { 'data-t': 'ac.' + k + 'D' })])])))]));
+  }
+  /** single-series trend line with a hover readout (no legend needed: the title names the series) */
+  function chartCard(title, pts, empty) {
+    const card = h('section', { class: 'panel' }, [h('h2', { text: title })]);
+    if (pts.length < 2) { card.append(h('p', { class: 'muted', style: 'font-size:13px', text: empty || t('pr.noData') })); return card; }
+    const W = 600, H = 150, pl = 34, pr = 10, pt = 10, pb = 22, x = i => pl + i * (W - pl - pr) / (pts.length - 1), y = v => pt + (1 - v) * (H - pt - pb);
+    let s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + PD.esc(title) + '">';
+    [0, .5, 1].forEach(v => { s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="rgba(242,232,218,.08)"/><text x="' + (pl - 6) + '" y="' + (y(v) + 4) + '" fill="#A39B91" font-size="11" text-anchor="end" font-family="Noto Sans Georgian">' + Math.round(v * 100) + '</text>'; });
+    s += '<polyline fill="none" stroke="#C98B5B" stroke-width="2" stroke-linejoin="round" points="' + pts.map((p, i) => x(i) + ',' + y(p.v)).join(' ') + '"/>';
+    pts.forEach((p, i) => { const l = LS.get(p.id); s += '<circle cx="' + x(i) + '" cy="' + y(p.v) + '" r="4" fill="#C98B5B" stroke="#161412" stroke-width="2"><title>' + PD.esc((l ? PD.i18n.pick(l.title) + ' · ' : '') + new Date(p.d).toLocaleDateString() + ' · ' + Math.round(p.v * 100) + '%') + '</title></circle>'; });
+    s += '</svg>';
+    const tbl = h('details', {}, [h('summary', { class: 'muted', style: 'font-size:12px', text: '▤' }), h('div', { class: 'mono muted', style: 'font-size:12px;line-height:1.7', text: pts.map(p => new Date(p.d).toLocaleDateString() + ' — ' + Math.round(p.v * 100) + '%').join(' · ') })]);
+    card.append(h('div', { html: s }), tbl); return card;
+  }
+  function fretHeat(probs) {
+    const max = Math.max(1, ...Object.values(probs)), W = 760, H = 110, x0 = 40, cw = (W - x0 - 10) / 18, y = s => 14 + (3 - s) * 28;
+    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + PD.esc(t('pr.problems')) + '">';
+    for (let st = 1; st <= 3; st++) { s += '<text x="10" y="' + (y(st) + 15) + '" fill="#CFC8BE" font-size="12" font-family="Noto Sans Georgian">' + TH.stringName(st) + '</text>'; for (let f = 0; f <= 17; f++) { const v = (probs[st + ':' + f] || 0) / max; s += '<rect x="' + (x0 + f * cw) + '" y="' + y(st) + '" width="' + (cw - 2) + '" height="24" rx="4" fill="' + (v ? 'rgba(201,139,91,' + (.15 + .85 * v).toFixed(2) + ')' : '#191816') + '"><title>' + TH.stringName(st) + ' · ' + f + ' · ' + (probs[st + ':' + f] || 0) + '</title></rect>'; } }
+    for (let f = 0; f <= 17; f++) s += '<text x="' + (x0 + f * cw + cw / 2 - 1) + '" y="' + (H - 4) + '" fill="#7C746A" font-size="10" text-anchor="middle" font-family="Noto Sans Georgian">' + f + '</text>';
+    return s + '</svg>';
+  }
+
+
+  /* ---------- Settings: Audio · Learning · Visual · Language · Accessibility · Account ---------- */
+  function settings(w) {
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('profile') }), h('h1', { 'data-t': 'set.title', style: 'margin:0' })]));
+    const sect = (k, rows) => h('section', { class: 'set-sec' }, [h('h2', { 'data-t': k }), h('div', { class: 'list' }, rows.filter(Boolean))]);
+    const row = (k, d, ctrl) => h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': k }), d ? h('small', { text: d }) : null]), ctrl]);
+    const toggle = (key, def, on) => { const c = h('input', { type: 'checkbox', 'aria-label': t(key) }); c.checked = PD.store.get(key, def); c.onchange = () => { PD.store.set(key, c.checked); on && on(c.checked); }; return c; };
+    const seg = (opts, cur, on) => { const s = h('div', { class: 'seg' }); opts.forEach(([v, k]) => s.appendChild(h('button', { 'aria-pressed': String(cur === v), 'data-t': k, 'data-v': v, onclick: () => { s.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v)))); on(v); } }))); return s; };
+    const range = (v, min, max, step, on, fmt) => { const out = h('span', { class: 'val', text: fmt ? fmt(v) : v }); const r = h('input', { type: 'range', min, max, step, value: v, oninput: e => { out.textContent = fmt ? fmt(+e.target.value) : e.target.value; on(+e.target.value); } }); return h('span', { class: 'set-ctl' }, [r, out]); };
+    if (PD.cloud.isOwner) w.append(sect('pa.title', [h('button', { class: 'li pa-entry', onclick: () => go('pmadmin') }, [h('span', { class: 'pa-entry-ic', text: '♾️' }), h('div', { class: 'grow' }, [h('span', { 'data-t': 'pa.title' }), h('small', { 'data-t': 'pa.row' })]), h('span', { html: ic.chevron, class: 'chev' })])]));
+    { const C = PD.cloud; const goalSeg = h('div', { class: 'seg', role: 'group', 'aria-label': t('pf.goal') }, [5, 10, 15, 20, 30].map(m => h('button', { 'aria-pressed': String(PD.store.get('goalMin', 15) === m), text: t('dl.min', { n: m }), onclick: e => { PD.store.set('goalMin', m); goalSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
+      w.append(sect('pf.goal', [h('div', { class: 'li' }, [goalSeg])]));
+      w.append(PD.notify.settingsSection({ sect, row, toggle }));
+      w.append(sect('sm.title', [
+        row('sm.on', '', toggle('sima.on', true, () => PD.sima.refresh())),
+        row('sm.voice', PD.sima.kaVoice() ? '' : t('sm.noVoice'), toggle('sima.voice', true)),
+        row('sm.nudgeOn', '', toggle('sima.nudge', true)),
+        PD.sima.canHear()
+          ? row('sm.wake', t('sm.wakeD'), toggle('sima.wake', false, on => PD.sima.listen(on)))
+          : row('sm.wake', t('sm.wakeNo'), h('span', { class: 'muted', text: '—' }))]));
+      w.append(sect('set.app', [row('set.version', PD.BUILD ? 'build ' + PD.BUILD : '', h('button', { class: 'btn small', 'data-t': 'set.update', onclick: async e2 => {
+        const btn = e2.currentTarget; btn.disabled = true; btn.textContent = t('set.updating');
+        const got = await PD.pwa.update();
+        if (!got) { btn.disabled = false; btn.textContent = t('set.update'); PD.ui.toast(t('set.upToDate'), 2600); }
+      } }))]));
+      w.append(sect('set.data', [
+      h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'acct.export' })]), h('span', { class: 'row', style: 'gap:6px' }, [
+        h('button', { class: 'btn small', html: ic.dl + '<span data-t="acct.export"></span>', onclick: () => PD.ui.download('panduri-data.json', JSON.stringify({ schema: 'panduri-data', v: 1, data: PD.store.exportAll() }, null, 1)) }),
+        h('button', { class: 'btn small', html: ic.ul + '<span data-t="acct.import"></span>', onclick: async () => { const f = await PD.ui.pickFile('application/json'); if (!f) return; try { const o = JSON.parse(await f.text()); PD.store.importAll(o.data || o); PD.ui.toast(t('toast.imported')); setTimeout(() => location.reload(), 600); } catch (e) { PD.ui.toast('JSON: ' + e.message); } } })])]),
+      C.session ? h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'au.delete' }), h('small', { 'data-t': 'au.deleteD' })]),
+        h('button', { class: 'btn small quiet danger', 'data-t': 'au.deleteGo', onclick: () => PD.ui.confirm(t('au.deleteQ'), async () => { try { await C.auth.deleteAccount(); PD.ui.toast(t('au.deleted'), 5000); render(); } catch (e) { PD.ui.toast((e && e.message) || String(e), 6000); } }) })]) : null])); }
+    const cal = PD.detector.calib, ms = PD.detector.status();
+    w.append(sect('set.audio', [
+      row('set.microphone', ms.on ? t('mic.on') + (ms.label ? ' · ' + ms.label : '') : t('mic.off'), ms.on ? h('button', { class: 'btn small', 'data-t': 'set.micStop', onclick: () => { PD.detector.stop(); render(); } }) : h('button', { class: 'btn small', 'data-t': 'gate.on', onclick: () => PD.practice.micOn(() => render()) })),
+      row('set.sens', null, range(cal.sens == null ? 60 : cal.sens, 0, 100, 1, v => PD.detector.setCalib({ sens: v }))),
+      row('set.noise', null, seg([['quiet', 'room.quiet'], ['normal', 'room.normal'], ['noisy', 'room.noisy']], cal.room || 'normal', v => PD.detector.setCalib({ room: v }))),
+      row('set.latency', cal.date ? t('set.calibLast', { d: PD.ui.daysAgo(cal.date), l: Math.round(cal.latencyMs) }) : t('set.calibNever'), h('button', { class: 'btn small', 'data-t': 'home.start', onclick: () => PD.calib.open() })),
+      row('set.tol', null, range(PD.store.get('tolCents', 35), 15, 50, 1, v => PD.store.set('tolCents', v), v => v + '¢')),
+      row('set.guard', t('set.guardD'), toggle('clickGuard', true, v => { PD.detector.guardOn = v; })),
+      row('set.vFeedback', null, range(PD.audio.vol.ui, 0, 1, .05, v => PD.audio.setVol('ui', v), v => Math.round(v * 100))),
+      row('set.vRef', null, range(PD.audio.vol.ref, 0, 1, .05, v => PD.audio.setVol('ref', v), v => Math.round(v * 100))),
+      row('set.vMetro', null, range(PD.audio.vol.metro, 0, 1, .05, v => PD.audio.setVol('metro', v), v => Math.round(v * 100))),
+      row('set.vInst', null, range(PD.audio.vol.inst, 0, 1, .05, v => PD.audio.setVol('inst', v), v => Math.round(v * 100)))]));
+    const asSel = h('select', { class: 'input', 'aria-label': t('set.assist'), onchange: e => PD.engine.setAssist(e.target.value) }); ['auto', 'beginner', 'intermediate', 'advanced', 'performance'].forEach(v => { const o = h('option', { value: v, 'data-t': 'as.' + v }); if (PD.engine.S.assistOverride === v) o.selected = true; asSel.appendChild(o); });
+    w.append(sect('set.learningSec', [
+      row('set.waitDefault', null, toggle('waitDefault', true)),
+      row('set.autoAdvance', null, toggle('autoAdvance', true)),
+      row('set.fingerColors', null, toggle('fingerColors', true)),
+      row('set.noteNames', null, toggle('showNames', true)),
+      row('set.fretNums', null, toggle('showFrets', true)),
+      row('set.lefty', t('set.leftyD'), toggle('lefty', false)),
+      row('set.countIn', null, toggle('countIn', true, v => PD.engine.setCountIn(v))),
+      row('set.metro', null, toggle('metro', true, v => PD.engine.setMetro(v))),
+      row('set.assist', t('set.assistD'), asSel)]));
+    const q = PD.store.get('quality', 'auto');
+    w.append(sect('set.visualSec', [
+      row('set.cine', t('set.cineD'), toggle('cine', true)),
+      row('set.quality', null, seg([['auto', 'q.auto'], ['low', 'q.low'], ['medium', 'q.balanced'], ['high', 'q.high'], ['ultra', 'q.ultra']], q, v => { PD.store.set('quality', v); if (PD.has3D()) PD.R3D.quality = v; PD.bus.emit('quality', v); })),
+      row('set.fps', null, seg([['auto', 'fps.auto'], ['30', 'fps.30']], PD.store.get('fps', 'auto'), v => PD.store.set('fps', v))),
+      row('set.reduceMotion', t('set.motion'), toggle('reduceMotion', false, v => document.documentElement.classList.toggle('rm', v))),
+      row('set.fretNums', null, toggle('showFrets', true))]));
+    w.append(sect('set.lang', [row('set.lang', null, seg([['ka', 'lang.ka'], ['en', 'lang.en']], PD.i18n.lang, v => PD.i18n.set(v)))]));
+    w.append(sect('set.a11y', [
+      row('set.text', null, seg([['m', 'ts.m'], ['l', 'ts.l'], ['xl', 'ts.xl']], PD.store.get('textSize', 'm'), v => { PD.store.set('textSize', v); document.documentElement.classList.remove('ts-l', 'ts-xl'); if (v !== 'm') document.documentElement.classList.add('ts-' + v); })),
+      row('set.hc', null, toggle('hc', false, v => document.documentElement.classList.toggle('hc', v))),
+      row('set.colorblind', null, toggle('fingerSymbols', false)),
+      row('set.uiSounds', t('set.uiSoundsD'), toggle('uiSounds', true)),
+      row('set.haptics', null, toggle('haptics', true)),
+      row('set.remote', t('set.remoteD'), toggle('remoteNav', PD.tv.isTV)),
+      row('set.keys', t('kbd.help'), null)]));
+    const tsel = h('select', { class: 'input', 'aria-label': t('set.tuning'), onchange: e => TH.setTuning(e.target.value) }); TH.TUNINGS.forEach(tu => { const o = h('option', { value: tu.id, text: PD.i18n.pick(tu.name) }); if (tu.id === TH.tuning.id) o.selected = true; tsel.appendChild(o); });
+    w.append(sect('set.panduri', [row('set.tuning', TH.tuning.strings.map(m => TH.name(m)).join(' · '), tsel), row('set.a4', null, range(TH.a4(), 430, 450, 1, v => PD.store.set('a4', v), v => v + ' Hz')), row('set.samples', t('set.samplesD', { n: PD.samples.count }), null)]));
+    w.append(sect('set.accountSec', [
+      ...(() => {   // the real state of the account, not a fixed text
+        const C = PD.cloud, cp = C.profile, who = C.session ? (cp && (cp.email || cp.phone)) || (C.user && (C.user.email || C.user.phone)) || '' : '', PM = PD.premium;
+        return [row('pf.account', C.session ? t('au.signedIn', { e: who }) : C.configured ? t('pf.guest') : t('au.noBackend'),
+            C.session ? h('button', { class: 'btn small', 'data-t': 'au.signout', onclick: () => signOut() }) : C.configured ? h('button', { class: 'btn small', 'data-t': 'pf.signin', onclick: () => PD.auth.open('signin') }) : null),
+          row('au.sync', C.session ? t('au.syncOn') : C.configured ? t('au.guestD') : t('au.syncOff'), null),
+          row('au.subscription', PM.active ? PM.status() || t('pm.title') : t('pm.none'), h('button', { class: 'btn small', 'data-t': 'pm.title', onclick: () => PM.paywall() }))];
+      })(),
+      row('set.privacy', t('set.privacyD'), null),
+      row('set.onboard', null, h('button', { class: 'btn small', 'data-t': 'learn.open', onclick: () => PD.onboard.open() })),
+      row('set.install', t('set.installD'), null),
+      row('set.wipe', t('set.wipeD'), h('button', { class: 'btn small', style: 'color:var(--fix)', 'data-t': 'delete', onclick: () => PD.ui.confirm(t('set.wipeD'), () => wipeAll()) }))]));
+    w.append(sect('set.author', [row('set.author', t('set.authorD'), toggle('author', false))]));
+    const cc = PD.cloud.config(), su = h('input', { class: 'input', placeholder: 'https://xxxx.supabase.co', value: cc.url, 'aria-label': 'Supabase URL' }), sk2 = h('input', { class: 'input', placeholder: 'anon public key', value: cc.key ? cc.key.slice(0, 12) + '…' : '', 'aria-label': 'Supabase key' });
+    sk2.onfocus = () => { if (/…$/.test(sk2.value)) sk2.value = ''; };
+    w.append(sect('set.dev', [row('set.devTouch', t('set.devTouchD'), toggle('devTouch', false)),
+      h('div', { class: 'li', style: 'flex-wrap:wrap' }, [h('div', { class: 'grow', style: 'min-width:220px' }, [h('span', { 'data-t': 'set.server' }), h('small', { text: PD.cloud.configured ? t('set.serverOn') : t('set.serverD') })]),
+        h('div', { style: 'display:flex;flex-direction:column;gap:6px;flex:1 1 260px' }, [su, sk2, h('button', { class: 'btn small', 'data-t': 'set.serverSave', onclick: () => { PD.cloud.setConfig({ url: su.value, key: /…$/.test(sk2.value) ? cc.key : sk2.value }); location.reload(); } })])])]));
+    // grouped: account · learning · audio · visual · data and privacy (then the owner's tools)
+    { const G = [['set.gAccount', ['set.accountSec', 'set.lang']], ['set.gLearn', ['pf.goal', 'set.learningSec', 'set.panduri']], ['set.gAudio', ['set.audio']], ['set.gVisual', ['set.visualSec', 'set.a11y']], ['set.gData', ['set.data']], ['set.gOwner', ['pa.title', 'set.author', 'set.dev']]];
+      const secs = [...w.querySelectorAll(':scope > .set-sec')], key = el => { const x = el.querySelector(':scope > h2'); return x && x.getAttribute('data-t'); };
+      const anchor = secs[0]; if (anchor) { const frag = document.createDocumentFragment(); const used = new Set();
+        G.forEach(([gk, ks]) => { const mine = ks.map(k => secs.find(e => key(e) === k)).filter(Boolean); if (!mine.length) return; frag.append(h('h2', { class: 'set-group', 'data-t': gk })); mine.forEach(e => { used.add(e); frag.append(e); }); });
+        secs.filter(e => !used.has(e)).forEach(e => frag.append(e));
+        w.appendChild(frag); } }
+  }
+
+  function nextTheoryStep() { for (const p of LS.PATHS) { if (!p.theory) continue; const real = p.steps.filter(x => x.kind !== 'needs'), s = real.find(x => !stepDone(x)); if (s) return { p, s, d: real.filter(stepDone).length, n: real.length }; } return null; }
+  /** the first theory path that still has open steps (the level program points there first) */
+  function theoryProgram() { const p = LS.PATHS.find(x => x.theory && x.steps.some(s2 => s2.kind !== 'needs' && !stepDone(s2))); return p ? p.id : null; }
+  /** sign out: confirm, sign out at once, then the welcome screen to sign in again (any account) or continue without one */
+  function signOut() {
+    PD.ui.confirm(t('au.signoutQ'), async () => {
+      await PD.cloud.auth.signOut();
+      go('home', null, true);
+      PD.auth.gate(() => render(), { view: 'methods' });   // straight back to the sign-in screen
+    });
+  }
+  /** an in-app Back button: the same step as the system Back when there is one, otherwise up to the section */
+  function back(fallback) { if (navStack.length > 1) history.back(); else go(fallback || TOP[route] || 'home', null, true); }
+  /** inside one lesson: the next step of the learning path (or null) and the way back to the whole path */
+  function pathNav(kind, id) {
+    for (const p of LS.PATHS) { const i = p.steps.findIndex(s2 => s2.kind === kind && s2.id === id); if (i < 0) continue;
+      const nx = p.steps.slice(i + 1).find(s2 => s2.kind !== 'needs'); const all = LS.PATHS, pi = all.indexOf(p);
+      const nx2 = nx || (all[pi + 1] && all[pi + 1].steps.find(s2 => s2.kind !== 'needs'));
+      return { path: p.id, next: nx2 ? { title: stepTitle(nx2), go: () => stepGo(nx2) } : null }; }
+    return null;
+  }
+  function pathBar(kind, id, markDone) {
+    const pn = pathNav(kind, id);
+    return h('div', { class: 'ls-foot' }, [h('button', { class: 'btn ls-path', html: ic.learn + '<span data-t="ls.path"></span>', onclick: () => go('learn', pn ? pn.path : null) }),
+      pn && pn.next ? h('button', { class: 'btn primary ls-next', onclick: () => { if (markDone) markDone(); pn.next.go(); } }, [h('small', { 'data-t': 'ls.next' }), h('b', { text: pn.next.title })]) : null]);
+  }
+  return { shell, go, back, signOut, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, pathNav, pathBar, stepDone, stepTitle, stepGo, get route() { return route; }, get param() { return param; } };
+})();

@@ -1,0 +1,9 @@
+# the build writes these; python3 build.py recreates them
+dist/
+__pycache__/
+*.pyc
+node_modules/
+# intermediate renders from the pose solver: the result lives in render/out/poses_final.json
+render/out/p_*/
+render/out/*.png
+render/out/*.jpg

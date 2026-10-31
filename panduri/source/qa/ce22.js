@@ -1,0 +1,20 @@
+const { chromium } = require('/opt/node-tools/node_modules/playwright');
+const OUT = '/tmp/claude-0/-home-claude/d17ed486-e6cb-5d9f-80bb-ed664a9aab9c/scratchpad/qa/';
+(async () => {
+  const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5 })).newPage();
+  p.on('pageerror', e => console.log('ERR', e.message));
+  await p.goto('http://localhost:8765/app/'); await p.waitForTimeout(1500);
+  await p.evaluate(() => { localStorage.clear(); PD.store.set('onboarded', true); PD.store.set('auth.skip', true); document.querySelector('.ag')?.remove(); document.querySelector('.ob')?.remove(); PD.app.go('chords', 'Dm'); });
+  await p.waitForTimeout(1500);
+  await p.click('text=ნაბიჯ-ნაბიჯ'); await p.waitForTimeout(700);
+  await p.screenshot({ path: OUT + 'ce-step1.png', clip: { x: 0, y: 60, width: 390, height: 300 } });
+  console.log('cap1', await p.textContent('.ce-cap'));
+  await p.waitForTimeout(1600); console.log('cap2', await p.textContent('.ce-cap'));
+  await p.waitForTimeout(1500); console.log('cap3', await p.textContent('.ce-cap'));
+  await p.selectOption('.ce-tr select, select[aria-label]', { label: 'B♭' }).catch(e => console.log('sel', e.message.slice(0, 80)));
+  await p.click('text=აჩვენე გადასვლა'); await p.waitForTimeout(400);
+  console.log('change', await p.textContent('.ce-cap'));
+  await p.screenshot({ path: OUT + 'ce-change.png', clip: { x: 0, y: 60, width: 390, height: 300 } });
+  await b.close();
+})();

@@ -1,0 +1,10 @@
+const { chromium } = require('/opt/node-tools/node_modules/playwright');
+(async () => { const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] }); const p = await (await b.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+  p.on('pageerror', e => console.log('ERR', e.message, (e.stack||'').split('\n')[1]));
+  await p.goto('http://localhost:8765/panduri-app.html'); await p.waitForTimeout(400);
+  await p.evaluate(() => { PD.store.set('onboarded', true); PD.store.set('wsInsp', false); const o = document.querySelector('.ob'); o && o.remove(); PD.practice.open(PD.lessons.get('c1'), { wait: true, tempo: .7, view: '3d', mode: 'learn' }, 'c1', 'wait'); }); await p.waitForTimeout(1500);
+  await p.evaluate(() => { PD.engine.S.countIn = false; PD.engine.play(); }); await p.waitForTimeout(2500);
+  await p.screenshot({ path: 'qa/v3d-a.png' });
+  await p.evaluate(() => { const b = [...document.querySelectorAll('[data-cam]')].find(x => x.dataset.cam === 'left'); b && b.click(); }); await p.waitForTimeout(1800);
+  await p.screenshot({ path: 'qa/v3d-b.png' });
+  await b.close(); })();

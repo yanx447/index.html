@@ -1,0 +1,21 @@
+const { chromium } = require('/opt/node-tools/node_modules/playwright');
+const OUT = '/tmp/claude-0/-home-claude/d17ed486-e6cb-5d9f-80bb-ed664a9aab9c/scratchpad/qa/';
+(async () => {
+  const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })).newPage();
+  p.on('pageerror', e => console.log('PAGEERR', e.message));
+  await p.goto('http://localhost:8770/panduri/app/'); await p.waitForTimeout(1500);
+  await p.evaluate(() => { localStorage.clear(); PD.store.set('onboarded', true); PD.store.set('auth.skip', true); PD.store.set('author', true); document.querySelector('.ag')?.remove(); document.querySelector('.ob')?.remove(); PD.app.go('ai'); });
+  await p.setInputFiles('#page input[type=file]', OUT + '../bani40.mp3');
+  await p.waitForSelector('.ai-facts', { timeout: 120000 }); await p.waitForTimeout(1500);
+  console.log('model row visible', await p.evaluate(() => !document.querySelector('.ai-stems .ai-row').hidden));
+  await p.click('.ai-stems .seg button[data-v="6"]');
+  await p.evaluate(() => document.querySelector('.ai-stems').scrollIntoView()); await p.screenshot({ path: OUT + 'ai37-0.png' });
+  await p.click('.ai-stems .btn.primary.big');
+  await p.waitForSelector('.ai-mix', { timeout: 1500000 });
+  console.log('stems', await p.evaluate(() => [...document.querySelectorAll('.ai-stn b')].map(x => x.textContent).join(', ')));
+  await p.click('.ai-presets .chip >> text=შენ უკრავ'); await p.waitForTimeout(200);
+  console.log('play-along mutes', await p.evaluate(() => [...document.querySelectorAll('.ai-ms.m')].map(x => x.classList.contains('on') ? 1 : 0).join('')));
+  await p.click('.ai-play'); await p.waitForTimeout(2500); console.log('t', await p.evaluate(() => document.querySelector('.ai-time').textContent));
+  await b.close();
+})();

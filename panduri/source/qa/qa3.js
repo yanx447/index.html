@@ -1,0 +1,30 @@
+const { chromium } = require('/opt/node-tools/node_modules/playwright');
+(async () => {
+  const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+  const p = await (await b.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true })).newPage(); const errs = [];
+  p.on('pageerror', e => errs.push('PE ' + e.message + ' ' + (e.stack || '').split('\n')[1])); p.on('console', m => { if (m.type() === 'error' && !/TUNNEL/.test(m.text())) errs.push(m.text()); });
+  await p.goto('http://localhost:8765/panduri-app.html'); await p.evaluate(() => { PD.store.set('onboarded', true); PD.store.set('author', true); document.querySelector('.ob') && document.querySelector('.ob').remove(); });
+  await p.evaluate(() => PD.studio.open(null, 'melody')); await p.waitForTimeout(400);
+  await p.click('[data-tool="note"]');
+  const box = await p.$('.st-grid canvas'), r = await box.boundingBox();
+  // lane centers: top region ~ (22+0+18)=40; laneH=(H-46)/3
+  const laneY = s => r.y + 40 + (3 - s) * ((r.height - 46) / 3) + ((r.height - 46) / 6);
+  await p.fill('input[aria-label="ლადი"]', '2');
+  for (let i = 0; i < 4; i++) await p.mouse.click(r.x + 60 + i * 50, laneY(1 + (i % 3)));
+  console.log('events', await p.evaluate(() => document.getElementById('sdStat').textContent));
+  await p.click('[data-tool="select"]');
+  await p.mouse.click(r.x + 62, laneY(1));
+  await p.keyboard.press('Control+d'); await p.waitForTimeout(100);
+  await p.keyboard.press('5'); await p.waitForTimeout(100);
+  console.log('after dup+fret5', await p.evaluate(() => document.getElementById('sdStat').textContent));
+  await p.keyboard.press('Control+z'); await p.keyboard.press('Control+z');
+  console.log('after undo x2', await p.evaluate(() => document.getElementById('sdStat').textContent));
+  await p.selectOption('.st-tools select.input >> nth=1', 'min5'); await p.evaluate(() => [...document.querySelectorAll('.st-tools .btn')].find(b => b.dataset.t === 'sd.chordIns').click());
+  await p.waitForTimeout(200); await p.screenshot({ path: 'studio2.png' });
+  const [dl] = await Promise.all([p.waitForEvent('download'), p.evaluate(() => [...document.querySelectorAll('.st-top .btn')].find(b => b.querySelector('[data-t="sd.export"]')).click())]);
+  const path = await dl.path(); const txt = require('fs').readFileSync(path, 'utf8'); console.log('export', txt.length, JSON.parse(txt).lesson.events.length);
+  await p.evaluate(() => [...document.querySelectorAll('.st-top .btn')].find(b => b.dataset.t === 'sd.save').click()); await p.waitForTimeout(200);
+  console.log('saved user lessons', await p.evaluate(() => PD.lessons.all.filter(l => l.user).map(l => l.id + ':' + l.events.length).join(' ')));
+  await p.evaluate(() => PD.studio.close()); await p.waitForTimeout(200);
+  console.log('errors', errs); await b.close();
+})();
