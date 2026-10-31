@@ -1,0 +1,12 @@
+{
+  "name": "panduri-source",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Build and test tooling for the Panduri app source. The app itself has no dependencies.",
+  "scripts": {
+    "build": "python3 build.py",
+    "serve": "python3 -m http.server 8181 --directory dist/app",
+    "dev": "python3 build.py && python3 -m http.server 8181 --directory dist/app"
+  },
+  "devDependencies": { "playwright": "^1.64.1" }
+}

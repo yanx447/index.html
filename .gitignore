@@ -1,1 +1,7 @@
 panduri/ai-build/eval-*.wav
+
+# macOS
+.DS_Store
+
+# installed, never committed
+node_modules/

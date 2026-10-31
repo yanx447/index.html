@@ -9,6 +9,8 @@ hero = 'data:image/jpeg;base64,' + base64.b64encode(open('assets/hero.jpg','rb')
 # supplied recordings (songs): files in media/ — linked in the PWA, embedded as data: URIs in the single-file builds
 # the teacher's recordings: kept once in the repository, beside the built app, so the source tree
 # does not carry a second 32 MB copy of the same files
+# MEDIA_DIR is where the build READS the recordings from; the path written into the app is always
+# 'media/...', because that is where they sit next to index.html once the app is built
 MEDIA_DIR = 'media' if os.path.isdir('media') else ('../app/media' if os.path.isdir('../app/media') else None)
 MEDIA = sorted(os.path.relpath(os.path.join(r, f), MEDIA_DIR) for r, _, fs in os.walk(MEDIA_DIR) for f in fs if f.endswith('.mp3')) if MEDIA_DIR else []
 # the single-file builds carry only the original recordings; the ready-made slower versions (name-60.mp3 …) are for the installable app (the single file stretches in the browser instead)
@@ -29,7 +31,7 @@ def fig_map(inline):
         else: out[n] = {'mp4': f'fig/{n}.mp4', 'jpg': f'fig/{n}.jpg'}
     return out
 def assets_js(inline):
-    return 'PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + hero + '", photos: ' + json.dumps(PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: MEDIA_DIR + '/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ' };'
+    return 'PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + hero + '", photos: ' + json.dumps(PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ' };'
 for n in ORDER: assert '</script' not in src(n + '.js'), n
 TITLE = 'ფანდური — Panduri Learning'
 DESC = 'Learn the Georgian three-string panduri: lessons that wait for you, teacher video, tuner, chords, 3D instrument and a studio for teachers.'
