@@ -283,6 +283,7 @@ PD.cloud = (() => {
   return {
     boot, auth, db, admin, people, chat, board, signal, syncProgress, pushProgress, loadProfile,
     sima: body => http('/functions/v1/sima', { method: 'POST', body, timeout: 45000 }),
+    billing: body => http('/functions/v1/billing', { method: 'POST', body, timeout: 65000 }),
     get configured() { return configured(); },
     get session() { return S; },
     get user() { return S && S.user; },

@@ -170,8 +170,10 @@
 </main>
 <script>
   (function () {
+    /* the language chosen in the app; this page exists in Georgian and English only */
+    function saved() { try { return JSON.parse(localStorage.getItem('pd2:lang')); } catch (e) { return null; } }
     var q = new URLSearchParams(location.search).get('lang'), h = location.hash;
-    var lang = (q === 'ka' || q === 'en') ? q : h === '#delete-en' ? 'en' : h === '#delete' ? 'ka' : /^ka/.test(navigator.language || '') ? 'ka' : 'en';
+    var lang = (q === 'ka' || q === 'en') ? q : h === '#delete-en' ? 'en' : h === '#delete' ? 'ka' : /^ka/.test(saved() || navigator.language || '') ? 'ka' : 'en';
     function set(l) { document.documentElement.lang = l; document.querySelectorAll('nav a').forEach(function (a) { a.toggleAttribute('aria-current', a.dataset.set === l); }); }
     set(lang);
     document.querySelectorAll('nav a').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); set(a.dataset.set); }); });

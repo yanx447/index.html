@@ -1,7 +1,7 @@
 """Build: one modular PWA (dist/app/) + one self-contained HTML file + the artifact fragment.
 Module order = dependency order. three3d.js is embedded as inert text and parsed only when 3D is first used."""
 import base64, os, re, json, hashlib, shutil
-ORDER = ['core','instrument','theory','geom','songdata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','auth','premium','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','genres','book','install','sima','aiworker','aispl','aideck','aimus','ai','samisimi','studio','authortools','onboard','intro','cine','pwa','app','boot']
+ORDER = ['core','instrument','theory','geom','songdata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','auth','billing','premium','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','genres','book','install','sima','aiworker','aispl','aideck','aimus','ai','samisimi','studio','authortools','onboard','intro','cine','pwa','app','boot']
 LAZY = {'three3d'}
 src = lambda n: open(f'src/{n}').read()
 css = src('app.css')
@@ -102,11 +102,13 @@ if os.path.isdir('pwa/shots'):
     shutil.rmtree(app + '/shots', ignore_errors=True)
     shutil.copytree('pwa/shots', app + '/shots')
 open(app + '/app.css', 'w').write(css)
+ASSET_REV = hashlib.sha1(''.join(src(n + '.js') for n in ORDER).encode()).hexdigest()[:10]
+VERSIONED = {'cloud', 'billing', 'premium'}
 tags = []
 for n in ORDER:
     open(f'{app}/js/{n}.js', 'w').write(src(n + '.js'))
-    if n not in LAZY: tags.append(f'<script src="js/{n}.js"></script>')
-    if n == 'core': tags.append('<script src="js/assets.js"></script>'); tags.append('<script src="js/config.js"></script>')
+    if n not in LAZY: tags.append(f'<script src="js/{n}.js' + (f'?v={ASSET_REV}' if n in VERSIONED else '') + '"></script>')
+    if n == 'core': tags.append('<script src="js/assets.js"></script>'); tags.append(f'<script src="js/config.js?v={ASSET_REV}"></script>')
 open(app + '/js/assets.js', 'w').write(assets_js(False))
 open(app + '/js/config.js', 'w').write('''/* ფანდური — სერვერის და გადახდის პარამეტრები · server and payment settings.
    შეავსე და შეინახე — აპის ხელახლა აწყობა არ არის საჭირო. Fill in and save — no rebuild needed.
@@ -154,6 +156,7 @@ shutil.copy('ARCHITECTURE.md', app + '/ARCHITECTURE.md')
 # the teacher's own tuner app „სამი სიმი“, unchanged, served beside the app at tuner/
 if os.path.exists('ext/sami-simi'): shutil.copytree('ext/sami-simi', app + '/tuner')
 shell = ['./', 'index.html', 'app.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'] + [f'js/{n}.js' for n in ORDER] + ['js/assets.js', 'js/config.js']
+shell += [f'js/{n}.js?v={ASSET_REV}' for n in sorted(VERSIONED)] + [f'js/config.js?v={ASSET_REV}']
 version = hashlib.sha1((css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read()).encode()).hexdigest()[:10]
 open(app + '/sw.js', 'w').write(open('pwa/sw.js').read().replace('__VERSION__', version).replace('__SHELL__', json.dumps(shell)))
 # the running build's version, so Settings can show it and ask for an update
