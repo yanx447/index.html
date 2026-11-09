@@ -103,7 +103,7 @@ if os.path.isdir('pwa/shots'):
     shutil.copytree('pwa/shots', app + '/shots')
 open(app + '/app.css', 'w').write(css)
 ASSET_REV = hashlib.sha1(''.join(src(n + '.js') for n in ORDER).encode()).hexdigest()[:10]
-VERSIONED = {'cloud', 'billing', 'premium'}
+VERSIONED = {'cloud', 'billing', 'premium', 'sima'}
 tags = []
 for n in ORDER:
     open(f'{app}/js/{n}.js', 'w').write(src(n + '.js'))
