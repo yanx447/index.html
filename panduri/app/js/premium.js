@@ -195,6 +195,8 @@ PD.premium = (() => {
         buy.disabled = true;
         try {
           const result = await B.purchase(plan, provider, paymentOptions.packages && paymentOptions.packages[plan]);
+          // Closing the sheet schedules history.back(), which would cancel hosted checkout navigation.
+          if (result.redirecting) return;
           if (api.active) { close(); PD.app.render(); }
           else if (result.pending) say(t('pm.checking'));
         } catch (e) { if (!e.userCancelled && String(e.code) !== '1') say(t(e.message === 'billing-not-configured' ? 'pm.noPay' : 'pm.payError')); }

@@ -79,7 +79,7 @@ PD.billing = (() => {
       if (url.protocol !== 'https:' || !hosts.includes(url.hostname) || result.provider !== provider || !result.order) throw new Error('invalid-checkout');
       PD.store.set(pendingKey(uid), { provider, order: result.order });
       location.assign(url.href);
-      return { pending: true };
+      return { pending: true, redirecting: true };
     } finally { busy = false; }
   }
   async function restore() {
