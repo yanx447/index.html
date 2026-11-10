@@ -27,7 +27,7 @@
 <script>(function(){var L=["ar", "de", "es", "fr", "hi", "it", "ja", "ko", "pl", "pt", "ru", "tr", "uk", "zh"],c;try{c=JSON.parse(localStorage.getItem("pd2:lang"))}catch(e){}if(!c){var n=navigator.languages||[navigator.language||"en"];for(var i=0;i<n.length;i++){var b=String(n[i]).toLowerCase().split(/[-_]/)[0];if(b==="ka"||b==="en"||L.indexOf(b)>=0){c=b;break}}}if(L.indexOf(c)>=0)document.write('<script src="js/lang/'+c+'.js"><\/script>')})()</script>
 <script src="js/core.js"></script>
 <script src="js/assets.js"></script>
-<script src="js/config.js"></script>
+<script src="js/config.js?v=98ffd590b6"></script>
 <script>/* 3D renderer is fetched only when first used */
 Object.defineProperty(PD, "R3D", { configurable: true, get() { if (!PD._R3D) { const x = new XMLHttpRequest(); x.open("GET", "js/three3d.js", false); x.send(); const s = document.createElement("script"); s.textContent = x.responseText; document.head.appendChild(s); } return PD._R3D; } });
 </script>
@@ -46,11 +46,11 @@ Object.defineProperty(PD, "R3D", { configurable: true, get() { if (!PD._R3D) { c
 <script src="js/ui.js"></script>
 <script src="js/motion.js"></script>
 <script src="js/fx.js"></script>
-<script src="js/cloud.js"></script>
+<script src="js/cloud.js?v=98ffd590b6"></script>
 <script src="js/devices.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/billing.js"></script>
-<script src="js/premium.js"></script>
+<script src="js/billing.js?v=98ffd590b6"></script>
+<script src="js/premium.js?v=98ffd590b6"></script>
 <script src="js/tv.js"></script>
 <script src="js/rhythms.js"></script>
 <script src="js/neck.js"></script>
@@ -74,7 +74,7 @@ Object.defineProperty(PD, "R3D", { configurable: true, get() { if (!PD._R3D) { c
 <script src="js/genres.js"></script>
 <script src="js/book.js"></script>
 <script src="js/install.js"></script>
-<script src="js/sima.js"></script>
+<script src="js/sima.js?v=98ffd590b6"></script>
 <script src="js/aiworker.js"></script>
 <script src="js/aispl.js"></script>
 <script src="js/aideck.js"></script>

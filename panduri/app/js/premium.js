@@ -161,7 +161,7 @@ PD.premium = (() => {
     FEATURES, LIST, PRICE, FREE_AI_HOURS
   };
   const KA_M = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
-  function fmtDate(d) { if (!d) return ''; if (d.getFullYear() > 2090) return t('pm.forever'); return PD.i18n.lang === 'ka' ? d.getDate() + ' ' + KA_M[d.getMonth()] + ' ' + d.getFullYear() : d.toLocaleDateString(PD.i18n.locale, { day: 'numeric', month: 'long', year: 'numeric' }); }
+  function fmtDate(d) { if (!d) return ''; if (d.getFullYear() > 2090) return t('pm.forever'); return PD.i18n.lang === 'ka' ? d.getDate() + ' ' + KA_M[d.getMonth()] + ' ' + d.getFullYear() : d.toLocaleDateString((PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US')), { day: 'numeric', month: 'long', year: 'numeric' }); }
   function paywall(feature) {
     PD.ui.sheet((box, close) => {
       const B = PD.billing;
@@ -185,7 +185,7 @@ PD.premium = (() => {
         for (const k of ['monthly', 'yearly']) {
           const price = current.prices[k];
           if (!price) continue;
-          const label = price.display || new Intl.NumberFormat(PD.i18n.locale, { style: 'currency', currency: price.currency }).format(Number(price.value));
+          const label = price.display || new Intl.NumberFormat((PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US')), { style: 'currency', currency: price.currency }).format(Number(price.value));
           plans.append(h('button', { class: 'pw-plan', 'aria-pressed': String(plan === k), onclick: () => { plan = k; drawPlans(); } }, [
             h('b', { text: t('pm.' + k) }), h('span', { class: 'pw-price', text: label }),
             h('small', { text: t(k === 'monthly' ? 'pm.perMonth' : 'pm.perYear') })]));
@@ -310,7 +310,7 @@ PD.premium = (() => {
             const fromNow = base => { const b = vip && vu > new Date() ? new Date(vu) : new Date(); b.setDate(b.getDate() + base); return b.toISOString(); };
             list.appendChild(h('div', { class: 'adm-u' }, [
               h('div', { class: 'adm-id' }, [h('b', { text: u.display_name || u.email || u.phone || u.id.slice(0, 8) }), h('small', { text: [u.email, u.phone].filter(Boolean).join(' · ') }),
-                h('small', { text: t('lv.level', { n: u.level || 0 }) + ' · ' + t('ad.joined', { d: new Date(u.created_at).toLocaleDateString(PD.i18n.locale) }) + (u.role === 'admin' ? ' · ' + t('ad.admin') : '') }),
+                h('small', { text: t('lv.level', { n: u.level || 0 }) + ' · ' + t('ad.joined', { d: new Date(u.created_at).toLocaleDateString((PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US'))) }) + (u.role === 'admin' ? ' · ' + t('ad.admin') : '') }),
                 vip ? h('span', { class: 'vip-tag', text: 'VIP · ' + fmtDate(vu) }) : null].filter(Boolean)),
               h('div', { class: 'adm-act' }, [
                 h('button', { class: 'btn small', 'data-t': 'ad.vipMonth', onclick: () => act(() => C.admin.setVip(u.id, fromNow(31), 'vip')) }),

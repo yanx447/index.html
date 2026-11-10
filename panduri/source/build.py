@@ -126,11 +126,13 @@ if os.path.isdir('pwa/shots'):
     shutil.rmtree(app + '/shots', ignore_errors=True)
     shutil.copytree('pwa/shots', app + '/shots')
 open(app + '/app.css', 'w').write(css)
+ASSET_REV = hashlib.sha1(''.join(src(n + '.js') for n in ORDER).encode()).hexdigest()[:10]
+VERSIONED = {'cloud', 'billing', 'premium', 'sima'}
 tags = []
 for n in ORDER:
     open(f'{app}/js/{n}.js', 'w').write(src(n + '.js'))
-    if n not in LAZY: tags.append(f'<script src="js/{n}.js"></script>')
-    if n == 'core': tags.append('<script src="js/assets.js"></script>'); tags.append('<script src="js/config.js"></script>')
+    if n not in LAZY: tags.append(f'<script src="js/{n}.js' + (f'?v={ASSET_REV}' if n in VERSIONED else '') + '"></script>')
+    if n == 'core': tags.append('<script src="js/assets.js"></script>'); tags.append(f'<script src="js/config.js?v={ASSET_REV}"></script>')
 open(app + '/js/assets.js', 'w').write(assets_js(False))
 open(app + '/js/config.js', 'w').write('''/* ფანდური — სერვერის და გადახდის პარამეტრები · server and payment settings.
    შეავსე და შეინახე — აპის ხელახლა აწყობა არ არის საჭირო. Fill in and save — no rebuild needed.
@@ -186,6 +188,7 @@ shell = ['./', 'index.html', 'app.css', 'manifest.webmanifest', 'icons/icon-192.
 tuner_files = sorted(str(p).replace('\\', '/') for p in __import__('pathlib').Path('ext/sami-simi').rglob('*') if p.is_file() and p.suffix in ('.js', '.css', '.html', '.woff', '.woff2'))
 shell += [p.replace('ext/sami-simi/', 'tuner/') for p in tuner_files]
 tuner_digest = hashlib.sha1(b''.join(open(p, 'rb').read() for p in tuner_files)).hexdigest()
+shell += [f'js/{n}.js?v={ASSET_REV}' for n in sorted(VERSIONED)] + [f'js/config.js?v={ASSET_REV}']
 version = hashlib.sha1((tuner_digest + css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read() + ''.join(LANG_JSON.values())).encode()).hexdigest()[:10]
 open(app + '/sw.js', 'w').write(open('pwa/sw.js').read().replace('__VERSION__', version).replace('__SHELL__', json.dumps(shell)))
 # the running build's version, so Settings can show it and ask for an update
