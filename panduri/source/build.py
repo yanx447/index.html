@@ -126,13 +126,16 @@ if os.path.isdir('pwa/shots'):
     shutil.rmtree(app + '/shots', ignore_errors=True)
     shutil.copytree('pwa/shots', app + '/shots')
 open(app + '/app.css', 'w').write(css)
-ASSET_REV = hashlib.sha1(''.join(src(n + '.js') for n in ORDER).encode()).hexdigest()[:10]
-VERSIONED = {'cloud', 'billing', 'premium', 'sima'}
+# Every script and the stylesheet carry the build's revision in their address. index.html is fetched from the network
+# first, so a new build's page always asks for new addresses: a browser still run by the previous service worker cannot
+# answer them from its old cache (with only four files versioned, the rest of an update stayed old until a second reload).
+ASSET_REV = hashlib.sha1((css + ''.join(src(n + '.js') for n in ORDER)).encode()).hexdigest()[:10]
+VERSIONED = set(ORDER)
 tags = []
 for n in ORDER:
     open(f'{app}/js/{n}.js', 'w').write(src(n + '.js'))
     if n not in LAZY: tags.append(f'<script src="js/{n}.js' + (f'?v={ASSET_REV}' if n in VERSIONED else '') + '"></script>')
-    if n == 'core': tags.append('<script src="js/assets.js"></script>'); tags.append(f'<script src="js/config.js?v={ASSET_REV}"></script>')
+    if n == 'core': tags.append(f'<script src="js/assets.js?v={ASSET_REV}"></script>'); tags.append(f'<script src="js/config.js?v={ASSET_REV}"></script>')
 open(app + '/js/assets.js', 'w').write(assets_js(False))
 open(app + '/js/config.js', 'w').write('''/* ფანდური — სერვერის და გადახდის პარამეტრები · server and payment settings.
    შეავსე და შეინახე — აპის ხელახლა აწყობა არ არის საჭირო. Fill in and save — no rebuild needed.
@@ -151,7 +154,7 @@ for c, d in LANG_TR.items(): open(f'{app}/js/lang/{c}.js', 'w', encoding='utf8')
 for m in MEDIA: os.makedirs(os.path.dirname(app + '/media/' + m), exist_ok=True); shutil.copy(MEDIA_DIR + '/' + m, app + '/media/' + m)
 if FIG_NAMES: shutil.copytree('assets/fig', app + '/fig')
 lazy_loader = '<script>/* 3D renderer is fetched only when first used */\nObject.defineProperty(PD, "R3D", { configurable: true, get() { if (!PD._R3D) { const x = new XMLHttpRequest(); x.open("GET", "js/three3d.js", false); x.send(); const s = document.createElement("script"); s.textContent = x.responseText; document.head.appendChild(s); } return PD._R3D; } });\n</script>'
-tags.insert(tags.index('<script src="js/instrument.js"></script>'), lazy_loader)
+tags.insert(next(i for i, x in enumerate(tags) if x.startswith('<script src="js/instrument.js')), lazy_loader)
 tags.insert(0, LANG_BOOT)
 tags.insert(0, LANG_LIST_TAG)
 index = f'''<!doctype html>
@@ -170,7 +173,7 @@ index = f'''<!doctype html>
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="{FONTS}">
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="app.css?v={ASSET_REV}">
 </head>
 <body>
 <noscript>ფანდურის სასწავლო აპს JavaScript სჭირდება. · This app needs JavaScript.</noscript>
@@ -183,13 +186,13 @@ open(app + '/index.html', 'w').write(index)
 shutil.copy('ARCHITECTURE.md', app + '/ARCHITECTURE.md')
 # the teacher's own tuner app „სამი სიმი“, served beside the app at tuner/; it speaks the app's language
 if os.path.exists('ext/sami-simi'): shutil.copytree('ext/sami-simi', app + '/tuner')
-shell = ['./', 'index.html', 'app.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'] + [f'js/{n}.js' for n in ORDER] + ['js/assets.js', 'js/config.js']
+shell = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'] + [f'js/{n}.js' for n in ORDER if n in LAZY]
 # The integrated tuner must work offline, and its engine changes must invalidate the app shell.
 tuner_files = sorted(str(p).replace('\\', '/') for p in __import__('pathlib').Path('ext/sami-simi').rglob('*') if p.is_file() and p.suffix in ('.js', '.css', '.html', '.woff', '.woff2'))
 shell += [p.replace('ext/sami-simi/', 'tuner/') for p in tuner_files]
 tuner_digest = hashlib.sha1(b''.join(open(p, 'rb').read() for p in tuner_files)).hexdigest()
-shell += [f'js/{n}.js?v={ASSET_REV}' for n in sorted(VERSIONED)] + [f'js/config.js?v={ASSET_REV}']
-version = hashlib.sha1((tuner_digest + css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read() + ''.join(LANG_JSON.values())).encode()).hexdigest()[:10]
+shell += [f'js/{n}.js?v={ASSET_REV}' for n in ORDER if n not in LAZY] + [f'js/assets.js?v={ASSET_REV}', f'js/config.js?v={ASSET_REV}', f'app.css?v={ASSET_REV}']
+version = hashlib.sha1((tuner_digest + css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read() + ''.join(LANG_JSON.values()) + index + json.dumps(shell)).encode()).hexdigest()[:10]
 open(app + '/sw.js', 'w').write(open('pwa/sw.js').read().replace('__VERSION__', version).replace('__SHELL__', json.dumps(shell)))
 # the running build's version, so Settings can show it and ask for an update
 open(app + '/js/config.js', 'a').write('\nPD.BUILD = ' + json.dumps(version) + ';\n')
