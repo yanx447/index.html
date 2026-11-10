@@ -63,6 +63,14 @@ PD.i18n.add({
   'ai.geoIn2': ['წაკითხულია როგორც ნახატი ორ თვლაზე; გაზომილია {n} წრე.', 'Read as the pattern across two beats; {n} cycles measured.'],
   'ai.geoSub': ['წაკითხულია როგორც {s} დარტყმა ერთ თვლაში; გაზომილია {n} წრე.', 'Read as {s} strokes to a beat; {n} cycles measured.'],
   'ai.geoNo': ['ქართულ რითმებთან ახლო დამთხვევა ვერ ვიპოვე.', 'No close match with the Georgian rhythms was found.'],
+  'ai.geoRef': ['ჰგავს: {s} — დარტყმების განლაგებით, სიძლიერით და ტემპით.', 'It resembles {s} — in where the strokes fall, how strong they are, and the tempo.'],
+  'ai.geoOr': ['ან', 'or'],
+  'ai.geoMetric': ['ორივე სამდარტყმიანია და მხოლოდ იმით განსხვავდება, რომელი დარტყმაა მძიმე. ამ ჩანაწერში ყველაზე ძლიერად თვლის დასაწყისი ისმის — ასე ჟღერს დოლი და ბანი ნებისმიერ ასეთ ზომაში, ამიტომ მხოლოდ აქცენტით ვერ ვარჩევ. მასწავლებლის ჩანაწერებს ახლოს არ ჰგავს.', 'Both have three strokes and differ only in which strokes are heavy. In this recording the start of each beat sounds strongest — that is how the drum and the bass sound in any music in this metre — so the accents alone cannot tell them apart, and it is not close to the teacher\u2019s recordings.'],
+  'ai.geoRefs': ['მასწავლებლის ჩანაწერებიდან ორს თითქმის თანაბრად ჰგავს.', 'It is almost equally close to two of the teacher\u2019s recordings.'],
+  'ai.teach': ['AI-ს სწავლება', 'Teach the AI'],
+  'ai.teachD': ['მხოლოდ მფლობელი. თუ იცი, რომელ რითმზეა ეს ჩანაწერი, აირჩიე — AI დაიმახსოვრებს მის „ანაბეჭდს“ და მომდევნო ჩანაწერებს მასაც შეადარებს. ამ მოწყობილობაზე ინახება; ყველასთვის „კოპირებით“ გადაეცემა შემდეგ განახლებას.', 'Owner only. If you know which rhythm this recording uses, pick it — the AI keeps its fingerprint and compares the next recordings with it too. Kept on this device; “copy” hands it to the next release so it works for everyone.'],
+  'ai.teachIs': ['ეს ჩანაწერი არის:', 'This recording is:'], 'ai.teachSaved': ['დავიმახსოვრე: {s}', 'Learnt: {s}'], 'ai.teachList': ['შენი მაგალითები ({n})', 'Your examples ({n})'],
+  'ai.teachCopy': ['კოპირება', 'Copy'], 'ai.teachNone': ['ამ ჩანაწერის ანაბეჭდი ვერ გავზომე (დარტყმების ბადე არ ჩანს).', 'This recording\u2019s fingerprint could not be measured (no stroke grid is heard).'],
   'ai.geoD': ['ვადარებ იმ ოთხ რითმს, რომელიც მასწავლებელმა მოგვცა: ყაზბეგური, მთიულური, ხორუმი, აჭარული. ნარნარი, ოსური და დანარჩენები ჯერ არ გვაქვს — როგორც კი მათი დარტყმები შემოვა, AI მათაც იცნობს.', 'Compared with the four rhythms the teacher gave: Kazbeguri, Mtiuluri, Khorumi, Acharuli. Narnari, Osuri and the others are not in the app yet — as soon as their strokes are added, the AI will know them too.'],
   'ai.rhyNoStems': ['ინსტრუმენტების დაყოფა ამისთვის საჭირო არ არის — AI უსმენს მთლიან ჩანაწერში დრამისა და დოლის დარტყმებს.', 'No instrument separation is needed for this — the AI listens to the drum and doli strokes in the whole recording.'],
   'ai.rhyLike': ['რას ჰგავს', 'What it resembles'], 'ai.rhyLikeD': ['აპში არსებულ რითმებს ვადარებ: რამდენად ემთხვევა დარტყმები და აქცენტები ერთ თვლაში. ეს შედარებაა და არა დასკვნა.', 'Compared with the rhythms already in the app: how well the strokes and accents line up inside one beat. This is a comparison, not a verdict.'],
@@ -845,6 +853,8 @@ PD.ai = (() => {
         if (!S.rhy) setTimeout(() => { if (rhyBox && rhyBox.isConnected && !S.rhy) runRhythm(); }, 400);
         return rhyBox;
       }
+      // the teacher's recordings, and the owner's own examples on this device
+      function rhythmRefs() { return (PD.RHYTHM_REFS || []).concat(PD.store.get('ai.rhyRefs', [])); }
       function metreNow() { return (S.tr && S.tr.data && S.tr.data.metre) || S.metre || { beatsPerBar: dk.D.bpb || 4, phase: res.phase || 0, num: dk.D.bpb || 4, den: 4, compound: false }; }
       async function runRhythm() {
         const st = h('div', { class: 'ai-status' }, [h('span', { text: t('ai.rhyWait') }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:40%' })])]);
@@ -855,11 +865,28 @@ PD.ai = (() => {
           if (!S.metre) S.metre = PD.aimus.metre(res.beats, on.env, on.dt, on.t0off, res.chords);
           const mt = metreNow();
           const known = (PD.curriculum.rhythms() || []).concat(PD.curriculum.commonRhythms() || []);
-          S.rhy = PD.aimus.rhythm(on, res.beats, mt, known);
+          S.rhy = PD.aimus.rhythm(on, res.beats, mt, known, rhythmRefs());
           S.rhyMt = mt;
           try { if (S.id) PD.blobs.put('ai.rhy.' + S.id, { rhy: S.rhy, metre: mt }); } catch (_) {}
         } catch (e) { S.rhy = null; }
         drawRhythm(); S.onLearn && S.onLearn();
+      }
+      /** the owner marks which rhythm this recording uses: its fingerprint becomes an example the next readings are compared with */
+      function teachBox(R) {
+        const box = h('div', { class: 'ai-tool ai-teach' }, [h('span', { class: 'ai-tl', text: t('ai.teach') }), h('small', { class: 'muted', text: t('ai.teachD') })]);
+        if (!R.print) { box.append(h('small', { class: 'muted', text: t('ai.teachNone') })); return box; }
+        const mine = () => PD.store.get('ai.rhyRefs', []);
+        const list = h('div', { class: 'chips-row' });
+        const paint = () => { list.innerHTML = ''; const all = mine(); if (!all.length) return;
+          list.append(h('small', { class: 'muted', text: t('ai.teachList', { n: all.length }) }));
+          all.forEach((x, i) => list.append(h('button', { class: 'chip', title: '✕', text: PD.i18n.pick((PD.curriculum.rhythms().find(r => r.id === x.rhythm) || {}).name || { ka: x.rhythm, en: x.rhythm }) + ' · ' + (x.from && x.from.ka || '') + ' ✕', onclick: () => { const a = mine(); a.splice(i, 1); PD.store.set('ai.rhyRefs', a); paint(); } })));
+          list.append(h('button', { class: 'chip', text: t('ai.teachCopy'), onclick: async () => { try { await navigator.clipboard.writeText(JSON.stringify(mine(), null, 1)); PD.ui.toast(t('toast.copied')); } catch (_) {} } })); };
+        box.append(h('small', { text: t('ai.teachIs') }), h('div', { class: 'chips-row' }, PD.curriculum.rhythms().filter(r => r.source === 'teacher').map(r => h('button', { class: 'chip', text: PD.i18n.pick(r.name), onclick: () => {
+          const name = ((S.file && S.file.name) || '').replace(/\.[^.]+$/, '').slice(0, 80) || '—';
+          const a = mine().filter(x => !(x.from && x.from.ka === name)); a.push(Object.assign({ rhythm: r.id, src: 'owner', from: { ka: name, en: name }, at: Date.now() }, R.print));
+          PD.store.set('ai.rhyRefs', a.slice(-40)); PD.ui.toast(t('ai.teachSaved', { s: PD.i18n.pick(r.name) })); paint(); runRhythm(); } }))), list);
+        paint();
+        return box;
       }
       function drawRhythm() {
         if (!rhyBox) return;
@@ -892,9 +919,16 @@ PD.ai = (() => {
               h('b', { text: PD.i18n.pick(g0.name) }),
               h('span', { class: 'mono', text: t(g0.score >= .72 ? 'ai.cHi' : g0.score >= .55 ? 'ai.cMid' : 'ai.cLo') }),
               h('button', { class: 'btn small ghost', text: t('ai.geoOpen'), onclick: () => PD.app.go('rhythms', g0.id) }));
+          } else if (R.ambig && R.ambig.length > 1) {
+            head.append(h('small', { text: t('ai.geoMaybe') }), h('b', { text: R.ambig.map(a => PD.i18n.pick(a.name)).join(' ' + t('ai.geoOr') + ' ') }),
+              h('span', { class: 'mono', text: t('ai.cLo') }));
           } else head.append(h('small', { text: t('ai.geoNo') }));
           rhyBox.append(head);
+          if (g0 && R.basis === 'ref' && R.ref) rhyBox.append(h('small', { class: 'muted', text: t('ai.geoRef', { s: PD.i18n.pick(R.ref.from) }) }));
+          else if (!g0 && R.basis === 'metric') rhyBox.append(h('small', { class: 'muted', text: t('ai.geoMetric') }));
+          else if (!g0 && R.basis === 'refs') rhyBox.append(h('small', { class: 'muted', text: t('ai.geoRefs') }));
           if (g0) rhyBox.append(h('small', { class: 'muted', text: t(g0.span === 1 ? 'ai.geoIn1' : g0.span === 2 ? 'ai.geoIn2' : (g0.perBeat || 1) > 1 ? 'ai.geoSub' : 'ai.geoPer', { n: g0.cycles, s: g0.perBeat }) }));
+          if (PD.cloud && PD.cloud.isOwner) rhyBox.append(teachBox(R));
           rhyBox.append(h('small', { class: 'muted', text: t('ai.geoD') }));
         {
           const names = ['auto', 'perc', 'orig'].concat(S.stems ? S.stems.tracks.map(x => x.name) : []);
