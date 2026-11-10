@@ -119,6 +119,9 @@ PD.i18n.add({
   'ai.fast': ['რამდენად ხშირად იცვლება', 'How often it changes'],
   'ai.fast0': ['ნელი', 'Slow'], 'ai.fast1': ['ჩვეულებრივი', 'Normal'], 'ai.fast2': ['სწრაფი', 'Fast'],
   'ai.fastD': ['აჭარული და სხვა სწრაფი მელოდიები — „სწრაფი“: აკორდი თითქმის ყოველ თვლაზე იცვლება. „ნელი“ — როცა ერთი აკორდი მთელ ტაქტს იკავებს.', 'Acharuli and other fast melodies — “Fast”: the chord changes on almost every beat. “Slow” — when one chord holds a whole bar.'],
+  'ai.chStem': ['აკორდების წაკითხვა ინსტრუმენტებიდან', 'Read chords from instruments'],
+  'ai.chStemD': ['აკორდებს ვკითხულობ ვოკალისა და დრამის გარეშე…', 'Reading chords without vocals and drums…'],
+  'ai.chStemDone': ['აკორდები განახლდა ინსტრუმენტული ფონიდან. ყურით გადაამოწმე.', 'Chords updated from the accompaniment. Check by ear.'],
   'ai.vocAgain': ['ხელახლა წაკითხვა', 'Read again'], 'ai.vocWait': ['ვკითხულობ…', 'Reading…'],
   'ai.chEdit': ['აკორდების შესწორება', 'Correct the chords'], 'ai.chEditD': ['ჩართე და ზოლზე შეეხე აკორდს', 'Turn this on and tap a chord on the ribbon'],
   'ai.chRoot': ['საფუძველი', 'Root'], 'ai.chQual': ['სახეობა', 'Type'], 'ai.chNone': ['აკორდის გარეშე', 'No chord'],
@@ -270,8 +273,9 @@ PD.ai = (() => {
   async function analyse(mono, sr, onProgress, opt, onStage) {
     opt = Object.assign({ bassW: 0, keyBonus: .04, nc: .35, third: .85, voc: 'ext', fast: 1, beats: null, tune: null, harm: .8, floor: .8 }, opt || {});
     const CH = opt.changeSeg != null ? opt.changeSeg : opt.fast >= 2 ? .005 : opt.fast <= 0 ? .05 : .012;   // what a change of chord costs, per beat (measured on the teacher's song: qa/ai-bani.cjs)
+    if (!mono || !mono.length || !Number.isFinite(sr) || sr <= 0) throw new Error('Empty or invalid audio');
     const N = 4096, HOPA = N / 4;
-    const fft = fftMag(N), mag = new Float32Array(N / 2), frames = Math.max(1, Math.floor((mono.length - N) / HOPA));
+    const fft = fftMag(N), mag = new Float32Array(N / 2), frames = Math.max(1, Math.ceil(Math.max(0, mono.length - N) / HOPA) + 1);
     const a4 = PD.theory && PD.theory.a4 ? PD.theory.a4() : 440;
     const tune = opt.tune != null ? opt.tune : tuningOf(mono, sr, N, fft, mag, a4);
     // bins → pitch class on the recording's own grid, 55 Hz .. 1.76 kHz, weighted toward the middle register
@@ -322,7 +326,7 @@ PD.ai = (() => {
     const T = buildTemplates(opt.voc, opt.third, opt.harm), K = T.length, NC = K;
     const score = (c, b, tpl) => { let d = 0, nc = 0, nt = 0; for (let k = 0; k < 12; k++) { d += c[k] * tpl.v[k]; nc += c[k] * c[k]; nt += tpl.v[k] * tpl.v[k]; } let s = d / Math.sqrt(nc * nt + 1e-9); if (opt.bassW) { const bm = Math.max(...b) || 1; s += opt.bassW * (b[tpl.r] / bm); } return s; };
     function decode(dia) {
-      const em = segC.map((c, s) => { const e = new Float32Array(K + 1); for (let k = 0; k < K; k++) e[k] = score(c, segB[s], T[k]) - T[k].cost + (dia && dia.has(T[k].r + T[k].base) ? opt.keyBonus : 0); e[NC] = segL[s] < lmed * .06 ? 2 : opt.nc; return e; });
+      const em = segC.map((c, s) => { const e = new Float32Array(K + 1); for (let k = 0; k < K; k++) e[k] = score(c, segB[s], T[k]) - T[k].cost + (dia && dia.has(T[k].r + T[k].base) ? opt.keyBonus : 0); e[NC] = segL[s] < lmed * .06 || segL[s] < 1e-6 ? 2 : opt.nc; return e; });
       let dp = em[0].slice(); const back = [];
       for (let s = 1; s < nS; s++) {
         let bi = 0; for (let k = 1; k <= K; k++) if (dp[k] > dp[bi]) bi = k;
@@ -524,7 +528,7 @@ PD.ai = (() => {
     const passEl = h('div', { class: 'ai-pass', hidden: true });
     w.append(input, drop, passEl, status, body);
     let S = null;   // the current song
-    const stopAll = () => { if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
+    const stopAll = () => { if (S && S.cancelSplit) S.cancelSplit(); for (const w of [worker, splWorker]) { try { w && w.terminate(); } catch (_) {} } worker = null; splWorker = null; if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
     own(() => { document.removeEventListener('fullscreenchange', onFsChange); document.removeEventListener('keydown', onFsKey); if (document.body.classList.contains('ai-full')) setFull(false); });   // leaving the studio leaves the full screen
     own(stopAll); own(() => { if (worker) { try { worker.terminate(); } catch (_) {} worker = null; } if (splWorker) { try { splWorker.terminate(); } catch (_) {} splWorker = null; } });   // leaving the studio stops both engines
     /** the free session's clock: how long is left, and the studio closes when it runs out */
@@ -987,6 +991,30 @@ PD.ai = (() => {
         drawSheet();
         return sheetBox;
       }
+      const session = S;
+      S.readStemChords = async () => {
+        const st = session.stems;
+        if (!st || S !== session) return;
+        const tracks = st.tracks.filter(x => x.name !== 'vocals' && x.name !== 'drums');
+        if (!tracks.length) return;
+        const ac = new OfflineAudioContext(1, Math.max(1, Math.ceil(tracks[0].L.length * 22050 / st.sr)), 22050);
+        const b = ac.createBuffer(1, tracks[0].L.length, st.sr), data = b.getChannelData(0);
+        for (const tk of tracks) for (let i = 0; i < data.length; i++) data[i] += (tk.L[i] + tk.R[i]) / (2 * tracks.length);
+        const src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination); src.start();
+        const mono = (await ac.startRendering()).getChannelData(0);
+        const end = st.from + st.len, o = readOpt();
+        o.beats = res.beats.filter(t => t >= st.from && t <= end).map(t => t - st.from);
+        // Keep the original tuning, measured before the separator changed the spectrum.
+        o.tune = res.tune;
+        const r = await analyse(mono, 22050, null, o);
+        if (S !== session || session.stems !== st) return;
+        const before = res.chords.filter(c => c.t0 < st.from).map(c => Object.assign({}, c, { t1: Math.min(c.t1, st.from) }));
+        const after = res.chords.filter(c => c.t1 > end).map(c => Object.assign({}, c, { t0: Math.max(c.t0, end) }));
+        res.chords = before.concat(r.chords.map(c => Object.assign({}, c, { t0: c.t0 + st.from, t1: Math.min(end, c.t1 + st.from) })), after);
+        res.key = keyFromChords(res.chords) || res.key;
+        res.chords0 = null; res.chordsBy = null;
+        saveRes(); drawRibbon(); last = null; drawSheet(); chips(); S.onLearn && S.onLearn();
+      };
       function readOpt() {
         return { voc: PD.store.get('ai.voc', 'ext'), fast: PD.store.get('ai.fast', 1), beats: res.beats };   // the same beat grid the player follows (a tempo set by hand included)
       }
@@ -1243,22 +1271,23 @@ PD.ai = (() => {
     let has6 = null;
     const check6 = () => has6 !== null ? Promise.resolve(has6) : fetch(BASE + 'model6/manifest.json', { method: 'HEAD', cache: 'no-store' }).then(r => (has6 = r.ok)).catch(() => (has6 = false));
     function stemsPanel() {
+      const song = S;
       const box = h('section', { class: 'ai-stems' });
       const head = h('div', { class: 'row', style: 'gap:8px;align-items:center;flex-wrap:wrap' }, [h('h2', { 'data-t': 'ai.stems', style: 'margin:0' }), h('span', { class: 'ai-pm', text: t('ai.premium') })]);
       box.append(head, h('p', { class: 'fg2', 'data-t': 'ai.stemsD' }));
       if (S.stems) { box.append(mixer()); return box; }
       if (!allowed()) { box.append(h('p', { class: 'muted', 'data-t': 'ai.locked' }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => PD.premium.paywall('ai.stems') })); return box; }
-      // Splitting holds the model and four stereo stems in memory at once. On a phone that is the
-      // difference between finishing and the tab being killed, so the choice starts small there.
+      // The whole recording is the default. Short previews remain available on
+      // every device, and a two-track option reduces output memory for long songs.
       const mem = navigator.deviceMemory || 0, small = (mem && mem <= 4) || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      // a computer with room (8 GB or more) splits a whole song of up to six minutes; stems take ~85 MB a minute for four instruments
+      // Four stereo output tracks need about 85 MB per minute; offer a compact alternative above the device budget.
       const roomy = !small && (!mem || mem >= 8), maxSec = small ? 45 : roomy ? 360 : 90;
       const dur = S.res.dur;
       const choices = [];
       if (dur > 32) choices.push(['30', t('ai.first', { n: 30 })], ['here30', t('ai.fromHere', { n: 30 })]);
       if (dur > 62 && maxSec >= 60) choices.push(['60', t('ai.first', { n: 60 })], ['here', t('ai.fromHere', { n: 60 })]);
-      if (dur <= maxSec) choices.unshift(['all', t('ai.all')]);
-      else if (!small) choices.unshift(['whole2', t('ai.whole2')]);   // a long song on a computer: the whole of it, as voice and the rest (what a lesson needs)
+      choices.unshift(['all', t('ai.all')]);
+      if (dur > maxSec) choices.push(['whole2', t('ai.whole2')]);
       if (!choices.length) choices.push(['30', t('ai.first', { n: 30 })]);
       let pick = choices[0][0], model = PD.store.get('ai.model', '4');
       const seg = h('div', { class: 'seg' }, choices.map(([k, l]) => h('button', { 'aria-pressed': String(k === pick), text: l, onclick: e => { pick = k; seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
@@ -1273,15 +1302,17 @@ PD.ai = (() => {
       const mrow = h('div', { class: 'ai-row', hidden: true }, [h('span', { class: 'muted', text: t('ai.model') }), mseg]);
       check6().then(ok => { mrow.hidden = !ok || engine !== 'heavy'; if (!ok) model = '4'; });
       const prog = h('div', { class: 'ai-prog', hidden: true }), msg = h('div', { class: 'ai-msg', 'aria-live': 'polite' });
-      const go = h('button', { class: 'btn primary big', html: '<span class="ai-spark">✦</span> <span data-t="ai.split"></span>', onclick: () => run() });
+      const go = h('button', { class: 'btn primary big', html: '<span class="ai-spark">✦</span> <span data-t="ai.split"></span>', onclick: () => run().catch(e => { go.disabled = false; prog.hidden = true; msg.textContent = t('ai.fail', { e: e.message || String(e) }); }) });
       box.append(erow, eNote, mrow, h('div', { class: 'ai-row' }, [h('span', { class: 'muted', 'data-t': 'ai.range' }), seg]), go, h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'ai.splitNote' }), h('p', { class: 'notice', style: 'font-size:12.5px', text: t('ai.memWarn') }), prog, msg);
       async function run() {
+        if (S !== song || !song.deck) return;
         go.disabled = true; prog.hidden = false; msg.textContent = '';
         // work out the window first, then resample only that window
         const secs = (pick === '60' || pick === 'here') ? 60 : (pick === '30' || pick === 'here30') ? 30 : S.res.dur, two = pick === 'whole2';
         const at = (pick === 'here' || pick === 'here30') ? Math.max(0, S.deck.pos()) : 0;
         const a0 = Math.min(at, Math.max(0, S.res.dur - .25)), a1 = Math.min(S.res.dur, a0 + secs);
-        let st44 = await resample(S.ab, SR, 2, a0, a1);
+        let st44 = await resample(song.ab, SR, 2, a0, a1);
+        if (S !== song || !song.deck) return;
         const Ls = st44.getChannelData(0).slice(), Rs = st44.numberOfChannels > 1 ? st44.getChannelData(1).slice() : Ls.slice();
         st44 = null;
         const from = 0, to = Ls.length;
@@ -1317,14 +1348,14 @@ PD.ai = (() => {
           if (!/MB/.test(text) && pick !== '30' && pick !== 'here30') msg.append(h('button', { class: 'btn small', style: 'margin-inline-start:8px', text: t('ai.try30'), onclick: () => { pick = '30'; seg.querySelectorAll('button').forEach(b2 => b2.setAttribute('aria-pressed', String(b2.textContent === t('ai.first', { n: 30 })))); msg.textContent = ''; run(); } }));
           try { worker && worker.terminate(); } catch (_) {} worker = null;
         };
-        own(stopWatch);
+        song.cancelSplit = stopWatch; own(stopWatch);
         watch = setInterval(() => { if (Date.now() - seen > 90000) fail(t('ai.stuck')); }, 5000);
         if (!wk.ready) { wk.dir = dir; wk.postMessage({ cmd: 'load', base: BASE, prefer, dir }); } else wk.onmessage({ data: { type: 'ready' } });
       }
       function runLight(Ls, Rs, at, nlen, setP) {
         let seen = Date.now(), watch = 0;
         const stop = () => { if (watch) clearInterval(watch); watch = 0; };
-        own(stop);
+        song.cancelSplit = stop; own(stop);
         const wk = getSpl(m => {
           seen = Date.now();
           if (m.type === 'ready') { setP(t('ai.engStart'), .02); const a = Ls, b2 = Rs === Ls ? Ls.slice() : Rs; wk.postMessage({ cmd: 'separate', L: a, R: b2 }, [a.buffer, b2.buffer]); }
@@ -1336,7 +1367,7 @@ PD.ai = (() => {
             const tracks = ORDER.map(n2 => m.sources.indexOf(n2)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] }));
             S.stems = { id: 'stems' + Date.now(), sr: SR, from: at, len: nlen / SR, tracks, engine: 'light' };
             S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
-            useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
+            useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw(); S.onLearn && S.onLearn();
           }
           else if (m.type === 'error') { stop(); go.disabled = false; prog.hidden = true; msg.textContent = t('ai.fail', { e: m.msg }); try { splWorker && splWorker.terminate(); } catch (_) {} splWorker = null; }
         });
@@ -1381,8 +1412,14 @@ PD.ai = (() => {
         I('bass') >= 0 ? preset('ai.pNoBass', () => { M.mute[I('bass')] = true; }) : null,
         preset('ai.pPlay', () => { ['other', 'guitar'].forEach(n => { if (I(n) >= 0) M.mute[I(n)] = true; }); })].filter(Boolean));
       const expB = h('button', { class: 'btn', html: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> <span>' + PD.esc(t('ai.export')) + '</span>', onclick: async () => { expB.disabled = true; try { if (!live()) useStems(true); const r = await dk.render(); saveWav(r.L, r.R, r.sr, 'mix' + (Math.round(S.deck.D.speed * 100) !== 100 ? ' ' + Math.round(S.deck.D.speed * 100) + '%' : '') + (Math.round(S.deck.D.semis) ? ' ' + (S.deck.D.semis > 0 ? '+' : '') + Math.round(S.deck.D.semis) : '')); } catch (e) { PD.ui.toast(t('ai.fail', { e: e.message || e })); } expB.disabled = false; } });
+      const read = h('button', { class: 'btn', text: t('ai.chStem'), onclick: async () => {
+        const session = S; read.disabled = true; read.textContent = t('ai.chStemD');
+        try { await session.readStemChords(); if (S === session) PD.ui.toast(t('ai.chStemDone')); }
+        catch (e) { if (S === session) PD.ui.toast(t('ai.fail', { e: e.message || String(e) })); }
+        finally { read.disabled = false; read.textContent = t('ai.chStem'); }
+      } });
       const again = h('button', { class: 'btn ghost small', text: t('ai.again'), onclick: () => { useStems(false); S.stems = null; S.mix = null; const sp = stemsPanel(); box.replaceWith(sp); PD.i18n.apply(sp); S.ui && S.ui.redraw(); } });
-      const box = h('div', { class: 'ai-mix' }, [h('div', { class: 'row', style: 'gap:10px;align-items:center;flex-wrap:wrap' }, [modeSeg, h('small', { class: 'muted', text: t('ai.partInfo', { a: PD.fmtTime(st.from), b: PD.fmtTime(st.from + st.len) }) })]), presets].concat(rows, [h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap;align-items:center' }, [expB, again]), h('p', { class: 'muted', style: 'font-size:12.5px;margin:0', text: t('ai.mixNote') })]));
+      const box = h('div', { class: 'ai-mix' }, [h('div', { class: 'row', style: 'gap:10px;align-items:center;flex-wrap:wrap' }, [modeSeg, h('small', { class: 'muted', text: t('ai.partInfo', { a: PD.fmtTime(st.from), b: PD.fmtTime(st.from + st.len) }) })]), presets].concat(rows, [h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap;align-items:center' }, [expB, read, again]), h('p', { class: 'muted', style: 'font-size:12.5px;margin:0', text: t('ai.mixNote') })]));
       function paintMix() {
         modeSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.mode)));
         rows.forEach((r, i) => { r._m.classList.toggle('on', M.mute[i]); r._s.classList.toggle('on', M.solo === i); r.classList.toggle('dim', M.mute[i] || (M.solo >= 0 && M.solo !== i)); r._v.value = Math.round(M.gain[i] * 100); r._vv.textContent = Math.round(M.gain[i] * 100) + '%'; });

@@ -1,23 +1,22 @@
 /* =====================================================================
    Community: learners help each other.
-   Conversations (1:1 messages) · People · Help board (questions and
-   answers) · Video call (WebRTC, premium). Everything is stored on the
+   The video feed (social.js) is its one screen; behind its corners:
+   conversations (1:1 messages) · friends · video call (WebRTC). Everything is stored on the
    app's server (Supabase) under row-level security: only the two people
    in a conversation can read it. Video and sound of a call go directly
    between the two devices; the server only passes the connection setup.
    ===================================================================== */
 PD.i18n.add({
-  'cm.title': ['საზოგადოება', 'Community'], 'cm.lead': ['მიწერე სხვა მოსწავლეებს, დასვი კითხვა, დაეხმარე ერთმანეთს.', 'Message other learners, ask questions, help each other.'],
-  'cm.chats': ['საუბრები', 'Chats'], 'cm.people': ['ხალხი', 'People'], 'cm.help': ['დახმარება', 'Help'], 'cm.noServer': ['საზოგადოებას სერვერი სჭირდება — როცა სერვერი დაემატება, აქ ერთმანეთს მისწერთ.', 'The community needs the server — once it is added you can message each other here.'],
-  'cm.signin': ['მიმოწერისთვის საჭიროა ანგარიში.', 'Messaging needs an account.'], 'cm.noChats': ['საუბრები ჯერ არ გაქვს. დაამატე მეგობარი „მეგობრებში“ და მიწერე.', 'No chats yet. Add a friend under “Friends” and write to them.'],
+  'cm.title': ['საზოგადოება', 'Community'],
+  'cm.chats': ['მესიჯები', 'Messages'], 'cm.noServer': ['საზოგადოებას სერვერი სჭირდება — როცა სერვერი დაემატება, აქ ერთმანეთს მისწერთ.', 'The community needs the server — once it is added you can message each other here.'],
+  'cm.signin': ['მიმოწერისთვის საჭიროა ანგარიში.', 'Messaging needs an account.'], 'cm.noChats': ['მესიჯები ჯერ არ გაქვს. დაამატე მეგობარი და მიწერე.', 'No messages yet. Add a friend and write to them.'], 'cm.addFriends': ['მეგობრების დამატება', 'Add friends'],
   'cm.feed': ['ფიდი', 'Feed'], 'cm.friends': ['მეგობრები', 'Friends'], 'cm.attach': ['ფოტო, ვიდეო ან აუდიო', 'Photo, video or audio'], 'cm.react': ['რეაქცია', 'React'],
   'cm.mPhoto': ['📷 ფოტო', '📷 Photo'], 'cm.mVideo': ['🎬 ვიდეო', '🎬 Video'], 'cm.mAudio': ['🎵 აუდიო', '🎵 Audio'], 'cm.mPost': ['🔗 პოსტი', '🔗 A post'],
   'cm.needServer': ['ეს ნაწილი სერვერის განახლების შემდეგ ჩაირთვება.', 'This part switches on once the server has been updated.'], 'cm.textOnly': ['სერვერი ჯერ არ არის განახლებული: ფოტო, სტიკერი და GIF გაგზავნა მისი განახლების შემდეგ შეიძლება.', 'The server has not been updated yet: photos, stickers and GIFs can be sent once it is.'],
   'cm.mSticker': ['🪕 სტიკერი', '🪕 Sticker'], 'cm.mGif': ['GIF', 'GIF'],
-  'cm.helpMedia': ['დაურთე ფოტო, ვიდეო ან ჩანაწერი — ასე უფრო ადვილად დაგეხმარებიან.', 'Attach a photo, a video or a recording — it makes helping you easier.'], 'cm.unread': ['{n} ახალი', '{n} new'],
-  'cm.search': ['ძიება სახელით', 'Search by name'], 'cm.write': ['მიწერა', 'Message'], 'cm.type': ['დაწერე…', 'Write…'], 'cm.send': ['გაგზავნა', 'Send'], 'cm.nobody': ['ვერავინ მოიძებნა', 'Nobody found'],
-  'cm.ask': ['კითხვის დასმა', 'Ask a question'], 'cm.qTitle': ['კითხვა', 'Question'], 'cm.qBody': ['დეტალები (არასავალდებულო)', 'Details (optional)'], 'cm.post': ['გამოქვეყნება', 'Post'], 'cm.answers': ['{n} პასუხი', '{n} answers'],
-  'cm.errGen': ['ახლა ვერ მოხერხდა — სცადე ცოტა ხანში თავიდან.', 'That didn’t work just now — try again in a moment.'], 'cm.answer': ['პასუხი', 'Answer'], 'cm.noPosts': ['კითხვები ჯერ არ არის — დასვი პირველი.', 'No questions yet — ask the first one.'], 'cm.delete': ['წაშლა', 'Delete'], 'cm.err': ['ვერ მოხერხდა: {e}', 'Could not complete: {e}'], 'cm.now': ['ახლა', 'now'], 'cm.needName': ['სხვებმა რომ გიპოვონ და იცოდნენ ვინ წერს, ჩაწერე შენი სახელი.', 'So others can find you and know who is writing, add your name.'], 'cm.yourName': ['შენი სახელი', 'Your name'], 'cm.save': ['შენახვა', 'Save'],
+  'cm.audioTip': ['აუდიოსთვის WAV საუკეთესო ხარისხია (რეკომენდებული), MP3 — ნორმალური. სხვა ფორმატებიც იტვირთება. ფაილი იგზავნება ისე, როგორც არის.', 'For audio, WAV is the best quality (recommended) and MP3 is fine. Other formats upload too. The file is sent as it is.'],
+  'cm.write': ['მიწერა', 'Message'], 'cm.type': ['დაწერე…', 'Write…'], 'cm.send': ['გაგზავნა', 'Send'],
+  'cm.errGen': ['ახლა ვერ მოხერხდა — სცადე ცოტა ხანში თავიდან.', 'That didn’t work just now — try again in a moment.'], 'cm.delete': ['წაშლა', 'Delete'], 'cm.err': ['ვერ მოხერხდა: {e}', 'Could not complete: {e}'], 'cm.now': ['ახლა', 'now'], 'cm.needName': ['სხვებმა რომ გიპოვონ და იცოდნენ ვინ წერს, ჩაწერე შენი სახელი.', 'So others can find you and know who is writing, add your name.'], 'cm.yourName': ['შენი სახელი', 'Your name'], 'cm.save': ['შენახვა', 'Save'],
   'cl.video': ['ვიდეო ზარი', 'Video call'], 'cl.calling': ['ირეკება…', 'Calling…'], 'cl.incoming': ['{n} გირეკავს', '{n} is calling'], 'cl.accept': ['პასუხი', 'Answer'], 'cl.decline': ['უარყოფა', 'Decline'],
   'cl.ended': ['ზარი დასრულდა', 'Call ended'], 'cl.busy': ['ხაზი დაკავებულია', 'The line is busy'], 'cl.noAnswer': ['არ უპასუხა', 'No answer'], 'cl.mute': ['მიკროფონი', 'Microphone'], 'cl.cam': ['კამერა', 'Camera'], 'cl.hang': ['დასრულება', 'Hang up'],
   'cl.failed': ['დაკავშირება ვერ მოხერხდა — ზოგ ქსელში საჭიროა TURN სერვერი (პარამეტრებში).', 'Could not connect — some networks need a TURN server (in settings).'], 'cl.connected': ['დაკავშირებულია', 'Connected'], 'cl.connecting': ['უკავშირდება…', 'Connecting…'], 'cl.unstable': ['კავშირი შეწყდა — ვცდილობთ აღდგენას…', 'Connection lost — trying to reconnect…']
@@ -37,7 +36,6 @@ PD.community = (() => {
   const h = PD.h, C = PD.cloud, ic = PD.ic;
   const FLAG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h13l-3 4 3 4H5"/></svg>';
   const MORE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
-  let tab = PD.store.get('cm.tab', 'chats');
   const ago = iso => { const d = (Date.now() - new Date(iso).getTime()) / 60000; return d < 1 ? t('cm.now') : d < 60 ? Math.round(d) + "'" : d < 1440 ? Math.round(d / 60) + 'h' : new Date(iso).toLocaleDateString(PD.i18n.locale); };
   // Georgian has no capitals in running text: toUpperCase() would turn „ნ“ into Mtavruli „Ნ“
   const initial = n => { const c = [...((n || '?').trim())][0] || '?'; return PD.esc(/[\u10A0-\u10FF\u1C90-\u1CBF]/.test(c) ? c : c.toUpperCase()); };
@@ -94,37 +92,44 @@ PD.community = (() => {
       PD.i18n.apply(box);
     } catch (e) { box.textContent = err(e); }
   }
+  /** the head of a screen behind the feed: back, and its name */
+  const subHead = (key, more) => h('div', { class: 'cm-head cm-sub' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), h('b', { class: 'grow', 'data-t': key })].concat(more || []));
+  /** The community is one screen: the video feed. Messages, friends and the saved videos open from its corners.
+      param: null (the feed) · 'chats' · 'friends' · 'saved' · 'c:<conversation>:<name>' · 'p:<post id>' */
   function page(w, param) {
     const own = PD.pageScope();
     const pg = document.getElementById('page'); if (pg) pg.classList.remove('fd-mode');
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('home') }), h('h1', { 'data-t': 'cm.title', style: 'margin:0' })]));
-    if (!C.configured) { w.append(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: ic.chat }), h('p', { 'data-t': 'cm.noServer' })])); return; }
-    if (!C.session) { w.append(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: ic.chat }), h('p', { 'data-t': 'cm.signin' }), h('button', { class: 'btn primary', 'data-t': 'pf.signin', onclick: () => PD.auth.open() })])); return; }
-    if (!PD.store.get('md.rules.' + C.uid, false)) { w.append(h('div', { class: 'cm-name' }, [h('h2', { 'data-t': 'md.rulesT' }), h('p', { 'data-t': 'md.rules' }), h('button', { class: 'btn primary', 'data-t': 'md.agree', onclick: () => { PD.store.set('md.rules.' + C.uid, true); PD.app.render(); } })])); return; }
-    if (param && String(param).indexOf('c:') === 0) { const [, id, ...nm] = String(param).split(':'); return chatView(w, id, nm.join(':'), own); }
-    if (param && String(param).indexOf('p:') === 0) { w.innerHTML = ''; if (pg) pg.classList.add('fd-mode'); const box = h('div', { class: 'fd' }); w.append(box); return PD.social.feed(box, own, +String(param).slice(2)); }
-    if (param === 'friends') { PD.store.set('cm.tab', 'friends'); history.replaceState && history.replaceState({ r: 'community', p: null }, ''); }
-    tab = PD.store.get('cm.tab', tab);
-    if (tab === 'people') tab = 'friends';
-    if (!['feed', 'chats', 'friends', 'help', 'reports'].includes(tab)) tab = 'feed';
+    const gate = (...kids) => w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('home') }), h('h1', { 'data-t': 'cm.title', style: 'margin:0' })]), ...kids);
+    if (!C.configured) return gate(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: ic.chat }), h('p', { 'data-t': 'cm.noServer' })]));
+    if (!C.session) return gate(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: ic.chat }), h('p', { 'data-t': 'cm.signin' }), h('button', { class: 'btn primary', 'data-t': 'pf.signin', onclick: () => PD.auth.open() })]));
+    if (!PD.store.get('md.rules.' + C.uid, false)) return gate(h('div', { class: 'cm-name' }, [h('h2', { 'data-t': 'md.rulesT' }), h('p', { 'data-t': 'md.rules' }), h('button', { class: 'btn primary', 'data-t': 'md.agree', onclick: () => { PD.store.set('md.rules.' + C.uid, true); PD.app.render(); } })]));
+    param = param == null ? '' : String(param);
+    if (param.indexOf('c:') === 0) { const [, id, ...nm] = param.split(':'); return chatView(w, id, nm.join(':'), own); }
     if (!(C.profile && C.profile.display_name)) {
       const nm = h('input', { class: 'input', autocomplete: 'name', placeholder: t('cm.yourName'), 'aria-label': t('cm.yourName'), value: PD.account.profile.name || '' });
-      w.append(h('div', { class: 'cm-name' }, [h('p', { 'data-t': 'cm.needName' }), h('div', { class: 'row' }, [nm, h('button', { class: 'btn primary', 'data-t': 'cm.save', onclick: async () => { const v = nm.value.trim(); if (!v) return nm.focus(); try { await C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }); await C.loadProfile(); PD.app.render(); } catch (e) { PD.ui.toast(err(e)); } } })])]));
+      return gate(h('div', { class: 'cm-name' }, [h('p', { 'data-t': 'cm.needName' }), h('div', { class: 'row' }, [nm, h('button', { class: 'btn primary', 'data-t': 'cm.save', onclick: async () => { const v = nm.value.trim(); if (!v) return nm.focus(); try { await C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }); await C.loadProfile(); PD.app.render(); } catch (e) { PD.ui.toast(err(e)); } } })])]));
     }
-    else if (!C.profile.nickname && tab !== 'friends') w.append(PD.social.nickCard(true));
-    const unread = PD.store.get('cm.unread', 0);
-    const tabs = h('div', { class: 'sx-tabs cm-tabs', role: 'tablist' }, ['feed', 'chats', 'friends', 'help'].concat(C.isAdmin ? ['reports'] : []).map(k => h('button', { role: 'tab', 'aria-pressed': String(tab === k), onclick: () => { tab = k; PD.store.set('cm.tab', k); PD.app.render(); } },
-      [h('span', { 'data-t': 'cm.' + k }), k === 'chats' && unread ? h('i', { class: 'cm-dot', 'aria-label': t('cm.unread', { n: unread }), text: unread > 9 ? '9+' : String(unread) }) : null].filter(Boolean))));
-    const body = h('div', { class: 'cm-body' + (tab === 'feed' ? ' fd' : '') });
-    w.append(tabs, body);
-    if (tab === 'feed') { if (pg) pg.classList.add('fd-mode'); PD.social.feed(body, own); }
-    else if (tab === 'chats') chats(body); else if (tab === 'friends') PD.social.friends(body); else if (tab === 'reports' && C.isAdmin) reports(body); else help(body);
+    if (param === 'friends') {
+      const body = h('div', { class: 'cm-body' });
+      w.append(subHead('cm.friends'), body);
+      PD.social.friends(body);
+      w.append(h('div', { class: 'cm-list cm-links' }, [
+        h('button', { class: 'btn', html: PD.social.IC.save + '<span data-t="fd.saved"></span>', onclick: () => PD.app.go('community', 'saved') }),
+        C.isAdmin ? h('button', { class: 'btn', html: FLAG + '<span data-t="cm.reports"></span>', onclick: () => PD.ui.sheet(b => { const box = h('div', { class: 'cm-body' }); b.append(h('h2', { 'data-t': 'cm.reports' }), box); reports(box); }) }) : null].filter(Boolean)));
+      return;
+    }
+    if (!C.profile.nickname) return gate(PD.social.nickCard(true));
+    if (param === 'chats') { const body = h('div', { class: 'cm-body' }); w.append(subHead('cm.chats'), body); return chats(body); }
+    // everything else is the feed, edge to edge
+    w.innerHTML = ''; if (pg) pg.classList.add('fd-mode');
+    const box = h('div', { class: 'fd' }); w.append(box);
+    PD.social.feed(box, own, param.indexOf('p:') === 0 ? { one: +param.slice(2) } : param === 'saved' ? { saved: true } : null);
   }
   async function chats(box) {
     try {
       const [all, hidden] = await Promise.all([C.chat.list(), blockedIds()]), rows = (all || []).filter(r => !hidden.has(r.other));
       box.innerHTML = '';
-      if (!rows.length) { box.appendChild(h('p', { class: 'muted', 'data-t': 'cm.noChats' })); PD.i18n.apply(box); return; }
+      if (!rows.length) { box.appendChild(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: ic.chat }), h('p', { 'data-t': 'cm.noChats' }), h('button', { class: 'btn', 'data-t': 'cm.addFriends', onclick: () => PD.app.go('community', 'friends') })])); PD.i18n.apply(box); PD.store.set('cm.unread', 0); return; }
       let total = 0;
       rows.forEach(r => { total += r.unread || 0; const what = r.last_body || (r.last_kind ? t({ photo: 'cm.mPhoto', video: 'cm.mVideo', audio: 'cm.mAudio', post: 'cm.mPost', sticker: 'cm.mSticker', gif: 'cm.mGif' }[r.last_kind] || 'cm.mPost') : '');
         box.appendChild(h('button', { class: 'cm-row' + (r.unread ? ' new' : ''), onclick: () => PD.app.go('community', 'c:' + r.id + ':' + (r.other_name || r.other_nick || '')) }, [
@@ -133,50 +138,6 @@ PD.community = (() => {
         h('span', { class: 'cm-when' }, [h('small', { class: 'muted', text: ago(r.last_at) }), r.unread ? h('i', { class: 'cm-dot', text: r.unread > 9 ? '9+' : String(r.unread) }) : null].filter(Boolean))])); });
       PD.store.set('cm.unread', total);
     } catch (e) { box.textContent = err(e); }
-  }
-  /** a photo / video / recording for a chat message or a help question: choose, prepare, upload (scope 'c' or 'h') */
-  async function attachFile(scope, onProgress) {
-    const f = await PD.ui.pickFile(PD.social.ACCEPT.any); if (!f) return null;
-    const prep = await PD.social.prepare(f, 'any');
-    return PD.social.upload(prep, scope, onProgress);
-  }
-  function help(box) {
-    const ask = h('button', { class: 'btn primary', 'data-t': 'cm.ask', onclick: () => PD.ui.sheet((b, close) => {
-      const ti = h('input', { class: 'input', maxlength: '200', placeholder: t('cm.qTitle') }), bo = h('textarea', { class: 'input', rows: '5', maxlength: '4000', placeholder: t('cm.qBody'), style: 'min-height:120px;padding:10px 12px' });
-      let media = null, busy = false;
-      const att = h('div', { class: 'cm-att-row' }), state = h('small', { class: 'muted' });
-      const paint = () => { att.innerHTML = ''; att.append(h('button', { class: 'btn small', html: PD.social.IC.photo + '<span data-t="' + (media ? 'fd.change' : 'cm.attach') + '"></span>' + (media ? ' ✓' : ''), onclick: async () => {
-        if (busy) return; busy = true;
-        try { const m = await attachFile('h', p => { state.textContent = t('fd.uploading', { p: Math.round(p * 100) }); }); if (m) media = m; state.textContent = ''; } catch (e) { state.textContent = PD.social.fileErr(e); }
-        busy = false; paint(); } })); PD.i18n.apply(att); };
-      paint();
-      b.append(h('h2', { 'data-t': 'cm.ask' }), ti, h('div', { class: 'ck-field' }, [bo, PD.chatkit.emojiButton(bo)]), h('small', { class: 'muted', 'data-t': 'cm.helpMedia' }), att, state, h('button', { class: 'btn primary big', 'data-t': 'cm.post', onclick: async () => { if (!ti.value.trim() || busy) return; try { await C.board.post(ti.value.trim(), bo.value.trim(), media); close(); load(); } catch (e) { PD.ui.toast(err(e)); } } }));
-    }) });
-    const list = h('div', { class: 'cm-list' });
-    box.append(ask, list);
-    async function load() {
-      try {
-        const rows = await C.board.list(); list.innerHTML = '';
-        if (!rows || !rows.length) { list.appendChild(h('p', { class: 'muted', 'data-t': 'cm.noPosts' })); PD.i18n.apply(list); return; }
-        rows.forEach(p => { const n = p.replies && p.replies[0] ? p.replies[0].count : 0;
-          list.appendChild(h('button', { class: 'cm-post', onclick: () => post(p, load) }, [h('b', { text: (p.media_kind ? { photo: '📷 ', video: '🎬 ', audio: '🎵 ' }[p.media_kind] : '') + p.title }), p.body ? h('p', { text: p.body.slice(0, 160) }) : null, h('small', { text: (p.author_name || '—') + ' · ' + ago(p.created_at) + ' · ' + t('cm.answers', { n }) })].filter(Boolean))); });
-      } catch (e) { list.textContent = err(e); }
-    }
-    load();
-  }
-  function post(p, reload) {
-    PD.ui.sheet((b, close) => {
-      const list = h('div', { class: 'cm-replies' }), inp = h('textarea', { class: 'input', rows: '3', maxlength: '4000', placeholder: t('cm.answer'), style: 'min-height:80px;padding:10px 12px' });
-      const media = p.media_path ? h('div', { class: 'cm-qmedia' }) : null;
-      if (media) PD.social.urls([p]).then(() => { media.appendChild(PD.social.mediaEl(p)); PD.i18n.apply(media); });
-      b.append(h('h2', { text: p.title }), p.body ? h('p', { class: 'fg2', style: 'white-space:pre-line', text: p.body }) : null, media, h('small', { class: 'muted', text: (p.author_name || '—') + ' · ' + ago(p.created_at) }), list, inp,
-        h('div', { class: 'row' }, [h('button', { class: 'btn primary', 'data-t': 'cm.answer', onclick: async () => { if (!inp.value.trim()) return; try { await C.board.reply(p.id, inp.value.trim()); inp.value = ''; load(); } catch (e) { PD.ui.toast(err(e)); } } }),
-          (p.author === C.uid || C.isAdmin) ? h('button', { class: 'btn quiet', 'data-t': 'cm.delete', onclick: async () => { try { if (p.author === C.uid && p.media_path) await C.storage.remove([p.media_path, p.thumb_path].filter(Boolean)).catch(() => {}); await C.board.remove(p.id); close(); reload(); } catch (e) { PD.ui.toast(err(e)); } } }) : null,
-          p.author !== C.uid ? h('button', { class: 'btn quiet', 'data-t': 'md.report', onclick: () => reportSheet('post', p.id) }) : null,
-          p.author !== C.uid ? h('button', { class: 'btn quiet', 'data-t': 'md.block', onclick: () => confirmBlock(p.author, p.author_name, () => { close(); reload(); }) }) : null].filter(Boolean)));
-      async function load() { try { const rows = await C.board.replies(p.id); list.innerHTML = ''; rows.forEach(r => list.appendChild(h('div', { class: 'cm-reply' }, [h('small', { text: (r.author_name || '—') + ' · ' + ago(r.created_at) }), h('p', { text: r.body }), r.author !== C.uid ? h('button', { class: 'cm-flag', 'aria-label': t('md.report'), html: FLAG, onclick: () => reportSheet('reply', r.id) }) : null].filter(Boolean)))); } catch (e) { list.textContent = err(e); } }
-      load();
-    });
   }
   function chatView(w, id, name, own) {
     w.innerHTML = '';
@@ -203,7 +164,7 @@ PD.community = (() => {
     const kit = PD.chatkit.panel({ input: inp, onSticker: st => sendExtra({ sticker: st }), onGif: g => sendExtra({ gif: g.url, media_meta: { w: g.w, h: g.h } }) });
     const plus = () => PD.ui.sheet((b, close) => {
       const opt = (icon, key, fn) => h('button', { class: 'ck-opt', html: icon + '<span data-t="' + key + '"></span>', onclick: () => { close(); fn(); } });
-      b.append(h('h2', { 'data-t': 'ck.attach' }), h('div', { class: 'ck-opts' }, [
+      b.append(h('h2', { 'data-t': 'ck.attach' }), h('small', { class: 'muted small-note', 'data-t': 'cm.audioTip' }), h('div', { class: 'ck-opts' }, [
         opt(S.IC.photo, 'ck.media', () => attach('image/*,video/*')),
         opt(S.IC.music, 'ck.audio', () => attach(S.ACCEPT.audio)),
         opt('<span class="rx-pan">' + S.PANDURI + '</span>', 'ck.stickers', () => kit.toggle('stickers')),
@@ -211,9 +172,9 @@ PD.community = (() => {
         opt('<span class="ck-emoji-ic">😊</span>', 'ck.emoji', () => kit.toggle('emoji'))].filter(Boolean)));
     });
     inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-    w.append(h('div', { class: 'cm-head' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => history.state && history.state.r === 'community' && history.length > 1 ? history.back() : PD.app.go('community', null, true) }), h('b', { class: 'grow', text: name || '—' }),
+    w.append(h('div', { class: 'cm-head' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), h('b', { class: 'grow', text: name || '—' }),
       h('button', { class: 'pz-ic', 'aria-label': t('cl.video'), html: ic.video, onclick: () => PD.premium.require('call', () => PD.call.start(id, name)) }),
-        h('button', { class: 'pz-ic', 'aria-label': t('md.more'), html: MORE, onclick: async () => { try { userActions(await C.chat.other(id), name, () => PD.app.go('community', null, true)); } catch (e) { PD.ui.toast(err(e)); } } })]),
+        h('button', { class: 'pz-ic', 'aria-label': t('md.more'), html: MORE, onclick: async () => { try { userActions(await C.chat.other(id), name, () => PD.app.go('community', 'chats', true)); } catch (e) { PD.ui.toast(err(e)); } } })]),
       msgs, up, kit.el, h('div', { class: 'cm-bar' }, [
         h('button', { class: 'pz-ic cm-att', 'aria-label': t('ck.attach'), title: t('ck.attach'), html: ic.plus, onclick: plus }),
         h('button', { class: 'pz-ic cm-att ck-toggle', 'aria-label': t('ck.emoji') + ' · ' + t('ck.stickers'), title: t('ck.emoji') + ' · ' + t('ck.stickers'), text: '😊', onclick: () => kit.toggle() }),

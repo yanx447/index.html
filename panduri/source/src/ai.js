@@ -528,7 +528,7 @@ PD.ai = (() => {
     const passEl = h('div', { class: 'ai-pass', hidden: true });
     w.append(input, drop, passEl, status, body);
     let S = null;   // the current song
-    const stopAll = () => { for (const w of [worker, splWorker]) { try { w && w.terminate(); } catch (_) {} } worker = null; splWorker = null; if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
+    const stopAll = () => { if (S && S.cancelSplit) S.cancelSplit(); for (const w of [worker, splWorker]) { try { w && w.terminate(); } catch (_) {} } worker = null; splWorker = null; if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
     own(() => { document.removeEventListener('fullscreenchange', onFsChange); document.removeEventListener('keydown', onFsKey); if (document.body.classList.contains('ai-full')) setFull(false); });   // leaving the studio leaves the full screen
     own(stopAll); own(() => { if (worker) { try { worker.terminate(); } catch (_) {} worker = null; } if (splWorker) { try { splWorker.terminate(); } catch (_) {} splWorker = null; } });   // leaving the studio stops both engines
     /** the free session's clock: how long is left, and the studio closes when it runs out */
@@ -1271,22 +1271,23 @@ PD.ai = (() => {
     let has6 = null;
     const check6 = () => has6 !== null ? Promise.resolve(has6) : fetch(BASE + 'model6/manifest.json', { method: 'HEAD', cache: 'no-store' }).then(r => (has6 = r.ok)).catch(() => (has6 = false));
     function stemsPanel() {
+      const song = S;
       const box = h('section', { class: 'ai-stems' });
       const head = h('div', { class: 'row', style: 'gap:8px;align-items:center;flex-wrap:wrap' }, [h('h2', { 'data-t': 'ai.stems', style: 'margin:0' }), h('span', { class: 'ai-pm', text: t('ai.premium') })]);
       box.append(head, h('p', { class: 'fg2', 'data-t': 'ai.stemsD' }));
       if (S.stems) { box.append(mixer()); return box; }
       if (!allowed()) { box.append(h('p', { class: 'muted', 'data-t': 'ai.locked' }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => PD.premium.paywall('ai.stems') })); return box; }
-      // Splitting holds the model and four stereo stems in memory at once. On a phone that is the
-      // difference between finishing and the tab being killed, so the choice starts small there.
+      // The whole recording is the default. Short previews remain available on
+      // every device, and a two-track option reduces output memory for long songs.
       const mem = navigator.deviceMemory || 0, small = (mem && mem <= 4) || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      // a computer with room (8 GB or more) splits a whole song of up to six minutes; stems take ~85 MB a minute for four instruments
+      // Four stereo output tracks need about 85 MB per minute; offer a compact alternative above the device budget.
       const roomy = !small && (!mem || mem >= 8), maxSec = small ? 45 : roomy ? 360 : 90;
       const dur = S.res.dur;
       const choices = [];
       if (dur > 32) choices.push(['30', t('ai.first', { n: 30 })], ['here30', t('ai.fromHere', { n: 30 })]);
       if (dur > 62 && maxSec >= 60) choices.push(['60', t('ai.first', { n: 60 })], ['here', t('ai.fromHere', { n: 60 })]);
       choices.unshift(['all', t('ai.all')]);
-      if (dur > maxSec) choices.push(['whole2', t('ai.whole2')]);   // a long song on a computer: the whole of it, as voice and the rest (what a lesson needs)
+      if (dur > maxSec) choices.push(['whole2', t('ai.whole2')]);
       if (!choices.length) choices.push(['30', t('ai.first', { n: 30 })]);
       let pick = choices[0][0], model = PD.store.get('ai.model', '4');
       const seg = h('div', { class: 'seg' }, choices.map(([k, l]) => h('button', { 'aria-pressed': String(k === pick), text: l, onclick: e => { pick = k; seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
@@ -1304,12 +1305,14 @@ PD.ai = (() => {
       const go = h('button', { class: 'btn primary big', html: '<span class="ai-spark">✦</span> <span data-t="ai.split"></span>', onclick: () => run().catch(e => { go.disabled = false; prog.hidden = true; msg.textContent = t('ai.fail', { e: e.message || String(e) }); }) });
       box.append(erow, eNote, mrow, h('div', { class: 'ai-row' }, [h('span', { class: 'muted', 'data-t': 'ai.range' }), seg]), go, h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'ai.splitNote' }), h('p', { class: 'notice', style: 'font-size:12.5px', text: t('ai.memWarn') }), prog, msg);
       async function run() {
+        if (S !== song || !song.deck) return;
         go.disabled = true; prog.hidden = false; msg.textContent = '';
         // work out the window first, then resample only that window
         const secs = (pick === '60' || pick === 'here') ? 60 : (pick === '30' || pick === 'here30') ? 30 : S.res.dur, two = pick === 'whole2';
         const at = (pick === 'here' || pick === 'here30') ? Math.max(0, S.deck.pos()) : 0;
         const a0 = Math.min(at, Math.max(0, S.res.dur - .25)), a1 = Math.min(S.res.dur, a0 + secs);
-        let st44 = await resample(S.ab, SR, 2, a0, a1);
+        let st44 = await resample(song.ab, SR, 2, a0, a1);
+        if (S !== song || !song.deck) return;
         const Ls = st44.getChannelData(0).slice(), Rs = st44.numberOfChannels > 1 ? st44.getChannelData(1).slice() : Ls.slice();
         st44 = null;
         const from = 0, to = Ls.length;
@@ -1345,14 +1348,14 @@ PD.ai = (() => {
           if (!/MB/.test(text) && pick !== '30' && pick !== 'here30') msg.append(h('button', { class: 'btn small', style: 'margin-inline-start:8px', text: t('ai.try30'), onclick: () => { pick = '30'; seg.querySelectorAll('button').forEach(b2 => b2.setAttribute('aria-pressed', String(b2.textContent === t('ai.first', { n: 30 })))); msg.textContent = ''; run(); } }));
           try { worker && worker.terminate(); } catch (_) {} worker = null;
         };
-        own(stopWatch);
+        song.cancelSplit = stopWatch; own(stopWatch);
         watch = setInterval(() => { if (Date.now() - seen > 90000) fail(t('ai.stuck')); }, 5000);
         if (!wk.ready) { wk.dir = dir; wk.postMessage({ cmd: 'load', base: BASE, prefer, dir }); } else wk.onmessage({ data: { type: 'ready' } });
       }
       function runLight(Ls, Rs, at, nlen, setP) {
         let seen = Date.now(), watch = 0;
         const stop = () => { if (watch) clearInterval(watch); watch = 0; };
-        own(stop);
+        song.cancelSplit = stop; own(stop);
         const wk = getSpl(m => {
           seen = Date.now();
           if (m.type === 'ready') { setP(t('ai.engStart'), .02); const a = Ls, b2 = Rs === Ls ? Ls.slice() : Rs; wk.postMessage({ cmd: 'separate', L: a, R: b2 }, [a.buffer, b2.buffer]); }

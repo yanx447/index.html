@@ -44,7 +44,7 @@ PD.sima = (() => {
     }));
     // the app itself: friends, the feed, notifications (facts about the app, not about playing)
     [['friends', 'community:friends', 'მეგობარი დამატება nickname ნიკნეიმი მეგობრობა თხოვნა friend add request'],
-     ['feed', 'community', 'ფიდი პოსტი ვიდეო ფოტო მუსიკა აუდიო ატვირთვა დადება გაზიარება რეაქცია კომენტარი გლობალური feed post upload share reaction comment video photo'],
+     ['feed', 'community', 'ფიდი პოსტი ვიდეო რილი ატვირთვა გადაღება დადება გაზიარება მოწონება შენახვა კომენტარი გლობალური feed post upload film share like save comment video reel'],
      ['notify', 'settings', 'შეტყობინება შეხსენება push ნოტიფიკაცია განახლება notification reminder update']].forEach(([id, go, kw]) => {
       const [r, ...p] = go.split(':'), ti = t('sm.app.' + id), body = [t('sm.app.' + id + 'B')];
       ix.push({ kind: 'app', id, src: 'fact', title: ti, body, go: [r, p.join(':') || null], text: norm(ti + ' ' + body[0] + ' ' + kw) });
@@ -348,8 +348,8 @@ PD.i18n.add({
   'sm.open': ['ღია', 'open'], 'sm.fret': ['{n} ლადი', 'fret {n}'], 'sm.thumb': ['ცერა თითი (T)', 'the thumb (T)'],
   'sm.finger': ['{n} — {name} თითი', 'finger {n} — {name}'],
   'sm.go': ['გახსნა', 'Open'],
-  'sm.app.friends': ['მეგობრის დამატება', 'Adding a friend'], 'sm.app.friendsB': ['საზოგადოება → მეგობრები: ჩაწერე მეგობრის ზუსტი nickname და გაუგზავნე თხოვნა. როცა დაგეთანხმება, შეგატყობინებ — და მერე შეგიძლიათ ერთმანეთს მიწეროთ.', 'Community → Friends: type your friend\u2019s exact nickname and send a request. I will tell you when they accept — then you can write to each other.'],
-  'sm.app.feed': ['ფოტოს, ვიდეოს ან მუსიკის გამოქვეყნება', 'Posting a photo, video or music'], 'sm.app.feedB': ['საზოგადოება → ფიდი → „+": აირჩიე ფაილი, დაწერე აღწერა და აირჩიე, ვინ ნახავს — ყველა (გლობალური) ან მხოლოდ მეგობრები. ორჯერ შეხება პოსტზე ფანდურის რეაქციაა.', 'Community → Feed → “+”: choose a file, write a caption and pick who sees it — everyone (global) or friends only. A double tap on a post gives it the panduri.'],
+  'sm.app.friends': ['მეგობრის დამატება', 'Adding a friend'], 'sm.app.friendsB': ['საზოგადოება → ზედა მარცხენა ხატულა (მეგობრები და ძებნა): ჩაწერე მეგობრის ზუსტი nickname და გაუგზავნე თხოვნა. როცა დაგეთანხმება, შეგატყობინებ — და მერე შეგიძლიათ ერთმანეთს მიწეროთ.', 'Community → the icon at the top left (friends and search): type your friend\u2019s exact nickname and send a request. I will tell you when they accept — then you can write to each other.'],
+  'sm.app.feed': ['ვიდეოს გამოქვეყნება', 'Posting a video'], 'sm.app.feedB': ['საზოგადოება → ზედა მარჯვენა „+": გადაიღე ან აირჩიე ვიდეო გალერეიდან (მაქს. 60 წამი, 720p-დან 4K-მდე), დაწერე აღწერა და სიმღერის ან რიტმის სახელი და აირჩიე, ვინ ნახავს — ყველა (გლობალური) ან მხოლოდ მეგობრები. ვიდეო იტვირთება ისე, როგორც გადაღებულია. ორჯერ შეხება ვიდეოზე მოწონებაა.', 'Community → the “+” at the top right: film a video or choose one from the gallery (up to 60 seconds, 720p to 4K), write a caption and the name of the song or rhythm, and pick who sees it — everyone (global) or friends only. The video is uploaded exactly as it was filmed. A double tap on a video likes it.'],
   'sm.app.notify': ['შეტყობინებები', 'Notifications'], 'sm.app.notifyB': ['პარამეტრები → შეტყობინებები: ჩართე და აირჩიე, რაზე გინდა ჩემგან შეტყობინება და რომელ საათზე შეგახსენო ვარჯიში. მოვა ყველა მოწყობილობაზე, სადაც შესული ხარ.', 'Settings → Notifications: switch them on, choose what I should tell you about and when to remind you to practise. They reach every device you are signed in on.'],
   'sm.openChord': ['აკორდი ტარზე', 'The chord on the neck'], 'sm.howTaken': ['როგორ აიღო', 'How to take it'],
   'sm.noteOn': ['ნოტი ლადზე', 'The note on that fret'], 'sm.openFret': ['ლადების რუკა', 'The fret map'],

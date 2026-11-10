@@ -14,7 +14,11 @@
 const AISPL = function () {
   const N = 4096, HOP = 1024, F = 1024, T = 512, K = N / 2 + 1;
   let ort = null, base = '', man = null;
-  const post = (type, o, tr) => self.postMessage(Object.assign({ type }, o || {}), tr || []);
+  let chunkIndex = 0, chunkCount = 1;
+  const post = (type, o, tr) => {
+    if (o && o.i != null && o.n != null) o = Object.assign({}, o, { i: chunkIndex * o.n + o.i, n: chunkCount * o.n });
+    self.postMessage(Object.assign({ type }, o || {}), tr || []);
+  };
 
   /* ---------- FFT (radix-2, complex, in place) ---------- */
   const COS = new Float64Array(N / 2), SIN = new Float64Array(N / 2), REV = new Uint32Array(N);
@@ -87,7 +91,7 @@ const AISPL = function () {
       masked spectrum all at once came to ~300 MB per minute of audio (1.2 GB for a 4-minute song, before
       the model): a whole song could not fit in a phone. Only the masks and the stems themselves are kept
       for the whole song now. The arithmetic and its order are the same, so the stems are identical. */
-  async function separate(L, R, want) {
+  async function separateChunk(L, R, want) {
     const len = L.length;
     const frames = Math.max(T, Math.ceil((len + N) / HOP));
     const re = new Float64Array(N), im = new Float64Array(N), SR_ = new Float32Array(T * K), SI_ = new Float32Array(T * K);
@@ -162,6 +166,27 @@ const AISPL = function () {
       if (e > 1e-8) for (const o of outs) { o.L[i] /= e; o.R[i] /= e; }
     }
     names.forEach(nm => { masks[nm] = null; });
+    return outs;
+  }
+
+  // Keep masks bounded for full songs. Two seconds of context surround each
+  // chunk; only its centre is retained so every input sample is represented.
+  async function separate(L, R, want) {
+    if (!L.length || L.length !== R.length) throw new Error('Empty or invalid stereo audio');
+    const step = 20 * 44100, context = 2 * 44100;
+    chunkCount = Math.ceil(L.length / step); chunkIndex = 0;
+    if (chunkCount === 1) return separateChunk(L, R, want);
+    const names = want && want.length ? want : man.sources;
+    const outs = names.map(name => ({ name, L: new Float32Array(L.length), R: new Float32Array(L.length) }));
+    for (let start = 0; start < L.length; start += step) {
+      const end = Math.min(L.length, start + step), a = Math.max(0, start - context), b = Math.min(L.length, end + context);
+      const part = await separateChunk(L.subarray(a, b), R.subarray(a, b), want);
+      for (let i = 0; i < outs.length; i++) {
+        outs[i].L.set(part[i].L.subarray(start - a, end - a), start);
+        outs[i].R.set(part[i].R.subarray(start - a, end - a), start);
+      }
+      chunkIndex++;
+    }
     return outs;
   }
 

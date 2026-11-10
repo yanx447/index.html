@@ -321,7 +321,9 @@ PD.cloud = (() => {
     unfriend: other => db.rpc('friend_remove', { other }),
     /** tab: 'foryou' · 'friends' · 'user' · 'one' */
     feed: (tab, o) => { o = o || {}; return db.rpc('feed', { tab, lim: o.lim || 8, before_id: o.before || null, target: o.target || null, skip_ids: o.skip && o.skip.length ? o.skip.slice(-300) : null }); },
-    post: async row => (await db.insert('feed_posts', [row]))[0],
+    /** a server that has not learned the song's name yet still takes the video */
+    post: async row => { try { return (await db.insert('feed_posts', [row]))[0]; } catch (e) { if (!('song' in row) || !old(e)) throw e; const r = Object.assign({}, row); delete r.song; return (await db.insert('feed_posts', [r]))[0]; } },
+    save: (post, keep) => db.rpc('save_post', { post, keep: !!keep }),
     remove: id => db.remove('feed_posts', { id: 'eq.' + id }),
     react: (post, emoji) => db.rpc('react_post', { post, emoji: emoji || null }),
     seen: ids => db.rpc('feed_seen', { ids }),
