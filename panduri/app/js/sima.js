@@ -49,6 +49,9 @@ PD.sima = (() => {
       const [r, ...p] = go.split(':'), ti = t('sm.app.' + id), body = [t('sm.app.' + id + 'B')];
       ix.push({ kind: 'app', id, src: 'fact', title: ti, body, go: [r, p.join(':') || null], text: norm(ti + ' ' + body[0] + ' ' + kw) });
     });
+    // who made the app — the author's own words; no page to open, so no button
+    ix.push({ kind: 'app', id: 'creator', src: 'fact', title: t('sm.creatorT'), body: [t('sm.creator')], go: null,
+      text: norm(t('sm.creatorT') + ' ' + t('sm.creator') + ' ნუკრი ბერიძე nukri beridze ავტორი შემქმნელი შექმნა გააკეთა author creator developer made created') });
     return (api._ix = ix);
   }
 
@@ -141,6 +144,10 @@ PD.sima = (() => {
   // Social messages are conversation, not lesson-search queries.
   function conversation(q) {
     const Q = norm(q).replace(/[—–-]/g, ' ').replace(/\s+/g, ' ').trim();
+    // who made the app, and her: the author told it himself — „ეს აპლიკაცია შევქმენი მე, ნუკრი ბერიძემ"
+    if (/ნუკრი|ბერიძე|nukri|beridze/u.test(Q)) return { title: name(), lines: [t('sm.nukri')], src: 'fact', acts: [], conversational: true };
+    if ((/(^| )(ვინ|who)( |$)/u.test(Q) && /შექმნ|შეგქმნ|გააკეთ|ააწყ|დაწერ|დააპროგრამ|ავტორ|შემქმნ|მფლობ|made|creat|built|develop|author|wrote|owner/u.test(Q)) || /^(ავტორი|შემქმნელი|author|creator|developer)$/u.test(Q))
+      return { title: name(), lines: [t(/შეგქმნ|შენ ვინ შექმნ|created you|made you/u.test(Q) ? 'sm.madeMe' : 'sm.creator')], src: 'fact', acts: [], conversational: true };
     const rules = [
       [/^(გამარჯობა|გამარჯობათ|გაგიმარჯოს|სალამი|ჰეი|hello|hi|hey)( სიმა| sima)?$/u, 'sm.greeting'],
       [/^(სიმა |sima )?(როგორ ხარ|როგორ ხართ|როგორ მიდის საქმე|how are you)$/u, 'sm.howAreYou'],
@@ -175,7 +182,7 @@ PD.sima = (() => {
     const top = scored[0];
     if (!top || top.s < 2) return miss();
     const x = top.x;
-    return { title: x.title, lines: x.body.length ? x.body : [t('sm.seeLesson')], src: x.src, acts: [[t('sm.go'), x.go]],
+    return { title: x.title, lines: x.body.length ? x.body : [t('sm.seeLesson')], src: x.src, acts: x.go ? [[t('sm.go'), x.go]] : [],
       more: scored.slice(1, 4).filter(y => y.s >= 2).map(y => y.x) };
   }
   const miss = () => ({ title: name(), lines: [t('sm.dontKnow')], src: 'fact',
@@ -319,6 +326,10 @@ PD.i18n.add({
   'sm.howAreYou': ['მადლობა მოკითხვისთვის! მზად ვარ, გესაუბრო და სწავლაში დაგეხმარო. შენ როგორ ხარ?', 'Thanks for asking! I am ready to chat and help you learn. How are you?'],
   'sm.thanks': ['არაფრის! თუ კიდევ რამე დაგაინტერესებს, მომწერე.', 'You are welcome! If you have another question, just ask.'],
   'sm.goodbye': ['დროებით! როცა მოგინდება, ისევ მომწერე.', 'Bye! Come back whenever you like.'],
+  'sm.creatorT': ['ვინ შექმნა აპლიკაცია', 'Who made the app'],
+  'sm.creator': ['ეს აპლიკაცია — „ფანდური" — შექმნა ნუკრი ბერიძემ. სასწავლო მასალა, რასაც აქ ხედავ (აკორდები, რითმები, თითები), მასწავლებლისაა; აპი კი ნუკრის ნამუშევარია.', 'This app — “Panduri” — was created by Nukri Beridze. The teaching material you see here (chords, rhythms, fingerings) is the teacher\'s; the app itself is Nukri\'s work.'],
+  'sm.madeMe': ['მე და მთელი ეს აპლიკაცია ნუკრი ბერიძემ შექმნა. მე აქ ვარ, რომ ფანდურის სწავლაში დაგეხმარო.', 'Nukri Beridze created me and this whole app. I am here to help you learn the panduri.'],
+  'sm.nukri': ['ნუკრი ბერიძე ამ აპლიკაციის შემქმნელია. „ფანდური" ქართულ სამსიმიან ფანდურზე დაკვრას ასწავლის ნამდვილ ინსტრუმენტზე: მიკროფონით გისმენს, გელოდება და მასწავლებლის მასალას გაჩვენებს. თუ ნუკრიზე მეტის გაგება გინდა, ჯერ მხოლოდ ეს ვიცი.', 'Nukri Beridze is the creator of this app. “Panduri” teaches the Georgian three-string panduri on a real instrument: it listens through the microphone, waits for you and shows the teacher\'s material. That is all I know about Nukri for now.'],
   'sm.who': ['მე {n} ვარ, შენი AI სასწავლო დამხმარე. შეგიძლია ჩვეულებრივად მომწერო — კითხვები დამისვა და მითხრა, რისი გაგება გინდა.', 'I am {n}, your AI learning helper. You can write naturally, ask questions and tell me what you want to understand.'],
   'sm.fine': ['მიხარია! რაზე გინდა ვისაუბროთ?', 'Glad to hear it! What would you like to talk about?'],
   'sm.aiLabel': ['AI პასუხი • შეიძლება შეცდეს', 'AI response • may make mistakes'],

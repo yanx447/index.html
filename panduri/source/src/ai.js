@@ -63,6 +63,14 @@ PD.i18n.add({
   'ai.geoIn2': ['წაკითხულია როგორც ნახატი ორ თვლაზე; გაზომილია {n} წრე.', 'Read as the pattern across two beats; {n} cycles measured.'],
   'ai.geoSub': ['წაკითხულია როგორც {s} დარტყმა ერთ თვლაში; გაზომილია {n} წრე.', 'Read as {s} strokes to a beat; {n} cycles measured.'],
   'ai.geoNo': ['ქართულ რითმებთან ახლო დამთხვევა ვერ ვიპოვე.', 'No close match with the Georgian rhythms was found.'],
+  'ai.geoRef': ['ჰგავს: {s} — დარტყმების განლაგებით, სიძლიერით და ტემპით.', 'It resembles {s} — in where the strokes fall, how strong they are, and the tempo.'],
+  'ai.geoOr': ['ან', 'or'],
+  'ai.geoMetric': ['ორივე სამდარტყმიანია და მხოლოდ იმით განსხვავდება, რომელი დარტყმაა მძიმე. ამ ჩანაწერში ყველაზე ძლიერად თვლის დასაწყისი ისმის — ასე ჟღერს დოლი და ბანი ნებისმიერ ასეთ ზომაში, ამიტომ მხოლოდ აქცენტით ვერ ვარჩევ. მასწავლებლის ჩანაწერებს ახლოს არ ჰგავს.', 'Both have three strokes and differ only in which strokes are heavy. In this recording the start of each beat sounds strongest — that is how the drum and the bass sound in any music in this metre — so the accents alone cannot tell them apart, and it is not close to the teacher\u2019s recordings.'],
+  'ai.geoRefs': ['მასწავლებლის ჩანაწერებიდან ორს თითქმის თანაბრად ჰგავს.', 'It is almost equally close to two of the teacher\u2019s recordings.'],
+  'ai.teach': ['AI-ს სწავლება', 'Teach the AI'],
+  'ai.teachD': ['მხოლოდ მფლობელი. თუ იცი, რომელ რითმზეა ეს ჩანაწერი, აირჩიე — AI დაიმახსოვრებს მის „ანაბეჭდს“ და მომდევნო ჩანაწერებს მასაც შეადარებს. ამ მოწყობილობაზე ინახება; ყველასთვის „კოპირებით“ გადაეცემა შემდეგ განახლებას.', 'Owner only. If you know which rhythm this recording uses, pick it — the AI keeps its fingerprint and compares the next recordings with it too. Kept on this device; “copy” hands it to the next release so it works for everyone.'],
+  'ai.teachIs': ['ეს ჩანაწერი არის:', 'This recording is:'], 'ai.teachSaved': ['დავიმახსოვრე: {s}', 'Learnt: {s}'], 'ai.teachList': ['შენი მაგალითები ({n})', 'Your examples ({n})'],
+  'ai.teachCopy': ['კოპირება', 'Copy'], 'ai.teachNone': ['ამ ჩანაწერის ანაბეჭდი ვერ გავზომე (დარტყმების ბადე არ ჩანს).', 'This recording\u2019s fingerprint could not be measured (no stroke grid is heard).'],
   'ai.geoD': ['ვადარებ იმ ოთხ რითმს, რომელიც მასწავლებელმა მოგვცა: ყაზბეგური, მთიულური, ხორუმი, აჭარული. ნარნარი, ოსური და დანარჩენები ჯერ არ გვაქვს — როგორც კი მათი დარტყმები შემოვა, AI მათაც იცნობს.', 'Compared with the four rhythms the teacher gave: Kazbeguri, Mtiuluri, Khorumi, Acharuli. Narnari, Osuri and the others are not in the app yet — as soon as their strokes are added, the AI will know them too.'],
   'ai.rhyNoStems': ['ინსტრუმენტების დაყოფა ამისთვის საჭირო არ არის — AI უსმენს მთლიან ჩანაწერში დრამისა და დოლის დარტყმებს.', 'No instrument separation is needed for this — the AI listens to the drum and doli strokes in the whole recording.'],
   'ai.rhyLike': ['რას ჰგავს', 'What it resembles'], 'ai.rhyLikeD': ['აპში არსებულ რითმებს ვადარებ: რამდენად ემთხვევა დარტყმები და აქცენტები ერთ თვლაში. ეს შედარებაა და არა დასკვნა.', 'Compared with the rhythms already in the app: how well the strokes and accents line up inside one beat. This is a comparison, not a verdict.'],
@@ -111,6 +119,9 @@ PD.i18n.add({
   'ai.fast': ['რამდენად ხშირად იცვლება', 'How often it changes'],
   'ai.fast0': ['ნელი', 'Slow'], 'ai.fast1': ['ჩვეულებრივი', 'Normal'], 'ai.fast2': ['სწრაფი', 'Fast'],
   'ai.fastD': ['აჭარული და სხვა სწრაფი მელოდიები — „სწრაფი“: აკორდი თითქმის ყოველ თვლაზე იცვლება. „ნელი“ — როცა ერთი აკორდი მთელ ტაქტს იკავებს.', 'Acharuli and other fast melodies — “Fast”: the chord changes on almost every beat. “Slow” — when one chord holds a whole bar.'],
+  'ai.chStem': ['აკორდების წაკითხვა ინსტრუმენტებიდან', 'Read chords from instruments'],
+  'ai.chStemD': ['აკორდებს ვკითხულობ ვოკალისა და დრამის გარეშე…', 'Reading chords without vocals and drums…'],
+  'ai.chStemDone': ['აკორდები განახლდა ინსტრუმენტული ფონიდან. ყურით გადაამოწმე.', 'Chords updated from the accompaniment. Check by ear.'],
   'ai.vocAgain': ['ხელახლა წაკითხვა', 'Read again'], 'ai.vocWait': ['ვკითხულობ…', 'Reading…'],
   'ai.chEdit': ['აკორდების შესწორება', 'Correct the chords'], 'ai.chEditD': ['ჩართე და ზოლზე შეეხე აკორდს', 'Turn this on and tap a chord on the ribbon'],
   'ai.chRoot': ['საფუძველი', 'Root'], 'ai.chQual': ['სახეობა', 'Type'], 'ai.chNone': ['აკორდის გარეშე', 'No chord'],
@@ -262,8 +273,9 @@ PD.ai = (() => {
   async function analyse(mono, sr, onProgress, opt, onStage) {
     opt = Object.assign({ bassW: 0, keyBonus: .04, nc: .35, third: .85, voc: 'ext', fast: 1, beats: null, tune: null, harm: .8, floor: .8 }, opt || {});
     const CH = opt.changeSeg != null ? opt.changeSeg : opt.fast >= 2 ? .005 : opt.fast <= 0 ? .05 : .012;   // what a change of chord costs, per beat (measured on the teacher's song: qa/ai-bani.cjs)
+    if (!mono || !mono.length || !Number.isFinite(sr) || sr <= 0) throw new Error('Empty or invalid audio');
     const N = 4096, HOPA = N / 4;
-    const fft = fftMag(N), mag = new Float32Array(N / 2), frames = Math.max(1, Math.floor((mono.length - N) / HOPA));
+    const fft = fftMag(N), mag = new Float32Array(N / 2), frames = Math.max(1, Math.ceil(Math.max(0, mono.length - N) / HOPA) + 1);
     const a4 = PD.theory && PD.theory.a4 ? PD.theory.a4() : 440;
     const tune = opt.tune != null ? opt.tune : tuningOf(mono, sr, N, fft, mag, a4);
     // bins → pitch class on the recording's own grid, 55 Hz .. 1.76 kHz, weighted toward the middle register
@@ -314,7 +326,7 @@ PD.ai = (() => {
     const T = buildTemplates(opt.voc, opt.third, opt.harm), K = T.length, NC = K;
     const score = (c, b, tpl) => { let d = 0, nc = 0, nt = 0; for (let k = 0; k < 12; k++) { d += c[k] * tpl.v[k]; nc += c[k] * c[k]; nt += tpl.v[k] * tpl.v[k]; } let s = d / Math.sqrt(nc * nt + 1e-9); if (opt.bassW) { const bm = Math.max(...b) || 1; s += opt.bassW * (b[tpl.r] / bm); } return s; };
     function decode(dia) {
-      const em = segC.map((c, s) => { const e = new Float32Array(K + 1); for (let k = 0; k < K; k++) e[k] = score(c, segB[s], T[k]) - T[k].cost + (dia && dia.has(T[k].r + T[k].base) ? opt.keyBonus : 0); e[NC] = segL[s] < lmed * .06 ? 2 : opt.nc; return e; });
+      const em = segC.map((c, s) => { const e = new Float32Array(K + 1); for (let k = 0; k < K; k++) e[k] = score(c, segB[s], T[k]) - T[k].cost + (dia && dia.has(T[k].r + T[k].base) ? opt.keyBonus : 0); e[NC] = segL[s] < lmed * .06 || segL[s] < 1e-6 ? 2 : opt.nc; return e; });
       let dp = em[0].slice(); const back = [];
       for (let s = 1; s < nS; s++) {
         let bi = 0; for (let k = 1; k <= K; k++) if (dp[k] > dp[bi]) bi = k;
@@ -516,7 +528,7 @@ PD.ai = (() => {
     const passEl = h('div', { class: 'ai-pass', hidden: true });
     w.append(input, drop, passEl, status, body);
     let S = null;   // the current song
-    const stopAll = () => { if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
+    const stopAll = () => { for (const w of [worker, splWorker]) { try { w && w.terminate(); } catch (_) {} } worker = null; splWorker = null; if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
     own(() => { document.removeEventListener('fullscreenchange', onFsChange); document.removeEventListener('keydown', onFsKey); if (document.body.classList.contains('ai-full')) setFull(false); });   // leaving the studio leaves the full screen
     own(stopAll); own(() => { if (worker) { try { worker.terminate(); } catch (_) {} worker = null; } if (splWorker) { try { splWorker.terminate(); } catch (_) {} splWorker = null; } });   // leaving the studio stops both engines
     /** the free session's clock: how long is left, and the studio closes when it runs out */
@@ -845,6 +857,8 @@ PD.ai = (() => {
         if (!S.rhy) setTimeout(() => { if (rhyBox && rhyBox.isConnected && !S.rhy) runRhythm(); }, 400);
         return rhyBox;
       }
+      // the teacher's recordings, and the owner's own examples on this device
+      function rhythmRefs() { return (PD.RHYTHM_REFS || []).concat(PD.store.get('ai.rhyRefs', [])); }
       function metreNow() { return (S.tr && S.tr.data && S.tr.data.metre) || S.metre || { beatsPerBar: dk.D.bpb || 4, phase: res.phase || 0, num: dk.D.bpb || 4, den: 4, compound: false }; }
       async function runRhythm() {
         const st = h('div', { class: 'ai-status' }, [h('span', { text: t('ai.rhyWait') }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:40%' })])]);
@@ -855,11 +869,28 @@ PD.ai = (() => {
           if (!S.metre) S.metre = PD.aimus.metre(res.beats, on.env, on.dt, on.t0off, res.chords);
           const mt = metreNow();
           const known = (PD.curriculum.rhythms() || []).concat(PD.curriculum.commonRhythms() || []);
-          S.rhy = PD.aimus.rhythm(on, res.beats, mt, known);
+          S.rhy = PD.aimus.rhythm(on, res.beats, mt, known, rhythmRefs());
           S.rhyMt = mt;
           try { if (S.id) PD.blobs.put('ai.rhy.' + S.id, { rhy: S.rhy, metre: mt }); } catch (_) {}
         } catch (e) { S.rhy = null; }
         drawRhythm(); S.onLearn && S.onLearn();
+      }
+      /** the owner marks which rhythm this recording uses: its fingerprint becomes an example the next readings are compared with */
+      function teachBox(R) {
+        const box = h('div', { class: 'ai-tool ai-teach' }, [h('span', { class: 'ai-tl', text: t('ai.teach') }), h('small', { class: 'muted', text: t('ai.teachD') })]);
+        if (!R.print) { box.append(h('small', { class: 'muted', text: t('ai.teachNone') })); return box; }
+        const mine = () => PD.store.get('ai.rhyRefs', []);
+        const list = h('div', { class: 'chips-row' });
+        const paint = () => { list.innerHTML = ''; const all = mine(); if (!all.length) return;
+          list.append(h('small', { class: 'muted', text: t('ai.teachList', { n: all.length }) }));
+          all.forEach((x, i) => list.append(h('button', { class: 'chip', title: '✕', text: PD.i18n.pick((PD.curriculum.rhythms().find(r => r.id === x.rhythm) || {}).name || { ka: x.rhythm, en: x.rhythm }) + ' · ' + (x.from && x.from.ka || '') + ' ✕', onclick: () => { const a = mine(); a.splice(i, 1); PD.store.set('ai.rhyRefs', a); paint(); } })));
+          list.append(h('button', { class: 'chip', text: t('ai.teachCopy'), onclick: async () => { try { await navigator.clipboard.writeText(JSON.stringify(mine(), null, 1)); PD.ui.toast(t('toast.copied')); } catch (_) {} } })); };
+        box.append(h('small', { text: t('ai.teachIs') }), h('div', { class: 'chips-row' }, PD.curriculum.rhythms().filter(r => r.source === 'teacher').map(r => h('button', { class: 'chip', text: PD.i18n.pick(r.name), onclick: () => {
+          const name = ((S.file && S.file.name) || '').replace(/\.[^.]+$/, '').slice(0, 80) || '—';
+          const a = mine().filter(x => !(x.from && x.from.ka === name)); a.push(Object.assign({ rhythm: r.id, src: 'owner', from: { ka: name, en: name }, at: Date.now() }, R.print));
+          PD.store.set('ai.rhyRefs', a.slice(-40)); PD.ui.toast(t('ai.teachSaved', { s: PD.i18n.pick(r.name) })); paint(); runRhythm(); } }))), list);
+        paint();
+        return box;
       }
       function drawRhythm() {
         if (!rhyBox) return;
@@ -892,9 +923,16 @@ PD.ai = (() => {
               h('b', { text: PD.i18n.pick(g0.name) }),
               h('span', { class: 'mono', text: t(g0.score >= .72 ? 'ai.cHi' : g0.score >= .55 ? 'ai.cMid' : 'ai.cLo') }),
               h('button', { class: 'btn small ghost', text: t('ai.geoOpen'), onclick: () => PD.app.go('rhythms', g0.id) }));
+          } else if (R.ambig && R.ambig.length > 1) {
+            head.append(h('small', { text: t('ai.geoMaybe') }), h('b', { text: R.ambig.map(a => PD.i18n.pick(a.name)).join(' ' + t('ai.geoOr') + ' ') }),
+              h('span', { class: 'mono', text: t('ai.cLo') }));
           } else head.append(h('small', { text: t('ai.geoNo') }));
           rhyBox.append(head);
+          if (g0 && R.basis === 'ref' && R.ref) rhyBox.append(h('small', { class: 'muted', text: t('ai.geoRef', { s: PD.i18n.pick(R.ref.from) }) }));
+          else if (!g0 && R.basis === 'metric') rhyBox.append(h('small', { class: 'muted', text: t('ai.geoMetric') }));
+          else if (!g0 && R.basis === 'refs') rhyBox.append(h('small', { class: 'muted', text: t('ai.geoRefs') }));
           if (g0) rhyBox.append(h('small', { class: 'muted', text: t(g0.span === 1 ? 'ai.geoIn1' : g0.span === 2 ? 'ai.geoIn2' : (g0.perBeat || 1) > 1 ? 'ai.geoSub' : 'ai.geoPer', { n: g0.cycles, s: g0.perBeat }) }));
+          if (PD.cloud && PD.cloud.isOwner) rhyBox.append(teachBox(R));
           rhyBox.append(h('small', { class: 'muted', text: t('ai.geoD') }));
         {
           const names = ['auto', 'perc', 'orig'].concat(S.stems ? S.stems.tracks.map(x => x.name) : []);
@@ -953,6 +991,30 @@ PD.ai = (() => {
         drawSheet();
         return sheetBox;
       }
+      const session = S;
+      S.readStemChords = async () => {
+        const st = session.stems;
+        if (!st || S !== session) return;
+        const tracks = st.tracks.filter(x => x.name !== 'vocals' && x.name !== 'drums');
+        if (!tracks.length) return;
+        const ac = new OfflineAudioContext(1, Math.max(1, Math.ceil(tracks[0].L.length * 22050 / st.sr)), 22050);
+        const b = ac.createBuffer(1, tracks[0].L.length, st.sr), data = b.getChannelData(0);
+        for (const tk of tracks) for (let i = 0; i < data.length; i++) data[i] += (tk.L[i] + tk.R[i]) / (2 * tracks.length);
+        const src = ac.createBufferSource(); src.buffer = b; src.connect(ac.destination); src.start();
+        const mono = (await ac.startRendering()).getChannelData(0);
+        const end = st.from + st.len, o = readOpt();
+        o.beats = res.beats.filter(t => t >= st.from && t <= end).map(t => t - st.from);
+        // Keep the original tuning, measured before the separator changed the spectrum.
+        o.tune = res.tune;
+        const r = await analyse(mono, 22050, null, o);
+        if (S !== session || session.stems !== st) return;
+        const before = res.chords.filter(c => c.t0 < st.from).map(c => Object.assign({}, c, { t1: Math.min(c.t1, st.from) }));
+        const after = res.chords.filter(c => c.t1 > end).map(c => Object.assign({}, c, { t0: Math.max(c.t0, end) }));
+        res.chords = before.concat(r.chords.map(c => Object.assign({}, c, { t0: c.t0 + st.from, t1: Math.min(end, c.t1 + st.from) })), after);
+        res.key = keyFromChords(res.chords) || res.key;
+        res.chords0 = null; res.chordsBy = null;
+        saveRes(); drawRibbon(); last = null; drawSheet(); chips(); S.onLearn && S.onLearn();
+      };
       function readOpt() {
         return { voc: PD.store.get('ai.voc', 'ext'), fast: PD.store.get('ai.fast', 1), beats: res.beats };   // the same beat grid the player follows (a tempo set by hand included)
       }
@@ -1223,8 +1285,8 @@ PD.ai = (() => {
       const choices = [];
       if (dur > 32) choices.push(['30', t('ai.first', { n: 30 })], ['here30', t('ai.fromHere', { n: 30 })]);
       if (dur > 62 && maxSec >= 60) choices.push(['60', t('ai.first', { n: 60 })], ['here', t('ai.fromHere', { n: 60 })]);
-      if (dur <= maxSec) choices.unshift(['all', t('ai.all')]);
-      else if (!small) choices.unshift(['whole2', t('ai.whole2')]);   // a long song on a computer: the whole of it, as voice and the rest (what a lesson needs)
+      choices.unshift(['all', t('ai.all')]);
+      if (dur > maxSec) choices.push(['whole2', t('ai.whole2')]);   // a long song on a computer: the whole of it, as voice and the rest (what a lesson needs)
       if (!choices.length) choices.push(['30', t('ai.first', { n: 30 })]);
       let pick = choices[0][0], model = PD.store.get('ai.model', '4');
       const seg = h('div', { class: 'seg' }, choices.map(([k, l]) => h('button', { 'aria-pressed': String(k === pick), text: l, onclick: e => { pick = k; seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
@@ -1239,7 +1301,7 @@ PD.ai = (() => {
       const mrow = h('div', { class: 'ai-row', hidden: true }, [h('span', { class: 'muted', text: t('ai.model') }), mseg]);
       check6().then(ok => { mrow.hidden = !ok || engine !== 'heavy'; if (!ok) model = '4'; });
       const prog = h('div', { class: 'ai-prog', hidden: true }), msg = h('div', { class: 'ai-msg', 'aria-live': 'polite' });
-      const go = h('button', { class: 'btn primary big', html: '<span class="ai-spark">✦</span> <span data-t="ai.split"></span>', onclick: () => run() });
+      const go = h('button', { class: 'btn primary big', html: '<span class="ai-spark">✦</span> <span data-t="ai.split"></span>', onclick: () => run().catch(e => { go.disabled = false; prog.hidden = true; msg.textContent = t('ai.fail', { e: e.message || String(e) }); }) });
       box.append(erow, eNote, mrow, h('div', { class: 'ai-row' }, [h('span', { class: 'muted', 'data-t': 'ai.range' }), seg]), go, h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'ai.splitNote' }), h('p', { class: 'notice', style: 'font-size:12.5px', text: t('ai.memWarn') }), prog, msg);
       async function run() {
         go.disabled = true; prog.hidden = false; msg.textContent = '';
@@ -1302,7 +1364,7 @@ PD.ai = (() => {
             const tracks = ORDER.map(n2 => m.sources.indexOf(n2)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] }));
             S.stems = { id: 'stems' + Date.now(), sr: SR, from: at, len: nlen / SR, tracks, engine: 'light' };
             S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
-            useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
+            useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw(); S.onLearn && S.onLearn();
           }
           else if (m.type === 'error') { stop(); go.disabled = false; prog.hidden = true; msg.textContent = t('ai.fail', { e: m.msg }); try { splWorker && splWorker.terminate(); } catch (_) {} splWorker = null; }
         });
@@ -1347,8 +1409,14 @@ PD.ai = (() => {
         I('bass') >= 0 ? preset('ai.pNoBass', () => { M.mute[I('bass')] = true; }) : null,
         preset('ai.pPlay', () => { ['other', 'guitar'].forEach(n => { if (I(n) >= 0) M.mute[I(n)] = true; }); })].filter(Boolean));
       const expB = h('button', { class: 'btn', html: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> <span>' + PD.esc(t('ai.export')) + '</span>', onclick: async () => { expB.disabled = true; try { if (!live()) useStems(true); const r = await dk.render(); saveWav(r.L, r.R, r.sr, 'mix' + (Math.round(S.deck.D.speed * 100) !== 100 ? ' ' + Math.round(S.deck.D.speed * 100) + '%' : '') + (Math.round(S.deck.D.semis) ? ' ' + (S.deck.D.semis > 0 ? '+' : '') + Math.round(S.deck.D.semis) : '')); } catch (e) { PD.ui.toast(t('ai.fail', { e: e.message || e })); } expB.disabled = false; } });
+      const read = h('button', { class: 'btn', text: t('ai.chStem'), onclick: async () => {
+        const session = S; read.disabled = true; read.textContent = t('ai.chStemD');
+        try { await session.readStemChords(); if (S === session) PD.ui.toast(t('ai.chStemDone')); }
+        catch (e) { if (S === session) PD.ui.toast(t('ai.fail', { e: e.message || String(e) })); }
+        finally { read.disabled = false; read.textContent = t('ai.chStem'); }
+      } });
       const again = h('button', { class: 'btn ghost small', text: t('ai.again'), onclick: () => { useStems(false); S.stems = null; S.mix = null; const sp = stemsPanel(); box.replaceWith(sp); PD.i18n.apply(sp); S.ui && S.ui.redraw(); } });
-      const box = h('div', { class: 'ai-mix' }, [h('div', { class: 'row', style: 'gap:10px;align-items:center;flex-wrap:wrap' }, [modeSeg, h('small', { class: 'muted', text: t('ai.partInfo', { a: PD.fmtTime(st.from), b: PD.fmtTime(st.from + st.len) }) })]), presets].concat(rows, [h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap;align-items:center' }, [expB, again]), h('p', { class: 'muted', style: 'font-size:12.5px;margin:0', text: t('ai.mixNote') })]));
+      const box = h('div', { class: 'ai-mix' }, [h('div', { class: 'row', style: 'gap:10px;align-items:center;flex-wrap:wrap' }, [modeSeg, h('small', { class: 'muted', text: t('ai.partInfo', { a: PD.fmtTime(st.from), b: PD.fmtTime(st.from + st.len) }) })]), presets].concat(rows, [h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap;align-items:center' }, [expB, read, again]), h('p', { class: 'muted', style: 'font-size:12.5px;margin:0', text: t('ai.mixNote') })]));
       function paintMix() {
         modeSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.mode)));
         rows.forEach((r, i) => { r._m.classList.toggle('on', M.mute[i]); r._s.classList.toggle('on', M.solo === i); r.classList.toggle('dim', M.mute[i] || (M.solo >= 0 && M.solo !== i)); r._v.value = Math.round(M.gain[i] * 100); r._vv.textContent = Math.round(M.gain[i] * 100) + '%'; });

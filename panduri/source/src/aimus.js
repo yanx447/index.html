@@ -325,6 +325,9 @@ PD.aimus = (() => {
       trial.push(best);
     }
     trial.sort((a, b) => b.sc - a.sc);
+    // every fourth beat is also every second one, so a 12/8 reading only beats 6/8 by the phrase accent; folk dances in
+    // triplets are written 6/8 (the teacher's Bani-Acharuli is 6/8, measured 12/8 here at 0.15 confidence), so 12/8 must win clearly
+    if (compound && trial[0].g === 4) { const t2 = trial.find(x => x.g === 2); if (t2 && t2.sc >= trial[0].sc - .25) { trial.splice(trial.indexOf(t2), 1); trial.unshift(Object.assign({}, t2, { ph: t2.ph })); } }
     const top = trial[0], second = trial[1];
     const conf = clamp((top.sc - (second ? second.sc : 0)) * 1.6, 0, 1) * (.4 + .6 * subConf);
     const sig = g => compound ? { num: g * 3, den: 8 } : { num: g, den: 4 };
@@ -411,7 +414,7 @@ PD.aimus = (() => {
   }
   /** the pattern the bars repeat: which cells of the bar are struck, and which of them are accented.
       Everything here is measured. Where the stroke goes (down or up) cannot be heard and is never claimed. */
-  function rhythm(on, beats, metre, known) {
+  function rhythm(on, beats, metre, known, refs) {
     const env = on.env, dt = on.dt, t0off = on.t0off;
     if (!beats || beats.length < 8) return null;
     const g = (metre && metre.beatsPerBar) || 4, ph = (metre && metre.phase) || 0, compound = !!(metre && metre.compound);
@@ -539,13 +542,18 @@ PD.aimus = (() => {
         let lo = Infinity; for (let j = 0; j < n; j++) lo = Math.min(lo, ex[j]); if (lo < .3) continue;
         const mc = con.reduce((p, q) => p + q, 0) / con.length, sd = Math.sqrt(con.reduce((p, q) => p + (q - mc) * (q - mc), 0) / con.length);
         const sc = corr(Array.from(fold), want), tst = mc / (sd / Math.sqrt(con.length) + 1e-9), scA = corr(Array.from(ex), want);
-        if (!best || sc > best.s) best = { s: sc, sA: scA, mc, tst, cycles: con.length };
+        if (!best || sc > best.s) best = { s: sc, sA: scA, mc, tst, cycles: con.length, ph };
       }
       if (!best) return null;
       // a heavier stroke is louder AND strikes harder: where the level and the attack disagree about which strokes
       // stand out, the accents are not measurable, and no rhythm is named from them
       const heard = best.mc >= .15 && best.tst >= 4 && best.sA >= .3;
-      return { id: r.id, name: r.name, source: r.source, geo: r.source === 'teacher', strokes: r.strokes, sound: lay.sound,
+      // every accent on a beat, and one accent to each beat: that is what any music in this metre does (the drum and the bass
+      // mark the beat), so it is no evidence for this rhythm over another with the same strokes
+      const accAt = lay.off.filter((o, j) => want[j]).map(o => (best.ph + o) % tatum.sub);
+      // (wherever the tracker happened to put the beat: one heavy stroke in every beat is the metre, whichever stroke it is)
+      const metric = accAt.length > 0 && accAt.every(x => x === accAt[0]) && accAt.length * tatum.sub === C;
+      return { id: r.id, name: r.name, source: r.source, geo: r.source === 'teacher', strokes: r.strokes, sound: lay.sound, metric, C,
         score: heard ? +Math.max(0, best.s).toFixed(3) : 0, contrast: +best.mc.toFixed(2), attack: +best.sA.toFixed(2),
         span: tatum.sub === 1 ? n : +(C / tatum.sub).toFixed(2), perBeat: tatum.sub, cycles: best.cycles };
     }
@@ -554,8 +562,48 @@ PD.aimus = (() => {
     let top = matches[0];
     if (top && !top.geo) { const g = matches.find(m => m.geo && m.sound === top.sound && top.score - m.score < .02); if (g) top = g; }
     const second = top && matches.find(m => m.sound !== top.sound);
-    const sure = !!(top && top.score >= .45 && (!second || top.score - second.score >= .1));
-    return { sub: G.sub, beatsPerBar: g, compound, cells, span, bars: barStarts.length, conf: +Math.max(0, Math.min(1, (G.corr - .5) / .4)).toFixed(2), matches: matches.slice(0, 5), geo: matches.filter(m => m.geo).slice(0, 3), best: sure ? top : null, sure };
+    let sure = !!(top && top.score >= .45 && (!second || top.score - second.score >= .1));
+    /* The fingerprint: how strong the attack and the level are at each place of the stroke grid inside a beat, averaged over
+       the whole recording, with the tempo and the grid. It is compared with the teacher's own recordings of his rhythms
+       (PD.RHYTHM_REFS, measured with this same code) and with the owner's examples on this device. */
+    const per = tatum && tatum.sub, ivs = []; for (let k = 1; k < beats.length; k++) ivs.push(beats[k] - beats[k - 1]); ivs.sort((a, b) => a - b);
+    const bpm = ivs.length ? 60 / ivs[ivs.length >> 1] : 0;
+    let print = null;
+    if (per && per > 1) {
+      const A = new Array(per).fill(0), Lv = new Array(per).fill(0); let nn = 0;
+      for (let i = 0; i + per <= tatum.xs.length; i += per) {
+        let sa = 0, sl = 0; for (let j = 0; j < per; j++) { sa += tatum.xs[i + j]; sl += tatum.ls[i + j]; }
+        if (sa <= 1e-9 || sl <= 1e-9) continue;
+        for (let j = 0; j < per; j++) { A[j] += tatum.xs[i + j] / sa * per; Lv[j] += tatum.ls[i + j] / sl * per; } nn++;
+      }
+      if (nn >= 16) print = { per, bpm: +bpm.toFixed(1), compound, attack: A.map(v => +(v / nn).toFixed(3)), level: Lv.map(v => +(v / nn).toFixed(3)), beats: nn };
+    }
+    // nearness to a reference: the same grid, a tempo within ±20 % (or its double / half), and the two profiles alike
+    const nearness = rf => {
+      if (!print || !rf || rf.per !== print.per || !rf.attack || rf.attack.length !== per) return 0;
+      let lr = Math.abs(Math.log2(print.bpm / rf.bpm)); lr = Math.min(lr, Math.abs(lr - 1));
+      if (lr > .27) return 0;
+      let d = 0; for (let j = 0; j < per; j++) d += Math.abs(print.attack[j] - rf.attack[j]) + Math.abs(print.level[j] - rf.level[j]) * .5;
+      d /= per;
+      return +Math.max(0, (1 - d / .45) * (1 - lr / .27 * .3)).toFixed(3);
+    };
+    const near = (refs || []).map(rf => ({ rf, sim: nearness(rf) })).filter(x => x.sim > 0).sort((a, b) => b.sim - a.sim);
+    const byName = id => (known || []).find(k => k.id === id);
+    let best = sure ? top : null, basis = best ? 'accents' : null, ambig = null, ref = null;
+    // two references of different rhythms almost equally near: the recordings do not tell them apart
+    const rival = near[0] && near.find(x => x.rf.rhythm !== near[0].rf.rhythm && near[0].sim - x.sim < .08 && x.sim >= .6);
+    if (rival) { ambig = [near[0].rf.rhythm, rival.rf.rhythm].map(byName).filter(Boolean).map(k => ({ id: k.id, name: k.name })); best = null; sure = false; basis = 'refs'; }
+    else if (near[0] && near[0].sim >= .6 && byName(near[0].rf.rhythm)) {
+      const k = byName(near[0].rf.rhythm), m0 = matches.find(m => m.id === k.id);
+      ref = { from: near[0].rf.from, sim: near[0].sim, src: near[0].rf.src };
+      best = Object.assign({ id: k.id, name: k.name, source: k.source, geo: k.source === 'teacher', perBeat: per, span: 1, cycles: print.beats }, m0 || {}, { score: Math.max(near[0].sim, .55), basis: 'ref' });
+      sure = near[0].sim >= .72; basis = 'ref';
+    } else if (top && top.metric) {
+      // only the metre is heard: name every teacher rhythm that fits the same grid, and none of them over the others
+      ambig = (known || []).filter(k => k.source === 'teacher' && k.strokes && !k.strokes.every(x => x.accent === k.strokes[0].accent)).filter(k => { const l = layout(k); return l && l.C === top.C; }).map(k => ({ id: k.id, name: k.name }));
+      if (ambig.length > 1) { best = null; sure = false; basis = 'metric'; } else ambig = null;
+    }
+    return { sub: G.sub, beatsPerBar: g, compound, cells, span, bars: barStarts.length, conf: +Math.max(0, Math.min(1, (G.corr - .5) / .4)).toFixed(2), matches: matches.slice(0, 5), geo: matches.filter(m => m.geo).slice(0, 3), best, sure, basis, ambig, ref, print, near: near.slice(0, 3).map(x => ({ rhythm: x.rf.rhythm, from: x.rf.from, sim: x.sim })) };
   }
 
   /* =================== bars, beats, rhythmic values =================== */

@@ -44,11 +44,14 @@ PD.sima = (() => {
     }));
     // the app itself: friends, the feed, notifications (facts about the app, not about playing)
     [['friends', 'community:friends', 'მეგობარი დამატება nickname ნიკნეიმი მეგობრობა თხოვნა friend add request'],
-     ['feed', 'community', 'ფიდი პოსტი ვიდეო ფოტო მუსიკა აუდიო ატვირთვა დადება გაზიარება რეაქცია კომენტარი გლობალური feed post upload share reaction comment video photo'],
+     ['feed', 'community', 'ფიდი პოსტი ვიდეო რილი ატვირთვა გადაღება დადება გაზიარება მოწონება შენახვა კომენტარი გლობალური feed post upload film share like save comment video reel'],
      ['notify', 'settings', 'შეტყობინება შეხსენება push ნოტიფიკაცია განახლება notification reminder update']].forEach(([id, go, kw]) => {
       const [r, ...p] = go.split(':'), ti = t('sm.app.' + id), body = [t('sm.app.' + id + 'B')];
       ix.push({ kind: 'app', id, src: 'fact', title: ti, body, go: [r, p.join(':') || null], text: norm(ti + ' ' + body[0] + ' ' + kw) });
     });
+    // who made the app — the author's own words; no page to open, so no button
+    ix.push({ kind: 'app', id: 'creator', src: 'fact', title: t('sm.creatorT'), body: [t('sm.creator')], go: null,
+      text: norm(t('sm.creatorT') + ' ' + t('sm.creator') + ' ნუკრი ბერიძე nukri beridze ავტორი შემქმნელი შექმნა გააკეთა author creator developer made created') });
     return (api._ix = ix);
   }
 
@@ -141,6 +144,10 @@ PD.sima = (() => {
   // Social messages are conversation, not lesson-search queries.
   function conversation(q) {
     const Q = norm(q).replace(/[—–-]/g, ' ').replace(/\s+/g, ' ').trim();
+    // who made the app, and her: the author told it himself — „ეს აპლიკაცია შევქმენი მე, ნუკრი ბერიძემ"
+    if (/ნუკრი|ბერიძე|nukri|beridze/u.test(Q)) return { title: name(), lines: [t('sm.nukri')], src: 'fact', acts: [], conversational: true };
+    if ((/(^| )(ვინ|who)( |$)/u.test(Q) && /შექმნ|შეგქმნ|გააკეთ|ააწყ|დაწერ|დააპროგრამ|ავტორ|შემქმნ|მფლობ|made|creat|built|develop|author|wrote|owner/u.test(Q)) || /^(ავტორი|შემქმნელი|author|creator|developer)$/u.test(Q))
+      return { title: name(), lines: [t(/შეგქმნ|შენ ვინ შექმნ|created you|made you/u.test(Q) ? 'sm.madeMe' : 'sm.creator')], src: 'fact', acts: [], conversational: true };
     const rules = [
       [/^(გამარჯობა|გამარჯობათ|გაგიმარჯოს|სალამი|ჰეი|hello|hi|hey)( სიმა| sima)?$/u, 'sm.greeting'],
       [/^(სიმა |sima )?(როგორ ხარ|როგორ ხართ|როგორ მიდის საქმე|how are you)$/u, 'sm.howAreYou'],
@@ -175,7 +182,7 @@ PD.sima = (() => {
     const top = scored[0];
     if (!top || top.s < 2) return miss();
     const x = top.x;
-    return { title: x.title, lines: x.body.length ? x.body : [t('sm.seeLesson')], src: x.src, acts: [[t('sm.go'), x.go]],
+    return { title: x.title, lines: x.body.length ? x.body : [t('sm.seeLesson')], src: x.src, acts: x.go ? [[t('sm.go'), x.go]] : [],
       more: scored.slice(1, 4).filter(y => y.s >= 2).map(y => y.x) };
   }
   const miss = () => ({ title: name(), lines: [t('sm.dontKnow')], src: 'fact',
@@ -319,6 +326,10 @@ PD.i18n.add({
   'sm.howAreYou': ['მადლობა მოკითხვისთვის! მზად ვარ, გესაუბრო და სწავლაში დაგეხმარო. შენ როგორ ხარ?', 'Thanks for asking! I am ready to chat and help you learn. How are you?'],
   'sm.thanks': ['არაფრის! თუ კიდევ რამე დაგაინტერესებს, მომწერე.', 'You are welcome! If you have another question, just ask.'],
   'sm.goodbye': ['დროებით! როცა მოგინდება, ისევ მომწერე.', 'Bye! Come back whenever you like.'],
+  'sm.creatorT': ['ვინ შექმნა აპლიკაცია', 'Who made the app'],
+  'sm.creator': ['ეს აპლიკაცია — „ფანდური" — შექმნა ნუკრი ბერიძემ. სასწავლო მასალა, რასაც აქ ხედავ (აკორდები, რითმები, თითები), მასწავლებლისაა; აპი კი ნუკრის ნამუშევარია.', 'This app — “Panduri” — was created by Nukri Beridze. The teaching material you see here (chords, rhythms, fingerings) is the teacher\'s; the app itself is Nukri\'s work.'],
+  'sm.madeMe': ['მე და მთელი ეს აპლიკაცია ნუკრი ბერიძემ შექმნა. მე აქ ვარ, რომ ფანდურის სწავლაში დაგეხმარო.', 'Nukri Beridze created me and this whole app. I am here to help you learn the panduri.'],
+  'sm.nukri': ['ნუკრი ბერიძე ამ აპლიკაციის შემქმნელია. „ფანდური" ქართულ სამსიმიან ფანდურზე დაკვრას ასწავლის ნამდვილ ინსტრუმენტზე: მიკროფონით გისმენს, გელოდება და მასწავლებლის მასალას გაჩვენებს. თუ ნუკრიზე მეტის გაგება გინდა, ჯერ მხოლოდ ეს ვიცი.', 'Nukri Beridze is the creator of this app. “Panduri” teaches the Georgian three-string panduri on a real instrument: it listens through the microphone, waits for you and shows the teacher\'s material. That is all I know about Nukri for now.'],
   'sm.who': ['მე {n} ვარ, შენი AI სასწავლო დამხმარე. შეგიძლია ჩვეულებრივად მომწერო — კითხვები დამისვა და მითხრა, რისი გაგება გინდა.', 'I am {n}, your AI learning helper. You can write naturally, ask questions and tell me what you want to understand.'],
   'sm.fine': ['მიხარია! რაზე გინდა ვისაუბროთ?', 'Glad to hear it! What would you like to talk about?'],
   'sm.aiLabel': ['AI პასუხი • შეიძლება შეცდეს', 'AI response • may make mistakes'],
@@ -337,8 +348,8 @@ PD.i18n.add({
   'sm.open': ['ღია', 'open'], 'sm.fret': ['{n} ლადი', 'fret {n}'], 'sm.thumb': ['ცერა თითი (T)', 'the thumb (T)'],
   'sm.finger': ['{n} — {name} თითი', 'finger {n} — {name}'],
   'sm.go': ['გახსნა', 'Open'],
-  'sm.app.friends': ['მეგობრის დამატება', 'Adding a friend'], 'sm.app.friendsB': ['საზოგადოება → მეგობრები: ჩაწერე მეგობრის ზუსტი nickname და გაუგზავნე თხოვნა. როცა დაგეთანხმება, შეგატყობინებ — და მერე შეგიძლიათ ერთმანეთს მიწეროთ.', 'Community → Friends: type your friend\u2019s exact nickname and send a request. I will tell you when they accept — then you can write to each other.'],
-  'sm.app.feed': ['ფოტოს, ვიდეოს ან მუსიკის გამოქვეყნება', 'Posting a photo, video or music'], 'sm.app.feedB': ['საზოგადოება → ფიდი → „+": აირჩიე ფაილი, დაწერე აღწერა და აირჩიე, ვინ ნახავს — ყველა (გლობალური) ან მხოლოდ მეგობრები. ორჯერ შეხება პოსტზე ფანდურის რეაქციაა.', 'Community → Feed → “+”: choose a file, write a caption and pick who sees it — everyone (global) or friends only. A double tap on a post gives it the panduri.'],
+  'sm.app.friends': ['მეგობრის დამატება', 'Adding a friend'], 'sm.app.friendsB': ['საზოგადოება → ზედა მარცხენა ხატულა (მეგობრები და ძებნა): ჩაწერე მეგობრის ზუსტი nickname და გაუგზავნე თხოვნა. როცა დაგეთანხმება, შეგატყობინებ — და მერე შეგიძლიათ ერთმანეთს მიწეროთ.', 'Community → the icon at the top left (friends and search): type your friend\u2019s exact nickname and send a request. I will tell you when they accept — then you can write to each other.'],
+  'sm.app.feed': ['ვიდეოს გამოქვეყნება', 'Posting a video'], 'sm.app.feedB': ['საზოგადოება → ზედა მარჯვენა „+": გადაიღე ან აირჩიე ვიდეო გალერეიდან (მაქს. 60 წამი, 720p-დან 4K-მდე), დაწერე აღწერა და სიმღერის ან რიტმის სახელი და აირჩიე, ვინ ნახავს — ყველა (გლობალური) ან მხოლოდ მეგობრები. ვიდეო იტვირთება ისე, როგორც გადაღებულია. ორჯერ შეხება ვიდეოზე მოწონებაა.', 'Community → the “+” at the top right: film a video or choose one from the gallery (up to 60 seconds, 720p to 4K), write a caption and the name of the song or rhythm, and pick who sees it — everyone (global) or friends only. The video is uploaded exactly as it was filmed. A double tap on a video likes it.'],
   'sm.app.notify': ['შეტყობინებები', 'Notifications'], 'sm.app.notifyB': ['პარამეტრები → შეტყობინებები: ჩართე და აირჩიე, რაზე გინდა ჩემგან შეტყობინება და რომელ საათზე შეგახსენო ვარჯიში. მოვა ყველა მოწყობილობაზე, სადაც შესული ხარ.', 'Settings → Notifications: switch them on, choose what I should tell you about and when to remind you to practise. They reach every device you are signed in on.'],
   'sm.openChord': ['აკორდი ტარზე', 'The chord on the neck'], 'sm.howTaken': ['როგორ აიღო', 'How to take it'],
   'sm.noteOn': ['ნოტი ლადზე', 'The note on that fret'], 'sm.openFret': ['ლადების რუკა', 'The fret map'],

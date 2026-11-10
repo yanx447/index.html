@@ -11,11 +11,14 @@ const now = Date.now(), iso = m => new Date(now - m * 60000).toISOString();
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webmanifest': 'application/manifest+json', '.mp3': 'audio/mpeg', '.woff2': 'font/woff2' };
 const srv = http.createServer((q, r) => { let f = path.join(ROOT, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html'; if (!f.startsWith(ROOT) || !fs.existsSync(f)) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r); });
 
+const V = (id, who, name, nick, o) => Object.assign({ id, author: who, author_name: name, author_nick: nick, author_avatar: null, author_level: 3, kind: 'video', caption: '', song: '', media_path: who + '/p/v' + id + '.webm', thumb_path: who + '/p/v' + id + '.jpg', media_meta: { dur: 2, w: 1080, h: 1920 }, visibility: 'public', reactions: 0, comments: 0, shares: 0, views: 0, created_at: iso(60), my_reaction: null, top: [], friend: false, seen: false, saved: false }, o);
 const posts = [
-  { id: 41, author: NINO, author_name: 'ნინო', author_nick: 'nino.panduri', author_avatar: null, author_level: 4, kind: 'video', caption: 'მრავალჟამიერი — პირველად სამივე ხმით 🎶 #ფანდური', media_path: NINO + '/p/v.webm', thumb_path: NINO + '/p/v.jpg', media_meta: { dur: 2 }, visibility: 'public', reactions: 128, comments: 2, shares: 3, views: 1540, created_at: iso(42), my_reaction: null, top: ['panduri', 'fire', 'heart'], friend: true, seen: false },
-  { id: 40, author: GIO, author_name: 'გიორგი', author_nick: 'gio', author_avatar: null, author_level: 2, kind: 'photo', caption: 'ახალი ფანდური ხელოსნისგან', media_path: GIO + '/p/a.jpg', thumb_path: null, media_meta: { w: 1200, h: 900 }, visibility: 'public', reactions: 12, comments: 0, shares: 0, views: 88, created_at: iso(300), my_reaction: 'heart', top: ['heart'], friend: false, seen: false },
-  { id: 39, author: NINO, author_name: 'ნინო', author_nick: 'nino.panduri', author_avatar: null, author_level: 4, kind: 'audio', caption: 'ჩემი ჩანაწერი — შენ როგორ უკრავ ამ ადგილს?', media_path: NINO + '/p/s.mp3', thumb_path: null, media_meta: { dur: 70 }, visibility: 'friends', reactions: 5, comments: 1, shares: 0, views: 20, created_at: iso(1500), my_reaction: null, top: [], friend: true, seen: true },
-  { id: 38, author: GIO, author_name: 'გიორგი', author_nick: 'gio', author_avatar: null, author_level: 2, kind: 'text', caption: 'ვინ იცის, A · C♯ · E აწყობაზე Dm როგორ ავიღო?', media_path: null, thumb_path: null, media_meta: {}, visibility: 'public', reactions: 0, comments: 0, shares: 0, views: 3, created_at: iso(2900), my_reaction: null, top: [], friend: false, seen: true }
+  V(41, NINO, 'ნინო', 'nino.panduri', { caption: 'მრავალჟამიერი — პირველად სამივე ხმით 🎶 #ფანდური', song: 'მრავალჟამიერი', reactions: 128, comments: 2, shares: 3, views: 1540, created_at: iso(42), friend: true }),
+  V(40, GIO, 'გიორგი', 'gio', { caption: 'ახალი ფანდური ხელოსნისგან', song: 'მთიულური', reactions: 12, views: 88, created_at: iso(300), my_reaction: 'panduri', media_meta: { dur: 2, w: 1920, h: 1080 } }),
+  V(39, NINO, 'ნინო', 'nino.panduri', { caption: 'შენ როგორ უკრავ ამ ადგილს?', visibility: 'friends', reactions: 5, comments: 1, views: 20, created_at: iso(1500), friend: true, seen: true, saved: true }),
+  V(38, GIO, 'გიორგი', 'gio', { caption: 'ხორუმი, ნელა', song: 'ხორუმი', views: 3, created_at: iso(2900), seen: true }),
+  V(37, GIO, 'გიორგი', 'gio', { caption: 'აჭარული', song: 'აჭარული', views: 1, created_at: iso(4000), seen: true }),
+  { id: 36, author: GIO, author_name: 'გიორგი', author_nick: 'gio', kind: 'photo', caption: 'ძველი ფოტო', media_path: GIO + '/p/a.jpg', thumb_path: null, media_meta: {}, visibility: 'public', reactions: 0, comments: 0, shares: 0, views: 0, created_at: iso(5000), my_reaction: null, top: [], friend: false, seen: true }
 ];
 const friends = [
   { id: NINO, nickname: 'nino.panduri', display_name: 'ნინო', avatar_url: null, level: 4, vip: false, relation: 'friend', since: iso(9000), last_seen: iso(3) },
@@ -52,13 +55,18 @@ async function fakeServer(route, media) {
   if (p === '/rest/v1/profiles') return json(m === 'GET' ? [{ id: ME, display_name: 'ნუკრი', nickname: 'nukri', role: 'user', level: 3, xp: 120, avatar_url: null }] : []);
   if (p === '/rest/v1/progress') return json([]);
   if (p === '/rest/v1/rpc/is_owner') return json(false);
-  if (p === '/rest/v1/rpc/feed') { const tab = body.tab; let rows = tab === 'foryou' ? posts.filter(x => x.visibility === 'public') : tab === 'friends' ? posts.filter(x => x.friend) : tab === 'one' ? posts.filter(x => x.id === body.before_id) : tab === 'user' ? posts.filter(x => x.author === body.target) : [];
+  if (p === '/rest/v1/rpc/feed') { const tab = body.tab; let rows = tab === 'foryou' ? posts.filter(x => x.visibility === 'public') : tab === 'friends' ? posts.filter(x => x.friend) : tab === 'saved' ? posts.filter(x => x.saved) : tab === 'one' ? posts.filter(x => x.id === body.before_id) : tab === 'user' ? posts.filter(x => x.author === body.target) : [];
     if (body.skip_ids) rows = rows.filter(x => !body.skip_ids.includes(x.id)); if (body.before_id && tab === 'friends') rows = rows.filter(x => x.id < body.before_id); return json(rows.slice(0, body.lim || 8)); }
   if (p === '/storage/v1/object/sign/social') return json(body.paths.map(x => ({ path: x, signedURL: '/object/sign/social/' + x + '?token=t', error: null })));
-  if (p.startsWith('/storage/v1/object/sign/social/')) { const f = p.endsWith('.webm') ? '/media/v.webm' : p.endsWith('.mp3') ? '/media/s.mp3' : '/media/a.jpg'; return route.fulfill({ status: 200, contentType: media[f].type, body: media[f].buf }); }
+  if (p.startsWith('/storage/v1/object/sign/social/')) { const f = p.endsWith('.webm') ? '/media/v.webm' : p.endsWith('.mp3') ? '/media/s.mp3' : '/media/a.jpg'; const buf = media[f].buf, rg = /bytes=(\d+)-(\d*)/.exec(route.request().headers().range || '');
+    if (rg) { const a = +rg[1], z = rg[2] ? Math.min(+rg[2], buf.length - 1) : buf.length - 1; return route.fulfill({ status: 206, headers: { 'Content-Type': media[f].type, 'Content-Range': 'bytes ' + a + '-' + z + '/' + buf.length, 'Accept-Ranges': 'bytes' }, body: buf.subarray(a, z + 1) }); }
+    return route.fulfill({ status: 200, headers: { 'Content-Type': media[f].type, 'Accept-Ranges': 'bytes' }, body: buf }); }
   if (p === '/rest/v1/rpc/my_friends') return json(friends);
   if (p === '/rest/v1/rpc/find_nickname') return json(body.nick === 'gio' ? [{ id: GIO, nickname: 'gio', display_name: 'გიორგი', avatar_url: null, level: 2, relation: 'incoming' }] : []);
-  if (p === '/rest/v1/rpc/my_conversations') return json([{ id: CONV, other: NINO, other_name: 'ნინო', other_avatar: null, other_nick: 'nino.panduri', last_at: iso(19), last_body: 'ესაა ჩემი ფანდური 🙂', last_sender: ME, last_kind: null, unread: 0 }]);
+  if (p === '/rest/v1/rpc/my_conversations') return json([{ id: CONV, other: NINO, other_name: 'ნინო', other_avatar: null, other_nick: 'nino.panduri', last_at: iso(19), last_body: 'ესაა ჩემი ფანდური 🙂', last_sender: ME, last_kind: null, unread: 2 }]);
+  if (p === '/rest/v1/feed_posts' && m === 'POST') { sent.push(body[0]); return json([Object.assign({ id: 99, author: ME, reactions: 0, comments: 0, shares: 0, views: 0, created_at: new Date().toISOString() }, body[0])], 201); }
+  if (p.startsWith('/storage/v1/object/social/') && m === 'POST') return json({ Key: p });
+  if (p === '/rest/v1/rpc/save_post') return json(!!body.keep);
   if (p === '/rest/v1/messages') { if (m === 'POST') { sent.push(body[0]); return json(body); } return json(u.searchParams.get('id') ? [] : messages.slice().reverse()); }
   if (p === '/functions/v1/gifs') return json(u.searchParams.get('probe') ? { on: true } : [1, 2, 3, 4].map(i => ({ id: 'g' + i, title: 'gif ' + i, url: 'https://media2.giphy.com/media/qa' + i + '/200w.gif', preview: 'https://media2.giphy.com/media/qa' + i + '/100w.gif', w: 200, h: 150 })));
   if (p === '/rest/v1/message_reactions') return json([{ message_id: 3, user_id: NINO, emoji: 'panduri' }, { message_id: 1, user_id: ME, emoji: 'heart' }]);
@@ -71,17 +79,22 @@ async function fakeServer(route, media) {
 
 (async () => {
   await new Promise(r => srv.listen(0, r)); const base = 'http://127.0.0.1:' + srv.address().port + '/';
-  const b = await chromium.launch();
+  const b = await chromium.launch({ args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] });   // a pretend camera, for filming on the computer
   // a short video, made in the browser (no ffmpeg needed), and a photo
   const mk = await b.newPage();
-  const webm = Buffer.from(await mk.evaluate(async () => {
-    const c = document.createElement('canvas'); c.width = 360; c.height = 640; const g = c.getContext('2d'); const st = c.captureStream(24);
+  const film = (w, hh, sec) => mk.evaluate(async ([w, hh, sec]) => {
+    const c = document.createElement('canvas'); c.width = w; c.height = hh; const g = c.getContext('2d'); const st = c.captureStream(30);
+    const ac = new AudioContext(), dst = ac.createMediaStreamDestination(), osc = ac.createOscillator(), gn = ac.createGain(); gn.gain.value = .05; osc.frequency.value = 220; osc.connect(gn).connect(dst); osc.start();
+    dst.stream.getAudioTracks().forEach(tr => st.addTrack(tr));
     const rec = new MediaRecorder(st, { mimeType: 'video/webm' }), parts = []; rec.ondataavailable = e => parts.push(e.data);
     rec.start(); const t0 = performance.now();
-    await new Promise(res => { (function f() { const k = (performance.now() - t0) / 1000; g.fillStyle = '#3B2414'; g.fillRect(0, 0, 360, 640); g.fillStyle = '#C98B5B'; g.beginPath(); g.arc(180 + Math.sin(k * 3) * 100, 320, 60, 0, 7); g.fill(); g.fillStyle = '#fff'; g.font = '28px sans-serif'; g.fillText('ფანდური ' + k.toFixed(1), 90, 120); if (k < 2) requestAnimationFrame(f); else res(); })(); });
-    rec.stop(); await new Promise(r => rec.onstop = r);
+    await new Promise(res => { (function f() { const k = (performance.now() - t0) / 1000; g.fillStyle = '#3B2414'; g.fillRect(0, 0, w, hh); g.fillStyle = '#C98B5B'; g.beginPath(); g.arc(w / 2 + Math.sin(k * 3) * w / 4, hh / 2, w / 6, 0, 7); g.fill(); g.fillStyle = '#fff'; g.font = Math.round(w / 12) + 'px sans-serif'; g.fillText('ფანდური ' + k.toFixed(1), w / 4, hh / 5); if (k < sec) requestAnimationFrame(f); else res(); })(); });
+    rec.stop(); await new Promise(r => rec.onstop = r); osc.stop();
     const buf = await new Blob(parts).arrayBuffer(); return [...new Uint8Array(buf)];
-  }));
+  }, [w, hh, sec]);
+  const webm = Buffer.from(await film(360, 640, 2));
+  const TMP = fs.mkdtempSync(path.join(require('os').tmpdir(), 'pd-reel-'));
+  fs.writeFileSync(path.join(TMP, 'small.webm'), webm); fs.writeFileSync(path.join(TMP, 'ok.webm'), Buffer.from(await film(720, 1280, 2)));
   await mk.close();
   const media = { '/media/v.webm': { type: 'video/webm', buf: webm }, '/media/a.jpg': { type: 'image/jpeg', buf: fs.readFileSync(path.join(__dirname, '..', 'assets', 'pan-front.jpg')) }, '/media/s.mp3': { type: 'audio/mpeg', buf: fs.readFileSync(path.join(__dirname, '..', '..', 'app', 'media', 'bani', 'music-60.mp3')) } };
   const report = [];
@@ -99,6 +112,9 @@ async function fakeServer(route, media) {
         S('notify', { on: true, hour: 19, quiet: false, kinds: {} });
       }
     }, [ME]);
+    // NEEDTAP=1: a browser that refuses sound before a tap (as a phone may): play() with sound fails until a real click has happened
+    if (process.env.NEEDTAP) await pg.addInitScript(() => { let ok = false; addEventListener('click', () => { ok = true; }, true); const real = HTMLMediaElement.prototype.play;
+      HTMLMediaElement.prototype.play = function () { if (!this.muted && !ok) return Promise.reject(new DOMException('needs a tap', 'NotAllowedError')); return real.call(this); }; });
     await pg.goto(base + 'index.html'); await pg.waitForTimeout(1500);
     if (process.env.LEGACY) {
       await pg.evaluate(() => { document.querySelectorAll('.ob,.lf,.ag').forEach(x => x.remove()); PD.app.go('community'); }); await pg.waitForTimeout(1500);
@@ -111,38 +127,83 @@ async function fakeServer(route, media) {
     }
     await pg.evaluate(() => { document.querySelectorAll('.ob,.lf,.ag').forEach(x => x.remove()); PD.app.go('community'); }); await pg.waitForTimeout(1800);
     const shot = n => pg.screenshot({ path: path.join(OUT, `social-${label}-${n}.png`) });
-    await shot('1-global');
-    const g = await pg.evaluate(() => { const s = document.querySelector('.fd-scroll'), c = s && s.querySelector('.fd-card'), r = s && s.getBoundingClientRect(), nav = document.querySelector('.tabbar');
-      const v = c && c.querySelector('video');
-      return { cards: s ? s.querySelectorAll('.fd-card').length : 0, h: r && Math.round(r.height), top: r && Math.round(r.top), bottom: r && Math.round(r.bottom), navTop: nav ? Math.round(nav.getBoundingClientRect().top) : null, cardH: c && Math.round(c.getBoundingClientRect().height),
-        playing: v ? !v.paused : null, muted: v ? v.muted : null, overflowX: document.documentElement.scrollWidth > innerWidth, rail: !!(c && c.querySelector('.fd-rail .fd-rx')), info: c && c.querySelector('.fd-info b').textContent }; });
-    report.push([label, 'global feed', g]);
-    // the reaction: tap = panduri, hold = choose
-    await pg.click('.fd-card.act .fd-rx'); await pg.waitForTimeout(250);
-    const rx = await pg.evaluate(() => ({ on: document.querySelector('.fd-card.act .fd-rx').classList.contains('on'), n: document.querySelector('.fd-card.act .fd-col small').textContent }));
-    await pg.click('.fd-card.act .fd-rx', { button: 'right' }); await pg.waitForTimeout(250); await shot('2-picker');
-    const pick = await pg.evaluate(() => { const p = document.querySelector('.rx-pick'); if (!p) return null; const r = p.getBoundingClientRect(); return { n: p.querySelectorAll('button').length, inside: r.left >= 0 && r.right <= innerWidth && r.top >= 0, pan: !!p.querySelector('.rx-pan svg') }; });
-    await pg.click('.rx-pick .rx-o:nth-child(3)'); await pg.waitForTimeout(200);
-    report.push([label, 'reaction', { tap: rx, picker: pick, after: await pg.evaluate(() => document.querySelector('.fd-card.act .fd-rx').textContent) }]);
-    // comments
+    await shot('1-feed');
+    const geo = () => pg.evaluate(() => { const st = document.querySelector('.fd-stage'), s = document.querySelector('.fd-scroll'), c = s && s.querySelector('.fd-card.act'), r = st && st.getBoundingClientRect(), nav = document.querySelector('.tabbar');
+      const v = c && c.querySelector('video'), box = q => { const e = document.querySelector(q); if (!e) return null; const b = e.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.width)]; };
+      return { cards: s ? s.querySelectorAll('.fd-card[data-id]').length : 0, stage: r && [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)], navTop: nav && getComputedStyle(nav).display !== 'none' ? Math.round(nav.getBoundingClientRect().top) : null, vw: innerWidth, vh: innerHeight,
+        act: c && c.dataset.id, playing: v ? !v.paused : null, muted: v ? v.muted : null, t: v ? +v.currentTime.toFixed(2) : null, needTap: st.classList.contains('need-tap'), players: document.querySelectorAll('.fd-scroll video').length,
+        ahead: [...s.querySelectorAll('.fd-card[data-id]')].map(x => { const q = x.querySelector('video'); return x.dataset.id + ':' + (q ? 'rs' + q.readyState + (q.paused ? 'p' : '>') : '-'); }).join(' '),
+        friends: box('.fd-friends'), seg: box('.fd-seg'), msgs: box('.fd-msgs'), plus: box('.fd-new'), badge: (document.querySelector('.fd-msgs .cm-dot') || {}).textContent, reqs: (document.querySelector('.fd-friends .cm-dot') || {}).textContent,
+        overflowX: document.documentElement.scrollWidth > innerWidth, info: c && [...c.querySelectorAll('.fd-info b')].map(x => x.textContent), rail: c && [...c.querySelectorAll('.fd-rail .fd-act')].map(x => x.getAttribute('aria-label')), fit: v && getComputedStyle(v).objectFit, simaFab: !!document.querySelector('.sm-fab') && getComputedStyle(document.querySelector('.sm-fab')).display }; });
+    const g = await geo();
+    report.push([label, 'feed opens', g]);
+    if (g.needTap) { await pg.click('.fd-tapsnd'); await pg.waitForTimeout(500); report.push([label, 'after tap', await pg.evaluate(() => { const v = document.querySelector('.fd-card.act video'); return { muted: v.muted, playing: !v.paused, chip: getComputedStyle(document.querySelector('.fd-tapsnd')).display }; })]); }
+    // tap = pause, tap = play; two taps = like
+    const mid = await pg.evaluate(() => { const r = document.querySelector('.fd-stage').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height * .4]; });
+    await pg.mouse.click(mid[0], mid[1]); await pg.waitForTimeout(500); const paused = await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'); return [c.querySelector('video').paused, c.classList.contains('paused')]; }); await shot('2-paused');
+    await pg.mouse.click(mid[0], mid[1]); await pg.waitForTimeout(500); const again = await pg.evaluate(() => !document.querySelector('.fd-card.act video').paused);
+    await pg.mouse.click(mid[0], mid[1]); await pg.waitForTimeout(90); await pg.mouse.click(mid[0], mid[1]); await pg.waitForTimeout(500);
+    report.push([label, 'tap', { paused, playsAgain: again, doubleTap: await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'); return { liked: c.querySelector('.fd-rx').classList.contains('on'), n: c.querySelector('.fd-col small').textContent, stillPlaying: !c.querySelector('video').paused }; }) }]);
+    // like off again, save, comments, share
+    await pg.click('.fd-card.act .fd-rx'); await pg.click('.fd-card.act .fd-save'); await pg.waitForTimeout(400);
+    const rail = await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'); return { liked: c.querySelector('.fd-rx').classList.contains('on'), n: c.querySelector('.fd-col small').textContent, saved: c.querySelector('.fd-save').classList.contains('on') }; });
     await pg.click('.fd-card.act .fd-col:nth-child(2) .fd-act'); await pg.waitForTimeout(500); await shot('3-comments');
-    report.push([label, 'comments', await pg.evaluate(() => [...document.querySelectorAll('.fd-cms .cm-reply p')].map(x => x.textContent))]);
+    rail.comments = await pg.evaluate(() => [...document.querySelectorAll('.fd-cms .cm-reply p')].map(x => x.textContent));
     await pg.keyboard.press('Escape'); await pg.waitForTimeout(300);
-    // next post (photo) by scrolling one screen
-    await pg.evaluate(() => { const s = document.querySelector('.fd-scroll'); s.scrollTo({ top: s.clientHeight }); }); await pg.waitForTimeout(900); await shot('4-photo');
-    report.push([label, 'second card', await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'); return c && { id: c.dataset.id, kind: c.className, add: !!c.querySelector('.fd-add'), img: !!(c.querySelector('img.md-img') && c.querySelector('img.md-img').naturalWidth) }; })]);
-    // friends tab of the feed
-    await pg.click('.fd-seg button:nth-child(2)'); await pg.waitForTimeout(1200);
-    await pg.evaluate(() => { const s = document.querySelector('.fd-scroll'); s.scrollTo({ top: s.clientHeight }); }); await pg.waitForTimeout(900); await shot('5-friends-audio');
-    report.push([label, 'friends feed', await pg.evaluate(() => ({ ids: [...document.querySelectorAll('.fd-card')].map(c => c.dataset.id), audio: !!document.querySelector('.fd-card.act .fd-play'), friendsOnly: (document.querySelector('.fd-card.act .fd-meta') || {}).textContent }))]);
-    // the composer
-    await pg.click('.fd-new'); await pg.waitForTimeout(400); await shot('6-compose');
-    report.push([label, 'composer', await pg.evaluate(() => ({ kinds: [...document.querySelectorAll('.fd-kinds button')].map(x => x.textContent), vis: [...document.querySelectorAll('.fd-vis button')].map(x => x.textContent) }))]);
+    await pg.click('.fd-card.act .fd-col:nth-child(3) .fd-act'); await pg.waitForTimeout(600); await shot('4-share');
+    rail.shareTo = await pg.evaluate(() => [...document.querySelectorAll('.sheet .cm-row b')].map(x => x.textContent));
     await pg.keyboard.press('Escape'); await pg.waitForTimeout(300);
-    // friends
-    await pg.evaluate(() => { PD.store.set('cm.tab', 'friends'); PD.app.render(); }); await pg.waitForTimeout(1200);
-    await pg.fill('.fr-find input', '@gio'); await pg.press('.fr-find input', 'Enter'); await pg.waitForTimeout(600); await shot('7-friends');
-    report.push([label, 'friends', await pg.evaluate(() => ({ me: (document.querySelector('.fr-me b') || {}).textContent, found: [...document.querySelectorAll('.fr-find ~ .cm-list .cm-row')].map(x => x.textContent), heads: [...document.querySelectorAll('.cm-body > h3')].map(x => x.textContent), overflowX: document.documentElement.scrollWidth > innerWidth }))]);
+    report.push([label, 'rail', rail]);
+    // one swipe, one video — and how evenly the frames come while it moves (a desktop browser without a screen: a hint, not a phone)
+    const swipe = await pg.evaluate(async () => {
+      const s = document.querySelector('.fd-scroll'), hh = s.clientHeight, gaps = []; let last = performance.now(), on = true;
+      (function f(now) { gaps.push(now - last); last = now; if (on) requestAnimationFrame(f); })(last);
+      const stops = [];
+      for (let i = 1; i <= 3; i++) { s.scrollBy({ top: hh, behavior: 'smooth' }); await new Promise(r => setTimeout(r, 900)); stops.push(+(s.scrollTop / hh).toFixed(3)); }
+      on = false; gaps.shift();
+      const sorted = gaps.slice().sort((a, b) => a - b);
+      return { stops, frames: gaps.length, median: +sorted[sorted.length >> 1].toFixed(1), p95: +sorted[Math.floor(sorted.length * .95)].toFixed(1), over25ms: gaps.filter(x => x > 25).length };
+    });
+    await pg.waitForTimeout(600);
+    const g2 = await geo(); await shot('5-fourth');
+    report.push([label, 'swipes', Object.assign(swipe, { act: g2.act, playing: g2.playing, muted: g2.muted, players: g2.players, ahead: g2.ahead, othersPaused: await pg.evaluate(() => [...document.querySelectorAll('.fd-card:not(.act) video')].every(v => v.paused)) })]);
+    await pg.evaluate(() => document.querySelector('.fd-scroll').scrollTo({ top: 0, behavior: 'instant' })); await pg.waitForTimeout(700);
+    await pg.evaluate(() => { const q = document.querySelector('.fd-scroll'); q.scrollTo({ top: q.clientHeight, behavior: 'instant' }); }); await pg.waitForTimeout(900); await shot('6-wide');
+    report.push([label, 'sideways video', await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'), v = c.querySelector('video'); return { id: c.dataset.id, top: document.querySelector('.fd-scroll').scrollTop, acts: document.querySelectorAll('.fd-card.act').length, fit: getComputedStyle(v).objectFit, song: (c.querySelector('.fd-song b') || {}).textContent, add: !!c.querySelector('.fd-add') }; })]);
+    // friends' videos
+    await pg.click('.fd-seg button:nth-child(2)'); await pg.waitForTimeout(1300); await shot('7-friends-feed');
+    report.push([label, 'friends feed', await pg.evaluate(() => ({ ids: [...document.querySelectorAll('.fd-card[data-id]')].map(c => c.dataset.id), on: document.querySelector('.fd-seg .on').textContent, playing: !(document.querySelector('.fd-card.act video') || { paused: true }).paused }))]);
+    await pg.click('.fd-seg button:nth-child(1)'); await pg.waitForTimeout(900);
+    // a new video: too small is refused, 720p goes through as it is
+    await pg.click('.fd-new'); await pg.waitForTimeout(400); await shot('8-compose');
+    const comp = { buttons: await pg.evaluate(() => [...document.querySelectorAll('.fd-pick')].map(x => x.textContent)), rules: await pg.evaluate(() => document.querySelector('.fd-rules').textContent), feedPausedBehind: await pg.evaluate(() => (document.querySelector('.fd-card.act video') || {}).paused) };
+    let fc = pg.waitForEvent('filechooser'); await pg.click('.fd-pick >> nth=1'); await (await fc).setFiles(path.join(TMP, 'small.webm')); await pg.waitForTimeout(2500);
+    comp.small = await pg.evaluate(() => document.querySelector('.fd-state').textContent);
+    fc = pg.waitForEvent('filechooser'); await pg.click('.fd-pick >> nth=1'); await (await fc).setFiles(path.join(TMP, 'ok.webm')); await pg.waitForTimeout(3000);
+    comp.ok = await pg.evaluate(() => ({ state: document.querySelector('.fd-state').textContent, facts: (document.querySelector('.fd-prev small') || {}).textContent, form: !document.querySelector('.fd-form').hidden, songs: [...document.querySelectorAll('.fd-form datalist option')].map(o => o.value) }));
+    if (comp.ok.form) { await pg.fill('.fd-form textarea', 'ჩემი პირველი ვიდეო'); await pg.fill('.fd-songrow input', 'ყაზბეგური'); await shot('9-compose-ready'); await pg.click('.sheet .btn.primary.big'); await pg.waitForTimeout(1500);
+      const row = sent.splice(0)[0] || {}; comp.posted = { kind: row.kind, song: row.song, caption: row.caption, meta: row.media_meta, thumb: !!row.thumb_path, visibility: row.visibility, bytesSame: null };
+      comp.first = await pg.evaluate(() => { const c = document.querySelector('.fd-card[data-id]'); return c && { id: c.dataset.id, song: (c.querySelector('.fd-song b') || {}).textContent }; }); await shot('10-posted'); }
+    else await pg.keyboard.press('Escape');
+    if (label === 'desktop') {   // filming in the app: start, two seconds, stop → the same form
+      await pg.click('.fd-new'); await pg.waitForTimeout(400); await pg.click('.fd-pick >> nth=0'); await pg.waitForTimeout(1500);
+      const rec = { open: await pg.evaluate(() => { const v = document.querySelector('.rec-view'); return v && [v.videoWidth, v.videoHeight]; }) };
+      if (rec.open) { await pg.click('.rec-go'); await pg.waitForTimeout(2300); await shot('9b-filming'); rec.clock = await pg.evaluate(() => document.querySelector('.rec-time').textContent); await pg.click('.rec-go'); await pg.waitForTimeout(3500);
+        rec.after = await pg.evaluate(() => ({ recGone: !document.querySelector('.rec'), state: (document.querySelector('.fd-state') || {}).textContent, facts: (document.querySelector('.fd-prev small') || {}).textContent, camOff: true })); }
+      else rec.toast = await pg.evaluate(() => (document.querySelector('.toast') || {}).textContent);
+      comp.filming = rec; await pg.keyboard.press('Escape'); await pg.waitForTimeout(300);
+    }
+    report.push([label, 'new video', comp]);
+    // behind the corners: messages, friends, saved
+    await pg.click('.fd-msgs'); await pg.waitForTimeout(900); await shot('11-messages');
+    report.push([label, 'messages', await pg.evaluate(() => ({ head: (document.querySelector('.cm-sub b') || {}).textContent, rows: [...document.querySelectorAll('.cm-row b')].map(x => x.textContent), feedGone: !document.querySelector('.fd-scroll'), padTop: getComputedStyle(document.getElementById('page')).paddingTop }))]);
+    await pg.evaluate(() => PD.app.go('community', 'friends')); await pg.waitForTimeout(1200);
+    await pg.fill('.fr-find input', '@gio'); await pg.press('.fr-find input', 'Enter'); await pg.waitForTimeout(600); await shot('12-friends');
+    report.push([label, 'friends', await pg.evaluate(() => ({ head: (document.querySelector('.cm-sub b') || {}).textContent, me: (document.querySelector('.fr-me b') || {}).textContent, found: [...document.querySelectorAll('.fr-find ~ .cm-list .cm-row')].map(x => x.textContent), heads: [...document.querySelectorAll('.cm-body > h3')].map(x => x.textContent), links: [...document.querySelectorAll('.cm-links .btn')].map(x => x.textContent), overflowX: document.documentElement.scrollWidth > innerWidth }))]);
+    await pg.click('.cm-links .btn >> nth=0'); await pg.waitForTimeout(1300); await shot('13-saved');
+    report.push([label, 'saved', await pg.evaluate(() => ({ title: (document.querySelector('.fd-title') || {}).textContent, ids: [...document.querySelectorAll('.fd-card[data-id]')].map(c => c.dataset.id), savedOn: !!document.querySelector('.fd-card.act .fd-save.on') }))]);
+    await pg.evaluate(() => PD.app.go('community', 'p:41')); await pg.waitForTimeout(1300);
+    report.push([label, 'one video', await pg.evaluate(() => ({ ids: [...document.querySelectorAll('.fd-card[data-id]')].map(c => c.dataset.id), back: !!document.querySelector('.fd-top .fd-ic') }))]);
     // a chat: photo, shared post, reactions
     await pg.evaluate(c => PD.app.go('community', 'c:' + c + ':ნინო'), CONV); await pg.waitForTimeout(2200); await shot('8-chat');
     report.push([label, 'chat', await pg.evaluate(() => ({ bubbles: document.querySelectorAll('.cm-msg').length, photo: !!document.querySelector('.cm-msg .md-img'), shared: (document.querySelector('.cm-shared') || {}).textContent, rx: [...document.querySelectorAll('.cm-rx:not([hidden])')].map(x => x.innerHTML.includes('svg') ? 'panduri' : x.textContent), attach: !!document.querySelector('.cm-att') }))]);
@@ -158,7 +219,7 @@ async function fakeServer(route, media) {
     emo.gifs = await pg.evaluate(() => document.querySelectorAll('.ck-gif img').length);
     await pg.click('.ck-gif >> nth=1'); await pg.waitForTimeout(500);
     await pg.click('.cm-bar .cm-att >> nth=0'); await pg.waitForTimeout(400); await shot('8d-plus');
-    emo.plus = await pg.evaluate(() => [...document.querySelectorAll('.ck-opt')].map(x => x.textContent));
+    emo.plus = await pg.evaluate(() => [...document.querySelectorAll('.ck-opt')].map(x => x.textContent)); emo.tip = await pg.evaluate(() => (document.querySelector('.sheet .small-note') || {}).textContent);
     await pg.keyboard.press('Escape'); await pg.waitForTimeout(300);
     emo.sent = sent.splice(0).map(x => x.sticker || x.gif);
     emo.rendered = await pg.evaluate(() => ({ sticker: !!document.querySelector('.cm-msg.is-sticker .ck-art svg'), gif: !!document.querySelector('.cm-gif img') }));

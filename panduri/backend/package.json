@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test billing.test.mjs billing-sql.test.mjs moderation-sql.test.mjs social-sql.test.mjs push.test.mjs ../source/qa/billing.cjs",
+    "test": "node --test billing.test.mjs billing-sql.test.mjs moderation-sql.test.mjs social-sql.test.mjs reels-sql.test.mjs push.test.mjs ../source/qa/billing.cjs",
     "test:stripe": "node payments.test.cjs"
   },
   "devDependencies": {

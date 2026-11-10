@@ -62,3 +62,12 @@ PD.SONGS = {
     sections: [["intro", 0, 44], ["verse", 44, 96], ["inst", 96, 124], ["verse", 124, 176], ["inst", 176, 200], ["verse", 200, 272], ["inst", 272, 364], ["verse", 364, 400], ["outro", 400, 464]]
   }
 };
+
+/* The teacher's own recordings as examples of his rhythms, measured by the AI studio's rhythm reader (aimus.rhythm →
+   print) — the same code that reads an upload, so the two are compared like for like. Not invented: the rhythm is the
+   one the teacher names for the song, the numbers are measured from his recording (qa/geo-rhythm.cjs, 2026-11-09).
+   attack / level: how strong the attack and the level are at each of the three stroke places of a beat (mean 1). */
+PD.RHYTHM_REFS = [
+  { rhythm: 'acharuli', src: 'teacher', from: { ka: 'ბანი-აჭარული (მასწავლებლის ჩანაწერი)', en: 'Bani-Acharuli (the teacher\u2019s recording)' },
+    per: 3, bpm: 99.4, compound: true, attack: [1.753, 0.611, 0.636], level: [1.197, 0.892, 0.911] }
+];
