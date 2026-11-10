@@ -9,11 +9,19 @@
      spectral branch + the time branch.
    The model is downloaded once (weights stored as float16, rebuilt to
    float32 here) and kept in the browser's cache.
+   Runtime: ONNX Runtime Web 1.31.1 (ai/ort131/). The 1.20.1 build this used
+   before ran the network on WebGPU wrongly — on Chrome · Apple M4 its stems
+   came out 22–174× too loud (−6 … −28 dB against the PyTorch reference: the
+   crackle learners heard), while WASM matched the reference at 59–73 dB.
+   1.31.1 on WebGPU matches it at 74–93 dB and is ~5× faster than WASM.
+   As a guard, the first segment is checked: the stems must add up to the
+   mix. If a GPU still gets it wrong, 'GPUBAD' is reported and the studio
+   runs again on WASM, so broken sound never reaches the learner.
    This file is turned into a Blob worker by PD.ai (it must not use PD).
    ===================================================================== */
 const AIW = function () {
   const N = 4096, HOP = 1024, NB = 2048, SEG = 343980, LE = Math.ceil(SEG / HOP), PADS = HOP / 2 * 3, FR = LE + 4;   // 336 frames kept, 340 with the edges
-  let ort = null, sess = null, man = null, base = '';
+  let ort = null, sess = null, man = null, base = '', ep = 'wasm';
   const post = (type, o, tr) => self.postMessage(Object.assign({ type }, o || {}), tr || []);
   /* ---------- FFT (radix-2, complex, in place) ---------- */
   const COS = new Float64Array(N / 2), SIN = new Float64Array(N / 2), REV = new Uint32Array(N);
@@ -79,8 +87,9 @@ const AIW = function () {
   }
   async function load(b, prefer, dir) {
     base = b; const M = base + (dir || 'model') + '/';
-    importScripts(base + 'ort/' + (prefer === 'webgpu' ? 'ort.webgpu.min.js' : 'ort.min.js'));
-    ort = self.ort; ort.env.wasm.wasmPaths = base + 'ort/'; ort.env.wasm.numThreads = 1;
+    importScripts(base + 'ort131/' + (prefer === 'webgpu' ? 'ort.webgpu.min.js' : 'ort.wasm.min.js'));
+    ort = self.ort; ort.env.wasm.wasmPaths = base + 'ort131/';
+    ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.max(1, Math.min(8, (navigator.hardwareConcurrency || 4) - 1)) : 1;   // threads need cross-origin isolation
     man = JSON.parse(new TextDecoder().decode(await fetchCached(M + 'manifest.json')));
     // the weights live twice while the session is built: once on the way in, once inside the
     // runtime. If that much cannot even be reserved, say so now instead of downloading 85 MB first.
@@ -115,12 +124,16 @@ const AIW = function () {
     try {
       sess = await ort.InferenceSession.create(graph, { executionProviders: eps, externalData: [{ path: 'htdemucs.data', data: url }], graphOptimizationLevel: 'all' });
     } finally { try { URL.revokeObjectURL(url); } catch (_) {} }
+    ep = prefer;
     post('ready', { ep: prefer, inputs: sess.inputNames, outputs: sess.outputNames });
   }
-  /** separate a stereo mix (Float32Array L, R at 44.1 kHz) → 4 sources × 2 channels */
-  async function separate(L, R, from, to) {
-    const len = to - from, S = man.sources.length, outs = [];
-    for (let s = 0; s < S; s++) outs.push([new Float32Array(len), new Float32Array(len)]);
+  /** separate a stereo mix (Float32Array L, R at 44.1 kHz) → 4 sources × 2 channels.
+      mode 'mix2' keeps only what a song lesson needs — the voice and everything else, each in mono — so a
+      whole song fits: two tracks instead of eight (a 4-minute song ≈ 100 MB instead of ≈ 400 MB). */
+  async function separate(L, R, from, to, mode) {
+    const len = to - from, S = man.sources.length, outs = [], two = mode === 'mix2', vi = man.sources.indexOf('vocals');
+    if (two) outs.push([new Float32Array(len)], [new Float32Array(len)]);
+    else for (let s = 0; s < S; s++) outs.push([new Float32Array(len), new Float32Array(len)]);
     const wsum = new Float32Array(len), stride = Math.floor(.75 * SEG), W = new Float32Array(SEG);
     for (let i = 0; i < SEG; i++) W[i] = i < SEG / 2 ? (i + 1) : (SEG - i); let wm = 0; for (let i = 0; i < SEG; i++) wm = Math.max(wm, W[i]); for (let i = 0; i < SEG; i++) W[i] /= wm;
     const offsets = []; for (let o = 0; o < len; o += stride) offsets.push(o);
@@ -138,12 +151,28 @@ const AIW = function () {
         const tmp = scratch; tmp.set(oxt.subarray((s * 2 + c) * SEG, (s * 2 + c + 1) * SEG));
         const pr = ((s * 2 + c) * 2) * NB * LE, pi = ((s * 2 + c) * 2 + 1) * NB * LE;
         ispec(ox.subarray(pr, pr + NB * LE), ox.subarray(pi, pi + NB * LE), tmp);
-        const out = outs[s][c]; for (let i = 0; i < clen; i++) out[off + i] += W[i] * tmp[tr + i];
+        if (two) { const out = outs[s === vi ? 0 : 1][0]; for (let i = 0; i < clen; i++) out[off + i] += .5 * W[i] * tmp[tr + i]; }
+        else { const out = outs[s][c]; for (let i = 0; i < clen; i++) out[off + i] += W[i] * tmp[tr + i]; }
       }
       for (let i = 0; i < clen; i++) wsum[off + i] += W[i];
+      // the guard: after the first segment the stems must add up to the mix (Demucs sources sum to it). A GPU that
+      // computes the network wrongly gives stems many times too loud — that is the crackle — so it is caught here.
+      if (k === 0) {
+        let num = 0, den = 0, pk = 0;
+        for (let i = 0; i < clen; i++) {
+          const w = W[i]; if (w < .05) continue;   // the window's thin edges only add rounding noise
+          for (let c = 0; c < (two ? 1 : 2); c++) {
+            const x = two ? ((L[from + off + i] || 0) + (R[from + off + i] || 0)) / 2 : ((c ? R : L)[from + off + i] || 0);
+            let y = 0; if (two) y = (outs[0][0][off + i] + outs[1][0][off + i]) / w; else for (let s = 0; s < S; s++) y += outs[s][c][off + i] / w;
+            num += x * x; den += (y - x) * (y - x); if (Math.abs(y) > pk) pk = Math.abs(y);
+          }
+        }
+        const snr = 10 * Math.log10((num + 1e-9) / (den + 1e-12));
+        if (num > 1e-6 && (snr < 10 || pk > 4)) { post('error', { msg: ep === 'webgpu' ? 'GPUBAD' : 'BADOUT', snr: +snr.toFixed(1), peak: +pk.toFixed(2) }); return null; }
+      }
       const el = (Date.now() - t0) / 1000; post('progress', { done: k + 1, total: offsets.length, eta: el / (k + 1) * (offsets.length - k - 1) });
     }
-    for (let s = 0; s < S; s++) for (let c = 0; c < 2; c++) { const o = outs[s][c]; for (let i = 0; i < len; i++) o[i] /= wsum[i] || 1; }
+    outs.forEach(ch => ch.forEach(o => { for (let i = 0; i < len; i++) o[i] /= wsum[i] || 1; }));
     return outs;   // the caller transfers these out, so nothing is copied again
   }
   self.onmessage = async e => {
@@ -151,7 +180,7 @@ const AIW = function () {
     try {
       if (m.cmd === 'load') { await load(m.base, m.prefer, m.dir); }
       else if (m.cmd === 'ping') post('pong', {});
-      else if (m.cmd === 'separate') { const outs = await separate(m.L, m.R, m.from || 0, m.to || m.L.length); post('done', { stems: outs, sources: man.sources }, outs.flat().map(a => a.buffer)); }
+      else if (m.cmd === 'separate') { const outs = await separate(m.L, m.R, m.from || 0, m.to || m.L.length, m.mode); if (!outs) return; post('done', { stems: outs, sources: m.mode === 'mix2' ? ['vocals', 'other'] : man.sources, mono: m.mode === 'mix2' }, outs.flat().map(a => a.buffer)); }
       else if (m.cmd === 'selftest') { const x = new Float32Array(SEG); for (let i = 0; i < SEG; i++) x[i] = Math.sin(i * .01) * .5 + Math.sin(i * .37) * .2; const zr = new Float32Array(NB * LE), zi = new Float32Array(NB * LE); spec(x, zr, zi); const y = new Float32Array(SEG); ispec(zr, zi, y); let err = 0, mx = 0; for (let i = 0; i < SEG; i++) { err = Math.max(err, Math.abs(x[i] - y[i])); mx = Math.max(mx, Math.abs(x[i])); } post('selftest', { err, mx }); }
     } catch (err) { post('error', { msg: String(err && err.message || err) }); }
   };

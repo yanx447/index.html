@@ -42,7 +42,7 @@ PD.i18n.add({
   'sh.capNote': ['{n} — {s}, {f}, {g}.', '{n} — {s}, {f}, {g}.'],
   'sh.capOpen': ['{n} — {s} ღიად ჟღერს, მარცხენა ხელი არ იჭერს.', '{n} — {s} rings open; the left hand holds nothing.'],
   'sh.rule': ['თითების წესი', 'The finger rule'],
-  'sh.ruleD': ['ერთ პოზიციაში ერთი თითი — ერთი ლადი: ყველაზე დაბალ ლადზე 1-ლი თითი, შემდეგზე მე-2 და ასე შემდეგ. ღია სიმს თითი არ სჭირდება.', 'In one position each finger takes one fret: the first finger on the lowest fret, the second on the next, and so on. An open string needs no finger.'],
+  'sh.ruleD': ['ერთ პოზიციაში ერთი თითი — ერთი ლადი: ყველაზე დაბალ ლადზე 1-ლი თითი, შემდეგზე მე-2 და ასე შემდეგ. ღია სიმს თითი არ სჭირდება. ეს ზოგადი წესია სიმიანი ინსტრუმენტებისთვის — გამის თითები მასწავლებელს ჯერ არ დაუდასტურებია (მაგალითად, იღებს თუ არა ბანის სიმზე ცერა).', 'In one position each finger takes one fret: the first finger on the lowest fret, the second on the next, and so on. An open string needs no finger. This is the general rule for fretted instruments — the teacher has not yet confirmed the scale fingerings (for example, whether the thumb takes the bass string).'],
   'sh.posFrom': ['პოზიცია {n} ლადიდან', 'Position from fret {n}'],
   'sh.shift': ['↷ ნიშნავს, რომ ხელი ტარზე ზემოთ გადადის — ახალი პოზიცია.', '↷ means the hand moves up the neck — a new position.'],
   'sh.3d': ['3D ხელი', 'The 3D hand'],
@@ -238,7 +238,7 @@ PD.shapes = (() => {
       const v = vs[Math.min(vi, vs.length - 1)];
       drawList();
       info.innerHTML = ''; acts.innerHTML = '';
-      info.append(h('b', { text: c.name + ' · ' + (c.ka ? PD.i18n.pick({ ka: c.ka, en: c.name + ' ' + (c.typeEn || '') }) : '') }),
+      info.append(h('b', { text: c.name + ' · ' + (c.ka ? TH.chordLong(c) : '') }),
         h('div', { class: 'sh-frets', text: v.frets.map(f => f === 0 ? '0' : f).join(' · ') }));
       const FN = { 1: ['საჩვენებელი', 'index'], 2: ['შუა', 'middle'], 3: ['არათითი', 'ring'], 4: ['ნეკი', 'little'], T: ['ცერა', 'thumb'] };
       const rows = h('div', { class: 'sh-rows' });

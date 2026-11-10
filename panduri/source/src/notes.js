@@ -259,9 +259,9 @@ PD.theoryBook = (() => {
   /* ---------- plain-language terms: the first time a word appears in the detail, a tap explains it ---------- */
   const GE = 'ა-ჿ', ENDS = '(?:ებ)?(?:ი|ა|ე|ო|ის|ს|ით|თ|ად|დ|ში|ზე|თან|ამდე|მდე|იდან|დან)?', esc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   function linkTerms(root, words) {
-    const ka = PD.i18n.lang !== 'en';
-    words.map(w => ({ disp: ka ? w[0] : w[1], def: ka ? w[2] : w[3] })).sort((a, b) => b.disp.length - a.disp.length).forEach(it => {
-      const re = ka ? new RegExp('(^|[^' + GE + '])(' + esc(it.disp.replace(/[აეიოუ]$/, '')) + ENDS + ')(?=$|[^' + GE + '])') : new RegExp('(^|[^A-Za-z])(' + esc(it.disp) + '(?:e?s)?)(?=$|[^A-Za-z])', 'i');
+    const ka = PD.i18n.lang === 'ka', noSpaces = /^(zh|ja)$/.test(PD.i18n.lang);
+    words.map(w => ({ disp: ka ? w[0] : PD.i18n.tr(w[1]), def: ka ? w[2] : PD.i18n.tr(w[3]) })).sort((a, b) => b.disp.length - a.disp.length).forEach(it => {
+      const re = ka ? new RegExp('(^|[^' + GE + '])(' + esc(it.disp.replace(/[აეიოუ]$/, '')) + ENDS + ')(?=$|[^' + GE + '])') : noSpaces ? new RegExp('()(' + esc(it.disp) + ')') : new RegExp('(^|[^\\p{L}\\p{M}])(' + esc(it.disp) + '(?:e?s)?)(?=$|[^\\p{L}\\p{M}])', 'iu');
       const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && n.parentElement.closest('button, .tb-term, svg, .tb-art, h3, th, a') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
       let n; while ((n = tw.nextNode())) {
         const m = re.exec(n.data); if (!m) continue;
@@ -288,7 +288,7 @@ PD.theoryBook = (() => {
   /* ---------- the glossary: every word of the book, A–Z, searchable ---------- */
   function glossary(w) {
     const G = (PD.theorySimple ? PD.theorySimple.glossary() : []).map(x => ({ t: L(x.ka, x.en), d: L(x.dka, x.den), ch: x.ch }));
-    G.sort((a, b) => a.t.localeCompare(b.t, PD.i18n.lang === 'en' ? 'en' : 'ka'));
+    G.sort((a, b) => a.t.localeCompare(b.t, PD.i18n.locale));
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('theory') }), h('h1', { text: L('ლექსიკონი', 'Glossary'), style: 'margin:0' })]),
       h('p', { class: 'fg2', text: L('მუსიკის ყველა სიტყვა მარტივად — და რომელ თავშია.', 'Every music word in plain language — and which chapter it is in.') }));
     const list = h('dl', { class: 'tbs-gl' }), q = h('input', { class: 'input', type: 'search', placeholder: L('მოძებნე სიტყვა…', 'Find a word…'), 'aria-label': L('ძებნა', 'Search'), oninput: () => draw() });

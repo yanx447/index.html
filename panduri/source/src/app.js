@@ -3,9 +3,15 @@
    (paths), Lesson page (stages), Progress, Settings, Account.
    ===================================================================== */
 PD.i18n.add({
-  'nav.library': ['ბიბლიოთეკა', 'Library'], 'nav.more': ['მეტი', 'More'],
+  'room.eyebrow': ['ფანდური · შენი მუსიკალური სივრცე', 'PANDURI · YOUR PRACTICE SPACE'],
+  'room.welcome': ['ყოველი შეხებით, ერთი ნაბიჯით წინ.', 'One touch. One step closer.'],
+  'room.tuner': ['იპოვე სწორი ჟღერადობა', 'Find your sound'],
+  'room.metronome': ['შეინარჩუნე ტემპი', 'Keep your tempo'],
+  'room.chords': ['აღმოაჩინე პოზიციები', 'Explore positions'],
+  'room.ai': ['შეისწავლე შენი ჩანაწერი', 'Explore your recording'],
+  'nav.main': ['მთავარი მენიუ', 'Main menu'], 'nav.library': ['ბიბლიოთეკა', 'Library'], 'nav.more': ['მეტი', 'More'],
   'hm.resume': ['გააგრძელე იქიდან, სადაც გაჩერდი', 'Continue where you stopped'], 'hm.resumeD': ['{s} · ტაქტი {b}', '{s} · bar {b}'],
-  'hm.today': ['დღევანდელი ვარჯიში', "Today's practice"], 'hm.where': ['შენი სავარჯიშო ოთახი', 'Your practice room'], 'hm.path': ['სწავლის გზა', 'Learning path'], 'hm.nextIs': ['შემდეგი: {l}', 'next: {l}'], 'hm.noRecent': ['ჯერ არ გივარჯიშია. დაიწყე ზემოთ.', 'No practice yet. Start above.'], 'hm.days': ['დღე', 'days'], 'hm.allProgress': ['სრული პროგრესი', 'Full progress'], 'hm.quick': ['სწრაფი წვდომა', 'Quick access'], 'hm.next': ['შემდეგი ნაბიჯი', 'Next step'], 'hm.song': ['გააგრძელე სიმღერა', 'Continue song'],
+  'hm.today': ['დღევანდელი ვარჯიში', "Today's practice"], 'hm.where': ['შენი სავარჯიშო ოთახი', 'Your practice room'], 'hm.path': ['სწავლის გზა', 'Learning path'], 'hm.nextIs': ['შემდეგი: {l}', 'next: {l}'], 'hm.noRecent': ['ჯერ არ გივარჯიშია. დაიწყე ზემოთ.', 'No practice yet. Start above.'], 'hm.days': ['დღე', 'days'], 'hm.allProgress': ['სრული პროგრესი', 'Full progress'], 'hm.quick': ['სწრაფი წვდომა', 'Quick access'], 'hm.next': ['შემდეგი ნაბიჯი', 'Next step'],
   'hm.demo': ['ახლა ჩატვირთულია სადემონსტრაციო მასალა. მასწავლებლის კურიკულუმი ჯერ არ არის დამატებული — სავარჯიშოები, თითები და აკორდები დამოწმებული არ არის.', 'Demo material is loaded. The teacher’s curriculum has not been added yet — exercises, fingerings and chords are not verified.'],
   'demo.badge': ['დემო', 'Demo'], 'demo.badgeD': ['სადემონსტრაციო — მასწავლებლის მიერ არ არის დამოწმებული', 'Demo — not verified by the teacher'],
   'st.intro': ['შესავალი', 'Introduction'], 'st.demo': ['დემონსტრაცია', 'Demonstration'], 'st.technique': ['ტექნიკა ცალკე', 'Isolated technique'], 'st.guided': ['ნელი, ნაბიჯ-ნაბიჯ', 'Guided slow practice'],
@@ -110,7 +116,7 @@ PD.i18n.add({
   'lnx.songsD': ['სიმღერები, მელოდიები და სოლოები — დონეების მიხედვით', 'Songs, melodies and solos — by level'],
   'hxq.cam': ['კამერით', 'Camera'], 'hxq.camD': ['დაუკარი აპთან ერთად', 'Play along with the app'], 'hxq.ai': ['AI სტუდია', 'AI studio'], 'hxq.aiD': ['შენი სიმღერის აკორდები', 'Chords of your song'],
   'hx.hello': ['გამარჯობა, {n}', 'Hello, {n}'], 'hx.goal': ['დღევანდელი მიზანი', "Today's goal"], 'hx.goalV': ['{a} / {b} წუთი', '{a} / {b} min'],
-  'hx.continue': ['გააგრძელე სწავლა', 'Continue learning'], 'hx.quick': ['სწრაფი წვდომა', 'Quick access'], 'set.gAccount': ['ანგარიში', 'Account'], 'set.gLearn': ['სწავლა', 'Learning'], 'set.gAudio': ['აუდიო', 'Audio'], 'set.gVisual': ['ვიზუალი და ხელმისაწვდომობა', 'Visual and accessibility'], 'set.gData': ['მონაცემები და კონფიდენციალურობა', 'Data and privacy'], 'set.gOwner': ['მფლობელი და ავტორი', 'Owner and author'], 'ls.path': ['სასწავლო გზის ნახვა', 'View learning path'], 'ls.next': ['შემდეგი ნაბიჯი', 'Next step'], 'hx.metro': ['მეტრონომი', 'Metronome'], 'hx.recent': ['ბოლო შედეგები', 'Recent results'], 'hx.noRes': ['ჯერ შედეგი არ გაქვს — დაუკარი ნებისმიერი სავარჯიშო და აქ გამოჩნდება.', 'No results yet — play any exercise and it will show here.'], 'hx.trainer': ['ტრენაჟორი', 'Trainer'], 'hx.roadK': ['დაუკარი აპთან ერთად', 'Play along'], 'hx.roadD': ['ნოტები მოდის შენკენ — აპი გისმენს და გეუბნება, ზუსტად დაუკარი თუ არა', 'Notes come toward you — the app listens and tells you if you hit them'], 'hx.start': ['დაიწყე აქედან', 'Start here'], 'hx.go': ['გაგრძელება', 'Continue'], 'hx.all': ['ყველა', 'All'],
+  'hx.continue': ['გააგრძელე სწავლა', 'Continue learning'], 'hx.quick': ['სწრაფი წვდომა', 'Quick access'], 'set.gAccount': ['ანგარიში', 'Account'], 'set.gLearn': ['სწავლა', 'Learning'], 'set.gAudio': ['აუდიო', 'Audio'], 'set.gVisual': ['ვიზუალი და ხელმისაწვდომობა', 'Visual and accessibility'], 'set.gData': ['მონაცემები და კონფიდენციალურობა', 'Data and privacy'], 'set.gOwner': ['მფლობელი და ავტორი', 'Owner and author'], 'ls.path': ['სასწავლო გზის ნახვა', 'View learning path'], 'ls.next': ['შემდეგი ნაბიჯი', 'Next step'], 'hx.metro': ['მეტრონომი', 'Metronome'], 'hx.noRes': ['ჯერ შედეგი არ გაქვს — დაუკარი ნებისმიერი სავარჯიშო და აქ გამოჩნდება.', 'No results yet — play any exercise and it will show here.'], 'hx.trainer': ['ტრენაჟორი', 'Trainer'], 'hx.roadK': ['დაუკარი აპთან ერთად', 'Play along'], 'hx.roadD': ['ნოტები მოდის შენკენ — აპი გისმენს და გეუბნება, ზუსტად დაუკარი თუ არა', 'Notes come toward you — the app listens and tells you if you hit them'], 'hx.start': ['დაიწყე აქედან', 'Start here'], 'hx.go': ['გაგრძელება', 'Continue'], 'hx.all': ['ყველა', 'All'],
   'hx.forYou': ['შენთვის', 'For you'], 'hx.songs': ['სიმღერები', 'Songs'], 'hx.melodies': ['მელოდიები', 'Melodies'], 'hx.rhythms': ['რიტმები', 'Rhythms'], 'hx.exercises': ['სავარჯიშოები', 'Exercises'], 'hx.recent': ['ბოლოს ნავარჯიშები', 'Recently practised'],
   'ln.tab.theory': ['თეორია', 'Theory'], 'ln.levels': ['სწავლის ლეველები', 'Learning levels'], 'ln.xp': ['ქულების დონე {n} (XP)', 'Points level {n} (XP)'], 'ln.lvN': ['ლეველი {n}', 'Level {n}'], 'ln.lvT1': ['დამწყები', 'Beginner'], 'ln.lvT2': ['საშუალო', 'Intermediate'], 'ln.lvT3': ['რთული', 'Advanced'], 'ln.tab.practice': ['პრაქტიკა', 'Practice'], 'ln.diff1': ['მარტივი', 'Easy'], 'ln.diff2': ['საშუალო', 'Medium'], 'ln.diff3': ['რთული', 'Hard'], 'ln.firstD': ['დაჯდომა, დაჭერა, თითები, სიმები, მოვლა', 'Sitting, holding, fingers, strings, care'],
   'ln.tool': ['ხელსაწყო', 'Tool'], 'ln.chapter': ['თეორიის თავი · ხმით', 'Theory chapter · with sound'], 'ln.tip': ['მოკლე ბარათი · ანიმაცია', 'Short card · animation'], 'ln.solfege': ['სმენის ვარჯიში', 'Ear training'], 'ln.part1': ['ნაწილი 1 · თეორია', 'Part 1 · Theory'], 'ln.part1D': ['ჯერ გაიცანი ინსტრუმენტი, ნოტები, გამები, რითმი და სმენა', 'First the instrument, notes, scales, rhythm and the ear'], 'ln.part2': ['ნაწილი 2 · პრაქტიკა', 'Part 2 · Practice'], 'ln.part2D': ['ახლა — ფანდურზე, მიკროფონთან ერთად', 'Now on the panduri, with the microphone'], 'ln.theory': ['თეორია · {d}/{n} თავი', 'Theory · {d}/{n} chapters']
@@ -126,11 +132,12 @@ PD.app = (() => {
   function shell() {
     document.documentElement.lang = PD.i18n.lang;
     document.documentElement.dataset.theme = 'copper';
+    document.documentElement.dataset.appearance = 'walnut';
     if (PD.store.get('hc', false)) document.documentElement.classList.add('hc');
     if (PD.store.get('reduceMotion', false)) document.documentElement.classList.add('rm');
     const ts = PD.store.get('textSize', 'm'); if (ts !== 'm') document.documentElement.classList.add('ts-' + ts);
-    const rail = h('nav', { class: 'rail', 'aria-label': 'main' }, [h('div', { class: 'mark', html: '<span data-t="app.name"></span><small>A · C♯ · E</small>' })]);
-    const bar = h('nav', { class: 'tabbar', 'aria-label': 'main' });
+    const rail = h('nav', { class: 'rail', 'data-t-aria': 'nav.main' }, [h('div', { class: 'mark', html: '<span data-t="app.name"></span><small>A · C♯ · E</small>' })]);
+    const bar = h('nav', { class: 'tabbar', 'data-t-aria': 'nav.main' });
     NAV.forEach(([id, key, icon]) => {
       const mk = () => h('button', { class: 'navb', 'data-go': id, html: icon + '<span data-t="' + key + '"></span>', onclick: () => go(id) });
       rail.appendChild(mk()); bar.appendChild(mk());
@@ -138,11 +145,14 @@ PD.app = (() => {
     const main = h('main', { class: 'main', id: 'main' });
     document.body.append(h('div', { class: 'shell', id: 'shell' }, [rail, main]), bar);
     swipeBack();
-    if (PD.samiSimi && PD.samiSimi.available) fetch((PD.CONFIG && PD.CONFIG.tunerUrl) || 'tuner/index.html', { method: 'HEAD', cache: 'no-store' }).then(r => { tunerOK = r.ok && !/text\/plain/.test(r.headers.get('content-type') || ''); }, () => { tunerOK = false; });   // where the tuner's files are not served (single-file build), the built-in tuner is used
     PD.i18n.apply(document);
-    PD.bus.on('lang', () => render());
+    const title = () => { if (PD.i18n.translated) document.title = t('app.name'); };
+    title(); /* A translated tab name can be longer than its tab: it shrinks to fit rather than being cut off */
+    const fitNav = () => requestAnimationFrame(() => document.querySelectorAll('.tabbar .navb span').forEach(sp => { sp.style.fontSize = ''; if (PD.i18n.translated && sp.scrollWidth > sp.clientWidth + 1 && sp.clientWidth) sp.style.fontSize = Math.max(8, parseFloat(getComputedStyle(sp).fontSize) * sp.clientWidth / sp.scrollWidth).toFixed(1) + 'px'; }));
+    PD.bus.on('lang', () => { title(); render(); fitNav(); });
+    fitNav(); window.addEventListener('resize', fitNav);
     let cloudT = 0, cloudSig = '';
-    PD.bus.on('cloud', e => { if (!(e && e.session) && !document.querySelector('.ag')) setTimeout(() => { if (!PD.cloud.session && !document.querySelector('.ag')) PD.auth.gate(() => render(), { view: 'methods' }); }, 0); });
+    PD.bus.on('cloud', e => { if (!(e && e.session) && !document.querySelector('.ag')) setTimeout(() => { if (!PD.cloud.session && !document.querySelector('.ag')) signInAgain(); }, 0); });
     PD.bus.on('cloud', e => { const sig = (e && e.session && e.session.user ? e.session.user.id : '-') + ':' + JSON.stringify(e && e.profile ? [e.profile.role, e.profile.vip_until, e.profile.display_name, e.profile.owner, e.profile.premium_banned] : 0); if (sig === cloudSig) return; cloudSig = sig; clearTimeout(cloudT); cloudT = setTimeout(() => { if (['profile', 'settings', 'community', 'home', 'learn', 'songs'].includes(route) && !PD.practice.active && !document.querySelector('.sheet-back:not(.out)')) render(true); }, 60); });
     PD.bus.on('lessons', () => { if (['home', 'lesson', 'learn', 'path', 'songs'].includes(route)) render(); });
     window.addEventListener('popstate', e => {
@@ -167,7 +177,6 @@ PD.app = (() => {
   }
   function go(r, p, replace) {
     if (r === 'library') r = 'songs'; if (r === 'more') r = 'profile'; if (r === 'tools') r = 'practice';
-    if (r === 'tuner' && PD.samiSimi && PD.samiSimi.available && tunerOK !== false) { PD.samiSimi.open(); return; }   // the tuner „სამი სიმი“ opens full screen over the page, as before
     const same = r === route && (p == null ? null : p) === param;   // tapping the tab that is already open adds no history entry
     navDir = TOP[r] === r || replace ? 'tab' : 'fwd';
     route = r; param = p == null ? null : p;
@@ -201,31 +210,18 @@ PD.app = (() => {
       else { main.appendChild(dim); main.appendChild(old); old.style.zIndex = 3; old.classList.add('top-edge'); A.push(old.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }], o), page.animate([{ transform: 'translateX(' + M.par + ')' }, { transform: 'translateX(0)' }], o), dim.animate([{ opacity: 1 }, { opacity: 0 }], o)); }
     } else {   // tab: the old screen fades quickly, the new one rises a few pixels, its first cards follow in order
       A.push(old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: 'ease-out', fill: 'both' }), page.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: M.tab, easing: M.out, delay: 50, fill: 'both' }));
-      [...page.querySelectorAll('.wrap > *')].slice(1, 8).forEach((el, k) => A.push(el.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: M.out, delay: 90 + k * 35, fill: 'backwards' })));
+      A.push(...PD.motion.reveal(page.querySelector('.wrap'), 65));
     }
+    if (dir === 'fwd') A.push(...PD.motion.reveal(page.querySelector('.wrap'), 100));
     let fin = false;
     const done = () => { if (fin) return; fin = true; A.forEach(a => { try { a.cancel(); } catch (_) {} }); page.classList.remove('top-edge'); if (dim) dim.remove(); old.remove(); if (dir === 'fwd') keep(oldKey, old); running = running.filter(x => x.done !== done); };
     running.push({ A, done });
     Promise.all(A.map(a => a.finished)).then(done, done);
   }
-  /** the tuner tab: the teacher's own tuner „სამი სიმი“ inside the page when its files are served beside the app, else the built-in one */
-  let tunerOK = null;
+  // Sami Simi stays in the app's navigation; its document is reused across visits.
   function tunerTab(w) {
     w.parentNode.classList.add('page-tuner');
-    const built = () => { w.innerHTML = ''; PD.tools.tuner(w); PD.i18n.apply(w); };
-    const embed = () => {
-      try { if (PD.detector && PD.detector.active) PD.detector.stop(); } catch (_) {}
-      try { const K = 'sami-simi:v1', o = JSON.parse(localStorage.getItem(K) || '{}') || {}; if (!o.lang || o.lang === 'auto') { o.lang = PD.i18n.lang === 'en' ? 'en' : 'ka'; localStorage.setItem(K, JSON.stringify(o)); } } catch (_) {}
-      w.innerHTML = ''; w.classList.add('tun-wrap');
-      const fr = h('iframe', { class: 'ss-inline', src: (PD.CONFIG && PD.CONFIG.tunerUrl) || 'tuner/index.html', title: PD.i18n.t('ss.title') + ' — ' + PD.i18n.t('ss.sub'), allow: 'microphone; autoplay; fullscreen; clipboard-write' });
-      w.append(fr);
-      const un = PD.bus.on('route', r => { if (r !== 'tuner') { try { fr.src = 'about:blank'; } catch (_) {} un(); } });   // leaving the tab releases the microphone
-    };
-    if (!(PD.samiSimi && PD.samiSimi.available)) return built();
-    if (tunerOK === true) return embed();
-    if (tunerOK === false) return built();
-    built();   // shown at once; replaced by the teacher's tuner when its files answer
-    fetch((PD.CONFIG && PD.CONFIG.tunerUrl) || 'tuner/index.html', { method: 'HEAD', cache: 'no-store' }).then(r => { tunerOK = r.ok; if (r.ok && route === 'tuner' && w.isConnected) embed(); }, () => { tunerOK = false; });
+    PD.samiSimi.show();
   }
   function render(fromPop) {
     const main = $('main'), key = route + ':' + (param == null ? '' : param), changed = key !== lastKey;
@@ -260,6 +256,7 @@ PD.app = (() => {
     if (want && page.scrollTop < want - 2) { let n = 0; const again = () => { if (!page.isConnected || n++ > 20) return; page.scrollTop = want; if (page.scrollTop < want - 2) setTimeout(again, 50); }; requestAnimationFrame(again); }
     page.style.scrollBehavior = '';
     if (old && old !== page) animate(main, old, page, dir, oldKey);
+    else if (changed) PD.motion.reveal(wrap);
     if (PD.exam && PD.exam.guard) setTimeout(PD.exam.guard, 0);   // an exam that is due covers the screen until it is passed
     // keyboard / screen-reader users land on the new screen's title (touch users keep no focus ring)
     if (changed && document.activeElement && document.activeElement !== document.body && main.contains(document.activeElement) === false && old && old.contains(document.activeElement) || (changed && old && old.contains(document.activeElement))) { const h1 = page.querySelector('h1'); if (h1) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); } }
@@ -377,7 +374,7 @@ PD.app = (() => {
   function songRow(l) {
     const p = LS.progress.lesson(l.id), m = Math.round((p.mastery || 0) * 100), open = () => l.rhythm ? go('rhythm', l.rhythm) : go('lesson', l.id);
     return h('button', { class: 'srow', onclick: open }, [h('span', { class: 'srow-art', html: coverSVG(l) }),
-      h('span', { class: 'grow' }, [h('b', { text: PD.i18n.pick(l.title) }), h('small', { text: t('lvl.' + (l.level || 1)) + (l.demo ? ' · ' + t('demo.badge') : '') + (m ? ' · ' + m + '%' : '') })]),
+      h('span', { class: 'grow' }, [h('b', { text: PD.i18n.pick(l.title) }), h('small', { text: t('lvl.' + (l.level || 1)) + (l.demo ? ' · ' + t('demo.badge') : '') + (l.ai ? ' · AI' : '') + (m ? ' · ' + m + '%' : '') })]),
       h('span', { class: 'srow-t', text: l.events.length ? PD.fmtTime(durSec(l)) : '' }), h('span', { class: 'srow-play', html: '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>' })]);
   }
   function card(l, wide) {
@@ -390,7 +387,7 @@ PD.app = (() => {
       p.plays ? h('div', { class: 'acard-p' }, [h('i', { style: 'width:' + m + '%' })]) : null]);
   }
   const visible = l => !l.derived;
-  function stat(v, k) { return h('div', { class: 'stat' }, [h('b', { text: v }), h('span', { text: k })]); }
+  function stat(v, k, cls) { return h('div', { class: 'stat' + (cls ? ' ' + cls : '') }, [h('b', { text: v }), h('span', { text: k })]); }
   function streaks() {
     const days = [...new Set(LS.progress.sessions().map(s => new Date(s.date).toDateString()))].map(d => new Date(d).getTime()).sort((a, b) => a - b);
     let cur = 0; const d = new Date(); const set = new Set(days.map(x => new Date(x).toDateString()));
@@ -424,7 +421,7 @@ PD.app = (() => {
     const name = (prof.name || '').trim().split(/\s+/)[0];
     const ring = (v) => { const r = 16, c = 2 * Math.PI * r, k = Math.max(0, Math.min(1, v)); return '<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="rgba(255,240,228,.1)" stroke-width="3"/><circle cx="20" cy="20" r="' + r + '" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linecap="round" stroke-dasharray="' + (c * k).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 20 20)"/></svg>'; };
     w.append(h('div', { class: 'hx-top' }, [
-      h('div', { class: 'hx-hello' }, [h('h1', { html: PD.esc(t('hx.hi')) + (name ? ',<br>' + PD.esc(name) : '') })]),
+      h('div', { class: 'hx-hello' }, [h('span', { class: 'room-eyebrow', 'data-t': 'room.eyebrow' }), h('h1', { html: PD.esc(t('hx.hi')) + (name ? ', ' + PD.esc(name) : '') }), h('p', { class: 'room-welcome', 'data-t': 'room.welcome' })]),
       (() => { const n = PD.notify.unread();
         return h('button', { class: 'hx-bell' + (n ? ' has' : ''), 'aria-label': t('nt.title') + (n ? ' (' + n + ')' : ''), onclick: () => go('inbox'),
           html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>' + (n ? '<i class="hx-bn">' + (n > 9 ? '9+' : n) + '</i>' : '') }); })(),
@@ -452,7 +449,7 @@ PD.app = (() => {
     const I = d => '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
     const nSongs = LS.all.filter(l => visible(l) && catOf(l) === 'song').length, nChords = (PD.curriculum.chords() || []).length;
     const door = (r, icon, k, sub, fn) => h('button', { class: 'door', onclick: fn || (() => go(r)) }, [h('span', { class: 'door-ic', html: icon }), h('b', { text: t(k) }), h('small', { text: sub })]);
-    const quick = (r, icon, k) => h('button', { class: 'hq', onclick: () => go(r) }, [h('span', { class: 'hq-ic', html: icon }), h('span', { 'data-t': k })]);
+    const quick = (r, icon, k) => h('button', { class: 'hq', onclick: () => go(r) }, [h('span', { class: 'hq-ic', html: icon }), h('span', { class: 'hq-label', 'data-t': k }), h('small', { 'data-t': 'room.' + r }), h('span', { class: 'hq-arrow', html: ic.chevron, 'aria-hidden': 'true' })]);
     w.append(h('section', { class: 'hq-row', 'aria-label': t('hx.quick') }, [
       quick('tuner', I('<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/><circle cx="12" cy="18" r="1.4" fill="currentColor"/>'), 'nav.tuner'),
       quick('metronome', I('<path d="M8 21h8l-3-17h-2z"/><path d="M12 15l5-8"/>'), 'hx.metro'),
@@ -476,7 +473,7 @@ PD.app = (() => {
     else ses.forEach(x => {
       const l = LS.get(String(x.id)), name = l ? PD.i18n.pick(l.title) : String(x.id).startsWith('trainer:') ? t('hx.trainer') : String(x.id);
       const pct = x.firstTry != null ? Math.round(x.firstTry * 100) : null, d = new Date(x.date);
-      sec.append(h('button', { class: 'hx-ri', onclick: () => l ? go('lesson', l.id) : go('progress') }, [h('span', { class: 'grow' }, [h('b', { text: name }), h('small', { text: d.toLocaleDateString(PD.i18n.lang === 'en' ? 'en-GB' : 'ka-GE', { day: 'numeric', month: 'short' }) + ' · ' + PD.fmtTime(x.dur || 0) })]), pct != null ? h('span', { class: 'hx-rp' + (pct >= 80 ? ' ok' : ''), text: pct + '%' }) : null]));
+      sec.append(h('button', { class: 'hx-ri', onclick: () => l ? go('lesson', l.id) : go('progress') }, [h('span', { class: 'grow' }, [h('b', { text: name }), h('small', { text: d.toLocaleDateString(PD.i18n.locale, { day: 'numeric', month: 'short' }) + ' · ' + PD.fmtTime(x.dur || 0) })]), pct != null ? h('span', { class: 'hx-rp' + (pct >= 80 ? ' ok' : ''), text: pct + '%' }) : null]));
     });
     w.append(sec);
     if (PD.curriculum.isDemo) w.append(h('p', { class: 'hx-note', html: '<b>' + PD.esc(t('demo.badge')) + '</b> · ' + PD.esc(t('hm.demo')) }));
@@ -498,7 +495,7 @@ PD.app = (() => {
       ls.sort((a, b) => (a.level || 1) - (b.level || 1));
       ls.forEach(l => box.appendChild(songRow(l)));
       if (!ls.length) box.appendChild(h('div', { class: 'empty', text: !q && st.cat === 'solo' ? t('lib.noSolos') : t('lib.none') }));
-      if (PD.store.get('author', false) && !q) box.appendChild(h('button', { class: 'acard add', onclick: () => PD.studio.open(null, st.cat), html: '<div class="acard-art">' + ic.plus + '</div><span class="acard-t">' + PD.esc(t('lib.new')) + '</span>' }));
+      if (PD.author() && !q) box.appendChild(h('button', { class: 'acard add', onclick: () => PD.studio.open(null, st.cat), html: '<div class="acard-art">' + ic.plus + '</div><span class="acard-t">' + PD.esc(t('lib.new')) + '</span>' }));
       PD.i18n.apply(box);
     }
     list();
@@ -631,7 +628,7 @@ PD.app = (() => {
     const chips = h('div', { class: 'row' });
     if (l.link) chips.append(h('a', { class: 'btn small', href: l.link, target: '_blank', rel: 'noopener', 'data-t': 'les.ref' }));
     if (l.user) chips.append(h('button', { class: 'btn small', html: PD.ic.mic + '<span data-t="les.record"></span>', onclick: () => PD.practice.record(l) }));
-    if (PD.store.get('author', false)) chips.append(h('button', { class: 'btn small', html: ic.edit + '<span data-t="les.edit"></span>', onclick: () => PD.studio.open(l.id) }));
+    if (PD.author()) chips.append(h('button', { class: 'btn small', html: ic.edit + '<span data-t="les.edit"></span>', onclick: () => PD.studio.open(l.id) }));
     if (!has) { w.append(chips, h('div', { class: 'empty', text: t('les.noNotes') })); return; }
     if (l.song) return songPage(w, l, p, chips);
     const firstUndone = stages.find(s => !(stagePct(p, s) >= 80)) || 'wait';
@@ -676,7 +673,8 @@ PD.app = (() => {
   }
   /** song page: recording mix · the chords · five steps (listen → chord changes → rhythm → slow → full) · sections */
   function songPage(w, l, p, chips) {
-    const SD = PD.SONGS[l.song], stages = LS.stagesOf(l), ORIG = ['full', 'music', 'vocals'];
+    // a built-in song keeps its data in PD.SONGS; a song made in the AI studio carries its own shapes and only the recordings it has
+    const SD = PD.SONGS[l.song] || { chords: l.shapes || {} }, stages = LS.stagesOf(l), ORIG = ['full', 'music', 'vocals'].filter(k => !l.stems || l.stems[k]);
     const mixNow = () => PD.store.get('songMix', 'full');
     PD.audio.ref.preload(l.stems, ORIG.includes(mixNow()) ? mixNow() : 'music');   // decode now, so the first play starts at once
     const DESC = { demo: 'std.songDemo', chords: 'std.chords', technique: 'std.songRhythm', slow: 'std.songSlow', perform: 'std.songFull' };
@@ -685,10 +683,11 @@ PD.app = (() => {
     w.append(h('div', { class: 'ls-actions lx-actions' }, [
       h('button', { class: 'btn primary big', text: t(p.plays ? 'hx.go' : 'home.start') + ' · ' + t(NAME[next]), onclick: () => startStage(l, next) }),
       h('button', { class: 'btn camb', html: ic.camera + '<span data-t="cam.title"></span>', onclick: () => PD.camera.launcher() })]), chips);
+    if (l.ai) w.append(h('p', { class: 'notice', 'data-t': 'al.est' }), h('button', { class: 'btn small ghost', 'data-t': 'ai.title', onclick: () => go('ai') }));
     // the progression on one line: chord · how many rhythms · every stroke
     if (l.cycle) {
       const runs = []; l.cycle.forEach(c => { const r = runs[runs.length - 1]; if (r && r.c === c) r.n++; else runs.push({ c, n: 1 }); });
-      const R = (LS.rhythmsAll ? LS.rhythmsAll() : PD.curriculum.rhythms()).find(r => r.id === l.songRhythm), strokes = R ? R.strokes : [];
+      const R = (LS.rhythmsAll ? LS.rhythmsAll() : PD.curriculum.rhythms()).find(r => r.id === l.songRhythm), strokes = l.beatStrokes || (R ? R.strokes : []);
       const one = () => h('span', { class: 'cy-st' }, strokes.map(k => h('i', { class: (k.accent ? 'acc ' : '') + k.direction, text: k.direction === 'up' ? '↑' : '↓' })));
       w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.cycle' }),
         h('div', { class: 'cy' }, runs.map(r => h('div', { class: 'cy-c', style: 'flex:' + r.n }, [h('b', { text: r.c }), h('small', { text: t('sg.rhythms', { n: r.n }) }), h('div', { class: 'cy-rs' }, Array.from({ length: r.n }, one))]))),
@@ -785,7 +784,7 @@ PD.app = (() => {
     const items = [['ai', '<b class="ai-badge">AI</b>', 'ai.title', 'ai.homeD'], ['exams', ic.check || ic.learn, 'ex.title', 'ex.lead'], ['drill', ic.target || ic.learn, 'ex.drill', 'ex.drillD'], ['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'tr.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
     items.forEach(([r, icon, k, d]) => list.append(rowI('', icon, k, t(d), '', () => go(r))));
     w.append(list);
-    if (PD.store.get('author', false)) w.append(h('div', { class: 'paths' }, [['studio', ic.edit, 'tools.studio', 'tools.studioD'], ['at:instrument', ic.frets, 'sd.instrument', 'at.instrument'], ['at:curriculum', ic.learn, 'sd.curriculum', 'at.curD'], ['at:samples', ic.mic, 'sd.samples', 'set.samples']].map(([r, icon, k, d]) => h('button', { class: 'card path tool', onclick: () => r === 'studio' ? PD.studio.open(null) : PD.authorTools[r.slice(3)]() }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]))));
+    if (PD.author()) w.append(h('div', { class: 'paths' }, [['studio', ic.edit, 'tools.studio', 'tools.studioD'], ['at:instrument', ic.frets, 'sd.instrument', 'at.instrument'], ['at:curriculum', ic.learn, 'sd.curriculum', 'at.curD'], ['at:samples', ic.mic, 'sd.samples', 'set.samples']].map(([r, icon, k, d]) => h('button', { class: 'card path tool', onclick: () => r === 'studio' ? PD.studio.open(null) : PD.authorTools[r.slice(3)]() }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]))));
   }
 
   /* ---------- Profile ---------- */
@@ -841,7 +840,7 @@ PD.app = (() => {
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('profile') }), h('div', { class: 'grow' }, [h('h1', { 'data-t': 'pr.title' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'pr.lead' })])]));
     const pc = v => v == null ? '—' : Math.round(v * 100) + '%';
     w.append(h('div', { class: 'pgrid' }, [
-      stat(Math.floor(totalSec / 3600) + ':' + String(Math.floor(totalSec % 3600 / 60)).padStart(2, '0'), t('pr.time')), stat(levelName(), t('pr.stage')),
+      stat(Math.floor(totalSec / 3600) + ':' + String(Math.floor(totalSec % 3600 / 60)).padStart(2, '0'), t('pr.time')), stat(levelName(), t('pr.stage'), 'wide'),
       stat(mastered.length + ' / ' + LS.all.filter(l => visible(l) && l.events.length).length, t('pr.completed')), stat(String(mastered.filter(l => l.type === 'song').length), t('pr.songs')),
       stat(String(rhythmsLearned) + ' / ' + PD.curriculum.rhythms().length, t('pr.rhythms')), stat(pc(noteAcc), t('pr.noteAcc')),
       stat(pc(timeAcc), t('pr.timeAcc')), stat(avgBpm ? Math.round(avgBpm) + ' BPM' : '—', t('pr.avgTempo')), stat(t('pr.days', { n: sk.longest }), t('pr.longest'))]));
@@ -873,9 +872,9 @@ PD.app = (() => {
     let s = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + PD.esc(title) + '">';
     [0, .5, 1].forEach(v => { s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="rgba(242,232,218,.08)"/><text x="' + (pl - 6) + '" y="' + (y(v) + 4) + '" fill="#A39B91" font-size="11" text-anchor="end" font-family="Noto Sans Georgian">' + Math.round(v * 100) + '</text>'; });
     s += '<polyline fill="none" stroke="#C98B5B" stroke-width="2" stroke-linejoin="round" points="' + pts.map((p, i) => x(i) + ',' + y(p.v)).join(' ') + '"/>';
-    pts.forEach((p, i) => { const l = LS.get(p.id); s += '<circle cx="' + x(i) + '" cy="' + y(p.v) + '" r="4" fill="#C98B5B" stroke="#161412" stroke-width="2"><title>' + PD.esc((l ? PD.i18n.pick(l.title) + ' · ' : '') + new Date(p.d).toLocaleDateString() + ' · ' + Math.round(p.v * 100) + '%') + '</title></circle>'; });
+    pts.forEach((p, i) => { const l = LS.get(p.id); s += '<circle cx="' + x(i) + '" cy="' + y(p.v) + '" r="4" fill="#C98B5B" stroke="#161412" stroke-width="2"><title>' + PD.esc((l ? PD.i18n.pick(l.title) + ' · ' : '') + new Date(p.d).toLocaleDateString(PD.i18n.locale) + ' · ' + Math.round(p.v * 100) + '%') + '</title></circle>'; });
     s += '</svg>';
-    const tbl = h('details', {}, [h('summary', { class: 'muted', style: 'font-size:12px', text: '▤' }), h('div', { class: 'mono muted', style: 'font-size:12px;line-height:1.7', text: pts.map(p => new Date(p.d).toLocaleDateString() + ' — ' + Math.round(p.v * 100) + '%').join(' · ') })]);
+    const tbl = h('details', {}, [h('summary', { class: 'muted', style: 'font-size:12px', text: '▤' }), h('div', { class: 'mono muted', style: 'font-size:12px;line-height:1.7', text: pts.map(p => new Date(p.d).toLocaleDateString(PD.i18n.locale) + ' — ' + Math.round(p.v * 100) + '%').join(' · ') })]);
     card.append(h('div', { html: s }), tbl); return card;
   }
   function fretHeat(probs) {
@@ -891,8 +890,9 @@ PD.app = (() => {
   function settings(w) {
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('profile') }), h('h1', { 'data-t': 'set.title', style: 'margin:0' })]));
     const sect = (k, rows) => h('section', { class: 'set-sec' }, [h('h2', { 'data-t': k }), h('div', { class: 'list' }, rows.filter(Boolean))]);
-    const row = (k, d, ctrl) => h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': k }), d ? h('small', { text: d }) : null]), ctrl]);
-    const toggle = (key, def, on) => { const c = h('input', { type: 'checkbox', 'aria-label': t(key) }); c.checked = PD.store.get(key, def); c.onchange = () => { PD.store.set(key, c.checked); on && on(c.checked); }; return c; };
+    // a switch is named by its row's own label (the store key it writes is not a string anyone reads)
+    const row = (k, d, ctrl) => { if (ctrl && ctrl.type === 'checkbox' && !ctrl.dataset.tAria) { ctrl.dataset.tAria = k; ctrl.setAttribute('aria-label', t(k)); } return h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': k }), d ? h('small', { text: d }) : null]), ctrl]); };
+    const toggle = (key, def, on) => { const c = h('input', { type: 'checkbox' }); c.checked = PD.store.get(key, def); c.onchange = () => { PD.store.set(key, c.checked); on && on(c.checked); }; return c; };
     const seg = (opts, cur, on) => { const s = h('div', { class: 'seg' }); opts.forEach(([v, k]) => s.appendChild(h('button', { 'aria-pressed': String(cur === v), 'data-t': k, 'data-v': v, onclick: () => { s.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v)))); on(v); } }))); return s; };
     const range = (v, min, max, step, on, fmt) => { const out = h('span', { class: 'val', text: fmt ? fmt(v) : v }); const r = h('input', { type: 'range', min, max, step, value: v, oninput: e => { out.textContent = fmt ? fmt(+e.target.value) : e.target.value; on(+e.target.value); } }); return h('span', { class: 'set-ctl' }, [r, out]); };
     if (PD.cloud.isOwner) w.append(sect('pa.title', [h('button', { class: 'li pa-entry', onclick: () => go('pmadmin') }, [h('span', { class: 'pa-entry-ic', text: '♾️' }), h('div', { class: 'grow' }, [h('span', { 'data-t': 'pa.title' }), h('small', { 'data-t': 'pa.row' })]), h('span', { html: ic.chevron, class: 'chev' })])]));
@@ -901,11 +901,7 @@ PD.app = (() => {
       w.append(PD.notify.settingsSection({ sect, row, toggle }));
       w.append(sect('sm.title', [
         row('sm.on', '', toggle('sima.on', true, () => PD.sima.refresh())),
-        row('sm.voice', PD.sima.kaVoice() ? '' : t('sm.noVoice'), toggle('sima.voice', true)),
-        row('sm.nudgeOn', '', toggle('sima.nudge', true)),
-        PD.sima.canHear()
-          ? row('sm.wake', t('sm.wakeD'), toggle('sima.wake', false, on => PD.sima.listen(on)))
-          : row('sm.wake', t('sm.wakeNo'), h('span', { class: 'muted', text: '—' }))]));
+        row('sm.nudgeOn', '', toggle('sima.nudge', true))]));
       w.append(sect('set.app', [row('set.version', PD.BUILD ? 'build ' + PD.BUILD : '', h('button', { class: 'btn small', 'data-t': 'set.update', onclick: async e2 => {
         const btn = e2.currentTarget; btn.disabled = true; btn.textContent = t('set.updating');
         const got = await PD.pwa.update();
@@ -917,6 +913,13 @@ PD.app = (() => {
         h('button', { class: 'btn small', html: ic.ul + '<span data-t="acct.import"></span>', onclick: async () => { const f = await PD.ui.pickFile('application/json'); if (!f) return; try { const o = JSON.parse(await f.text()); PD.store.importAll(o.data || o); PD.ui.toast(t('toast.imported')); setTimeout(() => location.reload(), 600); } catch (e) { PD.ui.toast('JSON: ' + e.message); } } })])]),
       C.session ? h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'au.delete' }), h('small', { 'data-t': 'au.deleteD' })]),
         h('button', { class: 'btn small quiet danger', 'data-t': 'au.deleteGo', onclick: () => PD.ui.confirm(t('au.deleteQ'), async () => { try { await C.auth.deleteAccount(); PD.ui.toast(t('au.deleted'), 5000); render(); } catch (e) { PD.ui.toast((e && e.message) || String(e), 6000); } }) })]) : null])); }
+    w.append(sect('rf.appearance', [
+      row('rf.glass', '', toggle('glass', true, v => document.documentElement.classList.toggle('solid-nav', !v))),
+      row('rf.sound', '', seg([['wood', 'rf.wood'], ['soft', 'rf.soft'], ['silent', 'rf.silent']], PD.store.get('soundPalette', 'wood'), v => { PD.store.set('soundPalette', v); PD.fx.sound('select'); })),
+      row('rf.preview', '', h('button', { class: 'btn small', 'data-t': 'rf.preview', onclick: () => PD.fx.sound('success') })),
+      row('rf.tuner', '', h('button', { class: 'btn small', 'data-t': 'tu.title', onclick: () => go('tuner') }))
+    ]));
+    PD.devices.section(w, { sect, row });
     const cal = PD.detector.calib, ms = PD.detector.status();
     w.append(sect('set.audio', [
       row('set.microphone', ms.on ? t('mic.on') + (ms.label ? ' · ' + ms.label : '') : t('mic.off'), ms.on ? h('button', { class: 'btn small', 'data-t': 'set.micStop', onclick: () => { PD.detector.stop(); render(); } }) : h('button', { class: 'btn small', 'data-t': 'gate.on', onclick: () => PD.practice.micOn(() => render()) })),
@@ -942,12 +945,11 @@ PD.app = (() => {
       row('set.assist', t('set.assistD'), asSel)]));
     const q = PD.store.get('quality', 'auto');
     w.append(sect('set.visualSec', [
-      row('set.cine', t('set.cineD'), toggle('cine', true)),
       row('set.quality', null, seg([['auto', 'q.auto'], ['low', 'q.low'], ['medium', 'q.balanced'], ['high', 'q.high'], ['ultra', 'q.ultra']], q, v => { PD.store.set('quality', v); if (PD.has3D()) PD.R3D.quality = v; PD.bus.emit('quality', v); })),
       row('set.fps', null, seg([['auto', 'fps.auto'], ['30', 'fps.30']], PD.store.get('fps', 'auto'), v => PD.store.set('fps', v))),
       row('set.reduceMotion', t('set.motion'), toggle('reduceMotion', false, v => document.documentElement.classList.toggle('rm', v))),
       row('set.fretNums', null, toggle('showFrets', true))]));
-    w.append(sect('set.lang', [row('set.lang', null, seg([['ka', 'lang.ka'], ['en', 'lang.en']], PD.i18n.lang, v => PD.i18n.set(v)))]));
+    w.append(sect('set.lang', [row('set.lang', null, PD.ui.langSelect(v => PD.i18n.set(v))), PD.ui.aiNote()].filter(Boolean)));
     w.append(sect('set.a11y', [
       row('set.text', null, seg([['m', 'ts.m'], ['l', 'ts.l'], ['xl', 'ts.xl']], PD.store.get('textSize', 'm'), v => { PD.store.set('textSize', v); document.documentElement.classList.remove('ts-l', 'ts-xl'); if (v !== 'm') document.documentElement.classList.add('ts-' + v); })),
       row('set.hc', null, toggle('hc', false, v => document.documentElement.classList.toggle('hc', v))),
@@ -970,7 +972,7 @@ PD.app = (() => {
       row('set.onboard', null, h('button', { class: 'btn small', 'data-t': 'learn.open', onclick: () => PD.onboard.open() })),
       row('set.install', t('set.installD'), null),
       row('set.wipe', t('set.wipeD'), h('button', { class: 'btn small', style: 'color:var(--fix)', 'data-t': 'delete', onclick: () => PD.ui.confirm(t('set.wipeD'), () => wipeAll()) }))]));
-    w.append(sect('set.author', [row('set.author', t('set.authorD'), toggle('author', false))]));
+    if (PD.cloud.isOwner) w.append(sect('set.author', [row('set.author', t('set.authorD'), toggle('author', false))]));   // the owner's account only (the server's is_owner())
     const cc = PD.cloud.config(), su = h('input', { class: 'input', placeholder: 'https://xxxx.supabase.co', value: cc.url, 'aria-label': 'Supabase URL' }), sk2 = h('input', { class: 'input', placeholder: 'anon public key', value: cc.key ? cc.key.slice(0, 12) + '…' : '', 'aria-label': 'Supabase key' });
     sk2.onfocus = () => { if (/…$/.test(sk2.value)) sk2.value = ''; };
     w.append(sect('set.dev', [row('set.devTouch', t('set.devTouchD'), toggle('devTouch', false)),
@@ -980,7 +982,7 @@ PD.app = (() => {
     { const G = [['set.gAccount', ['set.accountSec', 'set.lang']], ['set.gLearn', ['pf.goal', 'set.learningSec', 'set.panduri']], ['set.gAudio', ['set.audio']], ['set.gVisual', ['set.visualSec', 'set.a11y']], ['set.gData', ['set.data']], ['set.gOwner', ['pa.title', 'set.author', 'set.dev']]];
       const secs = [...w.querySelectorAll(':scope > .set-sec')], key = el => { const x = el.querySelector(':scope > h2'); return x && x.getAttribute('data-t'); };
       const anchor = secs[0]; if (anchor) { const frag = document.createDocumentFragment(); const used = new Set();
-        G.forEach(([gk, ks]) => { const mine = ks.map(k => secs.find(e => key(e) === k)).filter(Boolean); if (!mine.length) return; frag.append(h('h2', { class: 'set-group', 'data-t': gk })); mine.forEach(e => { used.add(e); frag.append(e); }); });
+        G.forEach(([gk, ks]) => { const mine = ks.map(k => secs.find(e => key(e) === k)).filter(Boolean); if (!mine.length) return; frag.append(h('h2', { class: 'set-group', 'data-t': gk })); mine.forEach(e => { used.add(e); if (t(key(e)) === t(gk)) e.classList.add('same-title'); frag.append(e); }); });
         secs.filter(e => !used.has(e)).forEach(e => frag.append(e));
         w.appendChild(frag); } }
   }
@@ -993,9 +995,11 @@ PD.app = (() => {
     PD.ui.confirm(t('au.signoutQ'), async () => {
       await PD.cloud.auth.signOut();
       go('home', null, true);
-      PD.auth.gate(() => render(), { view: 'methods' });   // straight back to the sign-in screen
+      signInAgain();   // straight back to the sign-in screen
     });
   }
+  /** the sign-in screen from inside the app; the account that comes through it may be another one, even a brand-new one */
+  function signInAgain() { PD.auth.gate(ok => ok ? PD.auth.arrive(() => { render(); PD.onboard.maybe(); }) : render(), { view: 'methods' }); }
   /** an in-app Back button: the same step as the system Back when there is one, otherwise up to the section */
   function back(fallback) { if (navStack.length > 1) history.back(); else go(fallback || TOP[route] || 'home', null, true); }
   /** inside one lesson: the next step of the learning path (or null) and the way back to the whole path */

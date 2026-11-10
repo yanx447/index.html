@@ -10,6 +10,10 @@
    string 1 (A) at -x, string 3 (E) at +x (front view).
    ===================================================================== */
 PD.i18n.add({
+  'x3p.preamp': ['ტიუნერი · ექუალაიზერი', 'Tuner · Equalizer'],
+  'x3p.jack': ['ჯეკის გამოსასვლელი', 'Output jack'],
+  'pi.preamp': ['ეს ელექტროაკუსტიკური ფანდურია: კორპუსზე ჩაშენებულია ტიუნერი და ექუალაიზერი. მათი არსებობა მფლობელმა დაადასტურა; 3D-ში პანელის ზომები და მართვის ელემენტების განლაგება მიახლოებითია.', 'This electro-acoustic panduri has an onboard tuner and equalizer, confirmed by the owner. The panel dimensions and control layout in 3D are approximate.'],
+  'pi.jack': ['ჯეკის გამოსასვლელი კაბელის შესაერთებლად. ეს მფლობელმა დაადასტურა; 3D-ში მისი ზომა და მდებარეობა მიახლოებითაა ნაჩვენები.', 'Output jack for a cable connection, confirmed by the owner. Its size and position in 3D are approximate.'],
   'x3p.body': ['ტანი', 'Body'], 'x3p.top': ['დეკა', 'Soundboard'], 'x3p.neck': ['ტარი', 'Neck'], 'x3p.fret': ['ლადი', 'Fret'], 'x3p.string': ['სიმი', 'String'],
   'x3p.nut': ['ნულოვანი ლადი', 'Nut'], 'x3p.bridge': ['ხიდი', 'Bridge'], 'x3p.hole': ['სახმო ხვრელი', 'Sound hole'], 'x3p.head': ['თავი', 'Headstock'], 'x3p.tuners': ['მექანიკა', 'Tuners'],
   'pi.body': ['ამოთლილი, ღრმა ზურგი — მუქი, პრიალა. ჰაერი შიგნით ჟღერადობას აძლიერებს.', 'A deep carved back with a dark gloss finish. The air inside amplifies the sound.'],
@@ -43,9 +47,15 @@ PD._R3D = (() => {
     m[0] = d[0]; m[n - 1] = d[n - 2]; for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
     return t => { if (t <= xs[0]) return ys[0]; if (t >= xs[n - 1]) return ys[n - 1]; let i = 0; while (t > xs[i + 1]) i++; const h = xs[i + 1] - xs[i], s = (t - xs[i]) / h, s2 = s * s, s3 = s2 * s; return (2 * s3 - 3 * s2 + 1) * ys[i] + (s3 - 2 * s2 + s) * h * m[i] + (-2 * s3 + 3 * s2) * ys[i + 1] + (s3 - s2) * h * m[i + 1]; };
   }
-  // measured body outline (half width) from the neck joint (t = 0) to the flat bottom (t = 1); slight asymmetry like the real instrument
-  const HW = mono(IP.body.outline);
-  const ASYM = t => 1 + .012 * Math.sin(t * 5.2);
+  // One watertight rim for the top, veneer and back. The old independent widths left a seam at the tail.
+  const outlineWidth = mono(IP.body.outline), corner = Math.max(0, Math.min(4, IP.body.cornerRadiusMm == null ? 2.5 : IP.body.cornerRadiusMm));
+  const HW = t => {
+    const w = outlineWidth(t), q = corner ? Math.max(0, Math.min(1, (t - (1 - corner / B)) * B / corner)) : 0;
+    return w - corner * (1 - Math.sqrt(Math.max(0, 1 - q * q)));
+  };
+  const ASYM = () => 1;
+  // More samples near the tail corners, shared by every body surface.
+  const bodyT = v => v < .75 ? v * (.94 / .75) : .94 + (v - .75) * .24;
   const DEP = mono(IP.body.depth);
   const fbHalf = y => y >= BT ? 15 + 3 * (y / BT) : (y >= TONGUE + 18 ? 18 : Math.sqrt(Math.max(0, 324 - (TONGUE + 18 - y) ** 2)));
   const HOLES = [[0, SH_Y, HR]]; for (let k = 0; k < RING.smallHoles; k++) { const a = k / RING.smallHoles * Math.PI * 2 + Math.PI / RING.smallHoles; HOLES.push([Math.cos(a) * RING.ringRadiusMm, SH_Y + Math.sin(a) * RING.ringRadiusMm, RING.holeDiameterMm / 2]); }
@@ -175,10 +185,10 @@ PD._R3D = (() => {
   // baked AO: darker near the fingerboard tongue and bridge on the top, near the rim on the back
   const aoTop = (x, y) => { let a = 1; const dT = Math.hypot(x / 1.4, Math.max(0, y - TONGUE)); a -= .18 * Math.exp(-Math.pow(Math.max(0, Math.abs(x) - 18), 2) / 60) * (y > TONGUE - 20 && y < BT + 10 ? 1 : 0); a -= .14 * Math.exp(-((y - BR) * (y - BR)) / 30) * (Math.abs(x) < 32 ? 1 : 0); const t = (BT - y) / B, w = HW(Math.max(0, Math.min(1, t))); a -= .12 * Math.exp(-Math.pow(w - Math.abs(x), 2) / 40); return Math.max(.55, a + 0 * dT); };
   curPart = 'top';
-  grid(56, 110, (u, v) => { const t = v, y = BT - t * B, w = HW(t) * ASYM(t); return [(u * 2 - 1) * w, y, 0]; }, (u, v) => { const t = v, w = HW(t); return [((u * 2 - 1) * w + 120) / 240, 1 - t]; }, MAT.spruce, aoTop).holes = true;
+  grid(56, 256, (u, v) => { const t = bodyT(v), y = BT - t * B, w = HW(t) * ASYM(t); return [(u * 2 - 1) * w, y, 0]; }, (u, v) => { const t = bodyT(v), w = HW(t); return [((u * 2 - 1) * w + 120) / 240, 1 - t]; }, MAT.spruce, aoTop).holes = true;
   curPart = 'body';
-  [-1, 1].forEach(sd => grid(1, 110, (u, v) => { const t = v, y = BT - t * B; return [sd * HW(t) * ASYM(t), y, -u * 3.2]; }, null, MAT.veneer));
-  box(0, BOT + 1.6, -2.6, HW(1) * 2 - 1, 3.2, 5.2, MAT.veneer);
+  [-1, 1].forEach(sd => grid(1, 256, (u, v) => { const t = bodyT(v), y = BT - t * B; return [sd * HW(t) * ASYM(t), y, -u * 3.2]; }, null, MAT.veneer));
+  grid(48, 1, (u, v) => [(u * 2 - 1) * HW(1), BOT, -v * 3.2], null, MAT.veneer);
   // binding: a rounded edge around the whole top (sides, flat bottom, and the shoulder under the neck), so the rim reads clean from any angle
   function tubePath(P, r, sides, mat, closed) {
     const n = P.length, pos = [], idx = [];
@@ -191,23 +201,26 @@ PD._R3D = (() => {
     for (let i = 0; i < rows; i++) for (let k = 0; k < sides; k++) { const a = i * (sides + 1) + k, b = ((i + 1) % n) * (sides + 1) + k; idx.push(a, b, a + 1, a + 1, b, b + 1); }
     return mesh(pos, idx, null, mat);
   }
-  { const P = [], N = 90, zc = -1.5;
-    for (let i = 0; i <= N; i++) { const t = i / N; P.push([HW(t) * ASYM(t) + .15, BT - t * B, zc]); }
+  { const P = [], N = 256, zc = -1.5;
+    for (let i = 0; i <= N; i++) { const t = bodyT(i / N); P.push([HW(t) * ASYM(t) + .15, BT - t * B, zc]); }
     for (let i = 1; i < 12; i++) { const x = HW(1) * ASYM(1) * (1 - 2 * i / 12); P.push([x, BOT - .15, zc]); }
-    for (let i = N; i >= 0; i--) { const t = i / N; P.push([-HW(t) * ASYM(t) - .15, BT - t * B, zc]); }
+    for (let i = N; i >= 0; i--) { const t = bodyT(i / N); P.push([-HW(t) * ASYM(t) - .15, BT - t * B, zc]); }
     for (let i = 1; i < 6; i++) { const x = -HW(0) + 2 * HW(0) * i / 6; P.push([x, BT + .15, zc]); }
     tubePath(P, 1.6, 10, MAT.binding, true); }
   // carved back (outer) + interior (seen through the holes)
   const PEXP = 2.6, zb = (u, d) => -3.2 - d * Math.pow(1 - Math.pow(Math.abs(u), PEXP), 1 / PEXP);
   const aoBack = (x, y, z) => { const t = (BT - y) / B; return 1 - .25 * Math.exp(-Math.pow(z + 3.2, 2) / 50) - (t < .05 ? .15 : 0); };
-  grid(48, 90, (u, v) => { const t = v, w = HW(t) * ASYM(t), d = DEP(t), uu = u * 2 - 1; return [uu * w, BT - t * B, zb(uu, d)]; }, (u, v) => [u, v], MAT.back, aoBack);
+  grid(48, 256, (u, v) => { const t = bodyT(v), w = HW(t) * ASYM(t), d = DEP(t), uu = u * 2 - 1; return [uu * w, BT - t * B, zb(uu, d)]; }, (u, v) => [u, v], MAT.back, aoBack);
   grid(24, 40, (u, v) => { const t = .06 + v * .9, w = HW(t) - 3, d = DEP(t) - 3, uu = u * 2 - 1; return [uu * w, BT - t * B, zb(uu, d) + .5]; }, null, MAT.interior);
   { const pos = [0, BOT, -3.2 - DEP(1) * .45], idx = [], N = 48, w = HW(1), d = DEP(1); for (let i = 0; i <= N; i++) { const u = -1 + 2 * i / N; pos.push(u * w, BOT, zb(u, d)); if (i) idx.push(0, i, i + 1); } pos.push(w, BOT, -3.2, -w, BOT, -3.2); const a = N + 2, b = N + 3; idx.push(0, N + 1, a, 0, a, b, 0, b, 1); mesh(pos, idx, null, MAT.back); }
   // end button (cream) where the strings are tied, with its hole
   if (IP.hardware.endButton.present) { cyl([0, BOT - 2.2, -26], 'y', 8, 4.4, 28, MAT.key); cyl([0, BOT - 4.5, -26], 'y', 1.4, .4, 10, MAT.dark); }
   // preamp panel on the A side and output jack on the E side, as on the real instrument
+  curPart = 'preamp';
   if (IP.hardware.preamp.present) { const t = IP.hardware.preamp.at || .46, y = BT - t * B, w = HW(t); box(-w * .99 + .2, y, -13, 2.4, 74, 22, MAT.panel); [-22, -6, 10].forEach(k => cyl([-w - 1.2, y + k, -8], 'x', 3.2, 3, 14, MAT.knob)); box(-w - 1, y + 24, -18, 1, 14, 9, { color: [.1, .12, .14], rough: .2, emis: .1 }); }
+  curPart = 'jack';
   if (IP.hardware.jack.present) { const t = .86, y = BT - t * B, w = HW(t); box(w * .99 - .2, y, -14, 2, 30, 18, MAT.panel); cyl([w + 1.2, y, -14], 'x', 4, 3, 16, MAT.chrome); }
+  curPart = 'neck';
   // neck back + heel; the dark back continues as a pointed tongue onto the heel
   curPart = 'neck';
   grid(26, 56, (u, v) => { const y = (BT - 34) + (1 - (BT - 34)) * v, k = Math.min(1, Math.max(0, y / BT)); const hw = y >= BT ? 15 + 3 * k : 18 + (BT - y) * .08, dep = y >= BT ? 19 + 6 * k : 25 + (BT - y) * .55, a = Math.PI * u; return [-Math.cos(a) * hw, y, -dep * Math.sin(a)]; }, (u, v) => [u, v * 3], MAT.oak);
@@ -477,7 +490,7 @@ void main(){
   /* ---------- render loop (on demand) ---------- */
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let last = performance.now(), quality = PD.store.get('quality', 'auto'), showStrTubes = true;
-  function dpr() { const q = quality === 'auto' ? (PD.device.low ? 'low' : PD.device.mobile ? 'medium' : 'high') : quality; return Math.min(window.devicePixelRatio || 1, q === 'low' ? 1 : q === 'medium' ? 1.5 : q === 'ultra' ? 3 : 2); }
+  function dpr() { const q = quality === 'auto' ? (PD.device.low ? 'low' : PD.device.mobile ? 'medium' : 'high') : quality; return Math.min(window.devicePixelRatio || 1, q === 'low' ? 1 : q === 'medium' ? 1.5 : q === 'ultra' ? 3 : 2.5); }
   function resize() { const r = canvas.getBoundingClientRect(); if (r.width < 2) return false; W = r.width; H = r.height; const d = dpr(); const cw = Math.round(W * d), ch = Math.round(H * d); if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch; } return true; }
   function drawMesh(m, model) {
     const mt = m.mat; gl.uniformMatrix4fv(U.uM, false, model);
@@ -551,6 +564,8 @@ void main(){
 
   /* ---------- parts (labels, focus, tour) ---------- */
   const PARTS = [
+    { id: 'preamp', p: [-HW(.46) - 5, BT - .46 * B, -13], focus: { t: [-HW(.46), BT - .46 * B, -15], r: 310, theta: -Math.PI / 2, phi: 1.5 } },
+    { id: 'jack', p: [HW(.86) + 5, BT - .86 * B, -14], focus: { t: [HW(.86), BT - .86 * B, -14], r: 280, theta: Math.PI / 2, phi: 1.5 } },
     { id: 'body', p: [-HW(.6) - 4, BT - .6 * B, -40], focus: { t: [0, BT - .5 * B, -30], r: 1000, theta: Math.PI * .8, phi: 1.4 } },
     { id: 'top', p: [HW(.78) * .55, BT - .78 * B, 1], focus: { t: [0, BT - .55 * B, 0], r: 900, theta: .15, phi: 1.45 } },
     { id: 'neck', p: [26, -150, 6], focus: { t: [0, -150, 0], r: 900, theta: .35, phi: 1.4 } },

@@ -3,16 +3,24 @@
   try {
     document.documentElement.lang = PD.i18n.lang;
     const sp = document.getElementById('pd-splash'), spT = document.getElementById('pd-splash-t');
-    if (spT) spT.textContent = PD.i18n.lang === 'en' ? 'Preparing…' : 'მზადდება…';
+    if (spT) spT.textContent = PD.i18n.pick({ ka: 'მზადდება…', en: 'Preparing…' });
     PD.cloud.boot();
     PD.tv && PD.tv.init();
     PD.app.shell();
+    setTimeout(() => PD.samiSimi.prepare(), 1200);
     PD.app.go('home', null, true);
-    // first thing: sign in (Google · Facebook · phone · e-mail), then the short onboarding
-    const afterAuth = () => { if (!PD.store.get('onboarded', false)) PD.onboard.open(); else PD.intro.maybe(); };   // after onboarding: the required introduction (once)
+    // the very first screen on a new device is the language, before anything has to be read
+    // then: sign in (Google · Facebook · phone · e-mail), then the short onboarding
+    const afterAuth = () => PD.onboard.maybe();
     // the app is used with an account: without a session the sign-in screen stays until you sign in or register
     PD.store.del('auth.skip');   // the old "continue without an account" choice no longer exists
-    if (!PD.cloud.session) PD.auth.gate(afterAuth); else { afterAuth(); PD.cine.boot(); }   // signed in: the opening film once a day
+    // signing in or registering ends on the loading screen, which waits for the profile and the progress to arrive
+    const enter = () => {
+      if (!PD.cloud.session) PD.auth.gate(ok => ok ? PD.auth.arrive(afterAuth) : afterAuth());
+      else if (PD.cloud.arriving) PD.auth.arrive(afterAuth);   // back from Google / Facebook: the session came with the page
+      else afterAuth();
+    };
+    if (PD.store.get('language.chosen', false) || PD.store.get('lang', null)) enter(); else PD.ui.langFirst(enter);
     if (PD.cloud.takeRecovery()) setTimeout(() => PD.auth.newPassword(), 300);   // came from the password-reset e-mail
     window.addEventListener('keydown', e => { if (e.key === '?' && !PD.practice.active) PD.ui.toast(t('kbd.list'), 6000); });
     PD.bus.on('lessons', () => PD.pwa.persist());

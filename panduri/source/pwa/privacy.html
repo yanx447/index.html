@@ -39,7 +39,7 @@
   <!-- ===================== ქართული ===================== -->
   <article data-l="ka">
     <h1>კონფიდენციალურობის პოლიტიკა</h1>
-    <p class="date">ძალაშია: 2026 წლის 1 ნოემბრიდან</p>
+    <p class="date">ძალაშია: 2026 წლის 9 ნოემბრიდან</p>
 
     <p>ეს გვერდი აღწერს, რა მონაცემებს იყენებს აპი „ფანდური — Panduri Learning" (ვებ-აპი და Android/iOS აპი), სად ინახება ისინი და როგორ წაშალო.</p>
 
@@ -56,10 +56,12 @@
     <ul>
       <li><b>ანგარიში:</b> ელფოსტა (ან ტელეფონი), სახელი, პროფილის სურათის ბმული — Google/Facebook-ით შესვლისას ამათ ის სერვისი გვაწვდის; რეგისტრაციის და ბოლო ვიზიტის დრო.</li>
       <li><b>სწავლის პროგრესი:</b> დონე, XP, გავლილი გაკვეთილები, ვარჯიშის შედეგები და პარამეტრები — რომ სხვა მოწყობილობაზეც გქონდეს.</li>
-      <li><b>საზოგადოება:</b> შენი კითხვები, პასუხები და პირადი მიმოწერა სხვა მოსწავლეებთან.</li>
+      <li><b>საზოგადოება:</b> შენი nickname, მეგობრების სია და მეგობრობის თხოვნები; კითხვები, პასუხები და პირადი მიმოწერა მეგობრებთან; შენ მიერ გამოქვეყნებული პოსტები, კომენტარები და რეაქციები.</li>
+      <li><b>ფოტო, ვიდეო და აუდიო, რომელსაც თავად ირჩევ</b> პოსტისთვის, ჩატისთვის ან კითხვისთვის: ფაილი სერვერზე ინახება. „ყველასთვის" გამოქვეყნებულ პოსტს ხედავს ყველა შესული მომხმარებელი, „მხოლოდ მეგობრებისთვის" — შენი მეგობრები, ჩატის ფაილს — მხოლოდ ჩატის ორი მონაწილე. აპი მიკროფონით თავისით არაფერს წერს და არ ტვირთავს — იტვირთება მხოლოდ ის ფაილი, რომელსაც შენ აირჩევ. პოსტის ან შეტყობინების წაშლისას მისი ფაილიც იშლება (არაუგვიანეს ერთი დღისა).</li>
+      <li><b>შეტყობინებები</b> (თუ ჩართავ): თითოეული მოწყობილობის push-მისამართი, სადაც შეტყობინებები დაუშვი (გასვლისას იშლება), და სიმას მიერ გამოგზავნილი შეტყობინებები. ყოველდღიური შეხსენების სწორ დროს გამოსაგზავნად აპი სერვერს უგზავნის: ბოლო ვარჯიშის დროს, ზედიზედ დღეების რაოდენობას, კვირის წუთებს, შეხსენების საათს, დროის სარტყელს, ენას და იმის სახელს, რაც გელოდება (გამოცდა, სიმღერა, თეორიის თავი).</li>
       <li><b>პრემიუმი</b> (თუ შეიძენ): შესყიდვის ჩანაწერი — მაღაზია, პაკეტი, სტატუსი, ვადა. ბარათის მონაცემებს ჩვენ ვერ ვხედავთ — გადახდას Google Play / App Store ამუშავებს.</li>
     </ul>
-    <p><b>სხვა მოსწავლეები ხედავენ:</b> შენს სახელს, ფოტოს, დონეს და შენ მიერ გამოქვეყნებულ კითხვებს და პასუხებს. ელფოსტას და ტელეფონს ვერ ხედავენ.</p>
+    <p><b>სხვა მოსწავლეები ხედავენ:</b> შენს სახელს, nickname-ს, ფოტოს, დონეს, შენ მიერ გამოქვეყნებულ კითხვებს და პასუხებს, და პოსტებს — იმის მიხედვით, ვისთვის გამოაქვეყნე. საზოგადოებაში მხოლოდ შენი მეგობრები ჩანან; მეგობრად დამატება შესაძლებელია მხოლოდ ზუსტი nickname-ით. ელფოსტას და ტელეფონს ვერ ხედავენ.</p>
     <p><b>ანგარიშის გარეშე</b> პროგრესი მხოლოდ შენს მოწყობილობაზე ინახება.</p>
 
     <h2>რას არ ვაკეთებთ</h2>
@@ -71,7 +73,9 @@
 
     <h2>მომსახურება, რომელსაც აპი იყენებს</h2>
     <ul>
-      <li><b>Supabase</b> — ანგარიშები და მონაცემთა ბაზა.</li>
+      <li><b>Supabase</b> — ანგარიშები, მონაცემთა ბაზა და მომხმარებლების ფაილები.</li>
+      <li><b>GIPHY</b> — მხოლოდ მაშინ, როცა ჩატში GIF-ს ეძებ ან ხედავ: GIF-ის სურათი GIPHY-ის სერვერიდან ჩაიტვირთება. საძიებო სიტყვა ჩვენი სერვერის გავლით იგზავნება, შენი ანგარიშის გარეშე.</li>
+      <li><b>შენი ბრაუზერის ან ტელეფონის push-სერვისი</b> (Google, Apple, Mozilla ან Microsoft) — შეტყობინებას შენს მოწყობილობამდე მიიტანს. შეტყობინება დაშიფრულია ისე, რომ მხოლოდ შენს მოწყობილობას შეუძლია მისი წაკითხვა.</li>
       <li><b>Google, Facebook</b> — მხოლოდ თუ მათით შედიხარ.</li>
       <li><b>GitHub Pages</b> — ვებ-აპის ჰოსტინგი.</li>
       <li><b>Google Fonts</b> — ქართული შრიფტი.</li>
@@ -104,7 +108,7 @@
   <!-- ===================== English ===================== -->
   <article data-l="en">
     <h1>Privacy Policy</h1>
-    <p class="date">Effective 1 November 2026</p>
+    <p class="date">Effective 9 November 2026</p>
 
     <p>This page describes what data the “Panduri Learning” app (web app and Android/iOS app) uses, where it is kept, and how to delete it.</p>
 
@@ -121,10 +125,12 @@
     <ul>
       <li><b>Account:</b> e-mail (or phone), name, profile picture link — with Google/Facebook sign-in these come from that service; sign-up and last-visit time.</li>
       <li><b>Learning progress:</b> level, XP, lessons done, practice results and settings — so you have them on another device.</li>
-      <li><b>Community:</b> your questions, replies and private messages with other learners.</li>
+      <li><b>Community:</b> your nickname, your friends list and friend requests; questions, replies and private messages with your friends; the posts, comments and reactions you publish.</li>
+      <li><b>Photos, videos and audio that you choose</b> for a post, a chat or a question: the file is kept on the server. A post published for “Everyone” is seen by every signed-in member, a “Friends only” post by your friends, a chat file only by the two people in that chat. The app never records with the microphone on its own and never uploads anything you did not choose. When a post or message is deleted, its file is deleted too (within a day).</li>
+      <li><b>Notifications</b> (if you switch them on): the push address of each device where you allowed notifications (removed when you sign out), and the notifications Sima sends you. To send the daily reminder at the right time, the app sends the server the time of your last practice, your streak, this week’s minutes, your reminder hour, time zone, language and the names of what is waiting for you (an exam, a song, a theory chapter).</li>
       <li><b>Premium</b> (if you buy it): the purchase record — store, plan, status, expiry. We never see card details — Google Play / App Store handle the payment.</li>
     </ul>
-    <p><b>Other learners can see</b> your name, photo, level, and the questions and replies you post. They cannot see your e-mail or phone.</p>
+    <p><b>Other learners can see</b> your name, nickname, photo, level, the questions and replies you post, and your posts — according to who you published them for. Only your friends are listed in the community; someone can add you as a friend only by your exact nickname. They cannot see your e-mail or phone.</p>
     <p><b>Without an account</b> your progress stays only on your device.</p>
 
     <h2>What we don’t do</h2>
@@ -136,7 +142,9 @@
 
     <h2>Services the app uses</h2>
     <ul>
-      <li><b>Supabase</b> — accounts and database.</li>
+      <li><b>Supabase</b> — accounts, database and the members’ files.</li>
+      <li><b>GIPHY</b> — only when you search for or see a GIF in a chat: the GIF picture is loaded from GIPHY’s servers. The search word goes through our server, without your account.</li>
+      <li><b>The push service of your browser or phone</b> (Google, Apple, Mozilla or Microsoft) — delivers notifications to your device. The message is encrypted so that only your device can read it.</li>
       <li><b>Google, Facebook</b> — only if you sign in with them.</li>
       <li><b>GitHub Pages</b> — hosting of the web app.</li>
       <li><b>Google Fonts</b> — the Georgian typeface.</li>
@@ -170,8 +178,10 @@
 </main>
 <script>
   (function () {
+    /* the language chosen in the app; this page exists in Georgian and English only */
+    function saved() { try { return JSON.parse(localStorage.getItem('pd2:lang')); } catch (e) { return null; } }
     var q = new URLSearchParams(location.search).get('lang'), h = location.hash;
-    var lang = (q === 'ka' || q === 'en') ? q : h === '#delete-en' ? 'en' : h === '#delete' ? 'ka' : /^ka/.test(navigator.language || '') ? 'ka' : 'en';
+    var lang = (q === 'ka' || q === 'en') ? q : h === '#delete-en' ? 'en' : h === '#delete' ? 'ka' : /^ka/.test(saved() || navigator.language || '') ? 'ka' : 'en';
     function set(l) { document.documentElement.lang = l; document.querySelectorAll('nav a').forEach(function (a) { a.toggleAttribute('aria-current', a.dataset.set === l); }); }
     set(lang);
     document.querySelectorAll('nav a').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); set(a.dataset.set); }); });

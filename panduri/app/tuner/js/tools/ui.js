@@ -1,5 +1,6 @@
 // Shared helpers for the tool pages.
 import { pcLatin, pcKa } from '../music.js';
+import { trEn } from '../i18n.js';
 
 export function h(html) {
   const t = document.createElement('template');
@@ -12,7 +13,7 @@ export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', 
 /** Tiny per-module dictionary helper: tr(L, 'key', {vars}) using the current language. */
 export function makeTr(lang) {
   return (L, key, vars) => {
-    let s = (L[lang()] && L[lang()][key]) ?? L.en[key] ?? key;
+    let s = lang() === 'ka' ? (L.ka[key] ?? L.en[key] ?? key) : (L.en[key] != null ? trEn(L.en[key]) : key);
     if (vars) s = s.replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null ? vars[k] : ''));
     return s;
   };

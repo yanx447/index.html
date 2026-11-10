@@ -1,19 +1,8 @@
-/* =====================================================================
-   სიმა — the helper who answers in Georgian.
-
-   She does not invent anything. Every answer is built from what is
-   already in this app: the teacher's lessons and tips, the chord
-   library, his four rhythms, the theory chapters, the scales, and the
-   learner's own measured results. When she has nothing, she says so and
-   points at Author Studio instead of making something up.
-
-   She writes always; she speaks where the device has a Georgian voice;
-   and she can be called by name where the browser can listen.
-   ===================================================================== */
+/* Sima: text-only AI tutor with explicit local lesson fallback. */
 PD.sima = (() => {
   const h = PD.h, S = PD.store;
   const L = a => PD.i18n.pick(Array.isArray(a) ? { ka: a[0], en: a[1] } : a);
-  const NAME = 'სიმა';
+  const name = () => PD.i18n.pick({ ka: 'სიმა', en: 'Sima' });
 
   /* ---------------- what she knows ---------------- */
   const norm = s => String(s || '').toLowerCase().replace(/[«»„“”"'`.,!?()\[\]:;]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -24,7 +13,9 @@ PD.sima = (() => {
      rarely match letter for letter (სტანდარტი / სტანდარტები). Cutting the last two letters off a
      long word is crude, but it finds the stem both of them share. */
   const stem = w => w.length >= 6 ? w.slice(0, w.length - 2) : w;
-  const words = s => norm(s).split(' ').filter(w => w.length > 2 && !STOP.includes(w));
+  /* Chinese and Japanese write without spaces, so the browser's own word breaker cuts the question up */
+  const seg = () => { const c = PD.i18n.lang; return (c === 'zh' || c === 'ja') && window.Intl && Intl.Segmenter ? new Intl.Segmenter(c, { granularity: 'word' }) : null; };
+  const words = s => { const g = seg(); return g ? [...g.segment(norm(s))].filter(x => x.isWordLike && x.segment.length > 1).map(x => x.segment) : norm(s).split(' ').filter(w => w.length > 2 && !STOP.includes(w)); };
 
   /** one searchable card per thing the app already teaches */
   function index() {
@@ -51,31 +42,40 @@ PD.sima = (() => {
       kind: 'rhythm', id: r.id, src: r.source, title: L(r.name),
       body: [], go: ['rhythms', r.id], text: norm(L(r.name))
     }));
+    // the app itself: friends, the feed, notifications (facts about the app, not about playing)
+    [['friends', 'community:friends', 'მეგობარი დამატება nickname ნიკნეიმი მეგობრობა თხოვნა friend add request'],
+     ['feed', 'community', 'ფიდი პოსტი ვიდეო ფოტო მუსიკა აუდიო ატვირთვა დადება გაზიარება რეაქცია კომენტარი გლობალური feed post upload share reaction comment video photo'],
+     ['notify', 'settings', 'შეტყობინება შეხსენება push ნოტიფიკაცია განახლება notification reminder update']].forEach(([id, go, kw]) => {
+      const [r, ...p] = go.split(':'), ti = t('sm.app.' + id), body = [t('sm.app.' + id + 'B')];
+      ix.push({ kind: 'app', id, src: 'fact', title: ti, body, go: [r, p.join(':') || null], text: norm(ti + ' ' + body[0] + ' ' + kw) });
+    });
     return (api._ix = ix);
   }
 
   /* ---------------- the things she can work out herself ---------------- */
   const TH = () => PD.theory;
-  const fLab = f => f === 0 ? t('sh.open') : t('sh.fretN', { n: f });
+  const fLab = f => f === 0 ? t('sm.open') : t('sm.fret', { n: f });
 
   /** a chord by name, written out and drawn */
   function chordAnswer(q) {
     const all = (PD.curriculum.chords() || []).filter(c => !c.none);
-    const n = norm(q).replace(/\s/g, '');
+    const query = norm(q), n = query.replace(/\s/g, '');
+    const chordQuestion = /აკორდ|chord|როგორ ავიღო|how.*(?:play|hold|take)/u.test(query);
     let best = null;
     all.forEach(c => {
       const nm = norm(c.name).replace(/\s/g, ''), ka = norm(c.ka || '').replace(/\s/g, '');
       if (!nm) return;
-      if (n.includes(nm) && (!best || nm.length > norm(best.name).length)) best = c;
-      else if (ka && n.includes(ka) && !best) best = c;
+      // A chord name inside ordinary speech ("I am learning") is not a chord request.
+      const token = query.split(/[^a-z0-9#♯♭]+/u).includes(nm);
+      if ((n === nm || (chordQuestion && token)) && (!best || nm.length > norm(best.name).length)) best = c;
+      else if (ka && (n === ka || (chordQuestion && n.includes(ka))) && !best) best = c;
     });
     if (!best) return null;
     const v = (best.voicings && best.voicings[0]) || best;
-    const FN = { 1: 'საჩვენებელი', 2: 'შუა', 3: 'არათითი', 4: 'ნეკი', T: 'ცერა' };
     const rows = v.frets.map((f, k) => {
       const fi = (v.fingers || [])[k];
       return TH().stringName(k + 1) + ' — ' + (f === 0 ? t('sm.open') : t('sm.fret', { n: f })) +
-        (fi ? ' · ' + (fi === 'T' ? t('sm.thumb') : t('sm.finger', { n: fi, name: FN[fi] || '' })) : '');
+        (fi ? ' · ' + (fi === 'T' ? t('sm.thumb') : t('sm.finger', { n: fi, name: (PD.i18n.has && PD.i18n.has('fg.' + fi)) ? t('fg.' + fi) : '' })) : '');
     });
     return { title: best.name, lines: [t('sm.chordIs', { n: best.name })].concat(rows),
       src: best.src === 'teacher' ? 'teacher' : 'fact',
@@ -89,7 +89,8 @@ PD.sima = (() => {
     if (!m) return null;
     const f = +m[1], s = sm ? +sm[1] : null;
     if (f < 0 || f > TH().FRETS) return null;
-    const list = (s ? [s] : [1, 2, 3]).filter(x => x >= 1 && x <= 3).map(x => {
+    // the learner counts as the teacher does: „1-ლი სიმი" is the thin E (internal 3), „მე-3 სიმი" the bass A (internal 1)
+    const list = (s ? [4 - s] : [1, 2, 3]).filter(x => x >= 1 && x <= 3).map(x => {
       const mi = TH().midi(x, f);
       return TH().stringName(x) + ' · ' + t('sm.fret', { n: f }) + ' — ' + TH().pcName(mi) + ' (' + TH().nameKa(mi) + ')';
     });
@@ -137,11 +138,26 @@ PD.sima = (() => {
 
   /* ---------------- putting a question to her ---------------- */
   const HAS = (q, ws) => ws.some(w => norm(q).includes(w));
+  // Social messages are conversation, not lesson-search queries.
+  function conversation(q) {
+    const Q = norm(q).replace(/[—–-]/g, ' ').replace(/\s+/g, ' ').trim();
+    const rules = [
+      [/^(გამარჯობა|გამარჯობათ|გაგიმარჯოს|სალამი|ჰეი|hello|hi|hey)( სიმა| sima)?$/u, 'sm.greeting'],
+      [/^(სიმა |sima )?(როგორ ხარ|როგორ ხართ|როგორ მიდის საქმე|how are you)$/u, 'sm.howAreYou'],
+      [/^(მადლობა|დიდი მადლობა|გმადლობ|გმადლობთ|thanks|thank you)( სიმა| sima)?$/u, 'sm.thanks'],
+      [/^(ნახვამდის|კარგად იყავი|დროებით|bye|goodbye)( სიმა| sima)?$/u, 'sm.goodbye'],
+      [/^(ვინ ხარ|ვინ ხარ შენ|რა გქვია|შენ რა გქვია|who are you|what is your name)$/u, 'sm.who'],
+      [/^(კარგად ვარ|მეც კარგად ვარ|კარგად|i am fine|i'm fine|fine)$/u, 'sm.fine']
+    ];
+    const match = rules.find(([pattern]) => pattern.test(Q));
+    return match ? { title: name(), lines: [t(match[1], { n: name() })], acts: [], conversational: true } : null;
+  }
   function answer(q) {
     const Q = norm(q);
-    if (!Q) return { title: NAME, lines: [t('sm.hello', { n: NAME })], src: 'fact', acts: [] };
-    if (HAS(Q, ['გამოცდ'])) return examAnswer();
-    if (HAS(Q, ['რა ვივარჯიშ', 'რას ვივარჯიშ', 'რა ვქნა', 'რა ვაკეთო', 'სად შევჩერდი', 'შემდეგ', 'დღეს რა'])) return practiceAnswer();
+    const social = conversation(q); if (social) return social;
+    if (!Q) return { title: name(), lines: [t('sm.hello', { n: name() })], src: 'fact', acts: [] };
+    if (Q === norm(t('sm.q2')) || HAS(Q, ['გამოცდ', 'exam', 'экзамен', 'examen', 'prüfung', 'prufung', 'esame', 'exame', 'sınav', 'іспит', 'egzamin', 'امتحان', 'परीक्षा', '考试', '試験', '시험'])) return examAnswer();
+    if (Q === norm(t('sm.q1')) || HAS(Q, ['რა ვივარჯიშ', 'რას ვივარჯიშ', 'რა ვქნა', 'რა ვაკეთო', 'სად შევჩერდი', 'შემდეგ', 'დღეს რა'])) return practiceAnswer();
     const r = rhythmAnswer(Q); if (r) return r;
     const c = chordAnswer(Q); if (c) return c;
     const n = noteAnswer(Q); if (n) return n;
@@ -159,149 +175,61 @@ PD.sima = (() => {
     const top = scored[0];
     if (!top || top.s < 2) return miss();
     const x = top.x;
-    return { title: x.title, lines: x.body.length ? x.body : [t('sm.seeLesson')], src: x.src, acts: [[t('sm.open'), x.go]],
+    return { title: x.title, lines: x.body.length ? x.body : [t('sm.seeLesson')], src: x.src, acts: [[t('sm.go'), x.go]],
       more: scored.slice(1, 4).filter(y => y.s >= 2).map(y => y.x) };
   }
-  const miss = () => ({ title: NAME, lines: [t('sm.dontKnow')], src: 'fact',
+  const miss = () => ({ title: name(), lines: [t('sm.dontKnow')], src: 'fact',
     acts: [[t('nav.learn'), ['learn']], [t('tp.title'), ['tips']]] });
 
-  /* ---------------- her voice ---------------- */
-  function kaVoice() {
-    try { const vs = speechSynthesis.getVoices() || []; return vs.find(v => /^ka/i.test(v.lang)) || null; } catch (_) { return null; }
-  }
-  function say(text) {
-    if (!S.get('sima.voice', true)) return false;
-    try {
-      const v = kaVoice(); if (!v || !window.speechSynthesis) return false;
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text); u.voice = v; u.lang = v.lang; u.rate = .96;
-      speechSynthesis.speak(u); return true;
-    } catch (_) { return false; }
-  }
-
-  /* ---------------- being called by name, and talked to ----------------
-     One recogniser, two modes. In 'wake' it listens for her name wherever the
-     learner is; in 'talk' it takes the next thing said as a question, so the
-     conversation can carry on without touching the screen. It stands aside
-     while a lesson or the tuner is using the microphone, and picks up again
-     when they are done. ------------------------------------------------- */
-  const canHear = () => !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  const W = { rec: null, mode: null, want: false, tries: 0, timer: 0, heard: 0 };
-  // "სიმა" as it comes back from a recogniser: on its own, or with a case ending
-  const CALLED = /(^|\s)სიმ(ა|ას|ავ|აა|ა,)?(\s|$)|(^|\s)sima(\s|$)/;
-  const micBusy = () => !!((PD.detector && PD.detector.active) || (PD.practice && PD.practice.active));
-
-  function fab() { return document.querySelector('.sm-fab'); }
-  function mark(on) { const f = fab(); if (f) f.classList.toggle('listening', !!on); }
-
-  function stopRec() {
-    if (!W.rec) return;
-    const r = W.rec; W.rec = null; W.mode = null;
-    try { r.onend = null; r.onerror = null; r.onresult = null; r.stop(); } catch (_) {}
-    mark(false);
-  }
-  function startRec(mode) {
-    if (!canHear() || micBusy()) return false;
-    if (W.rec && W.mode === mode) return true;
-    stopRec();
-    const R = window.SpeechRecognition || window.webkitSpeechRecognition, r = new R();
-    r.lang = 'ka-GE'; r.interimResults = false; r.continuous = mode === 'wake';
-    r.onresult = e => {
-      W.tries = 0;
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const raw = e.results[i][0].transcript, said = norm(raw);
-        if (mode === 'talk') { W.heard = Date.now(); put(raw.trim()); return; }
-        if (CALLED.test(said)) {
-          W.heard = Date.now();
-          const at = said.search(CALLED), after = said.slice(at).replace(CALLED, ' ').trim();
-          stopRec(); open(after || '');
-        }
-      }
-    };
-    r.onerror = ev => { if (ev && (ev.error === 'not-allowed' || ev.error === 'service-not-allowed')) { W.want = false; S.set('sima.wake', false); PD.ui.toast(t('sm.micNo'), 4000); stopRec(); } };
-    r.onend = () => { if (W.rec === r) { W.rec = null; W.mode = null; mark(false); schedule(); } };
-    try { r.start(); } catch (_) { return false; }
-    W.rec = r; W.mode = mode; mark(mode === 'wake' || mode === 'talk');
-    return true;
-  }
-  /** keep her ear open: restart after a pause, back off if the browser keeps refusing */
-  function schedule() {
-    clearTimeout(W.timer);
-    if (!W.want || !canHear()) return;
-    const wait = Math.min(8000, 400 * Math.pow(1.7, Math.min(6, W.tries++)));
-    W.timer = setTimeout(() => {
-      if (!W.want) return;
-      if (micBusy()) { W.tries = 0; return schedule(); }
-      startRec(box ? 'talk' : 'wake');
-    }, wait);
-  }
-  function listen(on) {
-    W.want = !!on && canHear();
-    clearTimeout(W.timer);
-    if (!W.want) { stopRec(); return canHear(); }
-    W.tries = 0;
-    if (!startRec(box ? 'talk' : 'wake')) schedule();
-    return true;
-  }
-  // a lesson or the tuner takes the microphone; she waits and comes back
-  setInterval(() => {
-    if (!W.want) return;
-    if (micBusy()) { if (W.rec) stopRec(); return; }
-    if (!W.rec) schedule();
-  }, 2500);
+  // Text-only compatibility API: no speech or microphone access.
+  const say = () => false, canHear = () => false, kaVoice = () => null;
+  const W = { want: false, rec: null };
+  const fab = () => document.querySelector('.sm-fab');
+  const listen = () => false, stopRec = () => {}, schedule = () => {}, startRec = () => false;
+  let history = [], pending = false, generation = 0;
 
   /* ---------------- the panel ---------------- */
-  let box = null, noted = false;
+  let box = null;
   function close() {
+    generation++; pending = false; history = [];
     if (box) { box.remove(); box = null; }
-    try { speechSynthesis.cancel(); } catch (_) {}
+
     if (W.want) { stopRec(); schedule(); }
   }
   function open(q) {
     close();
-    const log = h('div', { class: 'sm-log' });
-    const input = h('input', { class: 'input sm-in', type: 'text', placeholder: t('sm.ask'), 'aria-label': t('sm.ask') });
-    const send = () => { const v = input.value.trim(); if (!v) return; input.value = ''; put(v); };
+    const log = h('div', { class: 'sm-log', role: 'log', 'aria-live': 'polite' });
+    const input = h('input', { class: 'input sm-in', type: 'text', placeholder: t('sm.ask'), maxlength: '2000', 'aria-label': t('sm.ask') });
+    const send = () => { if (pending) return; const v = input.value.trim(); if (!v) return; input.value = ''; put(v); };
     const mic = canHear() ? h('button', { class: 'btn small', text: '🎤', 'aria-label': t('sm.once'), onclick: once }) : null;
     const head = h('div', { class: 'sm-head' }, [
-      h('div', { class: 'sm-av', text: 'ს' }),
-      h('div', { class: 'grow' }, [h('b', { text: NAME }), h('small', { class: 'muted', text: t('sm.sub') })]),
+      h('div', { class: 'sm-av', text: name()[0] }),
+      h('div', { class: 'grow' }, [h('b', { text: name() }), h('small', { class: 'muted', text: t('sm.sub') })]),
       h('button', { class: 'btn icon quiet', 'aria-label': t('close'), html: PD.ic.close || '✕', onclick: close })]);
-    box = h('div', { class: 'sm-wrap', role: 'dialog', 'aria-label': NAME }, [
-      h('div', { class: 'sm-card' }, [head, log,
+    box = h('div', { class: 'sm-wrap', role: 'dialog', 'aria-label': name() }, [
+      h('div', { class: 'sm-card' }, [head, h('small', { class: 'muted sm-note', text: t('sm.privacy') }), log,
         h('div', { class: 'sm-chips' }, [
-          [t('sm.q1'), 'რა ვივარჯიშო დღეს'], [t('sm.q2'), 'გამოცდა'], [t('sm.q3'), 'როგორ ავიღო Bm'], [t('sm.q4'), 'აჭარული']
-        ].map(([lab, q2]) => h('button', { class: 'chip', text: lab, onclick: () => put(q2) }))),
+          t('sm.q1'), t('sm.q2'), t('sm.q3'), t('sm.q4')
+        ].map(lab => h('button', { class: 'chip', text: lab, onclick: () => put(lab) }))),
         h('div', { class: 'sm-row' }, [input, mic, h('button', { class: 'btn primary', text: t('sm.send'), onclick: send })].filter(Boolean)),
         canHear() && !S.get('sima.wake', false)
-          ? h('button', { class: 'btn small sm-wake', text: t('sm.wakeAsk', { n: NAME }), onclick: async e2 => { if (await wakeOn()) e2.currentTarget.remove(); } })
-          : canHear() ? h('small', { class: 'muted sm-note', text: t('sm.wakeLive', { n: NAME }) }) : null])]);
+          ? h('button', { class: 'btn small sm-wake', text: t('sm.wakeAsk', { n: name() }), onclick: async e2 => { if (await wakeOn()) e2.currentTarget.remove(); } })
+          : canHear() ? h('small', { class: 'muted sm-note', text: t('sm.wakeLive', { n: name() }) }) : null])]);
     document.body.appendChild(box);
     input.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); send(); } };
     PD.i18n.apply(box);
-    if (q) put(q); else { bubble(t('sm.hello', { n: NAME }), null); if (W.want) { stopRec(); setTimeout(() => { if (W.want && box) startRec('talk'); }, 250); } }
+    if (q) put(q); else { bubble(t('sm.hello', { n: name() }), null); if (W.want) { stopRec(); setTimeout(() => { if (W.want && box) startRec('talk'); }, 250); } }
     setTimeout(() => { try { input.focus({ preventScroll: true }); } catch (_) {} }, 60);
   }
-  function once() {
-    if (!canHear()) return;
-    if (micBusy()) return PD.ui.toast(t('sm.micBusy'), 3000);
-    stopRec();
-    if (startRec('talk')) PD.ui.toast(t('sm.listening'), 2200);
-  }
-  /** ask for the microphone and keep her ear open from then on */
-  async function wakeOn() {
-    if (!canHear()) { PD.ui.toast(t('sm.wakeNo'), 4000); return false; }
-    try { const st = await navigator.mediaDevices.getUserMedia({ audio: true }); st.getTracks().forEach(x => x.stop()); }
-    catch (_) { PD.ui.toast(t('sm.micNo'), 4000); return false; }
-    S.set('sima.wake', true); listen(true); PD.ui.toast(t('sm.wakeOn', { n: NAME }), 3400); return true;
-  }
+  const once = () => false, wakeOn = async () => false;
   const SRC = { teacher: 'tp.src.teacher', draft: 'tp.src.draft', general: 'tp.src.general', fact: 'tp.src.fact' };
   function bubble(text, a, who) {
     if (!box) return;
     const el = h('div', { class: 'sm-b ' + (who === 'me' ? 'me' : 'her') },
       a && a.title ? [h('b', { class: 'sm-t', text: a.title }), h('p', { text })] : [h('p', { text })]);
     if (a) {
-      if (a.src && SRC[a.src]) el.append(h('span', { class: 'tp-src ' + a.src, text: t(SRC[a.src]) }));
+      if (a.ai) el.append(h('span', { class: 'tp-src draft', text: t('sm.aiLabel') }));
+      if (a.src && SRC[a.src]) el.append(h('span', { class: 'tp-src ' + a.src, text: (PD.ui.srcLabel ? PD.ui.srcLabel(SRC[a.src]) : t(SRC[a.src])) }));
       if (a.acts && a.acts.length) el.append(h('div', { class: 'sm-acts' }, a.acts.map(([lab, go, fn]) =>
         h('button', { class: 'btn small', text: lab, onclick: () => { close(); if (fn) fn(); else if (go) PD.app.go(go[0], go[1] || null); } }))));
       if (a.more && a.more.length) el.append(h('div', { class: 'sm-more' }, a.more.map(x =>
@@ -309,25 +237,55 @@ PD.sima = (() => {
     }
     const lg = box.querySelector('.sm-log'); if (lg) { lg.append(el); lg.scrollTop = lg.scrollHeight; }
   }
-  function put(q) {
+  async function put(q) {
     if (!box) open();
+    if (pending) return;
+    q = String(q).trim().slice(0, 2000); if (!q) return;
     bubble(q, null, 'me');
-    const a = answer(q);
-    const text = a.lines.join('\n');
-    bubble(text, a);
-    const spoke = say(a.title + '. ' + a.lines.join('. '));
-    if (W.want && box) { stopRec(); setTimeout(() => { if (W.want && box) startRec('talk'); }, spoke ? 1600 : 350); }
-    if (!spoke && !noted && S.get('sima.voice', true)) {
-      noted = true;
-      const lg = box && box.querySelector('.sm-log');
-      if (lg) lg.append(h('small', { class: 'muted sm-note', text: t('sm.noVoice') }));
+    const local = answer(q);
+    if (local.conversational && (!PD.cloud || !PD.cloud.configured || !PD.cloud.user)) {
+      bubble(local.lines.join('\n'), local);
+      history = history.concat({ role: 'user', content: q }, { role: 'assistant', content: local.lines.join('\n') }).slice(-10);
+      return;
+    }
+    if (!PD.cloud || !PD.cloud.configured || !PD.cloud.user) {
+      bubble(t(PD.cloud && PD.cloud.configured ? 'sm.signIn' : 'sm.notConnected'), null);
+      bubble(local.lines.join('\n'), local);
+      return;
+    }
+    pending = true;
+    const current = generation, panel = box;
+    panel.querySelectorAll('.sm-row button, .sm-chips button').forEach(b => b.disabled = true);
+    const status = h('small', { class: 'muted sm-note', text: t('sm.thinking'), role: 'status' });
+    panel.querySelector('.sm-log').append(status);
+    try {
+      const result = await PD.cloud.sima({
+        messages: history.concat({ role: 'user', content: q }).slice(-12), language: PD.i18n.lang,
+        context: { title: local.title, lines: local.lines, source: local.src,
+          related: index().filter(x => words(q).some(w => x.text.includes(stem(w)))).slice(0, 5)
+            .map(x => ({ title: x.title, lines: x.body, source: x.src })) }
+      });
+      if (current !== generation || panel !== box) return;
+      if (!result || typeof result.text !== 'string' || !result.text.trim()) throw new Error('empty');
+      history = history.concat({ role: 'user', content: q }, { role: 'assistant', content: result.text }).slice(-10);
+      bubble(result.text, { title: name(), ai: true });
+    } catch (_) {
+      if (current !== generation || panel !== box) return;
+      bubble(t('sm.unavailable'), null);
+      bubble(local.lines.join('\n'), local);
+    } finally {
+      status.remove();
+      if (current === generation && panel === box) {
+        pending = false;
+        panel.querySelectorAll('.sm-row button, .sm-chips button').forEach(b => b.disabled = false);
+      }
     }
   }
 
   /* ---------------- the button that is always there ---------------- */
   function mount() {
     if (document.querySelector('.sm-fab') || !S.get('sima.on', true)) return;
-    const b = h('button', { class: 'sm-fab', 'aria-label': NAME, onclick: () => open('') }, [h('span', { text: 'ს' })]);
+    const b = h('button', { class: 'sm-fab', 'aria-label': name(), onclick: () => open('') }, [h('span', { text: name()[0] })]);
     document.body.appendChild(b);
   }
   function refresh() { const b = fab(); if (b) b.remove(); mount(); listen(S.get('sima.wake', false)); }
@@ -346,18 +304,31 @@ PD.sima = (() => {
     if (!a) return;
     S.set('sima.lastNudge', Date.now());
     const tip = h('button', { class: 'sm-tip', onclick: () => { tip.remove(); open(a.q); } },
-      [h('span', { class: 'sm-av', text: 'ს' }), h('span', { text: t('sm.nudge', { n: NAME }) })]);
+      [h('span', { class: 'sm-av', text: name()[0] }), h('span', { text: t('sm.nudge', { n: name() }) })]);
     document.body.appendChild(tip);
     setTimeout(() => tip.remove(), 12000);
   }
 
-  const api = { NAME, open, close, answer, say, listen, wakeOn, once, canHear, kaVoice, mount, refresh, nudge, index, get hearing() { return !!W.rec; } };
+  PD.bus.on('lang', () => { api._ix = null; });   // what she searches is the text in the chosen language
+  const api = { get NAME() { return name(); }, open, close, answer, say, listen, wakeOn, once, canHear, kaVoice, mount, refresh, nudge, index, get hearing() { return !!W.rec; } };
   return api;
 })();
 
 PD.i18n.add({
-  'sm.sub': ['შენი დამხმარე — ვპასუხობ მხოლოდ იმით, რაც ამ აპშია', 'Your helper — I answer only from what is in this app'],
-  'sm.hello': ['გამარჯობა, მე {n} ვარ. მკითხე: რა ვივარჯიშო, როგორ ავიღო აკორდი, რომელი ნოტია რომელ ლადზე, ან რითმებზე.', 'Hello, I am {n}. Ask me what to practise, how to take a chord, which note is on which fret, or about the rhythms.'],
+  'sm.greeting': ['გამარჯობა! მიხარია, რომ მომწერე. როგორ ხარ?', 'Hello! Glad to hear from you. How are you?'],
+  'sm.howAreYou': ['მადლობა მოკითხვისთვის! მზად ვარ, გესაუბრო და სწავლაში დაგეხმარო. შენ როგორ ხარ?', 'Thanks for asking! I am ready to chat and help you learn. How are you?'],
+  'sm.thanks': ['არაფრის! თუ კიდევ რამე დაგაინტერესებს, მომწერე.', 'You are welcome! If you have another question, just ask.'],
+  'sm.goodbye': ['დროებით! როცა მოგინდება, ისევ მომწერე.', 'Bye! Come back whenever you like.'],
+  'sm.who': ['მე {n} ვარ, შენი AI სასწავლო დამხმარე. შეგიძლია ჩვეულებრივად მომწერო — კითხვები დამისვა და მითხრა, რისი გაგება გინდა.', 'I am {n}, your AI learning helper. You can write naturally, ask questions and tell me what you want to understand.'],
+  'sm.fine': ['მიხარია! რაზე გინდა ვისაუბროთ?', 'Glad to hear it! What would you like to talk about?'],
+  'sm.aiLabel': ['AI პასუხი • შეიძლება შეცდეს', 'AI response • may make mistakes'],
+  'sm.thinking': ['სიმა პასუხს ამზადებს…', 'Sima is preparing an answer…'],
+  'sm.notConnected': ['AI სერვერი ჯერ არ არის დაკავშირებული. ქვემოთ აპის სასწავლო მასალაა.', 'The AI server is not connected yet. Below is material from the app.'],
+  'sm.signIn': ['AI საუბრისთვის შედი ანგარიშში. ქვემოთ აპის სასწავლო მასალაა.', 'Sign in for AI conversation. Below is material from the app.'],
+  'sm.unavailable': ['AI პასუხი ახლა ვერ მივიღე. სცადე ხელახლა; ქვემოთ აპის სასწავლო მასალაა.', 'The AI could not reply. Try again; below is material from the app.'],
+  'sm.sub': ['შენი სასწავლო თანამოსაუბრე • მხოლოდ ტექსტით', 'Your learning companion • text only'],
+  'sm.hello': ['გამარჯობა! მე {n} ვარ. როგორ ხარ? შეგიძლია ჩვეულებრივად მომწერო და მკითხო, რაც გაინტერესებს.', 'Hello! I am {n}. How are you? You can chat naturally and ask me what you would like to know.'],
+  'sm.privacy': ['AI ჩატის ტექსტი მუშავდება AI სერვისში. პირადი მონაცემები არ ჩაწერო.', 'AI chat text is processed by an AI service. Avoid personal details.'],
   'sm.ask': ['დამიწერე კითხვა…', 'Type your question…'], 'sm.send': ['კითხვა', 'Ask'], 'sm.once': ['ერთხელ მკითხე ხმით', 'Ask once by voice'],
   'sm.listening': ['გისმენ…', 'Listening…'],
   'sm.q1': ['რა ვივარჯიშო დღეს?', 'What should I practise today?'], 'sm.q2': ['გამოცდა მელოდება?', 'Is an exam waiting?'],
@@ -365,6 +336,10 @@ PD.i18n.add({
   'sm.chordIs': ['{n} ასე იჭერა:', '{n} is held like this:'],
   'sm.open': ['ღია', 'open'], 'sm.fret': ['{n} ლადი', 'fret {n}'], 'sm.thumb': ['ცერა თითი (T)', 'the thumb (T)'],
   'sm.finger': ['{n} — {name} თითი', 'finger {n} — {name}'],
+  'sm.go': ['გახსნა', 'Open'],
+  'sm.app.friends': ['მეგობრის დამატება', 'Adding a friend'], 'sm.app.friendsB': ['საზოგადოება → მეგობრები: ჩაწერე მეგობრის ზუსტი nickname და გაუგზავნე თხოვნა. როცა დაგეთანხმება, შეგატყობინებ — და მერე შეგიძლიათ ერთმანეთს მიწეროთ.', 'Community → Friends: type your friend\u2019s exact nickname and send a request. I will tell you when they accept — then you can write to each other.'],
+  'sm.app.feed': ['ფოტოს, ვიდეოს ან მუსიკის გამოქვეყნება', 'Posting a photo, video or music'], 'sm.app.feedB': ['საზოგადოება → ფიდი → „+": აირჩიე ფაილი, დაწერე აღწერა და აირჩიე, ვინ ნახავს — ყველა (გლობალური) ან მხოლოდ მეგობრები. ორჯერ შეხება პოსტზე ფანდურის რეაქციაა.', 'Community → Feed → “+”: choose a file, write a caption and pick who sees it — everyone (global) or friends only. A double tap on a post gives it the panduri.'],
+  'sm.app.notify': ['შეტყობინებები', 'Notifications'], 'sm.app.notifyB': ['პარამეტრები → შეტყობინებები: ჩართე და აირჩიე, რაზე გინდა ჩემგან შეტყობინება და რომელ საათზე შეგახსენო ვარჯიში. მოვა ყველა მოწყობილობაზე, სადაც შესული ხარ.', 'Settings → Notifications: switch them on, choose what I should tell you about and when to remind you to practise. They reach every device you are signed in on.'],
   'sm.openChord': ['აკორდი ტარზე', 'The chord on the neck'], 'sm.howTaken': ['როგორ აიღო', 'How to take it'],
   'sm.noteOn': ['ნოტი ლადზე', 'The note on that fret'], 'sm.openFret': ['ლადების რუკა', 'The fret map'],
   'sm.rhythmIs': ['{n} — {c} დარტყმა:', '{n} — {c} strokes:'],
@@ -376,7 +351,7 @@ PD.i18n.add({
   'sm.examNone': ['ახლა გამოცდა არ გელოდება.', 'No exam is waiting right now.'], 'sm.examGo': ['გამოცდაზე გადასვლა', 'Go to the exam'],
   'sm.seeLesson': ['ეს გაკვეთილი ამას ხსნის — გახსენი და ნახე.', 'This lesson explains it — open it and see.'],
   'sm.dontKnow': ['ამაზე პასუხი ამ აპში ჯერ არ არის. არ მინდა მოგიგონო — ჰკითხე მასწავლებელს, და როგორც კი დაამატებს, გეტყვი.', 'There is no answer for that in this app yet. I will not make one up — ask the teacher, and once it is added I will tell you.'],
-  'sm.noVoice': ['ამ მოწყობილობას ქართული ხმა არ აქვს — ვწერ, ხმით ვერ ვკითხულობ.', 'This device has no Georgian voice — I write, but cannot read aloud.'],
+  'sm.noVoice': ['ამ მოწყობილობას ქართული ხმა არ აქვს — ვწერ, ხმით ვერ ვკითხულობ.', 'This device has no voice for this language — I write, but cannot read aloud.'],
   'sm.nudge': ['{n}-ს რჩევა აქვს', '{n} has a suggestion'],
   'sm.title': ['სიმა — დამხმარე', 'Sima — the helper'],
   'sm.on': ['სიმა ჩართულია', 'Sima is on'], 'sm.voice': ['ხმით კითხულობს', 'Reads aloud'],

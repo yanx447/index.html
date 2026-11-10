@@ -63,7 +63,7 @@ PD.install = (() => {
     window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); prompt = e; PD.bus.emit('installable', true); });
     window.addEventListener('appinstalled', () => { prompt = null; PD.bus.emit('installable', false); });
   } catch (_) {}
-  const standalone = () => { try { return window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: window-controls-overlay)').matches || navigator.standalone === true; } catch (_) { return false; } };
+  const standalone = () => { try { return window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: window-controls-overlay)').matches || navigator.standalone === true || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch (_) { return false; } };
 
   const UA = navigator.userAgent || '';
   const touchMac = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;   // an iPad says it is a Mac
@@ -117,7 +117,7 @@ PD.install = (() => {
     }
     drawAct();
     const un = PD.bus.on('installable', () => { drawAct(); PD.i18n.apply(act); });
-    PD.bus.on('route', () => un());
+    const unR = PD.bus.on('route', () => { un(); unR(); });   // once: otherwise every visit leaves one more listener behind
     w.append(act);
 
     // this device first
@@ -130,7 +130,7 @@ PD.install = (() => {
       try { await navigator.clipboard.writeText(url); PD.ui.toast(t('ins.copied')); } catch (_) {}
     } });
     const row = h('div', { class: 'in-link' }, [h('code', { text: url }), copy]);
-    if (navigator.share) row.append(h('button', { class: 'btn small', 'data-t': 'ins.share', onclick: () => { try { navigator.share({ title: 'ფანდური', url }); } catch (_) {} } }));
+    if (navigator.share) row.append(h('button', { class: 'btn small', 'data-t': 'ins.share', onclick: () => { try { navigator.share({ title: t('app.name'), url }); } catch (_) {} } }));
     w.append(row);
 
     // every other device, for when the app is opened somewhere else

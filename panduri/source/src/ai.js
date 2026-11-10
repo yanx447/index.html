@@ -18,17 +18,17 @@ PD.i18n.add({
   'ai.est': ['AI-ის შეფასებაა — ყურით შეამოწმე. საუკეთესოდ მუშაობს მკაფიო აკორდებიან სიმღერებზე.', 'An AI estimate — check it by ear. Works best on songs with clear chords.'],
   'ai.now': ['ახლა', 'Now'], 'ai.next': ['შემდეგი', 'Next'], 'ai.nc': ['აკორდი არ არის', 'No chord'], 'ai.used': ['სიმღერაში: {n} აკორდი', 'In the song: {n} chords'],
   'ai.stems': ['ინსტრუმენტები', 'Instruments'], 'ai.stemsD': ['AI სიმღერას ყოფს ინსტრუმენტებად: ვოკალი · დრამი · ბასი · დანარჩენი (ფანდური…), სურვილისამებრ გიტარა და ფორტეპიანოც. თითოეულს აქვს ხმა, მარცხნივ/მარჯვნივ, M (ჩუმად) და S (მხოლოდ ეს) — ამოიღე ვოკალი და იმღერე, ან ინსტრუმენტი და თავად დაუკარი.', 'The AI splits the song into instruments: vocals · drums · bass · the rest (panduri…), optionally guitar and piano too. Each has volume, left/right, M (mute) and S (solo) — take the vocals out and sing, or the instrument out and play it yourself.'],
-  'ai.split': ['ინსტრუმენტებად დაყოფა', 'Split into instruments'], 'ai.splitNote': ['პირველად AI მოდელი ერთხელ ჩამოიტვირთება (4 ინსტრ. ~85 MB, 6 ინსტრ. ~55 MB). 4-წუთიანი სიმღერა კომპიუტერზე რამდენიმე წუთი მუშავდება, ტელეფონზე — უფრო დიდხანს; ამ დროს აპი არ დახურო.', 'The first time, the AI model downloads once (4 instr. ~85 MB, 6 instr. ~55 MB). A 4-minute song takes a few minutes on a computer, longer on a phone; keep the app open meanwhile.'],
+  'ai.split': ['ინსტრუმენტებად დაყოფა', 'Split into instruments'], 'ai.splitNote': ['პირველად AI მოდელი ერთხელ ჩამოიტვირთება (~85 MB). კომპიუტერზე, ბრაუზერში WebGPU-ით (Chrome, Edge, ახალი Safari) 4-წუთიანი სიმღერა დაახლოებით 2 წუთში იყოფა; WebGPU-ს გარეშე — 8–10 წუთში. ამ დროს აპი არ დახურო.', 'The first time, the AI model downloads once (~85 MB). On a computer, in a browser with WebGPU (Chrome, Edge, recent Safari), a 4-minute song splits in about 2 minutes; without WebGPU, in 8–10 minutes. Keep the app open meanwhile.'],
   'ai.passOn': ['უფასო სესია · „{s}“ · დარჩა {left}', 'Free session · “{s}” · {left} left'],
   'ai.passBusy': ['ეს უფასო სესია „{s}“-სთვისაა (დარჩა {left}). სხვა სიმღერა დღეს ვერ გაიხსნება — პრემიუმში შეზღუდვა არ არის.', 'This free session is for “{s}” ({left} left). Another song cannot be opened today — Premium has no limit.'],
   'ai.passOut': ['დღევანდელი უფასო {n}-საათიანი სესია დასრულდა. ახალი სესია ხვალ — პრემიუმში შეზღუდვა საერთოდ არ არის.', "Today's free {n}-hour session is over. A new session tomorrow — Premium has no limit at all."],
   'ai.passH': ['{h} სთ {m} წთ', '{h} h {m} min'], 'ai.passHh': ['{h} საათი', '{h} h'], 'ai.passM': ['{m} წთ', '{m} min'],
   'ai.vidPm': ['ვიდეოს ანალიზი პრემიუმშია. აუდიო ფაილები (mp3, m4a, wav…) უფასოდ მუშაობს.', 'Video analysis is in Premium. Audio files (mp3, m4a, wav…) work for free.'],
   'ai.dayOut': ['უფასოდ დღეში {n} ახალი სიმღერაა — დღევანდელი ამოიწურა. უკვე გახსნილი სიმღერების ხელახლა გახსნა ყოველთვის უფასოა.', 'Free is {n} new songs a day — today is used up. Reopening a song you already analysed is always free.'],
-  'ai.premium': ['პრემიუმი', 'Premium'], 'ai.test': ['სატესტო წვდომა', 'Test access'], 'ai.locked': ['ინსტრუმენტებად დაყოფა პრემიუმის ფუნქციაა.', 'Splitting into instruments is a Premium feature.'],
+  'ai.premium': ['პრემიუმი', 'Premium'], 'ai.locked': ['ინსტრუმენტებად დაყოფა პრემიუმის ფუნქციაა.', 'Splitting into instruments is a Premium feature.'],
   'ai.dl': ['მოდელი იტვირთება: {a} / {b} MB', 'Downloading the model: {a} / {b} MB'], 'ai.unpack': ['მოდელი მზადდება…', 'Preparing the model…'], 'ai.init': ['AI ეშვება…', 'Starting the AI…'], 'ai.proc': ['AI ყოფს: {p}% · დარჩა ~{m}', 'The AI is splitting: {p}% · ~{m} left'],
   'ai.fail': ['AI ვერ გაეშვა: {e}', 'The AI could not run: {e}'], 'ai.mem': ['მოწყობილობას მეხსიერება არ ეყო. სცადე უფრო მოკლე ნაწილი ან კომპიუტერი.', 'The device ran out of memory. Try a shorter part or a computer.'],
-  'ai.range': ['რომელი ნაწილი', 'Which part'], 'ai.all': ['მთელი სიმღერა', 'Whole song'], 'ai.first': ['პირველი {n} წმ', 'First {n} s'], 'ai.fromHere': ['აქედან {n} წმ', '{n} s from here'],
+  'ai.range': ['რომელი ნაწილი', 'Which part'], 'ai.whole2': ['მთელი სიმღერა · ვოკალი და დანარჩენი', 'Whole song · voice and the rest'], 'ai.fsOn': ['სრული ეკრანი', 'Full screen'], 'ai.fsOff': ['გამოსვლა', 'Exit'], 'ai.vChart': ['ჩარტი', 'Chart'], 'ai.vAll': ['ყველა გადასვლა', 'Every change'], 'ai.chartCycle': ['წრე', 'Cycle'], 'ai.chartD': ['სიმღერა წრეებად, როგორც სიმღერების წიგნში: ერთი სტრიქონი — ერთი წრე, „×N“ — რამდენჯერ მეორდება ზედიზედ, „·“ — იგივე აკორდი გრძელდება. შეეხე სტრიქონს და იქ გადახვალ.', 'The song in cycles, as a songbook writes it: one line a cycle, “×N” — how many times it repeats in a row, “·” — the same chord goes on. Tap a line to jump there.'], 'ai.gpuBad': ['ამ კომპიუტერის GPU-მ დაყოფა არასწორად გამოთვალა — თავიდან ვიწყებ პროცესორზე (უფრო ნელა, მაგრამ სწორად).', 'This computer\'s GPU computed the split wrongly — starting again on the processor (slower, but right).'], 'ai.all': ['მთელი სიმღერა', 'Whole song'], 'ai.first': ['პირველი {n} წმ', 'First {n} s'], 'ai.fromHere': ['აქედან {n} წმ', '{n} s from here'],
   'ai.vocals': ['ვოკალი', 'Vocals'], 'ai.drums': ['დრამი', 'Drums'], 'ai.bass': ['ბასი', 'Bass'], 'ai.other': ['დანარჩენი (ფანდური…)', 'The rest (panduri…)'], 'ai.mute': ['ჩუმად', 'Mute'], 'ai.solo': ['მხოლოდ ეს', 'Solo'], 'ai.save': ['WAV', 'WAV'],
   'ai.stemsOn': ['ისმის AI-ით დაყოფილი ვერსია', 'Playing the AI-split version'], 'ai.orig': ['ორიგინალი', 'Original'], 'ai.mixed': ['AI მიქსი', 'AI mix'], 'ai.speedStems': ['AI მიქსში სიჩქარე ცვლის ბგერის სიმაღლესაც.', 'In the AI mix, speed also changes the pitch.'],
   'ai.recent': ['ბოლოს გაანალიზებული', 'Recently analysed'], 'ai.fx': ['ეფექტები', 'Effects'], 'ai.fxOpen': ['EQ · რევერბი · ექო', 'EQ · reverb · echo'], 'ai.comp': ['კომპრესორი', 'Compressor'], 'ai.fxStems': ['AI მიქსში ეფექტები თითოეულ ინსტრუმენტს ცალკე აქვს — FX ღილაკი ინსტრუმენტის ხაზზე.', 'In the AI mix each instrument has its own effects — the FX button on its row.'],
@@ -37,7 +37,9 @@ PD.i18n.add({
   'ai.bpmSet': ['ტემპი ხელით', 'Set the tempo'], 'ai.bpmD': ['AI-ის გაზომვა: {n} BPM. შეცვალე და დარტყმები ამ ტემპზე თავიდან დაეწყობა — ჩანაწერის ატაკებზე მიბმული.', 'The AI measured {n} BPM. Change it and the beats are tracked again at that tempo, still locked onto the attacks in the recording.'],
   'ai.bpmApply': ['დაყენება', 'Apply'],
   'ai.slowRead': ['ამ ფორმატს ბრაუზერი პირდაპირ ვერ კითხულობს — ხმას დაკვრისას ვიღებ.', 'This browser cannot read this format directly — the sound is being taken as it plays.'],
-  'ai.slowReadP': ['ხმას ვიღებ: {p}%  · დარჩა ~{m}', 'Taking the sound: {p}% · ~{m} left'],
+  'ai.slowReadP': ['ხმას ვიღებ: {p}% · დარჩა ~{m}', 'Taking the sound: {p}% · ~{m} left'],
+  'ai.sSpec': ['ვუსმენ ხმას…', 'Listening to the sound…'], 'ai.sTempo': ['ვზომავ ტემპს…', 'Measuring the tempo…'],
+  'ai.sKey': ['ვეძებ ტონალობას…', 'Finding the key…'], 'ai.sChord': ['ვეძებ აკორდებს…', 'Finding the chords…'],
   'ai.slowNote': ['ასეთი ფაილი ორჯერ უფრო სწრაფად იკითხება, ვიდრე ისმის. ერთხელ წავიკითხავ და შემდეგ ჩვეულებრივად იმუშავებს.', 'A file like this is read about twice as fast as it plays. It is read once, and then everything works as usual.'],
   'ai.noPlay': ['ამ ფაილს ეს ბრაუზერი საერთოდ ვერ უკრავს. სცადე MP4, WebM, MP3, M4A ან WAV.', 'This browser cannot play this file at all. Try MP4, WebM, MP3, M4A or WAV.'],
   'ai.rhy': ['რითმი', 'Rhythm'], 'ai.rhyD': ['ტაქტები ერთმანეთს ზემოდან დავადე და ვნახე, სად მეორდება დარტყმა. სიმაღლე გაზომილი ძალაა.', 'The bars were laid on top of each other to see where the strokes repeat. The height is the measured strength.'],
@@ -59,6 +61,7 @@ PD.i18n.add({
   'ai.geoPer': ['წაკითხულია როგორც თითო დარტყმა — თითო თვლა; გაზომილია {n} წრე.', 'Read as one stroke per beat; {n} cycles measured.'],
   'ai.geoIn1': ['წაკითხულია როგორც მთელი ნახატი ერთ თვლაში; გაზომილია {n} წრე.', 'Read as the whole pattern inside one beat; {n} cycles measured.'],
   'ai.geoIn2': ['წაკითხულია როგორც ნახატი ორ თვლაზე; გაზომილია {n} წრე.', 'Read as the pattern across two beats; {n} cycles measured.'],
+  'ai.geoSub': ['წაკითხულია როგორც {s} დარტყმა ერთ თვლაში; გაზომილია {n} წრე.', 'Read as {s} strokes to a beat; {n} cycles measured.'],
   'ai.geoNo': ['ქართულ რითმებთან ახლო დამთხვევა ვერ ვიპოვე.', 'No close match with the Georgian rhythms was found.'],
   'ai.geoD': ['ვადარებ იმ ოთხ რითმს, რომელიც მასწავლებელმა მოგვცა: ყაზბეგური, მთიულური, ხორუმი, აჭარული. ნარნარი, ოსური და დანარჩენები ჯერ არ გვაქვს — როგორც კი მათი დარტყმები შემოვა, AI მათაც იცნობს.', 'Compared with the four rhythms the teacher gave: Kazbeguri, Mtiuluri, Khorumi, Acharuli. Narnari, Osuri and the others are not in the app yet — as soon as their strokes are added, the AI will know them too.'],
   'ai.rhyNoStems': ['ინსტრუმენტების დაყოფა ამისთვის საჭირო არ არის — AI უსმენს მთლიან ჩანაწერში დრამისა და დოლის დარტყმებს.', 'No instrument separation is needed for this — the AI listens to the drum and doli strokes in the whole recording.'],
@@ -70,7 +73,7 @@ PD.i18n.add({
   'ai.vidBad': ['ამ ვიდეოს ხმა ვერ წავიკითხე. ამოიღე აუდიო (MP3/M4A/WAV) და ის ჩააგდე.', 'The sound of this video could not be read. Take the audio out (MP3/M4A/WAV) and drop that instead.'],
   'ai.goto': ['გადასვლა', 'Go to'], 'ai.gotoD': ['წუთი:წამი — მაგ. 1:24', 'minute:second — e.g. 1:24'], 'ai.gotoBar': ['ტაქტზე', 'To bar'],
   'ai.jump': ['გადახვევა', 'Jump'], 'ai.start': ['თავიდან', 'To the start'], 'ai.end': ['ბოლოში', 'To the end'],
-  'ai.keys': ['ღილაკები: ჰარი — დაკვრა/პაუზა · ← → — 5 წმ · Shift+← → — 1 წმ · Home/End — თავი/ბოლო', 'Keys: space — play/pause · ← → — 5 s · Shift+← → — 1 s · Home/End — start/end'],
+  'ai.keys': ['ღილაკები: ჰარი — დაკვრა/პაუზა · ← → — 5 წმ · Shift+← → — 1 წმ · Home/End — თავი/ბოლო · F — სრული ეკრანი', 'Keys: space — play/pause · ← → — 5 s · Shift+← → — 1 s · Home/End — start/end · F — full screen'],
   'ai.spSlow': ['ნელა', 'Slower'], 'ai.spFast': ['სწრაფად', 'Faster'], 'ai.bpmAuto': ['AI-ის ტემპი', 'Back to the AI tempo'], 'ai.tap': ['დააკაკუნე', 'Tap'], 'ai.tapD': ['დააკაკუნე დარტყმაზე 4-ჯერ მაინც', 'Tap on the beat at least 4 times'],
   'ai.regrid': ['დარტყმებს თავიდან ვაწყობ…', 'Tracking the beats again…'], 'ai.bpmBy': ['ხელით დაყენებული', 'set by hand'],
   'ai.unsure': ['დარწმუნებული არ ვარ', 'Not sure'],
@@ -128,8 +131,9 @@ PD.ai = (() => {
   const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
   const SR = 44100;
   const BASE = (() => { const p = location.pathname; return location.protocol.startsWith('http') && /\/panduri\/app\//.test(p) ? new URL('../ai/', location.href).href : 'https://yanx447.github.io/index.html/panduri/ai/'; })();
-  /** one gate for every premium door in the studio (the author and the test switch always pass) */
-  const pro = f => !!(PD.premium && PD.premium.allows(f)) || !!PD.store.get('author', false) || !!PD.store.get('ai.test', false);
+  /** one gate for every premium door in the studio. The owner passes through PD.premium itself
+      (premium.active is true for the server's is_owner()); no stored switch opens a door on its own. */
+  const pro = f => !!(PD.premium && PD.premium.allows(f));
   const lock = f => PD.premium.paywall(f);
   const allowed = () => pro('ai.stems');
   /* ---- the free studio session ------------------------------------------------
@@ -191,7 +195,12 @@ PD.ai = (() => {
     '9': .18, 'maj9': .19, 'm9': .19, '11': .21, '13': .21
   };
   /** one template per root and quality: the chord's intervals, weighted, with its own prior */
-  function buildTemplates(voc, thirdW) {
+  /* A plucked string is not one pitch: its 3rd harmonic sounds a fifth above (open A rings an E), its 5th a
+     major third above (D rings an F♯). A template made of the chord's notes alone therefore loses to whichever
+     chord happens to own those overtones — Dm read as Am on the teacher's own recording. With `harm` > 0 each
+     chord note brings its first six harmonics, weighted harm^(h−1). */
+  const HARM_PC = [0, 0, 7, 0, 4, 7];   // harmonics 1…6, as pitch classes above the note
+  function buildTemplates(voc, thirdW, harm) {
     const TY = (PD.theory && PD.theory.CHORD_TYPES) || [], want = qualities(voc), out = [];
     const W = iv => iv === 0 ? 1 : (iv === 3 || iv === 4) ? thirdW : iv === 7 ? .9 : .62;
     want.forEach(q => {
@@ -200,84 +209,146 @@ PD.ai = (() => {
       for (let r = 0; r < 12; r++) {
         const v = new Float32Array(12);
         iv.forEach(i => { const pc = (r + i) % 12; v[pc] = Math.max(v[pc], W(i % 12)); });
+        if (harm > 0) { const v0 = v.slice(); for (let pc = 0; pc < 12; pc++) if (v0[pc] > 0) for (let hh = 1; hh < HARM_PC.length; hh++) v[(pc + HARM_PC[hh]) % 12] += v0[pc] * Math.pow(harm, hh); }
         out.push({ r, q, base, v, cost: PRIOR[q] != null ? PRIOR[q] : .2 });
       }
     });
     return out;
   }
-  /** mono 22.05 kHz signal → { chords:[{t0,t1,root,q,name}], key, bpm, beats } */
+  /** the recording's own tuning: how far its notes sit from A = a4, in semitones (−0.5 … 0.5).
+      Measured on the spectral peaks of a few hundred frames spread over the song, as a circular
+      mean (so +0.49 and −0.49 count as neighbours). A folk recording is often not at A440, and a
+      chroma built on the wrong grid splits every note between two pitch classes. */
+  function tuningOf(mono, sr, N, fft, mag, a4) {
+    const hop = N / 4, frames = Math.floor((mono.length - N) / hop); if (frames < 4) return 0;
+    const K = Math.min(400, frames), step = frames / K, k0 = Math.ceil(150 * N / sr), k1 = Math.min(N / 2 - 2, Math.floor(2000 * N / sr));
+    let sx = 0, sy = 0;
+    for (let j = 0; j < K; j++) {
+      fft(mono, Math.floor(j * step) * hop, mag);
+      let mx = 0; for (let k = k0; k <= k1; k++) if (mag[k] > mx) mx = mag[k]; if (mx <= 0) continue;
+      for (let k = k0; k <= k1; k++) {
+        const v = mag[k]; if (v < mx * .1 || v < mag[k - 1] || v < mag[k + 1]) continue;
+        const a = Math.log(mag[k - 1] + 1e-9), b = Math.log(v + 1e-9), c = Math.log(mag[k + 1] + 1e-9), den = a - 2 * b + c, d = den ? .5 * (a - c) / den : 0;
+        const m = 12 * Math.log2((k + d) * sr / N / a4), dev = m - Math.round(m), w = v / mx;
+        sx += w * Math.cos(2 * Math.PI * dev); sy += w * Math.sin(2 * Math.PI * dev);
+      }
+    }
+    return sx || sy ? Math.atan2(sy, sx) / (2 * Math.PI) : 0;
+  }
+  const isMinorQ = q => /^(m(?!aj)|dim)/.test(q || '');
+  /** the key, read from the chords that were heard: the key whose own chords cover most of the song,
+      with a head start for the key whose tonic is played most and where the song starts and ends.
+      The chroma profile (Krumhansl–Kessler) only breaks a tie. Major/minor only: that is all these
+      models know, and the page says the key is the nearest major or minor one. */
+  function keyFromChords(chs, prof) {
+    const MAJ = [[0, ''], [2, 'm'], [4, 'm'], [5, ''], [7, ''], [9, 'm']], MIN = [[0, 'm'], [3, ''], [5, 'm'], [7, 'm'], [7, ''], [8, ''], [10, '']];
+    const on = chs.filter(c => c.root >= 0); if (!on.length) return null;
+    const tot = on.reduce((a, c) => a + (c.t1 - c.t0), 0) || 1, first = on[0], last = on[on.length - 1];
+    let best = null;
+    for (let r = 0; r < 12; r++) for (const q of ['', 'm']) {
+      const dia = new Set((q ? MIN : MAJ).map(([d, qq]) => ((r + d) % 12) + qq));
+      let fit = 0, tonic = 0;
+      on.forEach(c => { const d = c.t1 - c.t0, base = isMinorQ(c.q) ? 'm' : ''; if (dia.has(c.root + base)) fit += d; if (c.root === r && base === q) tonic += d; });
+      const ends = [first, last].filter(c => c.root === r && (isMinorQ(c.q) ? 'm' : '') === q).length;
+      const s = fit / tot + .35 * tonic / tot + .04 * ends + .03 * ((prof && prof[r + q]) || 0);
+      if (!best || s > best.s) best = { r, q, s, fit: fit / tot };
+    }
+    return { r: best.r, q: best.q, s: +best.fit.toFixed(2) };
+  }
+  /** mono 22.05 kHz signal → { chords:[{t0,t1,root,q,conf}], key, bpm, beats, phase, tune }.
+      The chords are read on the beats, the way a player thinks of them: the chroma of every beat
+      (or half beat, for fast songs) is matched against the chord templates and a Viterbi path keeps
+      a chord until the music clearly moves on. The beat grid is the same one the player follows. */
   async function analyse(mono, sr, onProgress, opt, onStage) {
-    opt = Object.assign({ bassW: .12, change: .34, keyBonus: .06, smooth: .12, nc: .35, third: .85, voc: 'ext', minBeats: .28, fast: 1 }, opt || {});
-    // the window has to be shorter than the chord. At 8192 (371 ms) two fast chords always arrived
-    // mixed together and only the slow ones survived; 4096 is 186 ms, about half a beat at 160 BPM.
-    // time resolution comes from the step, not from shortening the window further: below 4096 the
-    // bins can no longer tell one semitone from the next in the low register and the chroma blurs.
-    const N = opt.fast <= 0 ? 8192 : 4096, HOPA = opt.fast >= 2 ? N / 8 : N / 4;
+    opt = Object.assign({ bassW: 0, keyBonus: .04, nc: .35, third: .85, voc: 'ext', fast: 1, beats: null, tune: null, harm: .8, floor: .8 }, opt || {});
+    const CH = opt.changeSeg != null ? opt.changeSeg : opt.fast >= 2 ? .005 : opt.fast <= 0 ? .05 : .012;   // what a change of chord costs, per beat (measured on the teacher's song: qa/ai-bani.cjs)
+    const N = 4096, HOPA = N / 4;
     const fft = fftMag(N), mag = new Float32Array(N / 2), frames = Math.max(1, Math.floor((mono.length - N) / HOPA));
-    // bins → pitch class, 55 Hz .. 1.76 kHz, weighted toward the middle register
+    const a4 = PD.theory && PD.theory.a4 ? PD.theory.a4() : 440;
+    const tune = opt.tune != null ? opt.tune : tuningOf(mono, sr, N, fft, mag, a4);
+    // bins → pitch class on the recording's own grid, 55 Hz .. 1.76 kHz, weighted toward the middle register
     const pcOf = new Int8Array(N / 2).fill(-1), wOf = new Float32Array(N / 2);
-    const tol = N >= 8192 ? .35 : .42;
-    for (let k = 1; k < N / 2; k++) { const f = k * sr / N; if (f < 55 || f > 1760) continue; const m = 69 + 12 * Math.log2(f / 440), r = Math.round(m); if (Math.abs(m - r) > tol) continue; pcOf[k] = ((r % 12) + 12) % 12; wOf[k] = Math.exp(-Math.pow((m - 60) / 20, 2)); }
-    const chroma = [], bass = [], flux = new Float32Array(frames); let prev = new Float32Array(N / 2);
+    for (let k = 1; k < N / 2; k++) { const f = k * sr / N; if (f < 55 || f > 1760) continue; const m = 69 + 12 * Math.log2(f / a4) - tune, r = Math.round(m); if (Math.abs(m - r) > .42) continue; pcOf[k] = ((r % 12) + 12) % 12; wOf[k] = Math.exp(-Math.pow((m - 60) / 20, 2)); }
+    const chroma = [], bass = [], flux = new Float32Array(frames), loud = new Float32Array(frames); let prev = new Float32Array(N / 2);
     for (let i = 0; i < frames; i++) {
       fft(mono, i * HOPA, mag);
-      const c = new Float32Array(12), bs = new Float32Array(12); let fl = 0;
-      for (let k = 1; k < N / 2; k++) { const v = mag[k]; if (pcOf[k] >= 0) { const s = Math.sqrt(v) * wOf[k]; c[pcOf[k]] += s; const fb = k * sr / N; if (fb >= 60 && fb < 260) bs[pcOf[k]] += Math.sqrt(v); } const d = v - prev[k]; if (d > 0 && k < 1200) fl += d; }
-      prev.set(mag); flux[i] = fl;
+      const c = new Float32Array(12), bs = new Float32Array(12); let fl = 0, ld = 0;
+      for (let k = 1; k < N / 2; k++) { const v = mag[k]; if (pcOf[k] >= 0) { const sq = Math.sqrt(v), s = sq * wOf[k]; c[pcOf[k]] += s; ld += sq; const fb = k * sr / N; if (fb >= 60 && fb < 260) bs[pcOf[k]] += sq; } const d = v - prev[k]; if (d > 0 && k < 1200) fl += d; }
+      prev.set(mag); flux[i] = fl; loud[i] = ld;
       const mx = Math.max(...c) || 1; for (let j = 0; j < 12; j++) c[j] /= mx;
       chroma.push(c); bass.push(bs);
-      if (i % 200 === 0) { onProgress && onProgress(i / frames); await new Promise(r => setTimeout(r, 0)); }
+      if (i % 200 === 0) { onProgress && onProgress(i / frames * .8); await new Promise(r => setTimeout(r, 0)); }
     }
-    const dt = HOPA / sr;
+    const dt = HOPA / sr, fc = i => i * dt + N / 2 / sr, dur = mono.length / sr;
     onStage && onStage('tempo');
     // tempo: autocorrelation of the onset strength, 60–180 BPM, a gentle preference for ~100
     const fm = flux.reduce((a, b) => a + b, 0) / frames || 1, on = flux.map(v => Math.max(0, v / fm - 1));
     let bestL = 0, bestS = -1; for (let bpm = 60; bpm <= 180; bpm += .5) { const L = 60 / bpm / dt; let s = 0; for (let i = Math.ceil(L); i < frames; i++) { const a = i - L, i0 = Math.floor(a), f = a - i0; s += on[i] * (on[i0] * (1 - f) + (on[i0 + 1] || 0) * f); } s *= Math.exp(-Math.pow(Math.log2(bpm / 100), 2) * .5); if (s > bestS) { bestS = s; bestL = bpm; } }
-    const bpm = Math.round(bestL);
-    // smooth the chroma over ~half a beat
-    const win = Math.max(0, Math.min(3, Math.round(opt.smooth * 60 / bpm / dt))), sm = chroma.map((_, i) => { const o = new Float32Array(12); let n = 0; for (let j = Math.max(0, i - win); j <= Math.min(frames - 1, i + win); j++) { for (let k = 0; k < 12; k++) o[k] += chroma[j][k]; n++; } for (let k = 0; k < 12; k++) o[k] /= n; return o; });
+    let bpm = Math.round(bestL), beats = opt.beats;
+    if (!beats || beats.length < 4) { const bt = await beatsOf(mono, sr, bpm, null); beats = bt.beats; bpm = bt.bpm; }
+    onProgress && onProgress(.88);
     onStage && onStage('key');
-    // key: Krumhansl–Kessler profiles on the whole chroma
+    // the chroma profile over the whole song (used to break ties between keys)
     const tot = new Float32Array(12); chroma.forEach(c => { for (let k = 0; k < 12; k++) tot[k] += c[k]; });
     const MAJ = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88], MIN = [6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
-    const corr = (a, b) => { const ma = a.reduce((x, y) => x + y, 0) / 12, mb = b.reduce((x, y) => x + y, 0) / 12; let n = 0, da = 0, db = 0; for (let i = 0; i < 12; i++) { n += (a[i] - ma) * (b[i] - mb); da += (a[i] - ma) ** 2; db += (b[i] - mb) ** 2; } return n / Math.sqrt(da * db); };
-    let key = { r: 0, q: '', s: -2 }; for (let r = 0; r < 12; r++) for (const [q, P] of [['', MAJ], ['m', MIN]]) { const rot = P.map((_, i) => P[(i - r + 12) % 12]); const c = corr(Array.from(tot), rot); if (c > key.s) key = { r, q, s: c }; }
-    // chords that belong to the key get a small head start
-    const dia = new Set((key.q ? [[0, 'm'], [3, ''], [5, 'm'], [7, 'm'], [7, ''], [8, ''], [10, '']] : [[0, ''], [2, 'm'], [4, 'm'], [5, ''], [7, ''], [9, 'm']]).map(([d, q]) => ((key.r + d) % 12) + q));
-    // the chord vocabulary: every quality the app knows, or just the triads — the caller chooses.
-    // Each template is the chord's own intervals; the more notes a chord has, the more evidence it needs.
-    const T = buildTemplates(opt.voc, opt.third);
-    const score = (c, b, tpl) => { let d = 0, nc = 0, nt = 0; for (let k = 0; k < 12; k++) { d += c[k] * tpl.v[k]; nc += c[k] * c[k]; nt += tpl.v[k] * tpl.v[k]; } let s = d / Math.sqrt(nc * nt + 1e-9); const bm = Math.max(...b) || 1; s += opt.bassW * (b[tpl.r] / bm); return s; };
+    const corr = (a, b) => { const ma = a.reduce((x, y) => x + y, 0) / 12, mb = b.reduce((x, y) => x + y, 0) / 12; let n = 0, da = 0, db = 0; for (let i = 0; i < 12; i++) { n += (a[i] - ma) * (b[i] - mb); da += (a[i] - ma) ** 2; db += (b[i] - mb) ** 2; } return n / Math.sqrt(da * db || 1); };
+    const prof = {}; let key = { r: 0, q: '', s: -2 };
+    for (let r = 0; r < 12; r++) for (const [q, P] of [['', MAJ], ['m', MIN]]) { const c = corr(Array.from(tot), P.map((_, i) => P[(i - r + 12) % 12])); prof[r + q] = c; if (c > key.s) key = { r, q, s: c }; }
     onStage && onStage('chord');
-    const K = T.length, NC = K;   // state K = no chord
-    const em = sm.map((c, i) => { const e = new Float32Array(K + 1), energy = c.reduce((a, b) => a + b, 0); for (let k = 0; k < K; k++) e[k] = score(c, bass[i], T[k]) + (dia.has(T[k].r + T[k].base) ? opt.keyBonus : 0) - T[k].cost; e[NC] = energy < 1.2 ? .75 : opt.nc; return e; });
-    // Viterbi: staying is cheap, changing costs
-    const stay = 0, change = -opt.change * (HOPA / sr) / .0929;   // scaled to the old frame step, so the setting keeps its meaning
-    let dp = em[0].slice(), back = [];
-    for (let i = 1; i < frames; i++) {
-      let bi = 0; for (let k = 1; k <= K; k++) if (dp[k] > dp[bi]) bi = k;
-      const nd = new Float32Array(K + 1), bk = new Int16Array(K + 1);
-      for (let k = 0; k <= K; k++) { const a = dp[k] + stay, b = dp[bi] + change; if (a >= b) { nd[k] = a + em[i][k] * 1.6; bk[k] = k; } else { nd[k] = b + em[i][k] * 1.6; bk[k] = bi; } }
-      back.push(bk); dp = nd;
+    // the segments: every beat (two per beat when the chords move fast), plus whatever lies before the first and after the last
+    const edges = [0];
+    const push = x => { if (x > edges[edges.length - 1] + .08 && x < dur - .08) edges.push(x); };
+    for (let k = 0; k < beats.length; k++) { push(beats[k]); if (opt.fast >= 2 && k + 1 < beats.length) push((beats[k] + beats[k + 1]) / 2); }
+    edges.push(dur);
+    const nS = edges.length - 1, segC = [], segB = [], segL = new Float32Array(nS);
+    for (let s = 0, i = 0; s < nS; s++) {
+      const c = new Float32Array(12), b = new Float32Array(12); let n = 0, ld = 0;
+      while (i < frames && fc(i) < edges[s]) i++;
+      for (let j = i; j < frames && fc(j) < edges[s + 1]; j++) { for (let k = 0; k < 12; k++) { c[k] += chroma[j][k]; b[k] += bass[j][k]; } ld += loud[j]; n++; }
+      if (!n) { const j = Math.max(0, Math.min(frames - 1, Math.round(((edges[s] + edges[s + 1]) / 2 - N / 2 / sr) / dt))); for (let k = 0; k < 12; k++) { c[k] = chroma[j][k]; b[k] = bass[j][k]; } ld = loud[j]; n = 1; }
+      segC.push(c); segB.push(b); segL[s] = ld / n;
     }
-    let s = 0; for (let k = 1; k <= K; k++) if (dp[k] > dp[s]) s = k;
-    const path = new Int16Array(frames); path[frames - 1] = s; for (let i = frames - 2; i >= 0; i--) { s = back[i][s]; path[i] = s; }
-    const chords = []; let st = 0;
-    for (let i = 1; i <= frames; i++) if (i === frames || path[i] !== path[st]) {
-      const k = path[st], t0 = st * dt + N / 2 / sr, t1 = i * dt + N / 2 / sr;
-      // how sure: the chosen template against the best other one, averaged over the segment
-      let mine = 0, other = 0;
-      for (let j = st; j < i; j++) { mine += em[j][k]; let b2 = -1e9; for (let m = 0; m <= K; m++) if (m !== k && em[j][m] > b2) b2 = em[j][m]; other += b2; }
-      const n2 = Math.max(1, i - st), conf = Math.max(0, Math.min(1, ((mine - other) / n2) / .12));
-      if (k !== NC) chords.push({ t0, t1, root: T[k].r, q: T[k].q, conf: +conf.toFixed(2) });
-      else chords.push({ t0, t1, root: -1, q: '', conf: +conf.toFixed(2) });
-      st = i;
+    const lsort = Array.from(segL).sort((a, b) => a - b), lmed = lsort[lsort.length >> 1] || 1;
+    // what every pitch class has in common (the bed of the mix, the noise) says nothing about the chord: take it out
+    if (opt.floor > 0) segC.forEach(c => { const m = Array.from(c).sort((a, b) => a - b)[6] * opt.floor; for (let k = 0; k < 12; k++) c[k] = Math.max(0, c[k] - m); });
+    const T = buildTemplates(opt.voc, opt.third, opt.harm), K = T.length, NC = K;
+    const score = (c, b, tpl) => { let d = 0, nc = 0, nt = 0; for (let k = 0; k < 12; k++) { d += c[k] * tpl.v[k]; nc += c[k] * c[k]; nt += tpl.v[k] * tpl.v[k]; } let s = d / Math.sqrt(nc * nt + 1e-9); if (opt.bassW) { const bm = Math.max(...b) || 1; s += opt.bassW * (b[tpl.r] / bm); } return s; };
+    function decode(dia) {
+      const em = segC.map((c, s) => { const e = new Float32Array(K + 1); for (let k = 0; k < K; k++) e[k] = score(c, segB[s], T[k]) - T[k].cost + (dia && dia.has(T[k].r + T[k].base) ? opt.keyBonus : 0); e[NC] = segL[s] < lmed * .06 ? 2 : opt.nc; return e; });
+      let dp = em[0].slice(); const back = [];
+      for (let s = 1; s < nS; s++) {
+        let bi = 0; for (let k = 1; k <= K; k++) if (dp[k] > dp[bi]) bi = k;
+        const nd = new Float32Array(K + 1), bk = new Int16Array(K + 1), sw = dp[bi] - CH;
+        for (let k = 0; k <= K; k++) { if (dp[k] >= sw) { nd[k] = dp[k] + em[s][k]; bk[k] = k; } else { nd[k] = sw + em[s][k]; bk[k] = bi; } }
+        back.push(bk); dp = nd;
+      }
+      let st = 0; for (let k = 1; k <= K; k++) if (dp[k] > dp[st]) st = k;
+      const path = new Int16Array(nS); path[nS - 1] = st; for (let s = nS - 2; s >= 0; s--) { st = back[s][st]; path[s] = st; }
+      const out = []; let a = 0;
+      for (let s = 1; s <= nS; s++) if (s === nS || path[s] !== path[a]) {
+        const k = path[a]; let mine = 0, other = 0;
+        for (let j = a; j < s; j++) { mine += em[j][k]; let b2 = -1e9; for (let m = 0; m <= K; m++) if (m !== k && em[j][m] > b2) b2 = em[j][m]; other += b2; }
+        const conf = Math.max(0, Math.min(1, ((mine - other) / Math.max(1, s - a)) / .12));
+        out.push(k !== NC ? { t0: edges[a], t1: edges[s], root: T[k].r, q: T[k].q, conf: +conf.toFixed(2) } : { t0: edges[a], t1: edges[s], root: -1, q: '', conf: +conf.toFixed(2) });
+        a = s;
+      }
+      return out;
     }
-    // drop blips shorter than half a beat (merge into the neighbour)
-    const minD = (opt.minBeats == null ? .28 : opt.minBeats) * 60 / bpm; const merged = [];
-    chords.forEach(c => { const l = merged[merged.length - 1]; if (l && (c.t1 - c.t0 < minD || (l.root === c.root && l.q === c.q))) { l.t1 = c.t1; l.conf = Math.min(l.conf == null ? 1 : l.conf, c.conf == null ? 1 : c.conf); } else merged.push(Object.assign({}, c)); });
+    // first without any idea of the key; then the key from those chords; then once more, the key's own chords a little ahead
+    let chords = decode(null);
+    const k2 = keyFromChords(chords, prof);
+    if (k2) {
+      key = k2;
+      const dia = new Set((key.q ? [[0, 'm'], [3, ''], [5, 'm'], [7, 'm'], [7, ''], [8, ''], [10, '']] : [[0, ''], [2, 'm'], [4, 'm'], [5, ''], [7, ''], [9, 'm']]).map(([d, q]) => ((key.r + d) % 12) + q));
+      if (opt.keyBonus) chords = decode(dia);
+    }
+    // the bar: chords tend to change on its first beat
+    const g = 4, ch = chords.map(c => c.t0).filter(x => x > 0); let phase = 0, pb = -1;
+    for (let ph = 0; ph < g; ph++) { let n = 0; beats.forEach((b, k) => { if ((k - ph) % g === 0 && ch.some(x => Math.abs(x - b) < .06)) n++; }); if (n > pb) { pb = n; phase = ph; } }
     onProgress && onProgress(1);
-    return { chords: merged, key, bpm, dur: mono.length / sr };
+    const out = { chords, key, bpm, dur, beats, phase, tune: +tune.toFixed(3) };
+    if (opt.debug) out._seg = { edges, chroma: segC.map(c => Array.from(c)), bass: segB.map(c => Array.from(c)) };
+    return out;
   }
   /** pull every chord edge onto the nearest beat, when it is already close to one.
       A chord that changes on the beat should be written on the beat, not 40 ms before it. */
@@ -404,7 +475,7 @@ PD.ai = (() => {
     worker.onmessage = e => { if (e.data && e.data.type === 'ready') worker.ready = true; onMsg(e.data); }; worker.onerror = e => onMsg({ type: 'error', msg: e.message || 'worker' });
     return worker;
   }
-  const hasGPU = () => !!navigator.gpu;
+  const hasGPU = () => !!navigator.gpu && !PD.store.get('ai.noGpu', false);   // a GPU that once computed the stems wrongly is not asked again
 
   /* ======================= WAV export ======================= */
   function wav(L, R, sr) {
@@ -419,8 +490,24 @@ PD.ai = (() => {
     const own = (() => { const offs = []; const un = PD.bus.on('route', () => { offs.forEach(f => { try { f(); } catch (_) {} }); un(); }); return f => offs.push(f); })();
     const back = () => PD.app.back('songs');
     const leadP = h('p', { class: 'muted', 'data-t': 'ai.lead' });
-    const headRow = h('div', { class: 'row pg-head' }, [PD.app.route === 'ai' ? null : h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'ai.title', style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]);
+    /* the full screen: the studio alone — no navigation, the page as wide as the screen, the ribbon taller. The browser's
+       own full screen is asked for too where it exists (not on an iPhone, which keeps the page view). Esc or the button leave it. */
+    const FS_IN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+    const FS_OUT = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+    const fsBtn = h('button', { class: 'btn small ghost ai-fs', 'aria-pressed': 'false', html: FS_IN + '<span class="ai-fsl"></span>', onclick: () => setFull(!document.body.classList.contains('ai-full')) });
+    function setFull(on) {
+      document.body.classList.toggle('ai-full', on);
+      fsBtn.setAttribute('aria-pressed', String(on)); fsBtn.innerHTML = (on ? FS_OUT : FS_IN) + '<span class="ai-fsl">' + PD.esc(t(on ? 'ai.fsOff' : 'ai.fsOn')) + '</span>'; fsBtn.setAttribute('aria-label', t(on ? 'ai.fsOff' : 'ai.fsOn'));
+      try { if (on && !document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); else if (!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); } catch (_) {}
+      setTimeout(() => { window.dispatchEvent(new Event('resize')); if (S && S.ui) S.ui.redraw(); }, 80);
+    }
+    const onFsChange = () => { if (!document.fullscreenElement && document.body.classList.contains('ai-full')) setFull(false); };
+    document.addEventListener('fullscreenchange', onFsChange);
+    const onFsKey = e => { if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return; if (e.key === 'f' || e.key === 'F' || e.key === 'ფ') { e.preventDefault(); setFull(!document.body.classList.contains('ai-full')); } };
+    document.addEventListener('keydown', onFsKey);
+    const headRow = h('div', { class: 'row pg-head' }, [PD.app.route === 'ai' ? null : h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'ai.title', style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' }), h('span', { class: 'spacer' }), fsBtn]);
     w.append(headRow, leadP);
+    fsBtn.querySelector('.ai-fsl').textContent = t('ai.fsOn'); fsBtn.setAttribute('aria-label', t('ai.fsOn'));
     const input = h('input', { type: 'file', accept: 'audio/*,video/*,.mp3,.m4a,.wav,.ogg,.oga,.opus,.flac,.aac,.wma,.mp4,.m4v,.mov,.webm,.mkv,.avi,.3gp,.ogv,.ts', hidden: true, onchange: e => { const f = e.target.files && e.target.files[0]; if (f) open(f); e.target.value = ''; } });
     const drop = h('button', { class: 'ai-drop', onclick: () => input.click() }, [h('span', { class: 'ai-drop-ic', html: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 30V8M15 17l9-9 9 9"/><path d="M8 30v6a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-6"/></svg>' }), h('b', { 'data-t': 'ai.pick' }), h('small', { 'data-t': 'ai.pickD' })]);
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); }); drop.addEventListener('dragleave', () => drop.classList.remove('over'));
@@ -430,7 +517,8 @@ PD.ai = (() => {
     w.append(input, drop, passEl, status, body);
     let S = null;   // the current song
     const stopAll = () => { if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
-    own(stopAll); own(() => { if (worker) { try { worker.terminate(); } catch (_) {} worker = null; } });
+    own(() => { document.removeEventListener('fullscreenchange', onFsChange); document.removeEventListener('keydown', onFsKey); if (document.body.classList.contains('ai-full')) setFull(false); });   // leaving the studio leaves the full screen
+    own(stopAll); own(() => { if (worker) { try { worker.terminate(); } catch (_) {} worker = null; } if (splWorker) { try { splWorker.terminate(); } catch (_) {} splWorker = null; } });   // leaving the studio stops both engines
     /** the free session's clock: how long is left, and the studio closes when it runs out */
     function showPass() {
       if (pro('ai.more')) { passEl.hidden = true; return; }
@@ -459,13 +547,13 @@ PD.ai = (() => {
         }
         if (st === 'new') passStart(file);
       }
-      let ab = null;
+      let ab = null, cap = false;
       if (!PD.store.get('ai.forceCapture', false)) { try { ab = await decode(file); } catch (e) { ab = null; } }
       if (!ab) {
         // the browser would not read the file itself; if it can play it, the sound is taken as it plays
         bar(t('ai.slowRead'), .05);
         const t0c = Date.now();
-        try { ab = await captureDecode(file, isVid, p => { const el2 = Date.now() - t0c, left = p > .02 ? el2 / p - el2 : 0; bar(t('ai.slowReadP', { p: Math.round(p * 100), m: PD.fmtTime(Math.max(1, left / 1000)) }), .05 + .45 * p); }); }
+        try { cap = true; ab = await captureDecode(file, isVid, p => { const el2 = Date.now() - t0c, left = p > .02 ? el2 / p - el2 : 0; bar(t('ai.slowReadP', { p: Math.round(p * 100), m: PD.fmtTime(Math.max(1, left / 1000)) }), .05 + .45 * p); }); }
         catch (e) { status.innerHTML = ''; status.append(h('p', { class: 'notice', text: t(/play|empty/.test(String(e && e.message)) ? 'ai.noPlay' : (isVid ? 'ai.vidBad' : 'ai.bad')) })); return; }
       }
       let res = saved && saved.res; const S0 = {};
@@ -474,7 +562,6 @@ PD.ai = (() => {
         const mono22 = await resample(ab, 22050, 1);
         let stage = 'ai.sSpec';
         const o0 = { voc: PD.store.get('ai.voc', 'ext'), fast: PD.store.get('ai.fast', 1) };
-        o0.change = o0.fast >= 2 ? .24 : o0.fast <= 0 ? .5 : .34; o0.smooth = o0.fast >= 2 ? .07 : o0.fast <= 0 ? .2 : .12; o0.minBeats = o0.fast >= 2 ? .18 : o0.fast <= 0 ? .5 : .28;
         res = await analyse(mono22.getChannelData(0), 22050, p => bar(t(stage), .1 + .85 * p), o0, s2 => { stage = { tempo: 'ai.sTempo', key: 'ai.sKey', chord: 'ai.sChord' }[s2] || stage; bar(t(stage), .95); });
         res.voc = o0.voc; res.fast = o0.fast;
         S0.mono = mono22.getChannelData(0);
@@ -486,7 +573,7 @@ PD.ai = (() => {
         res.chords = snapToBeats(res.chords, res.beats, res.bpm);
       }
       status.innerHTML = '';
-      S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null, mono22: S0.mono || null, isVid };
+      S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null, mono22: S0.mono || null, isVid, cap };
       if (isVid) { try { S.vidURL = URL.createObjectURL(file); } catch (_) { S.vidURL = null; } }
       try { const all = PD.store.get('ai.recent', []), rec = saved ? saved.id : (all.find(r => r.name === file.name) || {}).id; if (rec) { S.id = rec; S.trSaved = await PD.blobs.get('ai.tr.' + rec); const rr = await PD.blobs.get('ai.rhy.' + rec); if (rr && rr.rhy) { S.rhy = rr.rhy; S.rhyMt = rr.metre; } } } catch (_) {}
       S.deck = PD.aiDeck.create(D => S.onDeck && S.onDeck(D));
@@ -496,11 +583,12 @@ PD.ai = (() => {
       try { const L = ab.getChannelData(0), NB = 1600, st = Math.max(1, Math.floor(L.length / NB)), pk = new Float32Array(NB); for (let i = 0; i < NB; i++) { let m = 0; const a0 = i * st, a1 = Math.min(L.length, a0 + st); for (let j = a0; j < a1; j += 3) { const v = L[j] < 0 ? -L[j] : L[j]; if (v > m) m = v; } pk[i] = m; } let mx = 0; for (let i = 0; i < NB; i++) if (pk[i] > mx) mx = pk[i]; if (mx > 0) for (let i = 0; i < NB; i++) pk[i] /= mx; S.peaks = pk; } catch (_) { S.peaks = null; }
       // keep the song + its analysis on the device so it can be reopened any time
       try {
-        const all = PD.store.get('ai.recent', []), id = saved ? saved.id : 's' + Date.now().toString(36);
+        const all = PD.store.get('ai.recent', []), id = saved ? saved.id : (S.id || 's' + Date.now().toString(36));
+        S.id = id;   // a new song gets its id now, so its corrections, its rhythm and its lesson are kept with it
         const rest = all.filter(r => r.id !== id && r.name !== file.name), gone = all.filter(r => !rest.includes(r) && r.id && r.id !== id);
         const entry = { id, name: file.name, type: file.type, at: Date.now(), key: cname(res.key.r, res.key.q), bpm: res.bpm, chords: [...new Set(res.chords.filter(c => c.root >= 0).map(c => cname(c.root, c.q)))].slice(0, 8), stored: saved ? true : false };
         const keep = [entry].concat(rest).slice(0, KEEP), drop = gone.concat(rest.slice(KEEP - 1));
-        drop.forEach(r => { if (r.id) { PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.res.' + r.id); } });
+        drop.forEach(r => { if (r.id) { if (!(PD.aiLessons && PD.aiLessons.usesSong(r.id))) PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.res.' + r.id); } });   // a song that has a lesson keeps its recording
         PD.store.set('ai.recent', keep);
         if (saved && saved.fresh) PD.blobs.put('ai.res.' + id, res);
         if (!saved) {
@@ -522,7 +610,7 @@ PD.ai = (() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function forget(r) {
-      if (r.id) { PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.res.' + r.id); }
+      if (r.id) { if (!(PD.aiLessons && PD.aiLessons.usesSong(r.id))) PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.res.' + r.id); }
       PD.store.set('ai.recent', PD.store.get('ai.recent', []).filter(x => x !== r && !(x.id ? x.id === r.id : x.name === r.name)));
       recentList();
     }
@@ -530,7 +618,7 @@ PD.ai = (() => {
     let render = function () {
       body.innerHTML = '';
       const { res } = S, dk = S.deck, D = dk.D;
-      let rhyBox = null, rhyTimer = 0, chEdit = false, chBox = null, sheetBox = null, sheetCur = -1, reread = null;
+      let rhyBox = null, rhyTimer = 0, chEdit = false, chBox = null, sheetBox = null, sheetCur = -1, reread = null, chartRows = null, chartCur = -1;
       const used = [...new Map(res.chords.filter(c => c.root >= 0).map(c => [c.root + c.q, c])).values()];
       const TR = () => Math.round(D.semis);
       // header: name · key · tempo
@@ -566,7 +654,7 @@ PD.ai = (() => {
       h3on.onchange = () => { PD.store.set('ai.hand3d', h3on.checked); h3wrap.hidden = !h3on.checked; if (h3on.checked) mountH3(); };
       if (h3on.checked) setTimeout(mountH3, 700);
       // transport
-      const playB = h('button', { class: 'btn primary ai-play', html: ic.play, 'aria-label': 'play', onclick: () => dk.toggle() });
+      const playB = h('button', { class: 'btn primary ai-play', html: ic.play, 'data-t-aria': 'ws.play', 'aria-label': t('ws.play'), onclick: () => dk.toggle() });
       const timeEl = h('span', { class: 'ai-time mono' }), prepEl = h('span', { class: 'ai-prep', hidden: true, text: t('ai.prep') });
       const seek = h('input', { type: 'range', min: 0, max: 1000, value: 0, class: 'ai-seek', 'aria-label': t('ai.seek'), oninput: e => dk.seek(e.target.value / 1000 * res.dur) });
       const dots = h('div', { class: 'ai-dots' }, [0, 1, 2, 3].map(() => h('i'))), barEl = h('span', { class: 'ai-bar mono' });
@@ -655,12 +743,14 @@ PD.ai = (() => {
           tempoTool(), chordTool(), fxTool]),
         chipRow, h('small', { class: 'muted ai-keys', text: t('ai.keys') }), h('p', { class: 'notice', 'data-t': 'ai.est' })]);
       const chordsPane = sheetPanel(), rhythmPane = rhythmPanel(), stemsPane = stemsPanel(), trPane = trPanel();
-      [chordsPane, rhythmPane, stemsPane, trPane].forEach(e => e.classList.add('ai-pane'));
-      const TABS = [['overview', 'ai.tOver'], ['instruments', 'ai.tInst'], ['chords', 'ai.tChords'], ['rhythm', 'ai.tRhythm'], ['solo', 'ai.tSolo'], ['roll', 'ai.tRoll'], ['notation', 'ai.tNote']];
-      const PANE = { overview, instruments: stemsPane, chords: chordsPane, rhythm: rhythmPane, solo: trPane, roll: trPane, notation: trPane };
+      const learn = PD.aiLessons.panel({ get S() { return S; }, pro: () => pro('ai.learn'), lock: () => lock('ai.learn') }), learnPane = learn.el;
+      S.onLearn = () => { if (learnPane.isConnected) learn.draw(); };
+      [chordsPane, rhythmPane, stemsPane, trPane, learnPane].forEach(e => e.classList.add('ai-pane'));
+      const TABS = [['overview', 'ai.tOver'], ['learn', 'al.tab'], ['instruments', 'ai.tInst'], ['chords', 'ai.tChords'], ['rhythm', 'ai.tRhythm'], ['solo', 'ai.tSolo'], ['roll', 'ai.tRoll'], ['notation', 'ai.tNote']];
+      const PANE = { overview, learn: learnPane, instruments: stemsPane, chords: chordsPane, rhythm: rhythmPane, solo: trPane, roll: trPane, notation: trPane };
       const TRVIEW = { solo: 'let', roll: 'roll', notation: 'staff' };
       const tabBar = h('nav', { class: 'ai-tabs', role: 'tablist' });
-      const paneBox = h('div', { class: 'ai-panes' }, [overview, stemsPane, chordsPane, rhythmPane, trPane]);
+      const paneBox = h('div', { class: 'ai-panes' }, [overview, learnPane, stemsPane, chordsPane, rhythmPane, trPane]);
       let tab = PD.store.get('ai.tab', 'overview'); if (!PANE[tab]) tab = 'overview';
       function showTab(k) {
         tab = k; PD.store.set('ai.tab', k);
@@ -673,7 +763,7 @@ PD.ai = (() => {
       }
       TABS.forEach(([k, lab]) => tabBar.append(h('button', { class: 'tab', role: 'tab', 'data-k': k, 'data-t': lab, onclick: () => showTab(k) })));
       S.swapPane = (oldEl, newEl) => { Object.keys(PANE).forEach(k => { if (PANE[k] === oldEl) PANE[k] = newEl; }); const i = panes.indexOf(oldEl); if (i >= 0) panes[i] = newEl; };
-      const panes = [overview, stemsPane, chordsPane, rhythmPane, trPane];
+      const panes = [overview, learnPane, stemsPane, chordsPane, rhythmPane, trPane];
       body.append(deck, tabBar, paneBox);
       showTab(tab);
       PD.i18n.apply(body);
@@ -769,7 +859,7 @@ PD.ai = (() => {
           S.rhyMt = mt;
           try { if (S.id) PD.blobs.put('ai.rhy.' + S.id, { rhy: S.rhy, metre: mt }); } catch (_) {}
         } catch (e) { S.rhy = null; }
-        drawRhythm();
+        drawRhythm(); S.onLearn && S.onLearn();
       }
       function drawRhythm() {
         if (!rhyBox) return;
@@ -804,7 +894,7 @@ PD.ai = (() => {
               h('button', { class: 'btn small ghost', text: t('ai.geoOpen'), onclick: () => PD.app.go('rhythms', g0.id) }));
           } else head.append(h('small', { text: t('ai.geoNo') }));
           rhyBox.append(head);
-          if (g0) rhyBox.append(h('small', { class: 'muted', text: t(g0.span === 1 ? 'ai.geoIn1' : g0.span === 2 ? 'ai.geoIn2' : 'ai.geoPer', { n: g0.cycles }) }));
+          if (g0) rhyBox.append(h('small', { class: 'muted', text: t(g0.span === 1 ? 'ai.geoIn1' : g0.span === 2 ? 'ai.geoIn2' : (g0.perBeat || 1) > 1 ? 'ai.geoSub' : 'ai.geoPer', { n: g0.cycles, s: g0.perBeat }) }));
           rhyBox.append(h('small', { class: 'muted', text: t('ai.geoD') }));
         {
           const names = ['auto', 'perc', 'orig'].concat(S.stems ? S.stems.tracks.map(x => x.name) : []);
@@ -864,11 +954,7 @@ PD.ai = (() => {
         return sheetBox;
       }
       function readOpt() {
-        const f = PD.store.get('ai.fast', 1);
-        return { voc: PD.store.get('ai.voc', 'ext'), fast: f,
-          change: f >= 2 ? .24 : f <= 0 ? .5 : .34,
-          smooth: f >= 2 ? .07 : f <= 0 ? .2 : .12,
-          minBeats: f >= 2 ? .18 : f <= 0 ? .5 : .28 };
+        return { voc: PD.store.get('ai.voc', 'ext'), fast: PD.store.get('ai.fast', 1), beats: res.beats };   // the same beat grid the player follows (a tempo set by hand included)
       }
       function speedTool() {
         let v = res.fast == null ? PD.store.get('ai.fast', 1) : res.fast;
@@ -887,7 +973,7 @@ PD.ai = (() => {
             const o = readOpt(), r2 = await analyse(m, 22050, null, o);
             res.chords = snapToBeats(r2.chords, res.beats, res.bpm); res.key = r2.key; res.voc = o.voc; res.fast = o.fast;
             res.chords0 = null; res.chordsBy = null;
-            saveRes(); drawRibbon(); last = null; drawSheet(); chips();
+            saveRes(); drawRibbon(); last = null; drawSheet(); chips(); S.onLearn && S.onLearn();
           } catch (_) {}
           again.disabled = false; again.textContent = t('ai.vocAgain'); again.hidden = true;
         } });
@@ -897,10 +983,13 @@ PD.ai = (() => {
       function drawSheet() {
         if (!sheetBox) return;
         sheetBox.innerHTML = '';
-        sheetBox.append(h('div', { class: 'row pg-head' }, [h('h2', { text: t('ai.sheet'), style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]),
-          h('p', { class: 'fg2', text: t('ai.sheetD') }), h('div', { class: 'ai-tools' }, [vocTool(), speedTool()]));
+        const view = PD.store.get('ai.sheetView', 'chart');
+        const vseg = h('div', { class: 'seg' }, [['chart', 'ai.vChart'], ['all', 'ai.vAll']].map(([k, lab]) => h('button', { 'aria-pressed': String(view === k), text: t(lab), onclick: () => { PD.store.set('ai.sheetView', k); sheetCur = -1; chartRows = null; drawSheet(); } })));
+        sheetBox.append(h('div', { class: 'row pg-head ai-sh-head' }, [h('h2', { text: t('ai.sheet'), style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' }), h('span', { class: 'spacer' }), vseg]),
+          h('p', { class: 'fg2', text: t(view === 'chart' ? 'ai.chartD' : 'ai.sheetD') }), h('div', { class: 'ai-tools' }, [vocTool(), speedTool()]));
         const list = (res.chords || []).filter(c => c.root >= 0);
         if (!list.length) { sheetBox.append(h('p', { class: 'notice', text: t('ai.sheetNone') })); PD.i18n.apply(sheetBox); return; }
+        if (view === 'chart' && PD.aiLessons && res.beats && res.beats.length > 8) { drawChart(); PD.i18n.apply(sheetBox); return; }
         const seen = new Map();
         list.forEach(c => { const k = ((c.root + TR()) % 12 + 12) % 12 + c.q; if (!seen.has(k)) seen.set(k, c); });
         sheetBox.append(h('p', { class: 'muted', text: t('ai.sheetN', { n: list.length, u: seen.size }) }));
@@ -928,6 +1017,39 @@ PD.ai = (() => {
         if (nU) sheetBox.append(h('small', { class: 'muted', text: t('ai.unsureN', { n: nU }) }));
         PD.i18n.apply(sheetBox);
       }
+      /* the chart: the song in cycles, as a songbook writes it — one line a cycle, ×N for the lines that repeat.
+         The chords are the lesson's own (a triad on every beat, the cycle where the song follows it). */
+      function drawChart() {
+        const C = PD.aiLessons.chart(res), B = res.beats, n = C.names.length, tr = TR();
+        const cyc = C.cyc && C.cyc.agree >= .45 && C.cyc.P > 1 ? C.cyc : null, P = cyc ? cyc.P : (dk.D.bpb || 4), s0 = cyc ? cyc.s % P : 0;
+        const nm = x => x ? PD.aiLessons.transpose(x, tr) : '—';
+        const used = [...new Set(C.names.filter(Boolean))];
+        // one shape per chord, at the top
+        const shapes = h('div', { class: 'al-shapes' }, used.map(x => { const tn = nm(x), f = PD.aiLessons.shapeFor(tn);
+          return h('div', { class: 'al-sh' }, [h('b', { text: tn }), f ? h('div', { class: 'ai-sdia', html: PD.tools.chordDiagram(Object.assign({}, f.sh, { frets: f.frets, fingers: f.fingers })) }) : h('small', { class: 'notice', text: t('ai.sheetNoShape') }),
+            f ? h('small', { class: 'muted mono', text: f.frets.map(v => v === 0 ? '0' : v < 0 ? '×' : v).join(' · ') }) : null].filter(Boolean)); }));
+        if (cyc) sheetBox.append(h('p', { class: 'ai-cyc-line' }, [h('small', { text: t('ai.chartCycle') }), h('b', { text: cyc.cycle.map(nm).join(' · ') }), h('small', { class: 'muted', text: Math.round(cyc.agree * 100) + '%' })]));
+        sheetBox.append(shapes);
+        // the lines: P beats each, starting where the cycle starts; equal lines next to each other become one, ×N
+        const groups = []; if (s0 > 0) groups.push([0, s0]); for (let k = s0; k < n; k += P) groups.push([k, Math.min(n, k + P)]);
+        const rows = [];
+        groups.forEach(([a, b]) => { const key = C.names.slice(a, b).join('|'), last = rows[rows.length - 1];
+          if (last && last.key === key && b - a === P) { last.n++; last.spans.push([B[a], B[b] || res.dur]); } else rows.push({ key, a, b, n: 1, spans: [[B[a], B[b] || res.dur]] }); });
+        const box = h('div', { class: 'ai-chart' });
+        chartRows = rows.map(r => {
+          const cells = []; for (let k = r.a; k < r.b; k++) { const x = C.names[k], prev = k > r.a ? C.names[k - 1] : null; cells.push(h('span', { class: 'ai-cc' + (x !== prev ? ' on' : ''), text: x !== prev ? nm(x) : '·' })); }
+          const el = h('button', { class: 'ai-crow', onclick: () => dk.seek(Math.max(0, r.spans[0][0] + .01)) }, [h('small', { class: 'mono ai-ct', text: PD.fmtTime(Math.max(0, r.spans[0][0])) }), h('span', { class: 'ai-cells', style: '--n:' + P }, cells), h('b', { class: 'ai-cx', text: r.n > 1 ? '×' + r.n : '' })]);
+          box.append(el); return { el, spans: r.spans };
+        });
+        sheetBox.append(box, h('small', { class: 'muted', text: t('ai.sheetTap') }));
+        if (C.unsure) sheetBox.append(h('small', { class: 'muted', text: t('al.unsure', { n: C.unsure, p: Math.round(C.unsure / n * 100) }) }));
+      }
+      function markChart(p) {
+        if (!chartRows || !sheetBox || !sheetBox.isConnected) return;
+        const i = chartRows.findIndex(r => r.spans.some(([a, b]) => p >= a && p < b));
+        if (i === chartCur) return; chartCur = i;
+        chartRows.forEach((r, k) => r.el.classList.toggle('on', k === i));
+      }
       function markSheet(i) {
         if (!sheetBox || i === sheetCur) return; sheetCur = i;
         const cells = sheetBox.querySelectorAll('.ai-scell');
@@ -940,7 +1062,7 @@ PD.ai = (() => {
         if (chBox) chBox.remove();
         const bt0 = dk.beatAt(c.t0 + .01);
         const mark = () => { if (!res.chords0) res.chords0 = res.chords.map(x => Object.assign({}, x)); res.chordsBy = 'hand'; };
-        const redraw = () => { saveRes(); drawRibbon(); last = null; chips(); const b = body.querySelector('.ai-chback'); if (b) b.hidden = false; chordEditor(i); };
+        const redraw = () => { saveRes(); drawRibbon(); last = null; chips(); S.onLearn && S.onLearn(); const b = body.querySelector('.ai-chback'); if (b) b.hidden = false; chordEditor(i); };
         const roots = h('div', { class: 'ai-ed-row' });
         for (let r = 0; r < 12; r++) roots.append(h('button', { class: 'chip' + (c.root === r ? ' on' : ''), text: NAMES[r], onclick: () => { mark(); c.root = r; redraw(); } }));
         const quals = h('div', { class: 'ai-ed-row' });
@@ -969,7 +1091,7 @@ PD.ai = (() => {
       const COL = ['#C9773F', '#8E3B22', '#D9A25B', '#6E8B5A', '#B4573A', '#A3814F', '#7A6BB0', '#4F8FA8'];
       const colOf = (() => { const m = {}; let n = 0; return k => m[k] || (m[k] = COL[n++ % COL.length]); })();
       function drawRibbon() {
-        const r = rWrap.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), W = Math.max(10, r.width), H = 64; ribbon.width = W * dpr; ribbon.height = H * dpr; ribbon.style.height = H + 'px';
+        const r = rWrap.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), W = Math.max(10, r.width), H = document.body.classList.contains('ai-full') ? 96 : 64; ribbon.width = W * dpr; ribbon.height = H * dpr; ribbon.style.height = H + 'px';
         const x = ribbon.getContext('2d'); x.scale(dpr, dpr); x.clearRect(0, 0, W, H);
         if (S.peaks) { const P = S.peaks, mid = H / 2; x.fillStyle = 'rgba(255,236,210,.14)'; for (let i = 0; i < W; i++) { const k = Math.floor(i / W * P.length), v = P[k] * (H / 2 - 9); x.fillRect(i, mid - v, 1, v * 2); } }
         res.chords.forEach(c => { const a = c.t0 / res.dur * W, b = c.t1 / res.dur * W; if (c.root < 0) { x.fillStyle = 'rgba(255,236,210,.06)'; x.fillRect(a, 8, b - a, H - 16); return; } x.fillStyle = colOf(c.root + c.q); x.globalAlpha = .75; x.fillRect(a + .5, 8, Math.max(1, b - a - 1), H - 16); x.globalAlpha = 1; if (b - a > 26) { x.fillStyle = '#FFF4E6'; x.font = '700 12px ' + "'Noto Sans Georgian', system-ui"; x.textBaseline = 'middle'; x.fillText(cname(c.root, c.q, TR()), a + 4, H / 2); } });
@@ -999,6 +1121,7 @@ PD.ai = (() => {
           }
         }
         if (S.tr) S.tr.tick(p);
+        markChart(p);
         const i = res.chords.findIndex(c => p >= c.t0 && p < c.t1), c = res.chords[i], n = res.chords.slice(i + 1).find(x => x.root >= 0);
         const key = c ? c.root + c.q + ':' + TR() : 'none';
         if (key !== last) {
@@ -1030,7 +1153,7 @@ PD.ai = (() => {
             return { mono: (await resample(b, 22050, 1)).getChannelData(0), offset: S.stems.from };
           }
         });
-        CUR = { res, get transcription() { return S.tr && S.tr.data; }, file: S.file };
+        CUR = { res, get transcription() { return S.tr && S.tr.data; }, file: S.file, get stems() { return S && S.stems; }, get audio() { return S && S.ab; } };
         return S.tr.el;
       }
       own(() => { if (S && S.tr) { try { S.tr.destroy(); } catch (_) {} S.tr = null; } });
@@ -1087,19 +1210,21 @@ PD.ai = (() => {
     const check6 = () => has6 !== null ? Promise.resolve(has6) : fetch(BASE + 'model6/manifest.json', { method: 'HEAD', cache: 'no-store' }).then(r => (has6 = r.ok)).catch(() => (has6 = false));
     function stemsPanel() {
       const box = h('section', { class: 'ai-stems' });
-      const head = h('div', { class: 'row', style: 'gap:8px;align-items:center;flex-wrap:wrap' }, [h('h2', { 'data-t': 'ai.stems', style: 'margin:0' }), h('span', { class: 'ai-pm', text: allowed() && !(PD.premium && PD.premium.active) ? t('ai.test') : t('ai.premium') })]);
+      const head = h('div', { class: 'row', style: 'gap:8px;align-items:center;flex-wrap:wrap' }, [h('h2', { 'data-t': 'ai.stems', style: 'margin:0' }), h('span', { class: 'ai-pm', text: t('ai.premium') })]);
       box.append(head, h('p', { class: 'fg2', 'data-t': 'ai.stemsD' }));
       if (S.stems) { box.append(mixer()); return box; }
       if (!allowed()) { box.append(h('p', { class: 'muted', 'data-t': 'ai.locked' }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => PD.premium.paywall('ai.stems') })); return box; }
       // Splitting holds the model and four stereo stems in memory at once. On a phone that is the
       // difference between finishing and the tab being killed, so the choice starts small there.
       const mem = navigator.deviceMemory || 0, small = (mem && mem <= 4) || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const maxSec = small ? 45 : 90;
+      // a computer with room (8 GB or more) splits a whole song of up to six minutes; stems take ~85 MB a minute for four instruments
+      const roomy = !small && (!mem || mem >= 8), maxSec = small ? 45 : roomy ? 360 : 90;
       const dur = S.res.dur;
       const choices = [];
       if (dur > 32) choices.push(['30', t('ai.first', { n: 30 })], ['here30', t('ai.fromHere', { n: 30 })]);
       if (dur > 62 && maxSec >= 60) choices.push(['60', t('ai.first', { n: 60 })], ['here', t('ai.fromHere', { n: 60 })]);
       if (dur <= maxSec) choices.unshift(['all', t('ai.all')]);
+      else if (!small) choices.unshift(['whole2', t('ai.whole2')]);   // a long song on a computer: the whole of it, as voice and the rest (what a lesson needs)
       if (!choices.length) choices.push(['30', t('ai.first', { n: 30 })]);
       let pick = choices[0][0], model = PD.store.get('ai.model', '4');
       const seg = h('div', { class: 'seg' }, choices.map(([k, l]) => h('button', { 'aria-pressed': String(k === pick), text: l, onclick: e => { pick = k; seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
@@ -1119,7 +1244,7 @@ PD.ai = (() => {
       async function run() {
         go.disabled = true; prog.hidden = false; msg.textContent = '';
         // work out the window first, then resample only that window
-        const secs = (pick === '60' || pick === 'here') ? 60 : (pick === '30' || pick === 'here30') ? 30 : S.res.dur;
+        const secs = (pick === '60' || pick === 'here') ? 60 : (pick === '30' || pick === 'here30') ? 30 : S.res.dur, two = pick === 'whole2';
         const at = (pick === 'here' || pick === 'here30') ? Math.max(0, S.deck.pos()) : 0;
         const a0 = Math.min(at, Math.max(0, S.res.dur - .25)), a1 = Math.min(S.res.dur, a0 + secs);
         let st44 = await resample(S.ab, SR, 2, a0, a1);
@@ -1127,21 +1252,25 @@ PD.ai = (() => {
         st44 = null;
         const from = 0, to = Ls.length;
         const setP = (label, p) => { prog.innerHTML = ''; prog.append(h('span', { text: label }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(p * 100) + '%' })])); };
-        if (engine === 'light') return runLight(Ls, Rs, a0, to - from, setP);
+        if (engine === 'light' && !two) return runLight(Ls, Rs, a0, to - from, setP);
         setP(t('ai.dl', { a: 0, b: 85 }), 0);
-        const prefer = hasGPU() ? 'webgpu' : 'wasm', dir = model === '6' && has6 ? 'model6' : 'model';
+        const prefer = hasGPU() ? 'webgpu' : 'wasm', dir = model === '6' && has6 && !two ? 'model6' : 'model';
         if (worker && worker.dir !== dir) { try { worker.terminate(); } catch (_) {} worker = null; }
         const wk = getWorker(m => {
           seen = Date.now();
           if (m.type === 'dl') setP(t('ai.dl', { a: Math.round(m.got / 1048576), b: Math.round(m.total / 1048576) }), m.got / m.total * .3);
           else if (m.type === 'stage') setP(t(m.s === 'unpack' ? 'ai.unpack' : 'ai.init'), .32);
-          else if (m.type === 'ready') { setP(t('ai.proc', { p: 0, m: '…' }), .35); const a = Ls, b2 = Rs === Ls ? Ls.slice() : Rs; wk.postMessage({ cmd: 'separate', L: a, R: b2 }, [a.buffer, b2.buffer]); }
+          else if (m.type === 'ready') { setP(t('ai.proc', { p: 0, m: '…' }), .35); const a = Ls, b2 = Rs === Ls ? Ls.slice() : Rs; wk.postMessage({ cmd: 'separate', L: a, R: b2, mode: two ? 'mix2' : null }, [a.buffer, b2.buffer]); }
           else if (m.type === 'progress') setP(t('ai.proc', { p: Math.round(m.done / m.total * 100), m: PD.fmtTime(Math.max(1, m.eta)) }), .35 + .65 * m.done / m.total);
           else if (m.type === 'done') {
-            const tracks = ORDER.map(n => m.sources.indexOf(n)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] }));
-            S.stems = { id: 'stems' + Date.now(), sr: SR, from: a0, len: (to - from) / SR, tracks };
+            const tracks = ORDER.map(n => m.sources.indexOf(n)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] || m.stems[i][0] }));
+            S.stems = { id: 'stems' + Date.now(), sr: SR, from: a0, len: (to - from) / SR, tracks, two: !!m.mono };
             S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
-            stopWatch(); useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw();
+            stopWatch(); useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw(); S.onLearn && S.onLearn();
+          }
+          else if (m.type === 'error' && m.msg === 'GPUBAD') {   // the GPU got the network wrong (the stems did not add up to the song): run again on the CPU
+            PD.store.set('ai.noGpu', true); stopWatch(); try { worker && worker.terminate(); } catch (_) {} worker = null;
+            msg.textContent = t('ai.gpuBad'); go.disabled = false; setTimeout(() => run(), 50);
           }
           else if (m.type === 'error') { fail(m.msg === 'LOWMEM' ? t('ai.lowmem', { n: m.need || 340 }) : /memory|Out of|alloc|RuntimeError|abort/i.test(m.msg) ? t('ai.mem') : t('ai.fail', { e: m.msg })); }
         });

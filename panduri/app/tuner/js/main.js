@@ -40,6 +40,7 @@ const longResult = {};
 
 const done = [false, false, false];
 let running = false, starting = false, resumeOnVisible = false;
+let embeddedSuspended = false;
 let analysisTimer = 0;
 let current = S.selected;          // string currently shown
 let completeShown = false;
@@ -466,6 +467,7 @@ async function startMic(silent = false) {
   starting = true; setMicUI('starting');
   try {
     await input.start();
+    if (embeddedSuspended) { input.stop(); starting = false; setMicUI('off'); return; }
   } catch (e) {
     starting = false; setMicUI('off');
     const embedded = (() => { try { return window.self !== window.top; } catch (x) { return true; } })();
@@ -782,7 +784,6 @@ function bindSettings() {
       if (key === 'tol') { tracker.configure({ tol: v }); gauge.setTolerance(v); trace.tol = v; trace.draw(); }
       if (key === 'meter') setMeterView(v);
       if (key === 'ui') { applyAll(); updateInstruction(true); }
-      if (key === 'lang') applyLanguage();
       if (key === 'harmonic') { tracker.configure({ harmonic: v }); tracker.resetMeasurement(); updateInstruction(true); if (v) toast(t('toast.harmonic'), 6000); }
       if (key === 'refMode' && reference.droning) stopReference();
       renderSettings();
@@ -1151,7 +1152,6 @@ function bind() {
   document.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; if (concertOpen) closeConcert(); else if (viewerOpen) closeViewer(); else if (activeTool) closeTool(); });
   $('#meterToggle').addEventListener('click', () => { setMeterView(S.meter === 'needle' ? 'strobe' : 'needle'); persist(); renderSettings(); });
   $('#openSettings').addEventListener('click', () => openSheet('#settings'));
-  $('#langBtn').addEventListener('click', () => { S.lang = lang() === 'ka' ? 'en' : 'ka'; persist(); applyLanguage(); });
   $('#driftGo').addEventListener('click', driftAction);
   $('#driftX').addEventListener('click', driftDismiss);
   $('#recommendBtn').addEventListener('click', () => { const was = tuningChanges(S).length; restoreRecommended(false); if (!was) toast(t('drift.restored')); closeSheet(); });
@@ -1190,16 +1190,9 @@ function bind() {
 }
 let brandLong = false;
 
-function renderLangBtn() {
-  const ka = lang() === 'ka';
-  $('#langBtnTxt').textContent = ka ? 'EN' : 'ქა';
-  $('#langBtn').setAttribute('aria-label', ka ? 'Switch to English' : 'ქართულზე გადართვა');
-  $('#langBtn').setAttribute('lang', ka ? 'en' : 'ka');
-}
 function applyLanguage() {
-  setLang(S.lang);
+  setLang();
   applyStatic();
-  renderLangBtn();
   setMicUI(micState);
   el.refLbl.textContent = t(el.ref.classList.contains('playing') ? 'dock.refStop' : 'dock.ref');
   lastNoteKey = '';
@@ -1214,9 +1207,10 @@ function applyLanguage() {
 
 // ─── boot ────────────────────────────────────────────────────────────────────────────
 bind();
-setLang(S.lang);
+setLang();
 applyStatic();
-renderLangBtn();
+// the language follows the panduri app, also if it changes while this page is open
+window.addEventListener('storage', (e) => { if (e.key === 'pd2:lang') location.reload(); });
 setMicUI('off');
 applyAll();
 setCurrent(S.mode === 'auto' ? 0 : S.selected);
@@ -1236,7 +1230,7 @@ requestAnimationFrame(() => document.body.classList.add('ready'));
 if (NATIVE) {
   $('#privacyLink').href = SITE_URL + 'privacy.html';
   $('#supportLink').href = SITE_URL + 'support.html';
-} else if ('serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
+} else if (window.parent === window && 'serviceWorker' in navigator && window.isSecureContext && location.protocol !== 'file:') {
   window.addEventListener('load', () => {
     // a page that was already running an older version reloads once when the new one takes over
     const hadController = !!navigator.serviceWorker.controller;
@@ -1253,4 +1247,4 @@ if (NATIVE) {
 }
 
 // test hook (used by automated browser checks only)
-window.__panduri = { tracker, model, get running() { return running; }, get done() { return done.slice(); } };
+window.__panduri = { activate() { embeddedSuspended = false; }, suspend() { embeddedSuspended = true; closeTool(true); stopMic(); stopReference(); input.stop(); resumeOnVisible = false; }, tracker, model, get running() { return running; }, get done() { return done.slice(); } };

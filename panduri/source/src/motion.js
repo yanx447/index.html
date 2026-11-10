@@ -82,5 +82,23 @@ PD.motion = (() => {
   function swap(el, dir) { if (!el || !ok() || !el.animate) return; el.animate([{ opacity: 0, transform: 'translateX(' + (dir || 0) * 16 + 'px) translateY(' + (dir ? 0 : 6) + 'px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: OUT }); }
   /** the active tab's icon answers with a small, controlled spring */
   function spring(el) { if (!el || !ok() || !el.animate) return; el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.16) translateY(-1px)' }, { transform: 'scale(1)' }], { duration: 340, easing: 'cubic-bezier(.34,1.36,.64,1)' }); }
-  return { ok, swap, spring, place };
+  /** A bounded entrance, owned by the router, never by a same-screen redraw. */
+  function reveal(root, delay = 0) {
+    if (!root || !ok()) return [];
+    return [...root.children].slice(0, 8).filter(el => el.animate).map((el, i) =>
+      el.animate([{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 420, delay: delay + i * 35, easing: OUT, fill: 'backwards' }));
+  }
+  // Changing accessibility preferences also finishes animations already in flight.
+  function settleMotion() {
+    if (!ok() && document.getAnimations) document.getAnimations().forEach(a => a.cancel());
+  }
+  if (window.matchMedia) matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', settleMotion);
+  new MutationObserver(settleMotion).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  // A single delegated handler also covers dynamically rendered tool cards.
+  document.addEventListener('click', e => {
+    const card = e.target.closest && e.target.closest('.hq, .hx-goal2, .hx-bell');
+    if (card && !card.disabled) spring(card.querySelector('.hq-ic, svg'));
+  });
+  return { ok, swap, spring, place, reveal };
 })();

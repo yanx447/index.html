@@ -17,6 +17,7 @@
 <link rel="preload" href="fonts/NotoSansGeorgian.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="fonts/NotoSerifGeorgian.woff" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="styles.css">
+<script>(function(){var c;try{c=JSON.parse(localStorage.getItem('pd2:lang'))}catch(e){}if(!c){var n=navigator.languages||[navigator.language||'en'];c=String(n[0]||'en').toLowerCase().split(/[-_]/)[0]}if(/^[a-z]{2}$/.test(c)&&c!=='ka'&&c!=='en')document.write('<script src="../js/lang/'+c+'.js"><\/script>')})()</script>
 <script type="module" src="js/main.js"></script>
 </head>
 <body>
@@ -39,7 +40,6 @@
       </span>
     </button>
     <div class="top-actions">
-      <button class="icon-btn lang-btn" id="langBtn" type="button" aria-label="Language · ენა"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"/></svg><span id="langBtnTxt">EN</span></button>
       <button class="icon-btn" id="openTools" type="button" data-i18n-aria="tool.title" aria-haspopup="dialog">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>
       </button>
@@ -242,12 +242,6 @@
     <section class="group">
       <h3 data-i18n="set.g.display">ჩვენება</h3>
       <div class="card">
-        <div class="field">
-          <div class="field-row"><span class="lab" data-i18n="set.lang">ენა</span></div>
-          <div class="seg" data-key="lang" role="radiogroup">
-            <button type="button" role="radio" data-v="auto" data-i18n="set.langAuto">ავტო</button><button type="button" role="radio" data-v="ka" lang="ka">ქართული</button><button type="button" role="radio" data-v="en" lang="en">English</button>
-          </div>
-        </div>
         <div class="field">
           <div class="field-row"><span class="lab" data-i18n="set.meter">მაჩვენებელი</span></div>
           <div class="seg" data-key="meter" role="radiogroup">

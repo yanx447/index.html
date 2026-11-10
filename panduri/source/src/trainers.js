@@ -174,7 +174,7 @@ PD.trainer = (() => {
     w.append(tabs, h('section', { class: 'tr-card' }, [prompt, sub, fb, controls, micBox]), nv, h('div', { class: 'row', style: 'justify-content:space-between' }, [score, h('span', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'tr.srs' })]));
     let raf = 0;
     const loop = () => { raf = requestAnimationFrame(loop); if (!document.hidden && !PD.practice.active) view.draw(); };
-    requestAnimationFrame(() => { view.layout(); raf = requestAnimationFrame(loop); });
+    raf = requestAnimationFrame(() => { view.layout(); raf = requestAnimationFrame(loop); });   // the first frame's id is kept too: leaving before it fires must cancel it, or the loop starts on a dead screen and never stops
     const ro = new ResizeObserver(() => { const nh = view.natH(nv.clientWidth) + 'px'; if (nv.style.height !== nh) nv.style.height = nh; view.layout(); }); ro.observe(nv); own(() => ro.disconnect());
     function show(s, f, reveal) {
       // the shared instrument view shows the target (position questions) or the answer (after a miss)

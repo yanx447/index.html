@@ -1,10 +1,10 @@
 /* =====================================================================
    The required introduction: six existing cards from „ხრიკები და
    რჩევები“ (sitting, holding, the two hands, strokes, finger numbers,
-   string numbers) are read one after another before the rest of the
-   app opens. The teacher asked for it to be required for everyone, so
-   there is no skip; Back does not close it. The cards' text comes from
-   PD.tips.all(), so edits made in Author Studio show here too.
+   string numbers) are shown one after another to a new account. There
+   is no skip and Back does not close it, but it opens only once: leaving
+   half way does not bring it back. The same cards stay in Learn. Their
+   text comes from PD.tips.all(), so Author Studio edits show here too.
    ===================================================================== */
 PD.i18n.add({
   'in.kicker': ['შესავალი · {i} / {n}', 'Introduction · {i} / {n}'],
@@ -15,14 +15,15 @@ PD.i18n.add({
 });
 PD.intro = (() => {
   const h = PD.h, t = PD.i18n.t, IDS = ['sit', 'hold', 'hands', 'strokes', 'fingers', 'stringnum'];
-  const L = x => Array.isArray(x) ? (PD.i18n.lang === 'en' ? x[1] || x[0] : x[0]) : (x || '');
+  const L = x => Array.isArray(x) ? PD.i18n.pick({ ka: x[0], en: x[1] }) : (x || '');
   let el = null;
   const done = () => !!PD.store.get('intro.done', false);
   function cards() { const all = PD.tips.all(true); return IDS.map(id => all.find(c => c.id === id)).filter(Boolean); }
   function open() {
     if (el) return;
     const list = cards(); if (!list.length) { PD.store.set('intro.done', true); return; }
-    let i = Math.min(PD.store.get('intro.at', 0) || 0, list.length - 1);
+    PD.store.set('intro.done', true);   // shown once: opening it is what counts, not reaching the last card
+    let i = 0;
     const bar = h('div', { class: 'in-bar' }, list.map(() => h('i')));
     const kick = h('small', { class: 'in-kick' }), body = h('div', { class: 'in-body' });
     const prev = h('button', { class: 'btn in-prev', onclick: () => { if (i > 0) { i--; draw(-1); } } });
@@ -34,12 +35,14 @@ PD.intro = (() => {
     document.body.appendChild(el); document.body.style.overflow = 'hidden';
     requestAnimationFrame(() => el && el.classList.add('in'));
     function draw(dir) {
-      PD.store.set('intro.at', i);
       PD.store.set('seen.tip.' + list[i].id, true);   // a card read here counts as read in Learn too
       const c = list[i], art = c.art && PD.tips.ART[c.art] ? PD.tips.ART[c.art]() : '';
       bar.querySelectorAll('i').forEach((x, k) => { x.className = k < i ? 'done' : k === i ? 'on' : ''; });
       kick.textContent = t('in.kicker', { i: i + 1, n: list.length });
-      const sec = [h('div', { class: 'in-art', html: art }), h('h1', { class: 'in-title', text: L(c.title) }), h('p', { class: 'in-short', text: L(c.short) })];
+      const sec = [h('div', { class: 'in-art', html: art }), h('h1', { class: 'in-title', text: L(c.title) }),
+        // the same source badge the card carries in Learn — a draft must say so here too, before the learner trusts it
+        c.src ? h('div', {}, [h('span', { class: 'tp-src ' + c.src, text: PD.ui.srcLabel('tp.src.' + c.src) })]) : null,
+        h('p', { class: 'in-short', text: L(c.short) })].filter(Boolean);
       if (c.steps && c.steps.length) sec.push(h('section', { class: 'in-sec' }, [h('h3', { text: t('in.steps') }), h('ol', { class: 'tp-steps' }, c.steps.map(s => h('li', { text: L(s) })))]));
       if (c.why) sec.push(h('section', { class: 'in-sec' }, [h('h3', { text: t('in.why') }), h('p', { text: L(c.why) })]));
       body.innerHTML = ''; body.append(...sec);
@@ -49,7 +52,6 @@ PD.intro = (() => {
       next.textContent = i === list.length - 1 ? t('in.go') : t('in.next');
     }
     function finish() {
-      PD.store.set('intro.done', true); PD.store.del('intro.at');
       const e = el; el = null; document.body.style.overflow = '';
       e.classList.add('out'); setTimeout(() => e.remove(), 280);
       PD.ui && PD.ui.toast && PD.ui.toast(t('in.doneT') + ' — ' + t('in.doneD'), 4500);
@@ -57,7 +59,7 @@ PD.intro = (() => {
     }
     draw(0);
   }
-  /** shown after sign-in and onboarding until it has been read once */
+  /** shown after sign-in and onboarding, once */
   function maybe() { if (!done()) open(); }
   return { open, maybe, get done() { return done(); }, get active() { return !!el; } };
 })();

@@ -5,6 +5,7 @@
    Staff coordinates: line spacing 10, bottom line (E4 in the treble clef) = step 0,
    every step = one line or space (5 px).
    ===================================================================== */
+PD.i18n.add({ 'na.staff': ['ხუთხაზედი', 'Staff'] });
 PD.notesArt = (() => {
   const INK = '#F4E6D2', DIM = 'rgba(244,230,210,.55)', ACC = '#F6C987';
   const LET = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
@@ -17,7 +18,7 @@ PD.notesArt = (() => {
     opt = opt || {};
     const clef = opt.clef || 'treble', gap = opt.gap || 42, x0 = 54, W = opt.width || Math.max(260, x0 + 20 + notes.length * gap), top = 34, H = opt.height || 132;
     const yb = top + 40, y = st => yb - st * 5;
-    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="tb-svg" role="img" aria-label="' + PD.esc(opt.label || 'staff') + '">';
+    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="tb-svg" role="img" aria-label="' + PD.esc(opt.label || PD.i18n.t('na.staff')) + '">';
     for (let i = 0; i < 5; i++) s += '<line x1="6" x2="' + (W - 6) + '" y1="' + (top + i * 10) + '" y2="' + (top + i * 10) + '" stroke="' + DIM + '" stroke-width="1.2"/>';
     if (opt.bars) opt.bars.forEach(bx => { s += '<line x1="' + bx + '" x2="' + bx + '" y1="' + top + '" y2="' + yb + '" stroke="' + DIM + '" stroke-width="1.4"/>'; });
     if (opt.end) s += '<line x1="' + (W - 12) + '" x2="' + (W - 12) + '" y1="' + top + '" y2="' + yb + '" stroke="' + DIM + '" stroke-width="1.2"/><line x1="' + (W - 7) + '" x2="' + (W - 7) + '" y1="' + top + '" y2="' + yb + '" stroke="' + INK + '" stroke-width="3.5"/>';

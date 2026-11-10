@@ -9,7 +9,7 @@ PD.pwa = (() => {
   let waiting = null, asked = false;
   function offer(reg) {
     waiting = reg.waiting; if (!waiting) return;
-    const bar = PD.h('div', { class: 'toast', role: 'status', style: 'display:flex;gap:12px;align-items:center' }, [PD.h('span', { text: t('pwa.update') }), PD.h('button', { class: 'btn small primary', text: t('pwa.reload'), onclick: () => { asked = true; waiting.postMessage({ type: 'skipWaiting' }); } })]);
+    const bar = PD.h('div', { class: 'toast', role: 'status', style: 'display:flex;gap:12px;align-items:center' }, [PD.h('span', { 'data-t': 'pwa.update', text: t('pwa.update') }), PD.h('button', { class: 'btn small primary', 'data-t': 'pwa.reload', text: t('pwa.reload'), onclick: () => { asked = true; waiting.postMessage({ type: 'skipWaiting' }); } })]);
     document.body.appendChild(bar);
   }
   function register() {

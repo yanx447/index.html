@@ -10,7 +10,6 @@
     "limitsNavigationsToAppBoundDomains": false
   },
   "android": {
-    "backgroundColor": "#130C07",
-    "adjustMarginsForEdgeToEdge": "auto"
+    "backgroundColor": "#130C07"
   }
 }

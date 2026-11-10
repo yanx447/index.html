@@ -15,9 +15,9 @@ function solveOne(frets, fingers, prev) {
   const yK = (N.fy(lo - 1) + N.fy(hi)) / 2;
   // how far up the neck this shape sits: 0 at the nut, 1 near the body
   const HI = Math.max(0, Math.min(1, (-yK - 150) / 140));
-  const targets = {}, flat = [];
+  const targets = {}, contacts = {}, flat = [];
   Object.entries(used).forEach(([fi, list]) => {
-    const name = FN[fi]; if (!name) return;
+    const name = FN[fi]; if (!name) return; contacts[name] = list.map(([s, f]) => N.target(s, f));
     if (list.length === 1) targets[name] = N.target(list[0][0], list[0][1]);
     else { const ss = list.map(x => x[0]), f = list[0][1], a = N.target(Math.min(...ss), f), b = N.target(Math.max(...ss), f); targets[name] = V.mul(V.add(a, b), .5); flat.push(name); }   // a barre: the finger lies across, its pad between the outer strings
   });
@@ -36,17 +36,21 @@ function solveOne(frets, fingers, prev) {
     const kn = V.mul(['finger_index.01', 'finger_middle.01', 'finger_ring.01', 'finger_pinky.01'].map(n => Wp(`${n}.L`)).reduce((a, c) => V.add(a, c), [0, 0, 0]), .25);
     const PZ = -8 - 3 * HI, PX = 22 + 5 * HI, KX = 32 + 5 * HI, KZ = 14 + 5 * HI;
     if (pc[2] > PZ) e += 4 * (pc[2] - PZ) ** 2; if (pc[0] < PX) e += 3 * (PX - pc[0]) ** 2; if (kn[0] < KX) e += 3 * (KX - kn[0]) ** 2; if (kn[2] > KZ) e += 3 * (kn[2] - KZ) ** 2; return e; };
-  const task = { tw: 160, extra, targets, free, flat, restTips, elbowDir: V.nrm([.7, -.5, -.5]), elbowW: 400 - 300 * HI, guides, thumbDir: V.nrm([.6, 0, -.8]) };
+  const task = { tw: 800, extra, targets, contacts, free, flat, restTips, elbowDir: V.nrm([.7, -.5, -.5]), elbowW: 400 - 300 * HI, guides, thumbDir: V.nrm([.6, 0, -.8]) };
   let v0;
   if (prev) v0 = prev.slice();
   else { const rp = V.sub([31, yK - 22, -8], V.mul(Q.rot(q0, V.sub(rg.H['finger_middle.01.L'], rg.H['hand.L'])), SC)); v0 = pack({ rv: q2v(q0), rp, wflex: 0, wdev: 0, f: [[30 * D, 0, 40 * D, 20 * D], [30 * D, 0, 40 * D, 20 * D], [35 * D, 0, 50 * D, 30 * D], [35 * D, 0, 50 * D, 30 * D]], t: [0, 0, 0, 0, 0] }); }
   if (prev) { v0[4] += (yK - prev.yK); }
-  const r = SV.solve(task, v0, (window.ITERS || 700) + Math.round(600 * HI));
+  let r = { v: v0 };
+  for (const weight of (window.REPAIR_FINE ? [48000] : [300, 1500, 6000, 24000])) {
+    task.surfaceWeight = weight; task.collisionWeight = Math.max(1200, weight / 3);
+    r = SV.solve(task, r.v, (window.ITERS || 350));
+  }
   const ev = SV.evalV(r.v, task), err = {}; let worst = 0;
-  Object.keys(targets).forEach(k => { const e = V.len(V.sub(ev.pads[k].pad, targets[k])); err[k] = +e.toFixed(2); worst = Math.max(worst, e); });
+  Object.keys(targets).forEach(k => { const e = ev.contactErrors[k]; err[k] = +e.toFixed(2); worst = Math.max(worst, e); });
   // penetration check without targets: how deep anything sits in the neck
   const Wp2 = n => V.mul(ev.F.W[n].p, SC); const side = extra(Wp2);
-  return { v: r.v.map(x => +x.toFixed(4)), err, worst: +worst.toFixed(2), E: +r.E.toFixed(1), yK: +yK.toFixed(1), side: +side.toFixed(2) };
+  return { v: r.v.map(x => +x.toFixed(4)), err, worst: +worst.toFixed(2), E: +r.E.toFixed(1), collision: +ev.collision.toFixed(3), neck: +ev.neck.toFixed(3), surface: +ev.surface.toFixed(3), yK: +yK.toFixed(1), side: +side.toFixed(2) };
 }
 const LIST = window.POSE_LIST || [], SEEDS = window.SEEDS || {};
 const SK = Object.entries(SEEDS);
@@ -55,17 +59,27 @@ const fset = k => k.split('/')[1].replace(/0/g, '').split('').sort().join('');
 const shape = k => { const fr = k.split('/')[0].split('-').map(Number), on = fr.filter(f => f > 0), m = on.length ? Math.min(...on) : 0; return fr.map(f => f > 0 ? f - m : -1).join(',') + '|' + k.split('/')[1]; };
 function seedFor(key, yK) {
   let best = null, bs = 1e9;
-  SK.forEach(([k, r]) => { const sc = Math.abs(r.yK - yK) * .25 + (shape(k) === shape(key) ? 0 : 60) + (fset(k) === fset(key) ? 0 : 40); if (sc < bs) { bs = sc; best = r; } });
+  SK.forEach(([k, r]) => { const sc = r.worst * 4 + (r.collision || 0) * 20 + Math.abs(r.yK - yK) * .25 + (shape(k) === shape(key) ? 0 : 60) + (fset(k) === fset(key) ? 0 : 40); if (sc < bs) { bs = sc; best = r; } });
   return best;
 }
 /** a second start: the nearest pose by height alone */
-function seedNear(key, yK) { let best = null, bs = 1e9; SK.forEach(([k, r]) => { const sc = Math.abs(r.yK - yK) + (fset(k) === fset(key) ? 0 : 40); if (sc < bs) { bs = sc; best = r; } }); return best; }
+function seedNear(key, yK) { let best = null, bs = 1e9; SK.forEach(([k, r]) => { const sc = r.worst * 4 + (r.collision || 0) * 20 + Math.abs(r.yK - yK) + (fset(k) === fset(key) ? 0 : 40); if (sc < bs) { bs = sc; best = r; } }); return best; }
 const out = {}; let n = 0;
 for (const item of LIST) {
   const [frets, fingers] = item, key = frets.join('-') + '/' + fingers.map(f => f || 0).join('');
   const fr = frets.filter(f => f > 0), yK = (N.fy(Math.min(...fr) - 1) + N.fy(Math.max(...fr))) / 2;
   const sd = seedFor(key, yK), sd2 = seedNear(key, yK); let best = null;
-  for (const s0 of [sd, sd2, null]) { const r = solveOne(frets, fingers, s0 ? Object.assign(s0.v.slice(), { yK: s0.yK }) : null); if (!best || r.worst + r.side * .5 < best.worst + best.side * .5) best = r; if (best.side < .5 && best.worst < 2.5) break; }
-  out[key] = best; n++; if (n % 20 === 0) console.log('posed', n, '/', LIST.length);
+  for (const s0 of [sd, sd2, null]) { const r = solveOne(frets, fingers, s0 ? Object.assign(s0.v.slice(), { yK: s0.yK }) : null); if (!best || r.worst + r.side * .5 + r.collision * 10 + r.surface * 30 < best.worst + best.side * .5 + best.collision * 10 + best.surface * 30) best = r; if (best.side < .5 && best.worst < 3.5 && best.collision < .2 && best.surface < .2) break; }
+  if (window.fullCheck) {
+    for(let attempt=0;attempt<4;attempt++){
+      const audit=window.fullCheck(best.v);best.meshDepth=+audit.max.toFixed(4);
+      if(audit.max<=.15)break;
+      window.REPAIR_FINE=true;
+      best=solveOne(frets,fingers,Object.assign(best.v.slice(),{yK:best.yK}));
+      window.REPAIR_FINE=false;
+    }
+    best.meshDepth=+window.fullCheck(best.v).max.toFixed(4);
+  }
+  out[key] = best; if (best.worst < 3.5 && best.collision < .2 && best.surface < .2) SK.push([key, best]); n++; if (n % 20 === 0) console.log('posed', n, '/', LIST.length);
 }
 window.JOB_RESULT = out; window.JOB_DONE = true;

@@ -688,8 +688,6 @@ textarea.txt { resize: vertical; line-height: 1.6; }
 .viewer-hint { z-index: 1; }
 
 /* ── language button (header) ─────────────────────────────────────── */
-.lang-btn { display: flex; align-items: center; width: auto; padding: 0 10px 0 8px; gap: 5px; font: 700 13px var(--f-ui); letter-spacing: .02em; color: var(--ivory-2); }
-.lang-btn svg { width: 17px; height: 17px; flex: none; }
 
 /* ── changed-settings notice ──────────────────────────────────────── */
 .top { position: relative; }
@@ -720,8 +718,6 @@ textarea.txt { resize: vertical; line-height: 1.6; }
   .top { gap: 8px; }
   .top-actions { gap: 6px; }
   .top .icon-btn { width: 40px; height: 40px; }
-  .top .lang-btn { width: auto; padding: 0 9px; }
-  .lang-btn svg { display: none; }
 }
 @media (max-width: 350px) { .brand-text { display: none; } }
 
@@ -865,3 +861,11 @@ textarea.txt { resize: vertical; line-height: 1.6; }
 .note-main { position: relative; }
 .note { position: relative; }
 .note-oct { position: absolute; left: 100%; top: 0; }
+
+/* Long fader words in other languages grow toward the meter, never past the card's edge */
+.fd-top, .fd-bot { align-self: flex-end; min-width: 100%; width: max-content; text-align: center; }
+
+/* Arabic: words run right to left, but scales, note names and numbers keep their own order */
+html[dir="rtl"] svg, html[dir="rtl"] canvas, html[dir="rtl"] .fader, html[dir="rtl"] .note, html[dir="rtl"] .stats dd { direction: ltr; unicode-bidi: isolate; }
+html[dir="rtl"] button, html[dir="rtl"] .note-ka { unicode-bidi: plaintext; }
+html[dir="rtl"] .btn-row, html[dir="rtl"] .tool-tile, html[dir="rtl"] .song-list button, html[dir="rtl"] .vc-inv { text-align: right; }

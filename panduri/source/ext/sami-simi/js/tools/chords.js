@@ -1,5 +1,6 @@
 // Chord library for the current panduri tuning: every chord in every position on the 17-fret neck,
 // with diagram, sound (in the octave you'd actually play it) and 3D finger positions.
+import { trEn } from '../i18n.js';
 import { QUALITIES, fingering, voicings, chordName, pc, pcLatin, pcKa } from '../music.js';
 import { h, chordDiagram, esc } from './ui.js';
 
@@ -19,7 +20,7 @@ const QLABEL = { ka: { maj: 'მაჟ', min: 'მინ', 7: '7', m7: 'm7', sus
 
 export function create(ctx) {
   const tr = (k, v) => ctx.tr(L, k, v);
-  const trInv = (i) => L[ctx.lang() === 'ka' ? 'ka' : 'en'].inv[i] || '';
+  const trInv = (i) => (ctx.lang() === 'ka' ? L.ka.inv[i] : trEn(L.en.inv[i])) || '';
   let root = null, q = 'maj', vIdx = 0, list = [], allTab = 'maj';
   const el = h(`<div class="tool chords">
     <div class="chips roots" role="radiogroup"></div>
@@ -65,7 +66,7 @@ export function create(ctx) {
     const lang = ctx.lang();
     if (root == null) pick(pc(tuning()[0]), q);
     el.querySelector('.roots').innerHTML = rootOrder().map((r) => `<button type="button" role="radio" aria-checked="${r === root}" data-r="${r}">${esc(lang === 'ka' ? pcKa(r) : pcLatin(r))}</button>`).join('');
-    el.querySelector('.quals').innerHTML = QUALITIES.map((x) => `<button type="button" role="radio" aria-checked="${x.id === q}" data-q="${x.id}">${QLABEL[lang][x.id]}</button>`).join('');
+    el.querySelector('.quals').innerHTML = QUALITIES.map((x) => `<button type="button" role="radio" aria-checked="${x.id === q}" data-q="${x.id}">${lang === 'ka' ? QLABEL.ka[x.id] : trEn(QLABEL.en[x.id])}</button>`).join('');
 
     // the selected position
     const f = cur(), name = nm(root, q);
@@ -93,13 +94,13 @@ export function create(ctx) {
     el.querySelector('.all-grid').innerHTML = qs.flatMap((qq) => rootOrder().map((r) => {
       const n = voicings(r, qq, tuning()).length, ff = fingering(r, qq, tuning());
       const on = r === root && qq === q;
-      return `<button type="button" class="chord-mini${on ? ' on' : ''}" data-r="${r}" data-q="${qq}" data-top="1"><strong>${esc(chordName(r, qq).short)}</strong>${chordDiagram(ff, ['', '', ''])}<span class="cm-n">${n} ${lang === 'ka' ? 'პოზ.' : 'pos.'}</span></button>`;
+      return `<button type="button" class="chord-mini${on ? ' on' : ''}" data-r="${r}" data-q="${qq}" data-top="1"><strong>${esc(chordName(r, qq).short)}</strong>${chordDiagram(ff, ['', '', ''])}<span class="cm-n">${n} ${lang === 'ka' ? 'პოზ.' : trEn('pos.')}</span></button>`;
     })).join('');
     el.querySelector('.all-note').textContent = tr('allNote');
 
     // diatonic chords of the open-string key
     const k = pc(tuning()[0]);
-    el.querySelector('.key-h').textContent = tr('key', { k: lang === 'ka' ? `${pcKa(k)} მაჟორი` : `${pcLatin(k)} major` });
+    el.querySelector('.key-h').textContent = tr('key', { k: lang === 'ka' ? `${pcKa(k)} მაჟორი` : `${pcLatin(k)} ${trEn('major')}` });
     const dia = [[0, 'maj'], [2, 'min'], [4, 'min'], [5, 'maj'], [7, 'maj'], [7, '7'], [9, 'min'], [11, 'dim']];
     el.querySelector('.key-grid').innerHTML = dia.map(([d, qq]) => {
       const r = pc(k + d), ff = fingering(r, qq, tuning());

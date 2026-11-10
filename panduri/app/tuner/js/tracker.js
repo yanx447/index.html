@@ -18,7 +18,7 @@ export const State = Object.freeze({
 
 const CALIBRATE_MS = 900;
 const ATTACK_MS = 220;          // a plucked panduri string starts sharp (A3: +20¢) and settles in ~0.2 s — measured on real recordings
-const HOLD_MS = 1000;            // the panduri fades fast: keep the last reading a little longer
+const HOLD_MS = 2400;            // the panduri fades fast: keep the last reading a little longer
 const MIN_CLARITY = 0.8;
 const HIST = 7;
 
@@ -67,6 +67,7 @@ export class PitchTracker {
     this.inTuneSince = 0;
     this.autoCand = -1;
     this.autoCandN = 0;
+    this.pluckPeak = 0;
   }
 
   begin(now) {
@@ -128,7 +129,7 @@ export class PitchTracker {
     if (best === this.autoIdx) { this.autoCand = -1; this.autoCandN = 0; return best; }
     if (dist[best] + 0.35 < dist[this.autoIdx]) {           // hysteresis margin
       if (this.autoCand === best) this.autoCandN++; else { this.autoCand = best; this.autoCandN = 1; }
-      const need = now - this.onsetAt < 400 ? 2 : 4;          // faster right after a new pluck
+      const need = now - this.onsetAt < 600 ? 3 : 7;          // faster right after a new pluck
       if (this.autoCandN >= need) { this.autoIdx = best; this.autoCand = -1; this.autoCandN = 0; }
     } else { this.autoCand = -1; this.autoCandN = 0; }
     return this.autoIdx;
@@ -177,9 +178,11 @@ export class PitchTracker {
     if (signal && (!this.hadSignal || rms > this.slowRms * 1.9) && rms > gate * 1.3) {
       this.attackUntil = now + ATTACK_MS;
       this.onsetAt = now;
+      this.pluckPeak = rms;
       snap.onset = true;
       this.hist = []; this.outliers = [];
     }
+    this.pluckPeak = Math.max(this.pluckPeak || 0, rms);
     this.slowRms = this.slowRms ? this.slowRms * 0.8 + rms * 0.2 : rms;
     this.hadSignal = signal;
     if (signal) this.lastSignalAt = now;
@@ -192,7 +195,8 @@ export class PitchTracker {
     // nothing more than an octave below the lowest string is a panduri note (room hum, rumble,
     // a subharmonic); a string tuned a whole octave too low must still be seen, to warn about it
     const inRange = det.freq > 0 && det.freq >= this.lowestTarget() * 0.45;
-    const valid = (signal || faint) && inRange && !inAttack && !this.cfg.awaitOnset && det.clarity >= MIN_CLARITY;
+    const decayed = this.lastValid && now - this.onsetAt > 450 && rms < Math.max(gate * 1.15, this.pluckPeak * 0.09);
+    const valid = !decayed && (signal || faint) && inRange && !inAttack && !this.cfg.awaitOnset && det.clarity >= MIN_CLARITY;
 
     snap.rms = rms; snap.gate = gate; snap.noiseFloor = this.noiseFloor;
     snap.clarity = det.clarity; snap.rawFreq = det.freq;
@@ -205,7 +209,7 @@ export class PitchTracker {
         snap.inTuneMs = 0;
         return snap;
       }
-      if (this.lastValid) this.resetMeasurement();
+      if (this.lastValid) { this.resetMeasurement(); this.cfg.awaitOnset = true; }
       this.state = signal ? State.ANALYZING : State.LISTENING;
       snap.state = this.state; snap.inTuneMs = 0; snap.confidence = 0; snap.holdProgress = 0;
       return snap;
@@ -238,7 +242,8 @@ export class PitchTracker {
         // three consistent jumps → the pitch really moved (re-tuned or re-plucked)
         const o = this.outliers;
         const om = median(o, 3);
-        if (Math.abs(o[o.length - 1] - om) < 20) { this.hist = o.slice(-3); this.smoothed = null; }
+        if (o.slice(-3).every(v => Math.abs(v - om) < 12)) { this.hist = o.slice(-3); this.smoothed = null; }
+        else { this.outliers = o.slice(-2); return this.holdOrKeep(now, snap); }
         this.outliers = [];
       } else {
         this.outliers = [];

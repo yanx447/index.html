@@ -1,0 +1,21 @@
+const {chromium}=require('playwright');const assert=require('node:assert/strict');
+(async()=>{const browser=await chromium.launch({headless:true});const page=await browser.newPage({serviceWorkers:'block'});
+await page.addInitScript(()=>localStorage.setItem('pd2:lang','"ka"'));
+await page.goto('http://localhost:8183/panduri/app/');await page.waitForFunction(()=>window.PD?.app);
+await page.evaluate(()=>{
+ document.querySelectorAll('.ag,.lf,.ob,.cine,.cine-boot').forEach(e=>e.remove());
+ document.documentElement.classList.add('rm');
+ Object.defineProperty(PD.cloud,'session',{get:()=>({user:{id:'test-user'}})});
+ window.deviceCalls=[];window.testDevices=[{id:'current',label:'My phone',current_device:true,created_at:'2026-11-01'},{id:'old',label:'Old laptop',current_device:false,created_at:'2026-10-01'}];
+ PD.cloud.db.rpc=async(fn,args)=>{deviceCalls.push({fn,args});if(fn==='my_device_sessions')return testDevices;if(fn==='rename_device_session'){testDevices.find(x=>x.id===args.target).label=args.new_label;return;}if(fn==='revoke_device_session'){testDevices=testDevices.filter(x=>x.id!==args.target);return;}return[];};
+ PD.app.go('settings');
+});
+await page.locator('.device-row').nth(1).waitFor();assert.equal(await page.locator('.device-row').count(),2);assert.equal(await page.locator('.device-row').first().getByRole('button').count(),1);
+await page.locator('.device-row').nth(1).getByRole('button',{name:'სახელის შეცვლა'}).click();await page.locator('.sheet input').fill('Studio Mac');await page.locator('.sheet button',{hasText:'შენახულია'}).click();
+await page.locator('.device-row').filter({hasText:'Studio Mac'}).waitFor();
+await page.locator('.device-row').nth(1).getByRole('button',{name:'გათიშვა',exact:true}).click();
+await page.getByRole('button',{name:'დადასტურება',exact:true}).click();
+await page.waitForFunction(()=>testDevices.length===1);
+assert.deepEqual(await page.evaluate(()=>deviceCalls.filter(x=>x.fn!=='my_device_sessions')), [{fn:'rename_device_session',args:{target:'old',new_label:'Studio Mac'}},{fn:'revoke_device_session',args:{target:'old'}}]);
+console.log('Devices UI: server list, rename, confirmed revoke, current-device protection passed (mock server).');await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

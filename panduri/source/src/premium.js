@@ -16,7 +16,7 @@ PD.i18n.add({
   'lv.open': ['პროგრამის გახსნა', 'Open the program'], 'lv.great': ['მშვენიერია', 'Great'], 'lv.how': ['XP მოდის ნამდვილი დაკვრიდან (სწორი ნოტები და დარტყმები, ვარჯიშის წუთები, დასრულებული ნაბიჯები, დღის მიზანი) და სწავლიდან: წაკითხული თეორიის თავი +10, გავლილი სოლფეჯიოს დონე +20.', 'XP comes from real playing (correct notes and strokes, minutes practised, completed steps, the daily goal) and from learning: a theory chapter read +10, a solfège level passed +20.'],
   'pm.title': ['პრემიუმი', 'Premium'], 'pm.lead': ['მთელი სასწავლო პროგრამა და VIP შესაძლებლობები.', 'The whole programme and VIP features.'],
   'pm.monthly': ['თვიური', 'Monthly'], 'pm.yearly': ['წლიური', 'Yearly'], 'pm.perMonth': ['თვეში', 'per month'], 'pm.perYear': ['წელიწადში', 'per year'], 'pm.best': ['ყველაზე მომგებიანი', 'Best value'],
-  'pm.buy': ['გამოწერა', 'Subscribe'], 'pm.restore': ['შეძენის აღდგენა', 'Restore purchase'], 'pm.active': ['პრემიუმი აქტიურია — {d}-მდე', 'Premium is active — until {d}'], 'pm.vip': ['VIP წევრი', 'VIP member'], 'pm.adminOn': ['ადმინი — ყველაფერი ჩართულია', 'Admin — everything is unlocked'], 'pm.priceSoon': ['ფასი მალე', 'Price soon'], 'pm.forever': ['ვადის გარეშე', 'no end date'],
+  'pm.buy': ['შეძენა', 'Buy Premium'], 'pm.restore': ['შეძენის აღდგენა', 'Restore purchase'], 'pm.active': ['პრემიუმი აქტიურია — {d}-მდე', 'Premium is active — until {d}'], 'pm.vip': ['VIP წევრი', 'VIP member'], 'pm.adminOn': ['ადმინი — ყველაფერი ჩართულია', 'Admin — everything is unlocked'], 'pm.priceSoon': ['ფასი მალე', 'Price soon'], 'pm.forever': ['ვადის გარეშე', 'no end date'],
   'pm.f1': ['ყველა ლეველის პროგრამა (საშუალო და რთული)', 'Every level programme (intermediate and advanced)'], 'pm.f2': ['ტრენაჟორის ყველა დონე: მთელი ტარი, სისწრაფე, სმენა', 'Every trainer level: full neck, speed, ear training'],
   'pm.f3': ['ჭკვიანი ვარჯიში შენი შეცდომებიდან', 'Smart practice from your own mistakes'], 'pm.f4': ['ვიდეო ზარი სხვა მოსწავლეებთან', 'Video calls with other learners'], 'pm.f5': ['ახალი სიმღერები და მასწავლებლის გაკვეთილები, როგორც კი დაემატება', 'New songs and teacher lessons as soon as they are added'], 'pm.f6': ['VIP ნიშანი საზოგადოებაში', 'VIP badge in the community'],
   'pm.f7': ['ნოტების ამოცნობა სიმღერიდან — ნოტი ნოტზე, ფანდურის სიმებზე და ლადებზე', 'Note-by-note transcription — mapped to panduri strings and frets'],
@@ -26,10 +26,25 @@ PD.i18n.add({
   'pm.f11': ['ვიდეოს ანალიზი (mp4, mov, webm…)', 'Video analysis (mp4, mov, webm…)'],
   'pm.f12': ['სიმღერის დაყოფა ინსტრუმენტებად (ვოკალი · ბანი · დრამი · სხვა)', 'Stem splitting (vocals · bass · drums · other)'],
   'pm.f13': ['AI სტუდია შეზღუდვების გარეშე — რამდენი სიმღერა გინდა, როდის გინდა', 'The AI studio with no limits — as many songs as you like, whenever you like'],
+  'pm.f14': ['შენი სიმღერის სწავლა — AI მას ბანი-აჭარულის მსგავს გაკვეთილად აქცევს', 'Learn your own song — the AI turns it into a lesson like Bani-Acharuli'],
   'pm.freeT': ['უფასოდ რჩება', 'Free forever'],
   'pm.free': ['დამწყების სრული პროგრამა · აკორდების ბიბლიოთეკა 3D ხელით · სიმების აწყობა · მეტრონომი · რითმები · თეორია და სოლფეჯიო · ვარჯიში მიკროფონით, ლეველები და პროგრესი · AI სტუდიაში ტემპი (BPM), ტონალობა, აკორდები, რითმის ამოცნობა და სრული ფლეირი — დღეში ერთი სიმღერა, {n} საათით ღია', 'The whole beginner programme · chord library with the 3D hand · tuner · metronome · rhythms · theory and solfège · practice with the microphone, levels and progress · in the AI studio: tempo (BPM), key, chords, rhythm detection and the full player — one song a day, open for {n} hours'],
   'pm.perYearM': ['≈ {p} თვეში · {d}% ნაკლები', '≈ {p} a month · {d}% less'],
-  'pm.noPay': ['გადახდის სისტემა ჯერ არ არის დაკავშირებული (Google Play / App Store / ბარათით). VIP-ს ადმინისტრატორი ანიჭებს.', 'Payments are not connected yet (Google Play / App Store / card). VIP is granted by the administrator.'],
+  'pm.once': ['ერთჯერადი გადახდა — ავტომატურად არ განახლდება.', 'One-time payment — does not renew automatically.'],
+  'pm.payError': ['გადახდა ვერ გაიხსნა. სცადე ხელახლა.', 'Checkout could not open. Please try again.'],
+  'pm.checking': ['გადახდა მოწმდება. პრემიუმი ჩაირთვება სერვერის დადასტურების შემდეგ.', 'Payment is being checked. Premium starts after server confirmation.'],
+  'pm.blocked': ['ამ ანგარიშზე პრემიუმი დაბლოკილია.', 'Premium is blocked for this account.'],
+  'pm.noPay': ['შეძენა დროებით მიუწვდომელია. მოგვიანებით სცადე.', 'Purchases are temporarily unavailable. Please try again later.'],
+  'pm.loadingPay': ['იტვირთება გადახდის მეთოდები…', 'Loading payment methods…'],
+  'pm.tbc': ['ბარათი / Apple Pay / Google Pay', 'Card / Apple Pay / Google Pay'],
+  'pm.paypal': ['PayPal', 'PayPal'],
+  'pm.store': ['მაღაზიის მეშვეობით', 'Through the store'],
+  'pm.renew': ['გამოწერა ავტომატურად განახლდება, თუ მაღაზიის პარამეტრებიდან არ გააუქმებ. ფასი და პერიოდი ნაჩვენებია მაღაზიის გადახდის ფანჯარაშიც.', 'Your subscription renews automatically unless cancelled in store settings. The store payment sheet also shows the price and period.'],
+  'pm.restored': ['შეძენა აღდგენილია.', 'Purchase restored.'],
+  'pm.noneFound': ['მოქმედი შეძენა ვერ მოიძებნა.', 'No active purchase found.'],
+  'pm.termsLink': ['მომსახურების პირობები', 'Terms of use'],
+  'pm.privacyLink': ['კონფიდენციალურობის პოლიტიკა', 'Privacy policy'],
+  'pm.manageSub': ['გამოწერის მართვა', 'Manage subscription'],
   'pm.needAccount': ['პრემიუმისთვის საჭიროა ანგარიში — ჯერ შედი.', 'Premium needs an account — sign in first.'], 'pm.locked': ['პრემიუმ ფუნქცია', 'Premium feature'],
   'pa.title': ['პრემიუმის მართვა', 'Premium management'], 'pa.lead': ['ვის აქვს პრემიუმი და ვის არა. ცვლილებებს სერვერი ამოწმებს — მხოლოდ ადმინს შეუძლია.', 'Who has Premium and who does not. The server checks every change — only admins can make them.'],
   'pa.row': ['მომხმარებლები, პრემიუმის მიცემა და გაუქმება', 'Members, granting and removing Premium'],
@@ -108,9 +123,9 @@ PD.premium = (() => {
   const h = PD.h, C = PD.cloud;
   /** what premium unlocks (edit here) */
   const FEATURES = { 'paths.advanced': 'pm.f1', 'trainer.pro': 'pm.f2', 'coach': 'pm.f3', 'call': 'pm.f4', 'songs.more': 'pm.f5',
-    'ai.trans': 'pm.f7', 'ai.export': 'pm.f9', 'ai.edit': 'pm.f10', 'ai.video': 'pm.f11', 'ai.stems': 'pm.f12', 'ai.more': 'pm.f13' };
+    'ai.trans': 'pm.f7', 'ai.export': 'pm.f9', 'ai.edit': 'pm.f10', 'ai.video': 'pm.f11', 'ai.stems': 'pm.f12', 'ai.more': 'pm.f13', 'ai.learn': 'pm.f14' };
   /** what the paywall lists, in this order (f8 comes with f7, f6 is the badge) */
-  const LIST = ['pm.f1', 'pm.f2', 'pm.f3', 'pm.f5', 'pm.f7', 'pm.f8', 'pm.f9', 'pm.f10', 'pm.f11', 'pm.f12', 'pm.f13', 'pm.f4', 'pm.f6'];
+  const LIST = ['pm.f1', 'pm.f2', 'pm.f3', 'pm.f5', 'pm.f7', 'pm.f8', 'pm.f9', 'pm.f10', 'pm.f11', 'pm.f12', 'pm.f13', 'pm.f14', 'pm.f4', 'pm.f6'];
   const FREE_AI_HOURS = 4;   // the free studio session: one song, open for this many hours, once a day
   const PRICE = { monthly: '14.99 ₾', yearly: '119.99 ₾' };
   const FREE_SONGS = new Set(['bani-acharuli']);   // the first song stays free
@@ -118,16 +133,18 @@ PD.premium = (() => {
   /** the one rule for every door into a lesson (Learn, Home, Songs, Rhythms, resume…): which premium feature it needs, or null */
   function featureOf(id) {
     if (!id || FREE_SONGS.has(id)) return null;
-    const LS = PD.lessons, l = LS.get(id), rid = /^rhythm-/.test(id) ? id.slice(7) : null;
+    const LS = PD.lessons, l = LS.get(id);
+    if (l && l.ai) return 'ai.learn';   // a song the learner made in the AI studio
+    const rid = /^rhythm-/.test(id) ? id.slice(7) : null;
     const p = LS.PATHS.find(q => q.steps.some(s => (s.kind === 'lesson' && s.id === id) || (s.kind === 'rhythm' && s.id === rid)));
     if (p && PREMIUM_PATHS.has(p.id)) return 'paths.advanced';
     if (l && (l.type === 'song' || l.song) && !l.user) return 'songs.more';
     return null;
   }
-  const until = () => { const p = C.profile; return p && p.vip_until ? new Date(p.vip_until) : null; };
+  const until = () => { const p = C.profile; if (!p) return null; const dates = [p.vip_until, p.store_until].filter(Boolean).map(v => new Date(v)).filter(d => Number.isFinite(+d)); return dates.length ? new Date(Math.max(...dates.map(Number))) : null; };
   const api = {
-    get active() { const u = until(), p = C.profile; if (C.isOwner || C.isAdmin) return true; if (p && p.premium_banned) return false; return !!(u && u > new Date()); },
-    get banned() { const p = C.profile; return !!(p && p.premium_banned && !C.isAdmin); },
+    get active() { const u = until(), p = C.profile; if (C.isOwner) return true; if (p && p.premium_banned) return false; return !!(u && u > new Date()); },
+    get banned() { const p = C.profile; return !!(p && p.premium_banned && !C.isOwner); },
     get vip() { const p = C.profile; return !!(api.active && p && p.plan === 'vip'); },
     get until() { return until(); },
     allows(f) { return !FEATURES[f] || api.active; },
@@ -140,14 +157,14 @@ PD.premium = (() => {
     admin: () => adminPanel(),
     manage: (w) => managePage(w),
     /** one line for the profile and the paywall */
-    status() { const u = until(), on = u && u > new Date(); if (on) return u.getFullYear() > 2090 ? t('pm.title') + ' · ' + t('pm.forever') : t('pm.active', { d: fmtDate(u) }); return C.isAdmin ? t('pm.adminOn') : ''; },
+    status() { const u = until(), on = u && u > new Date(); if (on) return u.getFullYear() > 2090 ? t('pm.title') + ' · ' + t('pm.forever') : t('pm.active', { d: fmtDate(u) }); return C.isOwner ? t('pm.adminOn') : ''; },
     FEATURES, LIST, PRICE, FREE_AI_HOURS
   };
   const KA_M = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
-  function fmtDate(d) { if (!d) return ''; if (d.getFullYear() > 2090) return t('pm.forever'); return PD.i18n.lang === 'ka' ? d.getDate() + ' ' + KA_M[d.getMonth()] + ' ' + d.getFullYear() : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  function fmtDate(d) { if (!d) return ''; if (d.getFullYear() > 2090) return t('pm.forever'); return PD.i18n.lang === 'ka' ? d.getDate() + ' ' + KA_M[d.getMonth()] + ' ' + d.getFullYear() : d.toLocaleDateString(PD.i18n.locale, { day: 'numeric', month: 'long', year: 'numeric' }); }
   function paywall(feature) {
     PD.ui.sheet((box, close) => {
-      const cfg = Object.assign({}, PRICE, (PD.CONFIG && PD.CONFIG.prices) || {}), pay = PD.CONFIG && PD.CONFIG.payments;
+      const B = PD.billing;
       box.classList.add('pw');
       box.append(h('div', { class: 'pw-crown', html: '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z" fill="#D59A68" stroke="#24140A" stroke-width=".8" stroke-linejoin="round"/></svg>' }),
         h('h2', { 'data-t': 'pm.title' }), h('p', { class: 'fg2', 'data-t': 'pm.lead' }));
@@ -155,25 +172,69 @@ PD.premium = (() => {
       if (api.active) box.append(h('p', { class: 'pw-active', text: (api.vip ? t('pm.vip') + ' · ' : '') + api.status() }));
       box.append(h('ul', { class: 'pw-list' }, LIST.map(k => h('li', { 'data-t': k }))));
       box.append(h('details', { class: 'pw-free' }, [h('summary', { 'data-t': 'pm.freeT' }), h('p', { class: 'fg2', text: t('pm.free', { n: FREE_AI_HOURS }) })]));
-      let plan = 'yearly';
-      const opt = (k, price, per, best) => h('button', { class: 'pw-plan', 'aria-pressed': String(plan === k), onclick: e => { plan = k; box.querySelectorAll('.pw-plan').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } }, [
-        h('b', { 'data-t': 'pm.' + k }), h('span', { class: 'pw-price' + (price ? '' : ' soon'), text: price || t('pm.priceSoon') }), h('small', { 'data-t': per }), best ? h('em', { 'data-t': 'pm.best' }) : null].filter(Boolean));
-      const num = v => { const m = String(v || '').match(/[\d.,]+/); return m ? parseFloat(m[0].replace(',', '.')) : 0; };
-      const mN = num(cfg.monthly), yN = num(cfg.yearly), unit = String(cfg.monthly || '').replace(/[\d.,\s]/g, '') || '₾';
-      const perM = mN && yN ? t('pm.perYearM', { p: (yN / 12).toFixed(2) + ' ' + unit, d: Math.round((1 - yN / (mN * 12)) * 100) }) : '';
-      const plans = h('div', { class: 'pw-plans' }, [opt('monthly', cfg.monthly, 'pm.perMonth'), opt('yearly', cfg.yearly, 'pm.perYear', true)]);
-      if (perM) plans.lastChild.append(h('i', { class: 'pw-sub', text: perM }));
-      const msg = h('p', { class: 'ag-msg info', hidden: true });
-      const buy = h('button', { class: 'btn primary big', 'data-t': 'pm.buy', onclick: () => {
-        msg.hidden = false;
-        if (!C.configured || !C.session) { msg.textContent = t(C.configured ? 'pm.needAccount' : 'pm.noPay'); if (C.configured) { close(); PD.auth.open(); } return; }
-        const link = pay && pay[plan];
-        if (!link) { msg.textContent = t('pm.noPay'); return; }
-        // hosted checkout (Stripe Payment Link or similar); the account id travels as the reference, the webhook sets vip_until
-        const url = link + (link.indexOf('?') < 0 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(C.uid);
-        const P = window.Capacitor && window.Capacitor.Plugins; if (C.native && P && P.Browser) P.Browser.open({ url }); else window.open(url, '_blank', 'noopener');
+      let plan = 'yearly', provider = null, paymentOptions = null;
+      const plans = h('div', { class: 'pw-plans' });
+      const methods = h('div', { class: 'chips-row', role: 'group', 'aria-label': t('pm.buy') });
+      const msg = h('p', { class: 'ag-msg info', text: t('pm.loadingPay') });
+      const terms = h('p', { class: 'muted', text: t(B.native ? 'pm.renew' : 'pm.once') });
+      const say = text => { msg.hidden = false; msg.textContent = text; };
+      function drawPlans() {
+        plans.innerHTML = '';
+        const current = paymentOptions.providers.find(p => p.id === provider);
+        if (!current) return;
+        for (const k of ['monthly', 'yearly']) {
+          const price = current.prices[k];
+          if (!price) continue;
+          const label = price.display || new Intl.NumberFormat(PD.i18n.locale, { style: 'currency', currency: price.currency }).format(Number(price.value));
+          plans.append(h('button', { class: 'pw-plan', 'aria-pressed': String(plan === k), onclick: () => { plan = k; drawPlans(); } }, [
+            h('b', { text: t('pm.' + k) }), h('span', { class: 'pw-price', text: label }),
+            h('small', { text: t(k === 'monthly' ? 'pm.perMonth' : 'pm.perYear') })]));
+        }
+        if (!current.prices[plan]) { plan = current.prices.yearly ? 'yearly' : 'monthly'; drawPlans(); }
+      }
+      const buy = h('button', { class: 'btn primary big', disabled: true, 'data-t': 'pm.buy', onclick: async () => {
+        if (!C.session) { close(); PD.auth.open(); return; }
+        if (api.banned) { say(t('pm.blocked')); return; }
+        buy.disabled = true;
+        try {
+          const result = await B.purchase(plan, provider, paymentOptions.packages && paymentOptions.packages[plan]);
+          // Closing the sheet schedules history.back(), which would cancel hosted checkout navigation.
+          if (result.redirecting) return;
+          if (api.active) { close(); PD.app.render(); }
+          else if (result.pending) say(t('pm.checking'));
+        } catch (e) { if (!e.userCancelled && String(e.code) !== '1') say(t(e.message === 'billing-not-configured' ? 'pm.noPay' : 'pm.payError')); }
+        finally { buy.disabled = false; }
       } });
-      box.append(plans, buy, msg, h('button', { class: 'btn quiet', 'data-t': 'pm.restore', onclick: () => { C.loadProfile().then(() => { close(); PD.app.render(); }).catch(() => { msg.hidden = false; msg.textContent = t('pm.noPay'); }); } }));
+      const restore = h('button', { class: 'btn quiet', 'data-t': 'pm.restore', onclick: async () => {
+        if (!C.session) { close(); PD.auth.open(); return; }
+        restore.disabled = true;
+        try { const active = await B.restore(); if (active) { close(); PD.app.render(); } else say(t('pm.noneFound')); }
+        catch (_) { say(t('pm.payError')); }
+        finally { restore.disabled = false; }
+      } });
+      box.append(methods, plans, terms, buy, msg, restore);
+      if (B.native) box.append(h('button', { class: 'btn quiet', 'data-t': 'pm.manageSub', onclick: () => {
+        const cap = window.Capacitor, url = cap.getPlatform() === 'ios' ? 'https://apps.apple.com/account/subscriptions' : 'https://play.google.com/store/account/subscriptions';
+        const browser = cap.Plugins && cap.Plugins.Browser;
+        if (browser) browser.open({ url }); else location.assign(url);
+      } }));
+      if (!C.session) { buy.disabled = false; say(t('pm.needAccount')); }
+      else B.options().then(result => {
+        if (!box.isConnected) return;
+        paymentOptions = result;
+        const available = result.providers.filter(p => p.prices.monthly || p.prices.yearly);
+        if (!available.length) { say(t('pm.noPay')); return; }
+        provider = available[0].id;
+        for (const [kind, key] of [['terms', 'pm.termsLink'], ['privacy', 'pm.privacyLink']]) {
+          const link = result.policies && result.policies[kind];
+          if (link && /^https:\/\//.test(link)) box.append(h('a', { class: 'btn quiet', href: link, target: '_blank', rel: 'noopener noreferrer', text: t(key) }));
+        }
+        available.forEach(p => methods.append(h('button', { class: 'chip', 'aria-pressed': String(p.id === provider), text: t('pm.' + p.id), onclick: () => {
+          provider = p.id; methods.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.textContent === t('pm.' + p.id)))); drawPlans();
+        } })));
+        drawPlans(); buy.disabled = api.banned; msg.hidden = true;
+      }).catch(() => { if (box.isConnected) say(t('pm.noPay')); });
+
     });
   }
 
@@ -184,7 +245,7 @@ PD.premium = (() => {
     if (!C.isOwner) { w.append(h('p', { class: 'notice', 'data-t': 'pa.need' }), h('button', { class: 'btn primary', 'data-t': 'pa.signin', onclick: () => PD.auth && PD.auth.open ? PD.auth.open() : PD.app.go('profile') })); return; }
     let rows = [], filter = 'all', term = '';
     const now = () => new Date();
-    const stat = u => { if (u.premium_banned) return 'banned'; const v = u.vip_until ? new Date(u.vip_until) : null; return v && v > now() ? 'with' : 'without'; };
+    const stat = u => { if (u.premium_banned) return 'banned'; return [u.vip_until, u.store_until].some(v => v && new Date(v) > now()) ? 'with' : 'without'; };
     const q = h('input', { class: 'input', type: 'search', placeholder: t('ad.search'), 'aria-label': t('ad.search') });
     const tabs = h('div', { class: 'pa-tabs', role: 'tablist' }), list = h('div', { class: 'pa-list' }), msg = h('p', { class: 'ag-msg', hidden: true });
     w.append(q, tabs, h('p', { class: 'pa-legend', 'data-t': 'pa.legend' }), msg, list);
@@ -203,11 +264,11 @@ PD.premium = (() => {
       vis.forEach(u => list.append(card(u)));
     }
     function card(u) {
-      const s = stat(u), v = u.vip_until ? new Date(u.vip_until) : null, me = u.id === C.uid;
-      const label = s === 'banned' ? t('pa.sBanned') : s === 'with' ? (v.getFullYear() > 2090 ? t('pa.sForever') : t('pa.sUntil', { d: fmtDate(v) })) : (u.role === 'admin' ? t('pa.sAdmin') : t('pa.sNone'));
+      const s = stat(u), dates = [u.vip_until, u.store_until].filter(Boolean).map(v => new Date(v)), v = dates.length ? new Date(Math.max(...dates.map(Number))) : null, me = u.id === C.uid;
+      const label = s === 'banned' ? t('pa.sBanned') : s === 'with' ? (v.getFullYear() > 2090 ? t('pa.sForever') : t('pa.sUntil', { d: fmtDate(v) })) : t('pa.sNone');
       const b = (emo, k, act, cls) => h('button', { class: 'pa-b ' + (cls || ''), title: t(k), 'aria-label': t(k), onclick: () => run(u, act) }, [h('span', { class: 'pa-e', text: emo }), h('span', { text: t(k) })]);
       const acts = s === 'banned' ? [b('✅', 'pa.restore', 'restore', 'good')] :
-        [s === 'with' && !me ? b('❌', 'pa.cancel', 'cancel', 'bad') : null, b('1️⃣', 'pa.month', 'month'), b('1️⃣2️⃣', 'pa.year', 'year'), b('♾️', 'pa.forever', 'forever', 'gold'), !me ? b('🚫', 'pa.ban', 'ban', 'bad') : null].filter(Boolean);
+        [s === 'with' && u.vip_until && new Date(u.vip_until) > now() && !me ? b('❌', 'pa.cancel', 'cancel', 'bad') : null, b('1️⃣', 'pa.month', 'month'), b('1️⃣2️⃣', 'pa.year', 'year'), b('♾️', 'pa.forever', 'forever', 'gold'), !me ? b('🚫', 'pa.ban', 'ban', 'bad') : null].filter(Boolean);
       const av = u.avatar_url ? h('img', { src: u.avatar_url, alt: '' }) : h('span', { text: (name(u)[0] || '?').toUpperCase() });
       return h('div', { class: 'pa-u ' + s }, [
         h('div', { class: 'pa-top' }, [h('span', { class: 'pa-av' }, [av]), h('div', { class: 'grow' }, [h('b', { text: name(u) + (me ? ' · ' + t('pa.you') : '') }), h('small', { text: [u.email, u.phone].filter(Boolean).join(' · ') + (u.role === 'admin' ? ' · ' + t('ad.admin') : '') })]),
@@ -249,7 +310,7 @@ PD.premium = (() => {
             const fromNow = base => { const b = vip && vu > new Date() ? new Date(vu) : new Date(); b.setDate(b.getDate() + base); return b.toISOString(); };
             list.appendChild(h('div', { class: 'adm-u' }, [
               h('div', { class: 'adm-id' }, [h('b', { text: u.display_name || u.email || u.phone || u.id.slice(0, 8) }), h('small', { text: [u.email, u.phone].filter(Boolean).join(' · ') }),
-                h('small', { text: t('lv.level', { n: u.level || 0 }) + ' · ' + t('ad.joined', { d: new Date(u.created_at).toLocaleDateString() }) + (u.role === 'admin' ? ' · ' + t('ad.admin') : '') }),
+                h('small', { text: t('lv.level', { n: u.level || 0 }) + ' · ' + t('ad.joined', { d: new Date(u.created_at).toLocaleDateString(PD.i18n.locale) }) + (u.role === 'admin' ? ' · ' + t('ad.admin') : '') }),
                 vip ? h('span', { class: 'vip-tag', text: 'VIP · ' + fmtDate(vu) }) : null].filter(Boolean)),
               h('div', { class: 'adm-act' }, [
                 h('button', { class: 'btn small', 'data-t': 'ad.vipMonth', onclick: () => act(() => C.admin.setVip(u.id, fromNow(31), 'vip')) }),

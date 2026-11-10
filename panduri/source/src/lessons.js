@@ -32,7 +32,10 @@ PD.lessons = (() => {
   const all = PD.curriculum.lessons();
   function reloadCurriculum() { all.length = 0; PD.curriculum.lessons().forEach(l => all.push(normalize(l))); PATHS = PD.curriculum.paths(); mergeUser(); PD.bus.emit('lessons'); }
   PD.bus.on('curriculum', reloadCurriculum);
+  /* lessons built by other modules from their own stored data (the AI studio's songs): rebuilt on every merge, never saved here */
+  const providers = [];
   function mergeUser() {
+    providers.forEach(fn => { let ls = []; try { ls = fn() || []; } catch (_) {} ls.forEach(l => { const n = normalize(l), i = all.findIndex(x => x.id === n.id); if (i >= 0) all[i] = n; else all.push(n); }); });
     const saved = PD.store.get(KEY, []);
     saved.forEach(l => { if (!l || !l.id) return; const i = all.findIndex(x => x.id === l.id);
       if (i >= 0 && l.builtinUser && !(l.events && l.events.length) && all[i].events.length) return;   // an empty placeholder never hides a built-in song
@@ -169,6 +172,8 @@ PD.lessons = (() => {
   return {
     /** rebuild the list (built-in + the learner's own) after the stored lessons changed, e.g. after a sync */
     reload: reloadCurriculum,
+    /** a module that keeps lessons of its own: fn() returns them; they join the list now and after every reload */
+    provide(fn) { providers.push(fn); reloadCurriculum(); },
     all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, progression, steps, rhythmOf, songChanges, songRhythm, songPart, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
     get: lid => all.find(l => l.id === lid) || (/^rhythm-/.test(lid || '') ? rhythmLesson(lid.slice(7)) : undefined),
     /** lessons generated from the teacher rhythms (not stored; rebuilt from curriculum data) */

@@ -4,9 +4,17 @@
    tour. Every tool that opens the microphone closes it when you leave.
    ===================================================================== */
 PD.i18n.add({
+  'ce.sh.stairs': ['კიბურა აკორდები', 'Staircase chords'],
+  'ce.sh.stairsD': ['სამივე სიმის ლადი საფეხურებად იმატებს ან იკლებს. ბანს იღებს T — ცერა.', 'The frets rise or fall step by step across all three strings. T (thumb) takes the bass.'],
+  'ce.requested': ['კატალოგის აკორდი: {name} · შემოკლებული ფორმა', 'Catalogue chord: {name} · reduced voicing'],
+  'ce.inversion': ['{name}: ბანში ჟღერს {bass}, ძირითადი ბგერა კი არის {root}. ეს შებრუნებული პოზიციაა; აკორდის ბგერები არ იცვლება.', '{name}: the bass sounds {bass}, while the root is {root}. This is an inversion; the chord tones are unchanged.'],
+  'ce.sounding': ['ამ პოზიციაში ჟღერს: {name}', 'This position sounds: {name}'],
+  'ce.omitted': ['სამსიმიანი შემოკლებული ფორმა — გამოტოვებულია: {notes}. სრული აკორდი მეტ ბგერას შეიცავს.', 'Three-string reduction — omitted: {notes}. The complete chord contains more notes.'],
+  'ce.equivalent': ['{requested}-ის ამ შემოკლებულ ფორმას ზუსტად იგივე ბგერები აქვს, რაც {actual}-ს. ქვემოთ ნაჩვენებია რეალურად დაკრული ბგერები.', 'This reduced {requested} has exactly the same notes as {actual}. The notes actually played are shown below.'],
+
   'ce.lib': ['აკორდების ბიბლიოთეკა', 'Chord library'],
-  'ce.triFing': ['თითები მასწავლებლის Bm-ის მიხედვით: T ცერა — ბანი, 1 საჩვენებელი — მე-2 ხმა, 2 შუა — 1-ლი ხმა. იგივე სამკუთხა ფორმა, სხვა ლადზე.', 'Fingers as the teacher\'s Bm: T thumb — bass, 1 index — 2nd voice, 2 middle — 1st voice. The same triangle shape on another fret.'],
-  'ce.thFing': ['დაკეტილი აკორდი მასწავლებლის ხერხით: ცერა — ბანი, საჩვენებელი — მე-2 ხმა, 1-ლი ხმა კი იმავე თითით (თუ იმავე ლადზეა), ერთით ზემოთ შუა თითით, ორით ზემოთ მე-3 თითით.', 'A closed chord the teacher\u2019s way: the thumb takes the bass, the index the 2nd voice, and the 1st voice goes to the same index when it sits on the same fret, to the middle finger one fret above, to the ring finger two frets above.'],
+  'ce.triFing': ['თითები მასწავლებლის Bm-ის მიხედვით: T ცერა — ბანი, 1 საჩვენებელი — მე-2 ხმა, 2 შუა — 1-ლი ხმა. იგივე სამკუთხა ფორმა, სხვა ლადზე. ამ ლადზე ეს თითები მასწავლებელს ჯერ არ დაუდასტურებია.', 'Fingers as the teacher\'s Bm: T thumb — bass, 1 index — 2nd voice, 2 middle — 1st voice. The same triangle shape on another fret. On this fret the teacher has not confirmed these fingers yet.'],
+  'ce.thFing': ['დაკეტილი აკორდი მასწავლებლის ხერხით: ცერა — ბანი, ორ ზედა ხმაზე საჩვენებელი დგას უფრო დაბალ ლადზე; იმავე ლადზე ორივეს კეტავს, ერთი ლადით მაღლა გამოიყენება შუა, ორით მაღლა — არათითი.', 'A closed chord the teacher\u2019s way: the thumb takes the bass, the index takes the lower fret of the two upper voices (both if equal); the middle takes one fret higher and the ring two higher.'],
   'ce.thumb': ['ცერა', 'thumb'], 'ce.progT': ['მასწავლებლის', 'the teacher\u2019s'], 'ce.progOwn': ['მასწავლებლის ტონალობებში დაბრუნება', 'Back to the teacher\u2019s own keys'], 'ce.bassMove': ['ბანის მოძრაობა', 'Moving the bass'],
   'ce.bassMoveD': ['მასწავლებლის ხერხი: როცა ბანს მოძრაობა სჭირდება, ცერას ვუტოვებთ ადგილზე და შუა თითს ვამატებთ ორი ლადით ზემოთ, იმავე ბანის სიმზე.', 'The teacher\u2019s way: when the bass needs to move, the thumb stays where it is and the middle finger is added two frets higher on the same bass string.'],
   'ce.bassFrom': ['ბანი ახლა', 'The bass now'], 'ce.bassTo': ['გადაადგილებული ბანი', 'The bass moved'],
@@ -22,7 +30,7 @@ PD.i18n.add({
   'ce.progD': ['ცნობილი აკორდების თანმიმდევრობები ნებისმიერ ტონალობაში: მოუსმინე ტარზე ან ივარჯიშე მიკროფონით.', 'Well-known chord progressions in any key: listen on the neck or practise with the microphone.'], 'ce.key': ['ტონალობა', 'Key'], 'ce.listen': ['▶ მოსმენა', '▶ Listen'], 'ce.practise': ['ვარჯიში', 'Practise'],
   'ce.i9': ['ნონა (9)', '9th'], 'ce.i11': ['უნდეციმა (11)', '11th'], 'ce.i13': ['ტერცდეციმა (13)', '13th'],
   'ce.sh.tri': ['სამკუთხა აკორდები', 'Triangle chords'], 'ce.sh.triD': ['განაპირა სიმები ერთ ლადზე, შუა — ერთი ლადით გვერდზე. მაგ. Bm = 2-1-2', 'Outer strings on one fret, the middle one fret beside. E.g. Bm = 2-1-2'],
-  'ce.sh.barre': ['გადაკეტილი აკორდები', 'Barre chords'], 'ce.sh.barreD': ['ერთი თითი (1) ერთ ლადზე რამდენიმე სიმს კეტავს. მაგ. B = 2-2-2', 'One finger (1) closes several strings on one fret. E.g. B = 2-2-2'],
+  'ce.sh.barre': ['გადაკეტილი აკორდები', 'Barre chords'], 'ce.sh.barreD': ['საჩვენებელი (1) ერთ ლადზე ორ ზედა ხმას კეტავს; ბანს იღებს ცერა (T). მაგ. B = 2-2-2 → T-1-1', 'Index (1) closes the two upper voices on one fret; thumb (T) takes the bass. E.g. B = 2-2-2 → T-1-1'],
   'ce.sh.open': ['ღია სიმებით', 'With open strings'], 'ce.sh.openD': ['ერთი ან მეტი სიმი ღიაა (0)', 'One or more strings are open (0)'],
   'ce.sh.other': ['სხვა ფორმები', 'Other shapes'], 'ce.sh.otherD': ['ყველა დანარჩენი ფორმა', 'All remaining shapes'],
   'tu.title': ['ტიუნერი', 'Tuner'], 'tu.auto': ['ავტო', 'Auto'], 'tu.manual': ['სიმის არჩევა', 'Pick string'],
@@ -46,7 +54,7 @@ PD.i18n.add({
   'ce.teacher': ['ეს ფორმა მასწავლებლისაა.', 'This shape is the teacher\'s.'], 'ce.song': ['ამ ფორმით იკვრება „ბანი-აჭარულში“.', 'This shape is used in “Bani-Acharuli”.'],
   'ce.roles': ['ბგერების როლი', 'What each note is'], 'ce.count': ['{n} აკორდი', '{n} chords'],
   'ce.R': ['ტონიკა', 'root'], 'ce.i2': ['სეკუნდა/ნონა', '2nd/9th'], 'ce.i3m': ['პატ. ტერცია', 'minor 3rd'], 'ce.i3': ['დიდი ტერცია', 'major 3rd'], 'ce.i4': ['კვარტა', '4th'], 'ce.i5d': ['შემც. კვინტა', 'dim. 5th'], 'ce.i5': ['კვინტა', '5th'], 'ce.i5a': ['გად. კვინტა', 'aug. 5th'], 'ce.i6': ['სექსტა', '6th'], 'ce.i7m': ['პატ. სეპტიმა', 'minor 7th'], 'ce.i7': ['დიდი სეპტიმა', 'major 7th'],
-  'fx.title': ['ტარის მკვლევარი', 'Fretboard explorer'], 'fx.names': ['სახელები', 'Names'], 'fx.ka': ['ქართ.', 'Georgian'], 'fx.oct': ['ოქტავა', 'Octave'], 'fx.none': ['არაფერი', 'None'],
+  'fx.title': ['ტარის მკვლევარი', 'Fretboard explorer'], 'fx.names': ['სახელები', 'Names'], 'fx.ka': ['ქართ.', 'Do-re-mi'], 'fx.oct': ['ოქტავა', 'Octave'], 'fx.none': ['არაფერი', 'None'],
   'fx.scale': ['გამა', 'Scale'], 'fx.root': ['ტონიკა', 'Root'], 'sc.none': ['არა', 'None'], 'sc.major': ['მაჟორი', 'Major'], 'sc.minor': ['ნატურალური მინორი', 'Natural minor'], 'sc.penta': ['მაჟორული პენტატონიკა', 'Major pentatonic'], 'sc.mpenta': ['მინორული პენტატონიკა', 'Minor pentatonic'],
   'fx.cap0': ['{n} — {s} ღიად ჟღერს, მარცხენა ხელი არ იჭერს.', '{n} — {s} rings open; the left hand holds nothing.'],
   'fx.capN': ['{n} — {s}, {f} ლადი, თითი {g} (პირველი პოზიცია: თითო ლადზე თითო თითი).', '{n} — {s}, fret {f}, finger {g} (first position: one finger per fret).'],
@@ -68,109 +76,27 @@ PD.tools = (() => {
   function scope() { const offs = []; const un = PD.bus.on('route', () => { offs.forEach(f => { try { f(); } catch (_) {} }); un(); }); return f => offs.push(f); }
   const header = (w, k) => w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': k, style: 'margin:0' })]));
 
-  /* =================== TUNER =================== */
-  function tuner(w) {
-    const own = scope();
-    header(w, 'tu.title');
-    let mode = 'auto', sel = 1, hist = [], frames = [], lockT = 0, locked = false, lastP = 0, wasOn = PD.detector.active;
-    const box = h('div', { class: 'tuner' });
-    const card = h('div', { class: 'card gauge' });
-    const svg = h('div', { html: gaugeSVG() });
-    const nn = h('div', { class: 'tnote', text: '—', 'aria-live': 'polite' }), rd = h('div', { class: 'tread', text: '— Hz · — ¢' }), msg = h('div', { class: 'tmsg', role: 'status', 'aria-live': 'polite', 'data-t': 'tu.idle' });
-    const strs = h('div', { class: 'tstr', role: 'group', 'aria-label': t('tu.manual') });
-    const modeSeg = h('div', { class: 'seg', role: 'group' }, [['auto', 'tu.auto'], ['manual', 'tu.manual']].map(([m, k]) => h('button', { 'aria-pressed': String(m === mode), 'data-t': k, onclick: e => { mode = m; modeSeg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); drawStr(); } })));
-    const micBtn = h('button', { class: 'btn primary', html: ic.mic + '<span></span>', onclick: () => { if (PD.detector.active) { PD.detector.stop(); } else PD.practice.micOn(() => upd()); } });
-    const lvl = h('div', { class: 'bar', style: 'width:140px', title: t('tu.level') }, [h('i', { style: 'width:0;background:var(--ok)' })]);
-    const spark = h('div', { role: 'img', 'aria-label': t('tu.hist') });
-    card.append(h('div', { class: 'row', style: 'justify-content:space-between;width:100%' }, [modeSeg, h('div', { class: 'row' }, [h('span', { class: 'muted', style: 'font-size:12px', 'data-t': 'tu.level' }), lvl])]), svg, nn, rd, msg, strs, h('div', { class: 'row' }, [micBtn]),
-      h('div', { style: 'width:100%' }, [h('span', { class: 'kicker', 'data-t': 'tu.hist' }), spark]));
-    // side panel: reference tones, A4, sensitivity, tunings
-    const side = h('div', { style: 'display:flex;flex-direction:column;gap:16px' });
-    const refs = h('div', { class: 'row' });
-    const a4in = h('input', { type: 'number', min: '415', max: '466', step: '1', value: String(TH.a4()), class: 'input', style: 'width:110px', 'aria-label': 'A4', onchange: e => { const v = Math.max(415, Math.min(466, +e.target.value || 440)); PD.store.set('a4', v); e.target.value = v; drawStr(); } });
-    const sens = h('input', { type: 'range', min: '0', max: '100', value: String(PD.detector.calib.sens == null ? 60 : PD.detector.calib.sens), 'aria-label': t('tu.sens'), oninput: e => PD.detector.setCalib({ sens: +e.target.value }) });
-    const tsel = h('select', { class: 'input', 'aria-label': t('tu.preset'), onchange: e => { TH.setTuning(e.target.value); drawStr(); } }, TH.TUNINGS.map(x => h('option', { value: x.id, text: PD.i18n.pick(x.name), selected: x.id === TH.tuning.id })));
-    side.append(h('div', { class: 'card', style: 'display:flex;flex-direction:column;gap:10px' }, [h('b', { 'data-t': 'tu.ref' }), refs]),
-      h('div', { class: 'card', style: 'display:flex;flex-direction:column;gap:10px' }, [h('b', { 'data-t': 'tu.preset' }), tsel, h('p', { class: 'muted', style: 'font-size:12px', 'data-t': 'tu.customWarn' }), h('button', { class: 'btn small', 'data-t': 'tu.custom', onclick: customSheet })]),
-      h('div', { class: 'card', style: 'display:flex;flex-direction:column;gap:10px' }, [h('label', { class: 'field' }, [h('span', { text: 'A4 (Hz)' }), a4in]), h('label', { class: 'field' }, [h('span', { 'data-t': 'tu.sens' }), sens])]));
-    box.append(card, side); w.append(box);
-
-    function drawStr() {
-      strs.innerHTML = ''; refs.innerHTML = '';
-      [1, 2, 3].forEach(s => {
-        const m = TH.open(s);
-        const b = h('button', { 'aria-pressed': String(mode === 'manual' && sel === s), style: 'color:' + SCOL[s] + ';position:relative', html: '<b>' + TH.pcName(m) + '</b><small>' + TH.name(m) + ' · ' + TH.freq(m).toFixed(1) + ' Hz</small>', onclick: () => { mode = 'manual'; sel = s; modeSeg.querySelectorAll('button').forEach((x, i) => x.setAttribute('aria-pressed', String(i === 1))); drawStr(); } });
-        strs.appendChild(b);
-        refs.appendChild(h('button', { class: 'btn small', text: '▶ ' + TH.pcName(m), onclick: () => { PD.audio.ensure(); PD.audio.tone(m, 2.2); } }));
-      });
-    }
-    function customSheet() {
-      PD.ui.sheet((b, close) => {
-        const opts = []; for (let m = 50; m <= 72; m++) opts.push(m);
-        const sels = [57, 61, 64].map((d, i) => h('select', { class: 'input', 'aria-label': String(i + 1) }, opts.map(m => h('option', { value: String(m), text: TH.name(m), selected: m === TH.tuning.strings[i] }))));
-        const nm = h('input', { class: 'input', placeholder: t('tu.name') });
-        b.append(h('h2', { 'data-t': 'tu.custom' }), h('p', { class: 'muted', 'data-t': 'tu.customWarn' }), h('div', { class: 'row' }, sels), nm,
-          h('div', { class: 'row' }, [h('button', { class: 'btn primary', 'data-t': 'tu.addCustom', onclick: () => {
-            const strings = sels.map(s => +s.value), name = nm.value.trim() || strings.map(m => TH.pcName(m)).join(' '), id = 'c' + Date.now().toString(36);
-            const tu = { id, name: { ka: name, en: name }, strings }; const all = PD.store.get('tunings.custom', []); all.push(tu); PD.store.set('tunings.custom', all); TH.TUNINGS.push(tu); TH.setTuning(id);
-            tsel.appendChild(h('option', { value: id, text: name, selected: true })); drawStr(); close();
-          } }), h('button', { class: 'btn', 'data-t': 'cancel', onclick: close })]));
-      });
-    }
-    function gaugeSVG() {
-      let ticks = '';
-      for (let c = -50; c <= 50; c += 5) { const a = c / 50 * 60 * Math.PI / 180, r1 = c % 25 === 0 ? 118 : 126, x1 = 160 + Math.sin(a) * r1, y1 = 150 - Math.cos(a) * r1, x2 = 160 + Math.sin(a) * 136, y2 = 150 - Math.cos(a) * 136; ticks += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="' + (c === 0 ? '#9AD7AE' : 'rgba(242,232,218,.35)') + '" stroke-width="' + (c % 25 === 0 ? 2 : 1) + '"/>'; }
-      const lab = [-50, -25, 0, 25, 50].map(c => { const a = c / 50 * 60 * Math.PI / 180; return '<text x="' + (160 + Math.sin(a) * 104).toFixed(1) + '" y="' + (154 - Math.cos(a) * 104).toFixed(1) + '" fill="rgba(242,232,218,.5)" font-size="10" text-anchor="middle" font-family="Noto Sans Georgian">' + (c > 0 ? '+' : '') + c + '</text>'; }).join('');
-      return '<svg viewBox="0 0 320 170" role="img" aria-label="cents"><path d="M' + (160 - Math.sin(Math.PI / 3) * 136).toFixed(1) + ' ' + (150 - Math.cos(Math.PI / 3) * 136).toFixed(1) + ' A136 136 0 0 1 ' + (160 + Math.sin(Math.PI / 3) * 136).toFixed(1) + ' ' + (150 - Math.cos(Math.PI / 3) * 136).toFixed(1) + '" fill="none" stroke="rgba(242,232,218,.12)" stroke-width="10"/><path id="tuOk" d="M' + (160 - Math.sin(5 / 50 * Math.PI / 3) * 136).toFixed(1) + ' ' + (150 - Math.cos(5 / 50 * Math.PI / 3) * 136).toFixed(1) + ' A136 136 0 0 1 ' + (160 + Math.sin(5 / 50 * Math.PI / 3) * 136).toFixed(1) + ' ' + (150 - Math.cos(5 / 50 * Math.PI / 3) * 136).toFixed(1) + '" fill="none" stroke="#3F6B4C" stroke-width="10"/>' + ticks + lab +
-        '<g id="tuNeedle" style="transition:transform .12s linear;transform-origin:160px 150px"><line x1="160" y1="150" x2="160" y2="22" stroke="#F2E8DA" stroke-width="2.5" stroke-linecap="round"/></g><circle cx="160" cy="150" r="6" fill="#F2E8DA"/></svg>';
-    }
-    const needle = () => svg.querySelector('#tuNeedle');
-    function setNeedle(c) { const n = needle(); if (n) n.style.transform = 'rotate(' + (Math.max(-50, Math.min(50, c)) / 50 * 60) + 'deg)'; }
-    function upd() {
-      const on = PD.detector.active;
-      micBtn.lastChild.textContent = t(on ? 'tu.stop' : 'tu.start'); micBtn.classList.toggle('primary', !on);
-    }
-    function onPitch(m) {
-      if (!(m.f > 0) || m.conf < .8) return;
-      lastP = performance.now();
-      frames.push(m.f); if (frames.length > 5) frames.shift();
-      const f = frames.slice().sort((a, b) => a - b)[Math.floor(frames.length / 2)], mm = TH.midiOf(f);
-      let target;
-      if (mode === 'manual') target = TH.open(sel);
-      else { target = TH.open(1); let best = 99; [1, 2, 3].forEach(s => { const d = Math.abs(mm - TH.open(s)); if (d < best) { best = d; target = TH.open(s); } }); if (best > 2.5) target = Math.round(mm); }
-      const c = (mm - target) * 100;
-      nn.textContent = TH.pcName(target); nn.style.color = Math.abs(c) <= 5 ? 'var(--ok)' : Math.abs(c) <= 20 ? 'var(--almost)' : 'var(--fix)';
-      rd.textContent = f.toFixed(1) + ' Hz · ' + (c >= 0 ? '+' : '') + c.toFixed(0) + ' ¢ · ' + TH.freq(target).toFixed(1) + ' Hz';
-      setNeedle(c);
-      const ac = Math.abs(c);
-      if (ac <= 5) { if (!lockT) lockT = performance.now(); if (performance.now() - lockT > 600 && !locked) { locked = true; PD.audio.ok && PD.audio.ok(); } }
-      else { lockT = 0; locked = false; }
-      msg.textContent = locked || ac <= 5 ? t('tu.inTune') + (locked ? ' · ' + t('tu.locked') : '') : ac > 300 ? t('tu.far') : c < 0 ? t('tu.up') : t('tu.down');
-      msg.style.color = ac <= 5 ? 'var(--ok)' : ac <= 20 ? 'var(--almost)' : 'var(--fix)';
-      strs.querySelectorAll('button').forEach((b, i) => b.classList.toggle('intune', TH.open(i + 1) === target && ac <= 5));
-      hist.push(Math.max(-50, Math.min(50, c))); if (hist.length > 120) hist.shift();
-      spark.innerHTML = '<svg class="spark" viewBox="0 0 240 46" preserveAspectRatio="none"><line x1="0" x2="240" y1="23" y2="23" stroke="#3F6B4C" stroke-width="1"/><polyline fill="none" stroke="#C98B5B" stroke-width="1.5" points="' + hist.map((v, i) => (i * 2).toFixed(0) + ',' + (23 - v * .44).toFixed(1)).join(' ') + '"/></svg>';
-    }
-    own(PD.detector.on('pitch', onPitch));
-    own(PD.detector.on('note', m => { if (m.unsure && performance.now() - lastP > 700) { msg.textContent = t('tu.unsure'); msg.style.color = 'var(--almost)'; } }));
-    own(PD.detector.on('level', m => { lvl.firstChild.style.width = Math.min(100, Math.sqrt(m.rms) * 260) + '%'; }));
-    own(PD.detector.on('state', upd));
-    own(() => { if (PD.detector.active && !wasOn) PD.detector.stop(); });   // leaving the tuner releases the mic it opened
-    drawStr(); upd();
-  }
-
   /* =================== CHORD EXPLORER =================== */
   function chordDiagram(c) {
     // player view: E on top, A at the bottom; frets left → right
-    const lo = Math.max(1, Math.min(...c.frets.filter(f => f > 0), 99) === 99 ? 1 : Math.min(...c.frets.filter(f => f > 0))), span = 4, first = lo <= 2 ? 1 : lo;
+    const lo = Math.max(1, Math.min(...c.frets.filter(f => f > 0), 99) === 99 ? 1 : Math.min(...c.frets.filter(f => f > 0))), first = lo <= 2 ? 1 : lo, span = Math.max(4, Math.max(...c.frets) - first + 1);
     const W = 380, H = 170, x0 = 50, x1 = 360, y = s => 140 - (s - 1) * 50, fx = n => x0 + (n - first + 1) * (x1 - x0) / span;
     let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + PD.esc(c.name + ' ' + c.frets.join('-')) + '">';
     s += '<rect x="' + x0 + '" y="' + (y(3) - 14) + '" width="' + (x1 - x0) + '" height="' + (y(1) - y(3) + 28) + '" rx="6" fill="#2A1D14"/>';
     if (first === 1) s += '<rect x="' + (x0 - 4) + '" y="' + (y(3) - 14) + '" width="6" height="' + (y(1) - y(3) + 28) + '" fill="#EFE0B8"/>';
     for (let n = first; n < first + span; n++) s += '<line x1="' + fx(n) + '" x2="' + fx(n) + '" y1="' + (y(3) - 14) + '" y2="' + (y(1) + 14) + '" stroke="#B9B2A6" stroke-width="2"/><text x="' + ((fx(n) + fx(n - 1)) / 2) + '" y="' + (H - 2) + '" fill="rgba(242,232,218,.5)" font-size="11" text-anchor="middle" font-family="Noto Sans Georgian">' + n + '</text>';
     [1, 2, 3].forEach(k => { s += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + y(k) + '" y2="' + y(k) + '" stroke="' + SCOL[k] + '" stroke-width="' + (4 - k * .6) + '"/><text x="' + (x0 - 20) + '" y="' + (y(k) + 4) + '" fill="' + SCOL[k] + '" font-size="13" text-anchor="middle" font-family="Noto Sans Georgian">' + TH.stringName(k) + '</text>'; });
-    if (c.barre && c.frets[0] > 0) { const cx = (fx(c.frets[0]) + fx(c.frets[0] - 1)) / 2 + 8; s += '<rect x="' + (cx - 13) + '" y="' + (y(3) - 13) + '" width="26" height="' + (y(1) - y(3) + 26) + '" rx="13" fill="#E3C2A6"/><text x="' + cx + '" y="' + (y(2) + 5) + '" fill="#140D08" font-size="15" font-weight="700" text-anchor="middle" font-family="Noto Sans Georgian">1</text>'; }
-    else c.frets.forEach((f, i) => { const k = i + 1; if (f > 0) { const cx = (fx(f) + fx(f - 1)) / 2 + 8; s += '<circle cx="' + cx + '" cy="' + y(k) + '" r="14" fill="' + SCOL[k] + '"/><text x="' + cx + '" y="' + (y(k) + 5) + '" fill="#140D08" font-size="14" font-weight="700" text-anchor="middle" font-family="Noto Sans Georgian">' + (c.fingers[i] || '') + '</text>'; } else s += '<circle cx="' + (x0 - 2) + '" cy="' + y(k) + '" r="7" fill="none" stroke="' + SCOL[k] + '" stroke-width="2"/>'; });
+    const groups = {};
+    c.frets.forEach((f, i) => { if (f > 0) { const fi = c.fingers[i], key = fi + ':' + f; (groups[key] || (groups[key] = [])).push(i + 1); } });
+    Object.entries(groups).forEach(([key, strings]) => {
+      const [fi, fret] = key.split(':'), f = +fret, cx = (fx(f) + fx(f - 1)) / 2 + 8;
+      const finger = fi === 'T' ? 'T' : +fi, col = PD.fingers.color(finger), ink = PD.fingers.ink(finger);
+      const ys = strings.map(y), top = Math.min(...ys), bottom = Math.max(...ys);
+      if(strings.length>1) s += '<rect x="' + (cx-13) + '" y="' + (top-13) + '" width="26" height="' + (bottom-top+26) + '" rx="13" fill="' + col + '"/>';
+      else s += '<circle cx="' + cx + '" cy="' + top + '" r="14" fill="' + col + '"/>';
+      s += '<text x="' + cx + '" y="' + ((top+bottom)/2+5) + '" fill="' + ink + '" font-size="14" font-weight="700" text-anchor="middle" font-family="Noto Sans Georgian">' + PD.esc(fi) + '</text>';
+    });
+    c.frets.forEach((f, i) => { if(f===0) s += '<circle cx="' + (x0-2) + '" cy="' + y(i+1) + '" r="7" fill="none" stroke="' + SCOL[i+1] + '" stroke-width="2"/>'; });
     return s + '</svg>';
   }
   /** every chord in each shape it can take; cached per tuning */
@@ -182,7 +108,7 @@ PD.tools = (() => {
     all.forEach(c => {
       if (c.none) { out.push({ c, v: c, shape: 'none' }); return; }
       const T = c.q != null ? TT.CHORD_TYPES.find(x => x.k === c.q) : null;
-      const vs = (c.root != null && T ? TT.voicings(c.root, T) : []).concat(c.voicings || [c]);
+      const vs = (c.root != null && T ? TT.voicings(c.root, T).filter(TT.hasHandPose) : []).concat(c.voicings || [c]);
       const best = {};
       vs.forEach(v => { const k = shapeOf(v), p = v.pos != null ? v.pos : Math.min(...v.frets.filter(x => x > 0).concat([0])); const pp = p + (v.frets.some(x => x === 0) ? .5 : 0); if (!best[k] || pp < best[k].p) best[k] = { v, p: pp }; });
       // the chord's own main shape always shows (teacher / song shapes win)
@@ -202,10 +128,14 @@ PD.tools = (() => {
     if (isDet) w.append(h('div', { class: 'row pg-head ce-dhead' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span data-t="ce.allCh"></span>', onclick: () => PD.app.back('chords') })]));
     else w.append(h('div', { class: 'ce-chead' }, [h('h1', { 'data-t': 'ce.title', style: 'margin:0' }), h('p', { class: 'muted', 'data-t': 'ce.catLead' })]));
     let cur = all.find(c => c.id === pid) || all.find(c => c.name === pid) || all.find(c => c.name === 'Dm') || all[0], vi = 0, q = '', forced = null;
-    if (isDet && pfr) { const k = (cur.voicings || []).findIndex(v => v.frets.join('-') === pfr); if (k >= 0) vi = k; else { const fr = pfr.split('-').map(Number); if (fr.length === 3 && fr.every(x => x >= 0 && x <= 17)) { const v0 = (cur.voicings || [])[0]; forced = Object.assign({}, v0 || cur, { frets: fr }); } } }
+    if (isDet && pfr) {
+      const k = (cur.voicings || []).findIndex(v => v.frets.join('-') === pfr);
+      if (k >= 0) vi = k;
+      else if (cur.root != null && cur.q != null) forced = TT.voicings(cur.root, cur.q).find(v => v.frets.join('-') === pfr && TT.hasHandPose(v)) || null;
+    }
     /* shape sections: every chord in every shape it can be played in (triangle · barre · with open strings · other) */
-    const SH = ['tri', 'barre', 'open', 'other', 'none'];
-    const shapeOf = v => { const fr = v.frets; if (fr.every(x => x > 0) && fr[0] === fr[2] && Math.abs(fr[1] - fr[0]) === 1) return 'tri'; if (v.barre || (fr.every(x => x > 0) && fr[0] === fr[1] && fr[1] === fr[2])) return 'barre'; if (fr.some(x => x === 0)) return 'open'; return 'other'; };
+    const SH = ['tri', 'stairs', 'barre', 'open', 'other', 'none'];
+    const shapeOf = v => { const fr = v.frets; if (fr.every(x => x > 0) && ((fr[0] < fr[1] && fr[1] < fr[2]) || (fr[0] > fr[1] && fr[1] > fr[2]))) return 'stairs'; if (fr.every(x => x > 0) && fr[0] === fr[2] && Math.abs(fr[1] - fr[0]) === 1) return 'tri'; if (v.barre || (fr.every(x => x > 0) && fr[0] === fr[1] && fr[1] === fr[2])) return 'barre'; if (fr.some(x => x === 0)) return 'open'; return 'other'; };
     const entries = shapeEntries(all, shapeOf);
     let swapDir = 0, fRoot = PD.store.get('ce.root', -1), fCat = PD.store.get('ce.cat', 'all'), fSec = PD.store.get('ce.sec', 'all');
     const favs = () => PD.store.get('ce.fav', []);
@@ -217,7 +147,7 @@ PD.tools = (() => {
     const nv = h('div', { class: 'neckview' }), ncv = h('canvas', { 'aria-label': t('ce.title') }); nv.appendChild(ncv);
     const view = PD.Neck(ncv); view.mirror = PD.store.get('lefty', false);
     let raf = 0; const loop = () => { raf = requestAnimationFrame(loop); if (!document.hidden && !PD.practice.active) view.draw(); };
-    requestAnimationFrame(() => { view.layout(); raf = requestAnimationFrame(loop); }); own(() => { cancelAnimationFrame(raf); view.destroy(); });
+    raf = requestAnimationFrame(() => { view.layout(); raf = requestAnimationFrame(loop); }); own(() => { cancelAnimationFrame(raf); view.destroy(); });   // the first frame's id is kept too: leaving before it fires must cancel it, or the loop starts on a dead screen and never stops
     const ro = new ResizeObserver(() => { const nh = view.natH(nv.clientWidth) + 'px'; if (nv.style.height !== nh) nv.style.height = nh; view.layout(); preview(); }); ro.observe(nv); own(() => ro.disconnect());
     const preview = () => { const v = vo(); view.setTarget(v.frets.map((f, k) => ({ s: k + 1, f, fi: v.fingers[k] || 0 })), []); };
     const search = h('input', { class: 'input', type: 'search', 'data-t-ph': 'ce.search', 'aria-label': t('ce.search'), oninput: e => { q = e.target.value.trim().toLowerCase().replace('#', '♯'); grid(); } });
@@ -266,11 +196,12 @@ PD.tools = (() => {
     let dim = PD.store.get('ce.dim', '2d'), H3 = null, h3view = PD.store.get('ce.h3view', 'front');
     const h3stage = h('div', { class: 'h3-stage' }), h3msg = h('p', { class: 'h3-msg', hidden: true }), h3caps = h('ul', { class: 'h3-caps' });
     const h3seg = h('div', { class: 'seg h3-views', role: 'group' }, [['front', 'ce.h3front'], ['player', 'ce.h3player']].map(([k, lk]) => h('button', { 'aria-pressed': String(k === h3view), 'data-k': k, 'data-t': lk, onclick: () => { h3view = k; PD.store.set('ce.h3view', k); h3seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k))); if (H3) H3.setView(k); } })));
+    own(() => { if (H3 && H3.unmount) H3.unmount(h3stage); });
     const h3box = h('div', { class: 'h3-box', hidden: true }, [h3stage, h3msg, h3caps, h3seg]);
     const dimSeg = h('div', { class: 'seg h3-dim', role: 'group', 'aria-label': '2D / 3D' }, ['2d', '3d'].map(k => h('button', { 'aria-pressed': String(k === dim), 'data-k': k, text: k.toUpperCase(), onclick: () => setDim(k) })));
     const FNAME = { 1: ['საჩვენებელი', 'index'], 2: ['შუა', 'middle'], 3: ['არათითი', 'ring'], 4: ['ნეკი', 'little'], T: ['ცერა', 'thumb'] };
     const SNAME = { 1: ['ბანი (მე-3 სიმი)', 'bass (3rd string)'], 2: ['მე-2 ხმა (მე-2 სიმი)', '2nd voice (2nd string)'], 3: ['1-ლი ხმა (1-ლი სიმი)', '1st voice (1st string)'] };
-    const ord = n => PD.i18n.lang === 'en' ? 'fret ' + n : (n === 1 ? '1-ლი' : 'მე-' + n) + ' ლადი', Lk = a => PD.i18n.lang === 'en' ? a[1] : a[0];
+    const ord = n => PD.i18n.pick({ ka: (n === 1 ? '1-ლი' : 'მე-' + n) + ' ლადი', en: 'fret ' + n }), Lk = a => PD.i18n.pick({ ka: a[0], en: a[1] });
     function h3caption(v) { h3caps.innerHTML = ''; v.frets.forEach((f, k) => { const fi = v.fingers[k]; if (!(f > 0 && fi)) return; h3caps.append(h('li', {}, [h('span', { class: 'h3-dot', style: 'background:' + PD.fingers.color(fi) + ';color:' + PD.fingers.ink(fi), text: String(fi) }), h('span', { text: Lk(FNAME[fi] || ['', '']) + ': ' + Lk(SNAME[k + 1]) + ', ' + ord(f) })])); }); v.frets.forEach((f, k) => { if (f === 0) h3caps.append(h('li', { class: 'open' }, [h('span', { class: 'h3-dot o', text: '0' }), h('span', { text: Lk(SNAME[k + 1]) + ' — ' + t('ce.open') })])); }); }
     function upd3d() {
       if (dim !== '3d' || !isDet) return; const v = vo(); h3caption(v);
@@ -312,7 +243,7 @@ PD.tools = (() => {
       SH.forEach(k => {
         const part = list.filter(e => e.shape === k); if (!part.length) return;
         const row = h('div', { class: 'cgrid', role: 'listbox', 'aria-label': t('ce.sh.' + k) });
-        part.forEach(e => { flat.push(e); const on = isDet && e.c === cur && same(vo(), e.v); row.appendChild(h('button', { role: 'option', 'aria-selected': String(on), 'aria-pressed': String(on), title: e.v.frets.join('-'), html: PD.esc(e.c.name) + '<small>' + e.v.frets.join('-') + '</small>', onclick: () => { pick(e); } })); });
+        part.forEach(e => { flat.push(e); const on = isDet && e.c === cur && same(vo(), e.v); row.appendChild(h('button', { role: 'option', 'aria-selected': String(on), 'aria-pressed': String(on), title: e.v.frets.join('-'), html: PD.esc(e.c.name) + '<small>' + (e.c.none ? '—' : e.v.frets.join('-')) + '</small>', onclick: () => { pick(e); } })); });
         const op = PD.store.get('ce.acc.sh.' + k, k !== 'none');
         g.appendChild(h('details', { class: 'csec', open: op || null, ontoggle: e => PD.store.set('ce.acc.sh.' + k, e.currentTarget.open) }, [h('summary', { class: 'csec-h' }, [h('span', { class: 'csec-t' }, [h('b', { text: t('ce.sh.' + k) }), h('small', { text: t('ce.sh.' + k + 'D') })]), h('span', { class: 'csec-n mono', text: String(part.length) }), h('span', { class: 'ce-acc-chev', 'aria-hidden': 'true' })]), row]));
       });
@@ -345,24 +276,26 @@ PD.tools = (() => {
     function show() {
       if (typeof stopAnim === 'function') stopAnim();
       detail.innerHTML = '';
-      if (cur.none) { nameBox.innerHTML = ''; nameBox.append(h('div', { class: 'ce-nb' }, [h('span'), h('div', { class: 'ce-name' }, [h('h2', { text: cur.name }), h('small', { text: [cur.alias, cur.ka].filter(Boolean).join(' · ') })]), h('span')])); acts.innerHTML = ''; acts.append(h('p', { class: 'notice', text: t('ce.noForm') })); accs.innerHTML = ''; view.setTarget([], []); return; }
-      const v = vo(), ms = v.frets.map((f, i) => TT.midi(i + 1, f)), T = TT.CHORD_TYPES.find(x => x.k === cur.q), EXT = ['9', 'maj9', 'm9', '11', '13', 'add9', 'm(add9)'].includes(cur.q);
-      const q0 = cur.q != null ? cur.q : cur.kind === 'min' ? 'm' : '', nm = m => cur.root != null ? TT.spell(m, cur.root, q0).name : TT.name(m), nmKa = m => cur.root != null ? TT.spell(m, cur.root, q0).ka : TT.nameKa(m);   // spelled from the root letter
+      if (cur.none) { nameBox.innerHTML = ''; nameBox.append(h('div', { class: 'ce-nb' }, [h('span'), h('div', { class: 'ce-name' }, [h('h2', { text: cur.name }), h('small', { text: [cur.alias, TT.chordLong(cur)].filter(Boolean).join(' · ') })]), h('span')])); acts.innerHTML = ''; acts.append(h('p', { class: 'notice', text: t('ce.noForm') })); accs.innerHTML = ''; view.setTarget([], []); return; }
+      const v = vo(), info = TT.voicingInfo(cur.root, cur.q, v.frets), sounding = info.missing.length && info.exact.length ? info.exact[0].name : null, ms = v.frets.map((f, i) => TT.midi(i + 1, f)), T = TT.CHORD_TYPES.find(x => x.k === cur.q), EXT = ['9', 'maj9', 'm9', '11', '13', 'add9', 'm(add9)'].includes(cur.q);
+      const q0 = cur.q != null ? cur.q : cur.kind === 'min' ? 'm' : '', nm = m => cur.root != null ? TT.spell(m, cur.root, q0).name : TT.name(m), nmKa = m => cur.root != null ? TT.localNote(TT.spell(m, cur.root, q0).ka) : TT.nameKa(m);   // spelled from the root letter
       const list = all.filter(match), i = Math.max(0, list.indexOf(cur));
       const other = h('select', { class: 'input', 'aria-label': t('ce.to') }, all.filter(c => c !== cur && (c.q === '' || c.q === 'm' || c.q == null)).map(c => h('option', { value: c.id, text: c.name })));
       const posSeg = cur.voicings && cur.voicings.length > 1 ? h('div', { class: 'seg', role: 'group', 'aria-label': t('ce.pos') }, cur.voicings.map((x, k) => h('button', { 'aria-pressed': String(!forced && k === vi), text: x.pos ? t('ce.posN', { n: x.pos }) : t('ce.open'), onclick: () => { vi = k; forced = null; grid(); show(); } }))) : null;
-      const src = cur.src === 'teacher' && vi === 0 ? 'ce.teacher' : cur.src === 'song' && vi === 0 ? 'ce.song' : cur.demo ? 'ce.demo' : 'ce.computed';
+      /* the source line follows the position actually shown: the teacher's own extra position (C♯ 4-0-4) is his, not
+         computed; a forced position that is not in the list is never credited to the teacher or the song */
+      const src = v.fsrc === 'teacher' ? 'ce.teacher' : cur.src === 'teacher' && vi === 0 && !forced ? 'ce.teacher' : cur.src === 'song' && vi === 0 && !forced ? 'ce.song' : cur.demo ? 'ce.demo' : 'ce.computed';
       const go = d => { swapDir = d; const j = flat.findIndex(e => e.c === cur && same(e.v, vo())); const e = flat[(j + d + flat.length) % flat.length]; if (e) pick(e); };
       const isFav = favs().includes(cur.id);
       nameBox.innerHTML = '';
       nameBox.append(h('div', { class: 'ce-nb' }, [
         h('button', { class: 'btn icon small ce-nav', 'aria-label': t('prev'), text: '‹', onclick: () => go(-1) }),
-        h('div', { class: 'ce-name' }, [h('h2', { text: cur.name }), h('small', { text: [cur.alias, cur.ka].filter(Boolean).join(' · ') }), h('span', { class: 'ce-frets mono', text: v.frets.join(' · ') })]),
+        h('div', { class: 'ce-name' }, [h('h2', { text: sounding || cur.name }), h('small', { text: sounding ? t('ce.requested', { name: cur.name }) : [cur.alias, cur.ka].filter(Boolean).join(' · ') }), h('span', { class: 'ce-frets mono', text: v.frets.join(' · ') })]),
         h('button', { class: 'btn icon small ce-nav', 'aria-label': t('next'), text: '›', onclick: () => go(1) })]),
         h('button', { class: 'btn icon small ce-fav' + (isFav ? ' on' : ''), 'aria-label': t('ce.fav'), 'aria-pressed': String(isFav), text: isFav ? '★' : '☆', onclick: e => { const f = favs(), i = f.indexOf(cur.id); if (i >= 0) f.splice(i, 1); else f.push(cur.id); PD.store.set('ce.fav', f); e.currentTarget.textContent = i >= 0 ? '☆' : '★'; e.currentTarget.classList.toggle('on', i < 0); if (fSec === 'fav') grid(); } }));
       const strum = () => { PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); v.frets.forEach((f, k) => view.pluck(k + 1, f)); };
       acts.innerHTML = '';
-      acts.append(...[h('div', { class: 'ce-acts-row' }, [h('button', { class: 'btn primary ce-play', text: t('ce.play'), onclick: strum }),
+      acts.append(...[!sounding && cur.root != null && info.bass !== cur.root && !info.missing.includes(0) ? h('p', { class: 'notice', text: t('ce.inversion', { name: cur.name + '/' + TT.ROOTS[info.bass], bass: TT.ROOTS[info.bass], root: TT.ROOTS[cur.root] }) }) : null, sounding ? h('p', { class: 'notice', text: t('ce.equivalent', { requested: cur.name, actual: sounding }) }) : null, info.missing.length ? h('p', { class: 'notice', text: t('ce.omitted', { notes: info.missing.map(iv => TT.spell(cur.root + iv + 60, cur.root, cur.q).name.replace(/-?\d+$/, '')).join(' · ') }) }) : null, h('div', { class: 'ce-acts-row' }, [h('button', { class: 'btn primary ce-play', text: t('ce.play'), onclick: strum }),
         h('div', { class: 'ce-strs', role: 'group', 'aria-label': t('ce.roles') }, [1, 2, 3].map(sn => h('button', { class: 'ce-str', style: '--c:' + SCOL[sn], 'aria-label': t('ce.string', { s: TT.stringName(sn) }), text: TT.stringName(sn), onclick: () => { PD.audio.ensure(); PD.audio.note(sn, v.frets[sn - 1]); view.pluck(sn, v.frets[sn - 1]); } }))),
         h('button', { class: 'btn ce-stepb', text: t('ce.steps'), onclick: () => stepByStep(v) })]), posSeg ? h('div', { class: 'ce-pos' }, [h('small', { class: 'kicker', 'data-t': 'ce.pos' }), posSeg]) : null].filter(Boolean));
       const roles = h('div', { class: 'ce-rl' }, ms.map((m, k) => {
@@ -393,7 +326,7 @@ PD.tools = (() => {
       accs.innerHTML = '';
       accs.append(
         acc('notes', t('ce.accNotes'), ms.map(nm).join(' · ') + ' — ' + t('ce.fingers') + ' ' + fingTxt, [h('span', { class: 'kicker', 'data-t': 'ce.roles' }), roles, h('div', { class: 'kv' }, [h('span', { text: t('ce.fingers') }), h('b', { text: fingTxt })])], true),
-        acc('about', t('ce.accAbout'), cur.cat ? t('ce.cat.' + cur.cat) : '', [h('p', { class: 'fg2', text: about }), v.fsrc === 'teacher-bm' ? h('p', { class: 'notice', text: t('ce.triFing') }) : v.fsrc === 'teacher-thumb' ? h('p', { class: 'notice', text: t('ce.thFing') }) : null, h('p', { class: 'notice', text: t(src) })]),
+        acc('about', t('ce.accAbout'), cur.cat ? t('ce.cat.' + cur.cat) : '', [h('p', { class: 'fg2', text: about }), v.fsrc === 'teacher-bm' ? h('p', { class: 'notice', text: t('ce.triFing') }) : v.fsrc === 'teacher-thumb' ? h('p', { class: 'notice', text: t('ce.thFing') }) : null, v.note ? h('p', { class: 'notice', text: PD.i18n.pick(v.note) }) : null, h('p', { class: 'notice', text: t(src) })]),
         bassMoveAcc(v),
         acc('change', t('ce.accChange'), t('ce.accChangeD'), [h('label', { class: 'field' }, [h('span', { text: t('ce.to') }), other]), h('div', { class: 'row' }, [h('button', { class: 'btn small', text: t('ce.showCh'), onclick: () => { const b = all.find(c => c.id === other.value); if (b) showChange(v, (b.voicings && b.voicings[0]) || b, cur.name, b.name); } }), h('button', { class: 'btn small', text: t('ce.trans'), onclick: () => { const b = all.find(c => c.id === other.value); PD.practice.open(LS.transition(Object.assign({}, cur, vo()), b, 60), { wait: true, tempo: 1, mode: 'learn' }, null, null); } })])]));
       if (PD.motion && nameBox.dataset.shown) PD.motion.swap(nameBox.querySelector('.ce-name'), swapDir); nameBox.dataset.shown = '1'; swapDir = 0;
@@ -410,7 +343,7 @@ PD.tools = (() => {
     header(w, 'fx.title');
     let label = 'names', scale = 'none', root = 9, sel = null, game = null, wasOn = PD.detector.active;
     const seg = (items, get, set) => { const s = h('div', { class: 'seg', role: 'group' }, items.map(([v, k]) => h('button', { 'aria-pressed': String(get() === v), 'data-t': k, onclick: e => { set(v); s.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); draw(); } }))); return s; };
-    const rootSel = h('select', { class: 'input', 'aria-label': t('fx.root'), onchange: e => { root = +e.target.value; draw(); } }, TH.NN.map((n, i) => h('option', { value: String(i), text: n + ' · ' + TH.NN_KA[i], selected: i === root })));
+    const rootSel = h('select', { class: 'input', 'aria-label': t('fx.root'), onchange: e => { root = +e.target.value; draw(); } }, TH.NN.map((n, i) => h('option', { value: String(i), text: n + ' · ' + TH.localNote(TH.NN_KA[i]), selected: i === root })));
     const scSel = h('select', { class: 'input', 'aria-label': t('fx.scale'), onchange: e => { scale = e.target.value; draw(); } }, Object.keys(SCALES).map(k => h('option', { value: k, 'data-t': 'sc.' + k, text: t('sc.' + k) })));
     const fb = h('div', { class: 'fb card', style: 'padding:10px' });
     const info = h('p', { class: 'fg2', role: 'status', 'aria-live': 'polite' });
@@ -561,5 +494,5 @@ PD.tools = (() => {
     if (param === 'tour') setTimeout(() => tour(0), 300);
   }
 
-  return { tuner, chords, fretboard, explore, chordDiagram, PROGRESSIONS };
+  return { chords, fretboard, explore, chordDiagram, PROGRESSIONS };
 })();

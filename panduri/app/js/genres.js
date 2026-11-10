@@ -272,7 +272,7 @@ PD.genres = (() => {
       info.innerHTML = '';
       const c = b.ch[0];
       b.ch.forEach((x, i) => {
-        const row = h('div', { class: 'bz-row' }, [h('b', { text: x.sym }), h('small', { class: 'muted', text: x.ka + (x.T ? ' · ' + L(x.T.ka, x.T.en) : '') })]);
+        const row = h('div', { class: 'bz-row' }, [h('b', { text: x.sym }), h('small', { class: 'muted', text: PD.theory.localNote(x.ka) + (x.T ? ' · ' + L(x.T.ka, x.T.en) : '') })]);
         if (x.none) { row.append(h('small', { class: 'notice', text: t('gn.noShape') }), h('small', { class: 'muted', text: t('gn.need', { s: x.tones.join(' · ') }) })); }
         else { row.append(h('span', { class: 'sh-frets', text: x.v.frets.map(f => f === 0 ? '0' : f).join(' · ') }),
           h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.strum(x.v.frets, 'down', { gap: .03 }); if (hb) hb.set(x.v.frets, x.v.fingers || []); } }),

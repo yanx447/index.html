@@ -5,7 +5,6 @@
    Calibration is stored per device; nothing leaves the device.
    ===================================================================== */
 PD.i18n.add({
-  'lang.ka': ['ქართული', 'ქართული'], 'lang.en': ['English', 'English'],
   'ob.hello': ['გამარჯობა!', 'Welcome!'], 'ob.lead': ['ისწავლე ფანდურზე დაკვრა: აპი გიჩვენებს, სად დაადო თითი, გელოდება და გისმენს.', 'Learn to play the panduri: the app shows where to put your fingers, waits for you and listens.'],
   'ob.lang': ['ენა', 'Language'], 'ob.level': ['როგორ უკრავ ახლა?', 'How do you play now?'],
   'ob.l1': ['პირველად ვიღებ ხელში', 'I am picking it up for the first time'], 'ob.l1d': ['დავიწყებთ ნაწილებით, აწყობით და ღია სიმებით', 'We start with the parts, tuning and open strings'],
@@ -123,11 +122,12 @@ PD.onboard = (() => {
   const h = PD.h, TH = PD.theory, D = PD.detector;
   const N = 8;
   function open() {
+    PD.store.set('onboarded', true);   // shown once: opening it is what counts; Settings can bring it back
     const back = h('div', { class: 'ob', role: 'dialog', 'aria-modal': 'true' }), box = h('div', { class: 'box' });
     back.appendChild(box); document.body.appendChild(back);
     let step = 0, offs = [], micByUs = false;
     const clean = () => { offs.forEach(f => f()); offs = []; };
-    const done = () => { clean(); if (micByUs && D.active) D.stop(); PD.store.set('onboarded', true); back.remove(); PD.intro && PD.intro.maybe(); };
+    const done = () => { clean(); if (micByUs && D.active) D.stop(); back.remove(); PD.intro && PD.intro.maybe(); };
     const opt = (k, d, on, pressed) => h('button', { class: 'opt', 'aria-pressed': String(!!pressed), onclick: on, html: '<span><b data-t="' + k + '"></b>' + (d ? '<small data-t="' + d + '"></small>' : '') + '</span><span class="mono">' + (pressed ? '✓' : '') + '</span>' });
     const next = () => { step++; render(); }, prev = () => { step = Math.max(0, step - 1); render(); };
     const foot = (primary) => h('div', { class: 'row' }, [step > 0 ? h('button', { class: 'btn quiet', 'data-t': 'back', onclick: prev }) : null, h('span', { class: 'spacer' }), primary || h('button', { class: 'btn primary', 'data-t': 'next', onclick: next })].filter(Boolean));
@@ -139,8 +139,7 @@ PD.onboard = (() => {
       PD.i18n.apply(box);
     }
     function welcome() {
-      box.append(h('h1', { 'data-t': 'ob.hello' }), h('p', { class: 'fg2', 'data-t': 'ob.lead' }), h('span', { class: 'kicker', 'data-t': 'ob.lang' }),
-        opt('lang.ka', null, () => { PD.i18n.set('ka'); render(); }, PD.i18n.lang === 'ka'), opt('lang.en', null, () => { PD.i18n.set('en'); render(); }, PD.i18n.lang === 'en'), foot());
+      box.append(h('h1', { 'data-t': 'ob.hello' }), h('p', { class: 'fg2', 'data-t': 'ob.lead' }), PD.ui.aiNote(), foot());
     }
     function have() {
       box.append(h('h1', { 'data-t': 'ob.have' }),
@@ -194,5 +193,12 @@ PD.onboard = (() => {
     }
     render();
   }
-  return { open };
+  /** the first-run pages, once per account: the questions, then the required introduction. When the server could not be
+      reached nothing opens, because someone with an account must not be asked again over a bad connection; a new account gets them on its next launch. */
+  function maybe() {
+    const onboarded = PD.store.get('onboarded', false);
+    if (PD.cloud.session && !PD.cloud.accountChecked && !(onboarded && PD.store.get('intro.done', false))) return;
+    if (!onboarded) { if (!document.querySelector('.ob')) open(); } else PD.intro.maybe();
+  }
+  return { open, maybe };
 })();

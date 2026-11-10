@@ -12,7 +12,7 @@ PD.i18n.add({
   'au.signin': ['შესვლა', 'Sign in'], 'au.signup': ['ანგარიშის შექმნა', 'Create account'], 'au.email': ['ელფოსტა', 'Email'], 'au.password': ['პაროლი', 'Password'], 'au.name': ['სახელი', 'Name'],
   'au.forgot': ['დაგავიწყდა პაროლი?', 'Forgot password?'], 'au.reset': ['პაროლის აღდგენა', 'Reset password'], 'au.resetD': ['ელფოსტაზე გამოგიგზავნით ბმულს ახალი პაროლისთვის.', 'We will email you a link to set a new password.'], 'au.send': ['გაგზავნა', 'Send'],
   'au.sent': ['გაიგზავნა — შეამოწმე ელფოსტა.', 'Sent — check your email.'],
-  'au.or': ['ან', 'or'], 'au.google': ['Google-ით გაგრძელება', 'Continue with Google'], 'au.facebook': ['Facebook-ით გაგრძელება', 'Continue with Facebook'], 'au.phone': ['ტელეფონის ნომრით', 'With phone number'], 'au.withEmail': ['ელფოსტით და პაროლით', 'With email and password'],
+  'au.or': ['ან', 'or'], 'au.apple': ['Apple-ით შესვლა', 'Sign in with Apple'], 'au.google': ['Google-ით გაგრძელება', 'Continue with Google'], 'au.facebook': ['Facebook-ით გაგრძელება', 'Continue with Facebook'], 'au.phone': ['ტელეფონის ნომრით', 'With phone number'], 'au.withEmail': ['ელფოსტით და პაროლით', 'With email and password'],
   'au.guestD': ['პროგრესი მხოლოდ ამ მოწყობილობაზე შეინახება. ანგარიშს მოგვიანებით შექმნი პროფილიდან.', 'Progress stays on this device only. You can create an account later from Profile.'],
   'au.verify': ['გამოგიგზავნეთ წერილი — დაადასტურე ელფოსტა და შემდეგ შედი.', 'We sent you an email — confirm your address, then sign in.'], 'au.resend': ['ხელახლა გაგზავნა', 'Resend'],
   'au.noBackend': ['სერვერი ჯერ არ არის დაკავშირებული — შესვლა და ანგარიშის შექმნა ჩაირთვება, როგორც კი სერვერი დაემატება. მანამდე შეგიძლია ანგარიშის გარეშე ისწავლო.', 'The server is not connected yet — sign-in and accounts switch on as soon as it is added. Until then you can learn without an account.'],
@@ -24,13 +24,15 @@ PD.i18n.add({
   'au.welcome': ['ისწავლე ფანდური ნამდვილ ინსტრუმენტზე', 'Learn the panduri on a real instrument'], 'au.welcomeD': ['აპი გიჩვენებს, გისმენს და გელოდება.', 'The app shows you, listens and waits for you.'],
   'au.terms': ['შესვლით ეთანხმები, რომ შენი სახელი და დონე სხვა მოსწავლეებს გამოუჩნდეთ. ხმა და ვიდეო მხოლოდ შენს მოწყობილობაზე მუშავდება.', 'By signing in you agree that your name and level are visible to other learners. Sound and video are processed on your device only.'],
   'au.newPw': ['ახალი პაროლი', 'New password'], 'au.newPwD': ['ბმულით შემოხვედი — დააყენე ახალი პაროლი შენი ანგარიშისთვის.', 'You came from the reset link — set a new password for your account.'], 'au.pwSave': ['შენახვა', 'Save'], 'au.pwSaved': ['პაროლი შეიცვალა', 'Password changed'],
-  'au.back': ['უკან', 'Back'], 'au.show': ['ჩვენება', 'Show'], 'au.hide': ['დამალვა', 'Hide']
+  'au.back': ['უკან', 'Back'], 'au.show': ['ჩვენება', 'Show'], 'au.hide': ['დამალვა', 'Hide'],
+  'au.arrive': ['შენი პროგრესი იტვირთება…', 'Loading your progress…']
 });
 
 PD.auth = (() => {
   const h = PD.h, C = PD.cloud;
   const okEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
   const ICON = {
+    apple: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.12 0-.23-.02-.3-.03-.01-.06-.04-.22-.04-.39 0-1.15.572-2.27 1.206-2.98.804-.94 2.142-1.64 3.248-1.68.03.13.05.28.05.43zm4.565 15.71c-.03.07-.463 1.58-1.518 3.12-.945 1.34-1.94 2.71-3.43 2.71-1.517 0-1.9-.88-3.63-.88-1.698 0-2.302.91-3.67.91-1.377 0-2.332-1.26-3.428-2.8-1.287-1.82-2.323-4.63-2.323-7.28 0-4.28 2.797-6.55 5.552-6.55 1.448 0 2.675.95 3.6.95.865 0 2.222-1.01 3.902-1.01.613 0 2.886.06 4.374 2.19-.13.09-2.383 1.37-2.383 4.19 0 3.26 2.854 4.42 2.955 4.45z"/></svg>',
     google: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.7-4.9H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.4a7.2 7.2 0 0 1 0-4.7V6.6H1.3a12 12 0 0 0 0 10.9l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>',
     facebook: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path fill="#fff" d="M15.6 15.5l.5-3.5h-3.3V9.8c0-1 .5-1.9 2-1.9h1.5v-3s-1.4-.2-2.7-.2c-2.8 0-4.6 1.7-4.6 4.7V12H6v3.5h3v8.4a12 12 0 0 0 3.8 0v-8.4h2.8z"/></svg>',
     phone: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>',
@@ -58,7 +60,7 @@ PD.auth = (() => {
     let view = opts.view || 'home', email = '', phone = PD.store.get('auth.phone', '+995 '), busy = false, done = false;
     const off = C.on(() => { if (C.session) finish(true); });
     const lid = opts.closable ? PD.layers.push(() => finish(false)) : 0;   // opened from the app: Back closes it
-    function finish(ok) { if (done) return; done = true; off(); if (root._cine) { root._cine.stop(); root._cine = null; } if (lid) PD.layers.done(lid); root.classList.add('out'); setTimeout(() => root.remove(), 260); onDone && onDone(ok); }
+    function finish(ok) { if (done) return; done = true; off(); if (lid) PD.layers.done(lid); root.classList.add('out'); setTimeout(() => root.remove(), 260); onDone && onDone(ok); }
     const msgEl = () => h('p', { class: 'ag-msg', role: 'alert', hidden: true });
     async function run(btn, msg, fn) {
       if (busy) return; busy = true; msg.hidden = true; if (btn) btn.classList.add('busy');
@@ -71,21 +73,24 @@ PD.auth = (() => {
     function render() {
       card.innerHTML = ''; card.classList.remove('home');
       if (view === 'home') {
-        // the splash: the instrument, the name, one way in
         const ph = PD.assets && PD.assets.photos;
         card.classList.add('splash'); root.classList.add('ag-splash');
-        if (ph && ph.body) root.style.setProperty('--ag-photo', 'url("' + (ph.splashP || ph.body) + '")');
-        // the opening film plays behind; the name and the buttons come in when it ends (or is skipped)
-        if (!root._cine) { const layer = h('div', { class: 'ag-cine' }); root.prepend(layer); card.classList.add('pre'); root._cine = PD.cine.mount(layer, () => { card.classList.remove('pre'); card.classList.add('reveal'); }); }
-        card.append(h('button', { class: 'ag-lang', text: PD.i18n.lang === 'ka' ? 'EN' : 'ქარ', onclick: () => { PD.i18n.set(PD.i18n.lang === 'ka' ? 'en' : 'ka'); render(); } }),
-          h('div', { class: 'sp-brand' }, [h('h1', { class: 'sp-name', 'aria-label': t('app.name'), html: PD.cine.titleHTML() }), h('p', { class: 'sp-tag', 'data-t': 'au.tagline' })]),
+        if (ph) {
+          root.style.setProperty('--ag-photo', 'url("' + (ph.splashP || ph.body || '') + '")');
+          root.style.setProperty('--ag-photo-wide', 'url("' + (ph.splashL || ph.splashP || ph.body || '') + '")');
+        }
+        const enter = () => { view = 'methods'; render(); };
+        card.append(
+          PD.ui.langSelect(v => PD.i18n.set(v).then(render), 'ag-lang'),
+          h('div', { class: 'sp-brand' }, [h('h1', { class: 'sp-name', 'data-t': 'sp.title' }), h('p', { class: 'sp-tag', 'data-t': 'au.tagline' })]),
           h('div', { class: 'sp-go' }, [
-            h('button', { class: 'sp-start', html: '<span data-t="au.start"></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>', onclick: () => { view = 'methods'; render(); } }),
-            h('button', { class: 'sp-signin', 'data-t': 'au.signinLink', onclick: () => { view = 'methods'; render(); } })]));
+            h('button', { class: 'sp-start', html: '<span data-t="au.start"></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>', onclick: enter }),
+            h('button', { class: 'sp-signin', 'data-t': 'au.signinLink', onclick: enter })])
+        );
         if (opts.closable) card.prepend(h('button', { class: 'ag-x', 'aria-label': t('close'), html: PD.ic.close, onclick: () => finish(false) }));
         PD.i18n.apply(card); return;
       }
-      root.classList.remove('ag-splash'); card.classList.remove('splash', 'pre', 'reveal'); if (root._cine) { root._cine.stop(); root._cine = null; const L = root.querySelector('.ag-cine'); if (L) L.remove(); }
+      root.classList.remove('ag-splash'); card.classList.remove('splash');
       if (view === 'methods') {
         const msg = msgEl();
         const prov = (k, ic, label, fn) => { const b = h('button', { class: 'ag-btn ' + k, html: '<span class="ag-ic">' + ic + '</span><span data-t="' + label + '"></span>', onclick: () => fn(b) }); return b; };
@@ -93,6 +98,7 @@ PD.auth = (() => {
         card.append(h('div', { class: 'ag-brand' }, [h('h2', { 'data-t': 'au.signinTitle' }), h('p', { class: 'ag-sub', 'data-t': 'au.methodsD' })]),
           h('div', { class: 'ag-side' }, [C.configured ? null : h('p', { class: 'ag-msg info', 'data-t': 'au.noBackend' }),
           h('div', { class: 'ag-list' }, [
+            Object.assign(prov('apple', ICON.apple, 'au.apple', b => run(b, msg, () => C.auth.oauth('apple'))), { hidden: true }),   // shown only once the server has the Apple provider switched on
             prov('google', ICON.google, 'au.google', b => run(b, msg, () => C.auth.oauth('google'))),
             prov('facebook', ICON.facebook, 'au.facebook', b => run(b, msg, () => C.auth.oauth('facebook'))),
             prov('phone', ICON.phone, 'au.phone', () => { view = 'phone'; render(); }),
@@ -102,7 +108,7 @@ PD.auth = (() => {
         // show only the sign-in methods that are switched on in the server
         // Google / Facebook need a real top-level page to come back to: not inside another site's frame, not from a local file
         const noOAuth = window.top !== window || location.protocol === 'file:';
-        const showOnly = v => { if (!v) return; ['google', 'facebook', 'phone'].forEach(k => { const b = card.querySelector('.ag-btn.' + k); if (b) b.hidden = !v[k] || (noOAuth && k !== 'phone'); }); };
+        const showOnly = v => { if (!v) return; ['apple', 'google', 'facebook', 'phone'].forEach(k => { const b = card.querySelector('.ag-btn.' + k); if (b) b.hidden = !v[k] || (noOAuth && k !== 'phone'); }); };
         if (noOAuth) showOnly({ google: false, facebook: false, phone: true });
         if (C.configured) { showOnly(C.knownProviders); C.providers().then(showOnly).catch(() => {}); }
         card.prepend(back());
@@ -166,5 +172,20 @@ PD.auth = (() => {
     });
   }
   PD.bus.on('recovery', () => newPassword());
-  return { gate, newPassword, open: v => gate(null, { closable: !!PD.cloud.session, view: v === 'signin' ? 'signin' : 'methods' }) };   // closable only for someone already signed in
+  /** right after signing in or registering: the instrument, the name and the three strings (A · C♯ · E) strummed,
+      until PD.cloud.arriving (profile + progress sync) settles — at least long enough for one strum, at most 8 s */
+  function arrive(onDone) {
+    const el = h('div', { class: 'arr', role: 'status', 'aria-live': 'polite' });
+    const str = (y, c, w, d) => '<g transform="translate(0 ' + y + ')"><path d="M2 0Q68 10 134 0" stroke-width="' + w + '" vector-effect="non-scaling-stroke" style="stroke:' + c + ';animation-delay:' + d + 's"/></g>';
+    el.innerHTML = '<div class="arr-in"><svg class="arr-pan" width="34" height="82" viewBox="0 0 40 96" aria-hidden="true"><rect x="17" y="1" width="6" height="9" rx="1.5" fill="#E0A878"/><rect x="18.25" y="8" width="3.5" height="46" fill="#6B2A17"/><path d="M20 46C25 46 28 51 29.5 57C32 67 36 75 35 84C34 91 28 94 20 94S6 91 5 84C4 75 8 67 10.5 57C12 51 15 46 20 46Z" fill="#EAD3A3"/><circle cx="20" cy="73" r="5.6" fill="none" stroke="#C98B5B" stroke-width=".8"/><circle cx="20" cy="73" r="4.2" fill="#1A0F08"/><rect x="15" y="85.5" width="10" height="1.6" rx=".5" fill="#6B2A17"/><path d="M19.1 5V86M20 5V86M20.9 5V86" stroke="#F1ECE6" stroke-opacity=".6" stroke-width=".35"/></svg>'
+      + '<b class="arr-name">' + t('app.name') + '</b>'
+      + '<svg class="arr-str" width="136" height="34" viewBox="0 0 136 34" aria-hidden="true">' + str(7, 'var(--sE)', 1, .24) + str(17, 'var(--sC)', 1.3, .12) + str(27, 'var(--sA)', 1.7, 0) + '</svg>'
+      + '<span class="arr-t" data-t="au.arrive"></span></div>';
+    PD.i18n.apply(el); document.body.appendChild(el);
+    const t0 = Date.now();
+    Promise.resolve().then(() => Promise.race([C.arriving, new Promise(r => setTimeout(r, 8000))])).catch(() => {}).then(() => {   // the sign-in call starts the sync just after the session lands
+      setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 380); onDone && onDone(); }, Math.max(0, 1100 - (Date.now() - t0)));
+    });
+  }
+  return { gate, arrive, newPassword, open: v => gate(null, { closable: !!PD.cloud.session, view: v === 'signin' ? 'signin' : 'methods' }) };   // closable only for someone already signed in
 })();

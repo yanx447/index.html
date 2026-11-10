@@ -120,6 +120,149 @@ PD.aimus = (() => {
     return { run, fftMag, LO, HI, SUB };
   };
   const DSP = DSPF();
+
+  /* ---------- Basic Pitch: every note, not only the loudest one ----------------------------------------------
+     The harmonic-sum tracker above follows the strongest pitch; in a full mix that is the chord being strummed,
+     so a solo or a sung line over it was lost. Basic Pitch (Spotify, Apache-2.0, ai/bp/nmp.onnx, 230 KB) hears
+     every note at once — it was trained for polyphonic, multi-instrument audio. Its inference and note-creation
+     steps are ported here exactly as the Python package does them (basic_pitch/inference.py · note_creation.py):
+     2 s windows (43 844 samples at 22.05 kHz) overlapping by 30 frames, the frame and onset maps unwrapped,
+     onsets taken from peaks (and from frame rises), notes followed while the frame energy stays above 0.3,
+     then the "melodia" pass for notes without a clear onset. The melody line is taken out afterwards (melodyOf). */
+  const BPF = function () {
+    const N = 43844, HOPF = 256, OLAP = 30, OL = OLAP * HOPF, HOP = N - OL, FPS = 86, WIN_F = 172, P = 88, MIDI0 = 21;
+    const WOFF = (HOPF / 22050) * (WIN_F - N / HOPF) + .0018;   // the package's own alignment correction per window
+    const frameTime = f => f * HOPF / 22050 - WOFF * Math.floor(f / WIN_F);
+    /** run the model over the whole signal → { note, onset } maps [frames × 88] */
+    async function infer(ort, sess, x, onProgress) {
+      const nOrig = Math.floor(x.length * FPS / 22050), nWin = Math.max(1, Math.ceil((x.length + OL / 2) / HOP));
+      const keep = WIN_F - OLAP, note = new Float32Array(nWin * keep * P), onset = new Float32Array(nWin * keep * P), buf = new Float32Array(N);
+      const inName = sess.inputNames[0], names = sess.outputNames, pick = (o, d) => { for (const k of names) if (o[k].dims[2] === P && /:1$/.test(k) === (d === 'note')) return o[k].data; return null; };
+      for (let w = 0; w < nWin; w++) {
+        const s0 = w * HOP - OL / 2;   // the signal is padded with half the overlap at the start
+        for (let i = 0; i < N; i++) { const j = s0 + i; buf[i] = j >= 0 && j < x.length ? x[j] : 0; }
+        const o = await sess.run({ [inName]: new ort.Tensor('float32', buf.slice(), [1, N, 1]) });
+        const nt = pick(o, 'note'), on = pick(o, 'onset');
+        note.set(nt.subarray((OLAP / 2) * P, (OLAP / 2 + keep) * P), w * keep * P);
+        onset.set(on.subarray((OLAP / 2) * P, (OLAP / 2 + keep) * P), w * keep * P);
+        onProgress && onProgress((w + 1) / nWin);
+      }
+      const n = Math.min(nOrig, nWin * keep);
+      return { note: note.subarray(0, n * P), onset: onset.subarray(0, n * P), n };
+    }
+    /** output_to_notes_polyphonic, with infer_onsets and the melodia trick */
+    function notes(frames0, onsets0, n, o) {
+      o = Object.assign({ onset: .5, frame: .3, minMs: 127.7, tol: 11, lo: 21, hi: 108 }, o || {});
+      const minLen = Math.round(o.minMs / 1000 * (22050 / HOPF)), fLo = Math.max(0, o.lo - MIDI0), fHi = Math.min(P - 1, o.hi - MIDI0);
+      const frames = new Float32Array(frames0), onsets = new Float32Array(onsets0);
+      for (let t = 0; t < n; t++) for (let f = 0; f < P; f++) if (f < fLo || f > fHi) { frames[t * P + f] = 0; onsets[t * P + f] = 0; }
+      // onsets inferred from rises in the frame map, rescaled to the predicted onsets' maximum
+      const fd = new Float32Array(n * P); let mxD = 0, mxO = 0;
+      for (let t = 0; t < n; t++) for (let f = 0; f < P; f++) {
+        const v = frames[t * P + f], a = v - (t >= 1 ? frames[(t - 1) * P + f] : 0), b = v - (t >= 2 ? frames[(t - 2) * P + f] : 0);
+        let d = Math.min(a, b); if (d < 0 || t < 2) d = 0; fd[t * P + f] = d; if (d > mxD) mxD = d; if (onsets[t * P + f] > mxO) mxO = onsets[t * P + f];
+      }
+      if (mxD > 0) for (let i = 0; i < fd.length; i++) { const v = mxO * fd[i] / mxD; if (v > onsets[i]) onsets[i] = v; }
+      // onset peaks along time, above the threshold, latest first (as np.where(...)[::-1])
+      const peaks = [];
+      for (let t = 1; t < n - 1; t++) for (let f = 0; f < P; f++) { const v = onsets[t * P + f]; if (v >= o.onset && v > onsets[(t - 1) * P + f] && v > onsets[(t + 1) * P + f]) peaks.push(t * P + f); }
+      peaks.reverse();
+      const rem = new Float32Array(frames), out = [];
+      const clear = (t, f) => { rem[t * P + f] = 0; if (f < P - 1) rem[t * P + f + 1] = 0; if (f > 0) rem[t * P + f - 1] = 0; };
+      const mean = (a, b, f) => { let s = 0; for (let t = a; t < b; t++) s += frames[t * P + f]; return b > a ? s / (b - a) : 0; };
+      for (const idx of peaks) {
+        const t0 = Math.floor(idx / P), f = idx % P; if (t0 >= n - 1) continue;
+        let i = t0 + 1, k = 0; while (i < n - 1 && k < o.tol) { if (rem[i * P + f] < o.frame) k++; else k = 0; i++; } i -= k;
+        if (i - t0 <= minLen) continue;
+        for (let t = t0; t < i; t++) clear(t, f);
+        out.push({ a: t0, b: i, m: f + MIDI0, amp: mean(t0, i, f) });
+      }
+      // melodia: the strongest energy left, followed both ways. Taking the cells in falling order is the same as
+      // np.argmax over the remaining energy each time, because cleared cells only ever fall to 0.
+      const cand = []; for (let i = 0; i < rem.length; i++) if (rem[i] > o.frame) cand.push(i);
+      cand.sort((x, y) => rem[y] - rem[x]);
+      const orig = new Float32Array(rem);
+      for (const idx of cand) {
+        if (rem[idx] !== orig[idx] || rem[idx] <= o.frame) continue;
+        const tm = Math.floor(idx / P), f = idx % P; rem[idx] = 0;
+        let i = tm + 1, k = 0; while (i < n - 1 && k < o.tol) { if (rem[i * P + f] < o.frame) k++; else k = 0; clear(i, f); i++; }
+        const iEnd = i - 1 - k;
+        i = tm - 1; k = 0; while (i > 0 && k < o.tol) { if (rem[i * P + f] < o.frame) k++; else k = 0; clear(i, f); i--; }
+        const iStart = i + 1 + k;
+        if (iEnd - iStart <= minLen) continue;
+        out.push({ a: iStart, b: iEnd, m: f + MIDI0, amp: mean(iStart, iEnd, f) });
+      }
+      return out.map(e => ({ m: e.m, t0: +frameTime(e.a).toFixed(3), t1: +frameTime(e.b).toFixed(3), amp: +e.amp.toFixed(3) })).sort((x, y) => x.t0 - y.t0 || y.m - x.m);
+    }
+    return { infer, notes, N, FPS };
+  };
+  /** the two trackers together, stretch by stretch (8 s). The single-line tracker is exact on a clear line (a solo over
+      a drone: F .97) but in a strummed mix it follows the chord (F .00); Basic Pitch finds the tune over the chords
+      (F .61). Which of the two is right in a stretch shows in the single line itself: if most of its notes are pitches
+      that Basic Pitch hears struck again and again in the strums around them (three times or more within ±1.5 s), it is
+      following the accompaniment, and Basic Pitch's line is written there; otherwise the single line is. */
+  function fuse(line1, poly, line2, o) {
+    o = Object.assign({ win: 8 }, o || {});
+    const ns = poly.slice().sort((a, b) => a.t0 - b.t0), groups = [];
+    for (let i = 0; i < ns.length; i++) { let j = i; const g = [ns[i]]; while (j + 1 < ns.length && ns[j + 1].t0 - ns[i].t0 < .035) g.push(ns[++j]); if (g.length > 1) groups.push({ t: ns[i].t0, ms: new Set(g.map(x => x.m)) }); i = j; }
+    const struck = (m, t) => { let n = 0; for (const G of groups) { if (G.t < t - 1.5) continue; if (G.t > t + 1.5) break; if (G.ms.has(m)) n++; } return n >= 3; };
+    const end = Math.max(0, ...line1.map(n => n.t1), ...line2.map(n => n.t1)), out = [];
+    for (let a = 0; a < end; a += o.win) {
+      const b = a + o.win, in1 = line1.filter(n => n.t0 >= a && n.t0 < b), in2 = line2.filter(n => n.t0 >= a && n.t0 < b);
+      const acc = in1.length ? in1.filter(n => struck(Math.round(n.m), (n.t0 + n.t1) / 2)).length / in1.length : 1;
+      out.push(...(acc >= .5 ? in2 : in1));
+    }
+    return out.sort((x, y) => x.t0 - y.t0);
+  }
+  /** every note of a mono 22.05 kHz signal, in a worker: Promise<{ notes:[{m,t0,t1,amp}] }> (.cancel() stops it) */
+  function notesBP(mono, base, opt, onProgress) {
+    let W = null;
+    const p = new Promise((res, rej) => {
+      try {
+        const body = 'const BP=(' + BPF.toString() + ')();\nlet RT=null,sess=null;\nself.onmessage=async function(e){var d=e.data;try{' +
+          'if(!sess){importScripts(d.base+"ort131/ort.wasm.min.js");RT=self.ort;RT.env.wasm.wasmPaths=d.base+"ort131/";RT.env.wasm.numThreads=1;' +
+          'var r0=await fetch(d.base+"bp/nmp.onnx");if(!r0.ok)throw new Error("model "+r0.status);sess=await RT.InferenceSession.create(new Uint8Array(await r0.arrayBuffer()),{executionProviders:["wasm"]});}' +
+          'var m=await BP.infer(RT,sess,d.mono,function(p){self.postMessage({p:p*.9});});var ns=BP.notes(m.note,m.onset,m.n,d.opt);self.postMessage({r:{notes:ns}});' +
+          '}catch(err){self.postMessage({err:String(err&&err.message||err)});}};';
+        W = new Worker(URL.createObjectURL(new Blob([body], { type: 'text/javascript' })));
+        W.onmessage = e => { const d = e.data; if (d.p != null) onProgress && onProgress(d.p); else { try { W.terminate(); } catch (_) {} W = null; d.err ? rej(new Error(d.err)) : res(d.r); } };
+        W.onerror = ev => { try { W.terminate(); } catch (_) {} W = null; rej(new Error((ev && ev.message) || 'worker')); };
+        W.postMessage({ mono, base, opt: opt || {} });
+      } catch (e) { rej(e); }
+    });
+    p.cancel = () => { if (W) { try { W.terminate(); } catch (_) {} W = null; } };
+    return p;
+  }
+  /** the melody line out of all the notes. Notes struck together (a strum, a drone under the tune) are sorted by what
+      repeats: a pitch that comes back in the strums around it (±1.5 s) is the accompaniment — a chord tone or a drone —
+      and only a pitch that does not is a candidate for the tune. Then, moment by moment, the highest candidate sounding
+      (the lowest, for a bass line). Fragments of one pitch closer than 40 ms are one note. Measured, not confirmed. */
+  function melodyOf(all, o) {
+    o = Object.assign({ lo: 55, hi: 84, minAmp: .18, minMs: 70, bottom: false }, o || {});
+    const ns = all.filter(n => n.m >= o.lo && n.m <= o.hi && n.amp >= o.minAmp).map(n => Object.assign({}, n));
+    ns.sort((a, b) => a.t0 - b.t0);
+    const groups = [];
+    for (let i = 0; i < ns.length; i++) { let j = i; const g = [ns[i]]; while (j + 1 < ns.length && ns[j + 1].t0 - ns[i].t0 < .035) g.push(ns[++j]); if (g.length > 1) { const G = { t: ns[i].t0, notes: g }; g.forEach(n => { n.grp = G; }); groups.push(G); } i = j; }
+    groups.forEach((G, gi) => G.notes.forEach(n => {
+      let rep = 0, tot = 0;
+      for (let k = gi - 1; k >= 0 && G.t - groups[k].t < 1.5; k--) { tot++; if (groups[k].notes.some(x => x.m === n.m)) rep++; }
+      for (let k = gi + 1; k < groups.length && groups[k].t - G.t < 1.5; k++) { tot++; if (groups[k].notes.some(x => x.m === n.m)) rep++; }
+      n.acc = rep >= 2;   // it comes back strum after strum: accompaniment (measured: qa · solo over chords F .61, solo with drone .73)
+    }));
+    // of a group, at most its outer note can carry the tune
+    groups.forEach(G => { const out = G.notes.filter(n => !n.acc).reduce((a, b) => !a || (o.bottom ? b.m < a.m : b.m > a.m) ? b : a, null); G.notes.forEach(n => { if (n !== out) n.acc = true; }); });
+    const line = ns.filter(n => !n.acc); if (!line.length) return [];
+    const fps = 100, T = Math.ceil(Math.max(...line.map(n => n.t1)) * fps) + 1, who = new Int32Array(T).fill(-1);
+    line.forEach((n, k) => { for (let f = Math.floor(n.t0 * fps); f < Math.ceil(n.t1 * fps) && f < T; f++) if (who[f] < 0 || (o.bottom ? line[who[f]].m > n.m : line[who[f]].m < n.m)) who[f] = k; });
+    const runs = []; let s0 = 0;
+    for (let f = 1; f <= T; f++) if (f === T || who[f] !== who[s0]) { if (who[s0] >= 0) runs.push({ n: line[who[s0]], a: s0, b: f }); s0 = f; }
+    const out = [];
+    runs.forEach(r => { const last = out[out.length - 1];
+      if (last && last.m === r.n.m && r.a / fps - last.t1 < .04) { last.t1 = +(r.b / fps).toFixed(3); return; }   // the same pitch interrupted for a moment
+      out.push({ m: r.n.m, t0: +(r.a / fps).toFixed(3), t1: +(r.b / fps).toFixed(3), cents: 0, conf: +Math.min(1, r.n.amp * 1.6).toFixed(3), src: r.n }); });
+    return out.filter(n => (n.t1 - n.t0) * 1000 >= o.minMs).map(n => ({ m: n.m, t0: n.t0, t1: n.t1, cents: 0, conf: n.conf }));
+  }
+
   const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 
   /** transcription on this thread (used when a worker cannot start) */
@@ -239,7 +382,15 @@ PD.aimus = (() => {
     for (let i = 0; i < F; i++) { acc += env[i]; if (i >= W) acc -= env[i - W]; out[i] = Math.max(0, env[i] - acc / Math.min(i + 1, W)); }
     let sd = 0; for (let i = 0; i < F; i++) sd += out[i] * out[i]; sd = Math.sqrt(sd / F) || 1;
     for (let i = 0; i < F; i++) out[i] /= sd;
-    return { env: out, dt, t0off: N / 2 / sr };
+    return { env: out, lev: levelEnv(mono, F, N, HOP), dt, t0off: N / 2 / sr };
+  }
+  /** loudness of the sound (RMS per 256-sample step, over the same 1024-sample window as the onset envelope):
+      an accent is a heavier stroke, and that is a level, not a change of spectrum */
+  function levelEnv(mono, F, N, HOP) {
+    const lev = new Float32Array(F); let s2 = 0;
+    for (let i = 0; i < Math.min(N, mono.length); i++) s2 += mono[i] * mono[i];
+    for (let f = 0; f < F; f++) { lev[f] = Math.sqrt(Math.max(0, s2) / N); const a = f * HOP; for (let i = a; i < a + HOP; i++) { const o = mono[i] || 0, nw = mono[i + N] || 0; s2 += nw * nw - o * o; } }
+    return lev;
   }
   function onsets(mono, sr) {
     const N = 1024, HOP = 256, fft = DSP.fftMag(N), mag = new Float32Array(N / 2);
@@ -256,7 +407,7 @@ PD.aimus = (() => {
     for (let i = 0; i < F; i++) { acc += env[i]; if (i >= W) acc -= env[i - W]; out[i] = Math.max(0, env[i] - acc / Math.min(i + 1, W)); }
     let sd = 0; for (let i = 0; i < F; i++) sd += out[i] * out[i]; sd = Math.sqrt(sd / F) || 1;
     for (let i = 0; i < F; i++) out[i] /= sd;
-    return { env: out, dt, t0off: N / 2 / sr };
+    return { env: out, lev: levelEnv(mono, F, N, HOP), dt, t0off: N / 2 / sr };
   }
   /** the pattern the bars repeat: which cells of the bar are struck, and which of them are accented.
       Everything here is measured. Where the stroke goes (down or up) cannot be heard and is never claimed. */
@@ -310,27 +461,43 @@ PD.aimus = (() => {
     }
     /* Which of the rhythms the app knows does this recording match?
 
-       The old test squeezed every pattern into a single beat and compared with a cosine. Both were
-       wrong: the loudest point of a beat is the beat itself, so the measured shape was always
-       "strong, weak, weak", and a cosine of two non-negative vectors is near 1 for almost anything.
-       A rhythm accented on its first stroke therefore won every time, whatever was playing.
+       Measured: the onset strength at every stroke across the recording, folded into one cycle of the
+       candidate at every starting point, compared with its accents. Three things decide it.
 
-       What is measured now: the strength at each stroke position across the whole recording, folded
-       into the pattern's length at every rotation, and compared with the accents by a mean-centred
-       correlation. A flat recording scores 0 instead of 0.99, and two patterns that accent different
-       strokes get opposite scores, so they can actually be told apart. The length of one cycle in
-       beats is not in the teacher's data, so each candidate is tried as one stroke per beat, as the
-       whole pattern inside one beat, and across two beats; the reading that fits best is reported
-       with it. */
-    const strengthAt = (t, win) => peak(t, win);
-    function profile(n, beatsPerCycle) {
-      // one sample per stroke, walked across the whole recording
-      const per = beatsPerCycle / n, xs = [];
-      for (let f = 0; f + per < beats.length - 1; f += per) { const tt = tAt(f); if (tt == null) { xs.push(0); continue; }
-        const k = Math.floor(f), bl = (beats[k + 1] - beats[k]) || .5;
-        xs.push(strengthAt(tt, Math.max(dt * 1.5, bl * per * .3))); }
-      return xs;
-    }
+       · Where the strokes are. A cycle's length in beats is not in the teacher's data, and the beat the
+         tracker locks to is often three strokes (≈100 BPM), so a five- or seven-stroke cycle spans 5/3 or
+         7/3 beats. Guessing "one stroke per beat, one beat, or two beats" therefore never sampled mtiuluri
+         or khorumi where their strokes are, and kazbeguri (accent on 1) won on everything. Now the strokes'
+         own grid is found first — the finest subdivision of the beat at which every point is a stroke — and
+         each rhythm is laid on it with its own durations (equal steps for the teacher's rhythms).
+       · Whether the accents are really there. An accent is a heavier stroke, so it is read as loudness after
+         the stroke, and the onset strength (how hard the spectrum changes) has to agree about which strokes
+         stand out. A correlation does not see scale: on an even, unaccented pulse a 1 % wobble correlated
+         0.97 with some pattern. The accented strokes must be clearly louder (≥ 15 %) and stay so cycle after
+         cycle (t ≥ 4), or the rhythm scores 0.
+       · Who is really a rival. Rhythms with the same strokes and accents sound the same — direction cannot
+         be heard — so a general waltz is no evidence against kazbeguri; the next rival is the best one that
+         would sound different. Among rhythms that sound alike, the teacher's own is the one named. */
+    // the loudness just after a stroke (the level window is centred, so 20 ms later it holds the attack); without it, the onset strength
+    const lev = on.lev, loud = (t, w) => { if (!lev) return peak(t, w); let m = 0; for (let x = t; x <= t + Math.max(w, .02); x += dt) { const i = Math.round((x + .02 - t0off) / dt); const v = i >= 0 && i < lev.length ? lev[i] : 0; if (v > m) m = v; } return m; };
+    const tatum = (() => {
+      let best = null;
+      for (const sub of [1, 2, 3, 4, 6]) {
+        const on = [], off = [], lv = [];
+        for (let f = 0; f + 1 / sub < beats.length - 1; f += 1 / sub) {
+          const tt = tAt(f), t2 = tAt(f + .5 / sub); if (tt == null || t2 == null) continue;
+          const k = Math.floor(f), w = Math.max(dt * 1.5, ((beats[k + 1] - beats[k]) || .5) / sub * .2);
+          on.push(peak(tt, w)); off.push(peak(t2, w)); lv.push(loud(tt, w));
+        }
+        if (on.length < 12) continue;
+        let mOn = 0, mOff = 0; for (let i = 0; i < on.length; i++) { mOn += on[i] / on.length; mOff += off[i] / off.length; }
+        // every place of the grid inside the beat must, on average, be a stroke (single strokes may be soft or lost in a mix)
+        const pos = new Float64Array(sub); for (let i = 0; i < on.length; i++) pos[i % sub] += on[i] / on.length * sub;
+        let lo = Infinity; for (let i = 0; i < sub; i++) lo = Math.min(lo, pos[i]);
+        if (mOn > 0 && lo >= mOn * .3 && mOn >= mOff * 1.5) best = { sub, xs: on, ls: lv };   // a finer grid that still lands on a stroke every time wins
+      }
+      return best;
+    })();
     function corr(a, b) {
       const n = a.length; let ma = 0, mb = 0;
       for (let i = 0; i < n; i++) { ma += a[i] / n; mb += b[i] / n; }
@@ -339,37 +506,54 @@ PD.aimus = (() => {
       if (va < 1e-9 || vb < 1e-9) return 0;
       return d / Math.sqrt(va * vb);
     }
+    /** a rhythm on the stroke grid: stroke places (in grid steps), cycle length, and its sound (strokes + accents, cyclically canonical) */
+    function layout(r) {
+      const n = r.strokes.length, d = r.timing && r.timing.durations && r.timing.durations.length === n ? r.timing.durations : r.strokes.map(() => 1);
+      const dm = Math.min.apply(null, d); if (!(dm > 0)) return null;
+      const off = []; let acc = 0; for (const v of d) { const q = acc / dm; if (Math.abs(q - Math.round(q)) > .2) return null; off.push(Math.round(q)); acc += v; }
+      const C = Math.round(acc / dm), cell = new Array(C).fill(0); off.forEach((o, j) => { cell[o] = r.strokes[j].accent ? 2 : 1; });
+      let P = C; for (let p = 1; p < C; p++) if (C % p === 0 && cell.every((v, i) => v === cell[i % p])) { P = p; break; }
+      const base = cell.slice(0, P); let sound = '';
+      for (let s = 0; s < P; s++) { const rot = base.slice(s).concat(base.slice(0, s)).join(''); if (rot > sound) sound = rot; }
+      return { off, C, sound };
+    }
     function fit(r) {
-      const n = r.strokes.length; if (!n || n > 9) return null;
+      const n = r.strokes.length; if (!tatum || !n || n > 12) return null;
       const want = r.strokes.map(s2 => s2.accent ? 1 : 0);
       if (want.every(v => v === want[0])) return null;   // nothing to recognise it by
-      let best = { s: -2, span: n, rot: 0, cycles: 0 };
-      [n, 1, 2].forEach(bpc => {
-        const xs = profile(n, bpc); const cyc = Math.floor(xs.length / n);
-        if (cyc < 3) return;
-        const fold = new Float64Array(n);
-        for (let c = 0; c < cyc; c++) { let sum = 0; for (let j = 0; j < n; j++) sum += xs[c * n + j];
-          if (sum <= 1e-9) continue; for (let j = 0; j < n; j++) fold[j] += xs[c * n + j] / sum; }
-        // every stroke of a rhythm is a stroke: if a position is all but silent, the recording is
-        // not playing this pattern at this speed. Without this test, sampling three points inside
-        // one beat always gave "loud, silent, silent", which matched anything accented on stroke 1.
-        let mean = 0; for (let j = 0; j < n; j++) mean += fold[j] / n;
-        if (mean <= 1e-9) return;
-        let lo = Infinity; for (let j = 0; j < n; j++) lo = Math.min(lo, fold[j] / mean);
-        if (lo < .3) return;
-        for (let rot = 0; rot < n; rot++) {
-          const got = []; for (let j = 0; j < n; j++) got.push(fold[(j + rot) % n]);
-          const sc = corr(got, want);
-          if (sc > best.s) best = { s: sc, span: bpc, rot, cycles: cyc };
+      const lay = layout(r); if (!lay) return null;
+      const xs = tatum.xs, ls = tatum.ls, C = lay.C, cyc = Math.floor(xs.length / C) - 1;
+      if (cyc < 4) return null;
+      let best = null;
+      for (let ph = 0; ph < C; ph++) {
+        const fold = new Float64Array(n), ex = new Float64Array(n), con = [];
+        for (let c = 0; c < cyc; c++) {
+          const v = lay.off.map(o => ls[ph + c * C + o]), e = lay.off.map(o => xs[ph + c * C + o]); let s2 = 0, e2 = 0; for (let j = 0; j < n; j++) { s2 += v[j]; e2 += e[j]; } if (s2 <= 1e-9 || e2 <= 1e-9) continue;
+          let a = 0, na = 0, b = 0, nb = 0;
+          v.forEach((q, j) => { const x = q / s2 * n; fold[j] += x; ex[j] += e[j] / e2 * n; if (want[j]) { a += x; na++; } else { b += x; nb++; } });
+          con.push(a / na - b / nb);
         }
-      });
-      if (best.s < -1) return null;
-      return { id: r.id, name: r.name, source: r.source, geo: r.source === 'teacher', strokes: r.strokes,
-        score: +Math.max(0, best.s).toFixed(3), span: best.span, cycles: best.cycles };
+        if (con.length < 4) continue;
+        for (let j = 0; j < n; j++) { fold[j] /= con.length; ex[j] /= con.length; }
+        // every stroke of a rhythm is a stroke: a place with no attack at all means it is not this rhythm here
+        let lo = Infinity; for (let j = 0; j < n; j++) lo = Math.min(lo, ex[j]); if (lo < .3) continue;
+        const mc = con.reduce((p, q) => p + q, 0) / con.length, sd = Math.sqrt(con.reduce((p, q) => p + (q - mc) * (q - mc), 0) / con.length);
+        const sc = corr(Array.from(fold), want), tst = mc / (sd / Math.sqrt(con.length) + 1e-9), scA = corr(Array.from(ex), want);
+        if (!best || sc > best.s) best = { s: sc, sA: scA, mc, tst, cycles: con.length };
+      }
+      if (!best) return null;
+      // a heavier stroke is louder AND strikes harder: where the level and the attack disagree about which strokes
+      // stand out, the accents are not measurable, and no rhythm is named from them
+      const heard = best.mc >= .15 && best.tst >= 4 && best.sA >= .3;
+      return { id: r.id, name: r.name, source: r.source, geo: r.source === 'teacher', strokes: r.strokes, sound: lay.sound,
+        score: heard ? +Math.max(0, best.s).toFixed(3) : 0, contrast: +best.mc.toFixed(2), attack: +best.sA.toFixed(2),
+        span: tatum.sub === 1 ? n : +(C / tatum.sub).toFixed(2), perBeat: tatum.sub, cycles: best.cycles };
     }
-    const matches = (known || []).map(fit).filter(Boolean).sort((x, y) => y.score - x.score);
-    // naming one only when it is both good enough and clearly ahead of the next
-    const top = matches[0], second = matches.find(m => m && top && m.id !== top.id);
+    const matches = (known || []).map(fit).filter(m => m && m.score > 0).sort((x, y) => y.score - x.score || (y.geo ? 1 : 0) - (x.geo ? 1 : 0));
+    // naming one only when it is both good enough and clearly ahead of the next rhythm that would sound different
+    let top = matches[0];
+    if (top && !top.geo) { const g = matches.find(m => m.geo && m.sound === top.sound && top.score - m.score < .02); if (g) top = g; }
+    const second = top && matches.find(m => m.sound !== top.sound);
     const sure = !!(top && top.score >= .45 && (!second || top.score - second.score >= .1));
     return { sub: G.sub, beatsPerBar: g, compound, cells, span, bars: barStarts.length, conf: +Math.max(0, Math.min(1, (G.corr - .5) / .4)).toFixed(2), matches: matches.slice(0, 5), geo: matches.filter(m => m.geo).slice(0, 3), best: sure ? top : null, sure };
   }
@@ -523,7 +707,7 @@ PD.aimus = (() => {
     const g = M.metre ? M.metre.num : 4, per = 4, rows = [[], [], []], head = [];
     const byBar = {}; M.notes.forEach(n => { const b = Math.max(1, n.bar || 1); (byBar[b] = byBar[b] || []).push(n); });
     const bars = Object.keys(byBar).map(Number).sort((a, b) => a - b);
-    let out = (title ? title + '\n' : '') + 'ფანდური · A–C♯–E · ' + (M.metre ? M.metre.num + '/' + M.metre.den : '') + ' · ' + Math.round(M.bpm || 0) + ' BPM\n\n';
+    let out = (title ? title + '\n' : '') + t('app.name') + ' · A–C♯–E · ' + (M.metre ? M.metre.num + '/' + M.metre.den : '') + ' · ' + Math.round(M.bpm || 0) + ' BPM\n\n';
     for (let i = 0; i < bars.length; i += per) {
       const chunk = bars.slice(i, i + per); rows[0] = []; rows[1] = []; rows[2] = []; head.length = 0;
       chunk.forEach(b => {
@@ -538,7 +722,7 @@ PD.aimus = (() => {
         head.push(String(b));
       });
       ['E', 'C♯', 'A'].forEach((nm, r) => { out += (nm + ' ').padEnd(3) + '|' + rows[r].join('|') + '|\n'; });
-      out += '    ' + head.map(b => 'ტაქტი ' + b).join('   ') + '\n\n';
+      out += '    ' + head.map(b => PD.i18n.pick({ ka: 'ტაქტი ' + b, en: 'Bar ' + b })).join('   ') + '\n\n';
     }
     return out;
   }
@@ -551,7 +735,7 @@ PD.aimus = (() => {
     }, null, 1)], { type: 'application/json' });
   }
 
-  return { onsets, percOnsets, rhythm, transcribe, transcribeAsync, metre, tempoAlts, quantise, mapNotes, places, sections, spell, degreeOf, solfegeOf, midiFile, musicXML, tabText, jsonOf, DURV, LO, HI };
+  return { notesBP, melodyOf, fuse, onsets, percOnsets, rhythm, transcribe, transcribeAsync, metre, tempoAlts, quantise, mapNotes, places, sections, spell, degreeOf, solfegeOf, midiFile, musicXML, tabText, jsonOf, DURV, LO, HI };
 })();
 
 /* =====================================================================
@@ -560,8 +744,8 @@ PD.aimus = (() => {
    panduri tab), every view following the player's real position.
    ===================================================================== */
 PD.i18n.add({
-  'tr.title': ['ნოტების ამოცნობა', 'Note transcription'],
-  'tr.lead': ['AI უსმენს მელოდიას და ნოტ-ნოტად შლის: სიმაღლე, ხანგრძლივობა, ტაქტი და ფანდურის სიმი-ლადი. ერთ ხმას იღებს — ყველაზე ძლიერს. მრავალხმიან ჩანაწერში ჯერ ინსტრუმენტებად დაყავი და მერე აირჩიე, რომელს მოუსმინოს.', 'The AI follows the melody and writes it out note by note: pitch, length, bar and the panduri string and fret. It follows one voice — the strongest one. For a full mix, split the instruments first and then choose which one it should listen to.'],
+  'tr.aiTitle': ['ნოტების ამოცნობა', 'Note transcription'],
+  'tr.aiLead': ['AI ორ გზას აერთიანებს: Basic Pitch ყველა ნოტს ერთდროულად ისმენს და აკორდების ფონზე მელოდიას და სოლოს პოულობს, ხოლო ერთხაზიანი მეთოდი სუფთა ხაზს ზუსტად წერს. ყოველ მონაკვეთში ის იწერება, რომელიც აკორდს არ მისდევს. მელოდიისთვის ზედა ხმაა, ბასისთვის — ქვედა. ყველაზე სუფთად დაყოფილ ინსტრუმენტზე მუშაობს: „ინსტრუმენტებში" დაყავი და აქ აირჩიე, რომელს მოუსმინოს.', 'The AI combines two ways: Basic Pitch hears every note at once and finds the tune or the solo over the chords, while the single-line method writes a clear line exactly. In each stretch the one that does not follow the chord is written. For a melody the top voice, for the bass the bottom one. It is cleanest on a separated instrument: split the song under “Instruments” and choose here which one to listen to.'],
   'tr.run': ['ნოტების ამოცნობა', 'Transcribe the notes'], 'tr.redo': ['თავიდან ამოცნობა', 'Transcribe again'],
   'tr.working': ['ვუსმენ ნოტებს…', 'Listening for notes…'], 'tr.cancel': ['შეჩერება', 'Stop'], 'tr.src': ['რას მოვუსმინო', 'What to listen to'],
   'tr.srcOrig': ['მთლიან სიმღერას', 'The whole song'], 'tr.range': ['დიაპაზონი', 'Range'],
@@ -605,10 +789,10 @@ PD.aimus.panel = function (o) {
     const box = h('div', { class: 'ai-trhead' });
     const srcSel = h('div', { class: 'seg' });
     const stems = (o.stemNames && o.stemNames()) || [];
-    [['orig', t('tr.srcOrig')]].concat(stems.map(s => [s, t('ai.' + s) || s])).forEach(([k, lab]) => srcSel.append(h('button', { class: 'seg-b' + (src === k ? ' on' : ''), text: lab, onclick: () => { src = k; render(); } })));
+    [['orig', t('tr.srcOrig')]].concat(stems.map(s => [s, PD.i18n.has('ai.' + s) ? t('ai.' + s) : s])).forEach(([k, lab]) => srcSel.append(h('button', { class: 'seg-b' + (src === k ? ' on' : ''), text: lab, onclick: () => { src = k; render(); } })));
     const rgSel = h('div', { class: 'seg' });
     [['mel', 'tr.rMel'], ['high', 'tr.rHigh'], ['low', 'tr.rLow']].forEach(([k, lab]) => rgSel.append(h('button', { class: 'seg-b' + (range === k ? ' on' : ''), text: t(lab), onclick: () => { range = k; PD.store.set('tr.range', k); render(); } })));
-    box.append(h('p', { class: 'muted', 'data-t': 'tr.lead' }),
+    box.append(h('p', { class: 'muted', 'data-t': 'tr.aiLead' }),
       h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.src') }), h('div', { class: 'ai-tc' }, [srcSel])]),
       h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.range') }), h('div', { class: 'ai-tc' }, [rgSel])]),
       can('pro') ? h('button', { class: 'btn primary', text: M ? t('tr.redo') : t('tr.run'), onclick: run })
@@ -626,26 +810,40 @@ PD.aimus.panel = function (o) {
     const [lo, hi] = RANGES[range] || RANGES.mel;
     let tr;
     try {
-      busy = A.transcribeAsync(mono, 22050, { lo, hi }, p => { bar.style.width = Math.round(p * 94) + '%'; });
-      tr = await busy;
+      // every note (Basic Pitch), then the line: the top voice for a melody or a solo, the bottom one for the bass
+      // both trackers at once, each in its own worker: Basic Pitch (every note) and the single-line tracker
+      const bp = A.notesBP(mono, PD.ai.BASE, {}, p => { bar.style.width = Math.round(p * 94) + '%'; }), one = A.transcribeAsync(mono, 22050, { lo, hi });
+      busy = bp; const stopBp = bp.cancel; bp.cancel = () => { stopBp(); one.cancel && one.cancel(); };
+      const [r, single] = await Promise.all([bp, one.catch(() => null)]);
+      if (busy === null) return;
+      const line = A.melodyOf(r.notes, { lo, hi, bottom: range === 'low' });
+      tr = { notes: single ? A.fuse(single.notes.map(n => Object.assign({}, n, { m: Math.round(n.m) })), r.notes, line) : line, poly: r.notes, engine: single ? 'fused' : 'bp' };
+      // a light chroma from the notes themselves, so the song's parts can still be found
+      const dt = .05, F = Math.max(1, Math.ceil(mono.length / 22050 / dt)), ch = Array.from({ length: F }, () => new Float32Array(12));
+      r.notes.forEach(n => { for (let f = Math.floor(n.t0 / dt); f < Math.min(F, Math.ceil(n.t1 / dt)); f++) ch[f][n.m % 12] += n.amp; });
+      ch.forEach(c => { let m = 0; for (let k = 0; k < 12; k++) if (c[k] > m) m = c[k]; if (m) for (let k = 0; k < 12; k++) c[k] /= m; });
+      tr.chroma = ch; tr.dt = dt; tr.t0off = 0;
     } catch (e) {
-      try { tr = await A.transcribe(mono, 22050, { lo, hi }, p => { bar.style.width = Math.round(p * 94) + '%'; }); } catch (e2) { busy = null; st.textContent = t('ai.bad'); return; }
+      // the model could not be loaded (offline, first time): the older single-line tracker
+      if (busy === null) return;
+      try { busy = A.transcribeAsync(mono, 22050, { lo, hi }, p => { bar.style.width = Math.round(p * 94) + '%'; }); tr = await busy; tr.engine = 'dsp'; }
+      catch (e2) { try { tr = await A.transcribe(mono, 22050, { lo, hi }, p => { bar.style.width = Math.round(p * 94) + '%'; }); tr.engine = 'dsp'; } catch (e3) { busy = null; st.textContent = t('ai.bad'); return; } }
     }
     if (busy === null) return;                       // stopped by the user
     busy = null;
-    if (off) tr.notes.forEach(n => { n.t0 = +(n.t0 + off).toFixed(3); n.t1 = +(n.t1 + off).toFixed(3); });
+    if (off) [tr.notes, tr.poly || []].forEach(L => L.forEach(n => { n.t0 = +(n.t0 + off).toFixed(3); n.t1 = +(n.t1 + off).toFixed(3); }));
     const R = o.res, beats = R.beats || [];
     let mt;
     if (o.getOnsets) { const on2 = await o.getOnsets(); mt = A.metre(beats, on2.env, on2.dt, on2.t0off, R.chords); }
     else mt = A.metre(beats, tr.flux, tr.dt, tr.t0off + off, R.chords);
     A.quantise(tr.notes, beats, mt); A.mapNotes(tr.notes);
-    M = { notes: tr.notes, metre: mt, bpm: R.bpm, key: Object.assign({}, R.key, { conf: +(R.key.s || 0).toFixed(2) }),
+    M = { notes: tr.notes, poly: tr.poly || null, engine: tr.engine, metre: mt, bpm: R.bpm, key: Object.assign({}, R.key, { conf: +(R.key.s || 0).toFixed(2) }),
       beats, dur: R.dur, src, range, sections: off ? [] : A.sections(tr.chroma, tr.dt, tr.t0off, beats, R.dur),
       chords: (R.chords || []).map(c => ({ t0: c.t0, t1: c.t1, name: c.root >= 0 ? PD.ai.cname(c.root, c.q) : null })) };
     o.save && o.save(M);
     cur = -1; render();
   }
-  const title = () => h('div', { class: 'row pg-head' }, [h('h2', { 'data-t': 'tr.title', style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]);
+  const title = () => h('div', { class: 'row pg-head' }, [h('h2', { 'data-t': 'tr.aiTitle', style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]);
 
   /* ---------------- facts ---------------- */
   function cClass(c) { return c >= .66 ? 'hi' : c >= .4 ? 'mid' : 'lo'; }
@@ -689,6 +887,8 @@ PD.aimus.panel = function (o) {
       const X = tt => (tt - t0) * px, Y = m => H - 10 - (m - lo) / span * (H - 20), rh = Math.max(4, (H - 20) / span - 1);
       // the bars of the song
       (M.beats || []).forEach((b, k) => { if (b < t0 - 1 || b > t1 + 1) return; const g = M.metre.beatsPerBar || 4, one = (((k - (M.metre.phase || 0)) % g) + g) % g === 0; x.fillStyle = one ? 'rgba(255,244,230,.26)' : 'rgba(255,244,230,.08)'; x.fillRect(X(b), 0, 1, H); });
+      // every note that was heard, faint, behind the line that was written out
+      if (M.poly) { x.fillStyle = 'rgba(255,244,230,.16)'; M.poly.forEach(n => { if (n.t1 < t0 || n.t0 > t1 || n.m < lo - 1 || n.m > hi + 1) return; x.fillRect(X(n.t0), Y(n.m) - rh / 2 + 1, Math.max(2, (n.t1 - n.t0) * px - 1), Math.max(2, rh - 2)); }); }
       M.notes.forEach((n, i) => {
         if (n.t1 < t0 || n.t0 > t1) return;
         const a = X(n.t0), w = Math.max(3, (n.t1 - n.t0) * px - 1), y = Y(n.m);
@@ -788,7 +988,7 @@ PD.aimus.panel = function (o) {
     const row = h('div', { class: 'ai-tc' }, [
       h('button', { class: 'btn small', text: t('tr.expMidi'), onclick: () => dl(A.midiFile(M), base + '.mid') }),
       h('button', { class: 'btn small', text: t('tr.expXml'), onclick: () => dl(A.musicXML(M, base), base + '.musicxml') }),
-      h('button', { class: 'btn small', text: t('tr.expTab'), onclick: () => dl(new Blob([A.tabText(M, base)], { type: 'text/plain' }), base + ' — ფანდური.txt') }),
+      h('button', { class: 'btn small', text: t('tr.expTab'), onclick: () => dl(new Blob([A.tabText(M, base)], { type: 'text/plain' }), base + ' — ' + t('app.name') + '.txt') }),
       h('button', { class: 'btn small', text: t('tr.expJson'), onclick: () => dl(A.jsonOf(M, base), base + '.json') }),
       h('button', { class: 'btn small ghost', text: t('tr.expPdf'), onclick: () => window.print() })]);
     if (!can('proExp')) return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.exp') }), h('div', { class: 'ai-tc' }, [buy('ai.export')]), h('small', { class: 'muted', text: t('tr.pmExp') })]);

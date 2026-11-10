@@ -1,0 +1,16 @@
+{
+  "name": "panduri-source",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Build and test tooling for the Panduri app source. The app itself has no dependencies.",
+  "scripts": {
+    "build": "python3 build.py",
+    "serve": "python3 serve.py 8181",
+    "dev": "python3 build.py && python3 serve.py 8181"
+  },
+  "devDependencies": {
+    "acorn": "^8.19.0",
+    "acorn-walk": "^8.3.5",
+    "playwright": "^1.64.1"
+  }
+}

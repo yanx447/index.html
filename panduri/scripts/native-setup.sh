@@ -6,8 +6,8 @@ cd "$(dirname "$0")/.."
 PLATFORM="${1:-all}"
 VERSION_NAME="$(node -p "require('./package.json').version")"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
-CAM_TEXT="კამერა მხოლოდ სარკეა: ხედავ საკუთარ თავს ფანდურით, სანამ აპი აკორდებს და რიტმს გიჩვენებს. გამოსახულება არ იწერება და არსად იგზავნება. / The camera is only a mirror: you see yourself with the panduri while the app shows chords and rhythm. The picture is never recorded or sent."
-MIC_TEXT="ფანდური უსმენს შენს დაკვრას, რომ გაიგოს რომელი ნოტი და როდის დაუკარი. ხმა მხოლოდ ტელეფონზე მუშავდება და არსად იგზავნება. / Panduri listens to your playing to hear which note you played and when. Sound is analysed on your phone and never sent anywhere."
+CAM_TEXT="კამერა სარკეა: ხედავ საკუთარ თავს ფანდურით, სანამ აპი აკორდებს და რიტმს გიჩვენებს. გამოსახულება არ იწერება. ვიდეოზარისას სურათი მხოლოდ თანამოსაუბრეს გადაეცემა. / The camera is a mirror: you see yourself with the panduri while the app shows chords and rhythm. The picture is never recorded. During a video call it goes only to the person you are talking to."
+MIC_TEXT="ფანდური უსმენს შენს დაკვრას, რომ გაიგოს რომელი ნოტი და როდის დაუკარი. დაკვრის ხმა მხოლოდ მოწყობილობაზე მუშავდება და არსად იგზავნება. ვიდეოზარისას ხმა მხოლოდ თანამოსაუბრეს გადაეცემა. / Panduri listens to your playing to hear which note you played and when. Your playing is analysed on the device and never sent anywhere. During a video call your voice goes only to the person you are talking to."
 
 if [[ "$PLATFORM" == "android" || "$PLATFORM" == "all" ]]; then
   [ -d android ] || npx cap add android
@@ -15,11 +15,16 @@ if [[ "$PLATFORM" == "android" || "$PLATFORM" == "all" ]]; then
   # permissions: microphone (hears the panduri), camera (mirror while practising), vibration
   grep -q 'RECORD_AUDIO' "$MAN" || perl -0pi -e 's#</manifest>#    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-permission android:name="android.permission.VIBRATE" />\n</manifest>#' "$MAN"
   grep -q 'android.permission.CAMERA' "$MAN" || perl -0pi -e 's#</manifest>#    <uses-permission android:name="android.permission.CAMERA" />\n</manifest>#' "$MAN"
+  # Billing can return from a banking app; singleTask/singleInstance can cancel the purchase.
+  perl -pi -e 's/android:launchMode="(?:singleTask|singleInstance)"/android:launchMode="singleTop"/g' "$MAN"
   # phones, tablets and Android TV: nothing below is required hardware
   grep -q 'android.software.leanback' "$MAN" || perl -0pi -e 's#</manifest>#    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <uses-feature android:name="android.hardware.camera.front" android:required="false" />\n    <uses-feature android:name="android.hardware.microphone" android:required="false" />\n    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />\n    <uses-feature android:name="android.software.leanback" android:required="false" />\n</manifest>#' "$MAN"
   # Android TV launcher row + banner
   mkdir -p android/app/src/main/res/drawable
-  cp assets/tv-banner.png android/app/src/main/res/drawable/tv_banner.png
+  # the TV launcher banner carries the app's name in the device's language
+  mkdir -p android/app/src/main/res/drawable-ka
+  cp assets/tv-banner-en.png android/app/src/main/res/drawable/tv_banner.png
+  cp assets/tv-banner.png android/app/src/main/res/drawable-ka/tv_banner.png
   grep -q 'android:banner' "$MAN" || perl -0pi -e 's#<application#<application android:banner="\@drawable/tv_banner"#' "$MAN"
   grep -q 'LEANBACK_LAUNCHER' "$MAN" || perl -0pi -e 's#(<category android:name="android.intent.category.LAUNCHER" />)#$1\n                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />#' "$MAN"
   # sign-in return link (Google / Facebook): com.yanx.panduri://auth

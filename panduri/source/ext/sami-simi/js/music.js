@@ -1,6 +1,8 @@
 // Music theory for the panduri: note names, chords, fingerings for the current tuning,
 // chroma analysis for chord recognition. Pure functions (tested in Node).
 
+import { trEn } from './i18n.js';
+
 export const pc = (m) => ((m % 12) + 12) % 12;
 
 const LATIN_SHARP = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
@@ -25,7 +27,7 @@ export const quality = (id) => QUALITIES.find((q) => q.id === id) || QUALITIES[0
 
 export function chordName(rootPc, qid, lang = 'en') {
   const q = quality(qid);
-  return { short: pcLatin(rootPc) + q.sym, long: lang === 'ka' ? `${pcKa(rootPc)} ${q.ka}` : `${pcLatin(rootPc)} ${q.en}` };
+  return { short: pcLatin(rootPc) + q.sym, long: lang === 'ka' ? `${pcKa(rootPc)} ${q.ka}` : `${pcLatin(rootPc)} ${trEn(q.en)}` };
 }
 
 /** Parse "A", "C#m", "Bbm7", "F#sus4", "Edim", "D♯7" → { root, q } or null. */

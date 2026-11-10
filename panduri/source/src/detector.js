@@ -17,35 +17,72 @@ class PDCore {
     this.W = Math.round(512 * this.fs / 24000); this.tauMin = Math.floor(this.fs / 1150); this.tauMax = Math.ceil(this.fs / 95);
     this.x = new Float32Array(this.W + this.tauMax + 4); this.d = new Float32Array(this.tauMax + 2);
     this.hop = 0; this.acc = 0; this.env = 0; this.floor = 0.003; this.gate = 0.004; this.k = 3.2; this.lastOn = -9; this.fc = 0; this.lv = 0;
-    this.prev = 0; this.hf = 0; this.hfEnv = 0; this.peak = 0; this.pend = null; this.sounding = false; this.lowN = 0; this.hfK = 2.4;
-    this.expect = null; this.chordAt = -1; this.g = new Float32Array(4096);
+    this.prev = 0; this.hf = 0; this.hfEnv = 0; this.peak = 0; this.hrPrev = 0; this.hfEnv1 = 0; this.r5 = new Float32Array(5); this.h5 = new Float32Array(5); this.k5 = 0; this.pend = null; this.sounding = false; this.lowN = 0; this.hfK = 2.4;
+    this.expect = null; this.gz = null; this.chordAt = -1; this.g = new Float32Array(4096); this.hw = new Float32Array(4096); for (let i = 0; i < 4096; i++) this.hw[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / 4095);
+    // level and onsets are read through a 120 Hz high-pass (2nd-order Butterworth). The lowest panduri note is
+    // A3 = 220 Hz; below that there is only hum and rumble, and a tone whose period is longer than one 256-sample
+    // frame makes the frame level swing with its phase - 50 Hz mains hum alone read as a stroke every 80 ms.
+    // Pitch and the chord check still see the unfiltered signal.
+    { const w0 = 2 * Math.PI * 120 / sr, al = Math.sin(w0) / Math.SQRT2, a0 = 1 + al, c = Math.cos(w0);
+      this.hb = [(1 + c) / 2 / a0, -(1 + c) / a0, (1 + c) / 2 / a0, -2 * c / a0, (1 - al) / a0]; this.hz = [0, 0, 0, 0]; }
   }
   cfg(m) { if (m.hfK != null) this.hfK = m.hfK; if (m.gate != null) this.gate = m.gate; if (m.k != null) this.k = m.k; if (m.expect !== undefined) this.expect = m.expect; if (m.floor != null) this.floor = m.floor; }
   push(ch, t) {
-    const N = this.N; let s = 0;
-    let h = 0, pk = this.peak;
-    for (let i = 0; i < ch.length; i++) { const v = ch[i]; this.buf[this.w] = v; this.w = (this.w + 1) % N; s += v * v; const dv = v - this.prev; this.prev = v; h += dv * dv; const a = v < 0 ? -v : v; if (a > pk) pk = a; }
-    this.filled = Math.min(N, this.filled + ch.length); this.hop += ch.length; this.acc += s; this.hf += h; this.peak = pk;
-    if (this.hop >= 256) { const r = Math.sqrt(this.acc / this.hop), hr = Math.sqrt(this.hf / this.hop); this.hop = 0; this.acc = 0; this.hf = 0; this.frame(r, t, hr); }
+    // one analysis frame per 256 samples, whatever the block size: the AudioWorklet delivers 128, the
+    // ScriptProcessor fallback 1024. Every time constant below (onset window, release, YIN rate) is
+    // counted in frames, so a frame has to mean the same ~5 ms on both paths.
+    const N = this.N, buf = this.buf, sr = this.sr;
+    const B = this.hb, Z = this.hz; let x1 = Z[0], x2 = Z[1], y1 = Z[2], y2 = Z[3];
+    let w = this.w, s = this.acc, h = this.hf, pk = this.peak, prev = this.prev, hop = this.hop, from = 0;
+    for (let i = 0; i < ch.length; i++) {
+      const v = ch[i]; buf[w] = v; w = w + 1 === N ? 0 : w + 1; const a = v < 0 ? -v : v; if (a > pk) pk = a;   // clipping is judged on the raw input
+      const y = B[0] * v + B[1] * x1 + B[2] * x2 - B[3] * y1 - B[4] * y2; x2 = x1; x1 = v; y2 = y1; y1 = y;
+      s += y * y; const dv = y - prev; prev = y; h += dv * dv;
+      if (++hop >= 256) {
+        this.w = w; this.filled = Math.min(N, this.filled + (i + 1 - from)); from = i + 1; this.peak = pk; this.prev = prev;
+        const r = Math.sqrt(s / hop), hr = Math.sqrt(h / hop); hop = 0; s = 0; h = 0;
+        this.frame(r, t + (i + 1 - 128) / sr, hr); pk = this.peak;
+      }
+    }
+    Z[0] = x1; Z[1] = x2; Z[2] = y1; Z[3] = y2;
+    this.w = w; this.filled = Math.min(N, this.filled + (ch.length - from)); this.acc = s; this.hf = h; this.peak = pk; this.prev = prev; this.hop = hop;
   }
   frame(r, t, hr) {
-    if (r < this.floor) this.floor = this.floor * 0.85 + r * 0.15; else this.floor += (r - this.floor) * 0.0012;
+    // the noise floor follows the room, never the music: it may fall at any time, but it rises only while
+    // nothing is sounding (or 4 s after the last stroke, so a noise that switched on cannot freeze it).
+    // Rising during play let continuous strumming teach the floor its own level: within seconds the
+    // gate sat above the strokes and most of them were no longer heard.
+    if (r < this.floor) this.floor = this.floor * 0.85 + r * 0.15; else if (!this.sounding || t - this.lastOn > 4) this.floor += (r - this.floor) * 0.0012;
     const thr = Math.max(this.gate, this.floor * this.k);
     // onset: a level rise OR a broadband transient (a new strum on a still-ringing instrument)
-    const rise = r > this.env * 1.6, trans = hr > this.hfEnv * this.hfK && hr > thr * 0.35;
+    // A stroke on strings that are still ringing hardly raises the level (the string is stopped and struck
+    // again), but it always brings a burst of fresh high partials; one 5 ms frame jitters too much to see a soft
+    // one, so the burst is also read over two frames against the level before them.
+    // The frame must also stand above the loudest of the 4 frames before it (21 ms, a whole period down to
+    // 47 Hz; for the two-frame reading, the 4 before its first frame): a steady sound swings from frame to frame
+    // with its own phase and never passes that test. Out of silence (released) there is nothing to guard against.
+    const R5 = this.r5, H5 = this.h5, j = this.k5; let rMax = 0, hMax = 0, hMaxP = 0;
+    for (let q = 1; q <= 5; q++) { const i = (j - q + 10) % 5; if (q <= 4) { if (R5[i] > rMax) rMax = R5[i]; if (H5[i] > hMax) hMax = H5[i]; } if (q >= 2 && H5[i] > hMaxP) hMaxP = H5[i]; }
+    const rise = r > this.env * 1.6 && (r > rMax * 1.25 || !this.sounding),
+      trans = hr > thr * 0.35 && ((hr > this.hfEnv * this.hfK && hr > hMax * 1.25) || ((hr + this.hrPrev) > 2 * this.hfEnv1 * this.hfK * 0.65 && Math.max(hr, this.hrPrev) > hMaxP * 1.25));
+    R5[j] = r; H5[j] = hr; this.k5 = (j + 1) % 5;
     if (r > thr && (rise || trans) && t - this.lastOn > 0.07) {
       if (this.pend) this.flushOnset();
       this.lastOn = t; this.pend = { t: t, pre: this.env, peak: r, n: 0 }; this.sounding = true; this.lowN = 0;
-      if (this.expect) { this.chordAt = t + 0.06; this.chordExp = this.expect; }   // judged against the chord expected when the stroke happened
+      if (this.expect) { this.chordAt = t + 4096 / this.sr + 0.004; this.chordOn = t; this.chordExp = this.expect; }   // judged against the chord expected at the stroke; the 4096-sample window opens just after it, so the chord before is not in it
     }
     // onset strength = peak level over the first ~48 ms above what was already sounding (accent measure)
     if (this.pend) { if (r > this.pend.peak) this.pend.peak = r; if (++this.pend.n >= 9) this.flushOnset(); }
     // release: the note has decayed into the noise
     if (this.sounding) { if (r < thr * 0.7) { if (++this.lowN >= 4) { this.sounding = false; this.post({ type: 'release', t: t }); } } else this.lowN = 0; }
-    this.env = this.env * 0.75 + r * 0.25; this.hfEnv = this.hfEnv * 0.8 + hr * 0.2;
+    this.env = this.env * 0.75 + r * 0.25; this.hfEnv1 = this.hfEnv; this.hfEnv = this.hfEnv * 0.8 + hr * 0.2; this.hrPrev = hr;
     this.fc = (this.fc + 1) % 2;
-    if (this.fc === 0 && r > thr * 0.6 && this.filled > (this.W + this.tauMax) * this.dec + 8) { const p = this.yin(); this.post({ type: 'pitch', t: t, f: p.f, conf: p.c, rms: r }); }
-    if (this.chordAt > 0 && t >= this.chordAt) { this.chordAt = -1; if (this.chordExp) this.post(Object.assign({ type: 'chord', t: t, exp: this.chordExp }, this.goertzel(this.chordExp))); }
+    // the chord check is spread over one frame per note, and YIN waits while it runs: both in one 2.7 ms audio
+    // quantum overran it (4.5 ms measured on a laptop core), and an overrun is a dropout for every sound the app plays
+    let busy = false;
+    if (this.chordAt > 0 && t >= this.chordAt) { this.chordAt = -1; if (this.chordExp) { this.gzOpen(this.chordExp, t); busy = true; } }
+    else if (this.gz) { busy = true; if (this.gzStep()) { const z = this.gz; this.gz = null; this.post(Object.assign({ type: 'chord', t: z.t, t0: z.t0, exp: z.ex }, this.gzDone(z))); } }
+    if (!busy && this.fc === 0 && r > thr * 0.6 && this.filled > (this.W + this.tauMax) * this.dec + 8) { const p = this.yin(); this.post({ type: 'pitch', t: t, f: p.f, conf: p.c, rms: r }); }
     if ((this.lv = (this.lv + 1) % 3) === 0) { this.post({ type: 'level', t: t, rms: r, floor: this.floor, thr: thr, peak: this.peak }); this.peak = 0; }
   }
   flushOnset() { const p = this.pend; this.pend = null; this.post({ type: 'onset', t: p.t, rms: p.peak, strength: Math.max(0, p.peak - p.pre * 0.85) }); }
@@ -54,23 +91,56 @@ class PDCore {
     for (let i = 0; i < len; i++) { let v = 0; for (let k = 0; k < dec; k++) { v += this.buf[p]; p = (p + 1) % N; } x[i] = v / dec; }
     return x;
   }
+  /** cumulative-mean-normalised difference d[a..b], continuing the running sum this.yr */
+  ydf(x, a, b) {
+    const W = this.W, d = this.d; let run = this.yr;
+    for (let tau = a; tau <= b; tau++) { let s = 0; for (let i = 0; i < W; i++) { const q = x[i] - x[i + tau]; s += q * q; } run += s; d[tau] = run > 0 ? s * tau / run : 1; }
+    this.yr = run;
+  }
   yin() {
-    const W = this.W, tm = this.tauMax, d = this.d, x = this.read(W + tm + 2, this.dec);
-    for (let tau = 1; tau <= tm; tau++) { let s = 0; for (let i = 0; i < W; i++) { const q = x[i] - x[i + tau]; s += q * q; } d[tau] = s; }
-    d[0] = 1; let run = 0;
-    for (let tau = 1; tau <= tm; tau++) { run += d[tau]; d[tau] = run > 0 ? d[tau] * tau / run : 1; }
-    let tau = -1;
-    for (let k = this.tauMin; k < tm; k++) if (d[k] < 0.13) { while (k + 1 < tm && d[k + 1] < d[k]) k++; tau = k; break; }
-    if (tau < 0) { let mn = 9; for (let k = this.tauMin; k < tm; k++) if (d[k] < mn) { mn = d[k]; tau = k; } if (mn > 0.4) return { f: 0, c: 0 }; }
+    // the difference function is built 32 lags at a time and only as far as it is needed: the first dip under the
+    // threshold ends the search, so a clean 440 Hz note costs ~64 lags instead of all 253. Same values as computing all.
+    const tm = this.tauMax, d = this.d, x = this.read(this.W + tm + 2, this.dec);
+    d[0] = 1; this.yr = 0; let n = 0, tau = -1;
+    const need = k => { if (k > n && n < tm) { const b = Math.min(tm, Math.max(k, n + 32)); this.ydf(x, n + 1, b); n = b; } };
+    for (let k = this.tauMin; k < tm; k++) {
+      need(k + 1);
+      if (d[k] < 0.13) { need(k + 2); while (k + 1 < tm && d[k + 1] < d[k]) { k++; need(k + 2); } tau = k; break; }
+    }
+    if (tau < 0) { need(tm); let mn = 9; for (let k = this.tauMin; k < tm; k++) if (d[k] < mn) { mn = d[k]; tau = k; } if (mn > 0.4) return { f: 0, c: 0 }; }
+    need(tau + 1);
     const a = d[tau - 1], b = d[tau], c = d[tau + 1], den = a - 2 * b + c, sh = den ? 0.5 * (a - c) / den : 0;
     return { f: this.fs / (tau + sh), c: Math.max(0, Math.min(1, 1 - b)) };
   }
-  goertzel(ex) {
-    ex = ex || this.expect; const n = 4096, N = this.N, g = this.g; let p = (this.w - n + N) % N;
-    for (let i = 0; i < n; i++) { g[i] = this.buf[p] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1))); p = (p + 1) % N; }
-    const pw = f => { const w = 2 * Math.PI * f / this.sr, cw = 2 * Math.cos(w); let s1 = 0, s2 = 0; for (let i = 0; i < n; i++) { const s0 = g[i] + cw * s1 - s2; s2 = s1; s1 = s0; } return s1 * s1 + s2 * s2 - cw * s1 * s2; };
-    const db = ex.map(f => { const sig = pw(f) + 0.5 * pw(2 * f), noise = (pw(f * 0.943) + pw(f * 1.06)) / 2 + 1e-9; return 10 * Math.log10(sig / noise); });
-    return { db: db, present: db.map(v => v > 7) };
+  /* Is each expected note sounding, and not the fret next to it? 4096 samples (85-93 ms) cannot separate a
+     semitone at A3 (13 Hz, about one bin): inside the window's main lobe a neighbour only reads 6 dB below the
+     note itself. So the note is compared with the louder of its two semitone neighbours, not with their
+     average against a fixed 7 dB, and the octave (where a semitone is two bins apart) is weighed in.
+     A neighbour that is itself one of the chord's notes (B and C in a maj7 shape) is not a "wrong fret"; the
+     whole tone further out is used instead. A note far below the loudest one is a string not struck. */
+  gzOpen(ex, t) {   // take the window now (the stroke is in it), weigh the notes over the next frames
+    const n = 4096, N = this.N, g = this.g, hw = this.hw; let p = (this.w - n + N) % N;
+    for (let i = 0; i < n; i++) { g[i] = this.buf[p] * hw[i]; p = (p + 1) % N; }
+    this.gz = { ex: ex, t: t, t0: this.chordOn, i: 0, sv: [], ref: [] };   // the stroke's own time, kept: another may come before this is done
+  }
+  gzPow(f) {
+    const n = 4096, g = this.g, sr = this.sr; if (f >= sr / 2) return 0;
+    const w = 2 * Math.PI * f / sr, cw = 2 * Math.cos(w); let s1 = 0, s2 = 0;
+    for (let i = 0; i < n; i++) { const s0 = g[i] + cw * s1 - s2; s2 = s1; s1 = s0; }
+    return s1 * s1 + s2 * s2 - cw * s1 * s2;
+  }
+  /** one note per call; true when every note has been weighed */
+  gzStep() {
+    const z = this.gz, ex = z.ex, i = z.i, f = ex[i], semi = Math.pow(2, 1 / 12);
+    const S = q => this.gzPow(q) + 0.6 * this.gzPow(2 * q), taken = q => ex.some((e, j) => j !== i && Math.abs(1200 * Math.log2(q / e)) < 40);
+    let refs = [f / semi, f * semi].filter(q => !taken(q));
+    if (!refs.length) refs = [f / semi / semi, f * semi * semi].filter(q => !taken(q));
+    z.sv.push(S(f)); z.ref.push(refs.length ? Math.max.apply(null, refs.map(S)) : 0);
+    return ++z.i >= ex.length;
+  }
+  gzDone(z) {
+    const top = Math.max.apply(null, z.sv) + 1e-12, db = z.sv.map((v, i) => 10 * Math.log10((v + 1e-12) / (z.ref[i] + 1e-12)));
+    return { db: db, present: db.map((v, i) => v > 2 && z.sv[i] > top * 0.02) };
   }
 }`;
   const WORKLET = CORE + `
@@ -136,8 +206,8 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
       else { const w0 = st.win; clearTimeout(st.winT); st.winT = setTimeout(() => { if (st.win === w0) finish(); }, 280); }   // soft notes: no later pitch frame may come
       return;
     }
-    // the chord check runs 60 ms after the stroke; report the stroke's own time
-    if (m.type === 'chord') { const t0 = m.t - .06; if (ours(t0)) return; emit('chord', { t: t0 - calib.latencyMs / 1000, db: m.db, present: m.present, exp: m.exp }); }
+    // the chord check runs ~90 ms after the stroke; report the stroke's own time
+    if (m.type === 'chord') { const t0 = m.t0 != null ? m.t0 : m.t - .06; if (ours(t0)) return; emit('chord', { t: t0 - calib.latencyMs / 1000, db: m.db, present: m.present, exp: m.exp }); }
   }
   function finish() {
     const w = st.win; st.win = null; if (!w) return;

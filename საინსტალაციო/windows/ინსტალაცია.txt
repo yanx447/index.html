@@ -1,0 +1,26 @@
+ფანდური — დაყენება Windows-ზე
+დეველოპერი: ნუკრი ბერიძე (Nukri Beridze)
+
+საჭიროა Windows 10 ან უფრო ახალი, 64-ბიტიანი.
+
+დაყენება
+  1. გაუშვი Panduri-...-Windows-Setup.exe.
+  2. მიჰყევი ეკრანს. ადმინისტრატორის პაროლი საჭირო არ არის.
+  3. ფანდური გაჩნდება Start მენიუში და Desktop-ზე.
+
+თუ გამოჩნდება „Windows protected your PC“
+  საინსტალაციო ჯერ სერტიფიკატით არ არის ხელმოწერილი, ამიტომ ეს ჩვეულებრივია.
+  დააჭირე More info, შემდეგ Run anyway.
+
+წაშლა
+  Settings > Apps > ფანდური > Uninstall.
+  შენი პროგრესი კომპიუტერზე რჩება, რომ ხელახლა დაყენებისას არ დაიკარგოს.
+
+
+Panduri — installing on Windows
+Developer: Nukri Beridze
+
+Needs 64-bit Windows 10 or newer.
+Install: run Panduri-...-Windows-Setup.exe and follow the screens. No administrator password is needed.
+If "Windows protected your PC" appears: the installer is not yet signed. Press More info, then Run anyway.
+Remove: Settings > Apps > Panduri > Uninstall. Your progress stays on the computer.

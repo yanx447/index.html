@@ -106,10 +106,10 @@ PD.audio = (() => {
     stems: null, blobId: null, mix: PD.store.get('songMix', 'full'), muted: false,
     buf: {}, str: {}, job: {}, cur: null, used: [], state: 'idle', progress: 0, error: null,
     get hasStems() { return !!ref.stems; },
-    get available() { return !!(ref.blobId || (ref.stems && PD.assets && PD.assets.media && PD.assets.media[ref.stems.full || ref.stems.music])); },
+    get available() { const k = ref.stems && (ref.stems.full || ref.stems.music); return !!(ref.blobId || (k && (k.indexOf('blob:') === 0 || (PD.assets && PD.assets.media && PD.assets.media[k])))); },
     get playing() { return !!ref.cur; },
     /** cache key of what should sound now: the stem's file, or a teacher recording */
-    get key() { return ref.blobId ? 'blob:' + ref.blobId : ref.stems && /^(full|music|vocals)$/.test(ref.mix) ? ref.stems[ref.mix] || null : null; },
+    get key() { return ref.blobId ? 'blob:' + ref.blobId : ref.stems && /^(full|music|vocals)$/.test(ref.mix) ? ref.stems[ref.mix] || ref.stems.full || null : null; },   // a song without that version plays the original
     loadStems(stems) { ref.unload(); ref.stems = stems; prepare(ref.key); return ref.available; },
     load(blobId) { ref.unload(); ref.blobId = blobId || null; prepare(ref.key); return !!blobId; },
     /** start decoding a song's recording early (e.g. when its page opens), so the first play starts at once */

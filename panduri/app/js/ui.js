@@ -57,7 +57,7 @@ PD.ic = (() => {
     home: s('<path d="M4 11l8-7 8 7v9H4z"/>'), learn: s('<path d="M4 6h10M4 10h10M4 14h7"/><path d="M17 17.5V5l3 1.5"/><circle cx="15.5" cy="17.5" r="1.8"/>'),
     tools: s('<path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l3-5"/>'), progress: s('<path d="M5 19V11M12 19V5M19 19v-6"/>'), settings: s('<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>'),
     play: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>', pause: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
-    restart: s('<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/>'), back: s('<path d="M15 5l-7 7 7 7"/>'), close: s('<path d="M6 6l12 12M18 6L6 18"/>'),
+    restart: s('<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/>'), back: s('<path d="M15 5l-7 7 7 7"/>').replace('<svg', '<svg class="flip-rtl"'), close: s('<path d="M6 6l12 12M18 6L6 18"/>'),
     hand: s('<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11V4.5a1.5 1.5 0 0 1 3 0V12M14 11.5V6a1.5 1.5 0 0 1 3 0v8c0 4-2.5 7-6 7s-5-2-6.5-5L3 13a1.5 1.5 0 0 1 2.5-1.5L8 14"/>'),
     metro: s('<path d="M8 21h8l-3-17h-2z"/><path d="M12 15l5-8"/>'), loop: s('<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>'),
     mic: s('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
@@ -81,12 +81,12 @@ frets: s('<path d="M3 7h18M3 12h18M3 17h18M7 5v14M12 5v14M16 5v14"/>'),
     daily: s('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/>'),
     target: s('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/>'),
     ear: s('<path d="M7 9a5 5 0 0 1 10 0c0 3-3 4-3 7a3 3 0 0 1-6 0"/><path d="M10 9.5a2 2 0 0 1 4 0"/>'),
-    check: s('<path d="M5 12.5l4 4L19 7"/>'), chevron: s('<path d="M9 5l7 7-7 7"/>')
+    check: s('<path d="M5 12.5l4 4L19 7"/>'), chevron: s('<path d="M9 5l7 7-7 7"/>').replace('<svg', '<svg class="flip-rtl"')
   };
 })();
 
 /* ---------- finger identity: one colour + one shape per finger, the same everywhere ---------- */
-PD.i18n.add({ 'fg.1': ['საჩვენებელი', 'Index'], 'fg.2': ['შუა', 'Middle'], 'fg.3': ['არათითი', 'Ring'], 'fg.4': ['ნეკა', 'Little'], 'fg.T': ['ცერა', 'Thumb'] });
+PD.i18n.add({ 'fg.1': ['საჩვენებელი', 'Index'], 'fg.2': ['შუა', 'Middle'], 'fg.3': ['არათითი', 'Ring'], 'fg.4': ['ნეკი', 'Little'], 'fg.T': ['ცერა', 'Thumb'] });
 PD.fingers = (() => {
   const COL = { 1: '#E5534B', 2: '#3FBF7A', 3: '#E8C547', 4: '#4C8EEA', T: '#F2EFEA' }, INK = { 1: '#fff', 2: '#06140C', 3: '#191200', 4: '#fff', T: '#14110E' };
   const SYM = { 1: '●', 2: '▲', 3: '■', 4: '◆', T: '○' };
@@ -136,6 +136,52 @@ PD.layers = (() => {
   return { push, done, onPop, back, dangling, get depth() { return stack.length; } };
 })();
 
+PD.i18n.add({
+  'lg.ai': ['ამ ენაზე ტექსტი ხელოვნურმა ინტელექტმა თარგმნა. მასწავლებელმა ის არ შეუმოწმებია: მისი მასალის დედანი ქართულია, ხოლო ვიდეოებსა და ჩანაწერებში ისევ ქართულად საუბრობს.', 'This language was translated by AI and the teacher has not checked it. His material is written in Georgian, and he still speaks Georgian in the videos and recordings.'],
+  'lg.aiShort': ['AI თარგმანი', 'AI translation'],
+  'lg.choose': ['აირჩიე ენა', 'Choose your language']
+});
+/* A drawing's captions were sized for Georgian and English. Translated text can be longer, so while a translation is on
+   screen any caption that would leave its picture is scaled down until it fits. */
+(function fitDrawings() {
+  const fit = svg => {
+    const vb = svg.viewBox && svg.viewBox.baseVal; if (!vb || !vb.width) return;
+    svg.querySelectorAll('text').forEach(el => {
+      if (el.dataset.fit || !el.textContent.trim()) return;
+      let b; try { b = el.getBBox(); } catch (_) { return; } if (!b.width) return;
+      const over = b.x < vb.x || b.x + b.width > vb.x + vb.width; if (!over) return;
+      const anchor = getComputedStyle(el).textAnchor, at = anchor === 'middle' ? b.x + b.width / 2 : anchor === 'end' ? b.x + b.width : b.x;
+      const room = anchor === 'middle' ? 2 * Math.min(at - vb.x, vb.x + vb.width - at) : anchor === 'end' ? at - vb.x : vb.x + vb.width - at;
+      if (room <= 0) return;
+      el.dataset.fit = '1'; el.style.fontSize = (parseFloat(getComputedStyle(el).fontSize) * Math.max(.55, (room - 2) / b.width)).toFixed(2) + 'px';
+    });
+  };
+  let pending = new Set(), raf = 0;
+  const flush = () => { raf = 0; const list = [...pending]; pending = new Set(); if (!PD.i18n.translated || (PD.practice && PD.practice.active)) return; list.forEach(fit); };
+  const start = () => new MutationObserver(ms => {
+    if (!PD.i18n.translated) return;
+    ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.tagName === 'svg') pending.add(n); else if (n.querySelectorAll) n.querySelectorAll('svg').forEach(x => pending.add(x)); }));
+    if (pending.size && !raf) raf = requestAnimationFrame(flush);
+  }).observe(document.body, { childList: true, subtree: true });
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
+/* Right-to-left text would put the sharp of a C♯ on the wrong side of its letter. An invisible left-to-right mark keeps
+   every note name on screen in its own order, however the line was built. Only runs in a right-to-left language. */
+(function keepNoteOrder() {
+  const NOTE = /[A-G][♯♭#](?![\w♯♭#\u200E])/g, SKIP = /^(SCRIPT|STYLE|TEXTAREA|INPUT)$/;
+  const rtl = () => document.documentElement.dir === 'rtl';
+  const fix = n => { if (SKIP.test(n.parentNode && n.parentNode.nodeName)) return; const v = n.nodeValue; if (v.length < 2) return; const w = v.replace(NOTE, '$&\u200E'); if (w !== v) n.nodeValue = w; };
+  const walk = root => { const t = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); for (let n = t.nextNode(); n; n = t.nextNode()) fix(n); };
+  const start = () => {
+    new MutationObserver(ms => {
+      if (!rtl()) return;
+      ms.forEach(m => { if (m.type === 'characterData') fix(m.target); else m.addedNodes.forEach(n => { if (n.nodeType === 3) fix(n); else if (n.nodeType === 1) walk(n); }); });
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+    if (rtl()) walk(document.body);
+    PD.bus.on('lang', () => { if (rtl()) walk(document.body); });
+  };
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
 PD.ui = (() => {
   const $ = PD.$;
   let toastT = 0;
@@ -151,7 +197,7 @@ PD.ui = (() => {
     if (!el || !motion()) return;
     const txt = el.textContent, re = /\d+(?:[.,]\d+)?/g, nums = txt.match(re); if (!nums) return;
     const t0 = performance.now(), dur = ms || 700, ease = k => 1 - Math.pow(1 - k, 3);
-    const step = tm => { const k = Math.min(1, (tm - t0) / dur); let i = 0; el.textContent = txt.replace(re, m => { const v = parseFloat(m.replace(',', '.')), d = (m.split(/[.,]/)[1] || '').length; i++; return (v * ease(k)).toFixed(d); }); if (k < 1) requestAnimationFrame(step); else el.textContent = txt; };
+    const step = tm => { if (!el.isConnected) return; if (!motion()) { el.textContent = txt; return; } const k = Math.min(1, (tm - t0) / dur); let i = 0; el.textContent = txt.replace(re, m => { const v = parseFloat(m.replace(',', '.')), d = (m.split(/[.,]/)[1] || '').length; i++; return (v * ease(k)).toFixed(d); }); if (k < 1) requestAnimationFrame(step); else el.textContent = txt; };
     requestAnimationFrame(step);
   }
   /** bottom sheet / dialog; returns close() */
@@ -161,13 +207,31 @@ PD.ui = (() => {
     const prev = document.activeElement;
     let cleanup = null, closed = false, lid = 0;
     const close = fromBack => { if (closed) return; closed = true; if (fromBack !== true) PD.layers.done(lid);
-      if (motion()) { back.classList.add('out'); setTimeout(() => back.remove(), 230); } else back.remove();   /* the sheet slides back down */ document.removeEventListener('keydown', esc, true); if (typeof cleanup === 'function') try { cleanup(); } catch (_) {} if (opts && opts.onClose) opts.onClose(); if (prev && prev.focus && prev.isConnected) prev.focus(); };
+      back.inert = true; if (motion()) { back.classList.add('out'); setTimeout(() => back.remove(), 230); } else back.remove();   /* the sheet slides back down */ document.removeEventListener('keydown', esc, true); if (typeof cleanup === 'function') try { cleanup(); } catch (_) {} if (opts && opts.onClose) opts.onClose(); if (prev && prev.focus && prev.isConnected) prev.focus(); };
     lid = PD.layers.push(close);
-    const esc = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+    const esc = e => {
+      // Only the top sheet handles keyboard input; outer sheets stay open.
+      const open = document.querySelectorAll('.sheet-back:not(.out)');
+      if (open[open.length - 1] !== back) return;
+      if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); close(); }
+      else if (e.key === 'Tab') {
+        const focusable = [...box.querySelectorAll('a[href],button,input,select,textarea,[tabindex]')]
+          .filter(el => !el.disabled && el.tabIndex >= 0 && !el.closest('[inert]') && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (!first) { e.preventDefault(); box.focus(); }
+        else if (!box.contains(document.activeElement) || (e.shiftKey ? document.activeElement === first || document.activeElement === box : document.activeElement === last)) {
+          e.preventDefault(); (e.shiftKey ? last : first).focus();
+        }
+      }
+    };
     document.addEventListener('keydown', esc, true);
     back.addEventListener('click', e => { if (e.target === back) close(); });
     cleanup = build(box, close); PD.i18n.apply(box);
-    const f = box.querySelector('button, input, select, [tabindex]'); if (f) f.focus();
+    box.tabIndex = -1;
+    const title = box.querySelector('h1,h2,h3');
+    if (title) { if (!title.id) title.id = 'sheet-title-' + lid; box.setAttribute('aria-labelledby', title.id); }
+    const f = [...box.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].find(el => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length);
+    (f || box).focus();
     return close;
   }
   function confirm(msg, onYes) {
@@ -178,8 +242,39 @@ PD.ui = (() => {
   }
   function daysAgo(ts) { if (!ts) return t('l.never'); const d = Math.floor((Date.now() - ts) / 864e5); return d <= 0 ? t('l.today') : t('l.daysAgo', { n: d }); }
   function download(name, text, type) { const b = new Blob([text], { type: type || 'application/json' }), u = URL.createObjectURL(b), a = PD.h('a', { href: u, download: name }); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 2000); }
-  function pickFile(accept) { return new Promise(res => { const i = PD.h('input', { type: 'file', accept }); i.onchange = () => res(i.files[0] || null); i.click(); }); }
+  function pickFile(accept) {
+    return new Promise(res => {
+      const i = PD.h('input', { type: 'file', accept, hidden: true });
+      const finish = file => { i.onchange = i.oncancel = null; i.remove(); res(file); };
+      i.onchange = () => finish(i.files[0] || null);
+      i.oncancel = () => finish(null);
+      document.body.appendChild(i); i.click();
+    });
+  }
   function micBlocked() { try { const pp = document.permissionsPolicy || document.featurePolicy; if (pp && pp.allowsFeature && !pp.allowsFeature('microphone')) return true; } catch (_) {} return false; }
   function micError(code) { return t('mic.' + (code === 'blocked' || (code === 'denied' && window.top !== window) ? 'blocked' : code === 'denied' ? 'denied' : code || 'failed')); }
-  return { toast, sheet, confirm, daysAgo, download, pickFile, micError, micBlocked, countUp, motion };
+  /** the language picker: a native list, because sixteen names do not fit a row of buttons on a phone */
+  function langSelect(onpick, cls) {
+    const sel = PD.h('select', { class: cls || 'input lang-sel', 'aria-label': t('set.lang'), onchange: e => onpick(e.target.value) });
+    PD.bus.on('lang.fail', () => { sel.value = PD.i18n.lang; });
+    PD.i18n.list.forEach(l => sel.appendChild(PD.h('option', { value: l.id, lang: l.id, text: l.name })));
+    sel.value = PD.i18n.lang;
+    return sel;
+  }
+  /** the first screen on a new device: every language under its own name, the device's language first */
+  function langFirst(done) {
+    const cur = PD.i18n.lang, list = [PD.i18n.list.find(l => l.id === cur)].concat(PD.i18n.list.filter(l => l.id !== cur));
+    const root = PD.h('div', { class: 'lf', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('set.lang') }, [
+      PD.h('div', { class: 'lf-in' }, [
+        PD.h('h1', { class: 'lf-name', text: t('app.name') }),
+        PD.h('p', { class: 'lf-q', text: t('lg.choose') }),
+        PD.h('div', { class: 'lf-list' }, list.map(l => PD.h('button', { class: 'lf-b' + (l.id === cur ? ' on' : ''), lang: l.id, dir: l.rtl ? 'rtl' : 'ltr', text: l.name, onclick: () => PD.i18n.set(l.id).then(ok => { if (ok) { root.remove(); done(); } }) })))
+      ])]);
+    document.body.appendChild(root);
+  }
+  /** a source badge, marked when the words on it are an unchecked translation */
+  const srcLabel = key => t(key) + (PD.i18n.translated ? ' · ' + t('lg.aiShort') : '');
+  /** the note shown wherever a translated language is chosen or in use */
+  const aiNote = () => PD.i18n.translated ? PD.h('p', { class: 'muted lang-note', text: t('lg.ai') }) : null;
+  return { toast, sheet, confirm, daysAgo, download, pickFile, micError, micBlocked, countUp, motion, langSelect, langFirst, srcLabel, aiNote };
 })();

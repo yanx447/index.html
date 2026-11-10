@@ -149,7 +149,7 @@ export function create(host, opt) {
   const DUR = 18.4, TUNE = [[1, 10.8, 11.6, 'A'], [2, 11.55, 12.35, 'C♯'], [3, 12.3, 13.1, 'E']];
   let frameN = 0, fixedT = null, shots = SHOTS(), t0 = 0, raf = 0, stopped = false, endAt = null, onEnd = opt.onEnd || (() => {}), cued = {};
   function size() {
-    const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight, dpr = Math.min(opt.still ? 1 : 1.6, window.devicePixelRatio || 1);
+    const w = host.clientWidth || innerWidth, h = host.clientHeight || innerHeight, dpr = Math.min(opt.pixelRatio || (opt.still ? 2 : 1.6), window.devicePixelRatio || 1);
     R.setPixelRatio(dpr); R.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / h; cam.updateProjectionMatrix(); shots = SHOTS();
   }
   const _m4 = new THREE.Matrix4(); function qOf(p, t, up) { _m4.lookAt(new THREE.Vector3(...p), new THREE.Vector3(...t), new THREE.Vector3(...up)); return new THREE.Quaternion().setFromRotationMatrix(_m4); }

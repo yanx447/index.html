@@ -161,7 +161,7 @@ PD.rhythmsUI = (() => {
     });
     w.append(h('h2', { 'data-t': 'rh.practice' }), h('p', { class: 'muted', style: 'font-size:13px', 'data-t': 'rh.noPitch' }), list);
     /* author: timing only (order and accents are locked teacher data) */
-    if (PD.store.get('author', false) && !gen) {
+    if (PD.author() && !gen) {
       const durs = r.timing.durations.slice(); let bpm = r.timing.bpm;
       const ed = h('div', { class: 'row' }, r.strokes.map((s, i) => h('label', { class: 'field', style: 'width:84px' }, [h('span', { text: (i + 1) + ' ' + (s.direction === 'down' ? '↓' : '↑') + (s.accent ? ' ●' : '') }), h('input', { type: 'number', step: '.25', min: '.25', value: String(durs[i]), class: 'input', oninput: e => { durs[i] = Math.max(.125, +e.target.value || 1); } })])));
       w.append(h('section', { class: 'card', style: 'padding:16px;display:flex;flex-direction:column;gap:10px' }, [h('b', { 'data-t': 'rh.timing' }), h('p', { class: 'muted', style: 'font-size:12px', 'data-t': 'rh.orderLocked' }),
@@ -306,7 +306,7 @@ PD.rhythmsUI = (() => {
         go.textContent = t('rh.muStop'); play.textContent = t('rh.listen');
         loop();
       }
-      PD.bus.on('route', () => stopMusic());
+      const unMu = PD.bus.on('route', () => { stopMusic(); unMu(); });   // once: a listener left behind would keep this page (and its decoded recording) alive
       muBox._sync = () => { go.textContent = t(run && run.music ? 'rh.muStop' : 'rh.muPlay'); };
       PD.i18n.apply(muBox);
     })();

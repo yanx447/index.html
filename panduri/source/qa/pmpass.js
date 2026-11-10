@@ -33,7 +33,7 @@ const { chromium } = require('/opt/node-tools/node_modules/playwright');
   await put('three.ogg'); await p.waitForFunction(() => document.querySelector('.ai-trans'), null, { timeout: 180000 }); await p.waitForTimeout(400);
   await say('5 new day');
   // 6 · Premium: no session at all
-  await p.evaluate(() => { PD.store.set('ai.test', true); PD.store.set('ai.pass', { at: Date.now() - 1e3, name: 'one.ogg' }); PD.app.go('home'); });
+  await p.evaluate(() => { PD.premium.allows = () => true; PD.store.set('ai.pass', { at: Date.now() - 1e3, name: 'one.ogg' }); PD.app.go('home'); });
   await p.waitForTimeout(300); await p.evaluate(() => PD.app.go('ai')); await p.waitForTimeout(600);
   await put('four.ogg'); await p.waitForFunction(() => document.querySelector('.ai-trans'), null, { timeout: 180000 }); await p.waitForTimeout(400);
   await say('6 premium');

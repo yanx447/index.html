@@ -1,0 +1,115 @@
+{
+  "name": "panduri-desktop",
+  "version": "1.1.0",
+  "private": true,
+  "description": "ფანდური — Panduri Learning for Windows and macOS: the built app in its own window, with a real installer.",
+  "author": {
+    "name": "ნუკრი ბერიძე · Nukri Beridze"
+  },
+  "main": "main.js",
+  "scripts": {
+    "installers": "node scripts/build-installers.js",
+    "installers:mac": "node scripts/build-installers.js --mac",
+    "installers:win": "node scripts/build-installers.js --win"
+  },
+  "devDependencies": {
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0",
+    "resedit": "3.1.0"
+  },
+  "build": {
+    "appId": "com.yanx.panduri",
+    "productName": "ფანდური",
+    "executableName": "Panduri",
+    "copyright": "© 2026 ნუკრი ბერიძე (Nukri Beridze)",
+    "directories": {
+      "output": "out",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js"
+    ],
+    "extraResources": [
+      {
+        "from": "../source/dist/app",
+        "to": "web",
+        "filter": [
+          "**/*",
+          "!ARCHITECTURE.md",
+          "!shots/**"
+        ]
+      }
+    ],
+    "protocols": [
+      {
+        "name": "ფანდური — sign-in",
+        "schemes": [
+          "com.yanx.panduri"
+        ]
+      }
+    ],
+    "npmRebuild": false,
+    "publish": null,
+    "afterPack": "scripts/after-pack.js",
+    "mac": {
+      "icon": "build/icon-mac.png",
+      "category": "public.app-category.education",
+      "target": "dmg",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "notarize": false,
+      "artifactName": "Panduri-${version}-macOS-${arch}.${ext}",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "ფანდური უსმენს შენს დაკვრას, რომ გაიგოს რომელი ნოტი და როდის დაუკარი. დაკვრის ხმა მხოლოდ ამ კომპიუტერზე მუშავდება და არსად იგზავნება. ვიდეოზარისას ხმა მხოლოდ თანამოსაუბრეს გადაეცემა. / Panduri listens to your playing to hear which note you played and when. Your playing is analysed on this computer and never sent anywhere. During a video call your voice goes only to the person you are talking to.",
+        "NSCameraUsageDescription": "კამერა სარკეა: ხედავ საკუთარ თავს ფანდურით, სანამ აპი აკორდებს და რიტმს გიჩვენებს. გამოსახულება არ იწერება. ვიდეოზარისას სურათი მხოლოდ თანამოსაუბრეს გადაეცემა. / The camera is a mirror: you see yourself with the panduri while the app shows chords and rhythm. The picture is never recorded. During a video call it goes only to the person you are talking to."
+      }
+    },
+    "dmg": {
+      "title": "ფანდური ${version}",
+      "writeUpdateInfo": false,
+      "background": "build/dmg-background.png",
+      "icon": "build/icon-mac.png",
+      "iconSize": 112,
+      "window": {
+        "width": 660,
+        "height": 400
+      },
+      "contents": [
+        {
+          "x": 180,
+          "y": 205,
+          "type": "file"
+        },
+        {
+          "x": 480,
+          "y": 205,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": "dir",
+      "signAndEditExecutable": false
+    },
+    "appx": {
+      "displayName": "ფანდური",
+      "publisherDisplayName": "ნუკრი ბერიძე",
+      "backgroundColor": "#130C07",
+      "languages": [
+        "ka-GE",
+        "en-US"
+      ],
+      "capabilities": [
+        "internetClient",
+        "microphone",
+        "webcam"
+      ],
+      "showNameOnTiles": true,
+      "artifactName": "Panduri-${version}-Windows-Store.${ext}"
+    }
+  }
+}

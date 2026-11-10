@@ -1,4 +1,5 @@
 // Recorder: record your playing, keep takes on the device, play back, and see how in tune you were.
+import { locale } from '../i18n.js';
 import { h, esc } from './ui.js';
 import { pcLatin, pcKa } from '../music.js';
 
@@ -36,7 +37,7 @@ export function create(ctx) {
     const ul = el.querySelector('.rec-list');
     if (!items.length) { ul.innerHTML = `<li class="empty">${esc(tr('empty'))}</li>`; return; }
     ul.innerHTML = items.map((it) => `<li data-id="${it.id}">
-      <div class="ri-head"><strong>${esc(new Date(it.id).toLocaleString(ctx.lang() === 'ka' ? 'ka-GE' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }))}</strong><span>${fmt(it.dur)}</span></div>
+      <div class="ri-head"><strong>${esc(new Date(it.id).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' }))}</strong><span>${fmt(it.dur)}</span></div>
       <div class="ri-btns">
         <button type="button" data-a="play">${playing === it.id ? '❚❚ ' + tr('pause') : '▶ ' + tr('play')}</button>
         <button type="button" data-a="analyze">${tr('analyze')}</button>

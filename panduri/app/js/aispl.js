@@ -74,26 +74,37 @@ const AISPL = function () {
 
   async function load(b) {
     base = b;
-    importScripts(base + 'ort/ort.min.js');
-    ort = self.ort; ort.env.wasm.wasmPaths = base + 'ort/'; ort.env.wasm.numThreads = 1;
+    importScripts(base + 'ort131/ort.wasm.min.js');   // ONNX Runtime Web 1.31.1, WASM only (see aiworker.js)
+    ort = self.ort; ort.env.wasm.wasmPaths = base + 'ort131/';
+    ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.max(1, Math.min(8, (navigator.hardwareConcurrency || 4) - 1)) : 1;
     man = JSON.parse(new TextDecoder().decode(await fetchCached(base + 'spl/manifest.json')));
     post('ready', { sources: man.sources, sizes: man.sizes });
   }
 
-  /** separate: one instrument at a time, each model released before the next is fetched */
+  /** separate: one instrument at a time, each model released before the next is fetched.
+      The spectrum is made one model segment (T frames) at a time, when it is needed, and dropped again.
+      Holding the whole song's complex spectrum for both channels, its magnitudes, the mask sum and the
+      masked spectrum all at once came to ~300 MB per minute of audio (1.2 GB for a 4-minute song, before
+      the model): a whole song could not fit in a phone. Only the masks and the stems themselves are kept
+      for the whole song now. The arithmetic and its order are the same, so the stems are identical. */
   async function separate(L, R, want) {
     const len = L.length;
     const frames = Math.max(T, Math.ceil((len + N) / HOP));
-    const padded = frames * HOP + N;
-    const ch = [L, R].map(src => { const a = new Float32Array(padded); a.set(src, N); return a; });   // spleeter's leading frame of zeros
-    const SP = ch.map(c => stft(c, frames));
-    const mag = new Float32Array(2 * frames * F);
-    for (let c = 0; c < 2; c++) for (let f = 0; f < frames; f++) for (let k = 0; k < F; k++) {
-      const re = SP[c].R[f * K + k], im = SP[c].I[f * K + k];
-      mag[(c * frames + f) * F + k] = Math.sqrt(re * re + im * im);
-    }
+    const re = new Float64Array(N), im = new Float64Array(N), SR_ = new Float32Array(T * K), SI_ = new Float32Array(T * K);
+    /** the complex spectrum of frames f0 … f0+n2-1 of one channel (stored as float32, as before). The signal is read
+        as spleeter pads it — a leading frame of zeros, zeros after the end — without copying it. */
+    const spec = (c, f0, n2) => {
+      const x = c ? R : L;
+      for (let f = 0; f < n2; f++) {
+        const o = (f0 + f) * HOP - N;
+        for (let n = 0; n < N; n++) { const j = o + n; re[n] = (j >= 0 && j < len ? x[j] || 0 : 0) * WIN[n]; im[n] = 0; }
+        fft(re, im, false);
+        for (let k = 0; k < K; k++) { SR_[f * K + k] = re[k]; SI_[f * K + k] = im[k]; }
+      }
+    };
     const names = want && want.length ? want : man.sources;
     const masks = {};
+    const seg = new Float32Array(2 * T * F);
     for (let si = 0; si < names.length; si++) {
       const nm = names[si];
       post('stage', { s: 'dl', name: nm, i: si, n: names.length });
@@ -101,11 +112,13 @@ const AISPL = function () {
       post('stage', { s: 'run', name: nm, i: si, n: names.length });
       let sess = await ort.InferenceSession.create(new Uint8Array(buf), { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
       const m = new Float32Array(2 * frames * F);
-      const seg = new Float32Array(2 * T * F);
       for (let f0 = 0; f0 < frames; f0 += T) {
         const n2 = Math.min(T, frames - f0);
         seg.fill(0);
-        for (let c = 0; c < 2; c++) seg.set(mag.subarray((c * frames + f0) * F, (c * frames + f0 + n2) * F), c * T * F);
+        for (let c = 0; c < 2; c++) {
+          spec(c, f0, n2);
+          for (let f = 0; f < n2; f++) for (let k = 0; k < F; k++) { const a = SR_[f * K + k], b = SI_[f * K + k]; seg[c * T * F + f * F + k] = Math.sqrt(a * a + b * b); }
+        }
         const out = await sess.run({ X: new ort.Tensor('float32', seg, [1, 2, T, F]) });
         const y = out[Object.keys(out)[0]].data;
         for (let c = 0; c < 2; c++) m.set(y.subarray(c * T * F, c * T * F + n2 * F), (c * frames + f0) * F);
@@ -116,25 +129,39 @@ const AISPL = function () {
       sess = null;
       await new Promise(r => setTimeout(r, 0));   // let the model go before the next one arrives
     }
-    // spleeter's ratio mask: mask^2 / sum(mask^2), everything above bin F set to zero
-    const den = new Float32Array(2 * frames * F);
-    names.forEach(nm => { const m = masks[nm]; for (let i = 0; i < den.length; i++) den[i] += m[i] * m[i]; });
-    for (let i = 0; i < den.length; i++) den[i] += 1e-10;
-    const outs = [];
-    names.forEach(nm => {
-      const m = masks[nm], Rr = new Float32Array(frames * K), Ii = new Float32Array(frames * K), got = [];
-      for (let c = 0; c < 2; c++) {
-        Rr.fill(0); Ii.fill(0);
-        for (let f = 0; f < frames; f++) for (let k = 0; k < F; k++) {
-          const i = (c * frames + f) * F + k, g = m[i] * m[i] / den[i];
-          Rr[f * K + k] = SP[c].R[f * K + k] * g; Ii[f * K + k] = SP[c].I[f * K + k] * g;
+    // spleeter's ratio mask: mask^2 / sum(mask^2), everything above bin F set to zero; overlap-added straight into the stems
+    const ms = names.map(nm => masks[nm]), outs = names.map(nm => ({ name: nm, L: new Float32Array(len), R: new Float32Array(len) }));
+    const den = new Float32Array(1);
+    for (let c = 0; c < 2; c++) {
+      for (let f0 = 0; f0 < frames; f0 += T) {
+        const n2 = Math.min(T, frames - f0);
+        spec(c, f0, n2);
+        for (let f = 0; f < n2; f++) {
+          const fr = f0 + f, mo = (c * frames + fr) * F, o = fr * HOP - N;
+          for (let si = 0; si < ms.length; si++) {
+            const m = ms[si], y = c ? outs[si].R : outs[si].L;
+            re.fill(0); im.fill(0);
+            for (let k = 0; k < F; k++) {
+              den[0] = 0; for (let q = 0; q < ms.length; q++) den[0] += ms[q][mo + k] * ms[q][mo + k];
+              den[0] += 1e-10;
+              const g = m[mo + k] * m[mo + k] / den[0];
+              re[k] = Math.fround(SR_[f * K + k] * g); im[k] = Math.fround(SI_[f * K + k] * g);
+            }
+            for (let k = 1; k < N / 2; k++) { re[N - k] = re[k]; im[N - k] = -im[k]; }
+            fft(re, im, true);
+            for (let n = 0; n < N; n++) { const i = o + n; if (i >= 0 && i < len) y[i] += re[n] / N * WIN[n]; }
+          }
         }
-        const y = istft(Rr, Ii, frames, padded);
-        got.push(y.slice(N, N + len));
+        await new Promise(r => setTimeout(r, 0));
       }
-      outs.push({ name: nm, L: got[0], R: got[1] });
-      masks[nm] = null;
-    });
+    }
+    // the overlap-add normaliser, worked out per sample instead of stored for the whole song
+    for (let i = 0; i < len; i++) {
+      const p = i + N; let e = 0;
+      for (let fr = Math.max(0, Math.ceil((p - N + 1) / HOP)); fr <= Math.min(frames - 1, Math.floor(p / HOP)); fr++) { const w = WIN[p - fr * HOP]; e += w * w; }
+      if (e > 1e-8) for (const o of outs) { o.L[i] /= e; o.R[i] /= e; }
+    }
+    names.forEach(nm => { masks[nm] = null; });
     return outs;
   }
 

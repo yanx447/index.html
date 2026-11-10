@@ -522,7 +522,7 @@ PD.fig = (() => {
         const hole = onP(PAN_AT, PAN_ANG, [PN.hole, 0]), arm = [76, 99], nk = onP(PAN_AT, PAN_ANG, [fretX(3.5), 0]);
         s += '<g opacity="' + f(c[0]) + '"><ellipse cx="' + f(hole[0] - 3) + '" cy="' + f(hole[1] + 1) + '" rx="20" ry="13" fill="none" stroke="' + K.ok + '" stroke-width=".8" transform="rotate(' + PAN_ANG + ' ' + P(hole) + ')"/>' + label(100, 14, L(['ტანი ეყრდნობა მარჯვენა ბარძაყს და სხეულს', 'The body rests on the right thigh and against you']), K.ok, 4) + '</g>';
         s += '<g opacity="' + f(c[1]) + '">' + line([70, 89], [96, 107], K.ok, 1.2) + label(100, 14, L(['მარჯვენა წინამხარი ზემოდან აკავებს', 'The right forearm holds it from above']), K.ok, 4) + '</g>';
-        s += '<g opacity="' + f(c[2]) + '"><circle cx="' + f(nk[0] + 6) + '" cy="' + f(nk[1] - 4) + '" r="9" fill="none" stroke="' + K.ok + '" stroke-width=".8" stroke-dasharray="1.6 1.3"/>' + label(100, 14, L(['მარცხენა ხელი თავისუფალია — ფანდური არ ვარდება', 'The left hand is free — the panduri stays']), K.ok, 4) + '</g>';
+        s += '<g opacity="' + f(c[2]) + '"><circle cx="' + f(nk[0] + 6) + '" cy="' + f(nk[1] - 4) + '" r="9" fill="none" stroke="' + K.ok + '" stroke-width=".8" stroke-dasharray="1.6 1.3"/>' + label(104, 14, L(['მარცხენა ხელი თავისუფალია — ფანდური არ ვარდება', 'The left hand is free — the panduri stays']), K.ok, 4) + '</g>';
         void arm; return s;
       } },
     hands: { vb: '18 8 172 168', dur: 8, defs: id => frontDefs(id) + panduriDefs(id),
@@ -677,7 +677,7 @@ PD.fig = (() => {
   function mountVid(el) {
     if (el._mv) return; el._mv = 1;
     const V0 = VID[el.dataset.vid], vid = el.querySelector('video'), cap = el.querySelector('.fig-vcap');
-    if (!el.closest('.tp-hero')) { if (vid) { vid.removeAttribute('autoplay'); vid.pause(); vid.remove(); } return; }
+    if (!el.closest('.tp-hero, .in-art')) { if (vid) { vid.removeAttribute('autoplay'); vid.pause(); vid.remove(); } return; }
     if (still() && vid) { vid.removeAttribute('autoplay'); vid.pause(); }
     let last = '';
     const tick = () => { if (!el.isConnected) return; const t = (vid.currentTime || 0) % V0.loop, c = V0.caps.find(([a, b]) => t >= a && t < b); const txt = c ? L(c[2]) : ''; if (txt !== last) { last = txt; cap.textContent = txt; cap.classList.toggle('on', !!txt); } requestAnimationFrame(tick); };

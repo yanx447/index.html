@@ -31,6 +31,7 @@ PD.i18n.add({
   'bk.srcT': ['მასწავლებლის მასალა', "The teacher's own material"],
   'bk.srcG': ['ზოგადი მუსიკის თეორია', 'General music theory'],
   'bk.srcD': ['მონახაზი — მასწავლებელს ჯერ არ დაუდასტურებია', 'Draft — not yet confirmed by the teacher'],
+  'bk.srcF': ['ფაქტი — აპის მონაცემებიდან და მუსიკის თეორიიდან', 'Fact — from the app\'s data and music theory'],
   'bk.jump': ['პირდაპირ გვერდზე', 'Straight to the page'],
   'bk.profile': ['ბიბლიოთეკა', 'Library'],
   'bk.profileD': ['მთელი მასალა — წიგნივით, სწავლის გარეშე', 'All the material — like a book, without the course']
@@ -47,7 +48,7 @@ PD.book = (() => {
     get chords() { return (TH.chordLibrary() || []).length; },
     get chordTypes() { return TH.CHORD_TYPES.length; },
     get scales() { return Object.keys(PD.shapes.SCALES).length; },
-    get chapters() { return (PD.theoryBook.CHAPTERS || []).length; },
+    get chapters() { return ((PD.theoryBook && PD.theoryBook.CHAPTERS) || []).length; },
     get tips() { return (PD.tips.all() || []).length; },
     get rhythms() { return (PD.curriculum.rhythms() || []).length; },
     get songs() { return Object.keys(PD.SONGS || {}).length; },
@@ -171,8 +172,9 @@ PD.book = (() => {
       how: ['ყოველი თავი ჯერ მარტივად ხსნის, შემდეგ დეტალურად, და თავდება თვითშემოწმებით. ბგერაზე დაჭერით გაიგონებ, რომელ სიმზე და რომელ ლადზე ჟღერს.', 'Each chapter explains it plainly first, then in full, and ends with a short self-check. Tap any note to hear it and see which string and fret it sits on.'],
       where: ['სწავლა → თეორია, ან პირდაპირ აქედან თავების მიხედვით.', 'Learn → Theory, or straight from here, chapter by chapter.'],
       why: ['თეორია წესების სია არ არის — ის იმის ახსნაა, რასაც ყურით უკვე გესმის. როცა იცი, რატომ ჟღერს მინორი სევდიანად, აღარ იმახსოვრებ — გესმის.', 'Theory is not a list of rules — it explains what your ear already hears. Once you know why a minor chord sounds sad you stop memorising and start understanding.'],
-      pages: (PD.theoryBook.CHAPTERS || []).map(c => ({ t: c.t, d: ['ხმით და ფანდურის სიმებზე', 'With sound, on the panduri strings'], go: ['theory', c.id], src: 'fact' }))
-        .concat([{ t: ['ლექსიკონი', 'Glossary'], d: ['მუსიკის ყველა სიტყვა მარტივად', 'Every music word, simply'], go: ['theory', 'glossary'], src: 'fact' }]) },
+      // read when the book is drawn, not when this file loads: the chapter list belongs to notes.js (PD.theoryBook)
+      get pages() { return ((PD.theoryBook && PD.theoryBook.CHAPTERS) || []).map(c => ({ t: c.t, d: ['ხმით და ფანდურის სიმებზე', 'With sound, on the panduri strings'], go: ['theory', c.id], src: 'fact' }))
+        .concat([{ t: ['ლექსიკონი', 'Glossary'], d: ['მუსიკის ყველა სიტყვა მარტივად', 'Every music word, simply'], go: ['theory', 'glossary'], src: 'fact' }]); } },
 
     { id: 'cards', t: ['მოკლე ბარათები', 'Short cards'],
       icon: 'star',
@@ -205,7 +207,8 @@ PD.book = (() => {
 
   const VARS = () => ({ f: N.frets, c: N.chords, k: N.chordTypes, n: N.scales, ch: N.chapters, tp: N.tips, r: N.rhythms, s: N.songs, g: (PD.genres.CHAPTERS || []).length, forms: N.forms });
   const fill = s => String(s).replace(/\{(\w+)\}/g, (m, k) => { const v = VARS()[k]; return v == null ? m : v; });
-  const SRC = { teacher: 'bk.srcT', general: 'bk.srcG', draft: 'bk.srcD' };
+  // every page shows its source; 'fact' pages used to show none at all
+  const SRC = { teacher: 'bk.srcT', general: 'bk.srcG', draft: 'bk.srcD', fact: 'bk.srcF' };
 
   /* ---------------- flat search index ---------------- */
   const norm = s => String(s || '').toLowerCase().replace(/[«»„“”"'`.,!?()\[\]:;·—–-]/g, ' ').replace(/\s+/g, ' ').trim();

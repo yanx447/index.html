@@ -17,12 +17,12 @@ PD.fx = (() => {
 
   /* ---------- sounds ---------- */
   function sound(kind) {
-    if (!soundsOn() || !PD.audio || !PD.audio.ensure || (PD.practice && PD.practice.active && kind === 'tap')) return;
+    if (PD.store.get('soundPalette', 'wood') === 'silent' || !soundsOn() || !PD.audio || !PD.audio.ensure || ((PD.practice && PD.practice.active || PD.detector && PD.detector.active) && ['tap', 'select', 'toggle'].includes(kind))) return;
     const A = PD.audio; if (!A.ctx && !A.ensure()) return; const c = A.ctx; if (!c || c.state !== 'running') { try { c && c.resume(); } catch (_) {} if (!c || c.state !== 'running') return; }
     const t = c.currentTime + .005, b = (f, d, g, ty, w) => A.blip(f, d, g, ty, t + (w || 0));
-    if (kind === 'tap') b(1900, .025, .035, 'sine');
-    else if (kind === 'toggle') { b(1200, .035, .05, 'triangle'); b(1600, .03, .03, 'sine', .028); }
-    else if (kind === 'select') b(1450, .04, .045, 'sine');
+    if (kind === 'tap') { const wood = PD.store.get('soundPalette', 'wood') === 'wood'; b(wood ? 196 : 523.25, .035, .023, 'sine'); b(wood ? 587.33 : 1046.5, .022, .008, 'sine', .004); }
+    else if (kind === 'toggle') { b(440, .07, .035, 'triangle'); b(659.25, .09, .025, 'sine', .035); }
+    else if (kind === 'select') { b(220, .065, .025, 'sine'); b(329.63, .09, .014, 'sine', .018); }
     else if (kind === 'success') { b(880, .14, .07, 'sine'); b(1320, .2, .06, 'sine', .07); }
     else if (kind === 'error') { b(330, .12, .07, 'triangle'); b(262, .16, .06, 'triangle', .08); }
     else if (kind === 'celebrate') [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => { b(f, .5, .055, 'sine', i * .085); b(f * 2, .28, .015, 'sine', i * .085 + .01); });
@@ -35,7 +35,7 @@ PD.fx = (() => {
   const feedback = kind => { sound(kind); haptic(kind); };
 
   /* ---------- ripple from the finger ---------- */
-  const RIPPLE = '.btn, .prow, .srow, .door, .pf2-i, .lib-card, .hx-goal2, .ai-card, .chip, .cgrid button, .ag-btn, .sp-start, button.li, .pa-b, .navb, .seg > button, .ai-tg, .ai-ms';
+  const RIPPLE = '.hq, .hx-bell, .hx-btn, .hx-road, .btn, .prow, .srow, .door, .pf2-i, .lib-card, .hx-goal2, .ai-card, .chip, .cgrid button, .ag-btn, .sp-start, button.li, .pa-b, .navb, .seg > button, .ai-tg, .ai-ms';
   function ripple(el, x, y) {
     if (!motion()) return;
     const r = el.getBoundingClientRect(); if (!r.width) return;
@@ -50,15 +50,20 @@ PD.fx = (() => {
     if (e.button && e.button !== 0) return;
     const el = e.target.closest && e.target.closest(RIPPLE); if (!el || el.disabled) return;
     ripple(el, e.clientX, e.clientY);
-    const sel = el.matches('.chip, .seg > button, .cgrid button, .navb') ? 'select' : 'tap';
-    feedback(sel);
+
   }, { passive: true });
+  document.addEventListener('click', e => {
+    const el = e.target.closest && e.target.closest(RIPPLE);
+    if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+    feedback(el.matches('.hq, .chip, .seg > button, .cgrid button, .navb') ? 'select' : 'tap');
+  });
   document.addEventListener('change', e => { if (e.target && e.target.matches && e.target.matches('input[type=checkbox]')) feedback('toggle'); }, true);
 
   /* ---------- light that follows the pointer (mouse / trackpad only) ---------- */
-  const LIGHT = '.door, .prow, .lib-card, .hx-goal2, .pf2-menu, .ce-hero, .ai-card, .srow';
+  const LIGHT = '.hq, .hx-hero, .hx-road, .door, .prow, .lib-card, .hx-goal2, .pf2-menu, .ce-hero, .ai-card, .srow';
   if (window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches) {
     document.addEventListener('pointermove', e => {
+      if (!motion()) return;
       const el = e.target.closest && e.target.closest(LIGHT); if (!el) return;
       const r = el.getBoundingClientRect(); el.style.setProperty('--mx', (e.clientX - r.left) + 'px'); el.style.setProperty('--my', (e.clientY - r.top) + 'px'); el.classList.add('fx-lit');
     }, { passive: true });
@@ -71,6 +76,20 @@ PD.fx = (() => {
     const y = pg.scrollTop; pg.querySelectorAll('.hx-hero .hx-art, .lx-art').forEach(a => { const top = a.closest('.hx-hero, .lx-hero'); if (!top) return; const off = Math.max(-80, Math.min(120, (y - top.offsetTop + 40) * .22)); a.style.transform = 'translate3d(0,' + off.toFixed(1) + 'px,0) scale(1.08)'; });
   }, { passive: true, capture: true });
 
+  // Pointer and touch refraction follows contact without changing the selected route.
+  document.addEventListener('pointermove', e => {
+    const nav = e.target.closest && e.target.closest('.tabbar, .rail');
+    if (!nav || !motion()) return;
+    const r = nav.getBoundingClientRect();
+    nav.style.setProperty('--glass-x', (e.clientX - r.left) + 'px');
+    nav.style.setProperty('--glass-y', (e.clientY - r.top) + 'px');
+    nav.classList.add('glass-touch');
+  }, { passive: true });
+  document.addEventListener('pointerout', e => {
+    const nav = e.target.closest && e.target.closest('.tabbar, .rail');
+    if (nav && !nav.contains(e.relatedTarget)) nav.classList.remove('glass-touch');
+  }, { passive: true });
+  document.documentElement.classList.toggle('solid-nav', !PD.store.get('glass', true));
   /* ---------- celebration ---------- */
   let busy = false;
   function celebrate(opts) {
@@ -84,6 +103,7 @@ PD.fx = (() => {
     // a short ring of light at the origin
     const t0 = performance.now(), D = 1700;
     const step = now => {
+      if (!motion()) { cv.remove(); busy = false; return; }
       const k = (now - t0) / D; x.clearRect(0, 0, W, H);
       if (k < .35) { const rk = k / .35; x.beginPath(); x.arc(ox, oy, 20 + rk * 140, 0, Math.PI * 2); x.strokeStyle = 'rgba(227,168,122,' + (.5 * (1 - rk)).toFixed(3) + ')'; x.lineWidth = 3 * (1 - rk) + 1; x.stroke(); }
       P.forEach(p => { p.vy += .32; p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; const a = Math.max(0, 1 - Math.max(0, k - .55) / .45); x.save(); x.globalAlpha = a; x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; if (p.s === 'dot') { x.beginPath(); x.arc(0, 0, p.h * .6, 0, Math.PI * 2); x.fill(); } else { x.scale(1, Math.cos(p.r * 2)); x.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); } x.restore(); });

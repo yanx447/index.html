@@ -203,19 +203,10 @@ function size() {
   B.R.setPixelRatio(dpr); B.R.setSize(w, hgt, false); B.cv.style.width = w + 'px'; B.cv.style.height = hgt + 'px'; B.cam.aspect = w / hgt; B.cam.updateProjectionMatrix();
   overlay.width = w * dpr; overlay.height = hgt * dpr; overlay.style.width = w + 'px'; overlay.style.height = hgt + 'px';
 }
-function poseNow() {
-  if (!cur || cur.open) return null; const P = cur.v;
-  if (!anim) return fingersOn ? mixFingers(cur.p0, P, fingersOn, 1) : P;
-  const k = Math.min(1, (performance.now() - anim.t0) / anim.dur), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-  const v = mixFingers(cur.p0, P, anim.to, e, anim.from); if (k >= 1) { fingersOn = anim.to; anim = null; } return v;
-}
-/** hand: from p0 to P; the listed fingers fully placed, the others still relaxed */
-const SL = { 1: [8, 12], 2: [12, 16], 3: [16, 20], 4: [20, 24], T: [24, 29] };
-function mixFingers(p0, P, on, e, from) {
-  const v = P.slice(), hk = from && from.size ? 1 : on.size ? e : 0; for (let i = 0; i < 8; i++) v[i] = p0[i] + (P[i] - p0[i]) * hk;
-  Object.keys(SL).forEach(f => { const [a, b] = SL[f], was = from && from.has(f) ? 1 : 0, now = on.has(f) ? 1 : 0, k = was + (now - was) * e; for (let i = a; i < b; i++) v[i] = p0[i] + (P[i] - p0[i]) * k; });
-  return v;
-}
+// A solved pose is collision checked as a whole. Interpolating arbitrary joint
+// angles between it and a made-up "relaxed" hand can go through the wood.
+// Teaching steps highlight contacts on the fixed anatomical pose instead.
+function poseNow() { return cur && !cur.open ? cur.v : null; }
 function draw() { need = true; if (!raf) raf = requestAnimationFrame(frame); }
 function frame() {
   raf = 0; if (!need || !host || !host.isConnected) return; need = false;
@@ -305,6 +296,7 @@ export function has(frets, fingers) { return !(frets || []).some(f => f > 0) || 
 /** put the 3D view into el; returns false when this device cannot draw it */
 export function mount(el) {
   const B = build(); if (B.error) return false;
+  if (host && host._ro) { host._ro.disconnect(); delete host._ro; }
   host = el; host.innerHTML = ''; overlay = document.createElement('canvas'); overlay.className = 'h3-ov';
   host.append(B.cv, overlay); B.cv.classList.toggle('mirror', view === 'front');
   size(); draw();
@@ -321,8 +313,13 @@ export function setChord(frets, fingers) {
   const p0 = P.v.slice(); p0[3] += 18; p0[4] -= 4; p0[5] -= 16; for (let i = 8; i < 24; i++) p0[i] *= .82; for (let i = 24; i < 29; i++) p0[i] *= .75;
   cur = { frets, fingers, v: P.v, y: P.y, p0, q: P.q, cam: P.cam }; draw(); return true;
 }
-/** step by step: the fingers in `on` are placed (animated from where they were) */
-export function stepFingers(on) { if (!cur) return; const to = new Set([...on].map(String)); anim = { t0: performance.now(), dur: 650, from: fingersOn || new Set(), to }; fingersOn = fingersOn || new Set(); draw(); }
+/** Step by step: reveal each contact without sending joints through the neck. */
+export function stepFingers(on) { if (!cur) return; anim = null; fingersOn = new Set([...on].map(String)); draw(); }
+export function unmount(el) {
+  if (host !== el) return;
+  if (host._ro) { host._ro.disconnect(); delete host._ro; }
+  if (raf) cancelAnimationFrame(raf); raf = 0; need = false; host = null; overlay = null; cur = null;
+}
 export function reset() { anim = null; fingersOn = null; draw(); }
 export function quality(frets, fingers) { const P = POSES[keyOf(frets, fingers)]; return P ? P.q : null; }
 export const count = Object.keys(POSES).length;

@@ -18,7 +18,7 @@ PD.i18n.add({
   'ws.play': ['დაკვრა', 'Play'], 'ws.pause': ['პაუზა', 'Pause'], 'ws.close': ['დახურვა', 'Close'],
   'ws.repMeasure': ['ტაქტის გამეორება', 'Repeat measure'], 'ws.repPhrase': ['ფრაზის გამეორება', 'Repeat phrase'], 'ws.repMistake': ['შეცდომის გამეორება', 'Repeat mistake'],
   'ws.noMistake': ['შეცდომა ჯერ არ ყოფილა', 'No mistake yet'],
-  'ws.assist': ['დახმარება', 'Assistance'], 'as.auto': ['ავტომატური', 'Automatic'], 'as.beginner': ['დამწყები', 'Beginner'], 'as.intermediate': ['საშუალო', 'Intermediate'], 'as.advanced': ['მოწინავე', 'Advanced'], 'as.performance': ['შესრულება', 'Performance'],
+  'ws.assist': ['დახმარება', 'Assistance'], 'as.auto': ['ავტომატური', 'Automatic'], 'as.beginner': ['დამწყები', 'Beginner'], 'as.intermediate': ['საშუალო', 'Intermediate'], 'as.advanced': ['გამოცდილი', 'Advanced'], 'as.performance': ['შესრულება', 'Performance'],
   'ws.countIn': ['ათვლა', 'Count-in'], 'ws.autoDemo': ['ავტო-ჩვენება', 'Auto show-me'],
   'ws.muteRef': ['ჩანაწერის დადუმება', 'Mute reference'], 'ws.vol.inst': ['ფანდური', 'Panduri'], 'ws.vol.metro': ['მეტრონომი', 'Metronome'], 'ws.vol.ref': ['ჩანაწერი', 'Reference'],
   'ws.mirror': ['მარცხენა ხელისთვის', 'Left-handed'], 'ws.keys': ['კლავიშები', 'Keys'], 'ws.latency': ['დაყოვნება', 'Latency'],
@@ -244,7 +244,7 @@ PD.practice = (() => {
     }
     /* sound: the original recording (with vocals · no vocals · vocals only), the synthesizer (the app plays the chords and the rhythm
        itself, clean at any tempo) or the metronome only. Whatever plays through the speaker, echo cancellation keeps it out of the microphone. */
-    const MIXES = lesson.stems ? ['full', 'music', 'vocals', 'synth', 'off'] : ['synth', 'off'];
+    const MIXES = lesson.stems ? ['full', 'music', 'vocals'].filter(k => lesson.stems[k]).concat(['synth', 'off']) : ['synth', 'off'];
     const curMix = () => lesson.stems ? PD.audio.ref.mix || 'full' : S.guide ? 'synth' : 'off';
     const mixName = m => t(m === 'synth' ? 'mix.synth' : 'snd.' + m);
     function mixLabel() { return mixName(curMix()); }

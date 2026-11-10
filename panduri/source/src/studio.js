@@ -40,7 +40,7 @@ PD.studio = (() => {
   let ST = null;
 
   function open(id, type) {
-    if (!PD.store.get('author', false)) { PD.ui.toast(t('sd.noAuthor'), 3500); return null; }   // students never land in authoring tools
+    if (!PD.author()) { PD.ui.toast(t('sd.noAuthor'), 3500); return null; }   // students never land in authoring tools
     if (ST) close(true);
     const src = id ? LS.get(id) : null;
     const l = src ? JSON.parse(JSON.stringify(src)) : LS.normalize({ id: 'u-' + Date.now().toString(36), user: true, type: type || 'melody', title: { ka: t('sd.new'), en: 'New lesson' }, bpm: 80, meter: [4, 4], events: [] });

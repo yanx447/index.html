@@ -1,0 +1,11 @@
+{
+  "name": "panduri-workspace",
+  "private": true,
+  "description": "Shortcuts from the repository root. The project lives in panduri/source/.",
+  "scripts": {
+    "dev": "npm --prefix panduri/source run dev",
+    "build": "npm --prefix panduri/source run build",
+    "serve": "npm --prefix panduri/source run serve",
+    "installers": "npm --prefix panduri/desktop run installers"
+  }
+}

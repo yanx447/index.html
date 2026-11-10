@@ -769,7 +769,7 @@ PD.exam = (() => {
     const d = PD.store.get('exam.gradAt', 0) || (PD.store.set('exam.gradAt', Date.now()), PD.store.get('exam.gradAt', 0));
     return { name: (prof.name || '').trim(), avatar: prof.avatar || '', level: lp.level, xp: PD.levels ? PD.levels.xp : 0, at: d };
   }
-  const fmtDay = ts => { const d = new Date(ts); return PD.i18n.lang === 'ka' ? d.getDate() + ' ' + KA_M2[d.getMonth()] + ' ' + d.getFullYear() : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); };
+  const fmtDay = ts => { const d = new Date(ts); return PD.i18n.lang === 'ka' ? d.getDate() + ' ' + KA_M2[d.getMonth()] + ' ' + d.getFullYear() : d.toLocaleDateString(PD.i18n.locale, { day: 'numeric', month: 'long', year: 'numeric' }); };
   const KA_M2 = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'];
   /** the certificate card itself (the same markup on screen and in the picture) */
   function certCard() {
@@ -921,7 +921,7 @@ PD.exam = (() => {
 
   /** called on every screen the app draws */
   function guard() {
-    if (PD.store.get('author', false)) return;
+    if (PD.author()) return;
     const a = active();
     if (a) { if (!Z && snoozed !== a.id) open(a.id); return; }
     if (Z) close();
@@ -941,7 +941,7 @@ PD.exam = (() => {
       w.append(h('section', { class: 'exc' + (d ? ' done' : '') + (open2 ? '' : ' locked') }, [
         h('div', { class: 'exc-top' }, [h('span', { class: 'exc-ic', html: d ? (ic.check || EXIC) : EXIC }),
           h('div', { class: 'grow' }, [h('b', { 'data-t': e.name }), h('small', { text: t('ex.rule', { n: e.n, m: e.min, p: e.pass }) })]),
-          d ? h('span', { class: 'exc-st', text: t('ex.passedOn', { d: new Date(d.at).toLocaleDateString(PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-GB'), p: d.p }) }) : null]),
+          d ? h('span', { class: 'exc-st', text: t('ex.passedOn', { d: new Date(d.at).toLocaleDateString(PD.i18n.locale), p: d.p }) }) : null]),
         h('div', { class: 'exc-acts' }, [
           h('button', { class: 'btn' + (d ? '' : ' primary'), 'data-t': d ? 'ex.again' : 'ex.start', disabled: !open2, onclick: () => begin(e.id) }),
           h('button', { class: 'btn small ghost', 'data-t': 'ex.drill', onclick: () => PD.app.go('drill', e.topic) })]),

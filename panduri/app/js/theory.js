@@ -13,7 +13,7 @@ PD.theory = (() => {
   const TUNINGS = [std()];
   PD.store.get('tunings.custom', []).forEach(tu => { if (tu && Array.isArray(tu.strings) && tu.strings.length === I.stringCount) TUNINGS.push(tu); });
   let cur = TUNINGS.find(x => x.id === PD.store.get('tuning', 'std')) || TUNINGS[0];
-  PD.bus.on('instrument', () => { TUNINGS[0] = std(); if (cur.id === 'std') cur = TUNINGS[0]; });
+  PD.bus.on('instrument', () => { api._vm = {}; api._lib = null; TUNINGS[0] = std(); if (cur.id === 'std') cur = TUNINGS[0]; });
   const api = {
     NN, NN_KA, TUNINGS,
     get FRETS() { return I.fretCount; },
@@ -25,13 +25,17 @@ PD.theory = (() => {
     midi(s, f) { return I.pitch(s, f, cur.strings[s - 1]); },
     pc: m => ((Math.round(m) % 12) + 12) % 12,
     name(m) { const r = Math.round(m); return NN[api.pc(r)] + (Math.floor(r / 12) - 1); },
-    nameKa(m) { return NN_KA[api.pc(m)]; },
+    /* a note name in Georgian becomes do·re·mi in the language on screen; on a Georgian screen it stays as it is */
+    localNote(s) { if (!s || PD.i18n.lang === 'ka') return s; const SOL = { 'დო': 'do', 'რე': 're', 'მი': 'mi', 'ფა': 'fa', 'სოლ': 'sol', 'ლა': 'la', 'სი': 'si' }; return String(s).replace(/(დო|რე|მი|ფა|სოლ|ლა|სი)( დიეზი| ბემოლი)?/g, (_, n, a) => PD.i18n.tr(SOL[n]) + (a === ' დიეზი' ? '♯' : a === ' ბემოლი' ? '♭' : '')); },
+    /** the chord's long name: Georgian as written, otherwise its letters and its type in the language on screen */
+    chordLong(c) { return PD.i18n.lang === 'ka' ? c.ka : c.name + (c.typeEn ? ' ' + PD.i18n.tr(c.typeEn) : ''); },
+    nameKa(m) { return api.localNote(NN_KA[api.pc(m)]); },
     pcName(m) { return NN[api.pc(m)]; },
     NN_FLAT: ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'],
     NN_KA_FLAT: ['დო', 'რე♭', 'რე', 'მი♭', 'მი', 'ფა', 'სოლ♭', 'სოლ', 'ლა♭', 'ლა', 'სი♭', 'სი'],
     /** spell a pitch with flats (B♭ rather than A♯) */
     nameFlat(m) { const r = Math.round(m); return api.NN_FLAT[api.pc(r)] + (Math.floor(r / 12) - 1); },
-    nameKaFlat(m) { return api.NN_KA_FLAT[api.pc(m)]; },
+    nameKaFlat(m) { return api.localNote(api.NN_KA_FLAT[api.pc(m)]); },
     /** chords whose notes are normally written with flats (F, B♭, E♭, A♭, D♭ and the minor keys D, G, C, F …) */
     prefersFlat(root, q) { return [3, 5, 8, 10].includes(root) || (/^m(?!aj)|dim|♭5/.test(q || '') && [0, 2, 5, 7].includes(root)); },
     /** a chord tone spelled from the root's letter: C♯7 = C♯ · E♯ · G♯ · B, C♯m = C♯ · E · G♯, Cdim7 = C · E♭ · G♭ · B𝄫.
@@ -92,16 +96,10 @@ PD.theory = (() => {
       { k: '7♭5', iv: [0, 4, 6, 10], need: [4, 6, 10], alt: [[0, 6, 10]], ka: 'სეპტაკორდი შემცირებული კვინტით', en: '7♭5', d: ['დომინანტსეპტაკორდი შემცირებული კვინტით (6). სამ სიმზე ერთი ბგერა გამოტოვებულია.', 'A dominant 7th with a flat fifth (6). On three strings one tone is left out.'] },
       { k: '7♯5', iv: [0, 4, 8, 10], need: [4, 8, 10], alt: [[0, 8, 10]], ka: 'სეპტაკორდი გადიდებული კვინტით', en: '7♯5', d: ['დომინანტსეპტაკორდი გადიდებული კვინტით (8). სამ სიმზე ერთი ბგერა გამოტოვებულია.', 'A dominant 7th with a sharp fifth (8). On three strings one tone is left out.'] }
     ],
-    /** finger numbers for a shape: a barre (1) on the lowest fret when it covers neighbouring strings, then the next fingers */
+    /** The same fingering rule is shared by every chord consumer. */
     fingersFor(fr) {
-      const idx = fr.map((f, i) => i).filter(i => fr[i] > 0), fg = fr.map(() => 0);
-      if (!idx.length) return { fingers: fg, barre: false };
-      const minF = Math.min(...idx.map(i => fr[i])), atMin = idx.filter(i => fr[i] === minF);
-      let barre = false;
-      if (atMin.length >= 2) { const lo = Math.min(...atMin), hi = Math.max(...atMin); let ok = true; for (let i = lo; i <= hi; i++) if (fr[i] < minF) ok = false; if (ok) { barre = true; for (let i = lo; i <= hi; i++) if (fr[i] === minF) fg[i] = 1; } }
-      let next = barre ? 2 : 1;
-      idx.filter(i => !fg[i]).sort((a, b) => fr[a] - fr[b] || a - b).forEach(i => { fg[i] = Math.max(next, 1 + fr[i] - minF); next = fg[i] + 1; });
-      return Math.max(...fg) > 4 ? null : { fingers: fg, barre };
+      const f = api.teacherFingers(fr);
+      return f ? { ...f, barre: fr[1] > 0 && fr[1] === fr[2] } : null;
     },
     /** all playable shapes of one chord on this tuning, best first */
     voicings(root, type) {
@@ -112,23 +110,16 @@ PD.theory = (() => {
       const rec = s => {
         if (s === n) {
           const fretted = fr.filter(f => f > 0), span = fretted.length ? Math.max(...fretted) - Math.min(...fretted) : 0;
-          if (span > 3) return;
+          if (span > 4) return;
           const ms = fr.map((f, i) => Math.round(api.midi(i + 1, f))), pcs = ms.map(m => ((m % 12) + 12) % 12);
           if (!pcs.every(p => tones.has(p))) return;
           const okMain = needs[0].every(p => pcs.includes(p));
           if (!okMain && !needs.some(nd => nd.every(p => pcs.includes(p)))) return;
-          const fg = api.fingersFor(fr); if (!fg) return;
+          const tf = api.teacherFingers(fr); if (!tf) return;
+          const fg = { fingers: tf.fingers, barre: fr[1] > 0 && fr[1] === fr[2] };
           const pos = fretted.length ? Math.min(...fretted) : 0, bass = pcs[ms.indexOf(Math.min(...ms))];
           const score = pos * 1.1 + span * .9 + new Set(fg.fingers.filter(Boolean)).size * .5 - (bass === root ? 1.4 : 0) - fr.filter(f => f === 0).length * .25 - (fg.barre ? .3 : 0) + (new Set(pcs).size < Math.min(3, T.iv.length) ? 1.2 : 0) + (okMain ? 0 : 2.5);
-          /* The teacher's own way of taking a closed chord (teaching data, given by him, not derived):
-             the thumb holds the bass (A) string, the index holds the 2nd voice (C♯), and the 1st voice (E)
-             is taken by the index too when it sits on the same fret, by the middle finger one fret above,
-             by the ring finger two frets above. Bm 2-1-2 → T 1 2 · Em 2-3-3 → T 1 1 · E 2-3-4 → T 1 2 ·
-             Gm 1-1-3 → T 1 3 · G 2-1-3 → T 1 3.
-             A plain barre across all three strings keeps the index on all of them, as before. */
-          let fingers = fg.fingers, fsrc = null;
-          const tf = api.teacherFingers(fr);
-          if (tf) { fingers = tf.fingers; fsrc = tf.fsrc; }
+          const fingers = tf.fingers, fsrc = tf.fsrc;
           out.push({ frets: fr.slice(), fingers, fsrc, barre: fg.barre, pos, score });
           return;
         }
@@ -137,28 +128,37 @@ PD.theory = (() => {
       rec(0);
       return (api._vm[mk] = out.sort((a, b) => a.score - b.score));
     },
-    /* The teacher's own way of taking a chord whose bass is stopped, low on the neck (his words, his examples):
-       the bass is always the thumb; the two voices above it start at the index on the lowest of their frets and step
-       up a finger per fret — same fret → the index closes both, one above → the middle, two → the ring, three → the
-       little finger. Above the 5th fret the thumb no longer comes over, so the shape is fingered as computed.
-       Bm 2-1-2 → T 1 2 · Em 2-3-3 → T 1 1 · E 2-3-4 → T 1 2 · Gm 1-1-3 → T 1 3 · G 2-1-3 → T 1 3 · C 3-3-3 → T 1 1.
-       (His second way of closing a chord — the index across all three strings — is kept as its own position.) */
+    /** Teacher rule: the stopped bass always uses T, at every fret.
+        Open strings have no finger. The upper voices share 1 only on the same fret. */
     teacherFingers(fr) {
-      if (!fr || fr.length !== 3 || !(fr[0] > 0) || Math.max(...fr) > 5) {
-        if (fr && fr.length === 3 && fr.every(x => x > 0) && fr[0] === fr[2] && fr[1] === fr[0] - 1 && fr[0] <= 9) return { fingers: ['T', 1, 2], fsrc: 'teacher-bm' };
-        return null;
-      }
-      const up = [fr[1], fr[2]].filter(f => f > 0), base = up.length ? Math.min(...up) : 0;
-      const pick = f => f > 0 ? Math.min(4, 1 + (f - base)) : 0;
-      return { fingers: ['T', pick(fr[1]), pick(fr[2])], fsrc: 'teacher-thumb' };
+      if (!fr || fr.length !== 3) return null;
+      const up = fr.slice(1).filter(f => f > 0), base = up.length ? Math.min(...up) : 0;
+      if (up.length && Math.max(...up) - base > 3) return null;
+      const pick = f => f > 0 ? 1 + f - base : 0;
+      return { fingers: [fr[0] > 0 ? 'T' : 0, pick(fr[1]), pick(fr[2])], fsrc: 'teacher-thumb' };
     },
+    /** Exactly the notes present, independent of a requested extended-chord label. */
+    voicingInfo(root, type, fr) {
+      const T = typeof type === 'string' ? api.CHORD_TYPES.find(x => x.k === type) : type;
+      const ms = fr.map((f, i) => api.midi(i + 1, f)), pcs = [...new Set(ms.map(api.pc))];
+      const bass = api.pc(Math.min(...ms)), missing = T ? T.iv.filter(iv => !pcs.includes((root + iv) % 12)) : [];
+      const exact = [];
+      if (pcs.length >= 2) for (let r = 0; r < 12; r++) for (const k of ['', 'm', 'dim', 'aug', 'sus2', 'sus4', '5']) {
+        const q = api.CHORD_TYPES.find(t => t.k === k);
+        if (q.iv.length === pcs.length && q.iv.every(iv => pcs.includes((r + iv) % 12))) exact.push({ root: r, q: k, name: api.ROOTS[r] + k + (bass !== r ? '/' + api.ROOTS[bass] : '') });
+      }
+      return { ms, bass, missing, exact };
+    },
+    /** Chord pages use only full anatomical poses checked by the offline solver.
+        Open strings need no hand. Unbuilt development sources retain mathematical results. */
+    hasHandPose(v) { return v.frets.every(f => f === 0) || !PD.CHORD_POSES || !!PD.CHORD_POSES[v.frets.join('-') + '/' + v.fingers.join('')]; },
     /** the library: one entry per chord, with up to three positions (low · middle · high) */
     chordLibrary() {
-      const key = cur.id + ':' + cur.strings.join(',') + ':' + I.fretCount;
+      const key = cur.id + ':' + cur.strings.join(',') + ':' + I.fretCount + ':' + JSON.stringify(I.profile.fretPitch);
       if (api._lib && api._libKey === key) return api._lib;
       const lib = [];
       api.CHORD_TYPES.forEach(T => api.ROOTS.forEach((rn, root) => {
-        const all = api.voicings(root, T);
+        const all = api.voicings(root, T).filter(api.hasHandPose);
         const name = api.ROOT_NAMES[root] + T.k, alias = api.ROOTS[root] !== api.ROOT_NAMES[root] ? api.ROOTS[root] + T.k : null;
         // honest: when no playable three-string form exists the chord is listed without a diagram
         if (!all.length) { lib.push({ id: name, name, alias, root, q: T.k, cat: api.CAT[T.k] || 'other', none: true, kind: T.k, ka: api.ROOT_NAMES_KA[root] + ' · ' + T.ka, typeKa: T.ka, typeEn: T.en, frets: [0, 0, 0], fingers: [0, 0, 0], voicings: [], src: 'computed' }); return; }

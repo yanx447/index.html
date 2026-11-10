@@ -1,0 +1,41 @@
+#!/bin/sh
+# Turned on once per clone: git config core.hooksPath panduri/desktop/hooks
+# A commit that changes the deployed app (panduri/app/) rebuilds the installers in the background,
+# so საინსტალაციო/ always holds the version that was just released and the commit does not wait.
+root=$(git rev-parse --show-toplevel)
+git diff-tree --no-commit-id --name-only -r HEAD -- panduri/app | grep -q . || exit 0
+
+say() { osascript -e "display notification \"$1\" with title \"ფანდური — საინსტალაციო\"" >/dev/null 2>&1; }
+
+# the installers are made from dist/app: it must be the build that was just deployed
+if ! cmp -s "$root/panduri/app/js/config.js" "$root/panduri/source/dist/app/js/config.js"; then
+  echo "installers: NOT rebuilt, source/dist/app differs from the deployed panduri/app"
+  say "არ განახლდა: dist/app განსხვავდება panduri/app-ისგან"
+  exit 0
+fi
+
+out="$HOME/Library/Caches/panduri-installers"
+mkdir -p "$out"
+if ! mkdir "$out/.lock" 2>/dev/null; then
+  touch "$out/.again"   # one is running: it builds once more when it ends
+  echo "installers: a build is running, this commit will follow it"
+  exit 0
+fi
+
+(
+  cd "$root/panduri/desktop" || exit 1
+  while :; do
+    rm -f "$out/.again"
+    PANDURI_OUT="$out" node scripts/build-installers.js --skip-web >"$out/last-build.log" 2>&1
+    code=$?
+    [ -e "$out/.again" ] || break
+  done
+  rmdir "$out/.lock"
+  case $code in
+    0) say "განახლდა: macOS და Windows" ;;
+    2) say "macOS განახლდა, Windows ვერა: makensis არ არის" ;;
+    *) say "აწყობა ვერ მოხერხდა: $out/last-build.log" ;;
+  esac
+) </dev/null >/dev/null 2>&1 &
+
+echo "installers: rebuilding in the background (log: $out/last-build.log)"

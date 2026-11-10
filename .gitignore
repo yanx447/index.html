@@ -1,1 +1,19 @@
 panduri/ai-build/eval-*.wav
+
+# macOS
+.DS_Store
+
+# installed, never committed
+node_modules/
+
+# the desktop installers: built by panduri/desktop, over 100 MB each, too large for the repository
+panduri/desktop/out/
+საინსტალაციო/**/*.dmg
+საინსტალაციო/**/*.exe
+საინსტალაციო/**/*.aab
+საინსტალაციო/**/*.apk
+საინსტალაციო/**/*.ipa
+საინსტალაციო/**/*.zip
+საინსტალაციო/**/*.jks
+საინსტალაციო/**/გასაღები/
+საინსტალაციო/ios/Panduri-iOS/

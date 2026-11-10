@@ -15,7 +15,9 @@ self.addEventListener('fetch', e => {
   const req = e.request; if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(SHELL_CACHE).then(c => c.put('index.html', copy)); return r; }).catch(() => caches.match('index.html')));
+    const scope = new URL(self.registration.scope);
+    const key = url.pathname === scope.pathname ? new URL('index.html', scope).href : url.origin + url.pathname.replace(/\/$/, '/index.html');
+    e.respondWith(fetch(req).then(r => { if (r.ok) { const copy = r.clone(); caches.open(SHELL_CACHE).then(c => c.put(key, copy)); } return r; }).catch(() => caches.match(key, { ignoreSearch: true }).then(hit => hit || Response.error())));
     return;
   }
   if (url.origin === location.origin && /\/js\/config\.js$/.test(url.pathname)) {   // settings: always the newest copy, cached for offline
@@ -30,30 +32,41 @@ self.addEventListener('fetch', e => {
     e.respondWith(caches.open('pd-fonts').then(c => c.match(req).then(hit => { const net = fetch(req).then(r => { c.put(req, r.clone()); return r; }).catch(() => hit); return hit || net; })));
     return;
   }
+  if (url.origin === location.origin && /\/js\/lang\/[^/]+\.js$/.test(url.pathname)) {   // a language pack: the newest when online, the last one used when offline
+    e.respondWith(caches.open('pd-lang').then(c => fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => c.match(req).then(hit => hit || Response.error()))));
+    return;
+  }
   if (url.origin === location.origin) e.respondWith(caches.match(req).then(hit => hit || fetch(req)));
 });
 
 /* ---- notifications ---------------------------------------------------
-   push: a message from the server (friend request, acceptance, a new
-   message, a reminder). click: open the app where the notification
-   points. periodicsync: show what the plan says is due, when the
-   browser allows the check. ------------------------------------------ */
+   push: one of Sima's notifications from the server (a friend wrote,
+   reacted or posted; a request; a record; the daily reminder; a new
+   version). Shown even when the app is closed; an open app is told at
+   once so its inbox catches up. click: open the app where the
+   notification points (and mark it read). periodicsync: show what the
+   local plan says is due, when the browser allows the check. ---------- */
 self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (_) { d = { title: e.data ? e.data.text() : '' }; }
-  const title = d.title || 'ფანდური';
-  e.waitUntil(self.registration.showNotification(title, {
-    body: d.body || '', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png',
-    tag: d.tag || d.kind || 'pd', data: { go: d.go || null, kind: d.kind || null }, renotify: !!d.tag
-  }));
+  const title = d.title || 'სიმა · ფანდური';
+  e.waitUntil((async () => {
+    await self.registration.showNotification(title, {
+      body: d.body || '', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png',
+      tag: d.tag || d.kind || 'pd', renotify: !!d.tag, timestamp: Date.now(),
+      data: { go: d.go || null, kind: d.kind || null, id: d.id || null }
+    });
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    all.forEach(c => c.postMessage({ type: 'push', id: d.id || null }));
+  })());
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const go = (e.notification.data && e.notification.data.go) || null;
+  const d = e.notification.data || {}, go = d.go || null, id = d.id || null;
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const c of all) { if ('focus' in c) { await c.focus(); if (go) c.postMessage({ type: 'notification', go }); return; } }
-    await self.clients.openWindow(go ? 'index.html?go=' + encodeURIComponent(go) : 'index.html');
+    for (const c of all) { if ('focus' in c) { await c.focus(); c.postMessage({ type: 'notification', go, id }); return; } }
+    await self.clients.openWindow(go ? 'index.html?go=' + encodeURIComponent(go) + (id ? '&nid=' + encodeURIComponent(id) : '') : 'index.html');
   })());
 });
 self.addEventListener('periodicsync', e => {

@@ -395,7 +395,9 @@ PD.engine = (() => {
       // mic: timing from the onset; accent from its strength relative to this player's recent strokes; direction is not measurable from sound
       const hist = S.onStr || (S.onStr = []), str = inp.strength || 0;
       let accOk = null;
-      if (hist.length >= 3 && str) { const m = hist.slice().sort((a, b) => a - b)[hist.length >> 1], heard = str > m * 1.35; accOk = heard === !!st.acc; }
+      // accented = clearly above the soft strokes and nearer the loud ones. Not "above the median": in a rhythm where
+      // most strokes are accented (acharuli: ↓ ↓> ↑>) the median is itself an accent, and accents read as unaccented.
+      if (hist.length >= 3 && str) { const so = hist.slice().sort((a, b) => a - b), lo = so[Math.floor(so.length * .2)], hi = so[Math.ceil(so.length * .8) - 1], heard = str > Math.max(lo * 1.35, Math.sqrt(lo * hi)); accOk = heard === !!st.acc; }
       if (str) { hist.push(str); if (hist.length > 10) hist.shift(); }
       return { res: 'ok', pitchOk: null, dir: null, accOk };
     }

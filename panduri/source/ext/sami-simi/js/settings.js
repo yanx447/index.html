@@ -19,7 +19,6 @@ export const DEFAULTS = Object.freeze({
   mode: 'auto',      // 'auto' | 'manual' | 'guided'
   selected: 0,
   micPrimed: false,
-  lang: 'auto',      // 'auto' | 'ka' | 'en'
   customs: [],       // the player's own tunings: [{ id: 'c-…', name, strings: [m1, m2, m3] }]
   harmonic: false,   // tune with 12th-fret harmonics (expect the octave above the open string)
   pegFlip: [false, false, false], // per string: the tuner key tightens the other way round
@@ -61,7 +60,6 @@ function sanitize(s) {
     mode: oneOf(s.mode, ['auto', 'manual', 'guided'], 'auto'),
     selected: Math.round(clamp(s.selected, 0, 2, 0)),
     micPrimed: !!s.micPrimed,
-    lang: oneOf(s.lang, ['auto', 'ka', 'en'], 'auto'),
     customs: sanitizeCustoms(s.customs),
     harmonic: !!s.harmonic,
     pegFlip: [0, 1, 2].map((i) => !!(Array.isArray(s.pegFlip) && s.pegFlip[i])),
@@ -95,5 +93,5 @@ export function saveSettings(s) {
 
 export function defaultSettings(keep = {}) {
   // restoring defaults never deletes the player's own tunings or how their tuner keys turn
-  return sanitize({ ...DEFAULTS, micPrimed: !!keep.micPrimed, lang: keep.lang || 'auto', customs: keep.customs || [], pegFlip: keep.pegFlip });
+  return sanitize({ ...DEFAULTS, micPrimed: !!keep.micPrimed, customs: keep.customs || [], pegFlip: keep.pegFlip });
 }

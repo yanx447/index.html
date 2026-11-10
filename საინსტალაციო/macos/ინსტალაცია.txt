@@ -1,0 +1,36 @@
+ფანდური — დაყენება macOS-ზე
+დეველოპერი: ნუკრი ბერიძე (Nukri Beridze)
+
+რომელი ფაილი გჭირდება
+  Apple-ის მენიუ > About This Mac:
+  ჩიპი Apple M1, M2, M3... > Panduri-...-macOS-arm64.dmg
+  პროცესორი Intel         > Panduri-...-macOS-x64.dmg
+
+დაყენება
+  1. გახსენი .dmg ფაილი.
+  2. ფანდურის ხატულა გადაიტანე Applications საქაღალდეში.
+  3. გახსენი ფანდური Applications-იდან.
+
+თუ macOS არ გახსნის და გეტყვის, რომ დეველოპერს ვერ ამოწმებს
+  აპი ჯერ Apple-ის სერტიფიკატით არ არის ხელმოწერილი, ამიტომ პირველ გახსნაზე ეს ჩვეულებრივია.
+  1. დააჭირე Done.
+  2. გახსენი System Settings > Privacy & Security.
+  3. ჩადი ბოლოსკენ და დააჭირე Open Anyway.
+  4. დაადასტურე პაროლით. ეს მხოლოდ ერთხელ არის საჭირო.
+
+მიკროფონი
+  ფანდური პირველად რომ გკითხავს, დართე მიკროფონის ნება: ასე ისმენს შენს დაკვრას.
+  ხმა მხოლოდ შენს კომპიუტერზე მუშავდება.
+
+წაშლა
+  Applications-იდან ფანდური გადაიტანე Trash-ში.
+
+
+Panduri — installing on macOS
+Developer: Nukri Beridze
+
+Which file: Apple menu > About This Mac. Apple M1, M2, M3... use the arm64 file; Intel uses the x64 file.
+Install: open the .dmg, drag Panduri to Applications, open it from there.
+If macOS says it cannot verify the developer: the app is not yet signed with an Apple certificate.
+Press Done, open System Settings > Privacy & Security, scroll down, press Open Anyway and confirm. Once only.
+Microphone: allow it when asked. The sound of your playing is analysed on your computer only.

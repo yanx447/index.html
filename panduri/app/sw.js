@@ -3,9 +3,9 @@
    Teacher media: served from the 'pd-media-*' cache ONLY when the learner explicitly downloaded it;
    large audio/video is never cached silently. Old shell caches are deleted on activate;
    learner data (localStorage / IndexedDB) is never touched. */
-const VERSION = 'b4ac2dcd78';
+const VERSION = '497d3350b4';
 const SHELL_CACHE = 'pd-shell-' + VERSION;
-const SHELL = ["./", "index.html", "app.css", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "js/core.js", "js/instrument.js", "js/theory.js", "js/geom.js", "js/songdata.js", "js/curriculum.js", "js/lessons.js", "js/audio.js", "js/samples.js", "js/media.js", "js/detector.js", "js/engine.js", "js/coach.js", "js/ui.js", "js/motion.js", "js/fx.js", "js/cloud.js", "js/auth.js", "js/premium.js", "js/tv.js", "js/rhythms.js", "js/neck.js", "js/lanes.js", "js/trainers.js", "js/three3d.js", "js/practice.js", "js/camera.js", "js/community.js", "js/tools.js", "js/notesart.js", "js/simple.js", "js/notes.js", "js/fig.js", "js/tips.js", "js/solfege.js", "js/exam.js", "js/notify.js", "js/shapes.js", "js/genres.js", "js/book.js", "js/install.js", "js/sima.js", "js/aiworker.js", "js/aispl.js", "js/aideck.js", "js/aimus.js", "js/ai.js", "js/samisimi.js", "js/studio.js", "js/authortools.js", "js/onboard.js", "js/intro.js", "js/cine.js", "js/pwa.js", "js/app.js", "js/boot.js", "js/assets.js", "js/config.js"];
+const SHELL = ["./", "index.html", "app.css", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "js/core.js", "js/instrument.js", "js/theory.js", "js/geom.js", "js/songdata.js", "js/curriculum.js", "js/lessons.js", "js/audio.js", "js/samples.js", "js/media.js", "js/detector.js", "js/engine.js", "js/coach.js", "js/ui.js", "js/motion.js", "js/fx.js", "js/cloud.js", "js/devices.js", "js/auth.js", "js/billing.js", "js/premium.js", "js/tv.js", "js/rhythms.js", "js/neck.js", "js/lanes.js", "js/trainers.js", "js/three3d.js", "js/practice.js", "js/camera.js", "js/community.js", "js/social.js", "js/chatkit.js", "js/tools.js", "js/notesart.js", "js/simple.js", "js/notes.js", "js/fig.js", "js/tips.js", "js/solfege.js", "js/exam.js", "js/notify.js", "js/shapes.js", "js/genres.js", "js/book.js", "js/install.js", "js/sima.js", "js/aiworker.js", "js/aispl.js", "js/aideck.js", "js/aimus.js", "js/ailesson.js", "js/ai.js", "js/samisimi.js", "js/studio.js", "js/authortools.js", "js/onboard.js", "js/intro.js", "js/pwa.js", "js/app.js", "js/boot.js", "js/assets.js", "js/config.js", "tuner/fonts/JetBrainsMono.woff", "tuner/fonts/NotoSansGeorgian.woff", "tuner/fonts/NotoSerifGeorgian.woff", "tuner/index.html", "tuner/js/audio-input.js", "tuner/js/drift.js", "tuner/js/guidance.js", "tuner/js/i18n.js", "tuner/js/main.js", "tuner/js/music.js", "tuner/js/pitch-detector.js", "tuner/js/reference.js", "tuner/js/settings.js", "tuner/js/tools/chordrec.js", "tuner/js/tools/chords.js", "tuner/js/tools/ear.js", "tuner/js/tools/ensemble.js", "tuner/js/tools/intonation.js", "tuner/js/tools/metronome.js", "tuner/js/tools/newstring.js", "tuner/js/tools/playalong.js", "tuner/js/tools/recorder.js", "tuner/js/tools/share.js", "tuner/js/tools/songs.js", "tuner/js/tools/strumtune.js", "tuner/js/tools/ui.js", "tuner/js/tracker.js", "tuner/js/tuning.js", "tuner/js/view/diagnostics.js", "tuner/js/view/headstock.js", "tuner/js/view/headstock3d.js", "tuner/js/view/meter.js", "tuner/js/view/strobe.js", "tuner/js/view/trace.js", "tuner/styles.css", "tuner/sw.js", "tuner/vendor/qrcode.js", "tuner/vendor/three-lite.js"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL_CACHE).then(c => c.addAll(SHELL))); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('pd-shell-') && k !== SHELL_CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
@@ -15,7 +15,9 @@ self.addEventListener('fetch', e => {
   const req = e.request; if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(SHELL_CACHE).then(c => c.put('index.html', copy)); return r; }).catch(() => caches.match('index.html')));
+    const scope = new URL(self.registration.scope);
+    const key = url.pathname === scope.pathname ? new URL('index.html', scope).href : url.origin + url.pathname.replace(/\/$/, '/index.html');
+    e.respondWith(fetch(req).then(r => { if (r.ok) { const copy = r.clone(); caches.open(SHELL_CACHE).then(c => c.put(key, copy)); } return r; }).catch(() => caches.match(key, { ignoreSearch: true }).then(hit => hit || Response.error())));
     return;
   }
   if (url.origin === location.origin && /\/js\/config\.js$/.test(url.pathname)) {   // settings: always the newest copy, cached for offline
@@ -30,30 +32,41 @@ self.addEventListener('fetch', e => {
     e.respondWith(caches.open('pd-fonts').then(c => c.match(req).then(hit => { const net = fetch(req).then(r => { c.put(req, r.clone()); return r; }).catch(() => hit); return hit || net; })));
     return;
   }
+  if (url.origin === location.origin && /\/js\/lang\/[^/]+\.js$/.test(url.pathname)) {   // a language pack: the newest when online, the last one used when offline
+    e.respondWith(caches.open('pd-lang').then(c => fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => c.match(req).then(hit => hit || Response.error()))));
+    return;
+  }
   if (url.origin === location.origin) e.respondWith(caches.match(req).then(hit => hit || fetch(req)));
 });
 
 /* ---- notifications ---------------------------------------------------
-   push: a message from the server (friend request, acceptance, a new
-   message, a reminder). click: open the app where the notification
-   points. periodicsync: show what the plan says is due, when the
-   browser allows the check. ------------------------------------------ */
+   push: one of Sima's notifications from the server (a friend wrote,
+   reacted or posted; a request; a record; the daily reminder; a new
+   version). Shown even when the app is closed; an open app is told at
+   once so its inbox catches up. click: open the app where the
+   notification points (and mark it read). periodicsync: show what the
+   local plan says is due, when the browser allows the check. ---------- */
 self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (_) { d = { title: e.data ? e.data.text() : '' }; }
-  const title = d.title || 'ფანდური';
-  e.waitUntil(self.registration.showNotification(title, {
-    body: d.body || '', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png',
-    tag: d.tag || d.kind || 'pd', data: { go: d.go || null, kind: d.kind || null }, renotify: !!d.tag
-  }));
+  const title = d.title || 'სიმა · ფანდური';
+  e.waitUntil((async () => {
+    await self.registration.showNotification(title, {
+      body: d.body || '', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png',
+      tag: d.tag || d.kind || 'pd', renotify: !!d.tag, timestamp: Date.now(),
+      data: { go: d.go || null, kind: d.kind || null, id: d.id || null }
+    });
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    all.forEach(c => c.postMessage({ type: 'push', id: d.id || null }));
+  })());
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const go = (e.notification.data && e.notification.data.go) || null;
+  const d = e.notification.data || {}, go = d.go || null, id = d.id || null;
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const c of all) { if ('focus' in c) { await c.focus(); if (go) c.postMessage({ type: 'notification', go }); return; } }
-    await self.clients.openWindow(go ? 'index.html?go=' + encodeURIComponent(go) : 'index.html');
+    for (const c of all) { if ('focus' in c) { await c.focus(); c.postMessage({ type: 'notification', go, id }); return; } }
+    await self.clients.openWindow(go ? 'index.html?go=' + encodeURIComponent(go) + (id ? '&nid=' + encodeURIComponent(id) : '') : 'index.html');
   })());
 });
 self.addEventListener('periodicsync', e => {

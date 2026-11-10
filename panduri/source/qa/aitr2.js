@@ -5,7 +5,7 @@ const fs = require('fs'), OUT = '/tmp/claude-0/-home-claude/d17ed486-e6cb-5d9f-8
   const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('http://localhost:8766/dist/app/'); await p.waitForTimeout(1200);
-  await p.evaluate(() => { localStorage.clear(); PD.store.set('onboarded', true); PD.store.set('auth.skip', true); PD.store.set('cine', false); PD.store.set('ai.test', true); document.querySelector('.ag')?.remove(); document.querySelector('.cine-boot')?.remove(); PD.app.go('ai'); });
+  await p.evaluate(() => { localStorage.clear(); PD.store.set('onboarded', true); PD.store.set('auth.skip', true); PD.store.set('cine', false); PD.premium.allows = () => true; document.querySelector('.ag')?.remove(); document.querySelector('.cine-boot')?.remove(); PD.app.go('ai'); });
   await p.waitForTimeout(600);
   await p.evaluate(async url => { const blob = await (await fetch(url)).blob(); const f = new File([blob], 'bani.mp3', { type: 'audio/mpeg' }); const dt = new DataTransfer(); dt.items.add(f); const i = document.querySelector('input[type=file]'); i.files = dt.files; i.dispatchEvent(new Event('change', { bubbles: true })); }, 'http://localhost:8766/media/bani/music.mp3');
   await p.waitForFunction(() => document.querySelector('.ai-trans'), null, { timeout: 180000 });

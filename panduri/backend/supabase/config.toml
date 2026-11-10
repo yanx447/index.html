@@ -1,0 +1,23 @@
+[functions.checkout]
+verify_jwt = false
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.billing]
+verify_jwt = false
+[functions.payment-callback]
+verify_jwt = false
+[functions.store-webhook]
+verify_jwt = false
+
+# Sima validates the user token with Supabase Auth inside the function.
+[functions.sima]
+verify_jwt = false
+
+# The database calls push with a secret only the database and the function can read; GET ?vapid=1 is public.
+[functions.push]
+verify_jwt = false
+
+# GIF search through GIPHY: the function checks the member's token itself and keeps the key.
+[functions.gifs]
+verify_jwt = false

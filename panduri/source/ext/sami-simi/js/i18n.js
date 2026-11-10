@@ -1,5 +1,5 @@
-// Georgian / English strings. Language: saved setting → device language → English.
-// Add a language by adding one more dictionary with the same keys.
+// Georgian / English strings; other languages come from the main app's packs, keyed by the English text.
+// The language is always the main app's: see appLang().
 
 const DICT = {
   ka: {
@@ -127,7 +127,6 @@ const DICT = {
     'set.meter': 'მაჩვენებელი', 'set.needle': 'ისარი', 'set.strobe': 'სტრობი',
     'set.ui': 'ინტერფეისი', 'set.simple': 'მარტივი', 'set.pro': 'პროფესიული', 'set.uiNote': 'მარტივი ჩვენება მალავს ჰერცებს, ცენტებს და ისტორიას.',
     'set.motion': 'მოძრაობის ეფექტები', 'set.motionNote': 'სიღრმე და პარალაქსი შეხებისას.',
-    'set.lang': 'ენა', 'set.langAuto': 'ავტო',
     'set.refVol': 'ეტალონის ხმა',
     'set.haptics': 'ვიბრაცია აწყობისას', 'set.hapticsNote': 'მოკლე ბიძგი, როცა სიმი აეწყობა.', 'set.hapticsNone': 'ამ მოწყობილობაზე ვიბრაცია მიუწვდომელია.',
     'set.resetStatus': 'აწყობის სტატუსის გასუფთავება',
@@ -261,7 +260,6 @@ const DICT = {
     'set.meter': 'Indicator', 'set.needle': 'Needle', 'set.strobe': 'Strobe',
     'set.ui': 'Interface', 'set.simple': 'Simple', 'set.pro': 'Pro', 'set.uiNote': 'Simple mode hides hertz, cents and history.',
     'set.motion': 'Motion effects', 'set.motionNote': 'Depth and parallax as you touch.',
-    'set.lang': 'Language', 'set.langAuto': 'Auto',
     'set.refVol': 'Reference volume',
     'set.haptics': 'Vibrate when in tune', 'set.hapticsNote': 'A short tap when a string is tuned.', 'set.hapticsNone': 'Vibration is not available on this device.',
     'set.resetStatus': 'Clear tuning status',
@@ -272,24 +270,39 @@ const DICT = {
 };
 
 export const LANGS = ['ka', 'en'];
-let current = 'ka';
+let current = 'en';
 
-export function detectLang() {
-  const list = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en']).map((l) => String(l).toLowerCase());
-  return list.some((l) => l.startsWith('ka')) ? 'ka' : 'en';
+/* The language is the main app's own setting (same origin, key pd2:lang). There is no switch here:
+   whatever is chosen in the panduri app is what the tuner speaks. */
+function appLang() {
+  try { const v = JSON.parse(localStorage.getItem('pd2:lang')); if (v) return v; } catch (_) {}
+  const list = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en']).map((l) => String(l).toLowerCase().split(/[-_]/)[0]);
+  return list.find((l) => l === 'ka' || l === 'en' || (globalThis.PD_LANG && globalThis.PD_LANG[l])) || 'en';
+}
+const pack = () => (globalThis.PD_LANG && globalThis.PD_LANG[current] && globalThis.PD_LANG[current].map) || null;
+
+/** An English line in the language on screen; without a translation it stays in English. */
+export function trEn(s) {
+  const p = pack(); if (!p || s == null) return s;
+  const hit = p[s] ?? p[String(s).trim()];
+  return hit == null ? s : hit;
 }
 
-export function setLang(pref) {
-  current = pref === 'ka' || pref === 'en' ? pref : detectLang();
+export function setLang() {
+  const c = appLang();
+  current = c === 'ka' || c === 'en' || (globalThis.PD_LANG && globalThis.PD_LANG[c]) ? c : 'en';
   document.documentElement.lang = current;
+  document.documentElement.dir = current === 'ar' ? 'rtl' : 'ltr';
   return current;
 }
 export const lang = () => current;
+export const locale = () => ({ ka: 'ka-GE', en: 'en-GB', ar: 'ar-u-nu-latn' }[current] || current);
 
 export function t(key, vars) {
-  let s = (DICT[current] && DICT[current][key]) ?? DICT.en[key] ?? key;
+  let s = current === 'ka' ? (DICT.ka[key] ?? DICT.en[key] ?? key) : (DICT.en[key] != null ? trEn(DICT.en[key]) : key);
   if (vars) s = s.replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null ? vars[k] : ''));
-  return s;
+  // right-to-left text would put the sharp of a closing C♯ on the wrong side of its letter
+  return current === 'ar' && typeof s === 'string' ? s.replace(/[A-G][♯♭#](?![\w♯♭#\u200E])/g, '$&\u200E') : s;
 }
 
 /** Note name shown to the user: Georgian solfège in Georgian, letter names in English. */

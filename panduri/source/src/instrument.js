@@ -45,7 +45,7 @@ PD.instrument = (() => {
       body: {
         // proportions traced from the straight-on front photo (52c44f05), scaled so nut→bridge = scale length.
         // perspective is not corrected: treat as estimates until measured.
-        lengthMm: 335, maxWidthMm: 193, bottomWidthMm: 94, src: 'estimate',
+        lengthMm: 335, maxWidthMm: 193, bottomWidthMm: 94, cornerRadiusMm: 2.5, src: 'estimate',
         outline: [[0, 19.6], [.025, 23], [.05, 30], [.08, 44], [.11, 58], [.145, 71], [.18, 82], [.22, 90], [.27, 95], [.33, 96.5], [.42, 92], [.53, 83], [.68, 66], [.84, 54], [.957, 48], [1, 47]],
         depth: [[0, 20], [.08, 34], [.25, 56], [.5, 70], [.8, 75], [1, 72]],
         backFinish: { value: 'dark gloss', src: 'photo' }
@@ -58,8 +58,8 @@ PD.instrument = (() => {
       fingerboard: { nutHalfMm: 15, joinHalfMm: 18, src: 'estimate' },
       tuners: { layout: '2+1', left: [2, 1], right: [3], type: 'geared, cream paddle keys', src: 'photo' },
       hardware: {
-        preamp: { present: true, side: 'A', at: .46, src: 'photo' },
-        jack: { present: true, src: 'estimate' },
+        preamp: { present: true, tuner: true, equalizer: true, side: 'A', at: .46, src: 'photo', confirmation: 'Owner confirmed onboard tuner and equalizer; dimensions and control layout are estimated.' },
+        jack: { present: true, src: 'photo', confirmation: 'Owner confirmed output jack; position and dimensions remain estimated.' },
         endButton: { present: true, src: 'photo' }
       },
       verifiedBy: null, verifiedAt: null

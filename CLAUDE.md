@@ -16,6 +16,13 @@ this repository. The agents in `.claude/agents/` all inherit them.
 | `panduri/app/` | **Built output, deployed.** Never edit by hand — it is overwritten by every build. |
 | `panduri/app/media/` | The teacher's recordings. The one copy; the source build reads them from here. |
 | `panduri/scripts/native-setup.sh` | Builds the real Android and iOS projects (Capacitor, `com.yanx.panduri`). |
+| `panduri/desktop/` | The Windows and macOS app (Electron around `source/dist/app`). `npm run installers` from the root builds them; `build.py` needs Pillow. |
+| `საინსტალაციო/` | The finished installers, `macos/` and `windows/`. The `.dmg` and `.exe` are never committed. |
+
+Every app update must also update the installers. A commit that changes `panduri/app/`
+rebuilds them in the background (`panduri/desktop/hooks/post-commit`, turned on per clone
+with `git config core.hooksPath panduri/desktop/hooks`). `setup.exe` needs `makensis` on
+the `PATH` or in `MAKENSIS`; without it only the macOS installers are updated.
 
 Build, then deploy, is: `cd panduri/source && python3 build.py` → copy `dist/app/.`
 over `panduri/app/` → commit → push. **Agents do not do the last two steps.**
@@ -63,9 +70,20 @@ filling the gap.
 ## Language
 
 The app is Georgian first, English second; every string lives in
-`PD.i18n.add({...})` as `['ka', 'en']`. Keys are namespaced per module
+`PD.i18n.add({...})` as `['ka', 'en']`. All other languages are translation packs
+in `panduri/source/i18n/<code>.json`, keyed by the **English text**: write only
+Georgian and English in the code, then `node qa/i18n-extract.cjs` and
+`node qa/i18n-merge.cjs --status` show what still needs translating. A string
+without a translation shows in English. A translation is not the teacher's word:
+in those languages source badges carry „AI translation" (`PD.ui.srcLabel`) and
+`lg.ai` says so. Never hard-code `lang === 'en'`: use `PD.i18n.pick`, `.locale`,
+`.translated`. Keys are namespaced per module
 (`bk.*`, `gn.*`, `ins.*`) — **check a new prefix is not already taken**, because
 `PD.i18n.add` silently loses a collision and the wrong Georgian appears.
+
+The tuner (`ext/sami-simi/`) has no language switch of its own: it reads `pd2:lang`
+and the same packs, so it always speaks the app's language. Its strings stay in
+`js/i18n.js` as Georgian and English, keyed the same way.
 
 Use `data-t` for plain text and `data-th` where the string carries markup.
 

@@ -74,7 +74,7 @@ export class Meter {
   /** @param cents number | null  @param mode 'live' | 'dim' | 'idle' */
   set(cents, mode, locked) {
     if (cents != null && mode !== 'idle') this.target = centsToAngle(cents);
-    else if (mode === 'idle') this.target = 0;
+    // Silence dims the last measurement; it never invents a centred reading.
     this.svg.dataset.mode = mode;
     const was = this.svg.classList.contains('locked');
     this.svg.classList.toggle('locked', !!locked);
@@ -85,10 +85,11 @@ export class Meter {
   setSpeed(v) { const f = Math.pow(2, ((v ?? 5) - 5) / 3.5); this.k = 170 * f * f; }
 
   step(dt) {
-    const k = this.k, c = 2 * Math.sqrt(k) * 0.9;
-    const a = k * (this.target - this.angle) - c * this.vel;
-    this.vel += a * dt;
-    this.angle += this.vel * dt;
+    // Exact critically damped spring: stable even at 20 fps and maximum needle speed.
+    const omega = Math.sqrt(this.k), delta = this.angle - this.target;
+    const v = this.vel + omega * delta, decay = Math.exp(-omega * dt);
+    this.angle = this.target + (delta + v * dt) * decay;
+    this.vel = (this.vel - omega * v * dt) * decay;
     const moving = Math.abs(this.vel) > 0.01 || Math.abs(this.target - this.angle) > 0.01;
     if (!moving) { this.angle = this.target; this.vel = 0; }
     this.needle.style.transform = `rotate(${this.angle.toFixed(3)}deg)`;

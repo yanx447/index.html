@@ -15,7 +15,7 @@ tools: Bash, Read, Write, Edit, Grep, Glob
 1. აწყობა: `cd panduri/source && python3 build.py`.
 2. სერვერი: `python3 -m http.server 8766 --directory panduri/source` (მკვდარი
    თუ აღმოჩნდა — თავიდან აუშვი).
-3. Playwright უკვე დაყენებულია: `require('/opt/node-tools/node_modules/playwright')`.
+3. Playwright უკვე დაყენებულია: `require('/Users/nukri/Documents/panduri/panduri/source/node_modules/playwright')`.
    Chromium-ის არგუმენტები 3D-სთვის:
    `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`.
 4. გვერდის გახსნა: `localStorage.clear()`, `PD.store.set('onboarded',true)`,
