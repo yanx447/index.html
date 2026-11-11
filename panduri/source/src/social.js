@@ -100,7 +100,8 @@ PD.social = (() => {
   const label = p => p.author_name || (p.author_nick ? '@' + p.author_nick : '—');
 
   /* ---------------- files: prepare, upload, show ---------------- */
-  const LIMIT = { photo: 20, video: 50, audio: 50 }, LONG = { video: 10, audio: 15 };   // MB (the server's own limit for one file is 50); minutes
+  // MB: the server's own limit for one file (storage bucket `social`, 50 MB while the server is on Supabase's Free plan); minutes
+  const LIMIT = { photo: 50, video: 50, audio: 50 }, LONG = { video: 10, audio: 15 };
   const kindOf = f => /^image\//.test(f.type) ? 'photo' : /^video\//.test(f.type) ? 'video' : /^audio\//.test(f.type) ? 'audio' : (/\.(m4a|mp3|wav|aac|ogg|flac)$/i.test(f.name) ? 'audio' : /\.(mp4|mov|webm|m4v)$/i.test(f.name) ? 'video' : null);
   const ACCEPT = { photo: 'image/*', video: 'video/*', audio: '.wav,.mp3,audio/*,.m4a,.aac,.ogg,.flac', any: 'image/*,video/*,audio/*' };
   const fail = k => { const e = new Error(k); e.code = k; return e; };
@@ -116,6 +117,32 @@ PD.social = (() => {
       m.onloadedmetadata = () => { clearTimeout(tm); res(m); }; m.onerror = () => { clearTimeout(tm); rej(fail('badFile')); };
     });
   }
+  /** length and size read straight from an MP4 / MOV file's header (moov → mvhd, tkhd), without decoding the picture:
+      a browser that cannot play a codec (HEVC in Chrome, some cameras' MOV) still learns what it needs to upload it as it is.
+      null when the file is not such a container. */
+  async function mp4Meta(file) {
+    const rd = async (pos, n) => new DataView(await file.slice(pos, pos + n).arrayBuffer());
+    const head = async pos => { const d = await rd(pos, 16); if (d.byteLength < 8) return null; let size = d.getUint32(0), hl = 8; const type = String.fromCharCode(d.getUint8(4), d.getUint8(5), d.getUint8(6), d.getUint8(7)); if (size === 1 && d.byteLength >= 16) { size = d.getUint32(8) * 4294967296 + d.getUint32(12); hl = 16; } else if (size === 0) size = file.size - pos; return size >= hl ? { type, size, hl } : null; };
+    let pos = 0, moov = null;
+    for (let i = 0; i < 64 && pos < file.size; i++) { const b = await head(pos); if (!b) break; if (b.type === 'moov') { moov = { pos, size: b.size, hl: b.hl }; break; } pos += b.size; }
+    if (!moov || moov.size > 64 * 1048576) return null;
+    const v = await rd(moov.pos, moov.size), out = { dur: 0, w: 0, h: 0 };
+    const str = o => String.fromCharCode(v.getUint8(o + 4), v.getUint8(o + 5), v.getUint8(o + 6), v.getUint8(o + 7));
+    const walk = (start, end) => {
+      for (let o = start; o + 8 <= end;) {
+        const size = v.getUint32(o), type = str(o); if (size < 8 || o + size > end) break;
+        if (type === 'trak' || type === 'moov') walk(o + 8, o + size);
+        else if (type === 'mvhd') { const ver = v.getUint8(o + 8); const ts = v.getUint32(o + (ver ? 28 : 20)), d = ver ? v.getUint32(o + 32) * 4294967296 + v.getUint32(o + 36) : v.getUint32(o + 24); if (ts) out.dur = d / ts; }
+        else if (type === 'tkhd' && !out.w) {
+          const ver = v.getUint8(o + 8), m = o + (ver ? 60 : 48), w = v.getUint32(m + 36) / 65536, hh = v.getUint32(m + 40) / 65536;
+          if (w && hh) { const turned = Math.abs(v.getInt32(m)) < 0x8000 && Math.abs(v.getInt32(m + 4)) >= 0x8000; out.w = Math.round(turned ? hh : w); out.h = Math.round(turned ? w : hh); }   // a phone held upright stores the picture turned
+        }
+        o += size;
+      }
+    };
+    walk(moov.hl, moov.size);   // offsets inside the box just read
+    return out.dur > 0 ? out : null;
+  }
   /** a file the member chose → what will be uploaded: photos are made smaller, videos get a still for the feed */
   async function prepare(file, want, opts) {
     const kind = want === 'any' || !want ? kindOf(file) : want;
@@ -126,19 +153,32 @@ PD.social = (() => {
       if (kind === 'photo') {
         if (file.type === 'image/gif') return { kind, blob: file, ext: 'gif', meta: {} };
         const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(fail('badFile')); i.src = url; });
-        const blob = await canvasBlob(img, img.naturalWidth, img.naturalHeight, 1600, .86);
+        // drawn again (that also drops the camera's location and other EXIF data), at up to 4K and high quality
+        const blob = await canvasBlob(img, img.naturalWidth, img.naturalHeight, 4096, .92);
         if (!blob) throw fail('badFile');
-        const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+        if (blob.size > LIMIT.photo * 1048576) throw Object.assign(fail('tooBig'), { n: LIMIT.photo, s: Math.ceil(blob.size / 1048576) });
+        const k = Math.min(1, 4096 / Math.max(img.naturalWidth, img.naturalHeight));
         return { kind, blob, ext: 'jpg', meta: { w: Math.round(img.naturalWidth * k), h: Math.round(img.naturalHeight * k) } };
       }
-      const m = await loadMedia(kind === 'video' ? 'video' : 'audio', url);
+      const ext = (file.name.match(/\.([a-z0-9]{2,5})$/i) || [, kind === 'video' ? 'mp4' : 'm4a'])[1].toLowerCase();
+      let m = null;
+      try { m = await loadMedia(kind === 'video' ? 'video' : 'audio', url); } catch (e) { if (e.code !== 'badFile') throw e; }
+      // this browser cannot open it (HEVC, a camera's own MOV, some audio codecs): it is still uploaded untouched, with what its header says
+      if (!m || (kind === 'video' && !m.videoWidth)) {
+        const hd = await mp4Meta(file).catch(() => null);
+        if (kind === 'video' && !hd) throw fail('badFile');
+        const dur = (hd && hd.dur) || (m && isFinite(m.duration) ? m.duration : 0) || (opts && opts.dur) || 0;
+        if (dur > LONG[kind] * 60) throw Object.assign(fail('tooLong'), { n: LONG[kind] });
+        const meta = { dur: Math.round(dur * 10) / 10 };
+        if (kind === 'video') { meta.w = hd.w; meta.h = hd.h; }
+        return { kind, blob: file, ext, meta };
+      }
       if (!isFinite(m.duration)) {   // a clip recorded by a browser carries no length: the player finds it by going to the end
         await new Promise(res => { const ok = () => { if (isFinite(m.duration)) { m.removeEventListener('durationchange', ok); res(); } }; m.addEventListener('durationchange', ok); setTimeout(res, 3000); try { m.currentTime = 1e101; } catch (_) { res(); } });
         try { m.currentTime = 0; } catch (_) {}
       }
       const dur = isFinite(m.duration) && m.duration > 0 ? m.duration : (opts && opts.dur) || 0;   // a clip filmed in the browser does not always know its own length
       if (dur > LONG[kind] * 60) throw Object.assign(fail('tooLong'), { n: LONG[kind] });
-      const ext = (file.name.match(/\.([a-z0-9]{2,5})$/i) || [, kind === 'video' ? 'mp4' : 'm4a'])[1].toLowerCase();
       const out = { kind, blob: file, ext, meta: { dur: Math.round(dur * 10) / 10 } };
       if (kind === 'video') {
         out.meta.w = m.videoWidth; out.meta.h = m.videoHeight;
