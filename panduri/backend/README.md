@@ -160,7 +160,7 @@ The owner announces a new version from Settings → "Tell everyone about an upda
 
 ## Card payment and the checkout page (2026-11-11)
 
-**Status:** written and tested locally (backend `npm test`: 32 passed; `qa/billing.cjs` + `qa/billing-navigation.cjs`: 9 passed; `deno check` of `billing` and `payment-callback` passed). **Not deployed**: neither the Edge Functions nor `app/`. No real card payment has been made.
+**Status:** written and tested locally (backend `npm test`: 32 passed; `qa/billing.cjs` + `qa/billing-navigation.cjs`: 9 passed; `deno check` of `billing` and `payment-callback` passed). **Deployed 2026-11-11:** `app/` (commit 9164280) and the `billing` Edge Function (version 3). `PAYPAL_GUEST_CARD` is not set yet, so "Bank card" still shows as "soon"; TBC and `TBC_WALLETS` are not configured, so Apple Pay / Google Pay show as "soon". No real card payment has been made.
 
 The web app (website, PWA, desktop) now has a checkout page (`source/src/checkout.js`, route `checkout`): plan, method, total with the date Premium would run until, one pay button. The paywall sheet on the web leads to it; store builds keep paying in the store. Card numbers are never typed in the app — always on TBC's or PayPal's own page.
 
