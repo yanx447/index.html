@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const APP = process.env.APP_URL || 'http://127.0.0.1:8194/panduri/app/';
 
-test('Hosted checkout navigation survives an open paywall for free and active Premium accounts', async () => {
+test('Paywall → checkout page → hosted card checkout, for free and active Premium accounts', async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     for (const active of [false, true]) {
@@ -19,10 +19,10 @@ test('Hosted checkout navigation survives an open paywall for free and active Pr
         set('cloud.config', { url: 'https://billing-test.invalid', key: 'test-key' });
         set('cloud.session', { access_token: 'test-only', refresh_token: 'test-only', expires_at: Date.now() / 1000 + 3600, user: { id: '12345678-1234-1234-1234-123456789abc', created_at: '2025-01-01' } });
       }, active);
-      let starts = 0;
+      let starts = 0, catalogV = null, startProvider = null;
       await page.route('**/*', async route => {
         const request = route.request(), url = new URL(request.url());
-        if (url.href === APP) return route.fulfill({ contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' + ['core', 'ui', 'cloud', 'billing', 'premium'].map(name => '<script src="js/' + name + '.js"></script>').join('') });
+        if (url.href === APP) return route.fulfill({ contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' + ['core', 'ui', 'cloud', 'billing', 'premium', 'checkout'].map(name => '<script src="js/' + name + '.js"></script>').join('') });
         if (url.origin === new URL(APP).origin) return route.continue();
         if (url.hostname === 'www.paypal.com') {
           // Allow a queued sheet-close history.back() to run before navigation commits.
@@ -35,8 +35,9 @@ test('Hosted checkout navigation survives an open paywall for free and active Pr
         if (url.pathname === '/rest/v1/rpc/is_owner') body = false;
         if (url.pathname === '/functions/v1/billing') {
           const input = request.postDataJSON();
-          if (input.action === 'catalog') body = { providers: [{ id: 'paypal', prices: { monthly: { value: '5.17', currency: 'EUR' }, yearly: { value: '41.38', currency: 'EUR' } } }], stores: {}, policies: {} };
-          else if (input.action === 'start') { starts++; body = { provider: 'paypal', order: 'test-order', url: 'https://www.paypal.com/checkoutnow?token=test-order' }; }
+          const prices = { monthly: { value: '5.17', currency: 'EUR' }, yearly: { value: '41.38', currency: 'EUR' } };
+          if (input.action === 'catalog') { catalogV = input.v; body = { providers: [{ id: 'paypal-card', kind: 'card', wallets: [], prices }, { id: 'paypal', kind: 'paypal', prices }], stores: {}, policies: {} }; }
+          else if (input.action === 'start') { starts++; startProvider = input.provider; body = { provider: 'paypal', order: 'test-order', url: 'https://www.paypal.com/checkoutnow?token=test-order' }; }
           else body = { paid: false };
         }
         return route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
@@ -44,16 +45,29 @@ test('Hosted checkout navigation survives an open paywall for free and active Pr
       await page.goto(APP, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => !!window.PD?.premium?.paywall);
       await page.waitForFunction(active => PD.premium.active === active, active);
-      await page.evaluate(() => { PD.app = { render() { throw new Error('Unexpected app render during checkout'); } }; PD.premium.paywall(); });
-      await page.getByRole('button', { name: 'PayPal', exact: true }).waitFor();
+      await page.evaluate(() => {
+        // the app shell is not loaded here: go() draws the checkout page into the body, as the router would
+        PD.app = { render() { throw new Error('Unexpected app render during checkout'); }, back() {}, go(r, p) { if (r !== 'checkout') throw new Error('Unexpected route ' + r); const w = PD.h('div', { class: 'wrap', id: 'co' }); document.body.append(w); PD.checkout.page(w, p); } };
+        PD.premium.paywall();
+      });
+      await page.getByRole('button', { name: 'Continue to checkout', exact: true }).waitFor();
       assert.match(await page.locator('.pw-plans').innerText(), /5\.17/);
       assert.match(await page.locator('.pw-plans').innerText(), /41\.38/);
       await page.locator('.pw-plan').first().click();
-      await page.getByRole('button', { name: 'Buy Premium', exact: true }).click();
+      await page.getByRole('button', { name: 'Continue to checkout', exact: true }).click();
+      const card = page.getByRole('radio', { name: /Bank card/ });
+      await card.waitFor();
+      assert.equal(await card.getAttribute('aria-checked'), 'true');
+      assert.equal(await page.getByRole('radio', { name: /Monthly/ }).getAttribute('aria-checked'), 'true');
+      // a method that is not switched on is not a button
+      assert.equal(await page.locator('.pay-m.off').count(), 2);
+      assert.equal(await page.locator('button.pay-m.off').count(), 0);
+      assert.match(await page.locator('.pay-sum').innerText(), /5\.17/);
+      await page.getByRole('button', { name: /^Pay .*5\.17/ }).click();
       await page.waitForURL('https://www.paypal.com/checkoutnow?token=test-order');
       await page.getByRole('heading', { name: 'Mock hosted checkout' }).waitFor();
       assert.equal(page.url(), 'https://www.paypal.com/checkoutnow?token=test-order');
-      assert.equal(starts, 1);
+      assert.equal(starts, 1); assert.equal(catalogV, 2); assert.equal(startProvider, 'paypal-card');
       assert.deepEqual(errors, []);
       await context.close();
     }

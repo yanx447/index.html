@@ -23,17 +23,25 @@ export function paypalPrice(env, plan) {
   if (!['USD', 'EUR'].includes(currency) || !/^[0-9]+\.[0-9]{2}$/.test(value) || Number(value) <= 0) throw new BillingError('billing-not-configured', 503);
   return { currency_code: currency, value };
 }
-export function catalog(env) {
+// Wallets appear on TBC's hosted page only after the bank activates them for this merchant; the owner lists them here.
+const WALLETS = ['apple_pay', 'google_pay'];
+export function tbcWallets(env) { return String(env('TBC_WALLETS') || '').split(',').map(x => x.trim()).filter(x => WALLETS.includes(x)); }
+const hasTBC = env => ['TBC_API_KEY', 'TBC_CLIENT_ID', 'TBC_CLIENT_SECRET'].every(k => env(k));
+const hasPayPal = env => ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID', 'PAYPAL_MERCHANT_ID', 'PAYPAL_CURRENCY', 'PAYPAL_MONTHLY_PRICE', 'PAYPAL_YEARLY_PRICE'].every(k => env(k));
+// A card through PayPal without a PayPal account (PayPal guest checkout). Only while TBC is absent, and only when the
+// owner has turned on "PayPal account optional" and confirmed the card form appears for this merchant.
+const hasPayPalCard = env => !hasTBC(env) && hasPayPal(env) && env('PAYPAL_GUEST_CARD') === 'true';
+// version 1 is what clients built before the checkout page understand: never send them a provider they cannot show.
+export function catalog(env, version = 1) {
   const providers = [];
   const policies = { terms: env('TERMS_URL') || null, privacy: env('PRIVACY_URL') || null };
   const validPolicies = Object.values(policies).every(v => { try { return new URL(v).protocol === 'https:'; } catch (_) { return false; } });
-  if (['TBC_API_KEY', 'TBC_CLIENT_ID', 'TBC_CLIENT_SECRET'].every(k => env(k))) {
-    providers.push({ id: 'tbc', prices: { monthly: { value: '14.99', currency: 'GEL' }, yearly: { value: '119.99', currency: 'GEL' } } });
+  const ppPrices = () => Object.fromEntries(Object.keys(PLANS).map(p => { const v = paypalPrice(env, p); return [p, { value: v.value, currency: v.currency_code }]; }));
+  if (hasTBC(env)) {
+    providers.push({ id: 'tbc', kind: 'card', ...(version >= 2 ? { wallets: tbcWallets(env) } : {}), prices: { monthly: { value: '14.99', currency: 'GEL' }, yearly: { value: '119.99', currency: 'GEL' } } });
   }
-  if (['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID', 'PAYPAL_MERCHANT_ID', 'PAYPAL_CURRENCY', 'PAYPAL_MONTHLY_PRICE', 'PAYPAL_YEARLY_PRICE'].every(k => env(k))) {
-    const prices = Object.fromEntries(Object.keys(PLANS).map(p => { const v = paypalPrice(env, p); return [p, { value: v.value, currency: v.currency_code }]; }));
-    providers.push({ id: 'paypal', prices });
-  }
+  if (version >= 2 && hasPayPalCard(env)) providers.push({ id: 'paypal-card', kind: 'card', wallets: [], prices: ppPrices() });
+  if (hasPayPal(env)) providers.push({ id: 'paypal', kind: 'paypal', prices: ppPrices() });
   return { providers, policies, stores: { ios: validPolicies && env('REVENUECAT_SECRET_KEY') ? env('REVENUECAT_IOS_KEY') || null : null, android: validPolicies && env('REVENUECAT_SECRET_KEY') ? env('REVENUECAT_ANDROID_KEY') || null : null }, entitlement: 'premium' };
 }
 export function createBilling({ db, env, fetcher = fetch }) {
@@ -77,7 +85,7 @@ export function createBilling({ db, env, fetcher = fetch }) {
   }
   async function start(uid, plan, provider) {
     if (!Object.hasOwn(PLANS, plan)) throw new BillingError('invalid-plan');
-    if (!catalog(env).providers.some(p => p.id === provider)) throw new BillingError('billing-not-configured', 503);
+    if (!catalog(env, 2).providers.some(p => p.id === provider)) throw new BillingError('billing-not-configured', 503);
     await profile(uid);
     const id = crypto.randomUUID();
     if (provider === 'tbc') {
@@ -91,16 +99,17 @@ export function createBilling({ db, env, fetcher = fetch }) {
       await writeOrder({ id, provider, provider_id: result.payId, user_id: uid, plan, amount: (PLANS[plan] / 100).toFixed(2), currency: 'GEL' });
       return { url: link, order: result.payId, provider };
     }
-    if (provider === 'paypal') {
-      const price = paypalPrice(env, plan);
+    if (provider === 'paypal' || provider === 'paypal-card') {
+      // The card form is PayPal's own page; the order, its verification and its webhook are an ordinary PayPal order.
+      const price = paypalPrice(env, plan), landing = provider === 'paypal-card' ? { landing_page: 'GUEST_CHECKOUT' } : {};
       const result = await paypal('/v2/checkout/orders', { intent: 'CAPTURE', purchase_units: [{ reference_id: id, custom_id: uid, invoice_id: id, amount: price,
         payee: { merchant_id: required(env, 'PAYPAL_MERCHANT_ID') }, description: 'Panduri Premium — ' + plan }],
-        payment_source: { paypal: { experience_context: { user_action: 'PAY_NOW', shipping_preference: 'NO_SHIPPING', return_url: appURL(env, { payment: 'paypal' }), cancel_url: appURL(env, { payment: 'cancelled' }) } } } }, id);
+        payment_source: { paypal: { experience_context: { ...landing, user_action: 'PAY_NOW', shipping_preference: 'NO_SHIPPING', return_url: appURL(env, { payment: 'paypal' }), cancel_url: appURL(env, { payment: 'cancelled' }) } } } }, id);
       const link = result.links?.find(l => ['payer-action', 'approve'].includes(l.rel))?.href;
       const allowed = env('PAYPAL_ENV') === 'live' ? 'www.paypal.com' : 'www.sandbox.paypal.com';
       if (!result.id || !link || new URL(link).hostname !== allowed || new URL(link).protocol !== 'https:') throw new BillingError('invalid-checkout', 502);
-      await writeOrder({ id, provider, provider_id: result.id, user_id: uid, plan, amount: price.value, currency: price.currency_code });
-      return { url: link, order: result.id, provider };
+      await writeOrder({ id, provider: 'paypal', provider_id: result.id, user_id: uid, plan, amount: price.value, currency: price.currency_code });
+      return { url: link, order: result.id, provider: 'paypal' };
     }
     throw new BillingError('invalid-provider');
   }
@@ -154,7 +163,7 @@ export function billingHandler(deps) {
     if (req.method !== 'POST') return json({ error: 'method' }, 405);
     try {
       const u = await billing.user(req), input = await req.json();
-      if (input.action === 'catalog') return json(catalog(deps.env));
+      if (input.action === 'catalog') return json(catalog(deps.env, input.v === 2 ? 2 : 1));
       if (input.action === 'start') return json(await billing.start(u.id, input.plan, input.provider));
       if (input.action === 'sync-store') return json(await billing.syncStore(u.id));
       if (input.action === 'verify' && typeof input.order === 'string' && input.order.length < 150) {

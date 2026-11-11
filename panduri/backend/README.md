@@ -156,3 +156,24 @@ Optional secret: `PUSH_SUBJECT` (an `https://` URL or `mailto:` for the VAPID `s
 Chats also carry the app's own stickers (drawn in the app, sent by name) and GIFs. GIFs need `supabase functions deploy gifs` and a `GIPHY_API_KEY` secret (a free key from https://developers.giphy.com/ — the owner creates it). Until that secret exists the app does not show the GIF choice at all.
 
 The owner announces a new version from Settings → "Tell everyone about an update" (`announce_release`, owner-only by `is_owner()`); every member gets Sima's "The app has been updated" once per version.
+
+
+## Card payment and the checkout page (2026-11-11)
+
+**Status:** written and tested locally (backend `npm test`: 32 passed; `qa/billing.cjs` + `qa/billing-navigation.cjs`: 9 passed; `deno check` of `billing` and `payment-callback` passed). **Not deployed**: neither the Edge Functions nor `app/`. No real card payment has been made.
+
+The web app (website, PWA, desktop) now has a checkout page (`source/src/checkout.js`, route `checkout`): plan, method, total with the date Premium would run until, one pay button. The paywall sheet on the web leads to it; store builds keep paying in the store. Card numbers are never typed in the app — always on TBC's or PayPal's own page.
+
+The server decides which card route exists (`catalog`, sent only to clients that ask with `v: 2`; older clients keep the old list):
+
+| Configured | "Bank card" on the page | Apple Pay / Google Pay |
+| --- | --- | --- |
+| `TBC_API_KEY` + `TBC_CLIENT_ID` + `TBC_CLIENT_SECRET` | TBC hosted page, GEL 14.99 / 119.99 | Selectable for each wallet listed in `TBC_WALLETS`; it opens the same TBC page, where the buyer picks it |
+| No TBC, PayPal configured, `PAYPAL_GUEST_CARD=true` | PayPal's card form (`landing_page: GUEST_CHECKOUT`), EUR prices; stored, verified and webhooked as an ordinary PayPal order | "Soon" (not a button) |
+| Neither | "Soon" (not a button) | "Soon" |
+
+Before setting `PAYPAL_GUEST_CARD=true`: in PayPal → Account settings → Website payments → Website preferences, turn on **PayPal account optional**, then make one real small order from a browser where you are signed out of PayPal and confirm the card form appears. PayPal decides guest-checkout eligibility per buyer (country, risk), so some buyers may still be asked to sign in or create an account; PayPal's documentation does not list Georgia-merchant eligibility explicitly.
+
+Apple Pay: TBC supports it on its hosted page once the bank activates it for the merchant (and Apple Pay on the web needs the merchant domain verified through TBC). After the bank confirms, set `TBC_WALLETS=apple_pay` (and `google_pay`) — no app change is needed. Inside the iOS store build, digital Premium must still be sold through Apple In-App Purchase, not through card checkout.
+
+Deploy order: copy the built `app/` first, then redeploy `billing` (the function is backward compatible either way). No database migration is needed: PayPal card orders are saved with provider `paypal`.

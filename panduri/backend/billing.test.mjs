@@ -98,3 +98,30 @@ test('Store webhook requires its own secret and reads provider state instead of 
   let response=await hook(new Request('https://edge.example/store-webhook',{method:'POST',body:JSON.stringify(event)})); assert.equal(response.status,401);assert.equal(x.grants.length,0);
   response=await hook(new Request('https://edge.example/store-webhook',{method:'POST',headers:{Authorization:'Bearer private-hook-token'},body:JSON.stringify(event)})); assert.equal(response.status,200);assert.equal(x.grants[0].args.expiry,null);
 });
+test('Card through PayPal: off by default, only for new clients, never beside TBC', () => {
+  const env = extra => k => ({ ...secrets, ...extra })[k];
+  const ids = (e, v) => catalog(e, v).providers.map(p => p.id);
+  assert.deepEqual(ids(env({ PAYPAL_GUEST_CARD: 'true' }), 2), ['tbc', 'paypal']);
+  const noTBC = { TBC_API_KEY: '', PAYPAL_GUEST_CARD: 'true' };
+  assert.deepEqual(ids(env(noTBC), 2), ['paypal-card', 'paypal']);
+  assert.deepEqual(ids(env(noTBC), 1), ['paypal']);
+  assert.deepEqual(ids(env({ TBC_API_KEY: '' }), 2), ['paypal']);
+});
+test('TBC wallets are only the ones the owner lists as activated', () => {
+  const e = extra => k => ({ ...secrets, ...extra })[k];
+  assert.deepEqual(catalog(e({}), 2).providers[0].wallets, []);
+  assert.deepEqual(catalog(e({ TBC_WALLETS: 'apple_pay, bitcoin,google_pay' }), 2).providers[0].wallets, ['apple_pay', 'google_pay']);
+  assert.equal('wallets' in catalog(e({ TBC_WALLETS: 'apple_pay' }), 1).providers[0], false);
+});
+test('A PayPal card order opens the card form and is saved and verified as an ordinary PayPal order', async () => {
+  const x = setup({ env: { TBC_API_KEY: '', PAYPAL_GUEST_CARD: 'true' } });
+  const r = await (await x.handler(req({ action: 'start', plan: 'monthly', provider: 'paypal-card' }))).json();
+  assert.equal(r.provider, 'paypal'); assert.equal(x.orders[0].provider, 'paypal');
+  const body = x.calls.find(c => c.url.endsWith('/v2/checkout/orders')).body;
+  assert.equal(body.payment_source.paypal.experience_context.landing_page, 'GUEST_CHECKOUT');
+  assert.equal((await x.billing.verifyPayPal('paypal-order', uid, true)).paid, true); assert.equal(x.grants[0].args.purchase_provider, 'paypal');
+});
+test('A PayPal card order is refused while the owner has not enabled it', async () => {
+  const x = setup({ env: { TBC_API_KEY: '' } });
+  await assert.rejects(x.billing.start(uid, 'monthly', 'paypal-card'), /billing-not-configured/); assert.equal(x.calls.length, 0);
+});

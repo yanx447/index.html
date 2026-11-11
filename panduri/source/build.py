@@ -1,14 +1,14 @@
 """Build: one modular PWA (dist/app/) + one self-contained HTML file + the artifact fragment.
 Module order = dependency order. three3d.js is embedded as inert text and parsed only when 3D is first used."""
 import base64, os, re, json, hashlib, shutil
-ORDER = ['core','instrument','theory','geom','songdata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','genres','book','install','sima','aiworker','aispl','aideck','aimus','ailesson','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
+ORDER = ['core','instrument','theory','geom','songdata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','genres','book','install','sima','aiworker','aispl','aideck','aimus','ailesson','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
 LAZY = {'three3d'}
 src = lambda n: open(f'src/{n}').read()
 # The stylesheet is two cascade layers: the earlier screens' rules (app.css) in `legacy`, and the design
 # system (design.css) after it. A later layer wins whatever the selector, so the design system never has to
 # out-shout an old rule; `ds-imp` holds the few !important answers to legacy !important rules (for important
 # declarations an earlier layer wins).
-css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css') + '\n' + src('v2.css') + '\n'
+css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css') + '\n@layer ds {\n' + src('checkout.css') + '\n}\n' + src('v2.css') + '\n'
 hero = 'data:image/jpeg;base64,' + base64.b64encode(open('assets/hero.jpg','rb').read()).decode() if os.path.exists('assets/hero.jpg') else ''
 # supplied recordings (songs): files in media/ — linked in the PWA, embedded as data: URIs in the single-file builds
 # the teacher's recordings: kept once in the repository, beside the built app, so the source tree

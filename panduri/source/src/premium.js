@@ -192,9 +192,11 @@ PD.premium = (() => {
         }
         if (!current.prices[plan]) { plan = current.prices.yearly ? 'yearly' : 'monthly'; drawPlans(); }
       }
-      const buy = h('button', { class: 'btn primary big', disabled: true, 'data-t': 'pm.buy', onclick: async () => {
+      const buy = h('button', { class: 'btn primary big', disabled: true, 'data-t': B.native ? 'pm.buy' : 'pay.continue', onclick: async () => {
         if (!C.session) { close(); PD.auth.open(); return; }
         if (api.banned) { say(t('pm.blocked')); return; }
+        // website, PWA, desktop: the method is chosen on the checkout page
+        if (!B.native) { close(); PD.checkout.open(plan); return; }
         buy.disabled = true;
         try {
           const result = await B.purchase(plan, provider, paymentOptions.packages && paymentOptions.packages[plan]);
@@ -212,7 +214,7 @@ PD.premium = (() => {
         catch (_) { say(t('pm.payError')); }
         finally { restore.disabled = false; }
       } });
-      box.append(methods, plans, terms, buy, msg, restore);
+      box.append(...[B.native ? methods : null, plans, terms, buy, msg, restore].filter(Boolean));
       if (B.native) box.append(h('button', { class: 'btn quiet', 'data-t': 'pm.manageSub', onclick: () => {
         const cap = window.Capacitor, url = cap.getPlatform() === 'ios' ? 'https://apps.apple.com/account/subscriptions' : 'https://play.google.com/store/account/subscriptions';
         const browser = cap.Plugins && cap.Plugins.Browser;

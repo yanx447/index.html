@@ -8,7 +8,7 @@ PD.billing = (() => {
   const pendingKey = uid => 'billing.pending.' + uid;
   async function catalog() {
     if (!C.session) throw new Error('sign-in-required');
-    if (!catalogPromise) catalogPromise = C.billing({ action: 'catalog' }).catch(e => { catalogPromise = null; throw e; });
+    if (!catalogPromise) catalogPromise = C.billing({ action: 'catalog', v: 2 }).catch(e => { catalogPromise = null; throw e; });
     return catalogPromise;
   }
   async function store() {
@@ -69,15 +69,17 @@ PD.billing = (() => {
         await syncStore();
         return { pending: !PD.premium.active };
       }
-      if (!['tbc', 'paypal'].includes(provider)) throw new Error('invalid-provider');
+      // 'paypal-card' is a card typed on PayPal's own page; the order it creates is an ordinary PayPal order.
+      if (!['tbc', 'paypal', 'paypal-card'].includes(provider)) throw new Error('invalid-provider');
+      const via = provider === 'tbc' ? 'tbc' : 'paypal';
       // Finish an earlier approved purchase before opening another checkout.
       if (await verifyPending()) return { pending: false };
       const result = await C.billing({ action: 'start', plan, provider });
       if (C.uid !== uid) throw new Error('account-changed');
       const url = new URL(result.url);
-      const hosts = provider === 'tbc' ? ['tpay.tbcbank.ge'] : ['www.paypal.com', 'www.sandbox.paypal.com'];
-      if (url.protocol !== 'https:' || !hosts.includes(url.hostname) || result.provider !== provider || !result.order) throw new Error('invalid-checkout');
-      PD.store.set(pendingKey(uid), { provider, order: result.order });
+      const hosts = via === 'tbc' ? ['tpay.tbcbank.ge'] : ['www.paypal.com', 'www.sandbox.paypal.com'];
+      if (url.protocol !== 'https:' || !hosts.includes(url.hostname) || result.provider !== via || !result.order) throw new Error('invalid-checkout');
+      PD.store.set(pendingKey(uid), { provider: via, order: result.order, plan, at: Date.now() });
       location.assign(url.href);
       return { pending: true, redirecting: true };
     } finally { busy = false; }
@@ -100,7 +102,7 @@ PD.billing = (() => {
   window.addEventListener('focus', refresh);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   // Restore the app's own return URL; a successful redirect is not a payment receipt.
-  const params = new URLSearchParams(location.search);
+  const params = new URLSearchParams(location.search), returned = params.get('payment');
   if (['tbc', 'paypal', 'success', 'cancelled'].includes(params.get('payment'))) {
     const url = new URL(location.href);
     ['payment', 'token', 'PayerID'].forEach(k => url.searchParams.delete(k));
@@ -110,5 +112,7 @@ PD.billing = (() => {
   setTimeout(refresh, 1500);
   let lastUser = C.uid;
   PD.bus.on('cloud', () => { if (lastUser !== C.uid) { lastUser = C.uid; catalogPromise = null; setTimeout(refresh, 0); } });
-  return { options, purchase, restore, refresh, get native() { return native(); } };
+  const pending = () => { const uid = C.uid; return uid && PD.store.get(pendingKey(uid), null); };
+  // `returned`: the buyer came back from a hosted checkout ('tbc' | 'paypal' | 'cancelled'). It is a hint for the screen, not a receipt.
+  return { options, purchase, restore, refresh, verifyPending, pending, returned: ['tbc', 'paypal', 'success', 'cancelled'].includes(returned) ? returned : null, get native() { return native(); } };
 })();

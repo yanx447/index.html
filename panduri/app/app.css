@@ -3588,6 +3588,7 @@ button:hover .rx-pan svg,button:focus-visible .rx-pan svg{animation:ck-groove 1s
 :root[data-theme="midnight"].hc{--muted:#e4e4e7;--faint:#d4d4d8;--line:rgba(255,255,255,.3);--line2:rgba(255,255,255,.45)}
 @media(prefers-contrast:more){:root[data-theme="midnight"]{--muted:#e4e4e7;--faint:#d4d4d8;--line:rgba(255,255,255,.3);--line2:rgba(255,255,255,.45)}}
 
+
 }
 /* =====================================================================
    ფანდური — design system
@@ -4206,6 +4207,76 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
 @media(prefers-reduced-motion:reduce){.nv,.nv-ic,.nv-ind{transition:none!important}}
 }
 
+@layer ds {
+/* Checkout (checkout.js). The build puts this file in the `ds` layer after design.css.
+   One column, at most 560 px: a payment page reads top to bottom — plan, method, total, pay. */
+.wrap.pay { max-width: 560px; gap: var(--s4, 16px); }
+.pay .pay-lead { margin: -4px 0 0; }
+.pay .pay-h { font-size: var(--t-foot); font-weight: 600; letter-spacing: .02em; color: var(--muted); margin: 10px 0 -4px; text-align: start; }
+.pay-active { margin: 0; font-weight: 600; color: var(--ok); }
+
+/* plan */
+.pay-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pay-plan { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 96px; padding: 16px 14px 14px; border: 0; border-radius: var(--r-m); background: var(--surface); color: var(--fg); text-align: start; cursor: pointer; transition: background var(--d-micro) var(--ease-out), box-shadow var(--d-micro) var(--ease-out); }
+.pay-plan b { font-size: var(--t-callout); font-weight: 600; color: var(--fg2); }
+.pay-price { font-size: var(--t-title2); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pay-plan small { font-size: var(--t-caption); color: var(--muted); line-height: 1.35; }
+.pay-plan em { position: absolute; top: -9px; inset-inline-end: 12px; font-style: normal; font-size: var(--t-over); font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); background: var(--acc); color: var(--acc-ink); }
+.pay-plan[aria-checked="true"] { background: var(--acc-wash); box-shadow: inset 0 0 0 1.5px var(--acc-line); }
+.pay-plan[aria-checked="true"] small { color: var(--acc2); }
+
+/* method */
+.pay-methods { display: flex; flex-direction: column; border-radius: var(--r-m); background: var(--surface); overflow: hidden; }
+.pay-m { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 10px 14px; border: 0; background: none; color: var(--fg); text-align: start; font: inherit; cursor: pointer; }
+.pay-m + .pay-m { box-shadow: inset 0 1px 0 var(--line); }
+.pay-m-ic { width: 40px; height: 40px; border-radius: var(--r-s); display: grid; place-items: center; background: var(--surface2); color: var(--fg2); }
+.pay-m-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pay-m-tx b { font-size: var(--t-body); font-weight: 600; }
+.pay-m-tx small { font-size: var(--t-caption); color: var(--muted); line-height: 1.35; }
+.pay-radio { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line3); transition: box-shadow var(--d-micro) var(--ease-out); }
+.pay-m[aria-checked="true"] .pay-radio { box-shadow: inset 0 0 0 7px var(--acc); }
+.pay-m[aria-checked="true"] .pay-m-ic { background: var(--acc-wash); color: var(--acc2); }
+.pay-m.off { cursor: default; }
+.pay-m.off .pay-m-ic, .pay-m.off .pay-m-tx b { color: var(--disabled); }
+.pay-soon { font-size: var(--t-over); font-weight: 600; padding: 3px 8px; border-radius: var(--r-pill); background: var(--surface2); color: var(--muted); }
+.pay-m:not(.off):not([aria-checked="true"]):active { background: var(--surface2); }
+@media (hover: hover) and (pointer: fine) { .pay-m:not(.off):hover, .pay-plan:hover { background: var(--surface2); } .pay-plan[aria-checked="true"]:hover { background: rgba(199,139,94,.2); } }
+
+/* the acceptance marks, drawn — no brand files are shipped */
+.pay-marks { display: flex; gap: 4px; align-items: center; }
+.pay-marks i { display: inline-grid; place-items: center; height: 20px; min-width: 32px; padding: 0 4px; border-radius: 4px; background: #fff; font-style: normal; }
+.mk-visa { color: #1A1F71; font: italic 800 10px/1 var(--f-ui); letter-spacing: .02em; }
+.mk-mc { position: relative; }
+.mk-mc em { position: absolute; top: 4px; width: 12px; height: 12px; border-radius: 50%; }
+.mk-mc em:first-child { left: 5px; background: #EB001B; }
+.mk-mc em:last-child { left: 13px; background: #F79E1B; mix-blend-mode: multiply; }
+
+/* total */
+.pay-sum { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: var(--r-m); background: var(--surface); }
+.pay-line { display: flex; justify-content: space-between; gap: 12px; font-size: var(--t-callout); color: var(--fg2); font-variant-numeric: tabular-nums; }
+.pay-line.sub { font-size: var(--t-caption); color: var(--muted); }
+.pay-line.total { padding-top: 10px; box-shadow: inset 0 1px 0 var(--line); font-size: var(--t-headline); color: var(--fg); }
+.pay-note { margin: 0; font-size: var(--t-caption); line-height: 1.45; }
+.pay-go { width: 100%; gap: 8px; margin-top: 4px; }
+.pay-go svg { flex: none; }
+.pay-safe { display: flex; gap: 8px; align-items: flex-start; margin: 0; font-size: var(--t-caption); line-height: 1.45; color: var(--muted); }
+.pay-safe svg { flex: none; color: var(--ok); margin-top: 1px; }
+.pay-how { font-size: var(--t-foot); color: var(--fg2); }
+.pay-how > summary { cursor: pointer; font-weight: 600; color: var(--muted); padding: 6px 0; }
+.pay-how ol { margin: 4px 0 0; padding-inline-start: 20px; display: flex; flex-direction: column; gap: 6px; line-height: 1.45; }
+
+/* back from the hosted page */
+.pay-ret { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 36px 20px; border-radius: var(--r-l); background: var(--surface); text-align: center; }
+.pay-ret-ic { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; color: var(--ok); }
+.pay-ret-ic.spin { border: 3px solid var(--line2); border-top-color: var(--acc); animation: ds-spin .9s linear infinite; }
+.pay-ret-ic.wait { background: var(--acc-wash); }
+.pay-ret-ic.wait::before { content: ''; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--acc2); }
+.pay-ret-t { margin: 0; max-width: 380px; font-size: var(--t-body); line-height: 1.5; color: var(--fg2); }
+.pay-ret-a { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+@media (max-width: 380px) { .pay-plans { grid-template-columns: 1fr; } .pay-plan { min-height: 0; } .pay-marks { display: none; } }
+@media (prefers-reduced-motion: reduce) { .pay-ret-ic.spin { animation-duration: 2.4s; } }
+
+}
 /* =====================================================================
    ფანდური V2 — NOMI black + liquid glass, for the social screens
    (feed · messages · call). Presentation only: every route, request,

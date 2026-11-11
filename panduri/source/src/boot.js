@@ -9,6 +9,8 @@
     PD.app.shell();
     setTimeout(() => PD.samiSimi.prepare(), 1200);
     PD.app.go('home', null, true);
+    // back from the bank's or PayPal's page: the checkout screen says what the server has (or has not yet) confirmed
+    if (PD.billing.returned && !PD.billing.native) PD.app.go('checkout', 'return');
     // the very first screen on a new device is the language, before anything has to be read
     // then: sign in (Google · Facebook · phone · e-mail), then the short onboarding
     const afterAuth = () => PD.onboard.maybe();
