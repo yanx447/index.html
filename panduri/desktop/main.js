@@ -84,7 +84,7 @@ function menu() {
 
 function open() {
   win = new BrowserWindow({
-    width: 1280, height: 820, minWidth: 360, minHeight: 560, show: false, backgroundColor: '#0B0A09', autoHideMenuBar: true,
+    width: 1280, height: 820, minWidth: 360, minHeight: 560, show: false, backgroundColor: '#08090B', autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false }   // listening and the metronome keep time when another window is in front
   });
   win.once('ready-to-show', () => win.show());

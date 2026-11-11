@@ -4,7 +4,11 @@ import base64, os, re, json, hashlib, shutil
 ORDER = ['core','instrument','theory','geom','songdata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','genres','book','install','sima','aiworker','aispl','aideck','aimus','ailesson','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
 LAZY = {'three3d'}
 src = lambda n: open(f'src/{n}').read()
-css = src('app.css')
+# The stylesheet is two cascade layers: the earlier screens' rules (app.css) in `legacy`, and the design
+# system (design.css) after it. A later layer wins whatever the selector, so the design system never has to
+# out-shout an old rule; `ds-imp` holds the few !important answers to legacy !important rules (for important
+# declarations an earlier layer wins).
+css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css')
 hero = 'data:image/jpeg;base64,' + base64.b64encode(open('assets/hero.jpg','rb').read()).decode() if os.path.exists('assets/hero.jpg') else ''
 # supplied recordings (songs): files in media/ — linked in the PWA, embedded as data: URIs in the single-file builds
 # the teacher's recordings: kept once in the repository, beside the built app, so the source tree
@@ -56,7 +60,7 @@ LANG_BOOT = '<script>(function(){var L=' + json.dumps(LANG_FILES) + ',c;try{c=JS
 for c, j in LANG_JSON.items(): assert '</script' not in j, c
 LANG_LIST_TAG = '<script>window.PD_LANG_READY=' + json.dumps(LANG_FILES) + ';</script>'
 LANG_INLINE = LANG_LIST_TAG + '\n' + '\n'.join(f'<script type="application/json" id="lang-{c}">{j}</script>' for c, j in LANG_JSON.items())
-FONTS = 'https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@200;300;400;500;600;700&family=Noto+Serif+Georgian:wght@600;700&display=swap'
+FONTS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Georgian:wght@300;400;500;600;700&family=Noto+Serif+Georgian:wght@600;700&display=swap'
 def scripts_inline():
     out = [LANG_INLINE]   # before core.js, which reads the chosen language as soon as it runs
     for n in ORDER:
@@ -67,12 +71,12 @@ def scripts_inline():
     return '\n'.join(out)
 head_meta = f'''<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#130C07">
+<meta name="theme-color" content="#08090B">
 <meta name="description" content="{DESC}">
 <title>{TITLE}</title>'''
 # the first paint is only the app's background (no white flash while the scripts parse); the sign-in screen is the
 # real opening, and the loading screen comes after signing in (PD.auth.arrive), while the profile and progress arrive.
-SPLASH = """<div id="pd-splash" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;background:#0B0A09;transition:opacity .28s ease"></div>"""
+SPLASH = """<div id="pd-splash" aria-hidden="true" style="position:fixed;inset:0;z-index:9999;background:#08090B;transition:opacity .28s ease"></div>"""
 os.makedirs('dist', exist_ok=True)
 # 1) self-contained single file (standalone, offline-capable as a file)
 single = f'''<!doctype html>
@@ -105,7 +109,7 @@ frag = f'''<noscript>ფანდურის სასწავლო აპს
   d.title = {json.dumps(TITLE)};
   d.documentElement.lang = 'ka';
   var add = function (tag, attrs) {{ var e = d.createElement(tag); for (var k in attrs) e.setAttribute(k, attrs[k]); h.appendChild(e); return e; }};
-  add('meta', {{ name: 'theme-color', content: '#130C07' }});
+  add('meta', {{ name: 'theme-color', content: '#08090B' }});
   add('meta', {{ name: 'description', content: {json.dumps(DESC)} }});
   add('link', {{ rel: 'preconnect', href: 'https://fonts.googleapis.com' }});
   add('link', {{ rel: 'stylesheet', href: {json.dumps(FONTS)} }});
@@ -169,7 +173,7 @@ index = f'''<!doctype html>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ფანდური">
 <meta name="application-name" content="ფანდური">
-<meta name="msapplication-TileColor" content="#130C07">
+<meta name="msapplication-TileColor" content="#08090B">
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="{FONTS}">

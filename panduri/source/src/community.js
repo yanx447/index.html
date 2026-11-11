@@ -15,7 +15,7 @@ PD.i18n.add({
   'cm.needServer': ['ეს ნაწილი სერვერის განახლების შემდეგ ჩაირთვება.', 'This part switches on once the server has been updated.'], 'cm.textOnly': ['სერვერი ჯერ არ არის განახლებული: ფოტო, სტიკერი და GIF გაგზავნა მისი განახლების შემდეგ შეიძლება.', 'The server has not been updated yet: photos, stickers and GIFs can be sent once it is.'],
   'cm.mSticker': ['🪕 სტიკერი', '🪕 Sticker'], 'cm.mGif': ['GIF', 'GIF'],
   'cm.audioTip': ['აუდიოსთვის WAV საუკეთესო ხარისხია (რეკომენდებული), MP3 — ნორმალური. სხვა ფორმატებიც იტვირთება. ფაილი იგზავნება ისე, როგორც არის.', 'For audio, WAV is the best quality (recommended) and MP3 is fine. Other formats upload too. The file is sent as it is.'],
-  'cm.write': ['მიწერა', 'Message'], 'cm.type': ['დაწერე…', 'Write…'], 'cm.send': ['გაგზავნა', 'Send'],
+  'cm.write': ['მიწერა', 'Message'], 'cm.searchChats': ['ძებნა', 'Search'], 'cm.newChat': ['ახალი მესიჯი', 'New message'], 'cm.you': ['შენ', 'You'], 'cm.type': ['დაწერე…', 'Write…'], 'cm.send': ['გაგზავნა', 'Send'],
   'cm.errGen': ['ახლა ვერ მოხერხდა — სცადე ცოტა ხანში თავიდან.', 'That didn’t work just now — try again in a moment.'], 'cm.delete': ['წაშლა', 'Delete'], 'cm.err': ['ვერ მოხერხდა: {e}', 'Could not complete: {e}'], 'cm.now': ['ახლა', 'now'], 'cm.needName': ['სხვებმა რომ გიპოვონ და იცოდნენ ვინ წერს, ჩაწერე შენი სახელი.', 'So others can find you and know who is writing, add your name.'], 'cm.yourName': ['შენი სახელი', 'Your name'], 'cm.save': ['შენახვა', 'Save'],
   'cl.video': ['ვიდეო ზარი', 'Video call'], 'cl.calling': ['ირეკება…', 'Calling…'], 'cl.incoming': ['{n} გირეკავს', '{n} is calling'], 'cl.accept': ['პასუხი', 'Answer'], 'cl.decline': ['უარყოფა', 'Decline'],
   'cl.ended': ['ზარი დასრულდა', 'Call ended'], 'cl.busy': ['ხაზი დაკავებულია', 'The line is busy'], 'cl.noAnswer': ['არ უპასუხა', 'No answer'], 'cl.mute': ['მიკროფონი', 'Microphone'], 'cl.cam': ['კამერა', 'Camera'], 'cl.hang': ['დასრულება', 'Hang up'],
@@ -35,6 +35,7 @@ PD.i18n.add({
 PD.community = (() => {
   const h = PD.h, C = PD.cloud, ic = PD.ic;
   const FLAG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h13l-3 4 3 4H5"/></svg>';
+  const CHEV = '<svg class="cm-chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
   const MORE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
   const ago = iso => { const d = (Date.now() - new Date(iso).getTime()) / 60000; return d < 1 ? t('cm.now') : d < 60 ? Math.round(d) + "'" : d < 1440 ? Math.round(d / 60) + 'h' : new Date(iso).toLocaleDateString(PD.i18n.locale); };
   // Georgian has no capitals in running text: toUpperCase() would turn „ნ“ into Mtavruli „Ნ“
@@ -110,34 +111,78 @@ PD.community = (() => {
       return gate(h('div', { class: 'cm-name' }, [h('p', { 'data-t': 'cm.needName' }), h('div', { class: 'row' }, [nm, h('button', { class: 'btn primary', 'data-t': 'cm.save', onclick: async () => { const v = nm.value.trim(); if (!v) return nm.focus(); try { await C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }); await C.loadProfile(); PD.app.render(); } catch (e) { PD.ui.toast(err(e)); } } })])]));
     }
     if (param === 'friends') {
-      const body = h('div', { class: 'cm-body' });
-      w.append(subHead('cm.friends'), body);
+      const body = h('div', { class: 'cm-body fr' });
+      w.append(h('div', { class: 'cm-top' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), h('h1', { class: 'cm-h1', 'data-t': 'cm.friends' }), h('span', { class: 'pz-ic', 'aria-hidden': 'true' })]), body);
       PD.social.friends(body);
-      w.append(h('div', { class: 'cm-list cm-links' }, [
-        h('button', { class: 'btn', html: PD.social.IC.save + '<span data-t="fd.saved"></span>', onclick: () => PD.app.go('community', 'saved') }),
-        C.isAdmin ? h('button', { class: 'btn', html: FLAG + '<span data-t="cm.reports"></span>', onclick: () => PD.ui.sheet(b => { const box = h('div', { class: 'cm-body' }); b.append(h('h2', { 'data-t': 'cm.reports' }), box); reports(box); }) }) : null].filter(Boolean)));
+      w.append(h('div', { class: 'cm-links' }, [
+        h('button', { class: 'cm-link', html: PD.social.IC.save + '<span data-t="fd.saved"></span>' + CHEV, onclick: () => PD.app.go('community', 'saved') }),
+        h('button', { class: 'cm-link', html: PD.social.IC.flag + '<span data-t="md.blockedList"></span>' + CHEV, onclick: () => blockedSheet() }),
+        C.isAdmin ? h('button', { class: 'cm-link', html: FLAG + '<span data-t="cm.reports"></span>' + CHEV, onclick: () => PD.ui.sheet(b => { const box = h('div', { class: 'cm-body' }); b.append(h('h2', { 'data-t': 'cm.reports' }), box); reports(box); }) }) : null].filter(Boolean)));
       return;
     }
     if (!C.profile.nickname) return gate(PD.social.nickCard(true));
-    if (param === 'chats') { const body = h('div', { class: 'cm-body' }); w.append(subHead('cm.chats'), body); return chats(body); }
+    if (param === 'chats') return inbox(w);
     // everything else is the feed, edge to edge
     w.innerHTML = ''; if (pg) pg.classList.add('fd-mode');
     const box = h('div', { class: 'fd' }); w.append(box);
     PD.social.feed(box, own, param.indexOf('p:') === 0 ? { one: +param.slice(2) } : param === 'saved' ? { saved: true } : null);
   }
-  async function chats(box) {
-    try {
-      const [all, hidden] = await Promise.all([C.chat.list(), blockedIds()]), rows = (all || []).filter(r => !hidden.has(r.other));
-      box.innerHTML = '';
-      if (!rows.length) { box.appendChild(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: ic.chat }), h('p', { 'data-t': 'cm.noChats' }), h('button', { class: 'btn', 'data-t': 'cm.addFriends', onclick: () => PD.app.go('community', 'friends') })])); PD.i18n.apply(box); PD.store.set('cm.unread', 0); return; }
-      let total = 0;
-      rows.forEach(r => { total += r.unread || 0; const what = r.last_body || (r.last_kind ? t({ photo: 'cm.mPhoto', video: 'cm.mVideo', audio: 'cm.mAudio', post: 'cm.mPost', sticker: 'cm.mSticker', gif: 'cm.mGif' }[r.last_kind] || 'cm.mPost') : '');
-        box.appendChild(h('button', { class: 'cm-row' + (r.unread ? ' new' : ''), onclick: () => PD.app.go('community', 'c:' + r.id + ':' + (r.other_name || r.other_nick || '')) }, [
-        h('span', { class: 'avatar', html: r.other_avatar ? '<img alt="" src="' + PD.esc(r.other_avatar) + '">' : initial(r.other_name) }),
-        h('div', { class: 'grow' }, [h('b', { text: r.other_name || (r.other_nick ? '@' + r.other_nick : '—') }), h('small', { text: (r.last_sender === C.uid ? '↩ ' : '') + what })]),
-        h('span', { class: 'cm-when' }, [h('small', { class: 'muted', text: ago(r.last_at) }), r.unread ? h('i', { class: 'cm-dot', text: r.unread > 9 ? '9+' : String(r.unread) }) : null].filter(Boolean))])); });
-      PD.store.set('cm.unread', total);
-    } catch (e) { box.textContent = err(e); }
+  /** someone seen in the last five minutes counts as here now (the server's own last_seen, nothing guessed) */
+  const online = iso => !!iso && Date.now() - new Date(iso).getTime() < 5 * 60000;
+  const face = (url, name, on, cls) => h('span', { class: 'cm-face' + (cls ? ' ' + cls : '') + (on ? ' cm-on' : '') }, [h('span', { class: 'avatar', html: url ? '<img alt="" src="' + PD.esc(url) + '">' : initial(name) })]);
+  const openChat = async (uid, name) => { try { const c = await C.chat.open(uid); PD.app.go('community', 'c:' + c + ':' + (name || '')); } catch (e) { PD.ui.toast(err(e)); } };
+  const skRows = n => Array.from({ length: n }, () => h('div', { class: 'cm-crow sk', 'aria-hidden': 'true' }, [h('i', { class: 'sk-dot big' }), h('span', { class: 'grow' }, [h('i', { class: 'sk-line w40' }), h('i', { class: 'sk-line w70' })])]));
+  /** messages, as in a messaging app: the title, a search, friends to start a chat with, the conversations */
+  function inbox(w) {
+    const q = h('input', { class: 'input cm-search', type: 'search', placeholder: t('cm.searchChats'), 'aria-label': t('cm.searchChats'), autocomplete: 'off' });
+    const strip = h('div', { class: 'cm-strip', role: 'list' }), list = h('div', { class: 'cm-clist', role: 'list' }, skRows(4));
+    const newB = h('button', { class: 'pz-ic', 'aria-label': t('cm.newChat'), title: t('cm.newChat'), html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>', onclick: () => pickFriend() });
+    w.append(h('div', { class: 'cm-top' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), h('h1', { class: 'cm-h1', 'data-t': 'cm.chats' }), newB]),
+      h('label', { class: 'cm-sbox' }, [h('span', { html: ic.search }), q]), strip, h('h3', { class: 'cm-lab', 'data-t': 'cm.chats' }), list);
+    let rows = [], friends = [];
+    function paint() {
+      const f = q.value.trim().toLowerCase(), hit = r => !f || [(r.other_name || ''), (r.other_nick || '')].join(' ').toLowerCase().includes(f);
+      list.innerHTML = '';
+      const shown = rows.filter(hit);
+      if (!rows.length) { list.appendChild(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: ic.chat }), h('p', { 'data-t': 'cm.noChats' }), h('button', { class: 'btn primary', 'data-t': friends.length ? 'cm.newChat' : 'cm.addFriends', onclick: () => friends.length ? pickFriend() : PD.app.go('community', 'friends') })])); PD.i18n.apply(list); return; }
+      if (!shown.length) { list.appendChild(h('p', { class: 'muted cm-none', 'data-t': 'fr.notFound' })); PD.i18n.apply(list); return; }
+      const seen = new Map(friends.map(x => [x.id, x.last_seen]));
+      shown.forEach(r => {
+        const what = r.last_body || (r.last_kind ? t({ photo: 'cm.mPhoto', video: 'cm.mVideo', audio: 'cm.mAudio', post: 'cm.mPost', sticker: 'cm.mSticker', gif: 'cm.mGif' }[r.last_kind] || 'cm.mPost') : '');
+        list.appendChild(h('button', { class: 'cm-crow' + (r.unread ? ' new' : ''), role: 'listitem', onclick: () => PD.app.go('community', 'c:' + r.id + ':' + (r.other_name || r.other_nick || '')) }, [
+          face(r.other_avatar, r.other_name || r.other_nick, online(seen.get(r.other))),
+          h('span', { class: 'grow' }, [h('b', { text: r.other_name || (r.other_nick ? '@' + r.other_nick : '—') }), h('small', {}, [h('span', { class: 'cm-last', text: (r.last_sender === C.uid ? t('cm.you') + ': ' : '') + what }), h('span', { class: 'cm-ago', text: ' · ' + ago(r.last_at) })])]),
+          r.unread ? h('i', { class: 'cm-udot', 'aria-label': t('cm.unread', { n: r.unread }) }) : h('span', { class: 'cm-cam', html: ic.video })]));
+      });
+      PD.i18n.apply(list); PD.motion && PD.motion.reveal(list, 0);
+    }
+    function paintStrip() {
+      strip.innerHTML = '';
+      const fr = friends.filter(x => x.relation === 'friend');
+      strip.hidden = !fr.length; if (!fr.length) return;
+      fr.slice().sort((a, b) => (online(b.last_seen) - online(a.last_seen))).slice(0, 20).forEach(x => {
+        const nm = x.display_name || '@' + x.nickname;
+        strip.appendChild(h('button', { class: 'cm-pal', role: 'listitem', onclick: () => openChat(x.id, nm) }, [face(x.avatar_url, nm, online(x.last_seen), 'cm-ringed'), h('small', { text: (x.display_name || x.nickname || '').split(' ')[0] })]));
+      });
+      PD.motion && PD.motion.reveal(strip, 0);
+    }
+    function pickFriend() {
+      const fr = friends.filter(x => x.relation === 'friend');
+      PD.ui.sheet((b, close) => {
+        b.append(h('h2', { 'data-t': 'cm.newChat' }));
+        if (!fr.length) { b.append(h('p', { class: 'muted', 'data-t': 'fd.noFriendsYet' }), h('button', { class: 'btn primary', 'data-t': 'cm.addFriends', onclick: () => { close(); PD.app.go('community', 'friends'); } })); return; }
+        b.append(h('div', { class: 'cm-clist' }, fr.map(x => { const nm = x.display_name || '@' + x.nickname; return h('button', { class: 'cm-crow', onclick: () => { close(); openChat(x.id, nm); } }, [face(x.avatar_url, nm, online(x.last_seen)), h('span', { class: 'grow' }, [h('b', { text: nm }), h('small', { text: '@' + (x.nickname || '') })])]); })));
+      });
+    }
+    q.addEventListener('input', paint);
+    (async () => {
+      try {
+        const [all, hidden, fr] = await Promise.all([C.chat.list(), blockedIds(), C.social.friends().catch(() => [])]);
+        rows = (all || []).filter(r => !hidden.has(r.other)); friends = fr || [];
+        PD.store.set('cm.unread', rows.reduce((a, r) => a + (r.unread || 0), 0));
+        paintStrip(); paint();
+      } catch (e) { list.innerHTML = ''; list.appendChild(h('p', { class: 'muted', text: err(e) })); }
+    })();
   }
   function chatView(w, id, name, own) {
     w.innerHTML = '';
@@ -162,6 +207,7 @@ PD.community = (() => {
     };
     PD.chatkit.gifsAvailable();   // asked once: the GIF choice appears only when the server has it
     const kit = PD.chatkit.panel({ input: inp, onSticker: st => sendExtra({ sticker: st }), onGif: g => sendExtra({ gif: g.url, media_meta: { w: g.w, h: g.h } }) });
+    own(() => kit.destroy());
     const plus = () => PD.ui.sheet((b, close) => {
       const opt = (icon, key, fn) => h('button', { class: 'ck-opt', html: icon + '<span data-t="' + key + '"></span>', onclick: () => { close(); fn(); } });
       b.append(h('h2', { 'data-t': 'ck.attach' }), h('small', { class: 'muted small-note', 'data-t': 'cm.audioTip' }), h('div', { class: 'ck-opts' }, [
@@ -201,7 +247,7 @@ PD.community = (() => {
       if (m.post_ref) kids.push(S.postCard(m.post_ref));
       if (m.body) kids.push(h('p', { text: m.body }));
       const rx = h('div', { class: 'cm-rx', hidden: true });
-      const el = h('div', { class: 'cm-msg' + (mine ? ' me' : '') + (m.media_path || m.post_ref || m.gif ? ' has-media' : '') + (m.sticker ? ' is-sticker' : ''), 'data-id': m.id }, kids.concat([rx,
+      const el = h('div', { class: 'cm-msg' + (mine ? ' me' : '') + (m.media_path || m.post_ref || m.gif ? ' has-media' : '') + (m.sticker ? ' is-sticker' : '') + (PD.chatkit.isEmojiMessage(m.body) ? ' is-emoji' : ''), 'data-id': m.id }, kids.concat([rx,
         h('small', { text: new Date(m.created_at).toLocaleTimeString(PD.i18n.locale, { hour: '2-digit', minute: '2-digit' }) }),
         h('button', { class: 'cm-flag cm-rxb', 'aria-label': t('cm.react'), html: S.glyph('panduri'), onclick: e => { e.stopPropagation(); S.picker(e.currentTarget, n.mine, k => react(n, k)); } }),
         !mine ? h('button', { class: 'cm-flag', 'aria-label': t('md.report'), html: FLAG, onclick: () => reportSheet('message', m.id) }) : null].filter(Boolean)));
@@ -222,17 +268,18 @@ PD.community = (() => {
       if (busy) return; busy = true;
       try {
         const rows = await C.chat.messages(id, last) || [];
+        if (!msgs.isConnected) return;
         if (rows.some(m => m.media_path)) await S.urls(rows.filter(m => m.media_path));
         const atEnd = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 60;
         rows.forEach(m => { last = Math.max(last, m.id); if (!nodes.has(m.id)) msgs.appendChild(bubble(m)); });
         if (rows.length || turn++ % 3 === 0) { rxs = await C.chat.reactions(id).catch(() => rxs) || rxs; paintRx(); }
-        if (rows.length && (atEnd || last === rows[rows.length - 1].id)) { msgs.scrollTop = msgs.scrollHeight; msgs.querySelectorAll('img').forEach(i => { if (!i.complete) i.addEventListener('load', () => { if (msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 400) msgs.scrollTop = msgs.scrollHeight; }, { once: true }); }); }
+        if (rows.length && (atEnd || nodes.size === rows.length || rows.some(m => m.sender === C.uid))) { msgs.scrollTop = msgs.scrollHeight; msgs.querySelectorAll('img').forEach(i => { if (!i.complete) i.addEventListener('load', () => { if (msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 400) msgs.scrollTop = msgs.scrollHeight; }, { once: true }); }); }
         if (rows.some(m => m.sender !== C.uid)) markRead();
       } catch (_) {} finally { busy = false; }
     }
     poll(); markRead(); const iv = setInterval(() => { if (!document.hidden) poll(); }, 2500); own(() => { clearInterval(iv); clearTimeout(readT); });
   }
-  return { page, util: { err, ago, initial, reportSheet, confirmBlock, userActions, blockedSheet } };
+  return { page, util: { err, ago, initial, reportSheet, confirmBlock, userActions, blockedSheet, skRows } };
 })();
 
 /* ---------- 1:1 video call: WebRTC, signalling through the server (offer · answer · ICE) ---------- */

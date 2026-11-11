@@ -88,14 +88,14 @@ frets: s('<path d="M3 7h18M3 12h18M3 17h18M7 5v14M12 5v14M16 5v14"/>'),
 /* ---------- finger identity: one colour + one shape per finger, the same everywhere ---------- */
 PD.i18n.add({ 'fg.1': ['საჩვენებელი', 'Index'], 'fg.2': ['შუა', 'Middle'], 'fg.3': ['არათითი', 'Ring'], 'fg.4': ['ნეკი', 'Little'], 'fg.T': ['ცერა', 'Thumb'] });
 PD.fingers = (() => {
-  const COL = { 1: '#E5534B', 2: '#3FBF7A', 3: '#E8C547', 4: '#4C8EEA', T: '#F2EFEA' }, INK = { 1: '#fff', 2: '#06140C', 3: '#191200', 4: '#fff', T: '#14110E' };
+  const COL = { 1: '#e5534b', 2: '#3fbf7a', 3: '#7584e3', 4: '#4c8eea', T: '#ededef' }, INK = { 1: '#ffffff', 2: '#06140c', 3: '#08090b', 4: '#ffffff', T: '#0c0d10' };
   const SYM = { 1: '●', 2: '▲', 3: '■', 4: '◆', T: '○' };
   return {
     get on() { return PD.store.get('fingerColors', true); },
     get symbols() { return PD.store.get('fingerSymbols', false); },
     /** colour for finger i (1–4, 'T'); neutral when finger colours are off */
-    color(i) { return this.on && COL[i] ? COL[i] : '#E9E2D6'; },
-    ink(i) { return this.on && INK[i] ? INK[i] : '#14110E'; },
+    color(i) { return this.on && COL[i] ? COL[i] : '#dedee1'; },
+    ink(i) { return this.on && INK[i] ? INK[i] : '#0c0d10'; },
     symbol(i) { return SYM[i] || ''; },
     /** label shown with a finger: its number, plus a shape when colour-blind symbols are on */
     label(i) { return String(i) + (this.symbols && SYM[i] ? ' ' + SYM[i] : ''); },
@@ -226,6 +226,7 @@ PD.ui = (() => {
     };
     document.addEventListener('keydown', esc, true);
     back.addEventListener('click', e => { if (e.target === back) close(); });
+    dragToClose(box, () => { box.style.visibility = 'hidden'; close(); });
     cleanup = build(box, close); PD.i18n.apply(box);
     box.tabIndex = -1;
     const title = box.querySelector('h1,h2,h3');
@@ -233,6 +234,33 @@ PD.ui = (() => {
     const f = [...box.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].find(el => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length);
     (f || box).focus();
     return close;
+  }
+  /** a phone sheet follows the finger down from its top and closes past a third of its height or on a quick
+      flick; short of that it springs back. Only from the top of its content, so scrolling inside still scrolls. */
+  function dragToClose(box, dismiss) {
+    if (!(window.matchMedia && matchMedia('(max-width: 820px)').matches)) return;
+    let g = null;
+    box.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1 || box.scrollTop > 0 || e.target.closest('input, textarea, select, [type=range], .no-drag')) return;
+      g = { y0: e.touches[0].clientY, y: 0, v: 0, t: performance.now(), on: false };
+    }, { passive: true });
+    box.addEventListener('touchmove', e => {
+      if (!g) return; const dy = e.touches[0].clientY - g.y0, now = performance.now();
+      if (!g.on) { if (dy < 6) { if (dy < -4) g = null; return; } g.on = true; box.classList.add('drag'); }
+      e.preventDefault();
+      g.v = (dy - g.y) / Math.max(1, now - g.t); g.y = dy; g.t = now;
+      box.style.transform = 'translateY(' + (dy > 0 ? dy : dy / 4) + 'px)';
+    }, { passive: false });
+    const end = () => {
+      if (!g) return; const G = g; g = null; if (!G.on) return;
+      box.classList.remove('drag');
+      if (G.y > box.offsetHeight / 3 || G.v > .55) {
+        if (!motion()) return dismiss();
+        const a = box.animate([{ transform: 'translateY(' + G.y + 'px)' }, { transform: 'translateY(100%)' }], { duration: Math.max(140, Math.min(260, (box.offsetHeight - G.y) / Math.max(.8, G.v))), easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' });
+        a.finished.then(dismiss, dismiss);
+      } else { box.classList.add('settle'); box.style.transform = ''; setTimeout(() => box.classList.remove('settle'), 420); }
+    };
+    box.addEventListener('touchend', end); box.addEventListener('touchcancel', end);
   }
   function confirm(msg, onYes) {
     sheet((box, close) => {

@@ -16,7 +16,7 @@ PD.Lanes = function (canvas, opt) {
   let dpr = 1, count = 0, countT = 0;
   const FONT = "'Noto Sans Georgian', system-ui, sans-serif";
   const clamp = (x, a, b) => x < a ? a : x > b ? b : x, easeOut = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
-  const ACC = '#FF6B5B', NORM = '#7FB2FF';
+  const ACC = '#ff6b5b', NORM = '#7fb2ff';
 
   function layout() {
     const r = canvas.getBoundingClientRect(); if (r.width < 4 || r.height < 4) return false;
@@ -41,9 +41,9 @@ PD.Lanes = function (canvas, opt) {
   const PX = () => self.mirror ? G.W - G.px : G.px;
   function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a.toFixed(3) + ')'; }
   function mix(a, b, k) { const p = parseInt(a.slice(1), 16), q = parseInt(b.slice(1), 16); const c = i => Math.round(((p >> i) & 255) * (1 - k) + ((q >> i) & 255) * k); return 'rgb(' + c(16) + ',' + c(8) + ',' + c(0) + ')'; }
-  const OPEN = '#D9DBE1';
+  const OPEN = '#dcdcde';
   const colOf = n => n.f > 0 && n.fi ? PD.fingers.color(n.fi) : OPEN;
-  const inkOf = n => n.f > 0 && n.fi ? PD.fingers.ink(n.fi) : '#15161A';
+  const inkOf = n => n.f > 0 && n.fi ? PD.fingers.ink(n.fi) : '#171718';
   function text(s, x, y, size, col, weight) { ctx.font = (weight || 600) + ' ' + size + 'px ' + FONT; ctx.fillStyle = col; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s, x, y); }
   function arrow(x, y, up, size, col, w) {
     const d = up ? -1 : 1; ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -54,7 +54,7 @@ PD.Lanes = function (canvas, opt) {
     const col = colOf(n);
     ctx.save(); ctx.globalAlpha = a;
     ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.arc(x + 1, y + 2.5, R, 0, 7); ctx.fill();
-    const gr = ctx.createRadialGradient(x - R * .35, y - R * .4, R * .1, x, y, R); gr.addColorStop(0, mix(col, '#FFFFFF', .3)); gr.addColorStop(.7, col); gr.addColorStop(1, mix(col, '#000000', .22));
+    const gr = ctx.createRadialGradient(x - R * .35, y - R * .4, R * .1, x, y, R); gr.addColorStop(0, mix(col, '#ffffff', .3)); gr.addColorStop(.7, col); gr.addColorStop(1, mix(col, '#000000', .22));
     ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.3; ctx.stroke();
     text(n.f > 0 ? String(n.fi || '·') : '0', x, y + .5, Math.round(R * 1.05), inkOf(n), 700);
@@ -67,7 +67,7 @@ PD.Lanes = function (canvas, opt) {
     [3, 2, 1].forEach(s => {
       const y = G.lane[s];
       ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(G.W, y); ctx.stroke();
-      text(TH.stringName(s), self.mirror ? G.W - 18 : 18, y, 13, 'rgba(210,213,222,.55)', 600);
+      text(TH.stringName(s), self.mirror ? G.W - 18 : 18, y, 13, 'rgba(214,214,218,.55)', 600);
     });
     // bar lines
     const bpb = E.bpb(), b0 = Math.floor(now) - 1, b1 = now + G.beats + 1;
@@ -75,7 +75,7 @@ PD.Lanes = function (canvas, opt) {
     // play line + landing rings
     const cur = S.steps[S.cur], waitHere = cur && (S.waiting || (cur.t - now) < .02);
     const pg = ctx.createLinearGradient(0, 0, 0, G.H); pg.addColorStop(0, 'rgba(255,255,255,0)'); pg.addColorStop(.15, 'rgba(255,255,255,.55)'); pg.addColorStop(.85, 'rgba(255,255,255,.55)'); pg.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = 'rgba(160,140,255,.10)'; ctx.fillRect(px - 10, 0, 20, G.H);
+    ctx.fillStyle = 'rgba(206,138,86,.10)'; ctx.fillRect(px - 10, 0, 20, G.H);
     ctx.fillStyle = pg; ctx.fillRect(px - 1, 0, 2, G.H);
     [3, 2, 1].forEach(s => { const on = waitHere && cur.notes.some(n => n.s === s); ctx.strokeStyle = on ? 'rgba(255,255,255,.6)' : 'rgba(255,255,255,.12)'; ctx.lineWidth = on ? 2 : 1.2; ctx.beginPath(); ctx.arc(px, G.lane[s], G.R + 5 + (on ? Math.sin(t / 260) * 1.5 : 0), 0, 7); ctx.stroke(); });
     // tokens
@@ -103,7 +103,7 @@ PD.Lanes = function (canvas, opt) {
         ctx.fillStyle = st.acc ? 'rgba(255,107,91,.22)' : 'rgba(255,255,255,.08)'; ctx.strokeStyle = st.acc ? 'rgba(255,107,91,.8)' : 'rgba(255,255,255,.35)'; ctx.lineWidth = st.acc ? 2.4 : 1.4;
         ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - w / 2, y0, w, y1 - y0, w / 2) : ctx.rect(x - w / 2, y0, w, y1 - y0); ctx.fill(); ctx.stroke();
         st.notes.forEach(n => { if (n.f > 0) token(n, x, G.lane[n.s], R * .62, 1, st); });
-        if (!st.notes.some(n => n.f > 0)) arrow(x, G.lane[2], st.st === 'up', R * .9, st.acc ? ACC : '#FFFFFF', st.acc ? 4 : 2.6);
+        if (!st.notes.some(n => n.f > 0)) arrow(x, G.lane[2], st.st === 'up', R * .9, st.acc ? ACC : '#ffffff', st.acc ? 4 : 2.6);
         ctx.restore();
       }
       if (f.hit && t - f.hit < 360) { const k = (t - f.hit) / 360; ctx.strokeStyle = 'rgba(255,255,255,' + (.9 * (1 - k)).toFixed(3) + ')'; ctx.lineWidth = 2.5; const ys = st.kind === 'note' ? [G.lane[st.notes[0].s]] : [G.lane[2]]; ys.forEach(y => { ctx.beginPath(); ctx.arc(px, y, G.R * (1.1 + 1.2 * easeOut(k)), 0, 7); ctx.stroke(); }); }
@@ -116,7 +116,7 @@ PD.Lanes = function (canvas, opt) {
      coloured by the finger. A ball hops from note to note and lands on each one exactly when it should be played;
      the dotted arc shows where it goes next. In WAIT the clock stops, so the ball rests on the note until the
      microphone hears it — then the note flashes and a big grade („ზუსტი!“) rises from the line. ---------- */
-  const SC = { 1: '#D9783F', 2: '#78B7DE', 3: '#EFE0B8' };
+  const SC = { 1: '#7cc2ae', 2: '#84a8dc', 3: '#e2d3b5' };
   function drawRoad(t) {
     const A = E.flags(), now = E.visualNow(), px = PX(), dir = self.mirror ? -1 : 1, W = G.W, H = G.H;
     const foot = H > 150 ? 16 : 8, top = Math.max(10, H * .08), bot = H - foot - Math.max(6, H * .04), gap = (bot - top) / 3;
@@ -127,14 +127,14 @@ PD.Lanes = function (canvas, opt) {
     const eT = LY[3] - gap * .5, eB = LY[1] + gap * .5;
     // the deck
     const q = [{ x: back, y: eT }, P(px, eT), P(far, eT), P(far, eB), P(px, eB), { x: back, y: eB }];
-    const dg = ctx.createLinearGradient(0, eT, 0, eB); dg.addColorStop(0, 'rgba(34,26,21,.92)'); dg.addColorStop(1, 'rgba(18,14,11,.96)');
+    const dg = ctx.createLinearGradient(0, eT, 0, eB); dg.addColorStop(0, 'rgba(32,32,35,.92)'); dg.addColorStop(1, 'rgba(18,18,20,.96)');
     ctx.fillStyle = dg; ctx.beginPath(); q.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(224,168,120,.16)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.strokeStyle = 'rgba(226,174,132,.16)'; ctx.lineWidth = 1; ctx.stroke();
     // beats across the deck (bar starts brighter)
     const bpb = E.bpb(), b0 = Math.floor(now) - 2, b1 = now + G.beats + 1.5;
     for (let b = Math.max(0, b0); b <= b1; b++) {
       const x = X(b); if ((x - px) * dir < -px) continue; const a = P(x, eT), c = P(x, eB), d = depth(x);
-      ctx.strokeStyle = b % bpb === 0 ? 'rgba(255,240,228,' + (.2 * (1 - d * .6)).toFixed(3) + ')' : 'rgba(255,240,228,' + (.07 * (1 - d * .6)).toFixed(3) + ')'; ctx.lineWidth = b % bpb === 0 ? 1.4 : 1;
+      ctx.strokeStyle = b % bpb === 0 ? 'rgba(238,240,245,' + (.2 * (1 - d * .6)).toFixed(3) + ')' : 'rgba(238,240,245,' + (.07 * (1 - d * .6)).toFixed(3) + ')'; ctx.lineWidth = b % bpb === 0 ? 1.4 : 1;
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(c.x, c.y); ctx.stroke();
     }
     // strings
@@ -144,23 +144,23 @@ PD.Lanes = function (canvas, opt) {
       ctx.lineCap = 'round';
       ctx.strokeStyle = hexA(SC[sn], .45); ctx.lineWidth = 3.4 - sn * .5; ctx.beginPath(); ctx.moveTo(back, y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
       ctx.strokeStyle = g2; ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-      const lx = self.mirror ? W - 20 : 20; ctx.fillStyle = 'rgba(12,9,7,.9)'; ctx.beginPath(); ctx.arc(lx, y, 12, 0, 7); ctx.fill(); ctx.strokeStyle = SC[sn]; ctx.lineWidth = 1.6; ctx.stroke();
+      const lx = self.mirror ? W - 20 : 20; ctx.fillStyle = 'rgba(13,13,14,.9)'; ctx.beginPath(); ctx.arc(lx, y, 12, 0, 7); ctx.fill(); ctx.strokeStyle = SC[sn]; ctx.lineWidth = 1.6; ctx.stroke();
       text(TH.stringName(sn), lx, y + .5, 11, SC[sn], 700);
     });
     // play line
     const cur = S.steps[S.cur], waitHere = cur && (S.waiting || (cur.t - now) < .02);
     const pt = P(px, eT - 6), pb = P(px, eB + 6), pl = ctx.createLinearGradient(0, pt.y, 0, pb.y);
-    pl.addColorStop(0, 'rgba(246,201,135,0)'); pl.addColorStop(.2, 'rgba(246,201,135,.85)'); pl.addColorStop(.8, 'rgba(246,201,135,.85)'); pl.addColorStop(1, 'rgba(246,201,135,0)');
-    ctx.fillStyle = 'rgba(201,139,91,.10)'; ctx.fillRect(px - 16, pt.y, 32, pb.y - pt.y);
+    pl.addColorStop(0, 'rgba(221,176,138,0)'); pl.addColorStop(.2, 'rgba(221,176,138,.85)'); pl.addColorStop(.8, 'rgba(221,176,138,.85)'); pl.addColorStop(1, 'rgba(221,176,138,0)');
+    ctx.fillStyle = 'rgba(199,139,94,.10)'; ctx.fillRect(px - 16, pt.y, 32, pb.y - pt.y);
     ctx.fillStyle = pl; ctx.fillRect(px - 1.5, pt.y, 3, pb.y - pt.y);
     const RR = Math.max(10, Math.min(21, gap * .27));
-    [3, 2, 1].forEach(sn => { const on = waitHere && cur.notes.some(n => n.s === sn); ctx.strokeStyle = on ? hexA(SC[sn], .95) : 'rgba(255,240,228,.16)'; ctx.lineWidth = on ? 2.4 : 1.2; ctx.beginPath(); ctx.ellipse(px, LY[sn], RR * .72 + (on ? Math.sin(t / 240) * 1.5 : 0), RR + (on ? Math.sin(t / 240) * 1.5 : 0), 0, 0, 7); ctx.stroke(); });
+    [3, 2, 1].forEach(sn => { const on = waitHere && cur.notes.some(n => n.s === sn); ctx.strokeStyle = on ? hexA(SC[sn], .95) : 'rgba(245,245,247,.16)'; ctx.lineWidth = on ? 2.4 : 1.2; ctx.beginPath(); ctx.ellipse(px, LY[sn], RR * .72 + (on ? Math.sin(t / 240) * 1.5 : 0), RR + (on ? Math.sin(t / 240) * 1.5 : 0), 0, 0, 7); ctx.stroke(); });
     // notes (far ones first so near ones sit on top)
     const vis0 = now - 1.6, vis1 = now + G.beats + 1, pill = (st, n, x0, x1, a, glow, f) => {
       const y = LY[n.s], p0 = P(x0, y), p1 = P(x1, y), r0 = RR * p0.s, r1 = RR * p1.s, col = n.f > 0 && n.fi ? colOf(n) : SC[n.s];   // open string: the string's own colour
       ctx.save(); ctx.globalAlpha = a;
       if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 22; }
-      const gr = ctx.createLinearGradient(0, p0.y - r0, 0, p0.y + r0); gr.addColorStop(0, mix(col, '#FFFFFF', .28)); gr.addColorStop(.55, col); gr.addColorStop(1, mix(col, '#000000', .3));
+      const gr = ctx.createLinearGradient(0, p0.y - r0, 0, p0.y + r0); gr.addColorStop(0, mix(col, '#ffffff', .28)); gr.addColorStop(.55, col); gr.addColorStop(1, mix(col, '#000000', .3));
       ctx.fillStyle = gr; ctx.beginPath();
       const L = p0.x < p1.x ? [p0, r0, p1, r1] : [p1, r1, p0, r0];
       ctx.arc(L[0].x, L[0].y, L[1], Math.PI / 2, Math.PI * 1.5); ctx.lineTo(L[2].x, L[2].y - L[3]); ctx.arc(L[2].x, L[2].y, L[3], -Math.PI / 2, Math.PI / 2); ctx.closePath(); ctx.fill();
@@ -168,8 +168,8 @@ PD.Lanes = function (canvas, opt) {
       text(String(n.f), p0.x + (self.mirror ? -1 : 1) * Math.min(r0 * .1, Math.abs(p1.x - p0.x) * .3), p0.y + .5, Math.round(r0 * 1.15), inkOf(n), 800);
       if (n.f > 0 && n.fi) {   // the finger on a small badge above the note
         const br = Math.max(7, r0 * .5), bx = p0.x, by = p0.y + r0 + br + 2;   // below the note: the ball lands on its top
-        ctx.fillStyle = 'rgba(12,9,7,.92)'; ctx.beginPath(); ctx.arc(bx, by, br, 0, 7); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.stroke();
-        text(String(n.fi), bx, by + .5, Math.round(br * 1.15), '#FFFFFF', 800);
+        ctx.fillStyle = 'rgba(13,13,14,.92)'; ctx.beginPath(); ctx.arc(bx, by, br, 0, 7); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.stroke();
+        text(String(n.fi), bx, by + .5, Math.round(br * 1.15), '#ffffff', 800);
       }
       if (A.names && !(f && f.hit)) text(TH.name(TH.midi(n.s, n.f)), p0.x + (n.f > 0 && n.fi ? (self.mirror ? -1 : 1) * Math.max(7, r0 * .5) * 2.6 : 0), p0.y + r0 + Math.max(7, r0 * .5) + 2, Math.round(10 + p0.s * 2), 'rgba(230,232,238,' + (.7 * a).toFixed(3) + ')', 600);
       ctx.restore();
@@ -186,10 +186,10 @@ PD.Lanes = function (canvas, opt) {
       if (st.kind === 'note') pill(st, st.notes[0], x, x1, a, glow, f);
       else {   // a chord: a bar across the deck, every fretted note on its string
         const p0 = P(x, eT + gap * .12), p1 = P(x, eB - gap * .12), w = RR * 1.5 * p0.s;
-        ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = st.acc ? 'rgba(255,107,91,.18)' : 'rgba(255,240,228,.07)'; ctx.strokeStyle = st.acc ? 'rgba(255,107,91,.75)' : 'rgba(255,240,228,.3)'; ctx.lineWidth = st.acc ? 2.2 : 1.2;
+        ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = st.acc ? 'rgba(255,107,91,.18)' : 'rgba(245,245,247,.07)'; ctx.strokeStyle = st.acc ? 'rgba(255,107,91,.75)' : 'rgba(245,245,247,.3)'; ctx.lineWidth = st.acc ? 2.2 : 1.2;
         ctx.beginPath(); ctx.roundRect ? ctx.roundRect(p0.x - w / 2, p0.y, w, p1.y - p0.y, w / 2) : ctx.rect(p0.x - w / 2, p0.y, w, p1.y - p0.y); ctx.fill(); ctx.stroke(); ctx.restore();
         st.notes.forEach(n => pill(st, n, x, x + (x1 - x) * .5, a, glow, f));
-        if (!st.notes.some(n => n.f > 0)) { const pm = P(x, LY[2]); arrow(pm.x, pm.y, st.st === 'up', RR * .8 * pm.s, st.acc ? ACC : '#FFFFFF', st.acc ? 4 : 2.6); }
+        if (!st.notes.some(n => n.f > 0)) { const pm = P(x, LY[2]); arrow(pm.x, pm.y, st.st === 'up', RR * .8 * pm.s, st.acc ? ACC : '#ffffff', st.acc ? 4 : 2.6); }
       }
       if (f.grade && t - f.gradeT < 1000) {
         const k = (t - f.gradeT) / 1000, big = f.grade === 'perfect' || f.grade === 'good', fs = big ? Math.round(Math.min(30, Math.max(18, gap * .42))) : 14;
@@ -213,27 +213,27 @@ PD.Lanes = function (canvas, opt) {
       ctx.globalAlpha = 1;
       const by = ballY(now), bp = P(px, by), br = Math.max(6, RR * .42);
       const sh = P(px, Math.min(eB, (ns[j] ? yOf(ns[j]) : by) + RR)); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(sh.x, sh.y, br * 1.1, br * .35, 0, 0, 7); ctx.fill();
-      const bg = ctx.createRadialGradient(bp.x - br * .35, bp.y - br * .4, br * .1, bp.x, bp.y, br); bg.addColorStop(0, '#FFFFFF'); bg.addColorStop(1, '#E9DCCB');
-      ctx.save(); ctx.shadowColor = 'rgba(255,240,228,.8)'; ctx.shadowBlur = 14; ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(bp.x, bp.y, br, 0, 7); ctx.fill(); ctx.restore();
+      const bg = ctx.createRadialGradient(bp.x - br * .35, bp.y - br * .4, br * .1, bp.x, bp.y, br); bg.addColorStop(0, '#ffffff'); bg.addColorStop(1, '#d9d9db');
+      ctx.save(); ctx.shadowColor = 'rgba(245,245,247,.8)'; ctx.shadowBlur = 14; ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(bp.x, bp.y, br, 0, 7); ctx.fill(); ctx.restore();
     }
     // the whole piece in one strip: every note as a tick (green = heard, red = missed), the cursor = now
     if (foot > 8 && ns.length) {
       const total = Math.max(1, ns[ns.length - 1].t + ns[ns.length - 1].d), x0 = 16, x2 = W - 16, yy = H - foot / 2;
-      ctx.fillStyle = 'rgba(255,240,228,.08)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, yy - 3, x2 - x0, 6, 3) : ctx.rect(x0, yy - 3, x2 - x0, 6); ctx.fill();
-      for (let i = 0; i < ns.length; i++) { const r = S.res[i] || {}, xx = x0 + (x2 - x0) * (ns[i].t / total); ctx.fillStyle = r.ok ? '#8EF0B4' : r.missed ? '#FF8A7D' : 'rgba(255,240,228,.3)'; ctx.fillRect(xx - .75, yy - 3, 1.5, 6); }
-      const xc = x0 + (x2 - x0) * clamp(now / total, 0, 1); ctx.fillStyle = '#F6C987'; ctx.fillRect(xc - 1, yy - 6, 2, 12);
+      ctx.fillStyle = 'rgba(245,245,247,.08)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, yy - 3, x2 - x0, 6, 3) : ctx.rect(x0, yy - 3, x2 - x0, 6); ctx.fill();
+      for (let i = 0; i < ns.length; i++) { const r = S.res[i] || {}, xx = x0 + (x2 - x0) * (ns[i].t / total); ctx.fillStyle = r.ok ? '#8ef0b4' : r.missed ? '#ff8a7d' : 'rgba(245,245,247,.3)'; ctx.fillRect(xx - .75, yy - 3, 1.5, 6); }
+      const xc = x0 + (x2 - x0) * clamp(now / total, 0, 1); ctx.fillStyle = '#c89670'; ctx.fillRect(xc - 1, yy - 6, 2, 12);
     }
   }
   const tr = (k, v) => PD.i18n.t(k, v), t2 = g => tr('g.' + g);
-  function gcol(g, a) { const c = g === 'perfect' ? '#8EF0B4' : g === 'good' ? '#D8DCE6' : g === 'miss' ? '#FF8A7D' : '#FFD27A'; return hexA(c, clamp(a, 0, 1)); }
+  function gcol(g, a) { const c = g === 'perfect' ? '#8ef0b4' : g === 'good' ? '#dedee0' : g === 'miss' ? '#ff8a7d' : '#e0b072'; return hexA(c, clamp(a, 0, 1)); }
 
   function drawRhythm(t) {
     const now = E.visualNow(), px = PX(), cy = G.cy;
     ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(G.W, cy); ctx.stroke();
     const bpb = E.bpb(), b0 = Math.floor(now) - 1, b1 = now + G.beats + 1;
-    for (let b = Math.max(0, b0); b <= b1; b++) { const x = X(b); ctx.fillStyle = b % bpb === 0 ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.14)'; ctx.beginPath(); ctx.arc(x, cy + G.R * 1.75, b % bpb === 0 ? 3 : 2, 0, 7); ctx.fill(); text(String(b % bpb + 1), x, cy + G.R * 1.75 + 14, 11, 'rgba(210,213,222,.45)', 500); }
+    for (let b = Math.max(0, b0); b <= b1; b++) { const x = X(b); ctx.fillStyle = b % bpb === 0 ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.14)'; ctx.beginPath(); ctx.arc(x, cy + G.R * 1.75, b % bpb === 0 ? 3 : 2, 0, 7); ctx.fill(); text(String(b % bpb + 1), x, cy + G.R * 1.75 + 14, 11, 'rgba(214,214,218,.45)', 500); }
     const pg = ctx.createLinearGradient(0, 0, 0, G.H); pg.addColorStop(0, 'rgba(255,255,255,0)'); pg.addColorStop(.2, 'rgba(255,255,255,.6)'); pg.addColorStop(.8, 'rgba(255,255,255,.6)'); pg.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = 'rgba(160,140,255,.10)'; ctx.fillRect(px - 14, 0, 28, G.H); ctx.fillStyle = pg; ctx.fillRect(px - 1, 0, 2, G.H);
+    ctx.fillStyle = 'rgba(206,138,86,.10)'; ctx.fillRect(px - 14, 0, 28, G.H); ctx.fillStyle = pg; ctx.fillRect(px - 1, 0, 2, G.H);
     const vis0 = now - 2, vis1 = now + G.beats + .5;
     for (let i = 0; i < S.steps.length; i++) {
       const st = S.steps[i]; if (st.t < vis0 || st.t > vis1) continue;
@@ -255,7 +255,7 @@ PD.Lanes = function (canvas, opt) {
 
 
   /* ---------- song: chord blocks per bar, stroke arrows inside, section names above ---------- */
-  const CHC = ['#C9773F', '#8E3B22', '#C98B5B', '#6E8B5A', '#B4573A', '#A3814F'];
+  const CHC = ['#b9784a', '#8e3b22', '#7f7f88', '#6e8b5a', '#b4573a', '#6f6f79'];
   const chordCol = {};
   function ccol(n) { if (!chordCol[n]) chordCol[n] = CHC[Object.keys(chordCol).length % CHC.length]; return chordCol[n]; }
   /* ---------- a song whose chords repeat (Dm Dm B♭ C): the whole cycle on ONE still line ----------
@@ -285,8 +285,8 @@ PD.Lanes = function (canvas, opt) {
     const sc = E.sectionAt(now), listen = sc && sc.kind === 'listen';
     // header: the part of the song · which time round
     ctx.textBaseline = 'middle';
-    if (sc && sc.name) { ctx.font = '600 ' + (low ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = 'rgba(255,240,228,.7)'; ctx.textAlign = 'left'; ctx.fillText(PD.i18n.pick(sc.name), x0 + 2, top / 2 + 2); }
-    if (sc && sc.to - sc.from >= 2 * C) { const a = Math.floor((c0 - sc.from) / C) + 1, b = Math.round((sc.to - sc.from) / C); ctx.font = '600 ' + (low ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = 'rgba(255,240,228,.55)'; ctx.textAlign = 'right'; ctx.fillText(tr('cy.round', { a: Math.max(1, Math.min(a, b)), b }), x0 + rowW - 2, top / 2 + 2); }
+    if (sc && sc.name) { ctx.font = '600 ' + (low ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = 'rgba(245,245,247,.7)'; ctx.textAlign = 'left'; ctx.fillText(PD.i18n.pick(sc.name), x0 + 2, top / 2 + 2); }
+    if (sc && sc.to - sc.from >= 2 * C) { const a = Math.floor((c0 - sc.from) / C) + 1, b = Math.round((sc.to - sc.from) / C); ctx.font = '600 ' + (low ? 11 : 13) + 'px ' + FONT; ctx.fillStyle = 'rgba(245,245,247,.55)'; ctx.textAlign = 'right'; ctx.fillText(tr('cy.round', { a: Math.max(1, Math.min(a, b)), b }), x0 + rowW - 2, top / 2 + 2); }
     // chord blocks
     runs.forEach(q => {
       const x = rx(q.r0), w = q.n * RW, col = ccol(q.c), active = now >= c0 + q.r0 - 1e-6 && now < c0 + q.r0 + q.n;
@@ -294,27 +294,27 @@ PD.Lanes = function (canvas, opt) {
       ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y0, w, bh, 16) : ctx.rect(x, y0, w, bh); ctx.fill();
       ctx.strokeStyle = hexA(col, active ? 1 : .45); ctx.lineWidth = active ? 2.5 : 1.2; ctx.stroke();
       const fs = low ? Math.round(Math.max(14, Math.min(18, bh * .24))) : Math.round(Math.max(18, Math.min(32, bh * .2, w * .34)));
-      ctx.fillStyle = active ? '#FFFFFF' : 'rgba(255,240,228,.85)'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = low ? 'middle' : 'top'; ctx.fillText(q.c, x + 9, low ? y0 + bh * .55 : y0 + 8);
-      if (w > 96 && !low) { ctx.font = '600 11px ' + FONT; ctx.fillStyle = 'rgba(255,240,228,.6)'; ctx.textAlign = 'right'; ctx.fillText(tr('sg.rhythms', { n: q.n }), x + w - 10, y0 + 12); }
+      ctx.fillStyle = active ? '#ffffff' : 'rgba(245,245,247,.85)'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = low ? 'middle' : 'top'; ctx.fillText(q.c, x + 9, low ? y0 + bh * .55 : y0 + 8);
+      if (w > 96 && !low) { ctx.font = '600 11px ' + FONT; ctx.fillStyle = 'rgba(245,245,247,.6)'; ctx.textAlign = 'right'; ctx.fillText(tr('sg.rhythms', { n: q.n }), x + w - 10, y0 + 12); }
       // the rhythms inside the chord: a dashed line between them and their number at the bottom (Dm: 1 · 2)
-      ctx.setLineDash([4, 5]); ctx.strokeStyle = 'rgba(255,240,228,.28)'; ctx.lineWidth = 1;
+      ctx.setLineDash([4, 5]); ctx.strokeStyle = 'rgba(245,245,247,.28)'; ctx.lineWidth = 1;
       for (let r = q.r0 + 1; r < q.r0 + q.n; r++) { const xr = rx(r); ctx.beginPath(); ctx.moveTo(xr, y0 + bh * .3); ctx.lineTo(xr, y0 + bh - 8); ctx.stroke(); }
       ctx.setLineDash([]);
-      if (!low) for (let r = q.r0; r < q.r0 + q.n; r++) { const on = active && now >= c0 + r && now < c0 + r + 1; ctx.font = (on ? '700 ' : '600 ') + '12px ' + FONT; ctx.fillStyle = on ? '#FFE2BA' : 'rgba(255,240,228,.4)'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(String(r - q.r0 + 1), rx(r) + RW / 2, y0 + bh - 6); }
+      if (!low) for (let r = q.r0; r < q.r0 + q.n; r++) { const on = active && now >= c0 + r && now < c0 + r + 1; ctx.font = (on ? '700 ' : '600 ') + '12px ' + FONT; ctx.fillStyle = on ? '#dbdbde' : 'rgba(245,245,247,.4)'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(String(r - q.r0 + 1), rx(r) + RW / 2, y0 + bh - 6); }
     });
     // strokes
     const yA = low ? y0 + bh * .64 : y0 + bh * .56;
     for (let i = i0; i < i1; i++) {
       const st = S.steps[i], x = sx(st), r = Math.floor(st.t - c0 + 1e-6), slot = RW / (per[r] || 3), f = fx[i] || {}, res = S.res[i] || {}, up = st.st === 'up';
-      let size = Math.min(bh * (low ? .17 : .2), slot * .4) * (st.acc ? 1.12 : 1), col = st.acc ? ACC : '#F4EFE9', a = 1;
+      let size = Math.min(bh * (low ? .17 : .2), slot * .4) * (st.acc ? 1.12 : 1), col = st.acc ? ACC : '#eeeeef', a = 1;
       const isCur = !S.autoplay && i === S.cur, sounding = S.autoplay && now >= st.t - .02 && now < st.t + st.d - .02;
       let miss = false;
       if (S.autoplay) { if (st.t + st.d <= now) a = .45; }
-      else if (res.ok) col = '#8EF0B4';
+      else if (res.ok) col = '#8ef0b4';
       else if (res.missed) { a = .32; miss = true; }   // missed: faded, with a small × (red is the accent colour)
-      if (f.wrong && tm - f.wrong < 500) { col = '#FFFFFF'; miss = true; }
-      if (miss) text('×', x, yA + Math.max(16, size * 1.5), 15, '#FF8A7D', 800);
-      if (isCur || sounding) { size *= 1.22; ctx.fillStyle = 'rgba(255,240,228,.16)'; ctx.beginPath(); ctx.arc(x, yA, size * 1.45, 0, 7); ctx.fill(); if (isCur) col = '#FFFFFF'; }
+      if (f.wrong && tm - f.wrong < 500) { col = '#ffffff'; miss = true; }
+      if (miss) text('×', x, yA + Math.max(16, size * 1.5), 15, '#ff8a7d', 800);
+      if (isCur || sounding) { size *= 1.22; ctx.fillStyle = 'rgba(245,245,247,.16)'; ctx.beginPath(); ctx.arc(x, yA, size * 1.45, 0, 7); ctx.fill(); if (isCur) col = '#ffffff'; }
       if (f.hit && tm - f.hit < 260) size *= 1 + .3 * (1 - (tm - f.hit) / 260);
       ctx.globalAlpha = listen ? .35 : a; arrow(x, yA, up, size, col, Math.max(2.2, size * (st.acc ? .2 : .15))); ctx.globalAlpha = 1;
     }
@@ -324,17 +324,17 @@ PD.Lanes = function (canvas, opt) {
       pts.push([C + pts[0][0], x0 + rowW + 2]);
       const u = now - c0; let cx = pts[0][1];
       for (let j = 0; j < pts.length - 1; j++) if (u >= pts[j][0]) cx = pts[j][1] + (pts[j + 1][1] - pts[j][1]) * Math.min(1, (u - pts[j][0]) / Math.max(1e-6, pts[j + 1][0] - pts[j][0]));
-      ctx.fillStyle = 'rgba(201,139,91,.14)'; ctx.fillRect(cx - 9, y0 - 2, 18, bh + 4);
-      ctx.fillStyle = 'rgba(255,240,228,.95)'; ctx.fillRect(cx - 1.25, y0 - 4, 2.5, bh + 8);
+      ctx.fillStyle = 'rgba(199,139,94,.14)'; ctx.fillRect(cx - 9, y0 - 2, 18, bh + 4);
+      ctx.fillStyle = 'rgba(245,245,247,.95)'; ctx.fillRect(cx - 1.25, y0 - 4, 2.5, bh + 8);
       ctx.beginPath(); ctx.moveTo(cx - 6, y0 - 9); ctx.lineTo(cx + 6, y0 - 9); ctx.lineTo(cx, y0 - 2); ctx.closePath(); ctx.fill();
     }
-    if (listen) { ctx.fillStyle = 'rgba(8,7,6,.62)'; ctx.fillRect(x0, y0, rowW, bh); if (low) text('♪ ' + tr('p.listenPart'), Wd / 2, top / 2 + 2, 12, 'rgba(255,240,228,.9)', 600); else text('♪ ' + tr('p.listenPart'), Wd / 2, y0 + bh / 2, 18, 'rgba(255,240,228,.9)', 600); }
+    if (listen) { ctx.fillStyle = 'rgba(10,10,11,.62)'; ctx.fillRect(x0, y0, rowW, bh); if (low) text('♪ ' + tr('p.listenPart'), Wd / 2, top / 2 + 2, 12, 'rgba(245,245,247,.9)', 600); else text('♪ ' + tr('p.listenPart'), Wd / 2, y0 + bh / 2, 18, 'rgba(245,245,247,.9)', 600); }
     // below: what the arrows mean · the next part of the song
     const yb = y0 + bh + 14;
     if (!low && yb < H - 4) {
-      ctx.font = '500 12px ' + FONT; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(255,240,228,.45)'; ctx.fillText(tr('cy.legend'), x0 + 2, yb);
+      ctx.font = '500 12px ' + FONT; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(245,245,247,.45)'; ctx.fillText(tr('cy.legend'), x0 + 2, yb);
       const nx = (S.lesson.sections || []).find(s2 => s2.from >= c0 + C - 1e-6 && s2.from < c0 + 2 * C);
-      if (nx && sc && nx !== sc) { ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,240,228,.8)'; ctx.fillText(tr('cy.next', { s: PD.i18n.pick(nx.name) }), x0 + rowW - 2, yb); }
+      if (nx && sc && nx !== sc) { ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(245,245,247,.8)'; ctx.fillText(tr('cy.next', { s: PD.i18n.pick(nx.name) }), x0 + rowW - 2, yb); }
     }
     ctx.restore();
   }
@@ -358,31 +358,31 @@ PD.Lanes = function (canvas, opt) {
     const pos = st => { const u = st.t - c0, r = Math.floor(u + 1e-6); return [ax0 + aw * ((u - r) + 1 / (2 * (per[r] || 3))), ry(r) + rh / 2]; };
     const sc = E.sectionAt(now), listen = sc && sc.kind === 'listen';
     ctx.textBaseline = 'middle';
-    if (sc && sc.name) { ctx.font = '600 13px ' + FONT; ctx.fillStyle = 'rgba(255,240,228,.7)'; ctx.textAlign = 'left'; ctx.fillText(PD.i18n.pick(sc.name), x0 + 2, head / 2); }
-    if (sc && sc.to - sc.from >= 2 * C) { const a = Math.floor((c0 - sc.from) / C) + 1, b = Math.round((sc.to - sc.from) / C); ctx.font = '600 13px ' + FONT; ctx.fillStyle = 'rgba(255,240,228,.55)'; ctx.textAlign = 'right'; ctx.fillText(tr('cy.round', { a: Math.max(1, Math.min(a, b)), b }), x0 + rowW - 2, head / 2); }
+    if (sc && sc.name) { ctx.font = '600 13px ' + FONT; ctx.fillStyle = 'rgba(245,245,247,.7)'; ctx.textAlign = 'left'; ctx.fillText(PD.i18n.pick(sc.name), x0 + 2, head / 2); }
+    if (sc && sc.to - sc.from >= 2 * C) { const a = Math.floor((c0 - sc.from) / C) + 1, b = Math.round((sc.to - sc.from) / C); ctx.font = '600 13px ' + FONT; ctx.fillStyle = 'rgba(245,245,247,.55)'; ctx.textAlign = 'right'; ctx.fillText(tr('cy.round', { a: Math.max(1, Math.min(a, b)), b }), x0 + rowW - 2, head / 2); }
     runs.forEach(q => {
       const y = ry(q.r0), hh = q.n * rh, col = ccol(q.c), active = now >= c0 + q.r0 - 1e-6 && now < c0 + q.r0 + q.n;
       const g = ctx.createLinearGradient(x0, 0, x0 + rowW, 0); g.addColorStop(0, hexA(col, active ? .62 : .3)); g.addColorStop(1, hexA(col, active ? .28 : .1));
       ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y, rowW, hh, 16) : ctx.rect(x0, y, rowW, hh); ctx.fill();
       ctx.strokeStyle = hexA(col, active ? 1 : .45); ctx.lineWidth = active ? 2.5 : 1.2; ctx.stroke();
       const fs = Math.round(Math.max(20, Math.min(34, rh * .42, nameW * .42)));
-      ctx.fillStyle = active ? '#FFFFFF' : 'rgba(255,240,228,.85)'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(q.c, x0 + 12, y + Math.min(hh / 2, rh / 2));
-      if (q.n > 1) { ctx.font = '600 11px ' + FONT; ctx.fillStyle = 'rgba(255,240,228,.6)'; ctx.fillText(tr('sg.rhythms', { n: q.n }), x0 + 12, y + rh / 2 + fs * .75); }
-      ctx.setLineDash([4, 5]); ctx.strokeStyle = 'rgba(255,240,228,.28)'; ctx.lineWidth = 1;
+      ctx.fillStyle = active ? '#ffffff' : 'rgba(245,245,247,.85)'; ctx.font = '700 ' + fs + 'px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(q.c, x0 + 12, y + Math.min(hh / 2, rh / 2));
+      if (q.n > 1) { ctx.font = '600 11px ' + FONT; ctx.fillStyle = 'rgba(245,245,247,.6)'; ctx.fillText(tr('sg.rhythms', { n: q.n }), x0 + 12, y + rh / 2 + fs * .75); }
+      ctx.setLineDash([4, 5]); ctx.strokeStyle = 'rgba(245,245,247,.28)'; ctx.lineWidth = 1;
       for (let r = q.r0 + 1; r < q.r0 + q.n; r++) { const yr = ry(r); ctx.beginPath(); ctx.moveTo(ax0 - 4, yr); ctx.lineTo(x0 + rowW - 8, yr); ctx.stroke(); }
       ctx.setLineDash([]);
-      for (let r = q.r0; r < q.r0 + q.n; r++) { const on = active && now >= c0 + r && now < c0 + r + 1; ctx.font = (on ? '700 ' : '600 ') + '11px ' + FONT; ctx.fillStyle = on ? '#FFE2BA' : 'rgba(255,240,228,.4)'; ctx.textAlign = 'right'; ctx.fillText(String(r - q.r0 + 1), x0 + rowW - 7, ry(r) + 12); }
+      for (let r = q.r0; r < q.r0 + q.n; r++) { const on = active && now >= c0 + r && now < c0 + r + 1; ctx.font = (on ? '700 ' : '600 ') + '11px ' + FONT; ctx.fillStyle = on ? '#dbdbde' : 'rgba(245,245,247,.4)'; ctx.textAlign = 'right'; ctx.fillText(String(r - q.r0 + 1), x0 + rowW - 7, ry(r) + 12); }
     });
     for (let i = i0; i < i1; i++) {
       const st = S.steps[i], [x, yA] = pos(st), r = Math.floor(st.t - c0 + 1e-6), slot = aw / (per[r] || 3), f = fx[i] || {}, res = S.res[i] || {}, up = st.st === 'up';
-      let size = Math.min(rh * .26, slot * .36) * (st.acc ? 1.12 : 1), col = st.acc ? ACC : '#F4EFE9', a = 1, miss = false;
+      let size = Math.min(rh * .26, slot * .36) * (st.acc ? 1.12 : 1), col = st.acc ? ACC : '#eeeeef', a = 1, miss = false;
       const isCur = !S.autoplay && i === S.cur, sounding = S.autoplay && now >= st.t - .02 && now < st.t + st.d - .02;
       if (S.autoplay) { if (st.t + st.d <= now) a = .45; }
-      else if (res.ok) col = '#8EF0B4';
+      else if (res.ok) col = '#8ef0b4';
       else if (res.missed) { a = .32; miss = true; }
-      if (f.wrong && tm - f.wrong < 500) { col = '#FFFFFF'; miss = true; }
-      if (miss) text('×', x + size * 1.1, yA + size * .9, 13, '#FF8A7D', 800);
-      if (isCur || sounding) { size *= 1.2; ctx.fillStyle = 'rgba(255,240,228,.16)'; ctx.beginPath(); ctx.arc(x, yA, size * 1.45, 0, 7); ctx.fill(); if (isCur) col = '#FFFFFF'; }
+      if (f.wrong && tm - f.wrong < 500) { col = '#ffffff'; miss = true; }
+      if (miss) text('×', x + size * 1.1, yA + size * .9, 13, '#ff8a7d', 800);
+      if (isCur || sounding) { size *= 1.2; ctx.fillStyle = 'rgba(245,245,247,.16)'; ctx.beginPath(); ctx.arc(x, yA, size * 1.45, 0, 7); ctx.fill(); if (isCur) col = '#ffffff'; }
       if (f.hit && tm - f.hit < 260) size *= 1 + .3 * (1 - (tm - f.hit) / 260);
       ctx.globalAlpha = listen ? .35 : a; arrow(x, yA, up, size, col, Math.max(2.2, size * (st.acc ? .2 : .15))); ctx.globalAlpha = 1;
     }
@@ -392,16 +392,16 @@ PD.Lanes = function (canvas, opt) {
       pts.push([C + pts[0][0], ax0 + aw, pts[pts.length - 1][2]]);
       const u = now - c0; let cx = pts[0][1], cyy = pts[0][2];
       for (let j = 0; j < pts.length - 1; j++) if (u >= pts[j][0]) { const p0 = pts[j], p1 = pts[j + 1], e = Math.min(1, (u - p0[0]) / Math.max(1e-6, p1[0] - p0[0])); cyy = p0[2]; cx = p1[2] === p0[2] ? p0[1] + (p1[1] - p0[1]) * e : p0[1] + (ax0 + aw - p0[1]) * e; }
-      ctx.fillStyle = 'rgba(201,139,91,.14)'; ctx.fillRect(cx - 9, cyy - rh / 2 + 4, 18, rh - 8);
-      ctx.fillStyle = 'rgba(255,240,228,.95)'; ctx.fillRect(cx - 1.25, cyy - rh / 2 + 2, 2.5, rh - 4);
+      ctx.fillStyle = 'rgba(199,139,94,.14)'; ctx.fillRect(cx - 9, cyy - rh / 2 + 4, 18, rh - 8);
+      ctx.fillStyle = 'rgba(245,245,247,.95)'; ctx.fillRect(cx - 1.25, cyy - rh / 2 + 2, 2.5, rh - 4);
     }
-    if (listen) { const yy = ry(0), hh = ry(C - 1) + rh - yy; ctx.fillStyle = 'rgba(8,7,6,.55)'; ctx.fillRect(x0, yy, rowW, hh); text('♪ ' + tr('p.listenPart'), Wd / 2, yy + hh / 2, 17, 'rgba(255,240,228,.92)', 600); }
+    if (listen) { const yy = ry(0), hh = ry(C - 1) + rh - yy; ctx.fillStyle = 'rgba(10,10,11,.55)'; ctx.fillRect(x0, yy, rowW, hh); text('♪ ' + tr('p.listenPart'), Wd / 2, yy + hh / 2, 17, 'rgba(245,245,247,.92)', 600); }
     const yb = ry(C - 1) + rh + 16;
-    ctx.font = '500 11.5px ' + FONT; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(255,240,228,.45)';
+    ctx.font = '500 11.5px ' + FONT; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(245,245,247,.45)';
     const lines = []; tr('cy.legend').split(' · ').forEach(part => { const l = lines.length ? lines[lines.length - 1] + ' · ' + part : null; if (l && ctx.measureText(l).width <= rowW - 4) lines[lines.length - 1] = l; else lines.push(part); });   // wraps in a narrow column
     lines.forEach((l, j) => ctx.fillText(l, x0 + 2, yb + j * 15));
     const nx = (S.lesson.sections || []).find(s2 => s2.from >= c0 + C - 1e-6 && s2.from < c0 + 2 * C);
-    if (nx && sc && nx !== sc) { ctx.fillStyle = 'rgba(255,240,228,.8)'; ctx.fillText(tr('cy.next', { s: PD.i18n.pick(nx.name) }), x0 + 2, yb + lines.length * 15 + 2); }
+    if (nx && sc && nx !== sc) { ctx.fillStyle = 'rgba(245,245,247,.8)'; ctx.fillText(tr('cy.next', { s: PD.i18n.pick(nx.name) }), x0 + 2, yb + lines.length * 15 + 2); }
     ctx.restore();
   }
   function drawSong(tm) {
@@ -411,14 +411,14 @@ PD.Lanes = function (canvas, opt) {
     (S.lesson.sections || []).forEach(sc => {
       if (sc.to < v0 || sc.from > v1) return;
       const xa = X(sc.from), xb = X(sc.to);
-      if (sc.kind === 'listen') { const l = Math.min(xa, xb), w = Math.abs(xb - xa); ctx.fillStyle = 'rgba(255,240,228,.05)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(l + 2, y0, w - 4, bh, 14) : ctx.rect(l, y0, w, bh); ctx.fill();
-        const lx = Math.max(Math.min(xa, xb) + 16, px + 16); if (lx < Math.max(xa, xb) - 40) { ctx.fillStyle = 'rgba(255,240,228,.55)'; ctx.font = '600 14px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('♪ ' + tr('p.listenPart'), lx, cy); } }
+      if (sc.kind === 'listen') { const l = Math.min(xa, xb), w = Math.abs(xb - xa); ctx.fillStyle = 'rgba(245,245,247,.05)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(l + 2, y0, w - 4, bh, 14) : ctx.rect(l, y0, w, bh); ctx.fill();
+        const lx = Math.max(Math.min(xa, xb) + 16, px + 16); if (lx < Math.max(xa, xb) - 40) { ctx.fillStyle = 'rgba(245,245,247,.55)'; ctx.font = '600 14px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('♪ ' + tr('p.listenPart'), lx, cy); } }
       // section names: upcoming ones at their start; the current one pinned at the play line until the next name arrives
       const nm = PD.i18n.pick(sc.name), nextX = X(sc.to);
       if (!self.mirror && Math.abs(xb - xa) > 30) {
         let lx = xa >= px ? xa + 4 : px + 6;
         if (xa < px && nextX - lx < 150) lx = null;
-        if (lx != null) { ctx.fillStyle = 'rgba(255,240,228,.62)'; ctx.font = '600 11px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(nm, lx, y0 - 6); }
+        if (lx != null) { ctx.fillStyle = 'rgba(245,245,247,.62)'; ctx.font = '600 11px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(nm, lx, y0 - 6); }
       }
     });
     // chord blocks: consecutive steps with the same chord inside one bar
@@ -438,28 +438,28 @@ PD.Lanes = function (canvas, opt) {
       ctx.strokeStyle = hexA(col, active ? .95 : .5); ctx.lineWidth = active ? 2 : 1.2; ctx.stroke();
       // chord name: stays readable at the play line while its block passes
       const nxp = self.mirror ? Math.min(xa, px - 8) - 4 : Math.max(l + 10, Math.min(px + 10, l + w - 40));
-      ctx.fillStyle = '#F4EFE9'; ctx.font = '700 ' + Math.round(Math.min(30, bh * .28)) + 'px ' + FONT; ctx.textAlign = self.mirror ? 'right' : 'left'; ctx.textBaseline = 'top';
+      ctx.fillStyle = '#eeeeef'; ctx.font = '700 ' + Math.round(Math.min(30, bh * .28)) + 'px ' + FONT; ctx.textAlign = self.mirror ? 'right' : 'left'; ctx.textBaseline = 'top';
       if (w > 24) ctx.fillText(r.name, nxp, y0 + 8);
       // a faint line between rhythms inside one chord (Dm = 2 rhythms)
-      ctx.strokeStyle = 'rgba(255,240,228,.18)'; ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(245,245,247,.18)'; ctx.lineWidth = 1;
       for (let k = Math.floor(r.from) + 1; k < r.to - 1e-6; k++) { const xk = X(k) - (self.mirror ? -1 : 1) * G.ppb * .08; ctx.beginPath(); ctx.moveTo(xk, y0 + bh * .42); ctx.lineTo(xk, y0 + bh * .9); ctx.stroke(); }
       // strokes
       r.steps.forEach(st => {
         const x = X(st.t), f = fx[st.i] || {}, res = S.res[st.i] || {}, up = st.st === 'up';
         const sp = Math.max(8, G.ppb * st.d);
-        let c = st.acc ? ACC : '#F4EFE9', a = 1, s2 = Math.min(st.acc ? bh * .2 : bh * .15, sp * (st.acc ? .62 : .5)), w2 = Math.min(st.acc ? 4.2 : 2.6, sp * .22);
-        if (f.hit && tm - f.hit < 260) { const k = (tm - f.hit) / 260; s2 *= 1 + .35 * (1 - k); c = '#FFFFFF'; }
-        else if (res.ok) a = .55; else if (res.missed) { c = '#FF8A7D'; a = .6; }
+        let c = st.acc ? ACC : '#eeeeef', a = 1, s2 = Math.min(st.acc ? bh * .2 : bh * .15, sp * (st.acc ? .62 : .5)), w2 = Math.min(st.acc ? 4.2 : 2.6, sp * .22);
+        if (f.hit && tm - f.hit < 260) { const k = (tm - f.hit) / 260; s2 *= 1 + .35 * (1 - k); c = '#ffffff'; }
+        else if (res.ok) a = .55; else if (res.missed) { c = '#ff8a7d'; a = .6; }
         ctx.globalAlpha = (past ? .35 : 1) * a;
         arrow(x, y0 + bh * .66, up, s2, c, w2);
       });
       ctx.restore();
     });
     // play line
-    const pg = ctx.createLinearGradient(0, 0, 0, G.H); pg.addColorStop(0, 'rgba(255,240,228,0)'); pg.addColorStop(.15, 'rgba(255,240,228,.7)'); pg.addColorStop(.85, 'rgba(255,240,228,.7)'); pg.addColorStop(1, 'rgba(255,240,228,0)');
-    ctx.fillStyle = 'rgba(201,139,91,.10)'; ctx.fillRect(px - 12, 0, 24, G.H); ctx.fillStyle = pg; ctx.fillRect(px - 1, 0, 2, G.H);
+    const pg = ctx.createLinearGradient(0, 0, 0, G.H); pg.addColorStop(0, 'rgba(245,245,247,0)'); pg.addColorStop(.15, 'rgba(245,245,247,.7)'); pg.addColorStop(.85, 'rgba(245,245,247,.7)'); pg.addColorStop(1, 'rgba(245,245,247,0)');
+    ctx.fillStyle = 'rgba(199,139,94,.10)'; ctx.fillRect(px - 12, 0, 24, G.H); ctx.fillStyle = pg; ctx.fillRect(px - 1, 0, 2, G.H);
     // beat dots under the blocks
-    for (let b = Math.max(0, Math.floor(v0)); b <= v1; b++) { const x = X(b); ctx.fillStyle = b % bpb === 0 ? 'rgba(255,240,228,.45)' : 'rgba(255,240,228,.18)'; ctx.beginPath(); ctx.arc(x, y0 + bh + 10, b % bpb === 0 ? 3 : 2, 0, 7); ctx.fill(); }
+    for (let b = Math.max(0, Math.floor(v0)); b <= v1; b++) { const x = X(b); ctx.fillStyle = b % bpb === 0 ? 'rgba(245,245,247,.45)' : 'rgba(245,245,247,.18)'; ctx.beginPath(); ctx.arc(x, y0 + bh + 10, b % bpb === 0 ? 3 : 2, 0, 7); ctx.fill(); }
   }
 
   function draw() {
@@ -470,10 +470,10 @@ PD.Lanes = function (canvas, opt) {
     if (countT && t - countT < 900) {   // count-in: the number sits on its own round badge (never mixed into the chart behind it), pops in and drains a ring
       const k = (t - countT) / 900, big = count > 0, fs = big ? Math.min(72, G.H * .36) : Math.min(30, G.H * .16), r = big ? fs * .95 : Math.max(fs * 2.4, 60), pop = 1 + .18 * Math.max(0, 1 - k * 5);
       ctx.save(); ctx.globalAlpha = Math.min(1, (1 - k) * 2.2); ctx.translate(G.W / 2, G.H / 2); ctx.scale(pop, pop);
-      ctx.fillStyle = 'rgba(14,8,4,.86)'; ctx.beginPath(); if (big) ctx.arc(0, 0, r, 0, 7); else if (ctx.roundRect) ctx.roundRect(-r, -fs, r * 2, fs * 2, fs); else ctx.rect(-r, -fs, r * 2, fs * 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(224,168,120,.25)'; ctx.lineWidth = 4; ctx.stroke();
-      if (big) { ctx.strokeStyle = '#F6C987'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(0, 0, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - k)); ctx.stroke(); }
-      text(big ? String(count) : tr('ci.start'), 0, 2, fs, '#FFFFFF', 800); ctx.restore(); }
+      ctx.fillStyle = 'rgba(12,12,14,.86)'; ctx.beginPath(); if (big) ctx.arc(0, 0, r, 0, 7); else if (ctx.roundRect) ctx.roundRect(-r, -fs, r * 2, fs * 2, fs); else ctx.rect(-r, -fs, r * 2, fs * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(226,174,132,.25)'; ctx.lineWidth = 4; ctx.stroke();
+      if (big) { ctx.strokeStyle = '#c89670'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(0, 0, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - k)); ctx.stroke(); }
+      text(big ? String(count) : tr('ci.start'), 0, 2, fs, '#ffffff', 800); ctx.restore(); }
   }
 
   Object.assign(self, {

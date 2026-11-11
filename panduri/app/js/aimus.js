@@ -822,7 +822,7 @@ PD.i18n.add({
 });
 PD.aimus.panel = function (o) {
   const h = PD.h, t = PD.i18n.t, TH = PD.theory, A = PD.aimus;
-  const SCOL = { 1: '#D9783F', 2: '#78B7DE', 3: '#EFE0B8' }, clamp = (x, a, b) => x < a ? a : x > b ? b : x;
+  const SCOL = { 1: '#7cc2ae', 2: '#84a8dc', 3: '#e2d3b5' }, clamp = (x, a, b) => x < a ? a : x > b ? b : x;
   const el = h('section', { class: 'ai-trans' });
   const can = k => !o[k] || o[k]();                      // no gate given → open
   const lock = f => o.lock ? o.lock(f) : null;
@@ -934,20 +934,20 @@ PD.aimus.panel = function (o) {
       lo = vLo; hi = vHi; const span = Math.max(8, hi - lo);
       const X = tt => (tt - t0) * px, Y = m => H - 10 - (m - lo) / span * (H - 20), rh = Math.max(4, (H - 20) / span - 1);
       // the bars of the song
-      (M.beats || []).forEach((b, k) => { if (b < t0 - 1 || b > t1 + 1) return; const g = M.metre.beatsPerBar || 4, one = (((k - (M.metre.phase || 0)) % g) + g) % g === 0; x.fillStyle = one ? 'rgba(255,244,230,.26)' : 'rgba(255,244,230,.08)'; x.fillRect(X(b), 0, 1, H); });
+      (M.beats || []).forEach((b, k) => { if (b < t0 - 1 || b > t1 + 1) return; const g = M.metre.beatsPerBar || 4, one = (((k - (M.metre.phase || 0)) % g) + g) % g === 0; x.fillStyle = one ? 'rgba(240,240,242,.26)' : 'rgba(240,240,242,.08)'; x.fillRect(X(b), 0, 1, H); });
       // every note that was heard, faint, behind the line that was written out
-      if (M.poly) { x.fillStyle = 'rgba(255,244,230,.16)'; M.poly.forEach(n => { if (n.t1 < t0 || n.t0 > t1 || n.m < lo - 1 || n.m > hi + 1) return; x.fillRect(X(n.t0), Y(n.m) - rh / 2 + 1, Math.max(2, (n.t1 - n.t0) * px - 1), Math.max(2, rh - 2)); }); }
+      if (M.poly) { x.fillStyle = 'rgba(240,240,242,.16)'; M.poly.forEach(n => { if (n.t1 < t0 || n.t0 > t1 || n.m < lo - 1 || n.m > hi + 1) return; x.fillRect(X(n.t0), Y(n.m) - rh / 2 + 1, Math.max(2, (n.t1 - n.t0) * px - 1), Math.max(2, rh - 2)); }); }
       M.notes.forEach((n, i) => {
         if (n.t1 < t0 || n.t0 > t1) return;
         const a = X(n.t0), w = Math.max(3, (n.t1 - n.t0) * px - 1), y = Y(n.m);
         x.globalAlpha = .35 + .65 * n.conf;
-        x.fillStyle = !n.reach ? 'rgba(190,120,110,.9)' : (i === cur ? '#FFF4E6' : SCOL[n.s] || '#D9A25B');
+        x.fillStyle = !n.reach ? 'rgba(190,120,110,.9)' : (i === cur ? '#f2f2f3' : SCOL[n.s] || '#b97a49');
         if (x.roundRect) { x.beginPath(); x.roundRect(a, y - rh / 2, w, rh, Math.min(4, rh / 2)); x.fill(); } else x.fillRect(a, y - rh / 2, w, rh);
         x.globalAlpha = 1;
-        if (w > 26 && rh > 9) { x.fillStyle = '#17100A'; x.font = '700 ' + Math.min(12, rh - 1).toFixed(0) + "px 'Noto Sans Georgian', system-ui"; x.textBaseline = 'middle'; x.fillText(noteLabel(n), a + 3, y); }
+        if (w > 26 && rh > 9) { x.fillStyle = '#141416'; x.font = '700 ' + Math.min(12, rh - 1).toFixed(0) + "px 'Noto Sans Georgian', system-ui"; x.textBaseline = 'middle'; x.fillText(noteLabel(n), a + 3, y); }
       });
-      x.fillStyle = '#F6C987'; x.fillRect(X(p) - 1, 0, 2, H);
-      x.fillStyle = 'rgba(246,201,135,.9)'; x.beginPath(); x.moveTo(X(p) - 5, 0); x.lineTo(X(p) + 5, 0); x.lineTo(X(p), 7); x.fill();
+      x.fillStyle = '#c89670'; x.fillRect(X(p) - 1, 0, 2, H);
+      x.fillStyle = 'rgba(221,176,138,.9)'; x.beginPath(); x.moveTo(X(p) - 5, 0); x.lineTo(X(p) + 5, 0); x.lineTo(X(p), 7); x.fill();
     }
     cv.onpointerdown = e => {
       const r = cv.getBoundingClientRect(), p = o.pos(), t0 = p - W / px * .35, tt = t0 + (e.clientX - r.left) / px;
@@ -968,7 +968,7 @@ PD.aimus.panel = function (o) {
     const box = h('div', { class: 'tr-sheet' }), per = innerWidth < 560 ? 2 : 4, bars = barsOf();
     for (let i = 0; i < bars.length; i += per) {
       const chunk = bars.slice(i, i + per), gap = 46, x0 = 74; let x = x0; const ns = [], lines = [];
-      chunk.forEach(c => { c.ns.forEach(n => { const sp = A.spell(n.m, M.key); ns.push({ l: sp.l, o: sp.o, acc: sp.acc || '', d: (n.val || 'q').replace(/3$/, '').replace('.', ''), dot: /\./.test(n.val || ''), x: x, label: n.reach ? (n.f === 0 ? '0' : String(n.f)) : '×', col: n.reach ? (SCOL[n.s] || null) : '#C98A80', idx: n.i }); x += gap; }); lines.push(x - gap / 2); x += 12; });
+      chunk.forEach(c => { c.ns.forEach(n => { const sp = A.spell(n.m, M.key); ns.push({ l: sp.l, o: sp.o, acc: sp.acc || '', d: (n.val || 'q').replace(/3$/, '').replace('.', ''), dot: /\./.test(n.val || ''), x: x, label: n.reach ? (n.f === 0 ? '0' : String(n.f)) : '×', col: n.reach ? (SCOL[n.s] || null) : '#c98a80', idx: n.i }); x += gap; }); lines.push(x - gap / 2); x += 12; });
       const W = Math.max(300, x + 16);
       const svg = h('div', { class: 'tr-sys', html: PD.notesArt.staff(ns, { width: W, height: 150, time: i === 0 ? [M.metre.num, M.metre.den] : null, bars: lines.slice(0, -1), end: i + per >= bars.length, label: 'notes' }) });
       svg.dataset.from = chunk[0].b; svg.dataset.to = chunk[chunk.length - 1].b;
@@ -981,7 +981,7 @@ PD.aimus.panel = function (o) {
     const box = h('div', { class: 'tr-list' });
     barsOf().forEach(c => {
       const row = h('div', { class: 'tr-brow' }, [h('small', { class: 'tr-bn', text: String(c.b) })]);
-      c.ns.forEach(n => row.append(h('button', { class: 'tr-n' + (n.reach ? '' : ' bad'), 'data-i': n.i, style: n.reach ? '--sc:' + (SCOL[n.s] || '#D9A25B') : '', onclick: () => editMode ? edit(n.i) : o.seek(n.t0) },
+      c.ns.forEach(n => row.append(h('button', { class: 'tr-n' + (n.reach ? '' : ' bad'), 'data-i': n.i, style: n.reach ? '--sc:' + (SCOL[n.s] || '#b97a49') : '', onclick: () => editMode ? edit(n.i) : o.seek(n.t0) },
         [h('b', { text: noteLabel(n) }), h('small', { text: posLabel(n) })])));
       box.append(row);
     });

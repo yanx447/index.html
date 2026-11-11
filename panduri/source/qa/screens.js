@@ -13,7 +13,7 @@ const routes = (process.env.ROUTES || 'home,learn,library,progress,more,settings
       await p.evaluate(r => PD.app.go(r), r); await p.waitForTimeout(r === 'explore' || r === 'chords' ? 1600 : 450);
       const ov = await p.evaluate(() => { const pg = document.querySelector('.page'); return pg ? pg.scrollWidth - pg.clientWidth : 0; });
       if (ov > 1) errs.push('overflow-x ' + r + ' ' + ov);
-      const clip = await p.evaluate(() => [...document.querySelectorAll('.page button, .page .chip, .page .tag, .tabbar .navb, .rail .navb, .page h1, .page h2')].filter(e => e.offsetParent && (e.scrollWidth > e.clientWidth + 1) && getComputedStyle(e).overflow !== 'visible' || (e.offsetParent && e.scrollWidth > e.clientWidth + 2 && getComputedStyle(e).whiteSpace === 'nowrap')).map(e => (e.className || e.tagName) + ':' + (e.textContent || '').trim().slice(0, 24)).slice(0, 8));
+      const clip = await p.evaluate(() => [...document.querySelectorAll('.page button, .page .chip, .page .tag, .dock .nv-l, .side .nv-l, .page h1, .page h2')].filter(e => e.offsetParent && (e.scrollWidth > e.clientWidth + 1) && getComputedStyle(e).overflow !== 'visible' || (e.offsetParent && e.scrollWidth > e.clientWidth + 2 && getComputedStyle(e).whiteSpace === 'nowrap')).map(e => (e.className || e.tagName) + ':' + (e.textContent || '').trim().slice(0, 24)).slice(0, 8));
       if (clip.length) errs.push('clip ' + r + ' ' + clip.join(' | '));
       await p.screenshot({ path: `qa/sc-${sz}-${r}${process.env.LANG2 ? '-' + process.env.LANG2 : ''}.png`, fullPage: !!process.env.FULL });
     }

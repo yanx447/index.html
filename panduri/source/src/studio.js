@@ -36,7 +36,7 @@ PD.i18n.add({
 
 PD.studio = (() => {
   const TH = PD.theory, LS = PD.lessons, h = PD.h, ic = PD.ic;
-  const SCOL = ['', '#D9783F', '#78B7DE', '#EFE0B8'];
+  const SCOL = ['', '#7cc2ae', '#84a8dc', '#e2d3b5'];
   let ST = null;
 
   function open(id, type) {
@@ -194,41 +194,41 @@ PD.studio = (() => {
     function draw() {
       if (!layout()) return;
       const W = G.W, H = G.H, vs = viewStart(), ve = B(W);
-      ctx.clearRect(0, 0, W, H); ctx.fillStyle = '#0F0D0B'; ctx.fillRect(0, 0, W, H);
+      ctx.clearRect(0, 0, W, H); ctx.fillStyle = '#0a0b0e'; ctx.fillRect(0, 0, W, H);
       // lanes
-      [1, 2, 3].forEach(s => { const y = laneY(s); ctx.fillStyle = s === 2 ? '#141210' : '#121009'; ctx.fillRect(G.x0, y, W - G.x0, G.laneH); ctx.fillStyle = SCOL[s]; ctx.font = '600 13px Noto Sans Georgian'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(TH.stringName(s), G.x0 / 2, y + G.laneH / 2); ctx.globalAlpha = .25; ctx.fillRect(G.x0, y + G.laneH / 2, W - G.x0, 1); ctx.globalAlpha = 1; });
+      [1, 2, 3].forEach(s => { const y = laneY(s); ctx.fillStyle = s === 2 ? '#161618' : '#111113'; ctx.fillRect(G.x0, y, W - G.x0, G.laneH); ctx.fillStyle = SCOL[s]; ctx.font = '600 13px Noto Sans Georgian'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(TH.stringName(s), G.x0 / 2, y + G.laneH / 2); ctx.globalAlpha = .25; ctx.fillRect(G.x0, y + G.laneH / 2, W - G.x0, 1); ctx.globalAlpha = 1; });
       // grid lines + ruler
       for (let b = Math.floor(vs / st.grid) * st.grid; b <= ve; b += st.grid) {
         const x = X(b); if (x < G.x0) continue; const bar = Math.abs(b / bpb() - Math.round(b / bpb())) < 1e-6, beat = Math.abs(b - Math.round(b)) < 1e-6;
-        ctx.fillStyle = bar ? 'rgba(242,232,218,.28)' : beat ? 'rgba(242,232,218,.12)' : 'rgba(242,232,218,.05)'; ctx.fillRect(x, G.ruler, 1, H - G.ruler);
-        if (bar) { ctx.fillStyle = 'rgba(242,232,218,.6)'; ctx.font = '11px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.fillText(String(Math.round(b / bpb()) + 1), x + 3, 11); }
+        ctx.fillStyle = bar ? 'rgba(232,232,236,.28)' : beat ? 'rgba(232,232,236,.12)' : 'rgba(232,232,236,.05)'; ctx.fillRect(x, G.ruler, 1, H - G.ruler);
+        if (bar) { ctx.fillStyle = 'rgba(232,232,236,.6)'; ctx.font = '11px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.fillText(String(Math.round(b / bpb()) + 1), x + 3, 11); }
       }
       // waveform
       if (G.wave) {
-        ctx.fillStyle = '#0B0A09'; ctx.fillRect(G.x0, G.ruler, W - G.x0, G.wave);
-        if (st.wave) { const mid = G.ruler + G.wave / 2; ctx.fillStyle = 'rgba(214,161,90,.65)'; for (let x = G.x0; x < W; x++) { const sec = B(x) / bps() + (l.refOffset || 0), i = Math.floor(sec * st.wave.rate); if (i < 0 || i >= st.wave.pk.length) continue; const v = st.wave.pk[i] * (G.wave / 2 - 2); ctx.fillRect(x, mid - v, 1, v * 2 + 1); } }
+        ctx.fillStyle = '#08090b'; ctx.fillRect(G.x0, G.ruler, W - G.x0, G.wave);
+        if (st.wave) { const mid = G.ruler + G.wave / 2; ctx.fillStyle = 'rgba(184,120,71,.65)'; for (let x = G.x0; x < W; x++) { const sec = B(x) / bps() + (l.refOffset || 0), i = Math.floor(sec * st.wave.rate); if (i < 0 || i >= st.wave.pk.length) continue; const v = st.wave.pk[i] * (G.wave / 2 - 2); ctx.fillRect(x, mid - v, 1, v * 2 + 1); } }
       }
       // sections
-      l.sections.forEach((sc, i) => { const a = Math.max(G.x0, X(sc.from)), b = X(sc.to); if (b < G.x0) return; ctx.fillStyle = i % 2 ? 'rgba(120,183,222,.18)' : 'rgba(214,161,90,.18)'; ctx.fillRect(a, G.secY + 2, b - a - 2, 14); ctx.fillStyle = 'rgba(242,232,218,.8)'; ctx.font = '11px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.fillText(PD.i18n.pick(sc.name), a + 4, G.secY + 9); });
+      l.sections.forEach((sc, i) => { const a = Math.max(G.x0, X(sc.from)), b = X(sc.to); if (b < G.x0) return; ctx.fillStyle = i % 2 ? 'rgba(132,168,220,.18)' : 'rgba(184,120,71,.18)'; ctx.fillRect(a, G.secY + 2, b - a - 2, 14); ctx.fillStyle = 'rgba(232,232,236,.8)'; ctx.font = '11px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.fillText(PD.i18n.pick(sc.name), a + 4, G.secY + 9); });
       // chord connectors
       const groups = {}; l.events.forEach(e => { if (e.chordId) (groups[e.chordId] = groups[e.chordId] || []).push(e); });
-      Object.values(groups).forEach(g => { const x = X(Math.min(...g.map(e => e.t))) + 3, ys = g.map(e => laneY(e.s) + G.laneH / 2); ctx.fillStyle = 'rgba(214,161,90,.5)'; ctx.fillRect(x - 1.5, Math.min(...ys), 3, Math.max(...ys) - Math.min(...ys)); ctx.fillStyle = '#D6A15A'; ctx.font = '600 11px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.fillText(g[0].chord || '', x + 4, laneY(3) - 0 + 2 > G.top ? laneY(3) + 2 : G.top); });
+      Object.values(groups).forEach(g => { const x = X(Math.min(...g.map(e => e.t))) + 3, ys = g.map(e => laneY(e.s) + G.laneH / 2); ctx.fillStyle = 'rgba(184,120,71,.5)'; ctx.fillRect(x - 1.5, Math.min(...ys), 3, Math.max(...ys) - Math.min(...ys)); ctx.fillStyle = '#b87847'; ctx.font = '600 11px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.fillText(g[0].chord || '', x + 4, laneY(3) - 0 + 2 > G.top ? laneY(3) + 2 : G.top); });
       // events
       l.events.forEach(e => {
         const r = evRect(e); if (r.x + r.w < G.x0 || r.x > W) return;
         const on = st.sel.has(e.id);
-        ctx.fillStyle = on ? SCOL[e.s] : 'rgba(30,26,22,.95)'; ctx.strokeStyle = SCOL[e.s]; ctx.lineWidth = on ? 2 : 1.4;
+        ctx.fillStyle = on ? SCOL[e.s] : 'rgba(31,31,33,.95)'; ctx.strokeStyle = SCOL[e.s]; ctx.lineWidth = on ? 2 : 1.4;
         ctx.beginPath(); ctx.roundRect ? ctx.roundRect(r.x, r.y, r.w, r.h, 6) : ctx.rect(r.x, r.y, r.w, r.h); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = on ? '#140D08' : '#F2E8DA'; ctx.font = '600 ' + Math.min(18, r.h * .45) + 'px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = on ? '#0b0c0f' : '#e5e5e7'; ctx.font = '600 ' + Math.min(18, r.h * .45) + 'px Noto Sans Georgian'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
         ctx.fillText(String(e.f), r.x + 6, r.y + r.h / 2);
         ctx.font = '10px Noto Sans Georgian'; const meta = (e.f ? '·' + (e.fi || '?') : '') + (e.st === 'up' ? ' ↑' : ' ↓') + (e.acc ? ' >' : '') + (e.hint ? ' ✎' : '');
         if (r.w > 40) ctx.fillText(meta, r.x + 6 + (e.f > 9 ? 22 : 13), r.y + r.h / 2 + 1);
-        if (e.f && !e.fi) { ctx.fillStyle = '#E9C46A'; ctx.beginPath(); ctx.arc(r.x + r.w - 6, r.y + 6, 3, 0, 7); ctx.fill(); }
+        if (e.f && !e.fi) { ctx.fillStyle = '#bf865a'; ctx.beginPath(); ctx.arc(r.x + r.w - 6, r.y + 6, 3, 0, 7); ctx.fill(); }
       });
       // cursor + playhead + marquee
-      const cx = X(st.cursor); if (cx >= G.x0) { ctx.fillStyle = '#78B7DE'; ctx.fillRect(cx - 1, G.ruler, 2, H - G.ruler); }
-      if (st.play) { const px = X(st.play.beat); ctx.fillStyle = '#F2E8DA'; ctx.fillRect(px - 1, 0, 2, H); }
-      if (drag && drag.kind === 'marquee') { ctx.strokeStyle = '#D6A15A'; ctx.setLineDash([4, 3]); ctx.strokeRect(drag.x0, drag.y0, drag.x - drag.x0, drag.y - drag.y0); ctx.setLineDash([]); }
+      const cx = X(st.cursor); if (cx >= G.x0) { ctx.fillStyle = '#84a8dc'; ctx.fillRect(cx - 1, G.ruler, 2, H - G.ruler); }
+      if (st.play) { const px = X(st.play.beat); ctx.fillStyle = '#e5e5e7'; ctx.fillRect(px - 1, 0, 2, H); }
+      if (drag && drag.kind === 'marquee') { ctx.strokeStyle = '#b87847'; ctx.setLineDash([4, 3]); ctx.strokeRect(drag.x0, drag.y0, drag.x - drag.x0, drag.y - drag.y0); ctx.setLineDash([]); }
       status();
     }
     function status() {

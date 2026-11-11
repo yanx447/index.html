@@ -49,7 +49,7 @@ export class Trace {
       prev = [x, yy]; last = [x, yy, c];
     }
     if (last) {
-      ctx.fillStyle = Math.abs(last[2]) <= this.tol ? '#8cc084' : '#d4a655';
+      ctx.fillStyle = Math.abs(last[2]) <= this.tol ? '#8cc084' : '#c78b5e';
       ctx.beginPath(); ctx.arc(Math.min(last[0], w - 4 * d), last[1], 3 * d, 0, Math.PI * 2); ctx.fill();
     }
     ctx.fillStyle = 'rgba(160,144,122,.7)';

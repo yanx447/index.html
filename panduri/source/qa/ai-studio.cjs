@@ -7,16 +7,16 @@ const server=http.createServer((req,res)=>{
  const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));
  if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
  const target=fs.existsSync(file)&&fs.statSync(file).isDirectory()?path.join(file,'index.html'):file;
- const types={'.js':'text/javascript','.wasm':'application/wasm','.html':'text/html','.css':'text/css','.json':'application/json','.mp3':'audio/mpeg'};
+ const types={'.js':'text/javascript','.mjs':'text/javascript','.wasm':'application/wasm','.html':'text/html','.css':'text/css','.json':'application/json','.mp3':'audio/mpeg'};
  if(!fs.existsSync(target)){res.writeHead(404);res.end();return;}
- res.setHeader('Content-Type',types[path.extname(target)]||'application/octet-stream');fs.createReadStream(target).pipe(res);
+ res.setHeader('Content-Length',fs.statSync(target).size);res.setHeader('Content-Type',types[path.extname(target)]||'application/octet-stream');fs.createReadStream(target).pipe(res);
 });
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const origin='http://127.0.0.1:'+server.address().port;
  const b=await chromium.launch({channel:'chrome',headless:true});
  try {
- const p=await b.newPage({viewport:{width:390,height:844}}); const errors=[];
+ const p=await b.newPage({viewport:{width:390,height:844},userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148'}); const errors=[];
  p.on('pageerror',e=>errors.push(e.message));
  await p.goto(origin+'/panduri/app/');
  await p.waitForFunction(()=>window.PD?.app);
@@ -42,7 +42,8 @@ const server=http.createServer((req,res)=>{
  await p.setInputFiles('input[type=file]',{name:'triad.wav',mimeType:'audio/wav',buffer:wav});
  await p.waitForSelector('.ai-facts',{timeout:120000});
  await p.evaluate(()=>{for(const b of document.querySelectorAll('.ai-stems .seg button'))if(b.textContent.includes('Light'))b.click();document.querySelector('.ai-stems .btn.primary.big').click();});
- await p.waitForSelector('.ai-mix',{state:'attached',timeout:180000});
+ await p.waitForFunction(()=>document.querySelector('.ai-mix')||document.querySelector('.ai-msg')?.textContent,{},{timeout:180000});
+ const failure=await p.locator('.ai-msg').allTextContents();assert.ok(!failure.some(Boolean),failure.join(' '));
  const st=await p.evaluate(()=>({duration:PD.ai.current.stems.len,tracks:PD.ai.current.stems.tracks.map(t=>t.name)}));
  console.log('UI separated',st);if(st.duration!==21||st.tracks.length!==4)throw Error('UI did not separate the whole song');
  await p.evaluate(()=>[...document.querySelectorAll('.ai-mix button')].find(b=>b.textContent==='Read chords from instruments').click());

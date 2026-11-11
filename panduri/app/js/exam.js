@@ -786,7 +786,7 @@ PD.exam = (() => {
           h('div', {}, [h('small', { 'data-t': 'ex.certDate' }), h('b', { text: fmtDay(c.at) })]),
           h('div', {}, [h('small', { 'data-t': 'ex.grad' }), h('b', { text: t('ex.certLv', { n: c.level, x: c.xp }) })])])])]);
   }
-  const SEAL = '<svg viewBox="0 0 64 64" width="52" height="52" aria-hidden="true"><circle cx="32" cy="30" r="20" fill="none" stroke="#C98B5B" stroke-width="2"/><circle cx="32" cy="30" r="16" fill="none" stroke="#C98B5B" stroke-width="1" stroke-dasharray="2 3"/><path d="M26 22v14a4 4 0 1 0 2-3.5V25l9-2v9a4 4 0 1 0 2-3.5V18z" fill="#E8C49B"/><path d="M20 48l6-4 6 6 6-6 6 4-2 10-10-5-10 5z" fill="#C98B5B" opacity=".85"/></svg>';
+  const SEAL = '<svg viewBox="0 0 64 64" width="52" height="52" aria-hidden="true"><circle cx="32" cy="30" r="20" fill="none" stroke="#c78b5e" stroke-width="2"/><circle cx="32" cy="30" r="16" fill="none" stroke="#c78b5e" stroke-width="1" stroke-dasharray="2 3"/><path d="M26 22v14a4 4 0 1 0 2-3.5V25l9-2v9a4 4 0 1 0 2-3.5V18z" fill="#d9a57c"/><path d="M20 48l6-4 6 6 6-6 6 4-2 10-10-5-10 5z" fill="#c78b5e" opacity=".85"/></svg>';
   /** shown inside the exam screen when the last exam is passed */
   function certificate() {
     const P = parts(); if (!P) return;
@@ -808,32 +808,32 @@ PD.exam = (() => {
     const card = document.getElementById('pd-cert'); if (!card) return;
     const W = 1200, H = 820, cv = h('canvas', { width: W, height: H }), x = cv.getContext('2d');
     const c = certData();
-    const bg = x.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#1C1511'); bg.addColorStop(1, '#0C0A09');
+    const bg = x.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#1b1b1d'); bg.addColorStop(1, '#0e0e0f');
     x.fillStyle = bg; x.fillRect(0, 0, W, H);
-    x.strokeStyle = '#C98B5B'; x.lineWidth = 3; x.strokeRect(28, 28, W - 56, H - 56);
-    x.strokeStyle = 'rgba(201,139,91,.45)'; x.lineWidth = 1; x.strokeRect(44, 44, W - 88, H - 88);
+    x.strokeStyle = '#c78b5e'; x.lineWidth = 3; x.strokeRect(28, 28, W - 56, H - 56);
+    x.strokeStyle = 'rgba(199,139,94,.45)'; x.lineWidth = 1; x.strokeRect(44, 44, W - 88, H - 88);
     const F = (sz, w2) => (w2 || 400) + ' ' + sz + 'px system-ui, "Noto Sans Georgian", sans-serif';
     const mid = (txt, y, font, col) => { x.font = font; x.fillStyle = col; x.textAlign = 'center'; x.fillText(txt, W / 2, y); };
-    mid(t('ex.certWho'), 110, F(22), '#C8A383');
-    mid(t('ex.certName'), 165, F(38, 800), '#F4E7D8');
-    mid(t('ex.certLine'), 285, F(22), '#C8A383');
-    mid(c.name || t('acct.guest'), 360, F(52, 800), '#FFE2BA');
+    mid(t('ex.certWho'), 110, F(22), '#be8355');
+    mid(t('ex.certName'), 165, F(38, 800), '#e5e5e7');
+    mid(t('ex.certLine'), 285, F(22), '#be8355');
+    mid(c.name || t('acct.guest'), 360, F(52, 800), '#dbdbde');
     const words = String(t('ex.certFin')).split(' ');
-    let line = '', y = 430; x.font = F(22); x.fillStyle = '#D9C8B6';
-    words.forEach(w2 => { const test = line ? line + ' ' + w2 : w2; if (x.measureText(test).width > W - 260) { mid(line, y, F(22), '#D9C8B6'); line = w2; y += 34; } else line = test; });
-    if (line) mid(line, y, F(22), '#D9C8B6');
-    mid(t('ex.certDate') + ': ' + fmtDay(c.at), H - 150, F(20), '#C8A383');
-    mid(t('ex.certLv', { n: c.level, x: c.xp }), H - 112, F(20, 700), '#E8C49B');
+    let line = '', y = 430; x.font = F(22); x.fillStyle = '#ddb08a';
+    words.forEach(w2 => { const test = line ? line + ' ' + w2 : w2; if (x.measureText(test).width > W - 260) { mid(line, y, F(22), '#ddb08a'); line = w2; y += 34; } else line = test; });
+    if (line) mid(line, y, F(22), '#ddb08a');
+    mid(t('ex.certDate') + ': ' + fmtDay(c.at), H - 150, F(20), '#be8355');
+    mid(t('ex.certLv', { n: c.level, x: c.xp }), H - 112, F(20, 700), '#d9a57c');
     // the student's picture, when the browser lets it be drawn
     const draw = () => new Promise(res => {
       if (!c.avatar) return res(false);
       const im = new Image(); im.crossOrigin = 'anonymous';
       im.onload = () => { const r = 56, cx = W / 2, cy = 240; x.save(); x.beginPath(); x.arc(cx, cy, r, 0, 7); x.closePath(); x.clip(); x.drawImage(im, cx - r, cy - r, r * 2, r * 2); x.restore();
-        x.beginPath(); x.arc(cx, cy, r, 0, 7); x.strokeStyle = '#C98B5B'; x.lineWidth = 3; x.stroke(); res(true); };
+        x.beginPath(); x.arc(cx, cy, r, 0, 7); x.strokeStyle = '#c78b5e'; x.lineWidth = 3; x.stroke(); res(true); };
       im.onerror = () => res(false); im.src = c.avatar;
     });
     let okPic = false; try { okPic = await draw(); } catch (_) { okPic = false; }
-    if (!okPic) { const cx = W / 2, cy = 240, r = 56; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fillStyle = 'rgba(201,139,91,.18)'; x.fill(); x.strokeStyle = '#C98B5B'; x.lineWidth = 3; x.stroke(); mid((c.name || '♪')[0] || '♪', cy + 16, F(44, 800), '#E8C49B'); }
+    if (!okPic) { const cx = W / 2, cy = 240, r = 56; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fillStyle = 'rgba(199,139,94,.18)'; x.fill(); x.strokeStyle = '#c78b5e'; x.lineWidth = 3; x.stroke(); mid((c.name || '♪')[0] || '♪', cy + 16, F(44, 800), '#d9a57c'); }
     const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
     if (!blob) return;
     const file = new File([blob], 'panduri-certificate.png', { type: 'image/png' });

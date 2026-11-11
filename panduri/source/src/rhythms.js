@@ -48,7 +48,7 @@ PD.i18n.add({
 
 PD.rhythmsUI = (() => {
   const h = PD.h, C = PD.curriculum, LS = PD.lessons;
-  const RED = '#E2574C', BLUE = '#5B9BD5';
+  const RED = '#e2574c', BLUE = '#5b9bd5';
   /** one stroke card: colour + size + thickness + label (never colour alone) */
   function arrowSVG(dir, acc, size) {
     const s = size || 56, w = acc ? 7 : 3.2, col = acc ? RED : BLUE, L = acc ? s * .42 : s * .3, cx = s / 2, cy = s / 2, d = dir === 'down' ? 1 : -1;

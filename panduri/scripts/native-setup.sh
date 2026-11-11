@@ -31,8 +31,8 @@ if [[ "$PLATFORM" == "android" || "$PLATFORM" == "all" ]]; then
   grep -q 'android:scheme="com.yanx.panduri"' "$MAN" || perl -0pi -e 's#(</intent-filter>)#$1\n            <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="com.yanx.panduri" android:host="auth" />\n            </intent-filter>#' "$MAN"
   perl -pi -e "s/versionCode \d+/versionCode $BUILD_NUMBER/; s/versionName \"[^\"]*\"/versionName \"$VERSION_NAME\"/" android/app/build.gradle
   npx @capacitor/assets generate --android \
-    --iconBackgroundColor '#130C07' --iconBackgroundColorDark '#130C07' \
-    --splashBackgroundColor '#130C07' --splashBackgroundColorDark '#130C07'
+    --iconBackgroundColor '#08090B' --iconBackgroundColorDark '#08090B' \
+    --splashBackgroundColor '#08090B' --splashBackgroundColorDark '#08090B'
   npx cap sync android
 fi
 
@@ -53,8 +53,8 @@ if [[ "$PLATFORM" == "ios" || "$PLATFORM" == "all" ]]; then
   $PB -c "Set :ITSAppUsesNonExemptEncryption false" "$PL" 2>/dev/null || $PB -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PL"
   perl -pi -e "s/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = $VERSION_NAME;/g; s/CURRENT_PROJECT_VERSION = [^;]+;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" ios/App/App.xcodeproj/project.pbxproj
   npx @capacitor/assets generate --ios \
-    --iconBackgroundColor '#130C07' --iconBackgroundColorDark '#130C07' \
-    --splashBackgroundColor '#130C07' --splashBackgroundColorDark '#130C07'
+    --iconBackgroundColor '#08090B' --iconBackgroundColorDark '#08090B' \
+    --splashBackgroundColor '#08090B' --splashBackgroundColorDark '#08090B'
   npx cap sync ios
 fi
 echo "native setup done ($PLATFORM, v$VERSION_NAME build $BUILD_NUMBER)"

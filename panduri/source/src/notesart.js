@@ -7,7 +7,7 @@
    ===================================================================== */
 PD.i18n.add({ 'na.staff': ['ხუთხაზედი', 'Staff'] });
 PD.notesArt = (() => {
-  const INK = '#F4E6D2', DIM = 'rgba(244,230,210,.55)', ACC = '#F6C987';
+  const INK = '#e2e2e4', DIM = 'rgba(226,226,228,.55)', ACC = '#c89670';
   const LET = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
   /** diatonic step of a written note relative to E4 (bottom line of the treble staff) */
   const step = (l, o) => (o * 7 + LET.indexOf(l)) - (4 * 7 + 2);
@@ -66,7 +66,7 @@ PD.notesArt = (() => {
   /** a small standalone symbol (for tables): a note or a rest on a short staff piece */
   function symbol(kind, d, dot) {
     let s = '<svg viewBox="0 0 54 70" class="tb-sym" aria-hidden="true">';
-    for (let i = 0; i < 5; i++) s += '<line x1="2" x2="52" y1="' + (12 + i * 10) + '" y2="' + (12 + i * 10) + '" stroke="rgba(244,230,210,.22)" stroke-width="1"/>';
+    for (let i = 0; i < 5; i++) s += '<line x1="2" x2="52" y1="' + (12 + i * 10) + '" y2="' + (12 + i * 10) + '" stroke="rgba(226,226,228,.22)" stroke-width="1"/>';
     s += kind === 'rest' ? rest(d, 27, 12) : note(d, 24, 37, 'up', INK, dot);
     return s + '</svg>';
   }
@@ -75,8 +75,8 @@ PD.notesArt = (() => {
     opt = opt || {};
     const W = 7 * 44 + 4, H = 150, wk = ['C', 'D', 'E', 'F', 'G', 'A', 'B'], ka = ['დო', 'რე', 'მი', 'ფა', 'სოლ', 'ლა', 'სი'], hi = opt.hi || [];
     let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="tb-svg" role="img" aria-label="keyboard">';
-    wk.forEach((n, i) => { const on = hi.includes(n); s += '<rect x="' + (2 + i * 44) + '" y="2" width="42" height="140" rx="5" fill="' + (on ? '#F6C987' : '#F8EEDF') + '" stroke="#2A1A0E"/><text x="' + (23 + i * 44) + '" y="118" font-size="15" font-weight="800" text-anchor="middle" fill="#24140A">' + n + '</text><text x="' + (23 + i * 44) + '" y="134" font-size="11" text-anchor="middle" fill="#5A4030" font-family="Noto Sans Georgian,system-ui">' + ka[i] + '</text>'; });
-    [[0, 'C♯', 'D♭'], [1, 'D♯', 'E♭'], [3, 'F♯', 'G♭'], [4, 'G♯', 'A♭'], [5, 'A♯', 'B♭']].forEach(([i, a, b]) => { const on = hi.includes(a) || hi.includes(b); s += '<rect x="' + (32 + i * 44) + '" y="2" width="26" height="86" rx="4" fill="' + (on ? '#C98B5B' : '#1B120B') + '"/><text x="' + (45 + i * 44) + '" y="62" font-size="9.5" font-weight="700" text-anchor="middle" fill="' + (on ? '#24140A' : '#F4E6D2') + '">' + a + '</text><text x="' + (45 + i * 44) + '" y="76" font-size="9.5" font-weight="700" text-anchor="middle" fill="' + (on ? '#24140A' : '#F4E6D2') + '">' + b + '</text>'; });
+    wk.forEach((n, i) => { const on = hi.includes(n); s += '<rect x="' + (2 + i * 44) + '" y="2" width="42" height="140" rx="5" fill="' + (on ? '#c89670' : '#ebebec') + '" stroke="#212123"/><text x="' + (23 + i * 44) + '" y="118" font-size="15" font-weight="800" text-anchor="middle" fill="#1b1b1d">' + n + '</text><text x="' + (23 + i * 44) + '" y="134" font-size="11" text-anchor="middle" fill="#8f5b38" font-family="Noto Sans Georgian,system-ui">' + ka[i] + '</text>'; });
+    [[0, 'C♯', 'D♭'], [1, 'D♯', 'E♭'], [3, 'F♯', 'G♭'], [4, 'G♯', 'A♭'], [5, 'A♯', 'B♭']].forEach(([i, a, b]) => { const on = hi.includes(a) || hi.includes(b); s += '<rect x="' + (32 + i * 44) + '" y="2" width="26" height="86" rx="4" fill="' + (on ? '#c78b5e' : '#171719') + '"/><text x="' + (45 + i * 44) + '" y="62" font-size="9.5" font-weight="700" text-anchor="middle" fill="' + (on ? '#1b1b1d' : '#e2e2e4') + '">' + a + '</text><text x="' + (45 + i * 44) + '" y="76" font-size="9.5" font-weight="700" text-anchor="middle" fill="' + (on ? '#1b1b1d' : '#e2e2e4') + '">' + b + '</text>'; });
     return s + '</svg>';
   }
   return { staff, note, rest, symbol, keyboard, step };

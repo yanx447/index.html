@@ -71,7 +71,7 @@ PD.i18n.add({
 
 PD.tools = (() => {
   const TH = PD.theory, LS = PD.lessons, h = PD.h, ic = PD.ic;
-  const SCOL = ['', '#D9783F', '#78B7DE', '#EFE0B8'];
+  const SCOL = ['', '#7cc2ae', '#84a8dc', '#e2d3b5'];
   /** run fn(off) and release resources when the route changes */
   function scope() { const offs = []; const un = PD.bus.on('route', () => { offs.forEach(f => { try { f(); } catch (_) {} }); un(); }); return f => offs.push(f); }
   const header = (w, k) => w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': k, style: 'margin:0' })]));
@@ -82,9 +82,9 @@ PD.tools = (() => {
     const lo = Math.max(1, Math.min(...c.frets.filter(f => f > 0), 99) === 99 ? 1 : Math.min(...c.frets.filter(f => f > 0))), first = lo <= 2 ? 1 : lo, span = Math.max(4, Math.max(...c.frets) - first + 1);
     const W = 380, H = 170, x0 = 50, x1 = 360, y = s => 140 - (s - 1) * 50, fx = n => x0 + (n - first + 1) * (x1 - x0) / span;
     let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + PD.esc(c.name + ' ' + c.frets.join('-')) + '">';
-    s += '<rect x="' + x0 + '" y="' + (y(3) - 14) + '" width="' + (x1 - x0) + '" height="' + (y(1) - y(3) + 28) + '" rx="6" fill="#2A1D14"/>';
-    if (first === 1) s += '<rect x="' + (x0 - 4) + '" y="' + (y(3) - 14) + '" width="6" height="' + (y(1) - y(3) + 28) + '" fill="#EFE0B8"/>';
-    for (let n = first; n < first + span; n++) s += '<line x1="' + fx(n) + '" x2="' + fx(n) + '" y1="' + (y(3) - 14) + '" y2="' + (y(1) + 14) + '" stroke="#B9B2A6" stroke-width="2"/><text x="' + ((fx(n) + fx(n - 1)) / 2) + '" y="' + (H - 2) + '" fill="rgba(242,232,218,.5)" font-size="11" text-anchor="middle" font-family="Noto Sans Georgian">' + n + '</text>';
+    s += '<rect x="' + x0 + '" y="' + (y(3) - 14) + '" width="' + (x1 - x0) + '" height="' + (y(1) - y(3) + 28) + '" rx="6" fill="#242426"/>';
+    if (first === 1) s += '<rect x="' + (x0 - 4) + '" y="' + (y(3) - 14) + '" width="6" height="' + (y(1) - y(3) + 28) + '" fill="#e2d3b5"/>';
+    for (let n = first; n < first + span; n++) s += '<line x1="' + fx(n) + '" x2="' + fx(n) + '" y1="' + (y(3) - 14) + '" y2="' + (y(1) + 14) + '" stroke="#c2c2c6" stroke-width="2"/><text x="' + ((fx(n) + fx(n - 1)) / 2) + '" y="' + (H - 2) + '" fill="rgba(232,232,236,.5)" font-size="11" text-anchor="middle" font-family="Noto Sans Georgian">' + n + '</text>';
     [1, 2, 3].forEach(k => { s += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + y(k) + '" y2="' + y(k) + '" stroke="' + SCOL[k] + '" stroke-width="' + (4 - k * .6) + '"/><text x="' + (x0 - 20) + '" y="' + (y(k) + 4) + '" fill="' + SCOL[k] + '" font-size="13" text-anchor="middle" font-family="Noto Sans Georgian">' + TH.stringName(k) + '</text>'; });
     const groups = {};
     c.frets.forEach((f, i) => { if (f > 0) { const fi = c.fingers[i], key = fi + ':' + f; (groups[key] || (groups[key] = [])).push(i + 1); } });
@@ -358,20 +358,20 @@ PD.tools = (() => {
     function draw() {
       const W = 980, H = 190, x0 = 46, x1 = 960, k = (x1 - x0) / TH.fretFrac(TH.FRETS), fx = n => x0 + k * TH.fretFrac(n), yS = s => 150 - (s - 1) * 55;
       const cx = n => n === 0 ? x0 - 22 : (fx(n) + fx(n - 1)) / 2;
-      let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="grid" aria-label="' + PD.esc(t('fx.title')) + '"><rect x="' + x0 + '" y="' + (yS(3) - 22) + '" width="' + (x1 - x0) + '" height="' + (yS(1) - yS(3) + 44) + '" rx="6" fill="#2A1D14"/>';
-      PD.instrument.profile.markers.single.forEach(n => { s += '<circle cx="' + cx(n) + '" cy="' + ((yS(1) + yS(3)) / 2) + '" r="5" fill="rgba(239,224,184,.25)"/>'; });
-      PD.instrument.profile.markers.double.forEach(n => { s += '<circle cx="' + cx(n) + '" cy="' + (yS(2) - 27) + '" r="5" fill="rgba(239,224,184,.25)"/><circle cx="' + cx(n) + '" cy="' + (yS(2) + 27) + '" r="5" fill="rgba(239,224,184,.25)"/>'; });
-      s += '<rect x="' + (x0 - 4) + '" y="' + (yS(3) - 22) + '" width="6" height="' + (yS(1) - yS(3) + 44) + '" fill="#EFE0B8"/>';
-      for (let n = 1; n <= TH.FRETS; n++) s += '<line x1="' + fx(n) + '" x2="' + fx(n) + '" y1="' + (yS(3) - 22) + '" y2="' + (yS(1) + 22) + '" stroke="#B9B2A6" stroke-width="2"/><text x="' + cx(n) + '" y="' + (H - 4) + '" fill="rgba(242,232,218,.45)" font-size="11" text-anchor="middle" font-family="Noto Sans Georgian">' + n + '</text>';
+      let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="grid" aria-label="' + PD.esc(t('fx.title')) + '"><rect x="' + x0 + '" y="' + (yS(3) - 22) + '" width="' + (x1 - x0) + '" height="' + (yS(1) - yS(3) + 44) + '" rx="6" fill="#242426"/>';
+      PD.instrument.profile.markers.single.forEach(n => { s += '<circle cx="' + cx(n) + '" cy="' + ((yS(1) + yS(3)) / 2) + '" r="5" fill="rgba(210,210,213,.25)"/>'; });
+      PD.instrument.profile.markers.double.forEach(n => { s += '<circle cx="' + cx(n) + '" cy="' + (yS(2) - 27) + '" r="5" fill="rgba(210,210,213,.25)"/><circle cx="' + cx(n) + '" cy="' + (yS(2) + 27) + '" r="5" fill="rgba(210,210,213,.25)"/>'; });
+      s += '<rect x="' + (x0 - 4) + '" y="' + (yS(3) - 22) + '" width="6" height="' + (yS(1) - yS(3) + 44) + '" fill="#e2d3b5"/>';
+      for (let n = 1; n <= TH.FRETS; n++) s += '<line x1="' + fx(n) + '" x2="' + fx(n) + '" y1="' + (yS(3) - 22) + '" y2="' + (yS(1) + 22) + '" stroke="#c2c2c6" stroke-width="2"/><text x="' + cx(n) + '" y="' + (H - 4) + '" fill="rgba(232,232,236,.45)" font-size="11" text-anchor="middle" font-family="Noto Sans Georgian">' + n + '</text>';
       [1, 2, 3].forEach(st => { s += '<line x1="' + (x0 - 30) + '" x2="' + x1 + '" y1="' + yS(st) + '" y2="' + yS(st) + '" stroke="' + SCOL[st] + '" stroke-width="' + (3.4 - st * .5) + '" opacity=".85"/>'; });
       const scl = SCALES[scale], selM = sel ? TH.midi(sel.s, sel.f) : null;
       [1, 2, 3].forEach(st => { for (let f = 0; f <= TH.FRETS; f++) {
         const m = TH.midi(st, f), pc = TH.pc(m), inScale = scl.length && scl.includes((pc - root + 12) % 12), isRoot = scl.length && pc === root;
         const same = selM != null && m === selM, isSel = sel && sel.s === st && sel.f === f;
-        const fill = isSel ? SCOL[st] : same ? 'rgba(201,139,91,.85)' : isRoot ? '#C98B5B' : inScale ? 'rgba(242,232,218,.85)' : 'rgba(20,14,10,.75)';
+        const fill = isSel ? SCOL[st] : same ? 'rgba(199,139,94,.85)' : isRoot ? '#c78b5e' : inScale ? 'rgba(232,232,236,.85)' : 'rgba(19,19,20,.75)';
         const txt = label === 'names' ? TH.pcName(m) : label === 'ka' ? TH.nameKa(m) : label === 'oct' ? TH.name(m) : '';
         const show = label !== 'none' || inScale || same || isSel;
-        if (show) s += '<g class="cell" data-s="' + st + '" data-f="' + f + '" role="button" tabindex="0" aria-label="' + PD.esc(TH.name(m) + ' ' + TH.stringName(st) + ' ' + f) + '"><circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="15" fill="' + fill + '" stroke="' + (inScale || isSel || same ? 'none' : 'rgba(242,232,218,.2)') + '"/>' + (txt ? '<text x="' + cx(f) + '" y="' + (yS(st) + 4) + '" fill="' + (inScale || isRoot || isSel || same ? '#140D08' : '#F2E8DA') + '" font-size="' + (txt.length > 3 ? 9 : 11) + '" text-anchor="middle" font-family="Noto Sans Georgian" pointer-events="none">' + PD.esc(txt) + '</text>' : '') + (isRoot ? '<circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="18" fill="none" stroke="#C98B5B" stroke-width="1.5"/>' : '') + '</g>';
+        if (show) s += '<g class="cell" data-s="' + st + '" data-f="' + f + '" role="button" tabindex="0" aria-label="' + PD.esc(TH.name(m) + ' ' + TH.stringName(st) + ' ' + f) + '"><circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="15" fill="' + fill + '" stroke="' + (inScale || isSel || same ? 'none' : 'rgba(232,232,236,.2)') + '"/>' + (txt ? '<text x="' + cx(f) + '" y="' + (yS(st) + 4) + '" fill="' + (inScale || isRoot || isSel || same ? '#0b0c0f' : '#e5e5e7') + '" font-size="' + (txt.length > 3 ? 9 : 11) + '" text-anchor="middle" font-family="Noto Sans Georgian" pointer-events="none">' + PD.esc(txt) + '</text>' : '') + (isRoot ? '<circle cx="' + cx(f) + '" cy="' + yS(st) + '" r="18" fill="none" stroke="#c78b5e" stroke-width="1.5"/>' : '') + '</g>';
         else s += '<g class="cell" data-s="' + st + '" data-f="' + f + '" role="button" tabindex="0" aria-label="' + PD.esc(TH.stringName(st) + ' ' + f) + '"><rect x="' + (cx(f) - 15) + '" y="' + (yS(st) - 15) + '" width="30" height="30" fill="transparent"/></g>';
       } });
       fb.innerHTML = s + '</svg>';

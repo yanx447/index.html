@@ -7,6 +7,7 @@ Deno.env.delete('SIMA_MODEL');
 let providerStatus = 200, authenticated = true, quota = true;
 let output = 'გამარჯობა! როგორ ხარ?', completion = 'completed', calls = 0;
 let sent: Record<string, unknown> = {};
+let annotations: unknown[] = [];
 globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
   const url = String(input);
   if (url.endsWith('/auth/v1/user')) return Response.json(authenticated ? { id: 'test-user' } : {}, { status: authenticated ? 200 : 401 });
@@ -14,7 +15,7 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   if (url !== 'https://openrouter.ai/api/v1/responses') throw Error('Unexpected provider');
   calls++; sent = JSON.parse(String(init?.body));
   if (new Headers(init?.headers).get('Authorization') !== 'Bearer test-private') throw Error('Missing server credential');
-  return Response.json({ status: completion, output: [{ type: 'message', content: [{ type: 'output_text', text: output }] }] }, { status: providerStatus });
+  return Response.json({ status: completion, output: [{ type: 'message', content: [{ type: 'output_text', text: output, annotations }] }] }, { status: providerStatus });
 }) as typeof fetch;
 await import('./supabase/functions/sima/index.ts');
 const assert = (condition: unknown, message: string) => { if (!condition) throw Error(message); };
@@ -49,4 +50,19 @@ assert((await handler!(request(question))).status === 502, 'reject partial answe
 completion = 'completed'; output = '';
 assert((await handler!(request(question))).status === 502, 'reject empty answer');
 assert(!JSON.stringify(sent).includes('user-token'), 'do not send app credential to provider');
-console.log('PASS: OpenRouter routing, Georgian response, history, authentication, input validation, quota, billing errors, partial answers');
+// languages, app data and the internet
+output = 'Suliko: Am · Dm · E';
+assert(!('tools' in sent), 'no web search unless the app asks for it');
+const songQ = { messages: [{ role: 'user', content: 'სულიკოს აკორდები მომიძებნე' }], language: 'ru', web: true, context: { app: { songs: [{ title: 'ბანი-აჭარული', chords: ['Dm', 'Dm', 'B♭', 'C'] }] } } };
+annotations = [{ type: 'url_citation', url: 'https://chords.example/suliko', title: 'Suliko chords', start_index: 0, end_index: 5 },
+  { type: 'url_citation', url: 'https://chords.example/suliko', start_index: 6, end_index: 9 }, { type: 'url_citation', url: 'javascript:alert(1)' }];
+const webReply = await (await handler!(request(songQ))).json();
+assert(Array.isArray(sent.tools) && (sent.tools as { type: string }[])[0].type === 'openrouter:web_search', 'web search tool when asked');
+assert(webReply.sources.length === 1 && webReply.sources[0].url === 'https://chords.example/suliko' && webReply.sources[0].title === 'Suliko chords', 'sources: http(s) only, each once');
+const ref = String(((sent.input as { content: string }[])[0]).content);
+assert(ref.includes('"appLanguage":"Russian"') && ref.includes('B♭'), 'app language and app data reach the model');
+assert(String(sent.instructions).includes('LANGUAGE') && String(sent.instructions).includes('Georgian script'), 'grammar rules supplied by server');
+annotations = [];
+const plain = await (await handler!(request(question))).json();
+assert(!('sources' in plain) && !('tools' in sent), 'plain question: no tool, no sources');
+console.log('PASS: OpenRouter routing, Georgian response, history, authentication, input validation, quota, billing errors, partial answers, languages, app data, web search and its sources');

@@ -128,16 +128,43 @@ async function fakeServer(route, media) {
     await pg.evaluate(() => { document.querySelectorAll('.ob,.lf,.ag').forEach(x => x.remove()); PD.app.go('community'); }); await pg.waitForTimeout(1800);
     const shot = n => pg.screenshot({ path: path.join(OUT, `social-${label}-${n}.png`) });
     await shot('1-feed');
-    const geo = () => pg.evaluate(() => { const st = document.querySelector('.fd-stage'), s = document.querySelector('.fd-scroll'), c = s && s.querySelector('.fd-card.act'), r = st && st.getBoundingClientRect(), nav = document.querySelector('.tabbar');
+    const geo = () => pg.evaluate(() => { const st = document.querySelector('.fd-stage'), s = document.querySelector('.fd-scroll'), c = s && s.querySelector('.fd-card.act'), r = st && st.getBoundingClientRect(), nav = document.querySelector('.dock');
       const v = c && c.querySelector('video'), box = q => { const e = document.querySelector(q); if (!e) return null; const b = e.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.width)]; };
       return { cards: s ? s.querySelectorAll('.fd-card[data-id]').length : 0, stage: r && [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)], navTop: nav && getComputedStyle(nav).display !== 'none' ? Math.round(nav.getBoundingClientRect().top) : null, vw: innerWidth, vh: innerHeight,
         act: c && c.dataset.id, playing: v ? !v.paused : null, muted: v ? v.muted : null, t: v ? +v.currentTime.toFixed(2) : null, needTap: st.classList.contains('need-tap'), players: document.querySelectorAll('.fd-scroll video').length,
         ahead: [...s.querySelectorAll('.fd-card[data-id]')].map(x => { const q = x.querySelector('video'); return x.dataset.id + ':' + (q ? 'rs' + q.readyState + (q.paused ? 'p' : '>') : '-'); }).join(' '),
         friends: box('.fd-friends'), seg: box('.fd-seg'), msgs: box('.fd-msgs'), plus: box('.fd-new'), badge: (document.querySelector('.fd-msgs .cm-dot') || {}).textContent, reqs: (document.querySelector('.fd-friends .cm-dot') || {}).textContent,
-        overflowX: document.documentElement.scrollWidth > innerWidth, info: c && [...c.querySelectorAll('.fd-info b')].map(x => x.textContent), rail: c && [...c.querySelectorAll('.fd-rail .fd-act')].map(x => x.getAttribute('aria-label')), fit: v && getComputedStyle(v).objectFit, simaFab: !!document.querySelector('.sm-fab') && getComputedStyle(document.querySelector('.sm-fab')).display }; });
+        overflowX: document.documentElement.scrollWidth > innerWidth, info: c && [...c.querySelectorAll('.fd-info b')].map(x => x.textContent), rail: c && [...c.querySelectorAll('.fd-rail .fd-act, .fd-rail .fd-facebtn, .fd-rail .fd-disc')].map(x => x.getAttribute('aria-label')), nav: [...document.querySelectorAll('.dock .nv')].map(b => (b.textContent || b.getAttribute('aria-label')) + (b.getAttribute('aria-current') ? '*' : '')), navW: document.querySelector('.dock') && getComputedStyle(document.querySelector('.dock')).display !== 'none' ? [...document.querySelectorAll('.dock .nv')].map(b => Math.round(b.getBoundingClientRect().width)) : null, clipped: [...document.querySelectorAll('.dock .nv-l')].filter(x => x.offsetWidth && x.scrollWidth > x.clientWidth + 1).map(x => x.textContent), fit: v && getComputedStyle(v).objectFit, simaFab: !!document.querySelector('.sm-fab') && getComputedStyle(document.querySelector('.sm-fab')).display }; });
     const g = await geo();
     report.push([label, 'feed opens', g]);
     if (g.needTap) { await pg.click('.fd-tapsnd'); await pg.waitForTimeout(500); report.push([label, 'after tap', await pg.evaluate(() => { const v = document.querySelector('.fd-card.act video'); return { muted: v.muted, playing: !v.paused, chip: getComputedStyle(document.querySelector('.fd-tapsnd')).display }; })]); }
+    // the motion: what runs, measured while it runs (screenshots cannot show it)
+    {
+      const mv = {};
+      mv.intro = await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'); return { cls: c.classList.contains('fd-in'), rail: getComputedStyle(c.querySelector('.fd-rail > *')).animationName, info: getComputedStyle(c.querySelector('.fd-info > *')).animationName, disc: getComputedStyle(c.querySelector('.fd-vinyl')).animationPlayState, marq: getComputedStyle(c.querySelector('.fd-marq > span')).animationName }; });
+      const r0 = await pg.evaluate(() => { const r = document.querySelector('.fd-card.act .fd-media').getBoundingClientRect(); return [r.left + r.width * .3, r.top + r.height * .55]; });
+      await pg.mouse.click(r0[0], r0[1]); await pg.waitForTimeout(60); await pg.mouse.click(r0[0], r0[1]); await pg.waitForTimeout(120);
+      mv.doubleTap = await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'), b = c.querySelector('.rx-burst'); return { burst: !!b, sparks: c.querySelectorAll('.fd-spark').length, notes: c.querySelectorAll('.fd-spark.note').length }; });
+      await pg.waitForTimeout(1200);
+      mv.cleaned = await pg.evaluate(() => document.querySelectorAll('.rx-burst,.fd-spark,.fd-ring').length);
+      await pg.click('.fd-card.act .fd-rx'); await pg.waitForTimeout(30);
+      await pg.click('.fd-card.act .fd-rx'); await pg.waitForTimeout(60);
+      mv.likeRing = await pg.evaluate(() => ({ ring: document.querySelectorAll('.fd-card.act .fd-ring').length, sparks: document.querySelectorAll('.fd-card.act .fd-rail .fd-spark').length }));
+      await pg.click('.fd-card.act .fd-rx'); await pg.waitForTimeout(500);
+      const ind0 = await pg.evaluate(() => getComputedStyle(document.querySelector('.fd-seg-ind')).transform);
+      await pg.click('.fd-seg button[data-k=friends]'); await pg.waitForTimeout(90);
+      mv.tabSwitch = await pg.evaluate(() => ({ scrollAnim: document.querySelector('.fd-scroll').getAnimations().length, ind: getComputedStyle(document.querySelector('.fd-seg-ind')).transform }));
+      mv.tabSwitch.indMoved = mv.tabSwitch.ind !== ind0; delete mv.tabSwitch.ind;
+      await pg.waitForTimeout(1200); await pg.click('.fd-seg button[data-k=foryou]'); await pg.waitForTimeout(1300);
+      await pg.click('.fd-msgs'); await pg.waitForTimeout(120);
+      mv.pushToMessages = await pg.evaluate(() => ({ leaving: !!document.querySelector('.page.leave'), anims: [...document.querySelectorAll('.page')].reduce((n, x) => n + x.getAnimations().length, 0) }));
+      await pg.waitForTimeout(900);
+      await pg.evaluate(() => PD.app.back('community')); await pg.waitForTimeout(120);
+      mv.backToFeed = await pg.evaluate(() => ({ anims: [...document.querySelectorAll('.page')].reduce((n, x) => n + x.getAnimations().length, 0) }));
+      await pg.waitForTimeout(1500);
+      mv.feedBack = await pg.evaluate(() => ({ cards: document.querySelectorAll('.fd-card[data-id]').length, playing: !!document.querySelector('.fd-card.act.playing') }));
+      report.push([label, 'motion', mv]);
+    }
     // tap = pause, tap = play; two taps = like
     const mid = await pg.evaluate(() => { const r = document.querySelector('.fd-stage').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height * .4]; });
     await pg.mouse.click(mid[0], mid[1]); await pg.waitForTimeout(500); const paused = await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'); return [c.querySelector('video').paused, c.classList.contains('paused')]; }); await shot('2-paused');
@@ -147,10 +174,10 @@ async function fakeServer(route, media) {
     // like off again, save, comments, share
     await pg.click('.fd-card.act .fd-rx'); await pg.click('.fd-card.act .fd-save'); await pg.waitForTimeout(400);
     const rail = await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'); return { liked: c.querySelector('.fd-rx').classList.contains('on'), n: c.querySelector('.fd-col small').textContent, saved: c.querySelector('.fd-save').classList.contains('on') }; });
-    await pg.click('.fd-card.act .fd-col:nth-child(2) .fd-act'); await pg.waitForTimeout(500); await shot('3-comments');
+    await pg.click('.fd-card.act .fd-cm'); await pg.waitForTimeout(500); await shot('3-comments');
     rail.comments = await pg.evaluate(() => [...document.querySelectorAll('.fd-cms .cm-reply p')].map(x => x.textContent));
     await pg.keyboard.press('Escape'); await pg.waitForTimeout(300);
-    await pg.click('.fd-card.act .fd-col:nth-child(3) .fd-act'); await pg.waitForTimeout(600); await shot('4-share');
+    await pg.click('.fd-card.act .fd-sh'); await pg.waitForTimeout(600); await shot('4-share');
     rail.shareTo = await pg.evaluate(() => [...document.querySelectorAll('.sheet .cm-row b')].map(x => x.textContent));
     await pg.keyboard.press('Escape'); await pg.waitForTimeout(300);
     report.push([label, 'rail', rail]);
@@ -171,9 +198,9 @@ async function fakeServer(route, media) {
     await pg.evaluate(() => { const q = document.querySelector('.fd-scroll'); q.scrollTo({ top: q.clientHeight, behavior: 'instant' }); }); await pg.waitForTimeout(900); await shot('6-wide');
     report.push([label, 'sideways video', await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'), v = c.querySelector('video'); return { id: c.dataset.id, top: document.querySelector('.fd-scroll').scrollTop, acts: document.querySelectorAll('.fd-card.act').length, fit: getComputedStyle(v).objectFit, song: (c.querySelector('.fd-song b') || {}).textContent, add: !!c.querySelector('.fd-add') }; })]);
     // friends' videos
-    await pg.click('.fd-seg button:nth-child(2)'); await pg.waitForTimeout(1300); await shot('7-friends-feed');
+    await pg.click('.fd-seg button[data-k=friends]'); await pg.waitForTimeout(1300); await shot('7-friends-feed');
     report.push([label, 'friends feed', await pg.evaluate(() => ({ ids: [...document.querySelectorAll('.fd-card[data-id]')].map(c => c.dataset.id), on: document.querySelector('.fd-seg .on').textContent, playing: !(document.querySelector('.fd-card.act video') || { paused: true }).paused }))]);
-    await pg.click('.fd-seg button:nth-child(1)'); await pg.waitForTimeout(900);
+    await pg.click('.fd-seg button[data-k=foryou]'); await pg.waitForTimeout(900);
     // a new video: too small is refused, 720p goes through as it is
     await pg.click('.fd-new'); await pg.waitForTimeout(400); await shot('8-compose');
     const comp = { buttons: await pg.evaluate(() => [...document.querySelectorAll('.fd-pick')].map(x => x.textContent)), rules: await pg.evaluate(() => document.querySelector('.fd-rules').textContent), feedPausedBehind: await pg.evaluate(() => (document.querySelector('.fd-card.act video') || {}).paused) };
@@ -195,12 +222,17 @@ async function fakeServer(route, media) {
     }
     report.push([label, 'new video', comp]);
     // behind the corners: messages, friends, saved
-    await pg.click('.fd-msgs'); await pg.waitForTimeout(900); await shot('11-messages');
-    report.push([label, 'messages', await pg.evaluate(() => ({ head: (document.querySelector('.cm-sub b') || {}).textContent, rows: [...document.querySelectorAll('.cm-row b')].map(x => x.textContent), feedGone: !document.querySelector('.fd-scroll'), padTop: getComputedStyle(document.getElementById('page')).paddingTop }))]);
-    await pg.evaluate(() => PD.app.go('community', 'friends')); await pg.waitForTimeout(1200);
-    await pg.fill('.fr-find input', '@gio'); await pg.press('.fr-find input', 'Enter'); await pg.waitForTimeout(600); await shot('12-friends');
-    report.push([label, 'friends', await pg.evaluate(() => ({ head: (document.querySelector('.cm-sub b') || {}).textContent, me: (document.querySelector('.fr-me b') || {}).textContent, found: [...document.querySelectorAll('.fr-find ~ .cm-list .cm-row')].map(x => x.textContent), heads: [...document.querySelectorAll('.cm-body > h3')].map(x => x.textContent), links: [...document.querySelectorAll('.cm-links .btn')].map(x => x.textContent), overflowX: document.documentElement.scrollWidth > innerWidth }))]);
-    await pg.click('.cm-links .btn >> nth=0'); await pg.waitForTimeout(1300); await shot('13-saved');
+    await pg.click('.fd-msgs'); await pg.waitForTimeout(2200); await shot('11-messages');
+    report.push([label, 'messages', await pg.evaluate(() => ({ head: (document.querySelector('.cm-h1') || {}).textContent, strip: [...document.querySelectorAll('.cm-pal small')].map(x => x.textContent), stripFace: (() => { const f = document.querySelector('.cm-pal .cm-face'), b = document.querySelector('.cm-pal'), s2 = document.querySelector('.cm-pal small'); if (!f) return null; const r = f.getBoundingClientRect(), q = b.getBoundingClientRect(), l = s2.getBoundingClientRect(); return { inButton: r.left >= q.left - 1 && r.right <= q.right + 1, labelBelow: l.top >= r.bottom - 1 }; })(), rows: [...document.querySelectorAll('.cm-crow b')].map(x => x.textContent), unread: !!document.querySelector('.cm-udot'), overflowX: document.documentElement.scrollWidth > innerWidth, feedGone: !document.querySelector('.fd-scroll'), padTop: getComputedStyle(document.getElementById('page')).paddingTop }))]);
+    await pg.evaluate(() => { PD.store.set('fr.tab', 'list'); PD.app.go('community', 'friends'); }); await pg.waitForTimeout(1200); await shot('12-friends');
+    const fr = await pg.evaluate(() => ({ head: (document.querySelector('.cm-h1') || {}).textContent, me: (document.querySelector('.fr-me b') || {}).textContent, tabs: [...document.querySelectorAll('.fr-seg button')].map(x => x.textContent), list: [...document.querySelectorAll('.fr-pane .cm-crow b')].map(x => x.textContent), thumb: !!document.querySelector('.fr-seg .seg-thumb'), links: [...document.querySelectorAll('.cm-link')].map(x => x.textContent), overflowX: document.documentElement.scrollWidth > innerWidth }));
+    await pg.click('.fr-seg button >> nth=1'); await pg.waitForTimeout(600); await shot('12b-requests');
+    fr.requests = await pg.evaluate(() => [...document.querySelectorAll('.fr-pane .cm-crow')].map(x => x.textContent));
+    await pg.click('.fr-seg button >> nth=2'); await pg.waitForTimeout(400); await pg.fill('.fr-pane input', '@gio'); await pg.press('.fr-pane input', 'Enter'); await pg.waitForTimeout(800); await shot('12c-find');
+    fr.found = await pg.evaluate(() => [...document.querySelectorAll('.fr-pane .cm-clist .cm-crow')].map(x => x.textContent));
+    report.push([label, 'friends', fr]);
+    await pg.evaluate(() => PD.store.set('fr.tab', 'list'));
+    await pg.click('.cm-link >> nth=0'); await pg.waitForTimeout(1300); await shot('13-saved');
     report.push([label, 'saved', await pg.evaluate(() => ({ title: (document.querySelector('.fd-title') || {}).textContent, ids: [...document.querySelectorAll('.fd-card[data-id]')].map(c => c.dataset.id), savedOn: !!document.querySelector('.fd-card.act .fd-save.on') }))]);
     await pg.evaluate(() => PD.app.go('community', 'p:41')); await pg.waitForTimeout(1300);
     report.push([label, 'one video', await pg.evaluate(() => ({ ids: [...document.querySelectorAll('.fd-card[data-id]')].map(c => c.dataset.id), back: !!document.querySelector('.fd-top .fd-ic') }))]);

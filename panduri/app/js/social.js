@@ -32,7 +32,7 @@ PD.i18n.add({
   'fd.addFriend': ['დამატება', 'Add'], 'fd.requested': ['თხოვნა გაგზავნილია', 'Requested'], 'fd.posts': ['ვიდეოები', 'Videos'], 'fd.noUserPosts': ['ჯერ ვიდეო არ აქვს.', 'No videos yet.'],
   'fd.slow': ['ცოტა დაისვენე — ამ საათში მეტი პოსტი ვეღარ დაიდება.', 'Take a breath — no more posts this hour.'],
   'fd.mediaBlocked': ['ფაილი ვერ ჩაიტვირთა.', 'The file could not be loaded.'],
-  'fd.like': ['მოწონება', 'Like'], 'fd.save': ['შენახვა', 'Save'], 'fd.unsave': ['შენახულებიდან ამოღება', 'Remove from saved'], 'fd.saved': ['შენახული ვიდეოები', 'Saved videos'], 'fd.savedT': ['შენახულია', 'Saved'],
+  'fd.like': ['მოწონება', 'Like'], 'fd.less': ['ნაკლები', 'less'], 'fd.sound': ['ხმა', 'Sound'], 'fd.seek': ['ვიდეოს ადგილი', 'Position in the video'], 'fd.origSound': ['ორიგინალი ხმა · {n}', 'Original sound · {n}'], 'fd.swipeHint': ['გადაფურცლე ზემოთ', 'Swipe up'], 'fd.save': ['შენახვა', 'Save'], 'fd.unsave': ['შენახულებიდან ამოღება', 'Remove from saved'], 'fd.saved': ['შენახული ვიდეოები', 'Saved videos'], 'fd.savedT': ['შენახულია', 'Saved'],
   'fd.tapSound': ['შეეხე ხმის ჩასართავად', 'Tap for sound'], 'fd.cantPlay': ['ეს ვიდეო ამ მოწყობილობაზე ვერ იკვრება.', 'This video cannot be played on this device.'],
   'fd.findFriendsA': ['მეგობრები და ძებნა', 'Friends and search'], 'fd.film': ['გადაღება', 'Film'], 'fd.gallery': ['გალერეიდან', 'From the gallery'],
   'fd.rules': ['მაქს. {m} წამი · 720p-დან 4K-მდე · ერთი ფაილი მაქს. {n} MB. ვიდეო იტვირთება ისე, როგორც გადაღებულია — ხარისხი არ იცვლება.', 'Up to {m} seconds · 720p to 4K · one file up to {n} MB. The video is uploaded exactly as it was filmed — its quality is not changed.'],
@@ -55,6 +55,7 @@ PD.i18n.add({
   'fr.none': ['მეგობრები ჯერ არ გყავს. დაამატე ვინმე მისი nickname-ით.', 'No friends yet. Add someone by their nickname.'],
   'fr.remove': ['მეგობრებიდან წაშლა', 'Remove friend'], 'fr.removeQ': ['წაიშალოს {n} მეგობრებიდან?', 'Remove {n} from your friends?'], 'fr.friend': ['მეგობარი', 'Friend'],
   'fr.edit': ['nickname-ის შეცვლა', 'Change nickname'], 'fr.tooMany': ['ძალიან ბევრი გაუპასუხებელი თხოვნა გაქვს.', 'You have too many unanswered requests.'],
+  'fr.online': ['ახლა აქ არის', 'Here now'], 'fr.tabList': ['მეგობრები', 'Friends'], 'fr.tabReq': ['თხოვნები', 'Requests'], 'fr.tabFind': ['ძებნა', 'Find'], 'fr.noReq': ['თხოვნები ახლა არ არის.', 'No requests right now.'], 'fr.findWhy': ['ჩაწერე მეგობრის ზუსტი nickname.', 'Type your friend’s exact nickname.'],
   'fr.onlyFriends': ['აქ მხოლოდ შენი მეგობრები ჩანან. გლობალურ ფიდში ჩანს მხოლოდ ის, რასაც ავტორი ყველასთვის აქვეყნებს.', 'Only your friends are listed here. The global feed shows only what authors chose to make public.']
 });
 
@@ -64,7 +65,7 @@ PD.social = (() => {
   const REACTS = ['panduri', 'heart', 'fire', 'clap', 'laugh', 'wow', 'sad'];
   const EMO = { heart: '❤️', fire: '🔥', clap: '👏', laugh: '😂', wow: '😮', sad: '😢' };
   // the panduri as a reaction: there is no emoji for it, so the app draws one (pear-shaped body, sound hole, neck, three pegs)
-  const PANDURI = '<svg viewBox="0 0 32 32" aria-hidden="true"><g transform="rotate(-32 16 16)"><path d="M14.2 3.2h3.6l.4 2.2-.4 8.2h-3.6l-.4-8.2z" fill="#6B2A17"/><circle cx="13.3" cy="4.4" r="1.05" fill="#E0A878"/><circle cx="18.7" cy="4.4" r="1.05" fill="#E0A878"/><circle cx="18.9" cy="7.3" r="1.05" fill="#E0A878"/><path d="M16 12.4c4.6 2.2 7.6 6.4 7.6 10.4 0 4.6-3.4 7.6-7.6 7.6s-7.6-3-7.6-7.6c0-4 3-8.2 7.6-10.4z" fill="#C98B5B"/><path d="M16 13.6c3.7 2 6.2 5.5 6.2 9 0 3.8-2.7 6.4-6.2 6.4" fill="none" stroke="#E0A878" stroke-width=".7" opacity=".7"/><circle cx="16" cy="21.4" r="2.1" fill="#2A1A10"/><path d="M15.2 5.6v22.6M16 5.6v22.6M16.8 5.6v22.6" stroke="#F1ECE6" stroke-width=".28" opacity=".85"/><rect x="13.6" y="26.2" width="4.8" height="1.1" rx=".5" fill="#3B2414"/></g></svg>';
+  const PANDURI = '<svg viewBox="0 0 32 32" aria-hidden="true"><g transform="rotate(-32 16 16)"><path d="M14.2 3.2h3.6l.4 2.2-.4 8.2h-3.6l-.4-8.2z" fill="#696972"/><circle cx="13.3" cy="4.4" r="1.05" fill="#e2ae84"/><circle cx="18.7" cy="4.4" r="1.05" fill="#e2ae84"/><circle cx="18.9" cy="7.3" r="1.05" fill="#e2ae84"/><path d="M16 12.4c4.6 2.2 7.6 6.4 7.6 10.4 0 4.6-3.4 7.6-7.6 7.6s-7.6-3-7.6-7.6c0-4 3-8.2 7.6-10.4z" fill="#c78b5e"/><path d="M16 13.6c3.7 2 6.2 5.5 6.2 9 0 3.8-2.7 6.4-6.2 6.4" fill="none" stroke="#e2ae84" stroke-width=".7" opacity=".7"/><circle cx="16" cy="21.4" r="2.1" fill="#2A1A10"/><path d="M15.2 5.6v22.6M16 5.6v22.6M16.8 5.6v22.6" stroke="#f5f5f7" stroke-width=".28" opacity=".85"/><rect x="13.6" y="26.2" width="4.8" height="1.1" rx=".5" fill="#3a3a3f"/></g></svg>';
   /** for text that leaves the app (the lock screen, a notification): the panduri stands in as the closest emoji */
   const glyphText = k => k === 'panduri' ? '🪕' : EMO[k] || '';
   const glyph = k => !k ? '' : k === 'panduri' ? '<span class="rx-g rx-pan">' + PANDURI + '</span>' : '<span class="rx-g">' + EMO[k] + '</span>';
@@ -82,6 +83,16 @@ PD.social = (() => {
     dm: I('<path d="M21 3L10 14"/><path d="M21 3l-6.6 18-4.4-7-7-4.4z"/>'),
     save: I('<path d="M6.5 3.5h11a1 1 0 0 1 1 1V21l-6.5-4.6L5.5 21V4.5a1 1 0 0 1 1-1z"/>'),
     pan: I('<g transform="rotate(-32 12 12)"><path d="M12 9.4c3.3 1.6 5.5 4.5 5.5 7.4 0 3.2-2.4 5.4-5.5 5.4s-5.5-2.2-5.5-5.4c0-2.9 2.2-5.8 5.5-7.4z"/><path d="M12 9.4V1.8M10.2 2.6h3.6M10.2 5h3.6"/><circle cx="12" cy="16.3" r="1.5"/></g>')
+  };
+  const F = d => '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' + d + '</svg>';
+  const RAIL = {
+    /* the panduri, filled: pear-shaped body with its sound hole, the neck, the head with three pegs */
+    pan: F('<g transform="rotate(-28 12 12)"><path fill-rule="evenodd" d="M12 8.6c3.9 1.7 6.4 4.9 6.4 8.3 0 3.5-2.8 5.9-6.4 5.9s-6.4-2.4-6.4-5.9c0-3.4 2.5-6.6 6.4-8.3zm0 5.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5z"/><path d="M10.9 3.4h2.2v6.4h-2.2z"/><path d="M10.3 1h3.4l.3 3h-4z"/><circle cx="9.3" cy="2" r=".9"/><circle cx="14.7" cy="2" r=".9"/><circle cx="14.8" cy="3.6" r=".9"/></g>'),
+    comment: F('<path d="M12 3.2c5.1 0 9.2 3.5 9.2 7.9s-4.1 7.9-9.2 7.9c-1 0-2-.1-2.9-.4L4.6 20.9c-.5.2-1-.2-.9-.7l.9-3.7C3.5 15.1 2.8 13.2 2.8 11.1 2.8 6.7 6.9 3.2 12 3.2z"/><circle cx="7.9" cy="11.1" r="1.25" fill="#000" fill-opacity=".28"/><circle cx="12" cy="11.1" r="1.25" fill="#000" fill-opacity=".28"/><circle cx="16.1" cy="11.1" r="1.25" fill="#000" fill-opacity=".28"/>'),
+    save: F('<path d="M6.6 2.8h10.8c.9 0 1.6.7 1.6 1.6v16.1c0 .7-.8 1.1-1.4.7L12 17.4l-5.6 3.8c-.6.4-1.4 0-1.4-.7V4.4c0-.9.7-1.6 1.6-1.6z"/>'),
+    share: F('<path d="M13.2 3.6c0-.7.8-1 1.3-.5l7.6 7.5c.4.4.4 1 0 1.4l-7.6 7.5c-.5.5-1.3.2-1.3-.5v-3.6c-5.4 0-8.6 1.7-10.6 5.3-.3.5-1.1.3-1-.3.8-6.6 4.7-11 11.6-11.6z"/>'),
+    more: F('<circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>')
+
   };
   const t0 = (k, p) => t(k, p);
   const nf = n => { n = +n || 0; return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, '') + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e4 ? 0 : 1).replace(/\.0$/, '') + 'K' : String(n); };
@@ -200,7 +211,6 @@ PD.social = (() => {
     btn.addEventListener('contextmenu', e => { e.preventDefault(); clearTimeout(tm); held = true; onHold(); });
     btn.addEventListener('keydown', e => { if (e.key === 'ArrowUp' || (e.key === 'Enter' && e.shiftKey)) { e.preventDefault(); onHold(); } });
   }
-  function burst(at) { const b = h('span', { class: 'rx-burst', html: PANDURI }); at.appendChild(b); setTimeout(() => b.remove(), 900); }
 
   /* ---------------- the feed: one swipe, one video ---------------- */
   const ROOM = () => (C.limits && C.limits.video) || LIMIT.video;
@@ -214,13 +224,14 @@ PD.social = (() => {
       const v = h('video', { class: 'md-vid', playsinline: true, 'webkit-playsinline': true, preload: 'auto' });
       v.loop = true; v.disableRemotePlayback = true;
       const s = { v, card: null };
-      v.addEventListener('timeupdate', () => { if (s.card && s.card === cur && v.duration) s.card._bar.style.transform = 'scaleX(' + (v.currentTime / v.duration) + ')'; });
+      v.addEventListener('timeupdate', () => { if (s.card && s.card === cur && v.duration) { s.card._bar.style.transform = 'scaleX(' + (v.currentTime / v.duration) + ')'; if (s.card.classList.contains('scrub') || s.card.classList.contains('paused')) s.card._time.textContent = PD.fmtTime(v.currentTime) + ' / ' + PD.fmtTime(v.duration); } });
+      v.addEventListener('pause', () => s.card && s.card.classList.remove('playing'));
       v.addEventListener('waiting', () => s.card && s.card.classList.add('buf'));
-      ['playing', 'canplay'].forEach(ev => v.addEventListener(ev, () => { if (s.card) { s.card.classList.remove('buf'); if (ev === 'playing') s.card.classList.add('live'); } }));
+      ['playing', 'canplay'].forEach(ev => v.addEventListener(ev, () => { if (s.card) { s.card.classList.remove('buf'); if (ev === 'playing') s.card.classList.add('live', 'playing'); } }));
       v.addEventListener('error', () => { if (s.card && v.getAttribute('src')) { s.card.classList.remove('buf'); s.card.classList.add('broken'); } });
       slots.push(s); return s;
     }
-    function free(s) { if (!s.card) return; s.card.classList.remove('live', 'buf', 'paused'); s.card._slot = null; s.card = null; try { s.v.pause(); } catch (_) {} s.v.remove(); }
+    function free(s) { if (!s.card) return; s.card.classList.remove('live', 'buf', 'paused', 'playing'); s.card._slot = null; s.card = null; try { s.v.pause(); } catch (_) {} s.v.remove(); }
     function give(card, keep) {
       if (card._slot) return card._slot;
       let s = slots.find(x => !x.card) || (slots.length < AHEAD + 1 ? make() : null);
@@ -257,13 +268,32 @@ PD.social = (() => {
         if (s.v.paused) start(s);
         return;
       }
-      if (s.v.paused) { card.classList.remove('paused'); start(s); } else { s.v.pause(); card.classList.add('paused'); }
+      if (s.v.paused) { card.classList.remove('paused'); start(s); } else { s.v.pause(); card.classList.add('paused'); if (s.v.duration) card._time.textContent = PD.fmtTime(s.v.currentTime) + ' / ' + PD.fmtTime(s.v.duration); }
     }
     function stop() { slots.forEach(s => { free(s); s.v.removeAttribute('src'); try { s.v.load(); } catch (_) {} }); slots.length = 0; cur = null; }
     function pauseAll() { slots.forEach(s => { try { s.v.pause(); } catch (_) {} }); }
     function resume() { if (cur && cur._slot && !cur.classList.contains('paused')) start(cur._slot); }
     return { show, hide, tap, stop, pauseAll, resume, drop: card => { if (card._slot) free(card._slot); if (cur === card) cur = null; } };
   }
+
+  /* ---------------- motion for the feed: everything is transform and opacity, so the scroll stays on the compositor ---------------- */
+  const moves = () => !!(PD.motion && PD.motion.ok());
+  const buzz = k => { try { PD.fx && PD.fx.haptic && PD.fx.haptic(k); } catch (_) {} };
+  const SPRING = 'cubic-bezier(.34,1.56,.64,1)', OUTQ = 'cubic-bezier(.22,1,.36,1)';
+  /** a quick bounce of one element */
+  function pop(el, k) { if (!moves() || !el || !el.animate) return; k = k || 1.32; el.animate([{ transform: 'scale(1)' }, { transform: 'scale(' + k + ')' }, { transform: 'scale(.92)' }, { transform: 'scale(1)' }], { duration: 420, easing: OUTQ }); }
+  /** the double tap: one big copper panduri where the finger was, tilted a little; it lands, then floats up and fades */
+  function burstAt(card, x, y) {
+    buzz('toggle');
+    const r = card.getBoundingClientRect(), px = x - r.left, py = y - r.top;
+    const b = h('span', { class: 'fd-burst', html: RAIL.pan }); b.style.left = px + 'px'; b.style.top = py + 'px'; card.appendChild(b);
+    if (!moves()) { setTimeout(() => b.remove(), 500); return; }
+    const tl = ((Math.random() - .5) * 30).toFixed(0), T = k => 'translate(-50%,-50%) rotate(' + tl + 'deg) scale(' + k + ')';
+    b.animate([{ transform: T(1.6), opacity: 0 }, { transform: T(.92), opacity: 1, offset: .16 }, { transform: T(1), opacity: 1, offset: .28 }, { transform: T(1), opacity: 1, offset: .62 },
+      { transform: 'translate(-50%,-210%) rotate(' + tl + 'deg) scale(1.25)', opacity: 0 }], { duration: 900, easing: 'ease-out', fill: 'forwards' }).onfinish = () => b.remove();
+  }
+  /** a number that changes rolls instead of snapping */
+  function setNum(el, text) { if (el.textContent === text) return; el.textContent = text; if (moves() && el.animate) el.animate([{ transform: 'translateY(45%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: OUTQ }); }
 
   /** box: where the feed goes. own: the page scope. opt.one: a single video (from a notification or a chat) · opt.saved: my saved ones */
   function feed(box, own, opt) {
@@ -272,10 +302,11 @@ PD.social = (() => {
     let tab = fixed || PD.store.get('fd.tab', 'foryou'); if (!fixed && tab !== 'friends') tab = 'foryou';
     const top = h('div', { class: 'fd-top' });
     const scroll = h('div', { class: 'fd-scroll', tabindex: '0', 'aria-label': t('cm.feed') });
-    const stage = h('div', { class: 'fd-stage' }, [scroll, top, h('button', { class: 'fd-tapsnd', type: 'button', html: IC.mute + '<span data-t="fd.tapSound"></span>', onclick: () => { const c = scroll.querySelector('.fd-card.act'); if (c) P.tap(c); } })]);
+    const hint = h('div', { class: 'fd-hint', 'aria-hidden': 'true' }, [h('span', { html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>' }), h('b', { 'data-t': 'fd.swipeHint' })]);
+    const stage = h('div', { class: 'fd-stage' }, [scroll, top, hint, h('button', { class: 'fd-tapsnd', type: 'button', html: IC.mute + '<span data-t="fd.tapSound"></span>', onclick: () => { const c = scroll.querySelector('.fd-card.act'); if (c) P.tap(c); } })]);
     box.append(stage); PD.i18n.apply(stage);
     document.documentElement.classList.add('fd-on'); own(() => document.documentElement.classList.remove('fd-on'));   // Sima's button would cover the rail
-    const fit = () => { const r = stage.getBoundingClientRect(), nav = document.querySelector('.tabbar'), nh = nav && nav.offsetHeight && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().top : innerHeight, hh = Math.max(320, Math.min(nh, innerHeight) - r.top); stage.style.height = hh + 'px'; stage.style.setProperty('--fdh', hh + 'px'); };
+    const fit = () => { const r = stage.getBoundingClientRect(), nav = document.querySelector('.dock'), nh = nav && nav.offsetHeight && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().top : innerHeight, hh = Math.max(320, Math.min(nh, innerHeight) - r.top); stage.style.height = hh + 'px'; stage.style.setProperty('--fdh', hh + 'px'); };
     fit(); requestAnimationFrame(fit); addEventListener('resize', fit); own(() => removeEventListener('resize', fit));
     const P = players(scroll);
     const st = { ids: new Set(), n: 0, done: false, busy: false, before: null };
@@ -292,46 +323,82 @@ PD.social = (() => {
     }), { root: scroll, threshold: [0, .6] });
     const vis = () => { if (document.hidden) P.pauseAll(); else P.resume(); };
     document.addEventListener('visibilitychange', vis);
+    // the first time: an arrow that says „swipe up", gone after the first swipe
+    let hinted = PD.store.get('fd.hinted', false);
+    const onScroll = () => { if (!hinted && scroll.scrollTop > 40) { hinted = true; PD.store.set('fd.hinted', true); stage.classList.remove('hinting'); } };
+    scroll.addEventListener('scroll', onScroll, { passive: true });
     own(() => { io.disconnect(); document.removeEventListener('visibilitychange', vis); clearInterval(badgeT); P.stop(); });
     // the numbers on the two corner buttons: unread messages, friend requests waiting
-    const dot = n => n ? h('i', { class: 'cm-dot fd-dot', text: n > 9 ? '9+' : String(n) }) : null;
     let nMsg = PD.store.get('cm.unread', 0), nReq = 0;
+    const dots = {};
     async function badges() {
       if (fixed || document.hidden) return;
       try { nMsg = ((await C.chat.list()) || []).reduce((a, r) => a + (r.unread || 0), 0); PD.store.set('cm.unread', nMsg); } catch (_) {}
       try { nReq = ((await C.social.friends()) || []).filter(f => f.relation === 'incoming').length; } catch (_) {}
-      head();
+      paintDot('msgs', nMsg); paintDot('friends', nReq);
     }
     const badgeT = setInterval(badges, 30000);
-    const corner = (cls, key, icon, n, fn) => h('button', { class: 'fd-ic ' + cls, 'aria-label': t(key) + (n ? ' · ' + n : ''), title: t(key), onclick: fn }, [h('span', { html: icon }), dot(n)].filter(Boolean));
+    function paintDot(k, n) {
+      const b = dots[k]; if (!b) return;
+      let d = b.querySelector('.fd-dot');
+      if (!n) { if (d) d.remove(); return; }
+      const txt = n > 9 ? '9+' : String(n);
+      if (!d) { d = h('i', { class: 'cm-dot fd-dot' }); b.appendChild(d); d.textContent = txt; pop(d, 1.5); } else setNum(d, txt);
+      b.setAttribute('aria-label', t(b.dataset.key) + ' · ' + n);
+    }
+    const corner = (k, key, icon, fn) => { const b = h('button', { class: 'fd-ic fd-' + k, 'data-key': key, 'aria-label': t(key), title: t(key), onclick: () => { pop(b.firstChild, 1.15); fn(); } }, [h('span', { html: icon })]); dots[k] = b; return b; };
+    const segInd = h('i', { class: 'fd-seg-ind', 'aria-hidden': 'true' });
+    function placeInd(jump) {
+      const b = top.querySelector('.fd-seg button.on'); if (!b) return;
+      if (jump) segInd.style.transition = 'none';
+      segInd.style.width = Math.max(16, b.offsetWidth * .42) + 'px';
+      segInd.style.transform = 'translateX(' + (b.offsetLeft + b.offsetWidth * .29) + 'px)';
+      if (jump) requestAnimationFrame(() => { segInd.style.transition = ''; });
+    }
     function head() {
       top.innerHTML = '';
       if (fixed) { top.append(h('button', { class: 'fd-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), h('b', { class: 'fd-title', 'data-t': one ? 'fd.video' : 'fd.saved' }), h('span', { class: 'fd-ic ghost' })); PD.i18n.apply(top); return; }
-      top.append(
-        h('div', { class: 'fd-side' }, [corner('fd-friends', 'fd.findFriendsA', IC.find, nReq, () => PD.app.go('community', 'friends'))]),
-        h('div', { class: 'fd-seg', role: 'tablist' }, [['foryou', 'fd.global'], ['friends', 'fd.friends']].map(([k, key]) => h('button', { role: 'tab', 'aria-selected': String(tab === k), class: tab === k ? 'on' : '', 'data-t': key,
-          onclick: () => { if (k === tab) { scroll.scrollTo({ top: 0, behavior: 'smooth' }); return; } tab = k; PD.store.set('fd.tab', k); reset(); } }))),
-        h('div', { class: 'fd-side end' }, [corner('fd-msgs', 'cm.chats', IC.dm, nMsg, () => PD.app.go('community', 'chats')),
-          corner('fd-new', 'fd.new', ic.plus, 0, () => newVideo())]));
+      const seg = h('div', { class: 'fd-seg', role: 'tablist' }, [segInd].concat([['friends', 'fd.friends'], ['foryou', 'fd.global']].map(([k, key]) => h('button', { role: 'tab', 'aria-selected': String(tab === k), class: tab === k ? 'on' : '', 'data-k': k, 'data-t': key,
+        onclick: () => switchTab(k) }))));
+      top.append(h('div', { class: 'fd-side' }, [corner('friends', 'fd.findFriendsA', IC.find, () => PD.app.go('community', 'friends'))]), seg,
+        h('div', { class: 'fd-side end' }, [corner('msgs', 'cm.chats', IC.dm, () => PD.app.go('community', 'chats')), corner('new', 'fd.new', ic.plus, () => newVideo())]));
       PD.i18n.apply(top);
+      paintDot('msgs', nMsg); paintDot('friends', nReq);
+      requestAnimationFrame(() => placeInd(true));
     }
-    const newVideo = () => { P.pauseAll(); compose(p => { if (p.visibility === 'friends' && tab === 'foryou') { tab = 'friends'; PD.store.set('fd.tab', tab); reset(); } else prepend(p); }, () => P.resume()); };
-    function reset() { [...scroll.querySelectorAll('.fd-card')].forEach(c => { io.unobserve(c); P.drop(c); }); st.ids.clear(); st.n = 0; st.done = false; st.before = null; scroll.innerHTML = ''; head(); more(); }
+    /** the switch at the top: the line slides to it, the videos slide sideways (friends to the left of everyone) */
+    function switchTab(k) {
+      if (k === tab) { scroll.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      const dir = k === 'foryou' ? 1 : -1; tab = k; PD.store.set('fd.tab', k); buzz('select');
+      top.querySelectorAll('.fd-seg button').forEach(b => { const on = b.dataset.k === k; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
+      placeInd();
+      if (!moves()) { reset(); return; }
+      const out = scroll.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(' + (-dir * 18) + '%)', opacity: 0 }], { duration: 170, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+      out.onfinish = () => { reset(true); out.cancel(); scroll.animate([{ transform: 'translateX(' + (dir * 18) + '%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: OUTQ }); };
+    }
+    const newVideo = () => { P.pauseAll(); compose(p => { if (p.visibility === 'friends' && tab === 'foryou') switchTab('friends'); else prepend(p); }, () => P.resume()); };
+    const skel = () => h('div', { class: 'fd-card fd-skel', 'aria-hidden': 'true' }, [h('i', { class: 'fd-shim' }),
+      h('div', { class: 'fd-rail' }, [1, 2, 3, 4].map(() => h('i', { class: 'sk-dot' }))), h('div', { class: 'fd-info' }, [h('i', { class: 'sk-line w40' }), h('i', { class: 'sk-line w80' }), h('i', { class: 'sk-line w60' })])]);
+    function reset(keepHead) { [...scroll.querySelectorAll('.fd-card')].forEach(c => { io.unobserve(c); P.drop(c); }); st.ids.clear(); st.n = 0; st.done = false; st.before = null; scroll.innerHTML = ''; scroll.scrollTop = 0; if (!keepHead) head(); more(); }
     function empty() {
       const f = tab === 'friends';
-      scroll.appendChild(h('div', { class: 'fd-empty' }, [h('span', { class: 'cm-big', html: tab === 'saved' ? IC.save : f ? IC.users : ic.video }), h('p', { 'data-t': one ? 'fd.unavailable' : tab === 'saved' ? 'fd.emptyS' : f ? 'fd.emptyF' : 'fd.emptyG' }),
-        fixed ? null : f ? h('button', { class: 'btn', 'data-t': 'fd.findFriends', onclick: () => PD.app.go('community', 'friends') }) : h('button', { class: 'btn primary', 'data-t': 'fd.new', onclick: newVideo })].filter(Boolean)));
-      PD.i18n.apply(scroll);
+      const e = h('div', { class: 'fd-empty' }, [h('span', { class: 'cm-big', html: tab === 'saved' ? IC.save : f ? IC.users : ic.video }), h('p', { 'data-t': one ? 'fd.unavailable' : tab === 'saved' ? 'fd.emptyS' : f ? 'fd.emptyF' : 'fd.emptyG' }),
+        fixed ? null : f ? h('button', { class: 'btn', 'data-t': 'fd.findFriends', onclick: () => PD.app.go('community', 'friends') }) : h('button', { class: 'btn primary', html: ic.plus + '<span data-t="fd.new"></span>', onclick: newVideo })].filter(Boolean));
+      scroll.appendChild(e); PD.i18n.apply(scroll); PD.motion && PD.motion.reveal(e, 40);
     }
     function add(p, first) {
       st.ids.add(p.id); st.n++;
-      const c = card(p, P, () => { io.unobserve(c); P.drop(c); c.remove(); st.n--; if (!scroll.querySelector('.fd-card[data-id]')) { scroll.innerHTML = ''; empty(); } });
+      const c = card(p, P, () => {
+        const gone = () => { io.unobserve(c); P.drop(c); c.remove(); st.n--; if (!scroll.querySelector('.fd-card[data-id]')) { scroll.innerHTML = ''; empty(); } };
+        if (moves()) c.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.9)', opacity: 0 }], { duration: 260, easing: 'ease-in', fill: 'forwards' }).onfinish = gone; else gone();
+      });
       if (first) scroll.prepend(c); else scroll.appendChild(c);
       io.observe(c);
     }
     async function more() {
       if (st.busy || st.done) return; st.busy = true;
       const mine = tab;
+      const sk = st.n ? null : skel(); if (sk) { scroll.querySelectorAll('.fd-skel').forEach(x => x.remove()); scroll.appendChild(sk); }
       try {
         for (let turn = 0; turn < 6; turn++) {   // a server that has not been updated may still answer photos and text: they are passed over
           const byList = tab === 'foryou' || tab === 'saved';
@@ -341,20 +408,26 @@ PD.social = (() => {
           fresh.forEach(r => { st.before = st.before == null ? r.id : Math.min(st.before, r.id); });
           const vids = fresh.filter(r => r.kind === 'video' && r.media_path);
           fresh.filter(r => vids.indexOf(r) < 0).forEach(r => st.ids.add(r.id));
-          if (vids.length) { await urls(vids); if (mine !== tab) return; vids.forEach(p => add(p)); }
+          if (vids.length) { await urls(vids); if (mine !== tab) return; if (sk) sk.remove(); vids.forEach(p => add(p)); }
           if (one || !fresh.length) { st.done = true; break; }
           if (vids.length) break;
         }
+        if (sk) sk.remove();
         if (st.done) { if (!st.n) { if (!scroll.querySelector('.fd-empty')) empty(); } else if (!fixed && !scroll.querySelector('.fd-endnote')) scroll.appendChild(h('div', { class: 'fd-card fd-endnote' }, [h('p', { class: 'muted', text: t('fd.end') })])); }
-      } catch (e) { if (!st.n) { scroll.innerHTML = ''; scroll.appendChild(h('p', { class: 'muted fd-err', text: U().err(e) })); } }
+        if (!hinted && !fixed && st.n > 1) stage.classList.add('hinting');
+      } catch (e) { if (sk) sk.remove(); if (!st.n) { scroll.innerHTML = ''; scroll.appendChild(h('p', { class: 'muted fd-err', text: U().err(e) })); } }
       finally { st.busy = false; }
     }
-    async function prepend(p) { await urls([p]); scroll.querySelectorAll('.fd-empty,.fd-err').forEach(x => x.remove()); add(p, true); scroll.scrollTo({ top: 0 }); }
+    async function prepend(p) { await urls([p]); scroll.querySelectorAll('.fd-empty,.fd-err').forEach(x => x.remove()); add(p, true); scroll.scrollTo({ top: 0 }); const c = scroll.querySelector('.fd-card[data-id]'); if (c && moves()) c.animate([{ transform: 'translateY(30%) scale(.94)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 480, easing: OUTQ }); }
     head(); more(); badges();
-    // keyboard: ↑ ↓ / j k move one video, the space bar pauses
+    // the top bar arrives from above
+    if (moves()) [...top.children].forEach((x, i) => x.animate([{ transform: 'translateY(-14px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, delay: 60 + i * 50, easing: OUTQ, fill: 'backwards' }));
+    // keyboard: ↑ ↓ / j k move one video, the space bar pauses, L likes
     scroll.addEventListener('keydown', e => {
       if (e.target !== scroll) return;
-      if (e.key === ' ') { e.preventDefault(); const c = scroll.querySelector('.fd-card.act'); if (c) P.tap(c); return; }
+      const c = scroll.querySelector('.fd-card.act');
+      if (e.key === ' ') { e.preventDefault(); if (c) P.tap(c); return; }
+      if (e.key === 'l' && c) { e.preventDefault(); c.querySelector('.fd-rx').click(); return; }
       if (!/^(ArrowDown|ArrowUp|j|k|PageDown|PageUp)$/.test(e.key)) return;
       e.preventDefault(); scroll.scrollBy({ top: (/Down|j/.test(e.key) ? 1 : -1) * scroll.clientHeight, behavior: 'smooth' });
     });
@@ -363,58 +436,94 @@ PD.social = (() => {
   /** one video, one screen. The player comes from the feed's small pool when the card is on screen or next in line. */
   function card(p, P, onGone) {
     const mine = p.author === C.uid, meta0 = p.media_meta || {};
-    const tall = !meta0.w || !meta0.h || meta0.h / meta0.w >= 1.2;   // a video held upright fills the screen; one held sideways is shown whole
-    const el = h('article', { class: 'fd-card' + (tall ? ' tall' : ''), 'data-id': p.id, 'data-mine': mine ? '1' : '0' });
+    const tall = !meta0.w || !meta0.h || meta0.h / meta0.w >= 1.2;   // a video held upright fills the screen; one held sideways is shown whole, on its own blurred picture
+    const el = h('article', { class: 'fd-card' + (tall ? ' fd-tall' : ' fd-flat'), 'data-id': p.id, 'data-mine': mine ? '1' : '0' });
     const still = p.thumb_path && C.storage.url(p.thumb_path);
-    const stage = h('div', { class: 'fd-media' }, still ? [h('img', { class: 'fd-poster', alt: '', src: still, decoding: 'async' })] : []);
-    const bar = h('i', { class: 'fd-prog' });
-    el._stage = stage; el._bar = bar; el._src = C.storage.url(p.media_path); el._slot = null;
+    const kids = [];
+    if (still && !tall) { const bg = h('div', { class: 'fd-bg' }); bg.style.backgroundImage = 'url("' + still.replace(/"/g, '%22') + '")'; kids.push(bg); }
+    if (still) kids.push(h('img', { class: 'fd-poster', alt: '', src: still, decoding: 'async' }));
+    const stage = h('div', { class: 'fd-media' }, kids);
+    const bar = h('i', { class: 'fd-prog' }), time = h('small', { class: 'fd-time mono' });
+    el._stage = stage; el._bar = bar; el._time = time; el._src = C.storage.url(p.media_path); el._slot = null;
     el.appendChild(stage);
-    // one tap: pause or play. Two quick taps: the panduri.
+    // one tap: pause or play. Two quick taps: the panduri, where the finger was.
     let lastTap = 0, tapT = 0;
-    stage.addEventListener('click', () => {
+    stage.addEventListener('click', e => {
       const now = Date.now(); clearTimeout(tapT);
-      if (now - lastTap < 280) { lastTap = 0; if (!p.my_reaction) like(true); burst(el); return; }
-      lastTap = now; tapT = setTimeout(() => { lastTap = 0; P.tap(el); }, 280);
+      if (now - lastTap < 300) { lastTap = 0; if (!p.my_reaction) like(true, true); burstAt(el, e.clientX, e.clientY); return; }
+      lastTap = now; tapT = setTimeout(() => { lastTap = 0; const was = el.classList.contains('paused'); P.tap(el); if (was && !el.classList.contains('paused')) flash(el); }, 300);
     });
     // who, what, which song
-    const who = h('button', { class: 'fd-who', onclick: () => profile(p.author) }, [avatar(p.author_avatar, p.author_name), h('span', {}, [h('b', { text: label(p) }), p.author_nick && p.author_name ? h('small', { text: '@' + p.author_nick }) : null].filter(Boolean))]);
-    const cap = p.caption ? h('p', { class: 'fd-cap', text: p.caption }) : null;
-    if (cap) cap.onclick = () => cap.classList.toggle('open');
-    const song = p.song ? h('span', { class: 'fd-song' }, [h('span', { html: IC.music }), h('b', { text: p.song })]) : null;
-    const meta = h('small', { class: 'fd-meta', text: U().ago(p.created_at) + (p.visibility === 'friends' ? ' · ' + t('fd.friendsOnly') : '') + (p.views ? ' · ' + t('fd.views', { n: nf(p.views) }) : '') });
-    const info = h('div', { class: 'fd-info' }, [h('div', { class: 'fd-whorow' }, [who, !mine && !p.friend ? addChip(p) : null].filter(Boolean)), cap, song, meta].filter(Boolean));
-    // the rail: like · comment · share · save
-    const likeB = h('button', { class: 'fd-act fd-rx', html: '<span class="fd-rx-off">' + IC.pan + '</span>' + glyph('panduri') }), likeN = h('small', {});
-    const paint = () => { likeB.classList.toggle('on', !!p.my_reaction); likeB.setAttribute('aria-pressed', String(!!p.my_reaction)); likeB.setAttribute('aria-label', t('fd.like')); likeN.textContent = nf(p.reactions); };
-    async function like(on) {
+    const name = h('button', { class: 'fd-name', onclick: () => profile(p.author) }, [h('b', { text: p.author_nick ? '@' + p.author_nick : label(p) }), p.visibility === 'friends' ? h('span', { class: 'fd-lock', title: t('fd.friendsOnly'), html: IC.users }) : null].filter(Boolean));
+    const meta = h('small', { class: 'fd-meta', text: [p.author_nick && p.author_name ? p.author_name : '', U().ago(p.created_at), p.views ? t('fd.views', { n: nf(p.views) }) : ''].filter(Boolean).join(' · ') });
+    let cap = null;
+    if (p.caption) {
+      const txt = h('span', { class: 'fd-captxt', text: p.caption }), moreB = h('button', { class: 'fd-capmore', 'data-t': 'fd.more' });
+      cap = h('div', { class: 'fd-cap' }, [txt, moreB]);
+      const toggle = () => { const open = !el.classList.contains('capopen'); el.classList.toggle('capopen', open); moreB.textContent = t(open ? 'fd.less' : 'fd.more'); };
+      cap.onclick = e => { e.stopPropagation(); toggle(); };
+      requestAnimationFrame(() => { if (txt.scrollHeight <= txt.clientHeight + 2 && p.caption.length < 90) moreB.hidden = true; });
+    }
+    const song = h('div', { class: 'fd-song' }, [h('span', { class: 'fd-note', html: IC.music }), h('span', { class: 'fd-marq' }, [h('span', { text: p.song || t('fd.origSound', { n: p.author_nick ? '@' + p.author_nick : label(p) }) })])]);
+    const info = h('div', { class: 'fd-info' }, [name, meta, cap, song].filter(Boolean));
+    // the rail: the author (and a + to become friends) · like · comment · save · share · more · the turning disc
+    const face = avatar(p.author_avatar, p.author_name, 'fd-face');
+    const plus = !mine && !p.friend && p.author_nick ? h('button', { class: 'fd-plus', 'aria-label': t('fr.send'), html: ic.plus }) : null;
+    if (plus) plus.onclick = async e => {
+      e.stopPropagation(); if (plus.disabled) return; plus.disabled = true; buzz('select');
+      try {
+        const r = await C.social.request(p.author_nick);
+        plus.classList.add('done'); plus.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; pop(plus, 1.4);
+        PD.ui.toast(t(r === 'friend' ? 'fr.already' : 'fr.sent'), 3500);
+        setTimeout(() => { if (moves()) plus.animate([{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(0)', opacity: 0 }], { duration: 260, easing: 'ease-in', fill: 'forwards' }).onfinish = () => plus.remove(); else plus.remove(); }, 1200);
+      } catch (er) { plus.disabled = false; PD.ui.toast(friendErr(er)); }
+    };
+    const who = h('div', { class: 'fd-col fd-whocol' }, [h('button', { class: 'fd-facebtn', 'aria-label': label(p), onclick: () => profile(p.author) }, [face]), plus].filter(Boolean));
+    const likeB = h('button', { class: 'fd-act fd-rx', html: RAIL.pan }), likeN = h('small', {});
+    const paint = () => { likeB.classList.toggle('on', !!p.my_reaction); likeB.setAttribute('aria-pressed', String(!!p.my_reaction)); likeB.setAttribute('aria-label', t('fd.like')); setNum(likeN, nf(p.reactions)); };
+    async function like(on, quiet) {
       const prev = p.my_reaction, before = p.reactions;
       p.my_reaction = on ? 'panduri' : null; p.reactions = Math.max(0, before + (on && !prev ? 1 : !on && prev ? -1 : 0)); paint();
+      if (on) { pop(likeB, 1.28); if (!quiet) buzz('toggle'); }
       try { await C.social.react(p.id, p.my_reaction); } catch (e) { p.my_reaction = prev; p.reactions = before; paint(); PD.ui.toast(U().err(e)); }
     }
     likeB.onclick = () => like(!p.my_reaction); paint();
-    const cmN = h('small', { text: nf(p.comments) }), shN = h('small', { text: p.shares ? nf(p.shares) : '' });
-    const saveB = h('button', { class: 'fd-act fd-save', html: IC.save });
+    const cmN = h('small', { text: nf(p.comments) }), shN = h('small', { text: p.shares ? nf(p.shares) : '' }), svN = h('small', { text: '' });
+    const saveB = h('button', { class: 'fd-act fd-save', html: RAIL.save });
     const paintSave = () => { saveB.classList.toggle('on', !!p.saved); saveB.setAttribute('aria-pressed', String(!!p.saved)); saveB.setAttribute('aria-label', t(p.saved ? 'fd.unsave' : 'fd.save')); };
     saveB.onclick = async () => {
-      const prev = !!p.saved; p.saved = !prev; paintSave();
+      const prev = !!p.saved; p.saved = !prev; paintSave(); if (p.saved) { pop(saveB, 1.22); buzz('toggle'); }
       try { await C.social.save(p.id, p.saved); if (p.saved) PD.ui.toast(t('fd.savedT')); } catch (e) { p.saved = prev; paintSave(); PD.ui.toast(U().err(e), 4000); }
     };
     paintSave();
-    const rail = h('div', { class: 'fd-rail' }, [
+    const act = (cls, key, icon, fn, n) => h('div', { class: 'fd-col' }, [h('button', { class: 'fd-act ' + cls, 'aria-label': t(key), html: icon, onclick: () => fn() }), n].filter(Boolean));
+    const rail = h('div', { class: 'fd-rail' }, [who,
       h('div', { class: 'fd-col' }, [likeB, likeN]),
-      h('div', { class: 'fd-col' }, [h('button', { class: 'fd-act', 'aria-label': t('fd.comments'), html: IC.comment, onclick: () => comments(p, n => { p.comments = n; cmN.textContent = nf(n); }) }), cmN]),
-      h('div', { class: 'fd-col' }, [h('button', { class: 'fd-act', 'aria-label': t('fd.share'), html: IC.share, onclick: () => share(p, () => { shN.textContent = nf(p.shares); }) }), shN]),
-      h('div', { class: 'fd-col' }, [saveB]),
-      h('div', { class: 'fd-col' }, [h('button', { class: 'fd-act fd-morebtn', 'aria-label': t('md.more'), html: ic.more, onclick: () => postMenu(p, onGone) })])]);
-    el.append(h('div', { class: 'fd-shade' }), info, rail, h('span', { class: 'fd-spin', 'aria-hidden': 'true' }), h('p', { class: 'fd-broken', 'data-t': 'fd.cantPlay' }), h('div', { class: 'fd-progw' }, [bar]));
+      act('fd-cm', 'fd.comments', RAIL.comment, () => comments(p, n => { p.comments = n; setNum(cmN, nf(n)); }), cmN),
+      h('div', { class: 'fd-col' }, [saveB, svN]),
+      act('fd-sh', 'fd.share', RAIL.share, () => share(p, () => { setNum(shN, nf(p.shares)); }), shN),
+      act('fd-morebtn', 'md.more', RAIL.more, () => postMenu(p, onGone))]);
+    // the line at the bottom: drag it to go to another place in the video
+    const progw = h('div', { class: 'fd-progw', role: 'slider', 'aria-label': t('fd.seek'), tabindex: '-1' }, [h('i', { class: 'fd-track' }, [bar]), time]);
+    scrubber(el, progw);
+    el.append(h('div', { class: 'fd-shade' }), info, rail, h('span', { class: 'fd-spin', 'aria-hidden': 'true' }), h('p', { class: 'fd-broken', 'data-t': 'fd.cantPlay' }), progw);
     PD.i18n.apply(el);
     return el;
   }
-  function addChip(p) {
-    const b = h('button', { class: 'fd-add', html: IC.addUser + '<span data-t="fd.addFriend"></span>' });
-    b.onclick = async e => { e.stopPropagation(); if (!p.author_nick) return profile(p.author); try { const r = await C.social.request(p.author_nick); b.innerHTML = '<span>' + PD.esc(t(r === 'friend' ? 'fr.friend' : 'fd.requested')) + '</span>'; b.disabled = true; } catch (er) { PD.ui.toast(friendErr(er)); } };
-    PD.i18n.apply(b); return b;
+  /** the pause sign leaves with a little grow when the video plays again */
+  function flash(card) {
+    if (!moves()) return;
+    const f = h('span', { class: 'fd-flash', 'aria-hidden': 'true', html: ic.play }); card.appendChild(f);
+    f.animate([{ transform: 'translate(-50%,-50%) scale(1)', opacity: 1 }, { transform: 'translate(-50%,-50%) scale(1.6)', opacity: 0 }], { duration: 380, easing: OUTQ, fill: 'forwards' }).onfinish = () => f.remove();
+  }
+  function scrubber(card, w) {
+    let on = false;
+    const at = e => { const v = card._slot && card._slot.v; if (!v || !v.duration) return; const r = w.getBoundingClientRect(), k = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); v.currentTime = k * v.duration; card._bar.style.transform = 'scaleX(' + k + ')'; card._time.textContent = PD.fmtTime(v.currentTime) + ' / ' + PD.fmtTime(v.duration); };
+    w.addEventListener('pointerdown', e => { if (!card._slot) return; e.stopPropagation(); on = true; card.classList.add('scrub'); try { w.setPointerCapture(e.pointerId); } catch (_) {} at(e); });
+    w.addEventListener('pointermove', e => { if (on) at(e); });
+    const end = () => { if (!on) return; on = false; setTimeout(() => card.classList.remove('scrub'), 600); };
+    w.addEventListener('pointerup', end); w.addEventListener('pointercancel', end);
+    w.addEventListener('click', e => e.stopPropagation());
   }
 
   /* ---------------- comments ---------------- */
@@ -627,50 +736,88 @@ PD.social = (() => {
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
     return h('div', { class: 'cm-name fr-nick' }, [h('p', { 'data-t': need ? 'fr.nickNeed' : 'fr.myNick' }), h('div', { class: 'row' }, [h('span', { class: 'fr-at', text: '@' }), inp, h('button', { class: 'btn primary', 'data-t': 'cm.save', onclick: save })]), msg]);
   }
+  /** friends, as in a social app: three tabs (friends · requests · find) under the member's own @nickname */
   function friends(box) {
     const nickNow = C.profile && C.profile.nickname;
-    const mine = h('div', { class: 'fr-me' });
-    if (nickNow) mine.append(h('span', {}, [h('small', { class: 'muted', 'data-t': 'fr.myNick' }), h('b', { text: '@' + nickNow })]), h('button', { class: 'btn small quiet', html: ic.edit, 'aria-label': t('fr.edit'), onclick: () => { mine.replaceWith(nickCard(false)); PD.i18n.apply(box); } }));
-    const q = h('input', { class: 'input', type: 'search', autocapitalize: 'none', spellcheck: 'false', placeholder: '@nickname', 'aria-label': t('fr.add') });
-    const found = h('div', { class: 'cm-list' });
-    const find = async () => {
-      const v = q.value.trim().replace(/^@+/, '').toLowerCase(); found.innerHTML = ''; if (!v) return;
-      if (v === nickNow) { found.appendChild(h('p', { class: 'muted', 'data-t': 'fr.self' })); PD.i18n.apply(found); return; }
-      try {
-        const r = (await C.social.find(v) || [])[0];
-        if (!r) { found.appendChild(h('p', { class: 'muted', 'data-t': 'fr.notFound' })); PD.i18n.apply(found); return; }
-        const act = r.relation === 'friend' ? h('span', { class: 'chip', 'data-t': 'fr.already' }) : r.relation === 'outgoing' ? h('span', { class: 'chip', 'data-t': 'fd.requested' })
-          : h('button', { class: 'btn primary small', 'data-t': r.relation === 'incoming' ? 'fr.accept' : 'fr.send', onclick: async () => { try { if (r.relation === 'incoming') await C.social.respond(r.id, true); else await C.social.request(v); q.value = ''; found.innerHTML = ''; PD.ui.toast(t(r.relation === 'incoming' ? 'fr.already' : 'fr.sent'), 4000); load(); } catch (e) { PD.ui.toast(friendErr(e)); } } });
-        found.appendChild(h('div', { class: 'cm-row' }, [avatar(r.avatar_url, r.display_name), h('button', { class: 'grow fr-name', onclick: () => profile(r.id) }, [h('b', { text: r.display_name || '@' + r.nickname }), h('small', { text: '@' + r.nickname + ' · ' + t('lv.level', { n: r.level || 0 }) })]), act]));
-        PD.i18n.apply(found);
-      } catch (e) { found.textContent = friendErr(e); }
-    };
-    q.addEventListener('keydown', e => { if (e.key === 'Enter') find(); });
-    const lists = h('div', { class: 'cm-body' });
-    box.append(nickNow ? mine : nickCard(true, () => PD.app.render()), h('h3', { 'data-t': 'fr.add' }), h('div', { class: 'row fr-find' }, [q, h('button', { class: 'btn', html: ic.search + '<span data-t="fr.find"></span>', onclick: find })]), found, lists,
-      h('p', { class: 'muted small-note', 'data-t': 'fr.onlyFriends' }), h('button', { class: 'btn quiet', 'data-t': 'md.blockedList', onclick: () => U().blockedSheet(load) }));
-    async function load() {
-      try {
-        const rows = await C.social.friends() || []; lists.innerHTML = '';
-        const by = k => rows.filter(r => r.relation === k);
-        const row = (r, acts) => h('div', { class: 'cm-row' }, [avatar(r.avatar_url, r.display_name), h('button', { class: 'grow fr-name', onclick: () => profile(r.id) }, [h('b', {}, [r.display_name || '@' + r.nickname, r.vip ? h('span', { class: 'vip-tag', text: 'VIP' }) : null]), h('small', { text: (r.nickname ? '@' + r.nickname + ' · ' : '') + t('lv.level', { n: r.level || 0 }) })])].concat(acts));
-        const inc = by('incoming'), out = by('outgoing'), fr = by('friend');
-        if (inc.length) lists.append(h('h3', { 'data-t': 'fr.incoming' }), ...inc.map(r => row(r, [
-          h('button', { class: 'btn primary small', 'data-t': 'fr.accept', onclick: async () => { try { await C.social.respond(r.id, true); load(); } catch (e) { PD.ui.toast(friendErr(e)); } } }),
-          h('button', { class: 'btn small quiet', 'data-t': 'fr.decline', onclick: async () => { try { await C.social.respond(r.id, false); load(); } catch (e) { PD.ui.toast(friendErr(e)); } } })])));
-        lists.append(h('h3', { 'data-t': 'fr.list' }));
-        if (!fr.length) lists.append(h('p', { class: 'muted', 'data-t': 'fr.none' }));
-        fr.forEach(r => lists.append(row(r, [
-          h('button', { class: 'btn small', 'data-t': 'cm.write', onclick: async () => { try { const id = await C.chat.open(r.id); PD.app.go('community', 'c:' + id + ':' + (r.display_name || r.nickname)); } catch (e) { PD.ui.toast(U().err(e)); } } }),
-          h('button', { class: 'pz-ic', 'aria-label': t('md.more'), html: ic.more, onclick: () => PD.ui.sheet((b2, close) => { b2.append(h('h2', { text: r.display_name || '@' + r.nickname }), h('div', { class: 'cm-list' }, [
-            h('button', { class: 'btn', 'data-t': 'fr.remove', onclick: () => { close(); PD.ui.confirm(t('fr.removeQ', { n: r.display_name || '@' + r.nickname }), async () => { try { await C.social.unfriend(r.id); load(); } catch (e) { PD.ui.toast(U().err(e)); } }); } }),
+    const on = iso => !!iso && Date.now() - new Date(iso).getTime() < 5 * 60000;
+    const face = (r, cls) => h('span', { class: 'cm-face' + (cls ? ' ' + cls : '') + (on(r.last_seen) ? ' cm-on' : '') }, [avatar(r.avatar_url, r.display_name || r.nickname)]);
+    const nm = r => r.display_name || '@' + r.nickname;
+    let tab = PD.store.get('fr.tab', 'list'); if (!['list', 'req', 'find'].includes(tab)) tab = 'list';
+    let rows = [];
+    const me = nickNow ? h('div', { class: 'fr-me' }, [h('span', {}, [h('small', { class: 'muted', 'data-t': 'fr.myNick' }), h('b', { text: '@' + nickNow })]),
+      h('button', { class: 'btn small quiet', html: ic.edit, 'aria-label': t('fr.edit'), onclick: () => { me.replaceWith(nickCard(false)); PD.i18n.apply(box); } })]) : nickCard(true, () => PD.app.render());
+    const seg = h('div', { class: 'seg fr-seg', role: 'tablist' });
+    const pane = h('div', { class: 'fr-pane' });
+    box.append(me, seg, pane);
+    function paintSeg() {
+      const inc = rows.filter(r => r.relation === 'incoming').length;
+      seg.querySelectorAll(':scope > button').forEach(b => b.remove());   // the sliding thumb (PD.motion) stays
+      [['list', 'fr.tabList'], ['req', 'fr.tabReq'], ['find', 'fr.tabFind']].forEach(([k, key]) => seg.appendChild(h('button', { role: 'tab', 'aria-pressed': String(tab === k), onclick: () => go(k) }, [h('span', { 'data-t': key }), k === 'req' && inc ? h('i', { class: 'cm-dot', text: inc > 9 ? '9+' : String(inc) }) : null].filter(Boolean))));
+      PD.i18n.apply(seg);
+    }
+    let dirN = 0;
+    function go(k) {
+      if (k === tab) return;
+      const order = ['list', 'req', 'find'], d = order.indexOf(k) > order.indexOf(tab) ? 1 : -1;
+      tab = k; PD.store.set('fr.tab', k); seg.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', String(order[i] === k)));
+      dirN = d; paint();
+    }
+    const gone = (row, then) => { if (PD.motion && PD.motion.ok() && row.animate) { row.style.overflow = 'hidden'; const hh = row.offsetHeight; row.animate([{ height: hh + 'px', opacity: 1, transform: 'none' }, { height: '0px', opacity: 0, transform: 'translateX(30%)', marginTop: '0px', paddingTop: '0px', paddingBottom: '0px' }], { duration: 300, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).onfinish = then; } else then(); };
+    const row = (r, acts) => h('div', { class: 'cm-crow fr-row' }, [h('button', { class: 'fr-who', onclick: () => profile(r.id) }, [face(r), h('span', { class: 'grow' }, [h('b', {}, [nm(r), r.vip ? h('span', { class: 'vip-tag', text: 'VIP' }) : null].filter(Boolean)), h('small', { text: (r.nickname ? '@' + r.nickname + ' · ' : '') + (on(r.last_seen) ? t('fr.online') : t('lv.level', { n: r.level || 0 })) })])])].concat(acts));
+    function paint() {
+      pane.innerHTML = '';
+      const by = k => rows.filter(r => r.relation === k);
+      if (tab === 'list') {
+        const fr = by('friend');
+        if (!fr.length) pane.append(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: IC.users }), h('p', { 'data-t': 'fr.none' }), h('button', { class: 'btn primary', html: IC.addUser + '<span data-t="fr.add"></span>', onclick: () => go('find') })]));
+        fr.forEach(r => pane.append(row(r, [
+          h('button', { class: 'pz-ic fr-msg', 'aria-label': t('cm.write'), title: t('cm.write'), html: IC.dm, onclick: async () => { try { const id = await C.chat.open(r.id); PD.app.go('community', 'c:' + id + ':' + nm(r)); } catch (e) { PD.ui.toast(U().err(e)); } } }),
+          h('button', { class: 'pz-ic', 'aria-label': t('md.more'), html: ic.more, onclick: () => PD.ui.sheet((b2, close) => { b2.append(h('h2', { text: nm(r) }), h('div', { class: 'cm-list' }, [
+            h('button', { class: 'btn', 'data-t': 'fr.remove', onclick: () => { close(); PD.ui.confirm(t('fr.removeQ', { n: nm(r) }), async () => { try { await C.social.unfriend(r.id); load(); } catch (e) { PD.ui.toast(U().err(e)); } }); } }),
             h('button', { class: 'btn', 'data-t': 'md.report', onclick: () => { close(); U().reportSheet('user', r.id); } }),
             h('button', { class: 'btn', 'data-t': 'md.block', onclick: () => { close(); U().confirmBlock(r.id, r.display_name, load); } })])); }) })])));
-        if (out.length) lists.append(h('h3', { 'data-t': 'fr.outgoing' }), ...out.map(r => row(r, [h('button', { class: 'btn small quiet', 'data-t': 'fr.cancel', onclick: async () => { try { await C.social.unfriend(r.id); load(); } catch (e) { PD.ui.toast(U().err(e)); } } })])));
-        PD.i18n.apply(lists);
-      } catch (e) { lists.textContent = U().err(e); }
+        pane.append(h('p', { class: 'muted small-note', 'data-t': 'fr.onlyFriends' }));
+      } else if (tab === 'req') {
+        const inc = by('incoming'), out = by('outgoing');
+        if (!inc.length && !out.length) pane.append(h('div', { class: 'cm-empty' }, [h('span', { class: 'cm-big', html: IC.addUser }), h('p', { 'data-t': 'fr.noReq' })]));
+        if (inc.length) pane.append(h('h3', { class: 'cm-lab', 'data-t': 'fr.incoming' }));
+        inc.forEach(r => { const el = row(r, [
+          h('button', { class: 'btn primary small', 'data-t': 'fr.accept', onclick: async () => { try { await C.social.respond(r.id, true); PD.fx && PD.fx.haptic && PD.fx.haptic('success'); gone(el, load); } catch (e) { PD.ui.toast(friendErr(e)); } } }),
+          h('button', { class: 'btn small quiet', 'data-t': 'fr.decline', onclick: async () => { try { await C.social.respond(r.id, false); gone(el, load); } catch (e) { PD.ui.toast(friendErr(e)); } } })]); pane.append(el); });
+        if (out.length) pane.append(h('h3', { class: 'cm-lab', 'data-t': 'fr.outgoing' }));
+        out.forEach(r => { const el = row(r, [h('button', { class: 'btn small quiet', 'data-t': 'fr.cancel', onclick: async () => { try { await C.social.unfriend(r.id); gone(el, load); } catch (e) { PD.ui.toast(U().err(e)); } } })]); pane.append(el); });
+      } else {
+        const q = h('input', { class: 'input', type: 'search', autocapitalize: 'none', spellcheck: 'false', placeholder: '@nickname', 'aria-label': t('fr.add'), enterkeyhint: 'search' });
+        const found = h('div', { class: 'cm-clist' });
+        const find = async () => {
+          const v = q.value.trim().replace(/^@+/, '').toLowerCase(); found.innerHTML = ''; if (!v) return;
+          if (v === nickNow) { found.appendChild(h('p', { class: 'muted', 'data-t': 'fr.self' })); PD.i18n.apply(found); return; }
+          found.append(...(U().skRows ? U().skRows(1) : []));
+          try {
+            const r = (await C.social.find(v) || [])[0]; found.innerHTML = '';
+            if (!r) { found.appendChild(h('p', { class: 'muted', 'data-t': 'fr.notFound' })); PD.i18n.apply(found); return; }
+            const act = r.relation === 'friend' ? h('span', { class: 'chip', 'data-t': 'fr.already' }) : r.relation === 'outgoing' ? h('span', { class: 'chip', 'data-t': 'fd.requested' })
+              : h('button', { class: 'btn primary small', 'data-t': r.relation === 'incoming' ? 'fr.accept' : 'fr.send', onclick: async e => { const b = e.currentTarget; b.disabled = true; try { if (r.relation === 'incoming') await C.social.respond(r.id, true); else await C.social.request(v); b.replaceWith(h('span', { class: 'chip fr-ok', text: '✓ ' + t(r.relation === 'incoming' ? 'fr.already' : 'fd.requested') })); PD.fx && PD.fx.haptic && PD.fx.haptic('success'); load(true); } catch (er) { b.disabled = false; PD.ui.toast(friendErr(er)); } } });
+            found.appendChild(row(r, [act])); PD.i18n.apply(found); PD.motion && PD.motion.reveal(found, 0);
+          } catch (e) { found.textContent = friendErr(e); }
+        };
+        let tm = 0; q.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(find, 450); });
+        q.addEventListener('keydown', e => { if (e.key === 'Enter') { clearTimeout(tm); find(); } });
+        pane.append(h('label', { class: 'cm-sbox' }, [h('span', { html: ic.search }), q]), h('small', { class: 'muted small-note', 'data-t': 'fr.findWhy' }), found);
+        if (!PD.isTouch()) setTimeout(() => q.focus(), 50);
+      }
+      PD.i18n.apply(pane);
+      if (PD.motion && PD.motion.ok()) {
+        if (dirN) pane.animate([{ transform: 'translateX(' + (dirN * 24) + 'px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.22,1,.36,1)' });
+        else PD.motion.reveal(pane, 30);
+      }
+      dirN = 0;
     }
-    load();
+    async function load(quiet) {
+      if (!rows.length && !quiet) { pane.innerHTML = ''; pane.append(...(U().skRows ? U().skRows(3) : [])); }
+      try { rows = await C.social.friends() || []; paintSeg(); if (!quiet || tab !== 'find') paint(); } catch (e) { pane.textContent = U().err(e); }
+    }
+    paintSeg(); load();
   }
 
   /** a shared post inside a chat: a small card that opens it (returned at once, filled when the post arrives) */

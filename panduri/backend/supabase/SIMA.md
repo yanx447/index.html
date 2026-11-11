@@ -40,3 +40,20 @@ social replies are used only when AI access is unavailable before sign-in.
 
 Offline backend checks:
 `npx --yes deno run --allow-env --allow-read sima.test.ts` (from backend).
+
+## 2026-11-10: the app's data, every language, and the internet
+
+- **App data.** Every request now carries `context.app` (about 1.6 KB): the songs the app holds (chords
+  in order, shapes, rhythm and strokes, metre, tempo, the order the song page teaches in), the teacher's
+  rhythms, the course on the learn page, the learner's next step and, when a song is open in the AI
+  studio, what it measured. The instructions tell the model to answer about these exactly from that data.
+- **Languages.** `language` is mapped to a language name (16 app languages); the model replies in the
+  language of the learner's last message, else the app's, with correct grammar and spelling.
+- **Web search.** Only when the app sends `web: true` (a song the app does not hold, or the learner asks
+  to search) the request adds OpenRouter's `openrouter:web_search` server tool (`max_results: 5`,
+  `max_tool_calls: 3`); the model decides whether to search. `url_citation` annotations come back as
+  `sources` (http/https only, each once, at most five) and the app shows them as links. Cost: Gemini's
+  native search is passed through at Google's price, otherwise Exa at about $0.007 per request, on top of
+  tokens. The privacy note in the app says the question may go to an internet search.
+- **Not deployed yet.** These changes are in the repository and pass `sima.test.ts`; the function running
+  on Supabase is the earlier version until `supabase functions deploy sima` is run.

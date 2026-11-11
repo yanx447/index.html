@@ -4,6 +4,7 @@
    - segmented controls: a thumb slides to the chosen option
    - play / pause and similar icon swaps morph instead of snapping
    - numbers that change (BPM, counters, stats) roll softly
+   - a shared element: a card's cover flies into the screen it opens
    Everything respects "reduce motion" (system or the app's setting).
    One MutationObserver, batched per frame; nothing runs while idle.
    ===================================================================== */
@@ -81,13 +82,38 @@ PD.motion = (() => {
   /** a short directional swap for a block whose content was replaced (chord name, card) */
   function swap(el, dir) { if (!el || !ok() || !el.animate) return; el.animate([{ opacity: 0, transform: 'translateX(' + (dir || 0) * 16 + 'px) translateY(' + (dir ? 0 : 6) + 'px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: OUT }); }
   /** the active tab's icon answers with a small, controlled spring */
-  function spring(el) { if (!el || !ok() || !el.animate) return; el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.16) translateY(-1px)' }, { transform: 'scale(1)' }], { duration: 340, easing: 'cubic-bezier(.34,1.36,.64,1)' }); }
-  /** A bounded entrance, owned by the router, never by a same-screen redraw. */
+  function spring(el) { if (!el || !ok() || !el.animate) return; el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.14) translateY(-1px)' }, { transform: 'scale(1)' }], { duration: 360, easing: 'cubic-bezier(.34,1.36,.64,1)' }); }
+  /** A bounded entrance, owned by the router, never by a same-screen redraw: the first blocks settle in order. */
   function reveal(root, delay = 0) {
     if (!root || !ok()) return [];
-    return [...root.children].slice(0, 8).filter(el => el.animate).map((el, i) =>
-      el.animate([{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }],
-        { duration: 420, delay: delay + i * 35, easing: OUT, fill: 'backwards' }));
+    return [...root.children].slice(0, 6).filter(el => el.animate).map((el, i) =>
+      el.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 320, delay: delay + i * 30, easing: OUT, fill: 'backwards' }));
+  }
+  /* ---------- shared element: card → detail ----------
+     share(el) remembers a picture and where it sat; fly(target) moves a copy of it from there to where the
+     same picture sits on the new screen, growing into its shape, then hands over to the real one. */
+  let shared = null;
+  function share(el) {
+    if (!el || !ok()) { shared = null; return; }
+    const pic = el.querySelector('svg, img'); if (!pic) { shared = null; return; }
+    shared = { el, pic: pic.outerHTML, r: el.getBoundingClientRect(), rad: getComputedStyle(el).borderRadius, t: performance.now() };
+  }
+  const takeShare = () => { const s2 = shared; shared = null; return s2 && performance.now() - s2.t < 1200 ? s2 : null; };
+  function fly(src, target, dur) {
+    if (!src || !target || !ok() || !document.body.animate) return null;
+    const to = target.getBoundingClientRect(); if (!to.width || !to.height) return null;
+    const box = document.createElement('div'); box.className = 'ds-fly'; box.setAttribute('aria-hidden', 'true'); box.innerHTML = src.pic;
+    const rTo = getComputedStyle(target).borderRadius || '0px';
+    document.body.appendChild(box);
+    target.setAttribute('data-share-hide', ''); if (src.el && src.el.isConnected) src.el.style.visibility = 'hidden';
+    const f = src.r, o = { duration: dur || 380, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'both' };
+    const a = box.animate([
+      { left: f.left + 'px', top: f.top + 'px', width: f.width + 'px', height: f.height + 'px', borderRadius: src.rad, boxShadow: '0 0 0 rgba(0,0,0,0)' },
+      { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px', borderRadius: rTo, boxShadow: '0 30px 60px -30px rgba(0,0,0,.8)' }], o);
+    const done = () => { target.removeAttribute('data-share-hide'); if (src.el) src.el.style.visibility = ''; box.remove(); };
+    a.finished.then(done, done);
+    return a;
   }
   // Changing accessibility preferences also finishes animations already in flight.
   function settleMotion() {
@@ -97,8 +123,8 @@ PD.motion = (() => {
   new MutationObserver(settleMotion).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   // A single delegated handler also covers dynamically rendered tool cards.
   document.addEventListener('click', e => {
-    const card = e.target.closest && e.target.closest('.hq, .hx-goal2, .hx-bell');
-    if (card && !card.disabled) spring(card.querySelector('.hq-ic, svg'));
+    const card = e.target.closest && e.target.closest('.hm-tool, .hm-ib');
+    if (card && !card.disabled) spring(card.querySelector('.hm-tool-ic, svg'));
   });
-  return { ok, swap, spring, place, reveal };
+  return { ok, swap, spring, place, reveal, share, takeShare, fly };
 })();

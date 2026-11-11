@@ -1150,17 +1150,28 @@ PD.ai = (() => {
         drawLoop(); if (S.chipsTr !== st) { S.chipsTr = st; chips(); drawRibbon(); last = null; }
       }
       S.onDeck = () => { paint(); if (S.mixPaint) S.mixPaint(); };
-      const COL = ['#C9773F', '#8E3B22', '#D9A25B', '#6E8B5A', '#B4573A', '#A3814F', '#7A6BB0', '#4F8FA8'];
+      const COL = ['#b9784a', '#8e3b22', '#7f7f88', '#6e8b5a', '#b4573a', '#6f6f79', '#7d5f78', '#4f8f84'];
       const colOf = (() => { const m = {}; let n = 0; return k => m[k] || (m[k] = COL[n++ % COL.length]); })();
+      /* the song at a glance: the waveform (neutral) over a lane of chord blocks; the chord under the playhead is lit.
+         It is redrawn when its size, the chords or the current chord change — the playhead itself is CSS (--ph). */
       function drawRibbon() {
-        const r = rWrap.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), W = Math.max(10, r.width), H = document.body.classList.contains('ai-full') ? 96 : 64; ribbon.width = W * dpr; ribbon.height = H * dpr; ribbon.style.height = H + 'px';
+        const r = rWrap.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), W = Math.max(10, r.width), full = document.body.classList.contains('ai-full'), H = full ? 104 : 76, LANE = full ? 26 : 22, WH = H - LANE - 4; ribbon.width = W * dpr; ribbon.height = H * dpr; ribbon.style.height = H + 'px';
         const x = ribbon.getContext('2d'); x.scale(dpr, dpr); x.clearRect(0, 0, W, H);
-        if (S.peaks) { const P = S.peaks, mid = H / 2; x.fillStyle = 'rgba(255,236,210,.14)'; for (let i = 0; i < W; i++) { const k = Math.floor(i / W * P.length), v = P[k] * (H / 2 - 9); x.fillRect(i, mid - v, 1, v * 2); } }
-        res.chords.forEach(c => { const a = c.t0 / res.dur * W, b = c.t1 / res.dur * W; if (c.root < 0) { x.fillStyle = 'rgba(255,236,210,.06)'; x.fillRect(a, 8, b - a, H - 16); return; } x.fillStyle = colOf(c.root + c.q); x.globalAlpha = .75; x.fillRect(a + .5, 8, Math.max(1, b - a - 1), H - 16); x.globalAlpha = 1; if (b - a > 26) { x.fillStyle = '#FFF4E6'; x.font = '700 12px ' + "'Noto Sans Georgian', system-ui"; x.textBaseline = 'middle'; x.fillText(cname(c.root, c.q, TR()), a + 4, H / 2); } });
-        // bar lines
-        const B = res.beats || [], G = D.bpb || 4; x.fillStyle = 'rgba(255,244,230,.28)'; B.forEach((b, k) => { if ((((k - D.phase) % G) + G) % G === 0) x.fillRect(b / res.dur * W, H - 7, 1, 5); });
+        rWrap.style.setProperty('--lane', LANE + 'px');
+        const rr = (X, Y, w, h, rad) => { w = Math.max(.5, w); h = Math.max(.5, h); rad = Math.max(0, Math.min(rad, w / 2, h / 2)); x.beginPath(); x.moveTo(X + rad, Y); x.arcTo(X + w, Y, X + w, Y + h, rad); x.arcTo(X + w, Y + h, X, Y + h, rad); x.arcTo(X, Y + h, X, Y, rad); x.arcTo(X, Y, X + w, Y, rad); x.closePath(); };
+        // waveform: rounded bars every 3 px, mirrored about the middle
+        if (S.peaks) { const P = S.peaks, mid = WH / 2 + 2; x.fillStyle = 'rgba(240,240,242,.26)'; for (let i = 0; i < W; i += 3) { const k = Math.floor(i / W * P.length), v = Math.max(1, P[k] * (WH / 2 - 3)); rr(i, mid - v, 2, v * 2, 1); x.fill(); } }
+        // bar lines, faint, through the waveform
+        const B = res.beats || [], G = D.bpb || 4; x.fillStyle = 'rgba(240,240,242,.07)'; B.forEach((b, k) => { if ((((k - D.phase) % G) + G) % G === 0) x.fillRect(Math.round(b / res.dur * W), 2, 1, WH); });
+        // the chord lane
+        const ly = H - LANE, cur = S.curChord;
+        res.chords.forEach((c, i) => { const a = c.t0 / res.dur * W, b = c.t1 / res.dur * W, w = Math.max(1, b - a - 2), on = i === cur;
+          if (c.root < 0) { x.fillStyle = 'rgba(240,240,242,.04)'; rr(a + 1, ly, w, LANE, 6); x.fill(); return; }
+          x.fillStyle = colOf(c.root + c.q); x.globalAlpha = on ? 1 : .42; rr(a + 1, ly, w, LANE, 6); x.fill(); x.globalAlpha = 1;
+          if (on) { x.strokeStyle = 'rgba(255,255,255,.85)'; x.lineWidth = 1.5; rr(a + 1.75, ly + .75, w - 1.5, LANE - 1.5, 5.5); x.stroke(); }
+          if (b - a > 24) { x.fillStyle = on ? '#ffffff' : 'rgba(245,245,247,.82)'; x.font = (on ? '700 ' : '600 ') + (full ? 12.5 : 11.5) + "px Inter, 'Noto Sans Georgian', system-ui"; x.textBaseline = 'middle'; x.save(); x.beginPath(); x.rect(a + 1, ly, w, LANE); x.clip(); x.fillText(cname(c.root, c.q, TR()), a + 7, ly + LANE / 2 + .5); x.restore(); } });
         // the AI-split part
-        if (S.stems) { const a = S.stems.from / res.dur * W, b = (S.stems.from + S.stems.len) / res.dur * W; x.fillStyle = 'rgba(143,224,167,.8)'; x.fillRect(a, 1, Math.max(2, b - a), 3); }
+        if (S.stems) { const a = S.stems.from / res.dur * W, b = (S.stems.from + S.stems.len) / res.dur * W; x.fillStyle = 'rgba(125,211,160,.85)'; rr(a, 0, Math.max(3, b - a), 3, 1.5); x.fill(); }
         S.rib = { W, H }; drawLoop();
       }
       function drawLoop() { const W = S.rib ? S.rib.W : 0; loopZ.hidden = !D.loop.on; if (D.loop.on) { loopZ.style.left = (D.loop.a / res.dur * W) + 'px'; loopZ.style.width = Math.max(2, (D.loop.b - D.loop.a) / res.dur * W) + 'px'; } }
@@ -1168,6 +1179,7 @@ PD.ai = (() => {
       function tickOnce() {
         const p = dk.pos(), W = S.rib ? S.rib.W : 0;
         rWrap.style.setProperty('--ph', (p / res.dur * W) + 'px');
+        { let ci = -1; for (let i = 0; i < res.chords.length; i++) { const c = res.chords[i]; if (p >= c.t0 && p < c.t1) { ci = i; break; } } if (ci !== S.curChord) { S.curChord = ci; drawRibbon(); } }
         seek.value = Math.round(p / res.dur * 1000); timeEl.textContent = PD.fmtTime(p) + ' / ' + PD.fmtTime(res.dur);
         const bt = dk.beatAt(p);
         if (bt && bt.k !== lastBeat) { lastBeat = bt.k; barEl.textContent = t('ai.barN', { n: Math.max(1, bt.bar) }); [...dots.children].forEach((d, i) => { d.className = i === bt.beat - 1 ? (bt.beat === 1 ? 'on one' : 'on') : ''; }); }
