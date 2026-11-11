@@ -8,7 +8,7 @@ src = lambda n: open(f'src/{n}').read()
 # system (design.css) after it. A later layer wins whatever the selector, so the design system never has to
 # out-shout an old rule; `ds-imp` holds the few !important answers to legacy !important rules (for important
 # declarations an earlier layer wins).
-css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css')
+css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css') + '\n' + src('v2.css') + '\n'
 hero = 'data:image/jpeg;base64,' + base64.b64encode(open('assets/hero.jpg','rb').read()).decode() if os.path.exists('assets/hero.jpg') else ''
 # supplied recordings (songs): files in media/ — linked in the PWA, embedded as data: URIs in the single-file builds
 # the teacher's recordings: kept once in the repository, beside the built app, so the source tree

@@ -306,7 +306,8 @@ PD.social = (() => {
     const stage = h('div', { class: 'fd-stage' }, [scroll, top, hint, h('button', { class: 'fd-tapsnd', type: 'button', html: IC.mute + '<span data-t="fd.tapSound"></span>', onclick: () => { const c = scroll.querySelector('.fd-card.act'); if (c) P.tap(c); } })]);
     box.append(stage); PD.i18n.apply(stage);
     document.documentElement.classList.add('fd-on'); own(() => document.documentElement.classList.remove('fd-on'));   // Sima's button would cover the rail
-    const fit = () => { const r = stage.getBoundingClientRect(), nav = document.querySelector('.dock'), nh = nav && nav.offsetHeight && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().top : innerHeight, hh = Math.max(320, Math.min(nh, innerHeight) - r.top); stage.style.height = hh + 'px'; stage.style.setProperty('--fdh', hh + 'px'); };
+    // the video runs edge to edge, under the glass dock; the caption, the rail and the seek line stay above it (--fd-under)
+    const fit = () => { const r = stage.getBoundingClientRect(), nav = document.querySelector('.dock'), nh = nav && nav.offsetHeight && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().top : innerHeight, hh = Math.max(320, innerHeight - r.top); stage.style.height = hh + 'px'; stage.style.setProperty('--fdh', hh + 'px'); stage.style.setProperty('--fd-under', Math.max(0, innerHeight - Math.min(nh, innerHeight)) + 'px'); };
     fit(); requestAnimationFrame(fit); addEventListener('resize', fit); own(() => removeEventListener('resize', fit));
     const P = players(scroll);
     const st = { ids: new Set(), n: 0, done: false, busy: false, before: null };
@@ -351,8 +352,8 @@ PD.social = (() => {
     function placeInd(jump) {
       const b = top.querySelector('.fd-seg button.on'); if (!b) return;
       if (jump) segInd.style.transition = 'none';
-      segInd.style.width = Math.max(16, b.offsetWidth * .42) + 'px';
-      segInd.style.transform = 'translateX(' + (b.offsetLeft + b.offsetWidth * .29) + 'px)';
+      segInd.style.width = b.offsetWidth + 'px';   // the lit half of the glass pill slides under the chosen tab
+      segInd.style.transform = 'translateX(' + b.offsetLeft + 'px)';
       if (jump) requestAnimationFrame(() => { segInd.style.transition = ''; });
     }
     function head() {
