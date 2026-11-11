@@ -1,14 +1,17 @@
 /* Panduri Learning — service worker.
    Shell: cache-first with versioned caches. Navigation: network-first, offline fallback.
    Teacher media: served from the 'pd-media-*' cache ONLY when the learner explicitly downloaded it;
-   large audio/video is never cached silently. Old shell caches are deleted on activate;
+   large audio/video is never cached silently. The one exception is the instrument itself: the recorded notes
+   (media/strings/, 54 files, about 1.4 MB) and the tuner's three plucks are kept in 'pd-sound-*' the first time
+   they are played, so the panduri sounds like a panduri offline too. Old shell caches are deleted on activate;
    learner data (localStorage / IndexedDB) is never touched. */
 const VERSION = '__VERSION__';
 const SHELL_CACHE = 'pd-shell-' + VERSION;
 const SHELL = __SHELL__;
+const SOUND_CACHE = 'pd-sound-__SOUND__';   // the build names it after the sound files, so new recordings replace the old ones
 self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL_CACHE).then(c => c.addAll(SHELL))); });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('pd-shell-') && k !== SHELL_CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => (k.startsWith('pd-shell-') && k !== SHELL_CACHE) || (k.startsWith('pd-sound-') && k !== SOUND_CACHE)).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('message', e => { if (e.data && e.data.type === 'skipWaiting') self.skipWaiting(); });
 self.addEventListener('fetch', e => {
@@ -22,6 +25,10 @@ self.addEventListener('fetch', e => {
   }
   if (url.origin === location.origin && /\/js\/config\.js$/.test(url.pathname)) {   // settings: always the newest copy, cached for offline
     e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(SHELL_CACHE).then(c => c.put(req, copy)); return r; }).catch(() => caches.match(req)));
+    return;
+  }
+  if (url.origin === location.origin && /\/(media\/strings|tuner\/audio)\/[^/]+\.mp3$/.test(url.pathname)) {
+    e.respondWith(caches.open(SOUND_CACHE).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
     return;
   }
   if (/\.(mp4|webm|mov|m4v|wav|mp3|m4a|flac|ogg)$/i.test(url.pathname) || req.destination === 'video' || req.destination === 'audio') {

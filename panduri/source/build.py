@@ -1,7 +1,7 @@
 """Build: one modular PWA (dist/app/) + one self-contained HTML file + the artifact fragment.
 Module order = dependency order. three3d.js is embedded as inert text and parsed only when 3D is first used."""
 import base64, os, re, json, hashlib, shutil
-ORDER = ['core','instrument','theory','geom','songdata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','genres','book','install','sima','aiworker','aispl','aideck','aimus','ailesson','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
+ORDER = ['core','instrument','theory','geom','songdata','sounddata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','genres','book','install','sima','aiworker','aispl','aideck','aimus','ailesson','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
 LAZY = {'three3d'}
 src = lambda n: open(f'src/{n}').read()
 # The stylesheet is two cascade layers: the earlier screens' rules (app.css) in `legacy`, and the design
@@ -23,7 +23,10 @@ import re as _re
 def _inline_src(m):
     alt = os.path.join('media_inline', m)
     return alt if os.path.exists(alt) else MEDIA_DIR + '/' + m
-media_inline = {m: 'data:audio/mpeg;base64,' + base64.b64encode(open(_inline_src(m), 'rb').read()).decode() for m in MEDIA if not _re.search(r'-\d\d\.mp3$', m)}   # the ready-made slow versions stay out of the single file: it stretches in the browser instead, and the page must fit in 16 MB
+# the recorded panduri notes and rhythms (strings/, rhythms/ — 2.4 MB, from sounds/make.cjs) are for the installable app only:
+# the single file is within 1 MB of its limit, so there the physical model plays the notes and the rhythm recordings are not offered
+NOT_INLINE = ('strings/', 'rhythms/')
+media_inline = {m: 'data:audio/mpeg;base64,' + base64.b64encode(open(_inline_src(m), 'rb').read()).decode() for m in MEDIA if not _re.search(r'-\d\d\.mp3$', m) and not m.startswith(NOT_INLINE)}   # the ready-made slow versions stay out of the single file: it stretches in the browser instead, and the page must fit in 16 MB
 CONFIG = json.load(open('config.json')) if os.path.exists('config.json') else {}
 PHOTOS = {k: 'data:image/jpeg;base64,' + base64.b64encode(open('assets/pan-' + k + '.jpg','rb').read()).decode() for k in ['front','head','body','splashP','splashL'] if os.path.exists('assets/pan-' + k + '.jpg')}
 # rendered hand videos (render/ → assets/fig/): mp4 loops + jpg posters; linked in the PWA, embedded in the single-file builds
@@ -197,7 +200,8 @@ shell += [p.replace('ext/sami-simi/', 'tuner/') for p in tuner_files]
 tuner_digest = hashlib.sha1(b''.join(open(p, 'rb').read() for p in tuner_files)).hexdigest()
 shell += [f'js/{n}.js?v={ASSET_REV}' for n in ORDER if n not in LAZY] + [f'js/assets.js?v={ASSET_REV}', f'js/config.js?v={ASSET_REV}', f'app.css?v={ASSET_REV}']
 version = hashlib.sha1((tuner_digest + css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read() + ''.join(LANG_JSON.values()) + index + json.dumps(shell)).encode()).hexdigest()[:10]
-open(app + '/sw.js', 'w').write(open('pwa/sw.js').read().replace('__VERSION__', version).replace('__SHELL__', json.dumps(shell)))
+sound_digest = hashlib.sha1(b''.join(open(p, 'rb').read() for p in ['src/sounddata.js'] + sorted(str(q) for q in __import__('pathlib').Path('ext/sami-simi/audio').glob('*.mp3')) if os.path.exists(p))).hexdigest()[:10]
+open(app + '/sw.js', 'w').write(open('pwa/sw.js').read().replace('__VERSION__', version).replace('__SHELL__', json.dumps(shell)).replace('__SOUND__', sound_digest))
 # the running build's version, so Settings can show it and ask for an update
 open(app + '/js/config.js', 'a').write('\nPD.BUILD = ' + json.dumps(version) + ';\n')
 # validation: exactly one document skeleton per standalone page, none in the fragment

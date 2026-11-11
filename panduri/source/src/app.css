@@ -3585,3 +3585,4 @@ button:hover .rx-pan svg,button:focus-visible .rx-pan svg{animation:ck-groove 1s
 :root[data-theme="midnight"] .cm-msg.me{background:#634936;color:var(--fg)}
 :root[data-theme="midnight"].hc{--muted:#e4e4e7;--faint:#d4d4d8;--line:rgba(255,255,255,.3);--line2:rgba(255,255,255,.45)}
 @media(prefers-contrast:more){:root[data-theme="midnight"]{--muted:#e4e4e7;--faint:#d4d4d8;--line:rgba(255,255,255,.3);--line2:rgba(255,255,255,.45)}}
+

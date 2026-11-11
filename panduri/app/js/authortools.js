@@ -17,7 +17,8 @@ PD.i18n.add({
   'at.curNow': ['ახლა: {t}', 'Now: {t}'], 'at.curExport': ['პაკეტის ექსპორტი', 'Export package'], 'at.curImport': ['პაკეტის ჩატვირთვა', 'Install package'], 'at.curDemo': ['სადემონსტრაციოზე დაბრუნება', 'Back to demo'], 'at.curOk': ['კურიკულუმი ჩაიტვირთა', 'Curriculum installed'],
   'at.smpD': ['ჩაწერე შენი ფანდური: ღია სიმები, ყოველი ლადი, ჩაკვრა/ამოკვრა, დადუმებული დარტყმა, აკორდები, სხვადასხვა სიძლიერით. ფაილის სახელი: „A_05_pluck_mf_1.wav“ ან „chord_5-4-5_down_mf_1.wav“.', 'Record your panduri: open strings, every fret, down/up strokes, muted strokes, chords, at several dynamics. File name: “A_05_pluck_mf_1.wav” or “chord_5-4-5_down_mf_1.wav”.'],
   'at.smpAdd': ['ფაილების დამატება', 'Add files'], 'at.smpCov': ['დაფარვა: {a}', 'Coverage: {a}'], 'at.smpBad': ['სახელი ვერ გავარჩიე: {n}', 'Could not parse name: {n}'], 'at.smpAdded': ['დაემატა {n} ნიმუში', 'Added {n} samples'],
-  'at.repitch': ['მაქს. გადაწევა უახლოესი ჩანაწერიდან (ნახევარტონი)', 'Max re-pitch from the nearest recording (semitones)'], 'at.smpNone': ['ჯერ ნიმუში არ არის — ყველა ბგერა ფიზიკური მოდელითაა.', 'No samples yet — every sound is the physical model.']
+  'at.repitch': ['მაქს. გადაწევა უახლოესი ჩანაწერიდან (ნახევარტონი)', 'Max re-pitch from the nearest recording (semitones)'], 'at.smpNone': ['ჯერ ნიმუში არ არის — ყველა ბგერა ფიზიკური მოდელითაა.', 'No samples yet — every sound is the physical model.'],
+  'at.smpBuiltin': ['შენი ჩანაწერი ჯერ არ არის. ახლა ჟღერს ჩაშენებული ჩანაწერი: სამივე სიმის ყოველი ლადი (0–17), ცალკეული ჩამოკვრით. ის ყოველთვის ზუსტ სიმაღლეზე ჟღერს. შენი ჩანაწერი, თუ დაამატებ, მას ჩაანაცვლებს. დადუმებული დარტყმა ფიზიკური მოდელითაა.', 'None of your own yet. What sounds now is the built-in recording: every fret (0–17) of all three strings, one pluck each, always played at the exact pitch. A recording you add here replaces it. Muted strokes are the physical model.']
 });
 
 PD.authorTools = (() => {
@@ -121,7 +122,7 @@ PD.authorTools = (() => {
         cov.innerHTML = s + '</svg>';
         list.innerHTML = '';
         const items = S.list.filter(x => x.art === art);
-        if (!items.length) list.append(h('div', { class: 'li muted', text: S.count ? '—' : t('at.smpNone') }));
+        if (!items.length) list.append(h('div', { class: 'li muted', text: S.count ? '—' : t(S.hasBank && art !== 'mute' && art !== 'chord' ? 'at.smpBuiltin' : 'at.smpNone') }));
         items.forEach(x => list.append(h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { class: 'mono', text: (x.art === 'chord' ? x.shape + ' ' + x.dir : I.string(x.s).label + ' · ' + x.f) + ' · ' + x.dyn + ' · #' + x.take }), h('small', { text: x.name })]), h('button', { class: 'btn small', text: '▶', onclick: () => S.play(x.id) }), h('button', { class: 'btn small', style: 'color:var(--fix)', text: t('delete'), onclick: () => { S.remove(x.id); draw(); } })])));
       }
       draw();

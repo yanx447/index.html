@@ -4437,3 +4437,34 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
   @media (min-width: 821px) { :root.chat-on .page:not(.page-tuner) { padding-bottom: 20px !important; } }
 }
 
+/* real panduri recordings: the rhythm page's sound switch and speeds, the song page's loop with lit chips */
+.rh-rec { display: flex; flex-direction: column; gap: 10px; }
+.rh-rec:empty { display: none; }
+.rh-speeds { max-width: 100%; }
+.cy-hear { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 10px; }
+.cy-hear small { flex: 1 1 240px; line-height: 1.5; }
+.cy-c { transition: border-color var(--d-micro, .15s) ease, box-shadow var(--d-micro, .15s) ease; }
+.cy-c.on { border-color: var(--acc, #c78b5e); box-shadow: 0 0 0 1px var(--acc, #c78b5e) inset; }
+.cy-st { transition: background-color .08s ease; }
+.cy-st.on { background: var(--acc-wash, rgba(199,139,94,.32)); }
+.cy-st i { display: inline-block; transition: transform .08s ease; }
+.cy-st i.on { transform: scale(1.3); color: #fff; }
+.cy-st i.acc.on { color: #ff8a7c; }
+@media (prefers-reduced-motion: reduce) { .cy-st i, .cy-st, .cy-c { transition: none; } .cy-st i.on { transform: none; text-decoration: underline; } }
+/* ▶ a rhythm on a real panduri: in the rhythm list, on the home page, on lessons that use a rhythm */
+.rh-item { position: relative; }
+.rh-item > .card { width: 100%; }
+.rh-item > .rh-pv { position: absolute; right: 14px; bottom: 14px; }
+.rh-pv { min-width: 44px; min-height: 44px; border-radius: 999px; padding: 0; font-size: 16px; }
+.rh-pv[aria-pressed="true"], .rh-pvl[aria-pressed="true"] { background: var(--acc, #c78b5e); color: #111; }
+.rh-pvl { align-self: flex-start; }
+.rh-speeds button small { opacity: .7; }
+.rh-bpm { flex: 1 1 auto; min-width: 0; max-width: 360px; }
+.hm-rh-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.hm-rh-c { position: relative; display: flex; align-items: stretch; border-radius: 18px; background: var(--surface, rgba(255,255,255,.04)); border: 1px solid var(--line, rgba(255,255,255,.08)); }
+.hm-rh-open { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 4px 14px 16px; background: none; border: 0; color: inherit; text-align: left; }
+.hm-rh-open b { font-size: 16px; }
+.hm-rh-st { display: flex; gap: 4px; font-weight: 800; font-size: 16px; }
+.hm-rh-st i { font-style: normal; color: var(--fg2, #bbb); } .hm-rh-st i.acc { color: #ff6b5b; }
+.hm-rh-c > .rh-pv { align-self: center; margin-right: 12px; }
+

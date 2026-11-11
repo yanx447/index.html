@@ -82,8 +82,9 @@ export function renderPluck(freq, sr, { stringIndex = 0, duration = 2.8, seed = 
   return out;
 }
 
-// Real panduri plucks (A3 · C♯4 · E4 recorded on the author's instrument), pitch-corrected so
-// the fundamental sits exactly on A4 = 440 Hz equal temperament, lightly de-noised.
+// Real panduri plucks (A3 · C♯4 · E4, the open strings of the app's own recording of every fret,
+// 48 kHz; made by source/sounds/make.cjs), re-tuned so the fundamental sits exactly on
+// A4 = 440 Hz equal temperament (the recording itself was up to 24 cents sharp).
 // Other pitches (A4 calibration, transposition, fretted notes) are played by resampling the
 // nearest recording. If the files cannot be loaded or decoded, the additive model above is used.
 const SAMPLES = [
@@ -218,8 +219,11 @@ export class ReferenceEngine {
 
   get droning() { return !!this.drone; }
 
+  // All three strings, low to high, with the timing of the slow down-arpeggio on the recording „სამივე სიმი“
+  // (A, then C♯ +181 ms, then E +347 ms; measured by source/sounds/make.cjs). The notes themselves are the clean plucks.
   playChord(strings) {
-    strings.forEach((s, i) => this.play(s.freq, s.index, i * 0.055, 0.62));
+    const AT = [0, 0.181, 0.347];
+    strings.slice().sort((a, b) => a.index - b.index).forEach((s, i) => this.play(s.freq, s.index, AT[i] != null ? AT[i] : i * 0.17, 0.62));
   }
 
   stop() {

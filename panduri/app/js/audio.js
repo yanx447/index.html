@@ -23,6 +23,7 @@ PD.audio = (() => {
     const hc = ctx.createBiquadFilter(); hc.type = 'highshelf'; hc.frequency.value = 4200; hc.gain.value = -6;
     p1.connect(p2); p2.connect(hc); hc.connect(bus.inst); body = p1;
     document.addEventListener('visibilitychange', () => { if (!document.hidden && ctx.state === 'suspended') ctx.resume().catch(() => {}); });
+    if (PD.samples && PD.samples.warm) setTimeout(PD.samples.warm, 0);   // the recorded notes: fetched and decoded once, the first time sound is wanted
     return ctx;
   }
   const now = () => ctx ? ctx.currentTime : performance.now() / 1000;
@@ -52,6 +53,13 @@ PD.audio = (() => {
     opt = opt || {}; const vel = opt.vel == null ? .7 : opt.vel, when = Math.max(ctx.currentTime, opt.when || 0);
     const midi = PD.theory.midi(s, f);
     const smp = PD.samples && PD.samples.pick(s, f, opt.art || 'pluck', vel);
+    if (!smp && !opt.noWait && PD.samples && opt.art !== 'mute') {
+      // the recording of this note is still on its way (only the first notes after the app opens): wait for it rather
+      // than play a different sound. A tap sounds as soon as it arrives; a note of a sequence that would now come
+      // more than 120 ms late is left out instead of landing off the beat.
+      const w = PD.samples.waitFor(s, f);
+      if (w) { const asked = ctx.currentTime, at = when, tap = at - asked < .03; w.then(() => { const late = ctx.currentTime - at; if (!tap && late > .12) return; note(s, f, Object.assign({}, opt, { noWait: true, when: Math.max(at, ctx.currentTime) })); }); return null; }
+    }
     const src = ctx.createBufferSource(), g = ctx.createGain();
     if (smp) { src.buffer = smp.buf; src.playbackRate.value = smp.rate; g.gain.value = smp.gain; src.connect(g); g.connect(bus.inst); }   // recordings bypass the synthetic body EQ
     else { src.buffer = ks(midi, vel); g.gain.value = .32 + .22 * vel; src.connect(g); g.connect(body); }
@@ -65,8 +73,8 @@ PD.audio = (() => {
     if (!ensure()) return;
     opt = opt || {}; const gap = opt.gap == null ? .018 : opt.gap, when = Math.max(ctx.currentTime, opt.when || 0), vel = opt.vel == null ? .75 : opt.vel;
     // a recorded whole-chord stroke wins when the teacher supplied one for exactly this shape and direction
-    const ch = PD.samples && PD.samples.pickChord(frets, dir, vel);
-    if (ch) { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = ch.buf; g.gain.value = ch.gain; src.connect(g); g.connect(bus.inst); src.start(when, ch.offset || 0); if (PD.detector && PD.detector.active && !opt.guide) PD.detector.selfPlay(frets.map((f, i) => f == null ? null : PD.theory.midi(i + 1, f)).filter(x => x != null), when, 1.3); return; }
+    const ch = !opt.mute && PD.samples && PD.samples.pickChord(frets, dir, vel);   // a muted stroke is never the ringing chord
+    if (ch) { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = ch.buf; src.playbackRate.value = ch.rate || 1; g.gain.value = ch.gain; src.connect(g); g.connect(bus.inst); src.start(when, ch.offset || 0); if (PD.detector && PD.detector.active && !opt.guide) PD.detector.selfPlay(frets.map((f, i) => f == null ? null : PD.theory.midi(i + 1, f)).filter(x => x != null), when, 1.3); return; }
     const order = dir === 'up' ? [3, 2, 1] : [1, 2, 3];
     order.filter(s => frets[s - 1] != null).forEach((s, k) => note(s, frets[s - 1], { vel, when: when + k * gap, art: opt.mute ? 'mute' : dir === 'up' ? 'up' : 'down', guide: opt.guide }));
   }
@@ -91,6 +99,63 @@ PD.audio = (() => {
     o.connect(g); g.connect(bus.ui); o.start(t0); o2.start(t0); o.stop(t0 + dur); o2.stop(t0 + dur);
     return { stop() { try { g.gain.cancelScheduledValues(0); g.gain.setTargetAtTime(0, ctx.currentTime, .03); o.stop(ctx.currentTime + .15); o2.stop(ctx.currentTime + .15); } catch (_) {} } };
   }
+  /* ---------- a recording played round and round (the rhythm recordings, Bani-Acharuli) ----------
+     The loop points are sample-exact (AudioBufferSourceNode.loopStart/loopEnd), so a recording cut to whole
+     cycles never stumbles at the seam. At most three recordings stay decoded. */
+  const recCache = new Map();
+  function recording(url) {
+    if (recCache.has(url)) { const p = recCache.get(url); recCache.delete(url); recCache.set(url, p); return p; }
+    const p = fetch(url).then(r => r.ok ? r.arrayBuffer() : Promise.reject(new Error('http ' + r.status)))
+      .then(ab => new Promise((res, rej) => { const q = ctx.decodeAudioData(ab, res, rej); if (q && q.then) q.then(res, rej); }))
+      .catch(e => { recCache.delete(url); throw e; });
+    recCache.set(url, p); while (recCache.size > 3) recCache.delete(recCache.keys().next().value);
+    return p;
+  }
+  /** WSOLA in a background worker (the same algorithm as the song recordings); resolves to the stretched samples */
+  function wsolaAsync(x, sr, rate) {
+    return new Promise(res => {
+      let w = null; try { w = new Worker(URL.createObjectURL(new Blob([WSOLA + '\nonmessage=function(e){var d=e.data;var y=wsola(d.x,d.sr,d.rate);postMessage({y:y},[y.buffer]);};'], { type: 'text/javascript' }))); } catch (_) { w = null; }
+      if (!w) return setTimeout(() => res(wsolaFn(x, sr, rate)), 0);
+      w.onmessage = e => { w.terminate(); res(e.data.y); };
+      w.onerror = () => { w.terminate(); res(wsolaFn(x, sr, rate)); };
+      w.postMessage({ x, sr, rate }, [x.buffer]);
+    });
+  }
+  /* The loop at another tempo: the loop is stretched three times over (before · loop · after) and the middle copy kept,
+     so the stretch has real music on both sides of the seam; its last 3 ms blend into what leads into its first sample. */
+  const loopCache = new Map();
+  function stretchedLoop(url, a, b, rate) {
+    const key = url + '|' + a + '|' + b + '|' + rate.toFixed(3);
+    if (loopCache.has(key)) return loopCache.get(key);
+    const p = recording(url).then(buf => {
+      const sr = buf.sampleRate, d = buf.getChannelData(0), s0 = Math.round(a * sr), n = Math.round(b * sr) - s0, x = new Float32Array(n * 3);
+      for (let k = 0; k < 3; k++) x.set(d.subarray(s0, s0 + n), k * n);
+      return wsolaAsync(x, sr, rate).then(y => {
+        const i0 = Math.round(n / rate), i1 = Math.round(2 * n / rate), M = Math.min(144, i0), out = ctx.createBuffer(1, i1 - i0, sr), o = out.getChannelData(0);
+        o.set(y.subarray(i0, i1));
+        for (let i = 0; i < M; i++) { const g = (i + 1) / M; o[o.length - M + i] = o[o.length - M + i] * (1 - g) + y[i0 - M + i] * g; }
+        return out;
+      });
+    }).catch(e => { loopCache.delete(key); throw e; });
+    loopCache.set(key, p); while (loopCache.size > 2) loopCache.delete(loopCache.keys().next().value);
+    return p;
+  }
+  /** loop [a, b) seconds of the recording at url, at `rate` × its own speed (pitch kept), starting at second `from` of it.
+      Resolves to { t0, stop(), pos(t) }: pos = the second of the recording heard at audio time t (output latency included). */
+  async function loopRec(url, a, b, rate, from) {
+    if (!ensure() || !url) return null;
+    rate = rate && Math.abs(rate - 1) > .004 ? rate : 1;
+    const buf = rate === 1 ? await recording(url) : await stretchedLoop(url, a, b, rate);
+    const L = b - a, la = rate === 1 ? a : 0, lb = rate === 1 ? b : buf.duration, Ls = lb - la;
+    const src = ctx.createBufferSource(), g = ctx.createGain(), t0 = ctx.currentTime + .06;
+    const ph = from != null && from >= a && from < b ? (from - a) / L : 0;
+    src.buffer = buf; src.loop = true; src.loopStart = la; src.loopEnd = lb; src.connect(g); g.connect(bus.ref);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(1, t0 + .01); src.start(t0, la + ph * Ls);
+    let on = true;
+    return { t0, len: L, rate, get on() { return on; },
+      stop() { if (!on) return; on = false; try { const t = ctx.currentTime; g.gain.cancelScheduledValues(t); g.gain.setTargetAtTime(0, t, .015); src.stop(t + .08); } catch (_) {} },
+      pos(t) { const d = t - t0 - (ctx.outputLatency || 0) - (ctx.baseLatency || 0); return d < 0 ? null : a + (((d / Ls + ph) % 1) * L); } };
+  }
   function setVol(k, v) { vol[k] = v; PD.store.set('vol', vol); if (!ctx) return; if (k === 'master') master.gain.value = v; else if (bus[k]) bus[k].gain.value = v; }
 
   /* ---------- the song recording ----------
@@ -106,7 +171,7 @@ PD.audio = (() => {
     stems: null, blobId: null, mix: PD.store.get('songMix', 'full'), muted: false,
     buf: {}, str: {}, job: {}, cur: null, used: [], state: 'idle', progress: 0, error: null,
     get hasStems() { return !!ref.stems; },
-    get available() { const k = ref.stems && (ref.stems.full || ref.stems.music); return !!(ref.blobId || (k && (k.indexOf('blob:') === 0 || (PD.assets && PD.assets.media && PD.assets.media[k])))); },
+    get available() { const k = ref.stems && (ref.stems.full || ref.stems.music); return !!(ref.blobId || (k && (k.indexOf('blob:') === 0 || (PD.assets && PD.assets.media && PD.assets.media[k.split('#')[0]])))); },
     get playing() { return !!ref.cur; },
     /** cache key of what should sound now: the stem's file, or a teacher recording */
     get key() { return ref.blobId ? 'blob:' + ref.blobId : ref.stems && /^(full|music|vocals)$/.test(ref.mix) ? ref.stems[ref.mix] || ref.stems.full || null : null; },   // a song without that version plays the original
@@ -175,13 +240,22 @@ PD.audio = (() => {
     const job = { cancelled: false, cancel() { job.cancelled = true; } }; ref.job[k] = job;
     let src;
     if (k.indexOf('blob:') === 0) src = PD.blobs.get(k.slice(5)).then(b => b ? b.arrayBuffer() : Promise.reject(new Error('missing')));
-    else { const u = PD.assets && PD.assets.media && PD.assets.media[k]; src = u ? fetch(u).then(r => r.arrayBuffer()) : Promise.reject(new Error('missing')); }
-    src.then(decodeMono).then(b => {
+    else { const u = PD.assets && PD.assets.media && PD.assets.media[k.split('#')[0]]; src = u ? fetch(u).then(r => r.arrayBuffer()) : Promise.reject(new Error('missing')); }
+    src.then(decodeMono).then(b => tile(b, k)).then(b => {
       if (job.cancelled) return;
       delete ref.job[k]; ref.buf[k] = b; ref.used = ref.used.filter(x => x !== k).concat(k);
       while (ref.used.length > 2) { const old = ref.used.shift(); if (old !== ref.key) { delete ref.buf[old]; Object.keys(ref.str).forEach(x => { if (x.indexOf(old + '@') === 0) delete ref.str[x]; }); } else ref.used.push(old); if (ref.used.length > 2 && ref.used.every(x => x === ref.key)) break; }
       setState('ready');
     }).catch(e => { if (job.cancelled) return; delete ref.job[k]; ref.error = e; setState('error'); });
+  }
+  /** 'rhythms/x.mp3#loop=a,b,n': the loop [a, b) s of a rhythm recording laid end to end n times — one stem, so the
+      engine can stretch it to any tempo and follow its beat map like a song's */
+  function tile(b, k) {
+    const m = /#loop=([\d.]+),([\d.]+),(\d+)$/.exec(k); if (!m) return b;
+    const sr = b.sampleRate, s0 = Math.round(+m[1] * sr), n = Math.round(+m[2] * sr) - s0, reps = +m[3], d = b.getChannelData(0);
+    const out = (ctx || ensure()).createBuffer(1, n * reps, sr), o = out.getChannelData(0);
+    for (let r = 0; r < reps; r++) o.set(d.subarray(s0, s0 + n), r * n);
+    return out;
   }
   function decodeMono(ab) {
     return new Promise((res, rej) => {
@@ -244,7 +318,7 @@ PD.audio = (() => {
   const wsolaFn = (() => { /* same algorithm, for browsers without workers */ return new Function(WSOLA + '\nreturn wsola;')(); })();
 
   return {
-    ensure, now, note, strum, click, ok, blip, tone, setVol, vol, ref,
+    ensure, now, note, strum, click, ok, blip, tone, setVol, vol, ref, loopRec,
     get ctx() { return ctx; },
     get outLatency() { return ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) : 0; },
   };

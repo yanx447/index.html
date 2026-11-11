@@ -42,6 +42,14 @@ PD.i18n.add({
   'rh.muErr': ['ამ ფაილს ვერ წავიკითხე. სცადე mp3 ან m4a.', 'Could not read that file. Try an mp3 or m4a.'],
   'rh.muNote': ['ტემპს აპი თვითონ პოულობს და ცოცხალ ჩანაწერს მიჰყვება. თუ მუსიკაში ტემპი ძლიერ იცვლება, დარტყმები შეიძლება ჩამორჩეს — მაშინ ხელით გაასწორე.', 'The app finds the tempo itself and follows the live recording. If the tempo moves a lot the strokes can drift — then correct them by hand.'],
   'rh.micT': ['ვარჯიში ფანდურით', 'Practise on your panduri'], 'rh.micD': ['1-2-3-4 ათვლა, მეტრონომი, წრეზე. მიკროფონი ზომავს თითოეული დარტყმის დროს, აქცენტის სიძლიერეს, გამოტოვებულ და ზედმეტ დარტყმებს. ↓/↑ მიმართულებას ხმიდან ვერ ვიგებთ — ისრებს მიჰყევი.', 'Count-in 1-2-3-4, metronome, looped. The microphone measures each stroke’s timing, accent strength, missed and extra strokes. ↓/↑ direction cannot be heard — follow the arrows.'],
+  'rh.src': ['ხმა', 'Sound'], 'rh.srcRec': ['ნამდვილი ფანდური', 'A real panduri'], 'rh.srcRecD': ['ჩანაწერი, ნელიდან სწრაფამდე', 'A recording, slow to fast'],
+  'rh.srcSyn': ['აპის ხმა', 'The app plays'], 'rh.srcSynD': ['ნებისმიერ ტემპზე, მეტრონომით', 'At any tempo, with the metronome'],
+  'rh.recSpeed': ['სისწრაფე', 'Speed'], 'rh.recLoad': ['იტვირთება…', 'Loading…'], 'rh.recErr': ['ჩანაწერი ვერ ჩაიტვირთა — აპის ხმა უკრავს.', 'The recording could not be loaded — the app plays instead.'],
+  'rh.recNote': ['ჩანაწერი ნამდვილ ფანდურზე, წრეზე. ისრები ჩანაწერს მიჰყვება: თითოეული დარტყმის დრო აპმა თავად ჩანაწერიდან გამოითვალა.', 'A recording on a real panduri, looped. The arrows follow the recording: the app worked out the time of every stroke from the recording itself.'],
+  'rh.recTempoD': ['1 BPM = რითმის ერთი სრული წრე წუთში. ჩანაწერი ნელდება და ჩქარდება ბგერის სიმაღლის შეუცვლელად; აპი ტემპით ყველაზე ახლო ჩანაწერს იღებს. სისწრაფის ღილაკები ჩანაწერების საკუთარი ტემპებია.', '1 BPM = one whole cycle of the rhythm per minute. The recording slows down and speeds up without changing pitch; the app takes the recording nearest in tempo. The speed buttons are the recordings’ own tempos.'],
+  'rh.recPrep': ['მზადდება…', 'Preparing…'],
+  'rh.pv': ['მოუსმინე: {n} ნამდვილ ფანდურზე', 'Listen: {n} on a real panduri'], 'rh.pvStop': ['გაჩერება', 'Stop'],
+  'rh.pvLabel': ['▶ {n} — ნამდვილი ფანდური', '▶ {n} — a real panduri'], 'rh.micRec': ['ჩანაწერთან ერთად · {b} BPM (ზემოთ არჩეული ტემპი)', 'With the recording · {b} BPM (the tempo chosen above)'],
   'rh.loopBars': ['წრის სიგრძე', 'Loop length'], 'rh.bars': ['{n} ტაქტი', '{n} bar(s)'], 'rh.micGo': ['დაწყება მიკროფონით', 'Start with microphone'],
   'st.loop': ['წრეზე (Loop)', 'Loop'], 'std.loop': ['ერთი ციკლი განუწყვეტლივ; ტემპი შეცვალე ↑ ↓ ან ტემპის ღილაკით.', 'One cycle over and over; change the tempo with ↑ ↓ or the tempo button.']
 });
@@ -69,6 +77,37 @@ PD.rhythmsUI = (() => {
       h('b', { text: (s.direction === 'down' ? '↓ ' : '↑ ') + t(s.direction === 'down' ? 'w.down' : 'w.up') }), h('small', { text: t(s.accent ? 'rh.accent' : 'rh.normal') })])));
   }
 
+  /** which stroke of a recording is sounding at second `pos` of it: { j: cycle, i: stroke } (null before it starts).
+      rec.cycles holds the time of every stroke of every cycle inside the loop; before the loop's first stroke
+      (the 12 ms at the seam) the last stroke of the last cycle is still ringing. */
+  function strokeAt(rec, pos) {
+    if (pos == null) return null;
+    const C = rec.cycles; let j = C.length - 1, i = C[j].length - 1;
+    for (let a = 0; a < C.length; a++) for (let b = 0; b < C[a].length; b++) if (C[a][b] <= pos + .008) { j = a; i = b; }
+    return { j, i };
+  }
+  /* ---- ▶ a rhythm on a real panduri, anywhere in the app: the recording and tempo last chosen on its page ---- */
+  let PV = null;
+  const recsOf = rid => ((PD.SOUNDS && PD.SOUNDS.rhythms && PD.SOUNDS.rhythms[rid]) || []).filter(x => PD.assets && PD.assets.media && PD.assets.media[x.file]);
+  function pvStop() { if (!PV) return; const p = PV; PV = null; if (p.lp) p.lp.stop(); p.paint(false); }
+  PD.bus.on('route', pvStop);
+  /** a play / stop button for rhythm rid (null when there is no recording of it); opts.label: a wide button with its name */
+  function preview(rid, opts) {
+    opts = opts || {}; const R = recsOf(rid); if (!R.length) return null;
+    const r = C.anyRhythm ? C.anyRhythm(rid) : C.rhythms().find(x => x.id === rid), nm = r ? PD.i18n.pick(r.name) : rid;
+    const btn = h('button', { class: 'btn ' + (opts.label ? 'rh-pvl' : 'small rh-pv'), 'aria-pressed': 'false', title: t('rh.pv', { n: nm }), 'aria-label': t('rh.pv', { n: nm }) });
+    const paint = on => { btn.setAttribute('aria-pressed', String(on)); btn.textContent = opts.label ? (on ? '■ ' + t('rh.pvStop') : t('rh.pvLabel', { n: nm })) : on ? '■' : '▶'; };
+    paint(false);
+    btn.onclick = e => {
+      e.stopPropagation(); e.preventDefault();
+      if (PV && PV.btn === btn) return pvStop();
+      pvStop(); if (!PD.audio.ensure()) return;
+      const rec = R.find(x => x.id === PD.store.get('rh.rec.' + rid, '')) || R[0], bpm = PD.store.get('rh.recBpm.' + rid, 0) || 60 / rec.period;
+      const me = PV = { btn, paint, lp: null }; btn.textContent = '…';
+      PD.audio.loopRec(PD.assets.media[rec.file], rec.loop[0], rec.loop[1], bpm * rec.period / 60).then(lp => { if (PV !== me) { if (lp) lp.stop(); return; } me.lp = lp; paint(true); }, () => { if (PV === me) { PV = null; paint(false); PD.ui.toast(t('rh.recErr')); } });
+    };
+    return btn;
+  }
   function list(w) {
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('div', { class: 'grow' }, [h('h1', { 'data-t': 'nav.rhythms' }), h('p', { class: 'muted', style: 'margin-top:6px', 'data-t': 'rh.lead' })])]));
     const item = (r, tag) => { const p = LS.progress.lesson('rhythm-' + r.id);
@@ -77,7 +116,7 @@ PD.rhythmsUI = (() => {
         h('span', { class: 'muted', text: t('rh.usage', { u: PD.i18n.pick(r.usage).join(' · ') }) }), patternRow(r),
         p.plays ? h('div', { class: 'bar' }, [h('i', { style: 'width:' + Math.round((p.mastery || 0) * 100) + '%' })]) : null]); };
     const box = h('div', { class: 'paths' });
-    C.rhythms().forEach(r => box.append(item(r, t('rh.teacher'))));
+    C.rhythms().forEach(r => { const pv = preview(r.id); box.append(pv ? h('div', { class: 'rh-item' }, [item(r, t('rh.teacher')), pv]) : item(r, t('rh.teacher'))); });
     w.append(h('h2', { class: 'rh-sec', 'data-t': 'rh.teacherSec' }), box);
     const box2 = h('div', { class: 'paths' });
     (C.commonRhythms ? C.commonRhythms() : []).slice().sort((a, b) => a.level - b.level).forEach(r => box2.append(item(r, t('rh.gen') + ' · ' + t('lvl.' + Math.min(4, r.level)))));
@@ -100,9 +139,48 @@ PD.rhythmsUI = (() => {
     const bpmOut = h('span', { class: 'mono', text: r.timing.bpm + ' BPM' });
     const play = h('button', { class: 'btn primary', text: t('rh.listen') });
     const metro = h('input', { type: 'checkbox' }); metro.checked = true;
+    /* the recordings of this rhythm on a real panduri (installable app; the single file has none).
+       Tempo: 1 BPM = one whole cycle of the rhythm per minute (as in a song, where one beat = one ↓ ↓ ↑). The recording
+       nearest in tempo is stretched to it, pitch kept. */
+    const RECS = ((PD.SOUNDS && PD.SOUNDS.rhythms && PD.SOUNDS.rhythms[r.id]) || []).filter(x => PD.assets && PD.assets.media && PD.assets.media[x.file]);
+    const native = x => 60 / x.period, bpmLim = RECS.length ? [Math.max(10, Math.floor(Math.min(...RECS.map(native)) * .6)), Math.ceil(Math.max(...RECS.map(native)) * 1.5)] : [0, 0];
+    let recMode = RECS.length > 0 && PD.store.get('rh.src', 'rec') === 'rec';
+    let recCur = RECS.find(x => x.id === PD.store.get('rh.rec.' + r.id, '')) || RECS[0];
+    let recBpm = RECS.length ? Math.min(bpmLim[1], Math.max(bpmLim[0], PD.store.get('rh.recBpm.' + r.id, 0) || Math.round(native(recCur)))) : 0;
+    /** the recording for a tempo: the current one while the stretch stays gentle, otherwise the nearest */
+    const recFor = bpm => { const q = bpm / native(recCur); if (q > .72 && q < 1.4) return recCur; return RECS.reduce((b0, x) => Math.abs(Math.log(bpm / native(x))) < Math.abs(Math.log(bpm / native(b0))) ? x : b0, RECS[0]); };
+    const recRate = () => recBpm / native(recCur);
+    const tempoBox = h('label', { class: 'row', style: 'gap:6px' }, [h('span', { 'data-t': 'rh.tempo' }), tempo, bpmOut]);
+    const metroBox = h('label', { class: 'row', style: 'gap:6px' }, [metro, h('span', { 'data-t': 'ws.metro' })]);
+    const recBox = h('div', { class: 'rh-rec' });
+    let recT = 0;
+    /** play on from the same place after a tempo or recording change */
+    function restartRec() { if (!run || !run.rec) return; const same = run.lp && run.rec === recCur ? run.lp.pos(PD.audio.now()) : null; stop(); start(same); }
+    function drawRec() {
+      recBox.innerHTML = ''; if (!RECS.length) return;
+      const opt = (on, k, d, fn) => h('button', { class: 'snd-opt', 'aria-pressed': String(on), onclick: fn }, [h('b', { 'data-t': k }), h('small', { 'data-t': d })]);
+      const setSrc = m => { const was = !!run; stop(); recMode = m; PD.store.set('rh.src', m ? 'rec' : 'syn'); drawRec(); syncMic(); if (was) start(); };
+      recBox.append(h('div', { class: 'snd-src', role: 'group', 'aria-label': t('rh.src') }, [opt(recMode, 'rh.srcRec', 'rh.srcRecD', () => setSrc(true)), opt(!recMode, 'rh.srcSyn', 'rh.srcSynD', () => setSrc(false))]));
+      if (recMode) {
+        const out = h('span', { class: 'mono', text: recBpm + ' BPM' });
+        const sl = h('input', { type: 'range', min: String(bpmLim[0]), max: String(bpmLim[1]), step: '1', value: String(recBpm), 'aria-label': t('rh.tempo'), class: 'rh-bpm' });
+        const chips = h('div', { class: 'seg rh-speeds', role: 'group', 'aria-label': t('rh.recSpeed') });
+        const paintChips = () => chips.querySelectorAll('button').forEach((bt, i) => bt.setAttribute('aria-pressed', String(RECS[i] === recCur && Math.abs(recBpm - native(recCur)) < .6)));
+        RECS.forEach(x => chips.append(h('button', { onclick: () => { recCur = x; recBpm = Math.round(native(x)); sl.value = String(recBpm); out.textContent = recBpm + ' BPM'; save(); paintChips(); syncMic(); restartRec(); } }, [h('span', { text: PD.i18n.pick(x.name) }), h('small', { class: 'mono', text: ' ' + Math.round(native(x)) })])));
+        const save = () => { PD.store.set('rh.rec.' + r.id, recCur.id); PD.store.set('rh.recBpm.' + r.id, recBpm); };
+        sl.oninput = () => { recBpm = +sl.value; out.textContent = recBpm + ' BPM'; recCur = recFor(recBpm); save(); paintChips(); syncMic(); clearTimeout(recT); recT = setTimeout(restartRec, 260); };
+        paintChips();
+        recBox.append(h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'rh.recSpeed' }), chips]),
+          h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'rh.tempo' }), h('div', { class: 'row', style: 'gap:10px;flex-wrap:nowrap' }, [sl, out])]),
+          h('small', { class: 'muted', style: 'line-height:1.5', text: t('rh.recNote') + ' ' + t('rh.recTempoD') }));
+      }
+      tempoBox.hidden = metroBox.hidden = recMode;
+      PD.i18n.apply(recBox);
+    }
     w.append(h('section', { class: 'card', style: 'padding:16px;display:flex;flex-direction:column;gap:14px' }, [row,
-      h('div', { class: 'rh-live' }, [h('div', { style: 'display:flex;flex-direction:column;gap:10px;min-width:0' }, [now, h('div', { class: 'row' }, [play, h('label', { class: 'row', style: 'gap:6px' }, [h('span', { 'data-t': 'rh.tempo' }), tempo, bpmOut]), h('label', { class: 'row', style: 'gap:6px' }, [metro, h('span', { 'data-t': 'ws.metro' })])])]), cv])]));
-    /* practice with the microphone: speed, custom BPM, loop length; count-in and metronome come from the practice screen */
+      h('div', { class: 'rh-live' }, [h('div', { style: 'display:flex;flex-direction:column;gap:10px;min-width:0' }, [now, h('div', { class: 'row' }, [play, tempoBox, metroBox])]), cv]), recBox]));
+    /* practice with the microphone: speed, custom BPM, loop length; count-in and metronome come from the practice screen.
+       With the recording chosen above, the practice plays along with it at the tempo chosen there. */
     const pr = PD.store.get('rh.prefs', { pct: 70, bars: 2 });
     const bpb = LS.bpb(L), endB = LS.end(L);
     const bpmTxt = h('span', { class: 'mono muted' });
@@ -111,13 +189,22 @@ PD.rhythmsUI = (() => {
     const speed = h('div', { class: 'seg', role: 'group', 'aria-label': t('ws.speed') }, [40, 50, 60, 70, 80, 90, 100].map(v => h('button', { 'aria-pressed': String(!pr.bpm && pr.pct === v), text: v + '%', onclick: e => { pr.pct = v; pr.bpm = 0; custom.value = ''; speed.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); updT(); } })));
     custom.oninput = () => { const v = +custom.value; pr.bpm = v >= 20 && v <= 240 ? v : 0; speed.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(!pr.bpm && b.textContent === pr.pct + '%'))); updT(); };
     const bars = h('div', { class: 'seg', role: 'group', 'aria-label': t('rh.loopBars') }, [1, 2, 4].map(v => h('button', { 'aria-pressed': String(pr.bars === v), text: t('rh.bars', { n: v }), onclick: e => { pr.bars = v; bars.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); updT(); } })));
-    const goMic = () => { stop(); const tempo = pr.bpm ? pr.bpm / L.bpm : pr.pct / 100; PD.practice.open(L, { wait: false, tempo, mode: 'practice', metro: true, loop: { a: 0, b: Math.min(endB, pr.bars * bpb), on: true } }, L.id, 'loop'); };
+    /** the lesson to practise: along with the recording (one beat = one cycle) or the app's own strokes */
+    const recLesson = () => recMode && recCur ? LS.fromRecording(r, recCur, 16) : null;
+    const goMic = () => {
+      stop(); const RL = recLesson();
+      if (RL) return PD.practice.open(RL, { wait: false, tempo: recRate(), mode: 'practice', metro: false, loop: { a: 0, b: pr.bars, on: true } }, RL.id, 'loop');
+      const tempo = pr.bpm ? pr.bpm / L.bpm : pr.pct / 100; PD.practice.open(L, { wait: false, tempo, mode: 'practice', metro: true, loop: { a: 0, b: Math.min(endB, pr.bars * bpb), on: true } }, L.id, 'loop');
+    };
     updT();
+    const speedRow = h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'ws.speed' }), h('div', { class: 'row', style: 'gap:8px' }, [speed, custom])]);
+    const recTxt = h('small', { class: 'muted' });
+    function syncMic() { const on = !!(recMode && recCur); speedRow.hidden = on; recTxt.hidden = !on; bpmTxt.hidden = on; recTxt.textContent = on ? t('rh.micRec', { b: recBpm }) : ''; }
     w.append(h('section', { class: 'card rh-mic' }, [h('div', { class: 'row', style: 'justify-content:space-between' }, [h('b', { 'data-t': 'rh.micT' }), bpmTxt]),
-      h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'rh.micD' }),
-      h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'ws.speed' }), h('div', { class: 'row', style: 'gap:8px' }, [speed, custom])]),
+      h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'rh.micD' }), recTxt, speedRow,
       h('div', { class: 'rh-opts' }, [h('small', { 'data-t': 'rh.loopBars' }), bars]),
       h('div', { class: 'row' }, [h('button', { class: 'btn primary', html: PD.ic.mic + '<span data-t="rh.micGo"></span>', onclick: goMic })])]));
+    drawRec(); syncMic();
     /* play along with a recording of his own — built below, once the engine exists */
     const muBox = h('section', { class: 'card rh-mu' });
     w.append(muBox);
@@ -157,7 +244,7 @@ PD.rhythmsUI = (() => {
     L.stages.forEach((s, i) => {
       const pct = p.stages && p.stages[s];
       list.append(h('div', { class: 'step' }, [h('span', { class: 'num' + (pct >= 80 ? ' done' : ''), text: pct >= 80 ? '✓' : String(i + 1) }), h('div', { class: 'body' }, [h('b', { 'data-t': 'st.' + s }), h('p', { 'data-t': 'std.' + s })]),
-        h('button', { class: 'btn small', 'data-t': 'home.start', onclick: () => { stop(); PD.app.startStage(L, s); } })]));
+        h('button', { class: 'btn small', 'data-t': 'home.start', onclick: () => { stop(); PD.app.startStage(recLesson() || L, s); } })]));
     });
     w.append(h('h2', { 'data-t': 'rh.practice' }), h('p', { class: 'muted', style: 'font-size:13px', 'data-t': 'rh.noPitch' }), list);
     /* author: timing only (order and accents are locked teacher data) */
@@ -174,7 +261,18 @@ PD.rhythmsUI = (() => {
     const per = r.timing.durations.reduce((a, b) => a + b, 0);
     const starts = []; r.timing.durations.reduce((a, d, i) => { starts[i] = a; return a + d; }, 0);
     function stroke(i, when) { const s = r.strokes[i]; PD.audio.strum([0, 0, 0], s.direction, { when, vel: s.accent ? 1 : .55, gap: s.accent ? .011 : .02 }); }
-    function start() {
+    /** the recording: loaded once, then looped; the arrows follow the strokes found in it */
+    function startRec(from) {
+      if (!PD.audio.ensure()) return;
+      const x = recCur, rate = recRate(), token = run = { rec: x, loading: true };
+      play.textContent = t(Math.abs(rate - 1) > .004 ? 'rh.recPrep' : 'rh.recLoad');
+      PD.audio.loopRec(PD.assets.media[x.file], x.loop[0], x.loop[1], rate, from).then(lp => {
+        if (run !== token || !lp) { if (lp) lp.stop(); return; }
+        token.lp = lp; token.loading = false; play.textContent = t('rh.stop'); loop();
+      }, () => { if (run !== token) return; run = null; play.textContent = t('rh.listen'); PD.ui.toast(t('rh.recErr')); recMode = false; drawRec(); start(); });
+    }
+    function start(from) {
+      if (recMode && recCur) return startRec(typeof from === 'number' ? from : null);
       if (!PD.audio.ensure()) return; const bps = +tempo.value / 60, t0 = PD.audio.now() + .15;
       run = { t0, bps, n: 0, b: 0 };
       run.iv = setInterval(() => {
@@ -184,9 +282,9 @@ PD.rhythmsUI = (() => {
       }, 25);
       play.textContent = t('rh.stop'); loop();
     }
-    function stop() { meterStops.forEach(f => f()); stopMusic(); if (muBox._sync) setTimeout(muBox._sync, 0); if (!run) return; clearInterval(run.iv); run = null; cancelAnimationFrame(raf); play.textContent = t('rh.listen'); draw(-1); mark(-1); }
+    function stop() { meterStops.forEach(f => f()); stopMusic(); if (muBox._sync) setTimeout(muBox._sync, 0); if (!run) return; clearInterval(run.iv); if (run.lp) run.lp.stop(); run = null; cancelAnimationFrame(raf); play.textContent = t('rh.listen'); draw(-1); mark(-1); }
     play.onclick = () => run ? stop() : start();
-    tempo.oninput = () => { bpmOut.textContent = tempo.value + ' BPM'; if (run) { stop(); start(); } };
+    tempo.oninput = () => { bpmOut.textContent = tempo.value + ' BPM'; if (run && !run.rec) { stop(); start(); } };
     function mark(i) {
       row.querySelectorAll('.rh-card').forEach((c, k) => { c.classList.toggle('cur', k === i); c.classList.toggle('nx', i >= 0 && k === (i + 1) % r.strokes.length); });
       const lab = k => k < 0 ? '—' : (r.strokes[k].direction === 'down' ? '↓ ' : '↑ ') + t(r.strokes[k].direction === 'down' ? 'w.down' : 'w.up') + (r.strokes[k].accent ? ' · ' + t('rh.accent') : '');
@@ -203,8 +301,12 @@ PD.rhythmsUI = (() => {
     function loop() {
       if (!run || !cv.isConnected) { if (run && !cv.isConnected) stop(); return; }
       raf = requestAnimationFrame(loop);
-      const bt = (PD.audio.now() - run.t0) * run.bps; if (bt < 0) return;
-      const inC = ((bt % per) + per) % per; let i = 0; for (let k = 0; k < starts.length; k++) if (inC >= starts[k] - 1e-6) i = k;
+      let i = 0;
+      if (run.rec) { if (!run.lp) return; const at = strokeAt(run.rec, run.lp.pos(PD.audio.now())); if (!at) return; i = at.i; }
+      else {
+        const bt = (PD.audio.now() - run.t0) * run.bps; if (bt < 0) return;
+        const inC = ((bt % per) + per) % per; for (let k = 0; k < starts.length; k++) if (inC >= starts[k] - 1e-6) i = k;
+      }
       if (row._i !== i) { row._i = i; mark(i); draw(i); }
     }
     /* ---- play along with a recording of his own ----
@@ -314,5 +416,5 @@ PD.rhythmsUI = (() => {
     requestAnimationFrame(() => { draw(-1); mark(-1); });
     const un = PD.bus.on('route', () => { stop(); un(); });
   }
-  return { list, detail, patternRow, arrowSVG };
+  return { list, detail, patternRow, arrowSVG, strokeAt, preview, hasRecording: rid => recsOf(rid).length > 0 };
 })();

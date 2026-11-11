@@ -99,6 +99,10 @@ PD.i18n.add({
   'snd.guideOn': ['აპი თან გიკრავს (სინთეზატორი)', 'The app plays along (synthesizer)'], 'snd.guideOff': ['მხოლოდ მეტრონომი', 'Metronome only'],
   'sg.auto': ['აკორდები და მათი თანმიმდევრობა მასწავლებლისაა. დრო აღებულია ჩანაწერიდან: აპი მიჰყვება ცოცხალი შესრულების ყველა დარტყმას, ამიტომ მეტრონომი და აკორდები მუსიკას ემთხვევა.', 'Chords and their order are the teacher\'s. Timing comes from the recording: the app follows every beat of the live performance, so the metronome and chords match the music.'],
   'sg.cycle': ['თანმიმდევრობა — მთელ სიმღერაში მეორდება', 'Progression — repeats through the whole song'], 'sg.rhythms': ['{n} რითმი', '{n} rhythm'], 'sg.oneRhythm': ['1 რითმი = ჩაკვრა · ჩაკვრა · ამოკვრა', '1 rhythm = down · down · up'],
+  'hx.rhReal': ['რითმები ნამდვილ ფანდურზე', 'Rhythms on a real panduri'],
+  'sg.hear': ['▶ მოუსმინე ფანდურზე', '▶ Hear it on the panduri'], 'sg.hearStop': ['■ გაჩერება', '■ Stop'], 'sg.hearLoad': ['იტვირთება…', 'Loading…'],
+  'sg.hearD': ['ჩანაწერი ნამდვილ ფანდურზე, წრეზე: სამჯერ Dm · Dm · B♭ · C. აკორდი და დარტყმა ანათებს, როცა ჟღერს — დრო აპმა თავად ჩანაწერიდან გამოითვალა.', 'A recording on a real panduri, looped: Dm · Dm · B♭ · C three times. The chord and the stroke light up as they sound — the app worked the timing out from the recording itself.'],
+  'sg.hearErr': ['ჩანაწერი ვერ ჩაიტვირთა.', 'The recording could not be loaded.'],
   'sg.cycles': ['{n} წრე', '{n} cycles'],
   'sg.shapes': ['აკორდები', 'Chords'], 'sg.bars': ['{n} ტაქტი', '{n} bars'], 'sg.parts': ['სიმღერის ნაწილები', 'Parts of the song'], 'sg.derived': ['შესამოწმებელია', 'to confirm'],
   'sg.headphones': ['ჩანაწერთან ერთად დაკვრისას ყურსასმენი აჯობებს — მიკროფონი მაშინ მხოლოდ შენს ფანდურს გაიგებს.', 'When playing along with the recording, headphones work best — then the microphone hears only your panduri.']
@@ -496,6 +500,12 @@ PD.app = (() => {
       tool('metronome', I('<path d="M8.5 20.5h7l-2.6-16h-1.8z"/><path d="M12 15l4.8-7.5"/>'), 'hx.metro'),
       tool('chords', I('<rect x="5" y="3.5" width="14" height="17" rx="2.6"/><path d="M5 9h14M5 14.5h14M9.7 3.5v17M14.3 3.5v17"/>'), 'nav.chords'),
       tool('ai', '<b>AI</b>', 'ai.title')]));
+    // the teacher's rhythms that have a recording: open the rhythm, or hear it right here
+    { const RR = (PD.curriculum.rhythms() || []).filter(r => PD.rhythmsUI.hasRecording(r.id));
+      if (RR.length) w.append(h('section', { class: 'hm-rh' }, [h('div', { class: 'hm-sh' }, [h('h2', { 'data-t': 'hx.rhReal' }), h('button', { class: 'linkbtn', 'data-t': 'hx.all', onclick: () => go('rhythms') })]),
+        h('div', { class: 'hm-rh-row' }, RR.map(r => h('div', { class: 'hm-rh-c' }, [
+          h('button', { class: 'hm-rh-open', onclick: () => go('rhythm', r.id) }, [h('b', { text: PD.i18n.pick(r.name) }), h('span', { class: 'hm-rh-st', 'aria-hidden': 'true' }, r.strokes.map(k => h('i', { class: k.accent ? 'acc' : '', text: k.direction === 'down' ? '↓' : '↑' })))]),
+          PD.rhythmsUI.preview(r.id)])))])); }
     // the library on three shelves
     [['song', 'cat.song'], ['melody', 'cat.melody'], ['solo', 'cat.solo']].forEach(([cat, k]) => {
       const ls = LS.all.filter(l => visible(l) && catOf(l) === cat).sort((a, b) => (a.level || 1) - (b.level || 1));
@@ -753,9 +763,9 @@ PD.app = (() => {
       const runs = []; l.cycle.forEach(c => { const r = runs[runs.length - 1]; if (r && r.c === c) r.n++; else runs.push({ c, n: 1 }); });
       const R = (LS.rhythmsAll ? LS.rhythmsAll() : PD.curriculum.rhythms()).find(r => r.id === l.songRhythm), strokes = l.beatStrokes || (R ? R.strokes : []);
       const one = () => h('span', { class: 'cy-st' }, strokes.map(k => h('i', { class: (k.accent ? 'acc ' : '') + k.direction, text: k.direction === 'up' ? '↑' : '↓' })));
-      w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.cycle' }),
-        h('div', { class: 'cy' }, runs.map(r => h('div', { class: 'cy-c', style: 'flex:' + r.n }, [h('b', { text: r.c }), h('small', { text: t('sg.rhythms', { n: r.n }) }), h('div', { class: 'cy-rs' }, Array.from({ length: r.n }, one))]))),
-        h('small', { class: 'muted', 'data-t': 'sg.oneRhythm' })]));
+      const cy = h('div', { class: 'cy' }, runs.map(r => h('div', { class: 'cy-c', style: 'flex:' + r.n }, [h('b', { text: r.c }), h('small', { text: t('sg.rhythms', { n: r.n }) }), h('div', { class: 'cy-rs' }, Array.from({ length: r.n }, one))])));
+      w.append(h('section', { class: 'sx-block' }, [h('h3', { 'data-t': 'sg.cycle' }), cy,
+        h('small', { class: 'muted', 'data-t': 'sg.oneRhythm' }), hearIt(l, cy)]));
     }
     // sound: the original recording (with / without vocals / vocals only) or the synthesizer
     const snd = h('section', { class: 'sx-block snd' });
@@ -791,6 +801,30 @@ PD.app = (() => {
     w.append(h('h3', { 'data-t': 'sg.parts' }), secs);
     if (p.lastResult) w.append(h('p', { class: 'muted', style: 'font-size:13px', text: t('st.result') + ': ' + PD.practice.summary(p.lastResult) }));
     if (pathNav('lesson', l.id)) w.append(pathBar('lesson', l.id));
+  }
+  /** the song's rhythm on a real panduri (PD.SOUNDS.bani): looped, with the chord and stroke of the chips above lit as they sound */
+  function hearIt(l, cy) {
+    const B = PD.SOUNDS && PD.SOUNDS.bani, url = B && B.song === l.song && PD.assets && PD.assets.media && PD.assets.media[B.file];
+    if (!url || !l.cycle || l.cycle.join() !== B.cycle.join()) return null;
+    const btn = h('button', { class: 'btn', 'data-t': 'sg.hear' });
+    let cur = null, raf = 0;
+    const spans = () => [...cy.querySelectorAll('.cy-st')];
+    const paint = (j, i) => { const sp = spans(); sp.forEach((x, k) => { x.classList.toggle('on', k === j); [...x.children].forEach((e, n) => e.classList.toggle('on', k === j && n === i)); }); cy.querySelectorAll('.cy-c').forEach(c => c.classList.toggle('on', j >= 0 && c.contains(sp[j]))); };
+    const stop = () => { if (cur && cur.lp) cur.lp.stop(); cur = null; cancelAnimationFrame(raf); paint(-1, -1); btn.textContent = t('sg.hear'); };
+    const frame = () => {
+      if (!cur || !btn.isConnected) return stop();
+      raf = requestAnimationFrame(frame);
+      const at = PD.rhythmsUI.strokeAt(B, cur.lp.pos(PD.audio.now())); if (!at) return;
+      const k = at.j % B.cycle.length; if (cur.k !== k || cur.i !== at.i) { cur.k = k; cur.i = at.i; paint(k, at.i); }
+    };
+    btn.onclick = () => {
+      if (cur) return stop();
+      if (PD.audio.ref.playing) PD.audio.ref.sync(0, 0, 1, false);
+      const me = cur = {}; btn.textContent = t('sg.hearLoad');
+      PD.audio.loopRec(url, B.loop[0], B.loop[1]).then(lp => { if (cur !== me || !lp) { if (lp) lp.stop(); return; } me.lp = lp; btn.textContent = t('sg.hearStop'); frame(); }, () => { if (cur === me) { stop(); PD.ui.toast(t('sg.hearErr')); } });
+    };
+    const un = PD.bus.on('route', () => { stop(); un(); });
+    return h('div', { class: 'cy-hear' }, [btn, h('small', { class: 'muted', 'data-t': 'sg.hearD' })]);
   }
   function introSheet(l) {
     PD.ui.sheet((box, close) => {

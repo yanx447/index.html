@@ -28,7 +28,11 @@ PD.Lanes = function (canvas, opt) {
     G.beats = W < 520 ? 4 : W < 900 ? 5.5 : 7;
     G.ppb = Math.max(56, (W - G.px - 16) / G.beats);
     if (self.song) { G.beats = W < 520 ? 3.6 : W < 900 ? 5 : 7; G.ppb = Math.max(40, (W - G.px - 16) / G.beats); G.cy = H * .5; G.bh = Math.max(64, Math.min(150, H * .56)); }
-    else if (self.rhythm) { G.cy = H * .46; G.R = Math.max(20, Math.min(46, H * .2, G.ppb * .36)); }
+    else if (self.rhythm) {
+      G.cy = H * .46; G.R = Math.max(20, Math.min(46, H * .2, G.ppb * .36));
+      // played along with a recording, one beat is a whole cycle of the rhythm (spb strokes): the road widens so each stroke keeps its room
+      const spb = S.lesson && S.lesson.spb; if (spb > 1) { G.ppb *= spb; G.beats /= spb; }
+    }
     else {
       const top = 10, bot = H - 10, gap = (bot - top) / 3;
       G.lane = { 3: top + gap * .5, 2: top + gap * 1.5, 1: top + gap * 2.5 }; G.gap = gap;

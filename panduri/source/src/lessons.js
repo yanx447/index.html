@@ -158,6 +158,26 @@ PD.lessons = (() => {
     return normalize({ id: 'rhythm-' + r.id, type: 'exercise', rhythm: r.id, demo: false, source: r.source || 'teacher', title: r.name, level: r.level || 1, bpm: r.timing.bpm, meter: [per4, 4],
       desc: { ka: r.usage.ka.join(' · '), en: r.usage.en.join(' · ') }, events: ev, sections: secs, stages: ['demo', 'watch', 'slow', 'wait', 'metro', 'loop', 'perform'] });
   }
+  /** lesson played along with a recording of the rhythm (PD.SOUNDS.rhythms): one beat = one cycle of the rhythm, as in a
+      song (1 beat = ↓ ↓ ↑). The recording's loop is laid end to end (stem '#loop=a,b,n') and its beat map is the moment
+      every cycle starts in it, so the engine stretches it to any tempo and its strokes fall where the recording's do.
+      Each stroke sits at its average place inside the cycle, as measured on the recording. Same id as the plain rhythm
+      lesson: the progress is the rhythm's. */
+  function fromRecording(r, rec, cycles) {
+    const C = rec && rec.cycles, K = r.strokes.length; if (!C || !C.length || C[0].length !== K) return null;
+    const n = C.length, a = rec.loop[0], b = rec.loop[1], L = b - a; cycles = cycles || 16;
+    const reps = Math.ceil((cycles + 1) / n) + 1, startOf = j => C[j % n][0] - a + Math.floor(j / n) * L;
+    const fr = r.strokes.map((_, i) => C.reduce((acc, c, j) => acc + (c[i] - c[0]) / (startOf(j + 1) - startOf(j)), 0) / n);
+    const ev = [], secs = [], map = [];
+    for (let c = 0; c <= cycles; c++) map.push(+startOf(c).toFixed(4));
+    for (let c = 0; c < cycles; c++) {
+      r.strokes.forEach((st, i) => ev.push(...strum(c + fr[i], st.direction, (i + 1 < K ? fr[i + 1] : 1) - fr[i], st.accent)));
+      secs.push(sec('ციკლი ' + (c + 1), 'Cycle ' + (c + 1), c, c + 1));
+    }
+    return normalize({ id: 'rhythm-' + r.id, type: 'exercise', rhythm: r.id, recording: rec.id, demo: false, source: r.source || 'teacher', title: r.name, level: r.level || 1,
+      bpm: Math.round(600 / rec.period) / 10, meter: [1, 4], countIn: 2, desc: { ka: r.usage.ka.join(' · '), en: r.usage.en.join(' · ') },
+      stems: { full: rec.file + '#loop=' + a + ',' + b + ',' + reps }, beatMap: map, spb: K, events: ev, sections: secs, stages: ['demo', 'watch', 'slow', 'wait', 'metro', 'loop', 'perform'] });
+  }
   function rhythmLesson(rid) { const r = PD.curriculum.anyRhythm ? PD.curriculum.anyRhythm(rid) : (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).find(x => x.id === rid); return r ? fromRhythm(r) : undefined; }
   /** derived lesson: alternate two chords (chord-transition exercise) */
   /** derived lesson: a chord progression, each chord held for 2 beats, played twice */
@@ -174,7 +194,7 @@ PD.lessons = (() => {
     reload: reloadCurriculum,
     /** a module that keeps lessons of its own: fn() returns them; they join the list now and after every reload */
     provide(fn) { providers.push(fn); reloadCurriculum(); },
-    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, progression, steps, rhythmOf, songChanges, songRhythm, songPart, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
+    all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, fromRecording, progression, steps, rhythmOf, songChanges, songRhythm, songPart, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
     get: lid => all.find(l => l.id === lid) || (/^rhythm-/.test(lid || '') ? rhythmLesson(lid.slice(7)) : undefined),
     /** lessons generated from the teacher rhythms (not stored; rebuilt from curriculum data) */
     rhythmLessons: () => (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).concat(PD.curriculum.commonRhythms ? PD.curriculum.commonRhythms() : []).map(r => fromRhythm(r)),
