@@ -289,20 +289,56 @@ PD.ui = (() => {
     sel.value = PD.i18n.lang;
     return sel;
   }
-  /** the first screen on a new device: every language under its own name, the device's language first */
-  function langFirst(done) {
-    const cur = PD.i18n.lang, list = [PD.i18n.list.find(l => l.id === cur)].concat(PD.i18n.list.filter(l => l.id !== cur));
-    const root = PD.h('div', { class: 'lf', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('set.lang') }, [
-      PD.h('div', { class: 'lf-in' }, [
-        PD.h('h1', { class: 'lf-name', text: t('app.name') }),
-        PD.h('p', { class: 'lf-q', text: t('lg.choose') }),
-        PD.h('div', { class: 'lf-list' }, list.map(l => PD.h('button', { class: 'lf-b' + (l.id === cur ? ' on' : ''), lang: l.id, dir: l.rtl ? 'rtl' : 'ltr', text: l.name, onclick: () => PD.i18n.set(l.id).then(ok => { if (ok) { root.remove(); done(); } }) })))
-      ])]);
-    document.body.appendChild(root);
+  /** the language picker drawn in the app's own material: a pill that unfolds its list in place (no system menu).
+      Keyboard: Enter/Space/↓ opens, ↑↓ Home End move, a letter jumps, Enter picks, Escape and Tab close. */
+  function langMenu(onpick, cls) {
+    const list = PD.i18n.list, cur = () => list.find(l => l.id === PD.i18n.lang) || list[0];
+    const uid = 'lgm' + Math.random().toString(36).slice(2, 7);
+    const GLOBE = '<svg class="lgm-ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3z"/></svg>';
+    const CHEV = '<svg class="lgm-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+    const CHECK = '<svg class="lgm-ok" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    const label = PD.h('span', { class: 'lgm-cur' });
+    const btn = PD.h('button', { type: 'button', class: 'lgm-btn', 'aria-haspopup': 'listbox', 'aria-expanded': 'false', 'aria-controls': uid, html: GLOBE });
+    btn.append(label); btn.insertAdjacentHTML('beforeend', CHEV);
+    const ul = PD.h('ul', { class: 'lgm-list', id: uid, role: 'listbox', 'aria-label': t('set.lang'), tabindex: '-1' });
+    // each name keeps its own direction (dir on the text), so every row lines up the same way
+    const opts = list.map((l, i) => { const li = PD.h('li', { role: 'option', id: uid + '-' + l.id, lang: l.id, tabindex: '-1', style: '--i:' + i, 'data-id': l.id, onclick: () => pick(l.id) }, [PD.h('span', { dir: l.rtl ? 'rtl' : 'ltr', text: l.name })]); li.insertAdjacentHTML('beforeend', CHECK); ul.appendChild(li); return li; });
+    const box = PD.h('div', { class: 'lgm ' + (cls || '') }, [btn, ul]);
+    const sync = () => { const c = cur(); label.textContent = c.name; label.lang = c.id; btn.setAttribute('aria-label', t('set.lang') + ': ' + c.name); opts.forEach(o => o.setAttribute('aria-selected', String(o.dataset.id === c.id))); };
+    let open = false;
+    const focusAt = i => { const o = opts[(i + opts.length) % opts.length]; o.focus({ preventScroll: true }); o.scrollIntoView({ block: 'nearest' }); };
+    const outside = e => { if (!box.isConnected || !box.contains(e.target)) close(false); };
+    function show() {
+      if (open) return; open = true; box.classList.add('open'); btn.setAttribute('aria-expanded', 'true');
+      document.addEventListener('pointerdown', outside, true);
+      const i = Math.max(0, opts.findIndex(o => o.dataset.id === cur().id)); requestAnimationFrame(() => focusAt(i));
+    }
+    function close(refocus) {
+      if (!open) return; open = false; box.classList.remove('open'); btn.setAttribute('aria-expanded', 'false');
+      document.removeEventListener('pointerdown', outside, true);
+      if (refocus) btn.focus({ preventScroll: true });
+    }
+    function pick(id) { close(true); if (id === PD.i18n.lang) return; onpick(id); }
+    btn.addEventListener('click', () => open ? close(true) : show());
+    btn.addEventListener('keydown', e => { if (['ArrowDown', 'ArrowUp'].includes(e.key)) { e.preventDefault(); show(); } });
+    ul.addEventListener('keydown', e => {
+      const i = opts.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') focusAt(i + 1); else if (e.key === 'ArrowUp') focusAt(i - 1);
+      else if (e.key === 'Home') focusAt(0); else if (e.key === 'End') focusAt(opts.length - 1);
+      else if (e.key === 'Enter' || e.key === ' ') { if (i >= 0) pick(opts[i].dataset.id); }
+      else if (e.key === 'Escape') { close(true); }
+      else if (e.key === 'Tab') { close(false); return; }
+      else if (e.key.length === 1) { const k = e.key.toLowerCase(), n = opts.length; for (let j = 1; j <= n; j++) { const o = opts[(i + j) % n]; if (o.textContent.trim().toLowerCase().startsWith(k)) { focusAt((i + j) % n); break; } } }
+      else return;
+      e.preventDefault(); e.stopPropagation();   // Escape here closes the list, not the screen behind it
+    });
+    const offFail = PD.bus.on('lang.fail', () => box.isConnected ? sync() : offFail());
+    sync();
+    return box;
   }
   /** a source badge, marked when the words on it are an unchecked translation */
   const srcLabel = key => t(key) + (PD.i18n.translated ? ' · ' + t('lg.aiShort') : '');
   /** the note shown wherever a translated language is chosen or in use */
   const aiNote = () => PD.i18n.translated ? PD.h('p', { class: 'muted lang-note', text: t('lg.ai') }) : null;
-  return { toast, sheet, confirm, daysAgo, download, pickFile, micError, micBlocked, countUp, motion, langSelect, langFirst, srcLabel, aiNote };
+  return { toast, sheet, confirm, daysAgo, download, pickFile, micError, micBlocked, countUp, motion, langSelect, langMenu, srcLabel, aiNote };
 })();

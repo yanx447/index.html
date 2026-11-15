@@ -216,21 +216,24 @@ PD.aimus = (() => {
   }
   /** every note of a mono 22.05 kHz signal, in a worker: Promise<{ notes:[{m,t0,t1,amp}] }> (.cancel() stops it) */
   function notesBP(mono, base, opt, onProgress) {
-    let W = null;
+    let W = null, url = null, rejectJob = null, timer = null;
+    const clean = () => { if (W) W.terminate(); W = null; if (url) URL.revokeObjectURL(url); url = null; clearTimeout(timer); };
     const p = new Promise((res, rej) => {
+      rejectJob = rej;
       try {
         const body = 'const BP=(' + BPF.toString() + ')();\nlet RT=null,sess=null;\nself.onmessage=async function(e){var d=e.data;try{' +
           'if(!sess){importScripts(d.base+"ort131/ort.wasm.min.js");RT=self.ort;RT.env.wasm.wasmPaths=d.base+"ort131/";RT.env.wasm.numThreads=1;' +
           'var r0=await fetch(d.base+"bp/nmp.onnx");if(!r0.ok)throw new Error("model "+r0.status);sess=await RT.InferenceSession.create(new Uint8Array(await r0.arrayBuffer()),{executionProviders:["wasm"]});}' +
           'var m=await BP.infer(RT,sess,d.mono,function(p){self.postMessage({p:p*.9});});var ns=BP.notes(m.note,m.onset,m.n,d.opt);self.postMessage({r:{notes:ns}});' +
           '}catch(err){self.postMessage({err:String(err&&err.message||err)});}};';
-        W = new Worker(URL.createObjectURL(new Blob([body], { type: 'text/javascript' })));
-        W.onmessage = e => { const d = e.data; if (d.p != null) onProgress && onProgress(d.p); else { try { W.terminate(); } catch (_) {} W = null; d.err ? rej(new Error(d.err)) : res(d.r); } };
-        W.onerror = ev => { try { W.terminate(); } catch (_) {} W = null; rej(new Error((ev && ev.message) || 'worker')); };
+        url = URL.createObjectURL(new Blob([body], { type: 'text/javascript' })); W = new Worker(url);
+        timer = setTimeout(() => { clean(); rej(new Error('Transcription timeout')); }, 300000);
+        W.onmessage = e => { const d = e.data; if (d.p != null) onProgress && onProgress(d.p); else { clean(); d.err ? rej(new Error(d.err)) : res(d.r); } };
+        W.onerror = ev => { clean(); rej(new Error((ev && ev.message) || 'worker')); };
         W.postMessage({ mono, base, opt: opt || {} });
-      } catch (e) { rej(e); }
+      } catch (e) { clean(); rej(e); }
     });
-    p.cancel = () => { if (W) { try { W.terminate(); } catch (_) {} W = null; } };
+    p.cancel = () => { clean(); rejectJob(new DOMException('Cancelled', 'AbortError')); };
     return p;
   }
   /** the melody line out of all the notes. Notes struck together (a strum, a drone under the tune) are sorted by what
@@ -357,7 +360,8 @@ PD.aimus = (() => {
     const F = Math.max(2, Math.floor((mono.length - N) / HOP));
     const fft = DSP.fftMag(N), mag = new Float32Array(K);
     const S2 = new Float32Array(F * K);
-    for (let f = 0; f < F; f++) { fft(mono, f * HOP, mag); for (let k = 0; k < K; k++) S2[f * K + k] = mag[k]; }
+    const slice = PD.slicer ? PD.slicer() : () => null;   // the screen stays alive while this runs: it is handed back every ~12 ms
+    for (let f = 0; f < F; f++) { fft(mono, f * HOP, mag); for (let k = 0; k < K; k++) S2[f * K + k] = mag[k]; const y = slice(); if (y) await y; }
     // a small insertion median: the generic sort with a comparator is what made this slow
     const buf = new Float32Array(Math.max(LT, LF));
     function med(n2) {
@@ -365,22 +369,21 @@ PD.aimus = (() => {
       return buf[n2 >> 1];
     }
     const H = new Float32Array(F * K), P = new Float32Array(F * K), ht = LT >> 1, hf = LF >> 1;
-    const breathe = () => new Promise(r => setTimeout(r, 0));   // the screen stays alive while this runs
     for (let k = 0; k < K; k++) { for (let f = 0; f < F; f++) { let n2 = 0;
         for (let d = -ht; d <= ht; d++) { const g = f + d; if (g >= 0 && g < F) buf[n2++] = S2[g * K + k]; }
         H[f * K + k] = med(n2); }
-      if ((k & 63) === 63) await breathe(); }
+      const y = slice(); if (y) await y; }
     for (let f = 0; f < F; f++) { for (let k = 0; k < K; k++) { let n2 = 0;
         for (let d = -hf; d <= hf; d++) { const g = k + d; if (g >= 0 && g < K) buf[n2++] = S2[f * K + g]; }
         P[f * K + k] = med(n2); }
-      if ((f & 255) === 255) await breathe(); }
+      const y = slice(); if (y) await y; }
     // soft mask, then the same flux · detrend · normalise as the plain envelope
     const env = new Float32Array(F), prev = new Float32Array(K);
     for (let f = 0; f < F; f++) { let fl = 0;
       for (let k = 2; k < K; k++) { const h2 = H[f * K + k], p2 = P[f * K + k];
         const m = (p2 * p2) / (h2 * h2 + p2 * p2 + 1e-12);
         const v = Math.log1p(S2[f * K + k] * m * 10), d = v - prev[k]; if (d > 0) fl += d; prev[k] = v; }
-      env[f] = fl; }
+      env[f] = fl; const y = slice(); if (y) await y; }
     const dt = HOP / sr, W = Math.round(.5 / dt), out = new Float32Array(F); let acc = 0;
     for (let i = 0; i < F; i++) { acc += env[i]; if (i >= W) acc -= env[i - W]; out[i] = Math.max(0, env[i] - acc / Math.min(i + 1, W)); }
     let sd = 0; for (let i = 0; i < F; i++) sd += out[i] * out[i]; sd = Math.sqrt(sd / F) || 1;
@@ -635,24 +638,14 @@ PD.aimus = (() => {
   const FING = f => f <= 0 ? 0 : f <= 2 ? 1 : f <= 4 ? 2 : f <= 6 ? 3 : 4;
   /** every way to play this pitch on the instrument as it is tuned now */
   function places(m) {
-    const all = TH.positions(Math.round(m)) || [];
+    const all = TH.positions(m) || [];
     return all.map(p => ({ s: p.s, f: p.f, fi: FING(p.f) })).sort((a, b) => a.f - b.f || b.s - a.s);
   }
   /** a whole line placed on the neck: the position nearest the previous one wins, unreachable notes are marked */
   function mapNotes(notes) {
-    let prev = null;
-    notes.forEach(n => {
-      const ps = places(n.m);
-      if (!ps.length) { n.reach = false; n.s = 0; n.f = -1; n.alt = []; n.octave = octaveFix(n.m); return; }
-      let best = ps[0];
-      if (prev) { const cost = p => Math.abs(p.f - prev.f) + (p.s === prev.s ? 0 : 1.5) + p.f * .05; ps.forEach(p => { if (cost(p) < cost(best)) best = p; }); }
-      else ps.forEach(p => { if (p.f < best.f) best = p; });
-      n.reach = true; n.s = best.s; n.f = best.f; n.fi = best.fi;
-      n.alt = ps.filter(p => p !== best).map(p => ({ s: p.s, f: p.f }));
-      prev = best;
-    });
-    return notes;
+    const mapped = PD.aiScore.map(notes); notes.splice(0, notes.length, ...mapped); return notes;
   }
+
   /** a pitch this tuning cannot reach: which octave would reach it (never applied on its own) */
   function octaveFix(m) {
     for (const d of [12, -12, 24, -24]) if ((TH.positions(Math.round(m + d)) || []).length) return { shift: d, m: Math.round(m + d) };
@@ -714,72 +707,43 @@ PD.aimus = (() => {
   const DURV = { w: 4, 'h.': 3, h: 2, 'q.': 1.5, q: 1, 'e.': .75, e3: 2 / 3, e: .5, s3: 1 / 3, s: .25 };
   function midiFile(M) {
     const TPQ = 480, ev = [];
-    M.notes.forEach(n => { const a = Math.round((n.posB || 0) * TPQ), b = Math.max(a + 10, Math.round(((n.posB || 0) + (n.lenB || .5)) * TPQ)); ev.push({ t: a, on: 1, m: n.m }); ev.push({ t: b, on: 0, m: n.m }); });
+    M.notes.forEach(n => { const a = Math.round(n.t0 * (M.bpm || 100) / 60 * TPQ), b = Math.max(a + 1, Math.round(n.t1 * (M.bpm || 100) / 60 * TPQ)); ev.push({ t: a, on: 1, m: n.m, velocity: n.velocity || 90 }); ev.push({ t: b, on: 0, m: n.m }); });
     ev.sort((a, b) => a.t - b.t || a.on - b.on);
     const bytes = [], vlq = v => { const s = []; do { s.unshift(v & 127); v >>= 7; } while (v > 0); for (let i = 0; i < s.length - 1; i++) s[i] |= 128; return s; };
     const us = Math.round(60000000 / (M.bpm || 100));
     bytes.push(...vlq(0), 0xFF, 0x51, 3, (us >> 16) & 255, (us >> 8) & 255, us & 255);
     bytes.push(...vlq(0), 0xFF, 0x58, 4, M.metre ? M.metre.num : 4, Math.round(Math.log2(M.metre ? M.metre.den : 4)), 24, 8);
     let last = 0;
-    ev.forEach(e => { bytes.push(...vlq(Math.max(0, e.t - last)), e.on ? 0x90 : 0x80, clamp(e.m, 0, 127), e.on ? 90 : 0); last = e.t; });
+    ev.forEach(e => { bytes.push(...vlq(Math.max(0, e.t - last)), e.on ? 0x90 : 0x80, clamp(e.m, 0, 127), e.on ? e.velocity : 0); last = e.t; });
     bytes.push(...vlq(0), 0xFF, 0x2F, 0);
     const head = [0x4D, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 0, 0, 1, (TPQ >> 8) & 255, TPQ & 255];
     const tl = bytes.length, trk = [0x4D, 0x54, 0x72, 0x6B, (tl >> 24) & 255, (tl >> 16) & 255, (tl >> 8) & 255, tl & 255];
     return new Blob([new Uint8Array(head.concat(trk, bytes))], { type: 'audio/midi' });
   }
-  function musicXML(M, title) {
-    const div = 12, g = M.metre ? M.metre.num : 4, den = M.metre ? M.metre.den : 4, perBar = g * (4 / den);
-    const esc = s => String(s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
-    const fifths = (() => { if (!M.key) return 0; const maj = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5], r = M.key.q ? (M.key.r + 3) % 12 : M.key.r, i = maj.indexOf(r); return i > 6 ? i - 12 : i; })();
-    const bars = {}; M.notes.forEach(n => { const b = Math.max(1, n.bar || 1); (bars[b] = bars[b] || []).push(n); });
-    let x = '<?xml version="1.0" encoding="UTF-8"?>\n<score-partwise version="3.1">\n<work><work-title>' + esc(title || 'transcription') + '</work-title></work>\n<part-list><score-part id="P1"><part-name>Panduri</part-name></score-part></part-list>\n<part id="P1">\n';
-    const keys = Object.keys(bars).map(Number).sort((a, b) => a - b);
-    (keys.length ? keys : [1]).forEach((b, bi) => {
-      x += '<measure number="' + b + '">';
-      if (bi === 0) x += '<attributes><divisions>' + div + '</divisions><key><fifths>' + fifths + '</fifths><mode>' + (M.key && M.key.q ? 'minor' : 'major') + '</mode></key><time><beats>' + g + '</beats><beat-type>' + den + '</beat-type></time><clef><sign>G</sign><line>2</line></clef></attributes>';
-      let filled = 0;
-      (bars[b] || []).sort((p, q) => p.beat - q.beat).forEach(n => {
-        const start = (n.beat - 1) * (4 / den);
-        if (start > filled + .02) { const r = Math.round((start - filled) * div); if (r > 0) { x += '<note><rest/><duration>' + r + '</duration></note>'; filled += r / div; } }
-        const d = Math.max(1, Math.round((DURV[n.val] || 1) * div)), sp = spell(n.m, M.key);
-        x += '<note><pitch><step>' + sp.l + '</step>' + (sp.acc ? '<alter>' + (sp.acc === '♯' ? 1 : -1) + '</alter>' : '') + '<octave>' + sp.o + '</octave></pitch><duration>' + d + '</duration><type>' + ({ w: 'whole', h: 'half', q: 'quarter', e: 'eighth', s: '16th' }[n.val[0]] || 'quarter') + '</type>' + (/\.$/.test(n.val) ? '<dot/>' : '') + '</note>';
-        filled += d / div;
-      });
-      const restLeft = Math.round((perBar - filled) * div); if (restLeft > 0) x += '<note><rest/><duration>' + restLeft + '</duration></note>';
-      x += '</measure>\n';
-    });
-    return new Blob([x + '</part>\n</score-partwise>\n'], { type: 'application/vnd.recordare.musicxml+xml' });
-  }
-  /** panduri tab as text: three lines, E on top — the same layout as the neck on screen */
+  function musicXML(M, title) { return PD.aiScore.musicXML(M, title); }
+  /** Exact event columns: dense notes never overwrite one another in exported TAB. */
   function tabText(M, title) {
-    const g = M.metre ? M.metre.num : 4, per = 4, rows = [[], [], []], head = [];
-    const byBar = {}; M.notes.forEach(n => { const b = Math.max(1, n.bar || 1); (byBar[b] = byBar[b] || []).push(n); });
-    const bars = Object.keys(byBar).map(Number).sort((a, b) => a - b);
-    let out = (title ? title + '\n' : '') + t('app.name') + ' · A–C♯–E · ' + (M.metre ? M.metre.num + '/' + M.metre.den : '') + ' · ' + Math.round(M.bpm || 0) + ' BPM\n\n';
-    for (let i = 0; i < bars.length; i += per) {
-      const chunk = bars.slice(i, i + per); rows[0] = []; rows[1] = []; rows[2] = []; head.length = 0;
-      chunk.forEach(b => {
-        const cells = Math.max(8, g * 2), col = [[], [], []];
-        for (let c = 0; c < cells; c++) { col[0][c] = '-'; col[1][c] = '-'; col[2][c] = '-'; }
-        (byBar[b] || []).forEach(n => {
-          const c = clamp(Math.round((n.beat - 1) * 2), 0, cells - 1);
-          if (!n.reach || n.f < 0) { col[0][c] = '×'; return; }
-          col[3 - n.s][c] = String(n.f);      // s3 (E) on the top line, s1 (A) at the bottom
-        });
-        for (let r = 0; r < 3; r++) rows[r].push(col[r].map(v => v.length > 1 ? v : v + '-').join(''));
-        head.push(String(b));
+    const S = PD.aiScore.score(M), t = PD.i18n.t;
+    let out = (title || 'Panduri') + '\n' + [3, 2, 1].map(s => TH.name(TH.open(s))).join(' · ') + ' · ' + M.metre.num + '/' + M.metre.den + ' · ' + Math.round(M.bpm) + ' BPM\n';
+    for (let b = 0; b < S.bars; b++) {
+      const events = S.events.filter(e => e.bar === b && e.n), starts = [...new Set(events.map(e => e.start))].sort((a, b) => a - b);
+      out += '\n' + t('tr.bar', { n: b + 1 }) + '\n';
+      [3, 2, 1].forEach(s => {
+        out += TH.stringName(s).padEnd(3) + '|' + (starts.length ? starts.map(start => {
+          const notes = events.filter(e => e.start === start && (e.n.reach ? e.n.s === s : s === 3));
+          return (notes.length ? notes.map(e => e.n.reach ? String(e.n.f) + (e.tieIn ? '~' : '') : '×').join('/') : '-').padEnd(5, '-');
+        }).join('') : '----') + '|\n';
       });
-      ['E', 'C♯', 'A'].forEach((nm, r) => { out += (nm + ' ').padEnd(3) + '|' + rows[r].join('|') + '|\n'; });
-      out += '    ' + head.map(b => PD.i18n.pick({ ka: 'ტაქტი ' + b, en: 'Bar ' + b })).join('   ') + '\n\n';
+      out += 's  ' + starts.map(start => String(+events.find(e => e.start === start).time.toFixed(2)).padEnd(5)).join('') + '\n';
     }
     return out;
   }
   function jsonOf(M, title) {
     return new Blob([JSON.stringify({ title, bpm: M.bpm, metre: M.metre, key: M.key && { root: M.key.r, minor: !!M.key.q, conf: M.key.conf },
-      tuning: { strings: ['A3', 'C♯4', 'E4'], frets: 17 },
+      tuning: { strings: Array.from({ length: TH.STRINGS }, (_, i) => TH.name(TH.open(i + 1))), frets: TH.FRETS, a4: TH.a4() }, arrangement: M.arrangement || 'advanced', omitted: M.omitted || 0,
       chords: (M.chords || []).map(c => ({ t0: c.t0, t1: c.t1, name: c.name || null, conf: c.conf == null ? null : c.conf })),
       sections: M.sections || [], beats: (M.beats || []).map(b => +b.toFixed(3)),
-      notes: (M.notes || []).map(n => ({ midi: n.m, name: spell(n.m, M.key).name, t0: n.t0, t1: n.t1, bar: n.bar, beat: n.beat, value: n.val, cents: n.cents, conf: n.conf, string: n.reach ? n.s : null, fret: n.reach ? n.f : null, playable: !!n.reach }))
+      notes: (M.notes || []).map(n => ({ pitch: n.m, octave: Math.floor(n.m / 12) - 1, onset: n.t0, duration: n.t1 - n.t0, velocity: n.velocity || 90, finger: n.reach ? n.fi : null, confidence: n.conf, generated: !!n.generated, reason: n.reason || null, midi: n.m, name: spell(n.m, M.key).name, t0: n.t0, t1: n.t1, bar: n.bar, beat: n.beat, value: n.val, cents: n.cents, conf: n.conf, string: n.reach ? n.s : null, fret: n.reach ? n.f : null, playable: !!n.reach }))
     }, null, 1)], { type: 'application/json' });
   }
 
@@ -827,10 +791,11 @@ PD.aimus.panel = function (o) {
   const can = k => !o[k] || o[k]();                      // no gate given → open
   const lock = f => o.lock ? o.lock(f) : null;
   const buy = f => h('button', { class: 'btn primary', text: t('pm.buy'), onclick: () => lock(f) });
-  let M = o.saved || null, busy = null, view = PD.store.get('tr.view', 'roll'), onNeck = PD.store.get('tr.neck', true);
+  let M = o.saved || null, busy = null, view = PD.store.get('tr.view', 'workspace'), onNeck = PD.store.get('tr.neck', true);
   let cur = -1, px = PD.store.get('tr.zoom', 90), follow = true, editMode = false, edBox = null;
-  const RANGES = { mel: [55, 84], high: [64, 93], low: [36, 64] };
-  let range = PD.store.get('tr.range', 'mel'), src = 'orig';
+  let generation = 0, disposed = false;
+  const RANGES = { poly: [21, 108], mel: [55, 84], high: [64, 93], low: [36, 64] };
+  let range = PD.store.get('tr.range', 'poly'), src = 'orig';
 
   /* ---------------- the ask ---------------- */
   function head() {
@@ -839,7 +804,7 @@ PD.aimus.panel = function (o) {
     const stems = (o.stemNames && o.stemNames()) || [];
     [['orig', t('tr.srcOrig')]].concat(stems.map(s => [s, PD.i18n.has('ai.' + s) ? t('ai.' + s) : s])).forEach(([k, lab]) => srcSel.append(h('button', { class: 'seg-b' + (src === k ? ' on' : ''), text: lab, onclick: () => { src = k; render(); } })));
     const rgSel = h('div', { class: 'seg' });
-    [['mel', 'tr.rMel'], ['high', 'tr.rHigh'], ['low', 'tr.rLow']].forEach(([k, lab]) => rgSel.append(h('button', { class: 'seg-b' + (range === k ? ' on' : ''), text: t(lab), onclick: () => { range = k; PD.store.set('tr.range', k); render(); } })));
+    [['poly', 'aisc.advanced'], ['mel', 'tr.rMel'], ['high', 'tr.rHigh'], ['low', 'tr.rLow']].forEach(([k, lab]) => rgSel.append(h('button', { class: 'seg-b' + (range === k ? ' on' : ''), text: t(lab), onclick: () => { range = k; PD.store.set('tr.range', k); render(); } })));
     box.append(h('p', { class: 'muted', 'data-t': 'tr.aiLead' }),
       h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.src') }), h('div', { class: 'ai-tc' }, [srcSel])]),
       h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.range') }), h('div', { class: 'ai-tc' }, [rgSel])]),
@@ -848,48 +813,49 @@ PD.aimus.panel = function (o) {
     return box;
   }
   async function run() {
-    if (busy) return;
+    if (busy || disposed) return;
+    const job = ++generation; busy = { cancel() {} };
     const st = h('div', { class: 'ai-status' }), lab = h('span', { text: t('tr.working') }), bar = h('i');
-    const stop = h('button', { class: 'btn small ghost', text: t('tr.cancel'), onclick: () => { if (busy && busy.cancel) busy.cancel(); busy = null; render(); } });
+    const stop = h('button', { class: 'btn small ghost', text: t('tr.cancel'), onclick: () => { generation++; if (busy && busy.cancel) busy.cancel(); busy = null; render(); } });
     st.append(lab, h('div', { class: 'hx-bar' }, [bar]), stop);
     el.innerHTML = ''; el.append(title(), st);
     let mono, off = 0;
     try { const g = await o.getMono(src); mono = g.mono || g; off = g.offset || 0; } catch (e) { st.textContent = t('ai.bad'); busy = null; return; }
+    if (job !== generation || disposed) return;
+    if (mono.length > 22050 * 300) { busy = null; st.textContent = t('as.tooLong'); el.append(head()); return; }
     const [lo, hi] = RANGES[range] || RANGES.mel;
     let tr;
     try {
-      // every note (Basic Pitch), then the line: the top voice for a melody or a solo, the bottom one for the bass
-      // both trackers at once, each in its own worker: Basic Pitch (every note) and the single-line tracker
-      const bp = A.notesBP(mono, PD.ai.BASE, {}, p => { bar.style.width = Math.round(p * 94) + '%'; }), one = A.transcribeAsync(mono, 22050, { lo, hi });
-      busy = bp; const stopBp = bp.cancel; bp.cancel = () => { stopBp(); one.cancel && one.cancel(); };
-      const [r, single] = await Promise.all([bp, one.catch(() => null)]);
-      if (busy === null) return;
-      const line = A.melodyOf(r.notes, { lo, hi, bottom: range === 'low' });
-      tr = { notes: single ? A.fuse(single.notes.map(n => Object.assign({}, n, { m: Math.round(n.m) })), r.notes, line) : line, poly: r.notes, engine: single ? 'fused' : 'bp' };
+      busy = A.notesBP(mono, PD.ai.BASE, { lo, hi }, p => { bar.style.width = Math.round(p * 94) + '%'; });
+      const r = await busy;
+      if (job !== generation || disposed) return;
+      const line = range === 'poly' ? r.notes.map(PD.aiScore.normalise) : A.melodyOf(r.notes, { lo, hi, bottom: range === 'low' });
+      tr = { notes: line, poly: r.notes, engine: 'basic-pitch' };
       // a light chroma from the notes themselves, so the song's parts can still be found
       const dt = .05, F = Math.max(1, Math.ceil(mono.length / 22050 / dt)), ch = Array.from({ length: F }, () => new Float32Array(12));
       r.notes.forEach(n => { for (let f = Math.floor(n.t0 / dt); f < Math.min(F, Math.ceil(n.t1 / dt)); f++) ch[f][n.m % 12] += n.amp; });
       ch.forEach(c => { let m = 0; for (let k = 0; k < 12; k++) if (c[k] > m) m = c[k]; if (m) for (let k = 0; k < 12; k++) c[k] /= m; });
       tr.chroma = ch; tr.dt = dt; tr.t0off = 0;
     } catch (e) {
-      // the model could not be loaded (offline, first time): the older single-line tracker
-      if (busy === null) return;
-      try { busy = A.transcribeAsync(mono, 22050, { lo, hi }, p => { bar.style.width = Math.round(p * 94) + '%'; }); tr = await busy; tr.engine = 'dsp'; }
-      catch (e2) { try { tr = await A.transcribe(mono, 22050, { lo, hi }, p => { bar.style.width = Math.round(p * 94) + '%'; }); tr.engine = 'dsp'; } catch (e3) { busy = null; st.textContent = t('ai.bad'); return; } }
+      if (job !== generation || disposed) return;
+      busy = null; st.textContent = t('as.failed'); el.append(head()); return;
     }
-    if (busy === null) return;                       // stopped by the user
-    busy = null;
+    if (job !== generation || disposed) return;
     if (off) [tr.notes, tr.poly || []].forEach(L => L.forEach(n => { n.t0 = +(n.t0 + off).toFixed(3); n.t1 = +(n.t1 + off).toFixed(3); }));
+    try {
     const R = o.res, beats = R.beats || [];
     let mt;
     if (o.getOnsets) { const on2 = await o.getOnsets(); mt = A.metre(beats, on2.env, on2.dt, on2.t0off, R.chords); }
-    else mt = A.metre(beats, tr.flux, tr.dt, tr.t0off + off, R.chords);
-    A.quantise(tr.notes, beats, mt); A.mapNotes(tr.notes);
+    else mt = A.metre(beats, tr.flux || new Float32Array(0), tr.dt, tr.t0off + off, R.chords);
+    if (job !== generation || disposed) return;
+    busy = null; A.mapNotes(tr.notes); A.quantise(tr.notes, beats, mt);
     M = { notes: tr.notes, poly: tr.poly || null, engine: tr.engine, metre: mt, bpm: R.bpm, key: Object.assign({}, R.key, { conf: +(R.key.s || 0).toFixed(2) }),
       beats, dur: R.dur, src, range, sections: off ? [] : A.sections(tr.chroma, tr.dt, tr.t0off, beats, R.dur),
-      chords: (R.chords || []).map(c => ({ t0: c.t0, t1: c.t1, name: c.root >= 0 ? PD.ai.cname(c.root, c.q) : null })) };
-    o.save && o.save(M);
+      originalNotes: tr.notes.map(n => ({ ...n })), arrangement: 'advanced',
+      chords: (R.chords || []).map(c => ({ root: c.root, q: c.q, t0: c.t0, t1: c.t1, name: c.root >= 0 ? PD.ai.cname(c.root, c.q) : null })) };
+    o.save && o.save(M); o.onMetre && o.onMetre(mt);
     cur = -1; render();
+    } catch (_) { if (job !== generation || disposed) return; busy = null; st.textContent = t('as.failed'); el.append(head()); }
   }
   const title = () => h('div', { class: 'row pg-head' }, [h('h2', { 'data-t': 'tr.aiTitle', style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' })]);
 
@@ -1007,25 +973,37 @@ PD.aimus.panel = function (o) {
   }
 
   /* ---------------- correcting one note ---------------- */
-  function reMap(n) { const ps = A.places(n.m); if (!ps.length) { n.reach = false; n.s = 0; n.f = -1; n.alt = []; n.octave = null; } else { n.reach = true; n.s = ps[0].s; n.f = ps[0].f; n.fi = ps[0].fi; n.alt = ps.slice(1).map(p => ({ s: p.s, f: p.f })); } }
+  function legacyReMap(n) { const ps = A.places(n.m); if (!ps.length) { n.reach = false; n.s = 0; n.f = -1; n.alt = []; n.octave = null; } else { n.reach = true; n.s = ps[0].s; n.f = ps[0].f; n.fi = ps[0].fi; n.alt = ps.slice(1).map(p => ({ s: p.s, f: p.f })); } }
+  function changedNotes() {
+    M.notes = PD.aiScore.map(M.notes); A.quantise(M.notes, M.beats, M.metre);
+    M.originalNotes = M.notes.map(n => ({ ...n })); M.arrangement = 'advanced'; M.omitted = 0;
+    o.save && o.save(M); lastCur = -2; render();
+  }
   function edit(i) {
     const n = M.notes[i]; if (!n) return;
     if (edBox) edBox.remove();
     const sp = A.spell(n.m, M.key);
     const row = h('div', { class: 'tr-ed-row' });
-    const shift = d => { n.m = clamp(n.m + d, 21, 108); reMap(n); o.save && o.save(M); render(); edit(i); };
+    const shift = d => { n.m = clamp(n.m + d, 21, 108); n.lockPosition = false; n.corrected = true; changedNotes(); edit(i); };
     row.append(h('button', { class: 'btn small', text: '−1', onclick: () => shift(-1) }), h('button', { class: 'btn small', text: '+1', onclick: () => shift(1) }),
       h('button', { class: 'btn small', text: '−8va', onclick: () => shift(-12) }), h('button', { class: 'btn small', text: '+8va', onclick: () => shift(12) }),
       h('button', { class: 'btn small ghost', text: '▶', 'aria-label': t('tb.play'), onclick: () => { try { PD.audio.ensure(); if (n.reach) PD.audio.note(n.s, n.f, { vel: .7 }); } catch (_) {} } }));
     const pos = h('div', { class: 'tr-ed-row' });
     const ps = A.places(n.m);
-    if (ps.length) ps.forEach(p => pos.append(h('button', { class: 'chip' + (p.s === n.s && p.f === n.f ? ' on' : ''), text: TH.stringName(p.s) + ' · ' + (p.f === 0 ? t('tr.open') : p.f), onclick: () => { n.s = p.s; n.f = p.f; n.fi = p.fi; n.alt = ps.filter(q => q !== p).map(q => ({ s: q.s, f: q.f })); o.save && o.save(M); render(); edit(i); } })));
+    if (ps.length) ps.forEach(p => pos.append(h('button', { class: 'chip' + (p.s === n.s && p.f === n.f ? ' on' : ''), text: TH.stringName(p.s) + ' · ' + (p.f === 0 ? t('tr.open') : p.f), onclick: () => { n.s = p.s; n.f = p.f; n.lockPosition = true; changedNotes(); edit(i); } })));
     else { const oc = n.octave || null; pos.append(h('small', { class: 'tr-c lo', text: t('tr.nope') })); if (oc) pos.append(h('button', { class: 'chip', text: t('tr.oct', { d: oc.shift > 0 ? '+1' : '−1', n: A.spell(oc.m, M.key).name }), onclick: () => shift(oc.shift) })); }
+    const onset = h('input', { type: 'number', min: 0, max: M.dur, step: .01, value: n.t0, 'aria-label': t('as.onset') });
+    const duration = h('input', { type: 'number', min: .01, max: M.dur, step: .01, value: +(n.t1 - n.t0).toFixed(3), 'aria-label': t('as.duration') });
+    const timingError = h('small', { class: 'notice', role: 'alert' });
+    const timing = h('div', { class: 'tr-ed-row' }, [h('label', {}, [h('span', { text: t('as.onset') }), onset]), h('label', {}, [h('span', { text: t('as.duration') }), duration]), h('button', { class: 'btn small', text: t('as.apply'), onclick: () => {
+      const a = Number(onset.value), d = Number(duration.value); if (!Number.isFinite(a) || !Number.isFinite(d) || a < 0 || d <= 0 || a + d > M.dur) { timingError.textContent = t('as.timingError'); return; }
+      n.t0 = a; n.t1 = a + d; n.corrected = true; changedNotes();
+    } }), timingError]);
     edBox = h('div', { class: 'tr-ed' }, [
       h('div', { class: 'tr-ed-h' }, [h('b', { text: sp.name }), h('small', { text: t('tr.bar', { n: n.bar }) + ' · ' + n.val + ' · ' + t('tr.conf') + ' ' + cWord(n.conf) }),
         h('button', { class: 'btn small ghost', text: '✕', 'aria-label': t('close'), onclick: () => { edBox.remove(); edBox = null; } })]),
-      row, pos,
-      h('button', { class: 'btn small ghost', text: t('delete') || '✕', onclick: () => { M.notes.splice(i, 1); o.save && o.save(M); edBox = null; render(); } })]);
+      row, pos, timing,
+      h('button', { class: 'btn small ghost', text: t('delete') || '✕', onclick: () => { M.notes.splice(i, 1); edBox = null; changedNotes(); } })]);
     el.append(edBox); PD.i18n.apply(edBox); edBox.scrollIntoView({ block: 'nearest' });
   }
 
@@ -1043,20 +1021,37 @@ PD.aimus.panel = function (o) {
     return h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.exp') }), row, h('small', { class: 'muted', text: t('tr.expNote') })]);
   }
 
+  function arrangementControls() {
+    const row = h('div', { class: 'as-controls' });
+    const choose = mode => {
+      if (!M.originalNotes) M.originalNotes = M.notes.map(n => ({ ...n }));
+      const result = PD.aiScore.arrange(M.originalNotes, mode, M.chords || []);
+      M.notes = result.notes; M.omitted = result.omitted.length; M.arrangement = mode;
+      A.quantise(M.notes, M.beats, M.metre); o.save && o.save(M); cur = -1; lastCur = -2; render();
+    };
+    const select = h('select', { 'aria-label': t('as.variant'), onchange: e => choose(e.target.value) });
+    [['original', 'as.original'], ['easy', 'as.easy'], ['advanced', 'aisc.advanced'], ['fingerstyle', 'as.arrangement']].forEach(([value, key]) => select.append(h('option', { value, text: t(key), selected: (M.arrangement || 'advanced') === value })));
+    row.append(select, h('button', { class: 'btn small', text: t('as.convert'), onclick: () => { A.mapNotes(M.notes); A.quantise(M.notes, M.beats, M.metre); view = 'workspace'; o.save && o.save(M); render(); } }),
+      h('button', { class: 'btn small', text: t('as.fingers'), onclick: () => { A.mapNotes(M.notes); view = 'workspace'; onNeck = true; o.save && o.save(M); render(); el.querySelector('.as-neck')?.scrollIntoView({ block: 'nearest' }); } }),
+      h('button', { class: 'btn small', text: t('as.fingerstyle'), onclick: () => choose('fingerstyle') }),
+      h('button', { class: 'btn small', text: t('as.add'), onclick: () => { if (!can('proEdit')) return lock('ai.edit'); const start = Math.min(M.dur - .05, Math.max(0, o.pos())); M.notes.push(PD.aiScore.normalise({ m: TH.open(3), t0: start, t1: Math.min(M.dur, start + .5), conf: 1, corrected: true, id: 'manual-' + Date.now() })); changedNotes(); } }));
+    return row;
+  }
   /* ---------------- render ---------------- */
   let V = null;
   function render() {
     if (V && V.stop) V.stop();
     el.innerHTML = ''; el.append(title());
     if (!M) { el.append(head()); PD.i18n.apply(el); return; }
-    el.append(facts());
+    el.append(facts(), arrangementControls(), h('p', { class: 'notice', text: t('as.limits') }));
+    if (M.arrangement === 'fingerstyle' || M.arrangement === 'easy') el.append(h('p', { class: 'notice', text: t('as.draft') + ' ' + t('as.omitted', { n: M.omitted || 0 }) }));
     if (!M.notes.length) { el.append(h('p', { class: 'notice', text: t('tr.none') }), head()); PD.i18n.apply(el); return; }
     if (M.metre.unsure && !M.metre.byHand) el.append(h('p', { class: 'notice', text: t('tr.unsure') }));
     const tabs = h('div', { class: 'tabs tr-tabs' });
-    [['staff', 'tr.vStaff'], ['roll', 'tr.vRoll'], ['let', 'tr.vLet'], ['sol', 'tr.vSol'], ['num', 'tr.vNum'], ['tab', 'tr.vTab']].forEach(([k, lab]) =>
+    [['workspace', 'as.workspace'], ['staff', 'tr.vStaff'], ['roll', 'tr.vRoll'], ['let', 'tr.vLet'], ['sol', 'tr.vSol'], ['num', 'tr.vNum'], ['tab', 'tr.vTab']].forEach(([k, lab]) =>
       tabs.append(h('button', { class: 'tab' + (view === k ? ' on' : ''), text: t(lab), onclick: () => { view = k; PD.store.set('tr.view', k); render(); } })));
     el.append(tabs);
-    V = view === 'roll' ? rollView() : view === 'staff' ? staffView() : view === 'tab' ? tabView() : listView();
+    V = ['workspace', 'staff', 'tab'].includes(view) ? PD.aiScore.workspace(M, { ...o, select: i => editMode ? edit(i) : o.seek(M.notes[i].t0) }) : view === 'roll' ? rollView() : listView();
     el.append(V.el);
     const nk = h('button', { class: 'ai-tg', 'aria-pressed': String(onNeck), onclick: () => { onNeck = !onNeck; PD.store.set('tr.neck', onNeck); nk.setAttribute('aria-pressed', String(onNeck)); cur = -1; o.invalidate && o.invalidate(); } }, [h('span', { text: '🪕' }), h('span', { text: t('tr.onNeck') })]);
     const ed = h('button', { class: 'ai-tg', 'aria-pressed': String(editMode), onclick: () => { if (!can('proEdit')) return lock('ai.edit'); editMode = !editMode; ed.setAttribute('aria-pressed', String(editMode)); el.classList.toggle('editing', editMode); if (!editMode && edBox) { edBox.remove(); edBox = null; } } }, [h('span', { text: '✎' }), h('span', { text: t('tr.edit') })]);
@@ -1082,6 +1077,7 @@ PD.aimus.panel = function (o) {
   let lastCur = -2;
   function tick(p) {
     if (!M || !M.notes.length) return;
+    if (V && V.tick) { V.tick(p); return; }
     let i = -1;
     for (let k = 0; k < M.notes.length; k++) { const n = M.notes[k]; if (p >= n.t0 && p < n.t1) { i = k; break; } if (n.t0 > p) break; }
     cur = i;
@@ -1090,14 +1086,14 @@ PD.aimus.panel = function (o) {
       lastCur = i;
       el.querySelectorAll('.now').forEach(x => x.classList.remove('now'));
       if (i >= 0) { const node = el.querySelector('[data-i="' + i + '"]'); if (node) { node.classList.add('now'); if (follow && node.scrollIntoView) node.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } }
-      if (onNeck && o.neck) { const n = i >= 0 ? M.notes[i] : null; o.neck.setTarget(n && n.reach ? [{ s: n.s, f: n.f, fi: n.fi || 0 }] : [], []); }
+      if (onNeck && o.neck) o.neck.setTarget(M.notes.filter(n => n.reach && n.t0 <= p && n.t1 > p).map(n => ({ s: n.s, f: n.f, fi: n.fi })), []);
     }
   }
   /** the studio re-tracked the beats: the bars, the beats and the written values follow */
   function regrid(beats, bpm) {
     if (!M || !M.notes.length) return;
-    M.beats = beats; M.bpm = bpm;
-    A.quantise(M.notes, beats, M.metre); o.save && o.save(M); cur = -1; lastCur = -2; render();
+    if (beats) M.beats = beats; if (bpm) M.bpm = bpm;
+    A.quantise(M.notes, M.beats, M.metre); o.save && o.save(M); cur = -1; lastCur = -2; render();
   }
-  return { el, tick, regrid, setView(k) { if (k && k !== view) { view = k; PD.store.set('tr.view', k); render(); } }, ownsNeck: () => !!(onNeck && M && M.notes.length), get data() { return M; }, destroy() { if (busy && busy.cancel) busy.cancel(); if (V && V.stop) V.stop(); } };
+  return { el, tick, regrid, setView(k) { if (k && k !== view) { view = k; PD.store.set('tr.view', k); render(); } }, ownsNeck: () => !!(onNeck && M && M.notes.length), get data() { return M; }, destroy() { disposed = true; generation++; if (busy && busy.cancel) busy.cancel(); if (V && V.stop) V.stop(); } };
 };

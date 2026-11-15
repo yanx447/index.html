@@ -19,6 +19,7 @@ const DICT = {
     'aria.meterStrobe': 'ჩვენება: სტრობი (შეცვლა ისრით)',
     'aria.micOn': 'მიკროფონის ჩართვა',
     'aria.micOff': 'მიკროფონის გამორთვა',
+    'aria.micCancel': 'მიკროფონის ჩართვის გაუქმება',
     'aria.semiDown': 'ნახევარტონით დაბლა',
     'aria.semiUp': 'ნახევარტონით მაღლა',
     'aria.a4Down': '0.5 ჰერცით დაბლა',
@@ -29,7 +30,7 @@ const DICT = {
     'stat.hz': 'სიხშირე', 'stat.cents': 'ცენტი', 'stat.target': 'სამიზნე',
     'mode.auto': 'ავტო', 'mode.manual': 'ხელით', 'mode.guided': 'აწყობა',
     'dock.ref': 'ეტალონი', 'dock.refStop': 'შეჩერება', 'dock.chord': 'აკორდი',
-    'mic.label': 'მიკროფონი', 'mic.stop': 'გაჩერება', 'mic.starting': 'ირთვება…',
+    'mic.label': 'მიკროფონი', 'mic.stop': 'გაჩერება', 'mic.starting': 'გაუქმება',
     'complete.title': 'ფანდური აწყობილია', 'complete.text': 'სამივე სიმი ზუსტ წყობაშია', 'complete.ok': 'კარგი',
 
     'string': 'სიმი {n}',
@@ -152,6 +153,7 @@ const DICT = {
     'aria.meterStrobe': 'Display: strobe (switch to needle)',
     'aria.micOn': 'Turn microphone on',
     'aria.micOff': 'Turn microphone off',
+    'aria.micCancel': 'Cancel microphone start',
     'aria.semiDown': 'Down a semitone',
     'aria.semiUp': 'Up a semitone',
     'aria.a4Down': 'Down 0.5 Hz',
@@ -162,7 +164,7 @@ const DICT = {
     'stat.hz': 'Frequency', 'stat.cents': 'Cents', 'stat.target': 'Target',
     'mode.auto': 'Auto', 'mode.manual': 'Manual', 'mode.guided': 'Guided',
     'dock.ref': 'Reference', 'dock.refStop': 'Stop', 'dock.chord': 'Chord',
-    'mic.label': 'Microphone', 'mic.stop': 'Stop', 'mic.starting': 'Starting…',
+    'mic.label': 'Microphone', 'mic.stop': 'Stop', 'mic.starting': 'Cancel',
     'complete.title': 'Panduri is in tune', 'complete.text': 'All three strings are spot on', 'complete.ok': 'Done',
 
     'string': 'String {n}',

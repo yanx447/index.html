@@ -11,8 +11,8 @@ const {chromium}=require('../node_modules/playwright');const path=require('node:
    const geometry=PD.R3D.export;
    const nonfinite=geometry.meshes.filter(m=>![...m.pos,...m.nrm].every(Number.isFinite)).length;
    document.querySelectorAll('body > *').forEach(e=>e.style.display='none');
-   const host=document.createElement('div');host.id='render-host';host.style.cssText='position:fixed;inset:0;z-index:999999;background:#100c09;overflow:hidden';document.body.appendChild(host);
-   const {create}=await import('/panduri/source/src3d/intro3d.js');window.renderCtl=create(host,{still:true,pixelRatio:2});if(!renderCtl)throw Error('Renderer unavailable');renderCtl.still(18.4);
+   const host=document.createElement('div');host.id='render-host';host.style.cssText='position:fixed;inset:0;z-index:999999;background:#000000;overflow:hidden';document.body.appendChild(host);
+   const {create}=await import('/panduri/source/src3d/intro3d.js');window.renderCtl=create(host,{still:true,pixelRatio:2,dust:false});if(!renderCtl)throw Error('Renderer unavailable');renderCtl.still(18.4);
    // Straight-on camera: neither the flat tail nor the neck leans due to perspective.
    const bounds=[Infinity,Infinity,Infinity,-Infinity,-Infinity,-Infinity];
    geometry.meshes.filter(m=>m.visible&&!m.local&&!['shadow','ui','string'].includes(m.part)&&!(m.mat.alpha<.6)).forEach(m=>{

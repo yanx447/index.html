@@ -1,14 +1,14 @@
 """Build: one modular PWA (dist/app/) + one self-contained HTML file + the artifact fragment.
 Module order = dependency order. three3d.js is embedded as inert text and parsed only when 3D is first used."""
 import base64, os, re, json, hashlib, shutil
-ORDER = ['core','instrument','theory','geom','songdata','sounddata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','genres','book','install','sima','aiworker','aispl','aideck','aimus','ailesson','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
+ORDER = ['core','instrument','theory','geom','songdata','sounddata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','book','install','sima','aiworker','aispl','aideck','aiscore','aimus','ailesson','songbook','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
 LAZY = {'three3d'}
 src = lambda n: open(f'src/{n}').read()
 # The stylesheet is two cascade layers: the earlier screens' rules (app.css) in `legacy`, and the design
 # system (design.css) after it. A later layer wins whatever the selector, so the design system never has to
 # out-shout an old rule; `ds-imp` holds the few !important answers to legacy !important rules (for important
 # declarations an earlier layer wins).
-css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css') + '\n@layer ds {\n' + src('checkout.css') + '\n}\n' + src('v2.css') + '\n'
+css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css') + '\n@layer ds {\n' + src('checkout.css') + '\n}\n' + src('v2.css') + '\n' + src('aiscore.css') + '\n' + src('circle.css') + '\n'
 hero = 'data:image/jpeg;base64,' + base64.b64encode(open('assets/hero.jpg','rb').read()).decode() if os.path.exists('assets/hero.jpg') else ''
 # supplied recordings (songs): files in media/ — linked in the PWA, embedded as data: URIs in the single-file builds
 # the teacher's recordings: kept once in the repository, beside the built app, so the source tree
@@ -37,8 +37,15 @@ def fig_map(inline):
         if inline: out[n] = {'mp4': 'data:video/mp4;base64,' + base64.b64encode(open(f'assets/fig/{n}.mp4','rb').read()).decode(), 'jpg': 'data:image/jpeg;base64,' + base64.b64encode(open(f'assets/fig/{n}.jpg','rb').read()).decode()}
         else: out[n] = {'mp4': f'fig/{n}.mp4', 'jpg': f'fig/{n}.jpg'}
     return out
-CHORD_POSES = json.load(open('render/out/chord_poses.json')) if os.path.exists('render/out/chord_poses.json') else None
-CHORD_KEYS = {k: True for k in CHORD_POSES} if CHORD_POSES is not None else None
+# the chord positions that have a solved 3D hand: exactly the set src3d/build_hand3d.py packs into hand3d.js —
+# the original solved library with the repaired poses over it, kept where the worst joint error is within 3.6.
+# (chord_poses.json alone is only the repaired subset; on its own it hid 142 playable chords as "no playable form")
+def _chord_keys():
+    lib = {}
+    for f in ('render/out/poses_final.json', 'render/out/chord_poses.json'):
+        if os.path.exists(f): lib.update(json.load(open(f)))
+    return {k: True for k in sorted(lib) if lib[k]['worst'] <= 3.6} if lib else None
+CHORD_KEYS = _chord_keys()
 def assets_js(inline):
     return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + hero + '", photos: ' + json.dumps(PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ' };'
 for n in ORDER: assert '</script' not in src(n + '.js'), n
@@ -125,7 +132,7 @@ open('dist/artifact.html','w').write(frag)
 # 3) modular PWA
 app = 'dist/app'
 if os.path.exists(app): shutil.rmtree(app)
-os.makedirs(app + '/js'); shutil.copytree('pwa/icons', app + '/icons')
+shutil.copytree('assets/emoji', app + '/emoji'); os.makedirs(app + '/js'); shutil.copytree('pwa/icons', app + '/icons')
 shutil.copy('pwa/manifest.webmanifest', app + '/manifest.webmanifest')
 shutil.copy('pwa/privacy.html', app + '/privacy.html')   # the privacy policy and data-deletion page Google and Meta link to
 # the install prompt on Android, Windows and macOS shows these; without them it is a bare line of text
@@ -160,7 +167,23 @@ os.makedirs(app + '/js/lang', exist_ok=True)
 for c, d in LANG_TR.items(): open(f'{app}/js/lang/{c}.js', 'w', encoding='utf8').write('(window.PD_LANG=window.PD_LANG||{})[' + json.dumps(c) + ']=' + json.dumps({'map': d, 'templates': LANG_TEMPLATES}, ensure_ascii=False, separators=(',', ':')) + ';\n')
 for m in MEDIA: os.makedirs(os.path.dirname(app + '/media/' + m), exist_ok=True); shutil.copy(MEDIA_DIR + '/' + m, app + '/media/' + m)
 if FIG_NAMES: shutil.copytree('assets/fig', app + '/fig')
-lazy_loader = '<script>/* 3D renderer is fetched only when first used */\nObject.defineProperty(PD, "R3D", { configurable: true, get() { if (!PD._R3D) { const x = new XMLHttpRequest(); x.open("GET", "js/three3d.js", false); x.send(); const s = document.createElement("script"); s.textContent = x.responseText; document.head.appendChild(s); } return PD._R3D; } });\n</script>'
+# The 3D renderer's code is fetched at start (fetch goes through the service worker, so it comes from the cache
+# offline — a synchronous XHR does not, and offline it used to stop the whole app at the welcome screen) and parsed
+# only when 3D is first used. Code that runs before the fetch is back waits for PD.R3Dready.
+lazy_loader = '''<script>/* 3D renderer: fetched at start, parsed only when first used */
+(() => {
+  let code = null;
+  const parse = src => { const s = document.createElement("script"); s.textContent = src; document.head.appendChild(s); };
+  PD.R3Dready = fetch("js/three3d.js").then(r => r.ok ? r.text() : null).then(t => { code = t; }, () => {});
+  Object.defineProperty(PD, "R3D", { configurable: true, get() {
+    if (!PD._R3D) {
+      if (code == null) { try { const x = new XMLHttpRequest(); x.open("GET", "js/three3d.js", false); x.send(); if (x.status === 200) code = x.responseText; } catch (_) {} }
+      if (code != null) parse(code);
+    }
+    return PD._R3D;   // undefined when the code could not be had: callers show the page without 3D
+  } });
+})();
+</script>'''
 tags.insert(next(i for i, x in enumerate(tags) if x.startswith('<script src="js/instrument.js')), lazy_loader)
 tags.insert(0, LANG_BOOT)
 tags.insert(0, LANG_LIST_TAG)

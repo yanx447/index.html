@@ -1,3 +1,5 @@
+PD.i18n.add({'welcome.instrument':['ფანდურის გაცოცხლება','Animate the panduri']});
+PD.i18n.add({'welcome.motionPause':['ფონის მოძრაობის შეჩერება','Pause background motion'],'welcome.motionPlay':['ფონის მოძრაობის ჩართვა','Play background motion'],'welcome.noRecording':['ჩანაწერი ვერ ჩაიტვირთა — პირველად დაკვრას ინტერნეტი სჭირდება','Recording unavailable — the first play needs the internet']});
 /* =====================================================================
    Sign-in, first thing on first launch: Google · Facebook · phone number
    · e-mail and password (plus create account, forgotten password,
@@ -55,7 +57,7 @@ PD.auth = (() => {
     document.querySelectorAll('.ag').forEach(x => x.remove());
     const root = h('div', { class: 'ag', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('au.signin') });
     const card = h('div', { class: 'ag-card' });
-    root.append(h('div', { class: 'ag-glow', 'aria-hidden': 'true' }), card);
+    root.append(h('div', { class: 'ag-glow', 'aria-hidden': 'true' }), h('div', {class:'welcome-atmosphere', 'aria-hidden':'true'}, [h('i',{class:'welcome-light light-a'}),h('i',{class:'welcome-light light-b'}),h('i',{class:'welcome-wave wave-a'}),h('i',{class:'welcome-wave wave-b'}),h('i',{class:'welcome-wave wave-c'})]), card);
     document.body.appendChild(root);
     let view = opts.view || 'home', email = '', phone = PD.store.get('auth.phone', '+995 '), busy = false, done = false;
     const off = C.on(() => { if (C.session) finish(true); });
@@ -70,6 +72,42 @@ PD.auth = (() => {
     }
     // Back: sign-in form → the list of ways in → the welcome screen (or closes, when opened from inside the app)
     const back = () => h('button', { class: 'ag-back', html: PD.ic.back + '<span data-t="au.back"></span>', onclick: () => { if (view === 'methods') { if (opts.closable) return finish(false); view = 'home'; } else view = 'methods'; render(); } });
+    // the frets you can play on the welcome photograph: placed from the 3D model's geometry. The screen never waits for
+    // it — the buttons arrive when the renderer's code is here, and without it (offline, first launch) the welcome works without them
+    function playableInstrument() {
+      const host=h('div',{class:'welcome-frets'});
+      PD.R3Dready.then(()=>{ if(!host.isConnected)return; try{ const R=PD.R3D; if(R&&R.export&&R.geometry)placeFrets(host,R.export,R.geometry); }catch(e){ host.innerHTML=''; } });
+      return host;
+    }
+    function placeFrets(host,X,G) {
+      const bounds=[Infinity,Infinity,Infinity,-Infinity,-Infinity,-Infinity];
+      X.meshes.filter(m=>m.visible&&!m.local&&!['shadow','ui','string'].includes(m.part)&&!(m.mat.alpha<.6)).forEach(m=>{for(let i=0;i<m.pos.length;i+=3)for(let k=0;k<3;k++){bounds[k]=Math.min(bounds[k],m.pos[i+k]);bounds[k+3]=Math.max(bounds[k+3],m.pos[i+k]);}});
+      const project=(s,f,wide)=>{
+        const aspect=wide?16/9:9/16,tan=Math.tan(42*Math.PI/360),spanX=wide?bounds[4]-bounds[1]:bounds[3]-bounds[0],spanY=wide?bounds[3]-bounds[0]:bounds[4]-bounds[1];
+        const d=Math.max(spanY/(2*tan*.84),spanX/(2*tan*aspect*.88))+bounds[5];
+        const u=f===-1?G.L*.78:f===0?-8:(PD.instrument.fretMm(f-1)+PD.instrument.fretMm(f))/2;
+        const x=X.SX_NUT[s]+(X.SX_BR[s]-X.SX_NUT[s])*u/G.L,y=-u,z=X.SZ_NUT+(X.SZ_BR-X.SZ_NUT)*u/G.L;
+        const dx=x-(bounds[0]+bounds[3])/2,dy=y-(bounds[1]+bounds[4])/2;
+        return [50+50*(wide?dy:dx)/((d-z)*tan*aspect),50-50*(wide?-dx:dy)/((d-z)*tan)];
+      };
+      for(let s=1;s<=3;s++)for(let n=-1;n<=17;n++){
+        const f=Math.max(0,n),w=project(s,n,true),p=project(s,n,false),label=PD.theory.stringName(s)+' · '+f;
+        const btn=h('button',{type:'button',class:'welcome-note','aria-label':label,title:label,style:'--wx:'+w[0]+'%;--wy:'+w[1]+'%;--px:'+p[0]+'%;--py:'+p[1]+'%',onclick:async()=>{
+          PD.audio.ensure();btn.classList.add('loading');
+          try{await PD.samples.waitFor(s,f);if(!root.isConnected||!root.classList.contains('ag-splash'))return;
+            if(!PD.samples.pick(s,f,'pluck',.7)){PD.ui.toast(t('welcome.noRecording'));return;}
+            PD.audio.note(s,f,{vel:.7});btn.classList.add('sounding');setTimeout(()=>btn.classList.remove('sounding'),500);
+            const midi=PD.theory.midi(s,f),name=PD.theory.name(midi);
+            const pop=h('span',{class:'welcome-note-pop','aria-hidden':'true',style:btn.getAttribute('style')},[
+              h('b',{text:PD.theory.pcName(midi)}),h('small',{text:name.match(/-?\d+$/)?.[0]||''}),
+              h('span',{class:'welcome-note-solfege',text:PD.theory.nameKa(midi)})
+            ]);
+            const oldPops=host.querySelectorAll('.welcome-note-pop');if(oldPops.length>=6)oldPops[0].remove();
+            host.append(pop);setTimeout(()=>pop.remove(),1400);
+          }finally{btn.classList.remove('loading');}
+        }});host.append(btn);
+      }
+    }
     function render() {
       card.innerHTML = ''; card.classList.remove('home');
       if (view === 'home') {
@@ -81,7 +119,9 @@ PD.auth = (() => {
         }
         const enter = () => { view = 'methods'; render(); };
         card.append(
-          PD.ui.langSelect(v => PD.i18n.set(v).then(render), 'ag-lang'),
+          PD.ui.langMenu(v => PD.i18n.set(v).then(render), 'ag-lang-menu'),
+          h('button', {class:'welcome-motion',type:'button','aria-label':t(root.classList.contains('motion-paused')?'welcome.motionPlay':'welcome.motionPause'),'aria-pressed':String(root.classList.contains('motion-paused')),text:root.classList.contains('motion-paused')?'▶':'Ⅱ',onclick:e=>{const paused=root.classList.toggle('motion-paused');e.currentTarget.textContent=paused?'▶':'Ⅱ';e.currentTarget.setAttribute('aria-pressed',String(paused));e.currentTarget.setAttribute('aria-label',t(paused?'welcome.motionPlay':'welcome.motionPause'));}}),
+          playableInstrument(),
           h('div', { class: 'sp-brand' }, [h('h1', { class: 'sp-name', 'data-t': 'sp.title' }), h('p', { class: 'sp-tag', 'data-t': 'au.tagline' })]),
           h('div', { class: 'sp-go' }, [
             h('button', { class: 'sp-start', html: '<span data-t="au.start"></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>', onclick: enter }),

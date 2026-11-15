@@ -31,7 +31,7 @@ PD.i18n.add({
   'ai.range': ['რომელი ნაწილი', 'Which part'], 'ai.whole2': ['მთელი სიმღერა · ვოკალი და დანარჩენი', 'Whole song · voice and the rest'], 'ai.fsOn': ['სრული ეკრანი', 'Full screen'], 'ai.fsOff': ['გამოსვლა', 'Exit'], 'ai.vChart': ['ჩარტი', 'Chart'], 'ai.vAll': ['ყველა გადასვლა', 'Every change'], 'ai.chartCycle': ['წრე', 'Cycle'], 'ai.chartD': ['სიმღერა წრეებად, როგორც სიმღერების წიგნში: ერთი სტრიქონი — ერთი წრე, „×N“ — რამდენჯერ მეორდება ზედიზედ, „·“ — იგივე აკორდი გრძელდება. შეეხე სტრიქონს და იქ გადახვალ.', 'The song in cycles, as a songbook writes it: one line a cycle, “×N” — how many times it repeats in a row, “·” — the same chord goes on. Tap a line to jump there.'], 'ai.gpuBad': ['ამ კომპიუტერის GPU-მ დაყოფა არასწორად გამოთვალა — თავიდან ვიწყებ პროცესორზე (უფრო ნელა, მაგრამ სწორად).', 'This computer\'s GPU computed the split wrongly — starting again on the processor (slower, but right).'], 'ai.all': ['მთელი სიმღერა', 'Whole song'], 'ai.first': ['პირველი {n} წმ', 'First {n} s'], 'ai.fromHere': ['აქედან {n} წმ', '{n} s from here'],
   'ai.vocals': ['ვოკალი', 'Vocals'], 'ai.drums': ['დრამი', 'Drums'], 'ai.bass': ['ბასი', 'Bass'], 'ai.other': ['დანარჩენი (ფანდური…)', 'The rest (panduri…)'], 'ai.mute': ['ჩუმად', 'Mute'], 'ai.solo': ['მხოლოდ ეს', 'Solo'], 'ai.save': ['WAV', 'WAV'],
   'ai.stemsOn': ['ისმის AI-ით დაყოფილი ვერსია', 'Playing the AI-split version'], 'ai.orig': ['ორიგინალი', 'Original'], 'ai.mixed': ['AI მიქსი', 'AI mix'], 'ai.speedStems': ['AI მიქსში სიჩქარე ცვლის ბგერის სიმაღლესაც.', 'In the AI mix, speed also changes the pitch.'],
-  'ai.recent': ['ბოლოს გაანალიზებული', 'Recently analysed'], 'ai.fx': ['ეფექტები', 'Effects'], 'ai.fxOpen': ['EQ · რევერბი · ექო', 'EQ · reverb · echo'], 'ai.comp': ['კომპრესორი', 'Compressor'], 'ai.fxStems': ['AI მიქსში ეფექტები თითოეულ ინსტრუმენტს ცალკე აქვს — FX ღილაკი ინსტრუმენტის ხაზზე.', 'In the AI mix each instrument has its own effects — the FX button on its row.'],
+  'ai.recent': ['ბოლოს გაანალიზებული', 'Recently analysed'], 'aib.title': ['ჩემი სიმღერები', 'My songs'], 'aib.keep': ['ინახება ამ მოწყობილობაზე, სანამ თავად არ წაშლი.', 'Kept on this device until you delete them.'], 'aib.more': ['მოქმედებები', 'Actions'], 'aib.open': ['დაკვრა', 'Play'], 'aib.now': ['ახლა უკრავს', 'Now playing'], 'aib.rename': ['სახელის შეცვლა', 'Rename'], 'aib.name': ['სახელი', 'Name'], 'aib.download': ['ფაილის შენახვა', 'Save the file'], 'aib.delQ': ['წავშალო „{s}“? სიმღერა, მისი აკორდები და შენი შესწორებები ამ მოწყობილობიდან წაიშლება.', 'Delete “{s}”? The song, its chords and your corrections are removed from this device.'], 'aib.hasLesson': ['„{s}“-ისგან გაკვეთილი გაქვს შექმნილი. რა წავშალო?', 'You made a lesson from “{s}”. What should be deleted?'], 'aib.delBoth': ['სიმღერაც და მისი გაკვეთილიც', 'The song and its lesson'], 'aib.delKeep': ['მხოლოდ სიიდან — გაკვეთილი დარჩეს', 'Only from this list — keep the lesson'], 'aib.deleted': ['წაიშალა', 'Deleted'], 'aib.notSaved': ['ამ მოწყობილობაზე ადგილი აღარ დარჩა — სიმღერა ვერ შეინახა. წაშალე სხვა სიმღერა და თავიდან ატვირთე.', 'No room left on this device — the song could not be saved. Delete another song and upload it again.'], 'ai.fx': ['ეფექტები', 'Effects'], 'ai.fxOpen': ['EQ · რევერბი · ექო', 'EQ · reverb · echo'], 'ai.comp': ['კომპრესორი', 'Compressor'], 'ai.fxStems': ['AI მიქსში ეფექტები თითოეულ ინსტრუმენტს ცალკე აქვს — FX ღილაკი ინსტრუმენტის ხაზზე.', 'In the AI mix each instrument has its own effects — the FX button on its row.'],
   'ai.fxLow': ['დაბლები', 'Lows'], 'ai.fxMid': ['შუა', 'Mids'], 'ai.fxHigh': ['მაღლები', 'Highs'], 'ai.fxRev': ['რევერბი', 'Reverb'], 'ai.fxEcho': ['ექო', 'Echo'],
   'ai.fxP_clean': ['გასუფთავება', 'Clean'], 'ai.fxP_hall': ['დარბაზი', 'Hall'], 'ai.fxP_echo': ['ექო', 'Echo'], 'ai.fxP_warm': ['თბილი', 'Warm'], 'ai.fxP_bright': ['ნათელი', 'Bright'], 'ai.fxP_radio': ['ძველი რადიო', 'Old radio'], 'ai.beats': ['ვპოულობ დარტყმებს და ტაქტებს…', 'Finding beats and bars…'], 'ai.prep': ['მზადდება…', 'Preparing…'], 'ai.seek': ['პოზიცია', 'Position'],
   'ai.bpmSet': ['ტემპი ხელით', 'Set the tempo'], 'ai.bpmD': ['AI-ის გაზომვა: {n} BPM. შეცვალე და დარტყმები ამ ტემპზე თავიდან დაეწყობა — ჩანაწერის ატაკებზე მიბმული.', 'The AI measured {n} BPM. Change it and the beats are tracked again at that tempo, still locked onto the attacks in the recording.'],
@@ -137,11 +137,15 @@ PD.i18n.add({
 
 PD.ai = (() => {
   let CUR = null;   // the song open in the studio: its analysis and its transcription
-  const KEEP = 12;   // songs kept on the device for reopening
+  // every uploaded song stays on the device until it is deleted in the studio (there is no automatic limit)
+  // the analysis also runs on its own (qa/ai-analysis.cjs loads this file without core.js): no slicer there, nothing to hand back
+  const slicer = () => PD.slicer ? PD.slicer() : () => null;
+  const sameFile = (r, file) => r.name === file.name && (r.size == null || r.size === file.size);
+  const titleOf = r => r.title || String(r.name || '').replace(/\.[^.]+$/, '');
   const h = PD.h, t = PD.i18n.t, ic = PD.ic, TH = PD.theory;
   const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
   const SR = 44100;
-  const BASE = (() => { const p = location.pathname; return location.protocol.startsWith('http') && /\/panduri\/app\//.test(p) ? new URL('../ai/', location.href).href : 'https://yanx447.github.io/index.html/panduri/ai/'; })();
+  const BASE = (() => { const p = location.pathname; return location.protocol.startsWith('http') && /\/panduri\/source\/dist\/app\//.test(p) ? new URL('../../../ai/', location.href).href : location.protocol.startsWith('http') && /\/panduri\/app\//.test(p) ? new URL('../ai/', location.href).href : 'https://yanx447.github.io/index.html/panduri/ai/'; })();
   /** one gate for every premium door in the studio. The owner passes through PD.premium itself
       (premium.active is true for the server's is_owner()); no stored switch opens a door on its own. */
   const pro = f => !!(PD.premium && PD.premium.allows(f));
@@ -282,6 +286,7 @@ PD.ai = (() => {
     const pcOf = new Int8Array(N / 2).fill(-1), wOf = new Float32Array(N / 2);
     for (let k = 1; k < N / 2; k++) { const f = k * sr / N; if (f < 55 || f > 1760) continue; const m = 69 + 12 * Math.log2(f / a4) - tune, r = Math.round(m); if (Math.abs(m - r) > .42) continue; pcOf[k] = ((r % 12) + 12) % 12; wOf[k] = Math.exp(-Math.pow((m - 60) / 20, 2)); }
     const chroma = [], bass = [], flux = new Float32Array(frames), loud = new Float32Array(frames); let prev = new Float32Array(N / 2);
+    const slice = slicer();   // the screen is handed back every ~12 ms
     for (let i = 0; i < frames; i++) {
       fft(mono, i * HOPA, mag);
       const c = new Float32Array(12), bs = new Float32Array(12); let fl = 0, ld = 0;
@@ -289,7 +294,8 @@ PD.ai = (() => {
       prev.set(mag); flux[i] = fl; loud[i] = ld;
       const mx = Math.max(...c) || 1; for (let j = 0; j < 12; j++) c[j] /= mx;
       chroma.push(c); bass.push(bs);
-      if (i % 200 === 0) { onProgress && onProgress(i / frames * .8); await new Promise(r => setTimeout(r, 0)); }
+      if (i % 200 === 0) onProgress && onProgress(i / frames * .8);
+      { const y = slice(); if (y) await y; }
     }
     const dt = HOPA / sr, fc = i => i * dt + N / 2 / sr, dur = mono.length / sr;
     onStage && onStage('tempo');
@@ -377,8 +383,8 @@ PD.ai = (() => {
   /** beat times (s) by dynamic programming on a fine onset envelope (Ellis 2007), plus the bar phase from chord changes */
   async function beatsOf(mono, sr, bpm0, chords, lock) {
     const N = 1024, HOPB = 256, fft = fftMag(N), mag = new Float32Array(N / 2), F = Math.max(2, Math.floor((mono.length - N) / HOPB));
-    const env = new Float32Array(F); let prev = new Float32Array(N / 2);
-    for (let i = 0; i < F; i++) { fft(mono, i * HOPB, mag); let fl = 0; for (let k = 2; k < N / 2; k++) { const v = Math.log1p(mag[k] * 10), d = v - prev[k]; if (d > 0) fl += d; prev[k] = v; } env[i] = fl; if (i % 4000 === 0) await new Promise(r => setTimeout(r, 0)); }
+    const env = new Float32Array(F), slice = slicer(); let prev = new Float32Array(N / 2);
+    for (let i = 0; i < F; i++) { fft(mono, i * HOPB, mag); let fl = 0; for (let k = 2; k < N / 2; k++) { const v = Math.log1p(mag[k] * 10), d = v - prev[k]; if (d > 0) fl += d; prev[k] = v; } env[i] = fl; const y = slice(); if (y) await y; }
     const dt = HOPB / sr;
     // remove the slow trend, normalise
     const W = Math.round(.5 / dt), on = new Float32Array(F); let acc = 0; for (let i = 0; i < F; i++) { acc += env[i]; if (i >= W) acc -= env[i - W]; on[i] = Math.max(0, env[i] - acc / Math.min(i + 1, W)); }
@@ -526,9 +532,43 @@ PD.ai = (() => {
     drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) open(f); });
     const status = h('div', { class: 'ai-status', 'aria-live': 'polite' }), body = h('div', { class: 'ai-body' });
     const passEl = h('div', { class: 'ai-pass', hidden: true });
-    w.append(input, drop, passEl, status, body);
+    const recordHint = h('small', { class: 'muted', text: t('as.recordHint') });
+    const recordStatus = h('span', { role: 'status' });
+    let recorder = null, recordStream = null, recordTimer = null, recordGone = false, requestingMic = false, liveMonitor = null;
+    const liveStatus = h('div', { class: 'as-live', role: 'status' });
+    const stopMic = () => { if (liveMonitor) liveMonitor.stop(); liveMonitor = null; clearInterval(recordTimer); recordTimer = null; if (recordStream) recordStream.getTracks().forEach(track => track.stop()); recordStream = null; };
+    const recordButton = h('button', { class: 'btn small', text: t('as.record'), onclick: async () => {
+      if (requestingMic) return;
+      if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+      requestingMic = true; recordButton.disabled = true;
+      try {
+        if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) throw Error('Unsupported recording');
+        if (S?.deck) S.deck.pause();
+        recordStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+        if (recordGone) { stopMic(); return; }
+        const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find(x => MediaRecorder.isTypeSupported(x));
+        const rec = recorder = new MediaRecorder(recordStream, type ? { mimeType: type } : undefined), chunks = [], start = Date.now();
+        rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+        rec.onerror = () => { rec.onstop = null; stopMic(); recorder = null; recordButton.textContent = t('as.record'); recordStatus.textContent = t('as.recordError'); };
+        rec.onstop = () => { stopMic(); recorder = null; recordButton.textContent = t('as.record'); recordStatus.textContent = ''; if (recordGone || !chunks.length) return;
+          const mime = rec.mimeType || chunks[0].type, ext = mime.includes('mp4') ? 'm4a' : 'webm';
+          open(new File(chunks, 'Panduri-' + new Date().toISOString().replace(/[:.]/g, '-') + '.' + ext, { type: mime }));
+        };
+        rec.start(500);
+        liveStatus.textContent = t('as.live') + ' · ' + t('as.liveWaiting');
+        PD.aiScore.liveMonitor(recordStream, BASE, notes => {
+          liveStatus.textContent = t('as.live') + ' · ' + (notes.length ? notes.map(n => TH.name(n.m) + (n.conf < .5 ? '?' : '')).join(' · ') : t('as.rest'));
+        }, () => { liveStatus.textContent = t('as.failed'); }).then(monitor => { if (recordGone || rec.state !== 'recording') monitor.stop(); else liveMonitor = monitor; }).catch(() => { if (!recordGone) liveStatus.textContent = t('as.failed'); });
+        recordButton.textContent = t('as.recordStop');
+        const update = () => { const n = Math.floor((Date.now() - start) / 1000); recordStatus.textContent = t('as.recording', { n }); if (n >= 60 && rec.state === 'recording') rec.stop(); };
+        update(); recordTimer = setInterval(update, 250);
+      } catch (_) { stopMic(); recordStatus.textContent = t('as.recordError'); }
+      finally { requestingMic = false; recordButton.disabled = false; }
+    } });
+    own(() => { recordGone = true; if (recorder?.state === 'recording') recorder.stop(); stopMic(); });
+    w.append(input, drop, h('div', { class: 'as-record' }, [recordButton, recordStatus, recordHint, liveStatus]), passEl, status, body);
     let S = null;   // the current song
-    const stopAll = () => { if (S && S.cancelSplit) S.cancelSplit(); for (const w of [worker, splWorker]) { try { w && w.terminate(); } catch (_) {} } worker = null; splWorker = null; if (S) { cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
+    const stopAll = () => { if (S && S.cancelSplit) S.cancelSplit(); for (const w of [worker, splWorker]) { try { w && w.terminate(); } catch (_) {} } worker = null; splWorker = null; if (S) { if (S.tr) S.tr.destroy(); cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
     own(() => { document.removeEventListener('fullscreenchange', onFsChange); document.removeEventListener('keydown', onFsKey); if (document.body.classList.contains('ai-full')) setFull(false); });   // leaving the studio leaves the full screen
     own(stopAll); own(() => { if (worker) { try { worker.terminate(); } catch (_) {} worker = null; } if (splWorker) { try { splWorker.terminate(); } catch (_) {} splWorker = null; } });   // leaving the studio stops both engines
     /** the free session's clock: how long is left, and the studio closes when it runs out */
@@ -546,8 +586,9 @@ PD.ai = (() => {
     function bar(label, p) { status.innerHTML = ''; status.append(h('span', { text: label }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(p * 100) + '%' })])); }
 
     async function open(file, saved) {
+      if (recorder?.state === 'recording') { recorder.onstop = null; recorder.stop(); recorder = null; stopMic(); recordButton.textContent = t('as.record'); recordStatus.textContent = ''; }
       stopAll(); body.innerHTML = ''; bar(t('ai.reading'), .05);
-      const isVid = /^video\//.test(file.type || '') || /\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i.test(file.name || '');
+      const isVid = /^video\//.test(file.type || '') || (!/^audio\//.test(file.type || '') && /\.(mp4|m4v|mov|webm|mkv|avi|ogv)$/i.test(file.name || ''));
       if (isVid && !pro('ai.video')) { status.innerHTML = ''; status.append(h('p', { class: 'notice', 'data-t': 'ai.vidPm' }), h('button', { class: 'btn primary', 'data-t': 'pm.buy', onclick: () => lock('ai.video') })); PD.i18n.apply(status); return; }
       if (!pro('ai.more')) {
         const st = passFor(file), p0 = PD.store.get('ai.pass', null);
@@ -587,7 +628,7 @@ PD.ai = (() => {
       status.innerHTML = '';
       S = { file, ab, res, stems: null, mode: 'orig', raf: 0, mix: null, id: null, mono22: S0.mono || null, isVid, cap };
       if (isVid) { try { S.vidURL = URL.createObjectURL(file); } catch (_) { S.vidURL = null; } }
-      try { const all = PD.store.get('ai.recent', []), rec = saved ? saved.id : (all.find(r => r.name === file.name) || {}).id; if (rec) { S.id = rec; S.trSaved = await PD.blobs.get('ai.tr.' + rec); const rr = await PD.blobs.get('ai.rhy.' + rec); if (rr && rr.rhy) { S.rhy = rr.rhy; S.rhyMt = rr.metre; } } } catch (_) {}
+      try { const all = PD.store.get('ai.recent', []), rec = saved ? saved.id : (all.find(r => sameFile(r, file)) || {}).id; if (rec) { S.id = rec; S.trSaved = await PD.blobs.get('ai.tr.' + rec); const rr = await PD.blobs.get('ai.rhy.' + rec); if (rr && rr.rhy) { S.rhy = rr.rhy; S.rhyMt = rr.metre; } } } catch (_) {}
       S.deck = PD.aiDeck.create(D => S.onDeck && S.onDeck(D));
       S.origSet = { id: 'orig', sr: ab.sampleRate, from: 0, tracks: [{ name: 'mix', L: ab.getChannelData(0), R: ab.numberOfChannels > 1 ? ab.getChannelData(1) : ab.getChannelData(0) }] };
       S.deck.setBeats(res.beats, res.bpm, res.phase, (S.trSaved && S.trSaved.metre && S.trSaved.metre.beatsPerBar) || 4); S.deck.setSet(S.origSet);
@@ -597,10 +638,11 @@ PD.ai = (() => {
       try {
         const all = PD.store.get('ai.recent', []), id = saved ? saved.id : (S.id || 's' + Date.now().toString(36));
         S.id = id;   // a new song gets its id now, so its corrections, its rhythm and its lesson are kept with it
-        const rest = all.filter(r => r.id !== id && r.name !== file.name), gone = all.filter(r => !rest.includes(r) && r.id && r.id !== id);
-        const entry = { id, name: file.name, type: file.type, at: Date.now(), key: cname(res.key.r, res.key.q), bpm: res.bpm, chords: [...new Set(res.chords.filter(c => c.root >= 0).map(c => cname(c.root, c.q)))].slice(0, 8), stored: saved ? true : false };
-        const keep = [entry].concat(rest).slice(0, KEEP), drop = gone.concat(rest.slice(KEEP - 1));
-        drop.forEach(r => { if (r.id) { if (!(PD.aiLessons && PD.aiLessons.usesSong(r.id))) PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.res.' + r.id); } });   // a song that has a lesson keeps its recording
+        const same = r => r.id === id || (!saved && sameFile(r, file)), old = all.find(r => r.id === id) || {};
+        const rest = all.filter(r => !same(r)), gone = all.filter(r => same(r) && r.id && r.id !== id);   // only a second copy of the very same file
+        const entry = { id, name: file.name, title: old.title, size: file.size, type: file.type, at: Date.now(), key: cname(res.key.r, res.key.q), bpm: res.bpm, chords: [...new Set(res.chords.filter(c => c.root >= 0).map(c => cname(c.root, c.q)))].slice(0, 8), stored: saved ? true : !!old.stored && old.size === file.size };
+        const keep = [entry].concat(rest);
+        gone.forEach(r => { if (r.id) { if (!(PD.aiLessons && PD.aiLessons.usesSong(r.id))) PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.res.' + r.id); } });   // a song that has a lesson keeps its recording
         PD.store.set('ai.recent', keep);
         if (saved && saved.fresh) PD.blobs.put('ai.res.' + id, res);
         if (!saved) {
@@ -608,6 +650,8 @@ PD.ai = (() => {
           const blob = new Blob([await file.arrayBuffer()], { type: file.type || 'audio/mpeg' });
           const ok = await PD.blobs.put('ai.song.' + id, blob), ok2 = await PD.blobs.put('ai.res.' + id, res);
           if (ok !== null && ok2 !== null) { const r2 = PD.store.get('ai.recent', []), e2 = r2.find(r => r.id === id); if (e2) { e2.stored = true; PD.store.set('ai.recent', r2); } }
+          else PD.ui.toast(t('aib.notSaved'), 7000);
+          recentList();
         }
       } catch (_) {}
       render(); showPass();
@@ -622,27 +666,32 @@ PD.ai = (() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function forget(r) {
-      if (r.id) { if (!(PD.aiLessons && PD.aiLessons.usesSong(r.id))) PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.res.' + r.id); }
+      if (r.id) { if (!(PD.aiLessons && PD.aiLessons.usesSong(r.id))) { PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.tr.' + r.id); PD.blobs.del('ai.rhy.' + r.id); } PD.blobs.del('ai.res.' + r.id); }
+      if (S && r.id && S.id === r.id) { stopAll(); S = null; body.innerHTML = ''; status.innerHTML = ''; leadP.hidden = false; drop.classList.remove('mini'); }
       PD.store.set('ai.recent', PD.store.get('ai.recent', []).filter(x => x !== r && !(x.id ? x.id === r.id : x.name === r.name)));
-      recentList();
+      recentList(); PD.ui.toast(t('aib.deleted'));
     }
 
     let render = function () {
       body.innerHTML = '';
       const { res } = S, dk = S.deck, D = dk.D;
+      // rhySrc is declared up here: the rhythm tab is built (and, for a reopened song with a saved rhythm, drawn) before the
+      // code further down that reads it — declared lower, reopening such a song stopped the studio half drawn
+      let rhySrc = PD.store.get('ai.rhySrc', 'auto');
       let rhyBox = null, rhyTimer = 0, chEdit = false, chBox = null, sheetBox = null, sheetCur = -1, reread = null, chartRows = null, chartCur = -1;
       const used = [...new Map(res.chords.filter(c => c.root >= 0).map(c => [c.root + c.q, c])).values()];
       const TR = () => Math.round(D.semis);
       // header: name · key · tempo
       const keyB = h('b'), bpmB = h('b');
-      body.append(h('section', { class: 'ai-head' }, [h('b', { class: 'ai-name', text: S.file.name.replace(/\.[^.]+$/, '') }),
+      body.append(h('section', { class: 'ai-head' }, [h('b', { class: 'ai-name', text: titleOf(PD.store.get('ai.recent', []).find(r => r.id === S.id) || S.file) }),
         h('div', { class: 'ai-facts' }, [fact('ai.key', keyB), fact('ai.bpm', bpmB), fact('ai.chords', h('b', { text: String(used.length) }))])]));
       // chord ribbon with the loop region
       const ribbon = h('canvas', { class: 'ai-ribbon' }), loopZ = h('i', { class: 'ai-loopz', hidden: true }), rWrap = h('div', { class: 'ai-rwrap' }, [ribbon, loopZ]);
       const nowEl = h('div', { class: 'ai-now' }), nextEl = h('div', { class: 'ai-next' });
       const nv = h('div', { class: 'neckview ai-neck' }), ncv = h('canvas'); nv.appendChild(ncv);
       const neck = PD.Neck(ncv, { sticky: true }); neck.mirror = PD.store.get('lefty', false);
-      const ro = new ResizeObserver(() => { const nh = neck.natH(nv.clientWidth) + 'px'; if (nv.style.height !== nh) nv.style.height = nh; neck.layout(); drawRibbon(); last = null; }); ro.observe(nv); own(() => ro.disconnect());
+      const ro = new ResizeObserver(() => { if (!nv.isConnected || !S) { ro.disconnect(); return; }   // the song was closed or deleted
+        const nh = neck.natH(nv.clientWidth) + 'px'; if (nv.style.height !== nh) nv.style.height = nh; neck.layout(); drawRibbon(); last = null; }); ro.observe(nv); own(() => ro.disconnect());
       // the left hand in 3D, moving along with the song — the same solved positions the chord pages use
       const h3on = h('input', { type: 'checkbox', checked: PD.store.get('ai.hand3d', true) });
       let H3 = null, h3want = null, h3box = null;
@@ -740,7 +789,7 @@ PD.ai = (() => {
         h('small', { class: 'muted', text: t('ai.gotoD') })]);
       /* ---- the deck stays on screen: the transport, the ribbon and what is playing now.
               Everything else lives in a tab, and switching a tab never touches the sound. ---- */
-      leadP.hidden = true; drop.classList.add('mini'); if (recentBox) recentBox.hidden = true;
+      leadP.hidden = true; drop.classList.add('mini');
       own(() => { leadP.hidden = false; drop.classList.remove('mini'); if (recentBox) recentBox.hidden = !PD.store.get('ai.recent', []).length; });
       const deck = h('section', { class: 'ai-deck' }, [vidBox, rWrap, transport, seek, h('div', { class: 'ai-nn' }, [nowEl, nextEl])]);
       const overview = h('section', { class: 'ai-pane ai-player' }, [gotoRow, nv,
@@ -765,7 +814,7 @@ PD.ai = (() => {
       const paneBox = h('div', { class: 'ai-panes' }, [overview, learnPane, stemsPane, chordsPane, rhythmPane, trPane]);
       let tab = PD.store.get('ai.tab', 'overview'); if (!PANE[tab]) tab = 'overview';
       function showTab(k) {
-        tab = k; PD.store.set('ai.tab', k);
+        tab = k; PD.store.set('ai.tab', k); body.classList.toggle('as-mode', ['notation', 'solo', 'roll'].includes(k));
         const want = PANE[k];
         panes.forEach(e => { e.hidden = e !== want; });
         tabBar.querySelectorAll('button').forEach(b2 => { const on = b2.dataset.k === k; b2.classList.toggle('on', on); b2.setAttribute('aria-selected', String(on)); if (on) try { b2.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (_) {} });
@@ -820,7 +869,6 @@ PD.ai = (() => {
       function saveRes() { try { if (S.id) PD.blobs.put('ai.res.' + S.id, res); } catch (_) {} }
       // the strokes are clearest on the instrument that plays them. When the song has been split,
       // the rhythm is read off the accompaniment stem rather than the full mix.
-      let rhySrc = PD.store.get('ai.rhySrc', 'auto');
       function rhyStem() {
         const names = S.stems ? S.stems.tracks.map(x => x.name) : [];
         if (rhySrc === 'perc' || rhySrc === 'orig') return rhySrc;
@@ -1212,7 +1260,14 @@ PD.ai = (() => {
       function trPanel() {
         if (S.tr) { try { S.tr.destroy(); } catch (_) {} }
         S.tr = PD.aimus.panel({
-          res, name: S.file.name, saved: S.trSaved || null, neck,
+          res, name: S.file.name, saved: S.trSaved || null, neck, transport: dk,
+          preview: async M => {
+            const session = S; const mono = await PD.aiScore.renderAudio(M);
+            if (S !== session || !S.deck) return;
+            if (!S.previewSource) S.previewSource = D.set;
+            dk.setSet({ id: 'score-' + Date.now(), from: 0, sr: 22050, tracks: [{ name: 'panduri', L: mono, R: mono }] }, true); await dk.play();
+          },
+          source: () => { if (S.previewSource) { dk.setSet(S.previewSource, true); S.previewSource = null; } },
           pro: () => pro('ai.trans'), proEdit: () => pro('ai.edit'), proExp: () => pro('ai.export'), lock,
           pos: () => dk.pos(), seek: tt => dk.seek(tt), invalidate: () => { last = null; },
           stemNames: () => S.stems ? S.stems.tracks.map(x => x.name) : [],
@@ -1227,7 +1282,7 @@ PD.ai = (() => {
             return { mono: (await resample(b, 22050, 1)).getChannelData(0), offset: S.stems.from };
           }
         });
-        CUR = { res, get transcription() { return S.tr && S.tr.data; }, file: S.file, get stems() { return S && S.stems; }, get audio() { return S && S.ab; } };
+        CUR = { res, get transcription() { return S.tr && S.tr.data; }, file: S.file, get stems() { return S && S.stems; }, get audio() { return S && S.ab; }, get transport() { return S && S.deck; } };
         return S.tr.el;
       }
       own(() => { if (S && S.tr) { try { S.tr.destroy(); } catch (_) {} S.tr = null; } });
@@ -1442,11 +1497,56 @@ PD.ai = (() => {
     }
     // recent analyses: tap to reopen (song + chords are kept on this device)
     const recentBox = h('section', { class: 'ai-recent' }); w.append(recentBox);
+    const IC = { play: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
+      more: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></svg>',
+      edit: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>',
+      save: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+      del: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>' };
+    const meta = r => [r.key, r.bpm ? r.bpm + ' BPM' : '', (r.chords || []).join(' ')].filter(Boolean).join(' · ');
+    /** one song's actions: play · rename · save the file · delete (asked first) — all in one sheet */
+    function songMenu(r) {
+      PD.ui.sheet((box, close) => {
+        const act = (icon, label, fn, cls) => h('button', { class: 'aib-act' + (cls ? ' ' + cls : ''), html: icon + '<span>' + PD.esc(label) + '</span>', onclick: fn });
+        const main = () => {
+          box.innerHTML = '';
+          const playing = S && S.id === r.id;
+          box.append(h('h2', { text: titleOf(r) }), h('p', { class: 'muted aib-meta', text: meta(r) }), h('div', { class: 'aib-acts' }, [
+            act(IC.play, t(playing ? 'aib.now' : 'aib.open'), () => { close(); if (!playing) reopen(r); }),
+            act(IC.edit, t('aib.rename'), renameView),
+            r.stored ? act(IC.save, t('aib.download'), async () => { close(); const b = await PD.blobs.get('ai.song.' + r.id); if (b) PD.ui.download(r.name, b, b.type || r.type); }) : null,
+            act(IC.del, t('delete'), deleteView, 'danger')].filter(Boolean)));
+        };
+        const renameView = () => {
+          box.innerHTML = '';
+          const inp = h('input', { class: 'input', type: 'text', value: titleOf(r), maxlength: '120', 'aria-label': t('aib.name') });
+          const save = () => { const v = inp.value.trim(); if (!v) { inp.focus(); return; } const all = PD.store.get('ai.recent', []), e = all.find(x => x.id === r.id); if (e) { e.title = v; r.title = v; PD.store.set('ai.recent', all); } const nm = S && S.id === r.id && body.querySelector('.ai-name'); if (nm) nm.textContent = v; recentList(); close(); };
+          inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } });
+          box.append(h('h2', { text: t('aib.rename') }), h('label', { class: 'aib-field' }, [h('span', { class: 'muted', text: t('aib.name') }), inp]),
+            h('div', { class: 'row' }, [h('button', { class: 'btn primary', text: t('save'), onclick: save }), h('button', { class: 'btn', text: t('cancel'), onclick: main })]));
+          setTimeout(() => { inp.focus(); inp.select(); }, 30);
+        };
+        const deleteView = () => {
+          box.innerHTML = '';
+          const keepsRec = !!(PD.aiLessons && r.id && PD.aiLessons.usesSong(r.id));
+          // a song with a lesson: delete both, or only take the song off the list and keep the lesson (and the recording it plays)
+          if (keepsRec) box.append(h('h2', { text: t('sure') }), h('p', { class: 'fg2', text: t('aib.hasLesson', { s: titleOf(r) }) }),
+            h('div', { class: 'aib-acts' }, [
+              act(IC.del, t('aib.delBoth'), () => { close(); PD.aiLessons.remove(r.id); forget(r); }, 'danger'),
+              act(IC.del, t('aib.delKeep'), () => { close(); forget(r); }),
+              h('button', { class: 'btn', text: t('cancel'), onclick: main })]));
+          else box.append(h('h2', { text: t('sure') }), h('p', { class: 'fg2', text: t('aib.delQ', { s: titleOf(r) }) }),
+            h('div', { class: 'row' }, [h('button', { class: 'btn primary danger', text: t('delete'), onclick: () => { close(); forget(r); } }), h('button', { class: 'btn', text: t('cancel'), onclick: main })]));
+        };
+        main();
+      });
+    }
     function recentList() {
       const rec = PD.store.get('ai.recent', []); recentBox.innerHTML = ''; recentBox.hidden = !rec.length; if (!rec.length) return;
-      recentBox.append(h('h3', { text: t('ai.recent') }), h('div', { class: 'list' }, rec.map(r => h('div', { class: 'li ai-ri' }, [
-        h('button', { class: 'ai-rb grow', onclick: () => reopen(r) }, [h('span', { class: 'ai-rplay', html: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>' }), h('span', { class: 'grow' }, [h('b', { text: r.name.replace(/\.[^.]+$/, '') }), h('small', { class: 'muted', text: r.key + ' · ' + r.bpm + ' BPM · ' + (r.chords || []).join(' ') }), r.stored ? null : h('small', { class: 'ai-rwarn', text: t('ai.reloadS') })])]),
-        h('button', { class: 'btn small ghost ai-rdel', 'aria-label': t('ai.forget'), title: t('ai.forget'), text: '✕', onclick: () => forget(r) })]))));
+      recentBox.append(h('div', { class: 'aib-head' }, [h('h3', { text: t('aib.title') }), h('small', { class: 'muted', text: t('aib.keep') })]),
+        h('div', { class: 'list' }, rec.map(r => { const playing = !!(S && S.id === r.id);
+          return h('div', { class: 'li ai-ri' + (playing ? ' on' : '') }, [
+            h('button', { class: 'ai-rb grow', 'aria-current': playing ? 'true' : null, onclick: () => { if (!playing) reopen(r); } }, [h('span', { class: 'ai-rplay', html: IC.play }), h('span', { class: 'grow' }, [h('b', { text: titleOf(r) }), h('small', { class: 'muted', text: playing ? t('aib.now') + (meta(r) ? ' · ' + meta(r) : '') : meta(r) }), r.stored ? null : h('small', { class: 'ai-rwarn', text: t('ai.reloadS') })])]),
+            h('button', { class: 'btn small ghost aib-more', 'aria-label': t('aib.more') + ': ' + titleOf(r), title: t('aib.more'), html: IC.more, onclick: () => songMenu(r) })]); })));
     }
     recentList();
     const _render = render; render = function () { _render(); recentList(); };

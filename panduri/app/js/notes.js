@@ -225,7 +225,8 @@ PD.theoryBook = (() => {
         TABLE([L('საფეხური', 'Degree'), 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'], [[L('დო მაჟორი', 'C major'), 'C', 'Dm', 'Em', 'F', 'G', 'Am', 'B°'], [L('რე მინორი', 'D minor'), '<b>Dm</b>', 'E°', 'F', 'Gm', 'Am / A', '<b>B♭</b>', '<b>C</b>']]),
         UL([['<b>I — ტონიკა</b>: მშვიდი, „სახლი“.', '<b>I — tonic</b>: calm, “home”.'], ['<b>IV — სუბდომინანტა</b>: ტონიკიდან მოშორება.', '<b>IV — subdominant</b>: moving away from home.'], ['<b>V — დომინანტა</b>: დაძაბულობა, ტონიკაში დაბრუნება სურს. მინორში ხშირად მაჟორულია (რე მინორში — A = A C♯ E: ფანდურის ღია სიმები!).', '<b>V — dominant</b>: tension that wants to return home. In minor it is often major (in D minor — A = A C♯ E: the panduri\'s open strings!).']]),
         P('„ბანი-აჭარული“ რე მინორშია: <b>Dm (I) · B♭ (VI) · C (VII)</b> — ტონიკიდან ქვემოთ, VI და VII საფეხურებზე, და ისევ ტონიკაში.', '“Bani-Acharuli” is in D minor: <b>Dm (I) · B♭ (VI) · C (VII)</b> — from the tonic to degrees VI and VII and home again.'),
-        BTN('Dm · Dm · B♭ · C', 'Dm · Dm · B♭ · C', () => { PD.audio.ensure(); const ctx = PD.audio.ctx, t0 = ctx.currentTime + .05; [[0, 1, 1], [0, 1, 1], [1, 1, 1], [3, 3, 3], [0, 1, 1]].forEach((f, i) => PD.audio.strum(f, 'down', { gap: .03, when: t0 + i * .6 })); }));
+        BTN('Dm · Dm · B♭ · C', 'Dm · Dm · B♭ · C', () => { PD.audio.ensure(); const ctx = PD.audio.ctx, t0 = ctx.currentTime + .05; [[0, 1, 1], [0, 1, 1], [1, 1, 1], [3, 3, 3], [0, 1, 1]].forEach((f, i) => PD.audio.strum(f, 'down', { gap: .03, when: t0 + i * .6 })); }),
+        h('button', { class: 'btn small', 'data-t': 'cf.title', onclick: () => PD.app.go('circle') }));
     }, q: [
       [['რე მინორში რომელი საფეხურია B♭?', 'In D minor, which degree is B♭?'], ['VI', 'IV', 'VII'], 0, ['D(I) E(II) F(III) G(IV) A(V) B♭(VI) C(VII).', 'D(I) E(II) F(III) G(IV) A(V) B♭(VI) C(VII).']],
       [['რომელი საფეხური ქმნის დაძაბულობას, რომელიც ტონიკაში დაბრუნებას „ითხოვს“?', 'Which degree creates tension that wants to return home?'], [['V — დომინანტა', 'V — dominant'], ['I — ტონიკა', 'I — tonic'], 'III'], 0, ['დომინანტა (V) ტონიკისკენ მიისწრაფვის.', 'The dominant (V) pulls back to the tonic.']]] },
@@ -310,6 +311,7 @@ PD.theoryBook = (() => {
       h('p', { class: 'fg2', 'data-t': 'tb.lead' }),
       h('div', { class: 'tb-prog' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(n / CH.length * 100) + '%' })]), h('small', { class: 'muted', text: t('tb.read', { a: n, b: CH.length }) })]),
       h('button', { class: 'tbs-glb', onclick: () => PD.app.go('theory', 'glossary') }, [h('b', { text: L('ლექსიკონი', 'Glossary') }), h('small', { text: L('მუსიკის ყველა სიტყვა მარტივად', 'Every music word, simply') })]),
+      h('button', { class: 'tbs-glb cf-entry', onclick: () => PD.app.go('circle') }, [h('b', { 'data-t': 'cf.title' }), h('small', { 'data-t': 'cf.toolD' })]),
       h('div', { class: 'tb-list' }, CH.map((x, i) => { const S = PD.theorySimple && PD.theorySimple.get(x.id), one = S ? L(S.easy[0][0], S.easy[0][1]).replace(/<[^>]+>/g, '') : ''; return h('button', { class: 'tb-card' + (d[x.id] ? ' done' : ''), onclick: () => PD.app.go('theory', x.id) }, [h('span', { class: 'tb-num', text: d[x.id] ? '✓' : String(i + 1) }), h('span', { class: 'tb-ct' }, [h('b', { text: L(x.t[0], x.t[1]) }), one ? h('small', { text: one }) : null])]); })));
   }
   function chapter(w, c) {

@@ -1,0 +1,29 @@
+/* Isolated to the transcription workspace; the tuner geometry is untouched. */
+.as-workspace { --as-copper: #c58b62; min-width: 0; }
+.as-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:12px 0; }
+.as-controls select { max-width:100%; background:#211b18; color:#eaded1; border:1px solid #6a4e3e; padding:12px; border-radius:10px; }
+.as-controls button { min-height:44px; }
+.as-sheets { display:grid; gap:16px; max-width:100%; }
+.as-system { overflow:auto; border:1px solid #594335; border-radius:14px; background:#141210; padding:12px 0; scrollbar-color:#916d53 #141210; }
+.as-system > small { padding-left:16px; color:#c58b62; }
+.as-system-content { position:relative; }
+.as-system .tb-svg, .as-tab { width:100%; display:block; max-width:none; }
+.as-system [data-i] { cursor:pointer; outline:none; transition:filter .12s; }
+.as-system [data-i]:focus { filter:drop-shadow(0 0 4px #fff); }
+.as-system [data-i].now { filter:drop-shadow(0 0 7px #df9b60); }
+.as-system [data-i].now ellipse, .as-system [data-i].now text { fill:#efb87f; }
+.as-cursor { position:absolute; top:8px; bottom:8px; width:2px; background:#efb87f; box-shadow:0 0 10px #c58b62; pointer-events:none; }
+.as-cursor[hidden] { display:none; }
+.as-neck { width:100%; min-height:120px; margin-top:24px; border-radius:16px; overflow:hidden; }
+.as-finger-info { min-height:3em; font-variant-numeric:tabular-nums; color:#debd9e; line-height:1.7; }
+.as-record { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:12px 0; }
+.as-record small { flex-basis:100%; }
+.tr-ed-row input[type=number] { width:130px; max-width:100%; }
+.tr-ed-row label { display:flex; flex-direction:column; gap:6px; }
+@media(max-width:600px) { .as-controls { gap:6px; } .as-controls .btn { flex:1 1 145px; white-space:normal; } .as-workspace { width:100%; } .as-system { max-width:calc(100vw - 48px); } }
+@media(min-width:1600px) { .as-controls button { min-height:52px; font-size:18px; } .as-finger-info { font-size:20px; } }
+@media(prefers-reduced-motion:reduce) { .as-system [data-i] { transition:none; } }
+@media print { .as-controls, .as-neck, .as-finger-info, .as-cursor { display:none!important; } .as-system { overflow:visible; break-inside:avoid; } .as-system-content { max-width:100%; } }
+
+.ai-body.as-mode .ai-deck { position:relative; top:auto; }
+.as-live { flex-basis:100%; color:#debd9e; font-size:13px; }

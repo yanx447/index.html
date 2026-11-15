@@ -7,12 +7,13 @@
     PD.cloud.boot();
     PD.tv && PD.tv.init();
     PD.app.shell();
+    document.documentElement.dataset.emoji = document.getElementById('pd-css') ? 'system' : PD.store.get('emojiAppearance', 'system');
     setTimeout(() => PD.samiSimi.prepare(), 1200);
     PD.app.go('home', null, true);
     // back from the bank's or PayPal's page: the checkout screen says what the server has (or has not yet) confirmed
     if (PD.billing.returned && !PD.billing.native) PD.app.go('checkout', 'return');
-    // the very first screen on a new device is the language, before anything has to be read
-    // then: sign in (Google · Facebook · phone · e-mail), then the short onboarding
+    // Welcome opens directly; language is available there and in Settings.
+    // Then sign in, followed by the account onboarding.
     const afterAuth = () => PD.onboard.maybe();
     // the app is used with an account: without a session the sign-in screen stays until you sign in or register
     PD.store.del('auth.skip');   // the old "continue without an account" choice no longer exists
@@ -22,7 +23,7 @@
       else if (PD.cloud.arriving) PD.auth.arrive(afterAuth);   // back from Google / Facebook: the session came with the page
       else afterAuth();
     };
-    if (PD.store.get('language.chosen', false) || PD.store.get('lang', null)) enter(); else PD.ui.langFirst(enter);
+    enter();
     if (PD.cloud.takeRecovery()) setTimeout(() => PD.auth.newPassword(), 300);   // came from the password-reset e-mail
     window.addEventListener('keydown', e => { if (e.key === '?' && !PD.practice.active) PD.ui.toast(t('kbd.list'), 6000); });
     PD.bus.on('lessons', () => PD.pwa.persist());

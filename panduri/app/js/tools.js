@@ -63,7 +63,7 @@ PD.i18n.add({
   'fx.target': ['იპოვე: {n}', 'Find: {n}'], 'fx.exact': ['ზუსტი ოქტავა', 'Exact octave'], 'fx.any': ['ნებისმიერი ოქტავა', 'Any octave'], 'fx.score': ['{a}/{b} · სერია {s}', '{a}/{b} · streak {s}'],
   'fx.right': ['✓ სწორია', '✓ Correct'], 'fx.wrong': ['× ეს არის {n}', '× That is {n}'], 'fx.micHint': ['შეგიძლია ფანდურზეც დაუკრა — მიკროფონი ბგერას შეამოწმებს (სიმს ვერ განსაზღვრავს).', 'You can also play it on the panduri — the mic checks the pitch (it cannot tell which string).'],
   'x3.title': ['ფანდური 3D-ში', 'Panduri in 3D'], 'x3.reset': ['თავდაპირველი ხედი', 'Reset view'], 'x3.rotate': ['ბრუნვა', 'Rotate'], 'x3.labels': ['წარწერები', 'Labels'], 'x3.tour': ['როგორ მუშაობს ფანდური?', 'How does the panduri work?'],
-  'x3.tap': ['შეეხე ტარს — ნოტი დაიკვრება. გადაატრიალე თითით/მაუსით, გაადიდე ორი თითით/ბორბლით.', 'Tap the neck to play a note. Drag to rotate, pinch or wheel to zoom.'],
+  'x3.noCode': ['3D ინსტრუმენტი ჯერ არ ჩამოტვირთულა. ერთხელ ინტერნეტთან დაკავშირდი და შემდეგ ინტერნეტის გარეშეც იმუშავებს.', '3D instrument not downloaded yet. Connect to the internet once; after that it works offline too.'], 'x3.tap': ['შეეხე ტარს — ნოტი დაიკვრება. გადაატრიალე თითით/მაუსით, გაადიდე ორი თითით/ბორბლით.', 'Tap the neck to play a note. Drag to rotate, pinch or wheel to zoom.'],
   'x3.note': ['{n} · {s} სიმი · ლადი {f}', '{n} · {s} string · fret {f}'], 'x3.step': ['{a} / {b}', '{a} / {b}'],
   'x3.t0': ['სიმი ირხევა — ის, სადაც თითი აჭერს, ვიბრაციის საწყისი წერტილია. რაც მოკლეა რხევადი ნაწილი, მით მაღალია ბგერა.', 'The string vibrates from where the finger presses it. The shorter the vibrating part, the higher the pitch.'],
   'x3.t9': ['ასე: სიმი → ხიდი → დეკა → ჰაერი ტანში → ხვრელი. ახლა სცადე: შეეხე ნებისმიერ ლადს.', 'So: string → bridge → soundboard → air in the body → sound hole. Now try it: tap any fret.']
@@ -454,6 +454,7 @@ PD.tools = (() => {
     host.append(tags, views, infoEl); tags.hidden = true;
     w.append(host, h('p', { class: 'muted', 'data-t': 'x3.tap' }));
     let showLabels = false, active = null;   // hotspots on demand: the default view stays clean
+    if (!R) { host.appendChild(h('div', { class: 'msg', text: t('x3.noCode') })); return; }   // the renderer's code could not be had (offline before it was ever saved)
     const ok = R.mount(host);
     if (!ok) { host.appendChild(h('div', { class: 'msg', text: t('r3.nogl') })); return; }
     host.insertBefore(R.canvas, tags);

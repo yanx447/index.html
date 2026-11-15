@@ -1,0 +1,1 @@
+PASS: nested Escape/Back, focus containment/restoration, dialog labels, file cancel/select/cleanup, live reduced motion. No page errors.

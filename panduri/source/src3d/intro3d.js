@@ -99,7 +99,7 @@ export function create(host, opt) {
   const dg = new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
   const dotTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g2 = x.createRadialGradient(32, 32, 0, 32, 32, 32); g2.addColorStop(0, 'rgba(255,230,200,1)'); g2.addColorStop(.35, 'rgba(255,200,150,.35)'); g2.addColorStop(1, 'rgba(255,200,150,0)'); x.fillStyle = g2; x.fillRect(0, 0, 64, 64); const t = new THREE.CanvasTexture(c); return t; })();
   const dust = new THREE.Points(dg, new THREE.PointsMaterial({ size: 5, map: dotTex, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
-  scene.add(dust);
+  dust.visible = opt.dust !== false; scene.add(dust);
 
   const cam = new THREE.PerspectiveCamera(40, 1, 1, 6000);
   /* the film: [t0, t1, from pos, to pos, from target, to target, fov0, fov1, up] */

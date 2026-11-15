@@ -1,0 +1,12 @@
+
+> build
+> npm --prefix panduri/source run build
+
+
+> panduri-source@1.1.0 build
+> python3 build.py
+
+hand3d 770 KB · 871 poses
+held back (under 80%): none
+languages ar 4009/4393, de 4009/4393, es 4009/4393, fr 4009/4393, hi 4008/4393, it 4008/4393, ja 4008/4393, ko 4008/4393, pl 4008/4393, pt 4008/4393, ru 4009/4393, tr 4009/4393, uk 4008/4393, zh 4009/4393
+ok · single 14714 KB · fragment 14715 KB · version aab56f3616

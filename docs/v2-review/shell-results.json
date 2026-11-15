@@ -1,0 +1,74 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "clear": true,
+    "overflow": false,
+    "black": "rgb(0, 0, 0)",
+    "errors": []
+  },
+  {
+    "width": 820,
+    "height": 1180,
+    "clear": true,
+    "overflow": false,
+    "black": "rgb(0, 0, 0)",
+    "errors": []
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "clear": true,
+    "overflow": false,
+    "black": "rgb(0, 0, 0)",
+    "errors": []
+  },
+  {
+    "width": 1280,
+    "height": 720,
+    "clear": true,
+    "overflow": false,
+    "black": "rgb(0, 0, 0)",
+    "errors": []
+  },
+  {
+    "width": 1366,
+    "height": 768,
+    "clear": true,
+    "overflow": false,
+    "black": "rgb(0, 0, 0)",
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "clear": true,
+    "overflow": false,
+    "black": "rgb(0, 0, 0)",
+    "errors": []
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "clear": true,
+    "overflow": false,
+    "black": "rgb(0, 0, 0)",
+    "errors": []
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "clear": true,
+    "overflow": false,
+    "black": "rgb(0, 0, 0)",
+    "errors": []
+  },
+  {
+    "width": 3840,
+    "height": 2160,
+    "clear": true,
+    "overflow": false,
+    "black": "rgb(0, 0, 0)",
+    "errors": []
+  }
+]

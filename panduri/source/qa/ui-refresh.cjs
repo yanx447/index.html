@@ -20,7 +20,7 @@ require('node:fs').mkdirSync(output, {recursive:true});
    if(route==='home'||(width===390&&route==='chords'))await page.screenshot({path:`${output}/${width}-${route}.png`});
   }
   await page.evaluate(()=>PD.app.go('home'));await page.waitForTimeout(700);
-  await page.locator('.hq').nth(2).focus();await page.keyboard.press('Enter');await page.waitForTimeout(700);
+  await page.locator('.hm-tool').nth(2).focus();await page.keyboard.press('Enter');await page.waitForTimeout(700);
   assert.equal(await page.evaluate(()=>PD.app.route),'chords');
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.evaluate(()=>PD.app.go('home'));await page.waitForTimeout(80);
@@ -30,7 +30,7 @@ require('node:fs').mkdirSync(output, {recursive:true});
   await page.evaluate(()=>{PD.app.go('learn');document.documentElement.classList.add('rm')});await page.waitForTimeout(100);
   assert.equal(await page.evaluate(()=>document.querySelectorAll('.page').length),1);
   await page.evaluate(()=>{document.documentElement.classList.remove('rm');PD.i18n.set('en');PD.app.go('home')});await page.waitForTimeout(700);
-  assert.equal(await page.locator('.room-eyebrow').textContent(),'PANDURI · YOUR PRACTICE SPACE');
+  assert.equal(await page.locator('.hm-tools').getAttribute('aria-label'),'Quick access');   // Home re-drawn in the new language
   assert.deepEqual(errors,[]);results.push({width,routes:5,errors,overflow:false,keyboard:true,reducedMotion:true});
   await context.close();
  }

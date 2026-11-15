@@ -158,7 +158,9 @@ PD.theory = (() => {
       if (api._lib && api._libKey === key) return api._lib;
       const lib = [];
       api.CHORD_TYPES.forEach(T => api.ROOTS.forEach((rn, root) => {
-        const all = api.voicings(root, T).filter(api.hasHandPose);
+        // positions with a solved 3D hand come first; a chord whose positions all lack one keeps its computed 2D
+        // forms (the 3D view says so) instead of being called unplayable
+        const comp = api.voicings(root, T), posed = comp.filter(api.hasHandPose), all = posed.length ? posed : comp;
         const name = api.ROOT_NAMES[root] + T.k, alias = api.ROOTS[root] !== api.ROOT_NAMES[root] ? api.ROOTS[root] + T.k : null;
         // honest: when no playable three-string form exists the chord is listed without a diagram
         if (!all.length) { lib.push({ id: name, name, alias, root, q: T.k, cat: api.CAT[T.k] || 'other', none: true, kind: T.k, ka: api.ROOT_NAMES_KA[root] + ' · ' + T.ka, typeKa: T.ka, typeEn: T.en, frets: [0, 0, 0], fingers: [0, 0, 0], voicings: [], src: 'computed' }); return; }

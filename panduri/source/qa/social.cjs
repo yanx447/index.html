@@ -141,7 +141,7 @@ async function fakeServer(route, media) {
     // the motion: what runs, measured while it runs (screenshots cannot show it)
     {
       const mv = {};
-      mv.intro = await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'); return { cls: c.classList.contains('fd-in'), rail: getComputedStyle(c.querySelector('.fd-rail > *')).animationName, info: getComputedStyle(c.querySelector('.fd-info > *')).animationName, disc: getComputedStyle(c.querySelector('.fd-vinyl')).animationPlayState, marq: getComputedStyle(c.querySelector('.fd-marq > span')).animationName }; });
+      mv.intro = await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'); const style = sel => { const el=c.querySelector(sel); return el ? getComputedStyle(el) : {animationName:'none',animationPlayState:'paused'}; }; return { cls: c.classList.contains('fd-in'), rail: style('.fd-rail > *').animationName, info: style('.fd-info > *').animationName, disc: style('.fd-vinyl').animationPlayState, marq: style('.fd-marq > span').animationName }; });
       const r0 = await pg.evaluate(() => { const r = document.querySelector('.fd-card.act .fd-media').getBoundingClientRect(); return [r.left + r.width * .3, r.top + r.height * .55]; });
       await pg.mouse.click(r0[0], r0[1]); await pg.waitForTimeout(60); await pg.mouse.click(r0[0], r0[1]); await pg.waitForTimeout(120);
       mv.doubleTap = await pg.evaluate(() => { const c = document.querySelector('.fd-card.act'), b = c.querySelector('.rx-burst'); return { burst: !!b, sparks: c.querySelectorAll('.fd-spark').length, notes: c.querySelectorAll('.fd-spark.note').length }; });

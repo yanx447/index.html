@@ -35,48 +35,79 @@ export class AudioInput {
     this.windowSize = windowSize;
     this.stream = null;
     this.onEnded = null;
+    this.generation = 0;
+    this.pending = null;
   }
 
   get active() { return !!this.stream; }
   get sampleRate() { return audioContext().sampleRate; }
 
-  async start() {
+  start() {
+    if (this.pending) return this.pending;
+    if (this.active) return Promise.resolve();
+    const generation = ++this.generation;
+    const pending = this.open(generation).finally(() => {
+      if (this.pending === pending) this.pending = null;
+    });
+    this.pending = pending;
+    return pending;
+  }
+
+  async open(generation) {
     const sup = micSupport();
     if (sup !== 'ok') throw new MicError(sup);
     const ctx = audioContext();
     const resumed = resumeContext(); // started synchronously inside the user gesture (iOS)
+    let stream;
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
         video: false,
       });
     } catch (e) {
+      if (generation !== this.generation) throw new MicError('cancelled');
       const n = e && e.name;
       const code = n === 'NotAllowedError' || n === 'SecurityError' || n === 'PermissionDeniedError' ? 'denied'
         : n === 'NotFoundError' || n === 'OverconstrainedError' || n === 'DevicesNotFoundError' ? 'notfound'
         : n === 'NotReadableError' || n === 'AbortError' || n === 'TrackStartError' ? 'busy' : 'unknown';
       throw new MicError(code, e && e.message);
     }
+    if (generation !== this.generation) {
+      stream.getTracks().forEach((t) => t.stop());
+      throw new MicError('cancelled');
+    }
+    this.stream = stream;
     await resumed;
-    this.source = ctx.createMediaStreamSource(this.stream);
-    this.hp = ctx.createBiquadFilter(); this.hp.type = 'highpass'; this.hp.frequency.value = 50; this.hp.Q.value = 0.707;
-    this.lp = ctx.createBiquadFilter(); this.lp.type = 'lowpass'; this.lp.frequency.value = 3000; this.lp.Q.value = 0.707;
-    this.analyser = ctx.createAnalyser();
-    let size = 2048; while (size < this.windowSize) size <<= 1;
-    this.analyser.fftSize = size;
-    this.analyser.smoothingTimeConstant = 0;
-    this.source.connect(this.hp).connect(this.lp).connect(this.analyser);
-    this.buf = new Float32Array(this.analyser.fftSize);
-    const track = this.stream.getAudioTracks()[0];
-    if (track) track.addEventListener('ended', () => { this.stop(); this.onEnded && this.onEnded(); });
+    if (generation !== this.generation) throw new MicError('cancelled');
+    try {
+      this.source = ctx.createMediaStreamSource(this.stream);
+      this.hp = ctx.createBiquadFilter(); this.hp.type = 'highpass'; this.hp.frequency.value = 50; this.hp.Q.value = 0.707;
+      this.lp = ctx.createBiquadFilter(); this.lp.type = 'lowpass'; this.lp.frequency.value = 3000; this.lp.Q.value = 0.707;
+      this.analyser = ctx.createAnalyser();
+      let size = 2048; while (size < this.windowSize) size <<= 1;
+      this.analyser.fftSize = size;
+      this.analyser.smoothingTimeConstant = 0;
+      this.source.connect(this.hp).connect(this.lp).connect(this.analyser);
+      this.buf = new Float32Array(this.analyser.fftSize);
+      const track = this.stream.getAudioTracks()[0];
+      if (track) track.addEventListener('ended', () => {
+        if (this.stream !== stream) return;
+        this.stop(); this.onEnded && this.onEnded();
+      });
+    } catch (e) {
+      this.stop();
+      throw new MicError('unknown', e && e.message);
+    }
   }
 
   read() { this.analyser.getFloatTimeDomainData(this.buf); return this.buf; }
 
   stop() {
+    this.generation++;
+    this.pending = null;
     if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
     this.stream = null;
-    try { this.source && this.source.disconnect(); this.hp && this.hp.disconnect(); this.lp && this.lp.disconnect(); } catch (e) { /* noop */ }
+    try { this.source && this.source.disconnect(); this.hp && this.hp.disconnect(); this.lp && this.lp.disconnect(); this.analyser && this.analyser.disconnect(); } catch (e) { /* noop */ }
     this.source = this.hp = this.lp = this.analyser = null;
   }
 }

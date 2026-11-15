@@ -226,7 +226,17 @@ PD.device = (() => {
 })();
 
 /* ---------- lazy 3D: the renderer's code is only parsed the first time 3D is used ---------- */
+/** a long computation hands the screen back every ~12 ms, however big its loop:
+    `const slice = PD.slicer(); for (…) { …; const y = slice(); if (y) await y; }` */
+PD.slicer = (budget = 12) => {
+  let t = performance.now();
+  const rest = () => (globalThis.scheduler && typeof scheduler.yield === 'function') ? scheduler.yield() : new Promise(r => setTimeout(r, 0));
+  return () => performance.now() - t < budget ? null : rest().then(() => { t = performance.now(); });
+};
 PD.has3D = () => !!PD._R3D;
+/* resolves once PD.R3D can be read without waiting: at once here (the code is in the page); the installable
+   app replaces it with the fetch of js/three3d.js, which the service worker answers offline */
+PD.R3Dready = Promise.resolve();
 Object.defineProperty(PD, 'R3D', {
   configurable: true,
   get() {

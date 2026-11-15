@@ -9,7 +9,7 @@ PD.tv = (() => {
   const on = () => isTV || PD.store.get('remoteNav', false);
   const SEL = 'button:not([disabled]), a[href], input:not([type=hidden]):not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
   function layer() {
-    const tops = ['.call', '.lvup', '.sheet-back:not(.out)', '.ag', '.ob', '.pz'];
+    const tops = ['.ck-floating:not([hidden])', '.call', '.lvup', '.sheet-back:not(.out)', '.ag', '.ob', '.pz'];
     for (const s of tops) { const els = document.querySelectorAll(s); if (els.length) return els[els.length - 1]; }
     return document.body;
   }
@@ -31,8 +31,8 @@ PD.tv = (() => {
       const d = main + side * 2.2;
       if (d < bd) { bd = d; best = el; }
     });
-    if (best) { best.focus({ preventScroll: true }); best.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); }
-    else if (dir === 'ArrowDown' || dir === 'ArrowUp') { const sc = root === document.body ? document.scrollingElement : root.querySelector('.sheet') || root; sc && sc.scrollBy({ top: (dir === 'ArrowDown' ? 1 : -1) * innerHeight * .5, behavior: 'smooth' }); }   // nothing more that way: show the rest of the page
+    if (best) { best.focus({ preventScroll: true }); best.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: document.documentElement.classList.contains('rm') || matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
+    else if (dir === 'ArrowDown' || dir === 'ArrowUp') { const sc = root === document.body ? document.scrollingElement : root.querySelector('.sheet') || root; sc && sc.scrollBy({ top: (dir === 'ArrowDown' ? 1 : -1) * innerHeight * .5, behavior: document.documentElement.classList.contains('rm') || matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }   // nothing more that way: show the rest of the page
   }
   function init() {
     if (isTV) document.documentElement.classList.add('tv');

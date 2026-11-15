@@ -44,6 +44,9 @@ PD.i18n.add({
   'al.est': ['ეს AI-ის შეფასებაა და არა მასწავლებლის ჩარტი: აკორდები და დრო ჩანაწერიდან გაიზომა. შეამოწმე ყურით და საჭიროებისას შეასწორე.', 'This is an AI estimate, not the teacher\'s chart: the chords and timing were measured from the recording. Check it by ear and correct it where needed.'],
   'al.make': ['გაკვეთილის შექმნა', 'Make the lesson'], 'al.remake': ['გაკვეთილის განახლება', 'Update the lesson'],
   'al.open': ['გაკვეთილის გახსნა', 'Open the lesson'], 'al.del': ['გაკვეთილის წაშლა', 'Delete the lesson'],
+  'al.delQ': ['წავშალო გაკვეთილი „{s}“? შენი პროგრესიც წაიშლება. სიმღერა AI სტუდიაში რჩება — გაკვეთილს იქიდან ხელახლა შექმნი.', 'Delete the lesson “{s}”? Your progress on it goes too. The song stays in the AI studio — you can make the lesson again from there.'],
+  'al.delQGone': ['წავშალო გაკვეთილი „{s}“? შენი პროგრესიც წაიშლება და ჩანაწერიც, რადგან AI სტუდიის სიიდან სიმღერა უკვე წაშლილია.', 'Delete the lesson “{s}”? Your progress goes too, and so does the recording, because the song was already removed from the AI studio.'],
+  'al.deleted': ['გაკვეთილი წაიშალა', 'Lesson deleted'],
   'al.making': ['გაკვეთილი მზადდება…', 'Making the lesson…'],
   'al.made': ['გაკვეთილი მზადაა — „სიმღერებშიც" იპოვი.', 'The lesson is ready — you will also find it under Songs.'],
   'al.noStore': ['სიმღერა ამ მოწყობილობაზე ვერ შეინახა, ამიტომ გაკვეთილი ვერ შეიქმნება. გაათავისუფლე ადგილი და ჩატვირთე ხელახლა.', 'The song could not be stored on this device, so a lesson cannot be made. Free some space and load it again.'],
@@ -175,7 +178,7 @@ PD.aiLessons = (() => {
     const secs = (D.parts || []).map((p, i) => Object.assign(sec('ნაწილი ' + (i + 1), 'Part ' + (i + 1), p[0], p[1]), { kind: 'part' }));
     const list = D.chords.filter(c => D.shapes[c]).join(' · ');
     return {
-      id: D.id, v: 2, type: 'song', level: 1, demo: false, ai: true, source: 'ai', chartSrc: 'ai',
+      id: D.id, sid: D.sid, v: 2, type: 'song', level: 1, demo: false, ai: true, source: 'ai', chartSrc: 'ai',
       title: { ka: D.title, en: D.title },
       desc: { ka: 'AI-მ ჩანაწერიდან ამოიცნო: ' + list + ' · ' + Math.round(D.bpm) + ' BPM. ეს AI-ის შეფასებაა და არა მასწავლებლის ჩარტი — შეამოწმე ყურით.',
         en: 'Measured by the AI from the recording: ' + list + ' · ' + Math.round(D.bpm) + ' BPM. An AI estimate, not the teacher\'s chart — check it by ear.' },
@@ -238,11 +241,18 @@ PD.aiLessons = (() => {
     save(list().filter(x => x.sid !== sid).concat(D));
     return id;
   }
+  /** delete a lesson: its own sound files, its progress and its star. The song's recording goes too when the song
+      is no longer in the studio's list — kept only for this lesson, it would otherwise stay on the device for good. */
   function remove(sid) {
     const D = find(sid); if (!D) return;
     ['full', 'vocals', 'music'].forEach(k => { try { PD.blobs.del('ai.les.' + sid + '.' + k); } catch (_) {} });
+    if (!PD.store.get('ai.recent', []).some(r => r.id === sid)) ['ai.song.', 'ai.tr.', 'ai.rhy.', 'ai.res.'].forEach(k => { try { PD.blobs.del(k + sid); } catch (_) {} });
+    [D.id, D.id + '~chords'].forEach(id => PD.store.del('prog.' + id));
+    const fav = PD.store.get('favorites', []); if (fav.includes(D.id)) PD.store.set('favorites', fav.filter(x => x !== D.id));
     save(list().filter(x => x.sid !== sid));
   }
+  /** is the song this lesson came from still in the studio's list? */
+  const songListed = sid => PD.store.get('ai.recent', []).some(r => r.id === sid);
 
   /* ---------- the panel inside the studio ---------- */
   function panel(o) {
@@ -289,7 +299,7 @@ PD.aiLessons = (() => {
       } });
       const acts = h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap;align-items:center' }, [go,
         D ? h('button', { class: 'btn', text: t('al.open'), onclick: () => PD.app.go('lesson', D.id) }) : null,
-        D ? h('button', { class: 'btn ghost small', text: t('al.del'), onclick: () => PD.ui.confirm(t('al.del') + '?', () => { remove(S.id); draw(); }) }) : null, msg].filter(Boolean));
+        D ? h('button', { class: 'btn ghost small', text: t('al.del'), onclick: () => PD.ui.confirm(t('al.delQ', { s: D.title }), () => { remove(S.id); draw(); PD.ui.toast(t('al.deleted')); }) }) : null, msg].filter(Boolean));
       box.append(acts);
     }
     function pickChord(run, C) {
@@ -308,5 +318,5 @@ PD.aiLessons = (() => {
 
   /** a chord name moved by semitones ('Dm', 2 → 'Em') */
   const transpose = (nm, d) => { if (!d) return nm; const c = parse(nm); return c ? PD.ai.cname(((c.root + d) % 12 + 12) % 12, c.q) : nm; };
-  return { list, find, chart, findCycle, measured, suggest, patterns, lessonOf, make, remove, panel, transpose, shapeFor, usesSong: sid => !!find(sid) };
+  return { list, find, chart, findCycle, measured, suggest, patterns, lessonOf, make, remove, songListed, panel, transpose, shapeFor, usesSong: sid => !!find(sid) };
 })();

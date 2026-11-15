@@ -13,7 +13,7 @@ const assert = require('node:assert/strict');
       document.querySelectorAll('.lf,.ag,.ob,.cine,.cine-boot').forEach(x => x.remove());
       PD.store.set('sima.nudge', false); PD.store.set('uiSounds', false);
       document.documentElement.classList.add('rm'); PD.app.go('home', null, true);
-      document.querySelector('.hq').focus();
+      document.querySelector('.hm-tool').focus();
       window.closeOuter = PD.ui.sheet(box => box.append(PD.h('h2', {text:'Outer'}), PD.h('button', {id:'outer-button',text:'Open inner'})));
       window.closeInner = PD.ui.sheet(box => box.append(PD.h('button', {id:'inner-first',text:'First'}), PD.h('button', {id:'inner-last',text:'Last'})));
     });
@@ -27,7 +27,7 @@ const assert = require('node:assert/strict');
     assert.equal(await page.locator('.sheet').getAttribute('aria-labelledby'), await page.locator('.sheet h2').getAttribute('id'));
     await page.keyboard.press('Escape'); await page.waitForTimeout(150);
     assert.equal(await page.locator('.sheet-back').count(), 0);
-    assert.equal(await page.evaluate(() => document.activeElement.classList.contains('hq')), true);
+    assert.equal(await page.evaluate(() => document.activeElement.classList.contains('hm-tool')), true);
     assert.equal(await page.evaluate(() => PD.layers.depth), 0);
     // A content-only sheet still owns focus, even without buttons.
     await page.evaluate(() => PD.ui.sheet(box => box.append(PD.h('p', {text:'Information'}))));
@@ -64,11 +64,7 @@ const assert = require('node:assert/strict');
     await page.waitForTimeout(80);
     assert.equal(await page.locator('.fx-confetti').count(), 0);
     assert.equal(await page.locator('#count-test').textContent(), '100%');
-    await page.locator('.hx-goal2').hover();
-    assert.equal(await page.locator('.hx-goal2').evaluate(el => el.classList.contains('fx-lit')), false);
-    await page.evaluate(() => document.documentElement.classList.remove('rm'));
-    await page.mouse.move(1,1); await page.locator('.hx-goal2').hover();
-    assert.equal(await page.locator('.hx-goal2').evaluate(el => el.classList.contains('fx-lit')), true);
+    // The retired hx-goal2 spotlight no longer exists in the current Home design.
     assert.deepEqual(errors, []);
     console.log('PASS: nested Escape/Back, focus containment/restoration, dialog labels, file cancel/select/cleanup, live reduced motion. No page errors.');
   } finally { await browser.close(); }

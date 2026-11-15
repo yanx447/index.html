@@ -40,6 +40,7 @@ const longResult = {};
 
 const done = [false, false, false];
 let running = false, starting = false, resumeOnVisible = false;
+let micRequest = 0;
 let embeddedSuspended = false;
 let analysisTimer = 0;
 let current = S.selected;          // string currently shown
@@ -457,19 +458,24 @@ function setMicUI(state) {
   el.mic.classList.toggle('starting', state === 'starting');
   el.mic.setAttribute('aria-pressed', String(state === 'live'));
   el.micLbl.textContent = t(state === 'live' ? 'mic.stop' : state === 'starting' ? 'mic.starting' : 'mic.label');
-  el.mic.setAttribute('aria-label', t(state === 'live' ? 'aria.micOff' : 'aria.micOn'));
+  el.mic.setAttribute('aria-busy', String(state === 'starting'));
+  el.mic.setAttribute('aria-label', t(state === 'starting' ? 'aria.micCancel' : state === 'live' ? 'aria.micOff' : 'aria.micOn'));
   micState = state;
   if (concertOpen) renderConcertLabels();
 }
 
 async function startMic(silent = false) {
-  if (running || starting) return;
+  if (running || starting || embeddedSuspended || document.hidden) return;
+  const request = ++micRequest;
   starting = true; setMicUI('starting');
   try {
     await input.start();
-    if (embeddedSuspended) { input.stop(); starting = false; setMicUI('off'); return; }
+    if (request !== micRequest) return;
+    if (embeddedSuspended || document.hidden) { input.stop(); starting = false; setMicUI('off'); return; }
   } catch (e) {
+    if (request !== micRequest) return;
     starting = false; setMicUI('off');
+    if (e.code === 'cancelled') return;
     const embedded = (() => { try { return window.self !== window.top; } catch (x) { return true; } })();
     if (!silent) showMicSheet(embedded && (e.code === 'denied' || e.code === 'unknown') ? 'embedded' : (e.code || 'unknown'));
     else toast(t('toast.micRetry'));
@@ -488,6 +494,8 @@ async function startMic(silent = false) {
 }
 
 function stopMic() {
+  micRequest++;
+  starting = false;
   running = false;
   clearTimeout(analysisTimer);
   input.stop();
@@ -504,14 +512,21 @@ function stopMic() {
 }
 
 async function requestWakeLock() {
-  try { if ('wakeLock' in navigator && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { wakeLock = null; }
+  const request = micRequest;
+  try {
+    if ('wakeLock' in navigator && document.visibilityState === 'visible') {
+      const lock = await navigator.wakeLock.request('screen');
+      if (request !== micRequest || !running || document.hidden) { await lock.release(); return; }
+      wakeLock = lock;
+    }
+  } catch (e) { /* wake lock is optional */ }
 }
 function releaseWakeLock() { try { wakeLock && wakeLock.release(); } catch (e) { /* noop */ } wakeLock = null; }
 
 input.onEnded = () => { if (running) { stopMic(); toast(t('toast.micEnded')); } };
 
 function onMicButton() {
-  if (running) { stopMic(); return; }
+  if (running || starting) { resumeOnVisible = false; stopMic(); return; }
   const sup = micSupport();
   if (sup !== 'ok') { showMicSheet(sup); return; }
   if (!S.micPrimed) { showMicSheet('prime'); return; }
@@ -1050,7 +1065,8 @@ const ctx = {
     if (!input.active) {
       const sup = micSupport();
       if (sup !== 'ok') { showMicSheet(sup); return null; }
-      try { await input.start(); } catch (e) { showMicSheet(e.code || 'unknown'); return null; }
+      try { await input.start(); } catch (e) { if (e.code !== 'cancelled') showMicSheet(e.code || 'unknown'); return null; }
+      if (embeddedSuspended || document.hidden) { input.stop(); return null; }
       S.micPrimed = true; persist(); toolStartedMic = true;
     }
     toolMicUsers++;
@@ -1116,7 +1132,7 @@ function resetParallax() { const r = document.documentElement.style; r.setProper
 // ─── lifecycle ───────────────────────────────────────────────────────────────────────
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    if (running) { resumeOnVisible = true; stopMic(); }
+    if (running || starting) { resumeOnVisible = true; stopMic(); }
     reference.stop();
     try { audioContext().suspend(); } catch (e) { /* noop */ }
   } else if (resumeOnVisible) {
@@ -1124,7 +1140,7 @@ document.addEventListener('visibilitychange', () => {
     startMic(true);
   }
 });
-window.addEventListener('pagehide', () => { if (running) stopMic(); });
+window.addEventListener('pagehide', () => { stopMic(); stopReference(); });
 // iOS may keep the context suspended after returning; the next touch wakes it
 document.addEventListener('pointerdown', () => { if (running) resumeContext(); }, { passive: true });
 document.addEventListener('gesturestart', (e) => e.preventDefault());

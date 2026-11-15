@@ -16,7 +16,7 @@ PD.notesArt = (() => {
   /** staff with a clef and notes. notes: [{l:'A', o:3, acc:'♯'|'♭'|'♮', d:'w'|'h'|'q'|'e'|'s', dot, label, col}] */
   function staff(notes, opt) {
     opt = opt || {};
-    const clef = opt.clef || 'treble', gap = opt.gap || 42, x0 = 54, W = opt.width || Math.max(260, x0 + 20 + notes.length * gap), top = 34, H = opt.height || 132;
+    const clef = opt.clef || 'treble', gap = opt.gap || 42, x0 = 54, W = opt.width || Math.max(260, x0 + 20 + notes.length * gap), top = opt.top == null ? 34 : opt.top, H = opt.height || 132;
     const yb = top + 40, y = st => yb - st * 5;
     let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="tb-svg" role="img" aria-label="' + PD.esc(opt.label || PD.i18n.t('na.staff')) + '">';
     for (let i = 0; i < 5; i++) s += '<line x1="6" x2="' + (W - 6) + '" y1="' + (top + i * 10) + '" y2="' + (top + i * 10) + '" stroke="' + DIM + '" stroke-width="1.2"/>';
@@ -28,13 +28,17 @@ PD.notesArt = (() => {
     const xs = opt.time ? x0 + 20 : x0;
     notes.forEach((n, i) => {
       const x = n.x != null ? n.x : xs + i * gap + gap / 2, st = n.rest ? null : (clef === 'bass' ? step(n.l, n.o) + 12 : step(n.l, n.o)), col = n.col || INK;
-      if (n.rest) { s += rest(n.rest, x, top, col); if (n.label) s += label(n.label, x, H); return; }
+      if (n.rest) { s += rest(n.rest, x, top, col); if (n.dot) s += '<circle cx="' + (x + 12) + '" cy="' + (top + 20) + '" r="2.2" fill="' + col + '"/>';  if (n.label) s += label(n.label, x, H); return; }
+      if (n.idx != null) s += '<g data-i="' + Number(n.idx) + '" tabindex="0" role="button" aria-label="' + PD.esc(n.l + (n.acc || '') + n.o) + '">';
       // ledger lines
       for (let k = -2; k >= st; k -= 2) s += '<line x1="' + (x - 11) + '" x2="' + (x + 11) + '" y1="' + y(k) + '" y2="' + y(k) + '" stroke="' + INK + '" stroke-width="1.3"/>';
       for (let k = 10; k <= st; k += 2) s += '<line x1="' + (x - 11) + '" x2="' + (x + 11) + '" y1="' + y(k) + '" y2="' + y(k) + '" stroke="' + INK + '" stroke-width="1.3"/>';
-      s += note(n.d || 'q', x, y(st), st >= 4 ? 'down' : 'up', col, n.dot);
+      s += note(n.d || 'q', x, y(st), n.dir || (st >= 4 ? 'down' : 'up'), col, n.dot);
       if (n.acc) s += '<text x="' + (x - 15) + '" y="' + (y(st) + 5) + '" fill="' + col + '" font-size="17" text-anchor="middle" font-family="Georgia,serif">' + n.acc + '</text>';
       if (n.label) s += label(n.label, x, H, n.col);
+      if (n.tieOut) s += '<path d="M' + (x + 5) + ' ' + (y(st) + 10) + 'q16 12 32 0" fill="none" stroke="' + col + '"/>';
+      if (n.tieIn) s += '<path d="M' + (x - 26) + ' ' + (y(st) + 10) + 'q12 10 22 0" fill="none" stroke="' + col + '"/>';
+      if (n.idx != null) s += '</g>';
     });
     return s + '</svg>';
   }

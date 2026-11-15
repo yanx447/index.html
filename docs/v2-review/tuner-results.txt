@@ -1,0 +1,155 @@
+
+String targets
+  ✓ A3 · C♯4 · E4 frequencies 220.000 / 277.183 / 329.628
+  ✓ label A · C♯ · E
+
+Accuracy — each string, exact and detuned (manual mode)
+  ✓ A3 +0¢ measured 0.07¢  (err 0.07)
+  ✓ A3 -2¢ measured -1.92¢  (err 0.08)
+  ✓ A3 +2¢ measured 2.07¢  (err 0.07)
+  ✓ A3 -5¢ measured -4.93¢  (err 0.07)
+  ✓ A3 +5¢ measured 5.07¢  (err 0.07)
+  ✓ A3 -10¢ measured -9.93¢  (err 0.07)
+  ✓ A3 +10¢ measured 10.07¢  (err 0.07)
+  ✓ A3 -25¢ measured -24.93¢  (err 0.07)
+  ✓ A3 +25¢ measured 25.06¢  (err 0.06)
+  ✓ C♯4 +0¢ measured 0.07¢  (err 0.07)
+  ✓ C♯4 -2¢ measured -1.93¢  (err 0.07)
+  ✓ C♯4 +2¢ measured 2.07¢  (err 0.07)
+  ✓ C♯4 -5¢ measured -4.92¢  (err 0.08)
+  ✓ C♯4 +5¢ measured 5.07¢  (err 0.07)
+  ✓ C♯4 -10¢ measured -9.93¢  (err 0.07)
+  ✓ C♯4 +10¢ measured 10.06¢  (err 0.06)
+  ✓ C♯4 -25¢ measured -24.92¢  (err 0.08)
+  ✓ C♯4 +25¢ measured 25.06¢  (err 0.06)
+  ✓ E4 +0¢ measured 0.07¢  (err 0.07)
+  ✓ E4 -2¢ measured -1.93¢  (err 0.07)
+  ✓ E4 +2¢ measured 2.07¢  (err 0.07)
+  ✓ E4 -5¢ measured -4.93¢  (err 0.07)
+  ✓ E4 +5¢ measured 5.07¢  (err 0.07)
+  ✓ E4 -10¢ measured -9.94¢  (err 0.06)
+  ✓ E4 +10¢ measured 10.07¢  (err 0.07)
+  ✓ E4 -25¢ measured -24.93¢  (err 0.07)
+  ✓ E4 +25¢ measured 25.07¢  (err 0.07)
+
+Harmonics & octave errors
+  ✓ strong 2nd harmonic → still A3 220.01 Hz
+  ✓ weak fundamental E4 → not an octave high 329.65 Hz, oct 0
+  ✓ string an octave too low (A2 on A3 string) → octave warning oct -1, 110.00 Hz
+  ✓ string an octave too high → octave warning oct 1
+  ✓ wrong string (A3 played while tuning E4) → not octave-folded, says tighten -699.9¢
+  ✓ detector bias on ideal harmonic tones (110–660 Hz) max 0.032¢
+
+Noise, weak signal, decay
+  ✓ loud broadband noise only → never shows a pitch 
+  ✓ moderate background noise, C♯ −4¢ -3.95¢
+  ✓ weak pluck in a quiet studio 6.09¢
+  ✓ decay → hold (2.4 s) → listening hold at 2052ms, idle 2400ms after last valid
+  ✓ no needle jumps while the note fades max |cents| 0.08
+  ✓ attack transient is not shown as a reading 
+
+Repeated plucks & string switching
+  ✓ rapid plucks every 450 ms follow ±8¢ changes 6/6
+  ✓ Auto mode: A → E → C♯ → A, no flapping picked 0,2,1,0, switches 3
+  ✓ ambiguous pitch between strings → hysteresis holds switches 0
+
+Calibration, transposition, octave
+  ✓ A4 = 442 Hz → 221 Hz is in tune 0.07¢
+  ✓ transpose +1 → B♭ · D · F B♭ · D · F
+  ✓ transpose −1 → A♭ · C · E♭ A♭ · C · E♭
+  ✓ low octave A2 · C♯3 · E3
+  ✓ transposed D string −7¢ -6.93¢
+
+Guidance wording
+  ✓ far flat → მოუჭირე ↑ 
+  ✓ mid flat → კიდევ ცოტათი მოუჭირე 
+  ✓ near flat → ოდნავ მოუჭირე 
+  ✓ near sharp → ოდნავ მოუშვი ↓ 
+  ✓ far sharp → მოუშვი 
+  ✓ within tolerance → აწყობილია 
+
+Inharmonic partials (measured on a real panduri: H3 −17¢ on C♯4, H2 +6¢ / H3 −25¢ on E4)
+  ✓ C♯4 +0¢ with real-instrument partials measured -0.00¢
+  ✓ C♯4 -8¢ with real-instrument partials measured -8.00¢
+  ✓ C♯4 +8¢ with real-instrument partials measured 8.01¢
+  ✓ E4 +0¢ with real-instrument partials measured 0.00¢
+  ✓ E4 -8¢ with real-instrument partials measured -8.00¢
+  ✓ E4 +8¢ with real-instrument partials measured 8.00¢
+  ✓ A3 +0¢ with real-instrument partials measured 0.00¢
+  ✓ A3 -8¢ with real-instrument partials measured -8.01¢
+  ✓ A3 +8¢ with real-instrument partials measured 8.01¢
+
+Chord recognition (panduri-voiced chords, overtones must not count as notes)
+  ✓ chords recognised while ringing 68/68
+
+All three at once (one strum, each string measured)
+  ✓ strum +6¢ -3¢ -9¢ measured 6.1 / -3.0 / -9.0
+  ✓ strum +0¢ +0¢ +0¢ measured -0.0 / -0.0 / 0.0
+  ✓ strum -12¢ +8¢ +3¢ measured -12.0 / 8.0 / 3.0
+
+Accidentally changed settings
+  ✓ recommended settings: no notice 
+  ✓ notice lists only tuning changes transpose,a4
+  ✓ restore keeps language and view 
+  ✓ restore fixes deaf sensitivity and silent reference 
+  ✓ normal manual sensitivity is not flagged 
+  ✓ standard panduri + transposed settings → restored automatically after 3.3 s
+  ✓ octave change alone is not mistaken (octave-folded targets still match) no false alarm
+  ✓ panduri really tuned up 2 semitones → no false alarm 
+  ✓ small A4 change (442 Hz) → notice only, no automatic change 
+
+All chords in all positions (17 frets)
+  ✓ every position has only chord tones and fits the hand 277 positions checked
+  ✓ every major and minor chord has ≥ 3 positions 
+  ✓ A major: open, both inversions, octave barré and up to fret 17 0,0,0 | 4,3,5 | 7,8,9 | 12,12,12 | 16,15,17
+
+Harmonic tuning (12th-fret harmonic, an octave above the open string)
+  ✓ A3 harmonic -9¢ (manual) string 1, -9.00¢, octave 1
+  ✓ A3 harmonic +0¢ (manual) string 1, 0.00¢, octave 1
+  ✓ A3 harmonic +6¢ (manual) string 1, 6.00¢, octave 1
+  ✓ A3 harmonic -9¢ (auto) string 1, -9.00¢, octave 1
+  ✓ A3 harmonic +0¢ (auto) string 1, 0.00¢, octave 1
+  ✓ A3 harmonic +6¢ (auto) string 1, 6.00¢, octave 1
+  ✓ C♯4 harmonic -9¢ (manual) string 2, -9.00¢, octave 1
+  ✓ C♯4 harmonic +0¢ (manual) string 2, 0.00¢, octave 1
+  ✓ C♯4 harmonic +6¢ (manual) string 2, 6.00¢, octave 1
+  ✓ C♯4 harmonic -9¢ (auto) string 2, -9.00¢, octave 1
+  ✓ C♯4 harmonic +0¢ (auto) string 2, -0.00¢, octave 1
+  ✓ C♯4 harmonic +6¢ (auto) string 2, 6.00¢, octave 1
+  ✓ E4 harmonic -9¢ (manual) string 3, -9.00¢, octave 1
+  ✓ E4 harmonic +0¢ (manual) string 3, -0.00¢, octave 1
+  ✓ E4 harmonic +6¢ (manual) string 3, 6.00¢, octave 1
+  ✓ E4 harmonic -9¢ (auto) string 3, -9.00¢, octave 1
+  ✓ E4 harmonic +0¢ (auto) string 3, 0.00¢, octave 1
+  ✓ E4 harmonic +6¢ (auto) string 3, 6.00¢, octave 1
+
+Custom tunings
+  ✓ custom tunings are validated and clamped to A2…E5 [[55,59,62],[45,76,60]]
+  ✓ a custom tuning drives the targets G3 · B3 · D4
+  ✓ choosing your own tuning is not flagged as a mistake 
+  ✓ a deleted custom tuning falls back to the standard one 
+
+Ensemble calibration (reed instrument tuned to A4 = 442 Hz)
+  ✓ note 69 → A4 442 Hz measured 442.00 Hz
+  ✓ note 64 → A4 442 Hz measured 442.00 Hz
+  ✓ note 69 → A4 437.5 Hz measured 437.50 Hz
+  ✓ note 57 → A4 445 Hz measured 445.00 Hz
+
+Needle speed setting (1 calm … 10 fast)
+  ✓ calm is slower, fast is quicker to within 1¢: calm 792 ms · default 396 ms · fast 132 ms
+  ✓ still usable at both ends 
+
+Reference tone pitch
+  ✓ reference A3 @ 48 kHz max error 0.066¢
+  ✓ reference C♯4 @ 48 kHz max error 0.026¢
+  ✓ reference E4 @ 48 kHz max error 0.028¢
+  ✓ reference A3 @ 44.1 kHz max error 0.071¢
+  ✓ reference C♯4 @ 44.1 kHz max error 0.029¢
+  ✓ reference E4 @ 44.1 kHz max error 0.030¢
+
+Performance
+  ✓ analysis pass cost 0.754 ms per pass → 2.26% of one core at 30 Hz
+  ✓ maximum-speed needle at 20 fps stays smooth without overshoot 
+
+116 passed, 0 failed
+
