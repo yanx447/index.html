@@ -34,7 +34,8 @@ PD.i18n.add({
   'fd.like': ['მოწონება', 'Like'], 'fd.less': ['ნაკლები', 'less'], 'fd.sound': ['ხმა', 'Sound'], 'fd.seek': ['ვიდეოს ადგილი', 'Position in the video'], 'fd.origSound': ['ორიგინალი ხმა · {n}', 'Original sound · {n}'], 'fd.swipeHint': ['გადაფურცლე ზემოთ', 'Swipe up'], 'fd.save': ['შენახვა', 'Save'], 'fd.unsave': ['შენახულებიდან ამოღება', 'Remove from saved'], 'fd.saved': ['შენახული ვიდეოები', 'Saved videos'], 'fd.savedT': ['შენახულია', 'Saved'],
   'fd.tapSound': ['შეეხე ხმის ჩასართავად', 'Tap for sound'], 'fd.cantPlay': ['ეს ვიდეო ამ მოწყობილობაზე ვერ იკვრება.', 'This video cannot be played on this device.'],
   'fd.findFriendsA': ['მეგობრები და ძებნა', 'Friends and search'],
-  'fd.rules': ['მაქს. {m} წამი · 720p-დან 4K-მდე · ერთი ფაილი მაქს. {n} MB. ვიდეო იტვირთება ისე, როგორც გადაღებულია — ხარისხი არ იცვლება.', 'Up to {m} seconds · 720p to 4K · one file up to {n} MB. The video is uploaded exactly as it was filmed — its quality is not changed.'],
+  'fd.rules': ['მაქს. {m} წამი · 720p-დან 4K-მდე · ერთი ფაილი მაქს. {n} MB. თუ ვიდეოს არ შეცვლი, იტვირთება ზუსტად ისე, როგორც გადაღებულია.', 'Up to {m} seconds · 720p to 4K · one file up to {n} MB. A video you do not edit is uploaded exactly as it was filmed.'],
+  'fd.res': ['გარჩევადობა', 'Resolution'], 'fd.resAuto': ['ავტომატური', 'Automatic'],
   'fd.asIs': ['ხარისხი უცვლელია', 'quality unchanged'], 'fd.song': ['სიმღერა ან რიტმი', 'Song or rhythm'], 'fd.songPh': ['სიმღერის ან რიტმის სახელი', 'Name of the song or rhythm'],
   'fd.reelLong': ['ვიდეო {m} წამზე გრძელია — ფიდში მაქს. {m} წამი იდება.', 'The video is longer than {m} seconds — the feed takes {m} seconds at most.'],
   'fd.reelSmall': ['ვიდეოს გარჩევადობა ({n}p) დაბალია — საჭიროა მინიმუმ 720p.', 'The video’s resolution ({n}p) is too low — at least 720p is needed.'],
@@ -646,18 +647,21 @@ PD.social = (() => {
     if (file.size > ROOM() * 1048576) throw Object.assign(fail('reelHeavy'), { s: Math.ceil(file.size / 1048576), n: ROOM() });
   }
   const reelErr = e => { const c = e && e.code; return c === 'tooBig' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'reelLong' || c === 'tooLong' ? t('fd.reelLong', { n: e.n, m: MAXSEC }) : c === 'reelSmall' ? t('fd.reelSmall', { n: e.n }) : c === 'reelHuge' ? t('fd.reelHuge') : c === 'reelHeavy' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'too-large' ? t('fd.reelHeavy', { s: '>' + ROOM(), n: ROOM() }) : fileErr(e); };
-  /** cover the screen when the picture has the screen's orientation; otherwise show all of it, so nothing that is filmed is hidden */
-  const fit = v => { if (v.videoWidth) v.classList.toggle('fit', (v.videoWidth > v.videoHeight) !== (innerWidth > innerHeight)); };
+  /** the camera picture, sized in pixels (not by object-fit, which some phones ignore for a live camera): it covers the
+   *  screen when it has the screen's orientation; otherwise all of it shows, so nothing that is filmed is hidden */
+  const fitCam = v => { if (v.videoWidth) PD.vedit.place(v, v.videoWidth, v.videoHeight, { x: 0, y: 0, w: innerWidth, h: innerHeight }, (v.videoWidth > v.videoHeight) === (innerWidth > innerHeight)); };
+  const RESS = ['auto', 720, 1080, 2160];
+  const resLabel = n => n >= 2000 ? '4K' : n >= 1400 ? '1440p' : n >= 1000 ? '1080p' : n >= 700 ? '720p' : n + 'p';
 
   /** three steps on one full screen: the camera → the clip played back → caption and post. Back steps back one. */
   function studio(done, onClose) {
-    const room = ROOM() * 1048576 * 8 * .92 / MAXSEC, AUDIO = 256000;   // bits a second that still fit the server's file limit at a full minute
-    const short = room >= 35e6 ? 2160 : room >= 12e6 ? 1440 : 1080;
+    const AUDIO = 256000, rate = () => ROOM() * 1048576 * 8 * .92 / limit;   // bits a second that still fit the server's file limit at the chosen length
+    let res = RESS.indexOf(PD.store.get('fd.res', 'auto')) >= 0 ? PD.store.get('fd.res', 'auto') : 'auto', capMax = 0;
     let face = PD.store.get('fd.face', 'user'), limit = MODES.indexOf(PD.store.get('fd.mode', 60)) >= 0 ? PD.store.get('fd.mode', 60) : 60, delay = 0;
-    let stream = null, rec = null, t0 = 0, tick = 0, cd = 0, gen = 0, closed = false, stage = 'cam', prep = null, src = null, busy = false, posting = false, torch = false, lid = 0;
+    let stream = null, rec = null, t0 = 0, tick = 0, cd = 0, gen = 0, closed = false, stage = 'cam', prep = null, final = null, finalVer = -1, fsrc = null, ed = null, busy = false, posting = false, torch = false, lid = 0;
 
     /* the camera */
-    const view = h('video', { class: 'cam-view', playsinline: true, autoplay: true }); view.muted = true;
+    const view = h('video', { class: 'cam-view', playsinline: true, autoplay: true }); view.muted = true; view.playsInline = true;
     const prog = h('div', { class: 'cam-prog' }, [h('i')]), clock = h('b', { class: 'cam-clock mono' });
     const count = h('div', { class: 'cam-count', 'aria-live': 'assertive' }), msg = h('div', { class: 'cam-msg', hidden: true });
     const flipB = h('button', { class: 'cam-ic', type: 'button', hidden: true, 'aria-label': t('fd.flip'), html: ic.flip, onclick: () => { if (rec || cd) return; face = face === 'user' ? 'environment' : 'user'; PD.store.set('fd.face', face); buzz('select'); open(); } });
@@ -668,24 +672,25 @@ PD.social = (() => {
     } });
     const timerN = h('b'), timerB = h('button', { class: 'cam-ic', type: 'button', 'aria-label': t('fd.timer'), onclick: () => { if (rec || cd) return; delay = TIMERS[(TIMERS.indexOf(delay) + 1) % TIMERS.length]; paintTimer(); buzz('select'); } }, [h('span', { html: CI.timer }), timerN]);
     const paintTimer = () => { timerN.textContent = delay ? String(delay) : ''; timerB.classList.toggle('on', !!delay); timerB.setAttribute('aria-label', t('fd.timer') + (delay ? ' · ' + t('fd.sec', { n: delay }) : '')); };
+    const resT = h('span', { class: 'cam-rt' }), resA = h('b');
+    const resB = h('button', { class: 'cam-ic cam-res', type: 'button', 'aria-label': t('fd.res'), onclick: () => {
+      if (rec || cd) return; const opts = RESS.filter(x => x === 'auto' || !capMax || x <= capMax * 1.05);
+      res = opts[(opts.indexOf(res) + 1) % opts.length]; PD.store.set('fd.res', res); buzz('select'); open();
+    } }, [resT, resA]);
+    /** shows what the camera really gives, not only what was asked for */
+    const paintRes = got => { resT.textContent = got ? resLabel(got) : res === 'auto' ? '—' : resLabel(res); resA.textContent = res === 'auto' ? 'A' : ''; resB.setAttribute('aria-label', t('fd.res') + ': ' + (res === 'auto' ? t('fd.resAuto') + ' · ' : '') + resT.textContent); };
     const modes = h('div', { class: 'cam-modes', role: 'radiogroup', 'aria-label': t('fd.maxLen') });
-    const paintModes = () => { modes.innerHTML = ''; MODES.forEach(n => modes.appendChild(h('button', { type: 'button', role: 'radio', 'aria-checked': String(n === limit), class: n === limit ? 'on' : '', text: t('fd.sec', { n }), onclick: () => { if (rec || cd) return; limit = n; PD.store.set('fd.mode', n); paintModes(); buzz('select'); } }))); };
+    const paintModes = () => { modes.innerHTML = ''; MODES.forEach(n => modes.appendChild(h('button', { type: 'button', role: 'radio', 'aria-checked': String(n === limit), class: n === limit ? 'on' : '', text: t('fd.sec', { n }), onclick: () => { if (rec || cd) return; limit = n; PD.store.set('fd.mode', n); paintModes(); buzz('select'); if (res === 'auto' && stream) open(); } }))); };
     const go = h('button', { class: 'cam-go', type: 'button', 'aria-label': t('fd.recStart'), html: '<svg viewBox="0 0 88 88" aria-hidden="true"><circle class="bg" cx="44" cy="44" r="40"/><circle class="fg" cx="44" cy="44" r="40" pathLength="100"/></svg><i></i>', onclick: press });
     const ringFg = go.querySelector('.fg');
     const gal = h('button', { class: 'cam-gal', type: 'button', onclick: gallery }, [h('span', { html: IC.photo }), h('small', { 'data-t': 'fd.upload' })]);
     const shot = h('section', { class: 'cam-shot' }, [view, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' }),
       h('div', { class: 'cam-top' }, [h('button', { class: 'cam-ic cam-x', type: 'button', 'aria-label': t('close'), html: ic.close, onclick: () => close() }), prog]),
-      clock, h('div', { class: 'cam-rail' }, [flipB, torchB, timerB]), count, msg,
+      clock, h('div', { class: 'cam-rail' }, [flipB, resB, torchB, timerB]), count, msg,
       h('div', { class: 'cam-bot' }, [modes, h('div', { class: 'cam-row' }, [gal, go, h('span')])])]);
 
-    /* the clip, played back */
-    const rv = h('video', { class: 'cam-rv', playsinline: true, loop: true }), info = h('small', { class: 'cam-info' });
-    rv.onclick = () => { if (rv.paused) rv.play().catch(() => {}); else rv.pause(); };
-    const review = h('section', { class: 'cam-rev' }, [rv, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' }),
-      h('div', { class: 'cam-top' }, [h('button', { class: 'cam-ic', type: 'button', 'aria-label': t('fd.retake'), html: ic.back, onclick: retake })]),
-      h('div', { class: 'cam-bot' }, [info, h('div', { class: 'cam-acts' }, [
-        h('button', { class: 'btn cam-ghost', type: 'button', html: ic.restart + '<span data-t="fd.retake"></span>', onclick: retake }),
-        h('button', { class: 'btn primary', type: 'button', 'data-t': 'fd.next', onclick: () => show('post') })])])]);
+    /* the clip, edited (PD.vedit) */
+    const review = h('section', { class: 'cam-rev' });
 
     /* caption, who sees it, post */
     let vis = PD.store.get('fd.vis', 'public');
@@ -705,17 +710,18 @@ PD.social = (() => {
         h('label', { class: 'fd-songrow' }, [h('span', { html: IC.music }), song]), h('datalist', { id: listId }, names.map(n => h('option', { value: n }))),
         h('small', { class: 'muted', 'data-t': 'fd.who' }), visRow, upbar, state, postB])]);
 
+    const busyT = h('span', { 'data-t': 'fd.preparing' }), busyX = h('button', { class: 'btn cam-ghost', type: 'button', hidden: true, 'data-t': 'fr.cancel', onclick: () => ed && ed.cancel() });
     const root = h('div', { class: 'cam', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('fd.new'), 'data-stage': 'cam' }, [shot, review, postEl,
-      h('div', { class: 'cam-busy', role: 'status' }, [h('i'), h('span', { 'data-t': 'fd.preparing' })])]);
-    document.body.appendChild(root); PD.i18n.apply(root); paintTimer(); paintModes(); paintVis();
-    const onResize = () => { fit(view); fit(rv); };
-    view.addEventListener('loadedmetadata', onResize); rv.addEventListener('loadedmetadata', onResize); addEventListener('resize', onResize);
+      h('div', { class: 'cam-busy', role: 'status' }, [h('i'), busyT, busyX])]);
+    document.body.appendChild(root); PD.i18n.apply(root); paintTimer(); paintModes(); paintVis(); paintRes(0);
+    const onResize = () => { fitCam(view); if (view.videoWidth && stream) paintRes(Math.min(view.videoWidth, view.videoHeight)); };
+    view.addEventListener('loadedmetadata', onResize); view.addEventListener('resize', onResize); addEventListener('resize', onResize);
 
     /* Back: from posting to the clip, from the clip to the camera, from the camera out */
     function onBack() {
       if (closed) return;
       if (stage === 'post' && !posting) show('rev');
-      else if (stage === 'rev') retake();
+      else if (stage === 'rev') { if (!(ed && ed.back())) retake(); }
       else if (stage === 'cam' && !busy) { close(true); return; }
       lid = PD.layers.push(onBack);
     }
@@ -731,10 +737,11 @@ PD.social = (() => {
     async function open() {
       off(); const my = gen; msg.hidden = true; root.classList.remove('nocam');
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { noCam('fd.camNone'); return; }
-      const portrait = innerHeight >= innerWidth, long = Math.round(short * 16 / 9);
+      // asked for in the sensor's own (landscape) terms: phones turn the picture upright themselves
+      const S0 = res === 'auto' ? (rate() >= 20e6 ? 2160 : 1080) : res, L0 = Math.round(S0 * 16 / 9);
       const aud = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 } };   // an instrument, not a phone call: the sound is left as it is
       const tries = [
-        { video: { facingMode: { ideal: face }, width: { ideal: portrait ? short : long }, height: { ideal: portrait ? long : short }, frameRate: { ideal: 60 } }, audio: aud },
+        { video: { facingMode: { ideal: face }, width: { ideal: L0 }, height: { ideal: S0 }, frameRate: { ideal: 30 } }, audio: aud },
         { video: { facingMode: { ideal: face } }, audio: aud },
         { video: true, audio: true }];
       let s = null, err = null;
@@ -745,10 +752,24 @@ PD.social = (() => {
       if (my !== gen || closed || stage !== 'cam') { if (s) s.getTracks().forEach(x => x.stop()); return; }
       if (!s) { noCam(err && (err.name === 'NotAllowedError' || err.name === 'SecurityError') ? 'fd.camDenied' : 'fd.camNone'); return; }
       stream = s; view.srcObject = s; view.play().catch(() => {});
+      await new Promise(r => { if (view.videoWidth) r(); else { view.addEventListener('loadedmetadata', r, { once: true }); setTimeout(r, 2500); } });
+      if (my !== gen || closed || stage !== 'cam') return;
+      if (PD.isTouch() && innerHeight > innerWidth && view.videoWidth > view.videoHeight) {
+        // this phone gave a lying-down picture while held upright: ask once more in upright terms (one camera at a time, so the first is let go)
+        s.getTracks().forEach(x => x.stop());
+        let p = null;
+        try { p = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: face }, width: { ideal: S0 }, height: { ideal: L0 }, aspectRatio: { ideal: S0 / L0 }, frameRate: { ideal: 30 } }, audio: aud }); } catch (_) {}
+        if (!p) try { p = await navigator.mediaDevices.getUserMedia(tries[0]); } catch (_) {}
+        if (my !== gen || closed || stage !== 'cam') { if (p) p.getTracks().forEach(x => x.stop()); return; }
+        if (!p) { stream = null; noCam('fd.camNone'); return; }
+        stream = s = p; view.srcObject = p; view.play().catch(() => {});
+      }
       const tr = s.getVideoTracks()[0], set = (tr && tr.getSettings && tr.getSettings()) || {};
       view.classList.toggle('mirror', set.facingMode ? set.facingMode === 'user' : !PD.isTouch());   // a selfie looks like a mirror while filming; the file is not flipped
       let caps = {}; try { caps = (tr.getCapabilities && tr.getCapabilities()) || {}; } catch (_) {}
       torchB.hidden = !caps.torch;   // only where the browser can really switch the light on
+      if (caps.width && caps.height && caps.width.max && caps.height.max) capMax = Math.min(caps.width.max, caps.height.max);
+      paintRes(set.width && set.height ? Math.min(set.width, set.height) : 0); fitCam(view);
       try { const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); if (my === gen) flipB.hidden = cams.length < 2; } catch (_) {}
     }
 
@@ -766,7 +787,7 @@ PD.social = (() => {
       if (!stream || !mime) { PD.ui.toast(t('fd.camNone'), 5000); return; }
       const set = stream.getVideoTracks()[0].getSettings(), px = (set.width || 1920) * (set.height || 1080) * (set.frameRate || 30);
       let r = null;
-      try { r = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(4e6, Math.min(room - AUDIO, px * .16))), audioBitsPerSecond: AUDIO }); }
+      try { r = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(4e6, Math.min(rate() - AUDIO, px * .2, 60e6))), audioBitsPerSecond: AUDIO }); }
       catch (_) { try { r = new MediaRecorder(stream, { mimeType: mime }); } catch (e) { PD.ui.toast(t('fd.camNone'), 5000); return; } }
       const lim = limit, chunks = [];
       r.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
@@ -789,7 +810,7 @@ PD.social = (() => {
     function stopRec(keep) { if (!rec) return; rec._keep = keep; try { if (rec.state !== 'inactive') rec.stop(); } catch (_) {} }
     function gallery() { if (rec || cd || busy) return; pickVideo().then(f => { if (f && !closed && stage === 'cam') take(f); }); }
 
-    /** a clip, filmed or chosen → checked against the feed's rules → played back */
+    /** a clip, filmed or chosen → checked against the feed's rules → the editor */
     async function take(file, dur) {
       if (busy) return;
       busy = true; root.classList.add('busy'); off();
@@ -800,29 +821,44 @@ PD.social = (() => {
       } catch (e) { if (!closed) { PD.ui.toast(reelErr(e), 6000); show('cam'); } }
       finally { busy = false; root.classList.remove('busy'); }
     }
-    function drop() { prep = null; try { rv.pause(); } catch (_) {} rv.removeAttribute('src'); thumb.removeAttribute('src'); try { rv.load(); } catch (_) {} if (src) { URL.revokeObjectURL(src); src = null; } }
-    function retake() { if (posting) return; drop(); show('cam'); }
+    function drop() { if (ed) { ed.destroy(); ed = null; } prep = null; final = null; finalVer = -1; thumb.removeAttribute('src'); if (fsrc) { URL.revokeObjectURL(fsrc); fsrc = null; } }
+    function retake() { if (posting || busy) return; drop(); show('cam'); }
     function show(s) {
       stage = s; root.dataset.stage = s;
       if (s === 'cam') { open(); return; }
       off();
-      if (s === 'rev') {
-        if (!src) { src = URL.createObjectURL(prep.blob); rv.src = src; thumb.src = src; }
-        const m = prep.meta; info.textContent = m.w + '×' + m.h + ' · ' + PD.fmtTime(m.dur) + ' · ' + (prep.blob.size / 1048576).toFixed(1) + ' MB · ' + t('fd.asIs');
-        rv.muted = false; rv.play().catch(() => { rv.muted = true; rv.play().catch(() => {}); });
-      } else { try { rv.pause(); } catch (_) {} }
+      if (s === 'rev') { if (!ed) ed = PD.vedit.mount(review, { file: prep.blob, meta: prep.meta, roomMB: ROOM(), onBack: retake, onNext: next }); else ed.show(); }
+      else if (ed) ed.hide();
+    }
+    function useFinal(p) { final = p; if (fsrc) URL.revokeObjectURL(fsrc); fsrc = URL.createObjectURL(p.blob); thumb.src = fsrc; }
+    /** not edited: the file as filmed. Edited: made again (once per version of the edit) and checked like any other clip. */
+    async function next() {
+      if (busy || !ed) return;
+      if (!ed.dirty()) { if (!final || final !== prep) useFinal(prep); finalVer = -1; show('post'); return; }
+      if (final && finalVer === ed.version()) { show('post'); return; }
+      busy = true; root.classList.add('busy'); busyX.hidden = false; busyT.textContent = t('ve.rendering', { p: 0 });
+      try {
+        const f = await ed.render(p => { busyT.textContent = t('ve.rendering', { p }); });
+        busyX.hidden = true; busyT.textContent = t('fd.preparing');
+        const p = await prepare(f, 'video', { dur: ed.length() }); checkReel(p, f);
+        if (closed) return;
+        useFinal(p); finalVer = ed.version(); show('post');
+      } catch (e) {
+        const c = e && e.code;
+        if (!closed && c !== 'cancel') PD.ui.toast(c === 'bgFail' ? t('ve.bgFail') : c === 'noRender' || c === 'seek' || c === 'busy' ? t('ve.renderFail') : reelErr(e), 6000);
+      } finally { busy = false; root.classList.remove('busy'); busyX.hidden = true; busyT.textContent = t('fd.preparing'); }
     }
     async function post() {
-      if (posting || !prep) return;
+      if (posting || !final) return;
       posting = true; postB.disabled = true; upbar.hidden = false; state.textContent = '';
       try {
-        const media = await upload(prep, 'p', f => { upbar.firstChild.style.width = Math.round(f * 100) + '%'; state.textContent = t('fd.uploading', { p: Math.round(f * 100) }); });
+        const media = await upload(final, 'p', f => { upbar.firstChild.style.width = Math.round(f * 100) + '%'; state.textContent = t('fd.uploading', { p: Math.round(f * 100) }); });
         const row = await C.social.post({ kind: 'video', caption: cap.value.trim(), song: song.value.trim(), visibility: vis, media_path: media.media_path, thumb_path: media.thumb_path || null, media_meta: media.media_meta || {} });
         const p = Object.assign({ author_name: (C.profile && C.profile.display_name) || '', author_nick: C.profile && C.profile.nickname, author_avatar: C.profile && C.profile.avatar_url, my_reaction: null, top: [], friend: false, saved: false, song: '' }, row);
         posting = false; close(); done && done(p);
       } catch (e) {
         posting = false; postB.disabled = false; upbar.hidden = true;
-        state.textContent = /slow-down/.test(e && e.message) ? t('fd.slow') : /video-too-long/.test(e && e.message) ? t('fd.reelLong', { n: Math.round(prep.meta.dur), m: MAXSEC }) : reelErr(e);
+        state.textContent = /slow-down/.test(e && e.message) ? t('fd.slow') : /video-too-long/.test(e && e.message) ? t('fd.reelLong', { n: Math.round(final.meta.dur), m: MAXSEC }) : reelErr(e);
       }
     }
     function close(fromBack) {

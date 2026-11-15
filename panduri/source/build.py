@@ -1,7 +1,7 @@
 """Build: one modular PWA (dist/app/) + one self-contained HTML file + the artifact fragment.
 Module order = dependency order. three3d.js is embedded as inert text and parsed only when 3D is first used."""
 import base64, os, re, json, hashlib, shutil
-ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','book','install','sima','aiworker','aispl','aideck','aiscore','aipiano','aimus','ailesson','songbook','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
+ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','vedit','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','book','install','sima','aiworker','aispl','aideck','aiscore','aipiano','aimus','ailesson','songbook','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
 LAZY = {'three3d'}
 src = lambda n: open(f'src/{n}').read()
 # The stylesheet is two cascade layers: the earlier screens' rules (app.css) in `legacy`, and the design
