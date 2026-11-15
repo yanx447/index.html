@@ -21,7 +21,6 @@ PD.i18n.add({
   'fd.post': ['გამოქვეყნება', 'Post'], 'fd.uploading': ['იტვირთება… {p}%', 'Uploading… {p}%'], 'fd.preparing': ['მზადდება…', 'Preparing…'],
   'fd.tooBig': ['ფაილი ძალიან დიდია (მაქს. {n} MB).', 'The file is too large (max {n} MB).'], 'fd.tooLong': ['ძალიან გრძელია (მაქს. {n} წუთი).', 'Too long (max {n} minutes).'],
   'fd.badFile': ['ეს ფაილი ვერ წაიკითხა — სცადე სხვა ფორმატი.', 'This file could not be read — try another format.'],
-  'fd.change': ['სხვა ფაილი', 'Another file'],
   'fd.comments': ['კომენტარები', 'Comments'], 'fd.noComments': ['ჯერ კომენტარი არ არის — დაწერე პირველი.', 'No comments yet — write the first.'], 'fd.writeC': ['დაწერე კომენტარი…', 'Write a comment…'],
   'fd.share': ['გაზიარება', 'Share'], 'fd.sendTo': ['გაუგზავნე მეგობარს ჩატში', 'Send to a friend in chat'], 'fd.sent': ['გაიგზავნა', 'Sent'], 'fd.noFriendsYet': ['გასაზიარებლად ჯერ მეგობარი დაამატე.', 'Add a friend first to share with them.'],
   'fd.shareOut': ['სხვაგან გაზიარება', 'Share elsewhere'], 'fd.copy': ['ბმულის კოპირება', 'Copy link'], 'fd.shareText': ['ნახე ფანდურის აპში: {s}', 'See it in the Panduri app: {s}'],
@@ -34,14 +33,15 @@ PD.i18n.add({
   'fd.mediaBlocked': ['ფაილი ვერ ჩაიტვირთა.', 'The file could not be loaded.'],
   'fd.like': ['მოწონება', 'Like'], 'fd.less': ['ნაკლები', 'less'], 'fd.sound': ['ხმა', 'Sound'], 'fd.seek': ['ვიდეოს ადგილი', 'Position in the video'], 'fd.origSound': ['ორიგინალი ხმა · {n}', 'Original sound · {n}'], 'fd.swipeHint': ['გადაფურცლე ზემოთ', 'Swipe up'], 'fd.save': ['შენახვა', 'Save'], 'fd.unsave': ['შენახულებიდან ამოღება', 'Remove from saved'], 'fd.saved': ['შენახული ვიდეოები', 'Saved videos'], 'fd.savedT': ['შენახულია', 'Saved'],
   'fd.tapSound': ['შეეხე ხმის ჩასართავად', 'Tap for sound'], 'fd.cantPlay': ['ეს ვიდეო ამ მოწყობილობაზე ვერ იკვრება.', 'This video cannot be played on this device.'],
-  'fd.findFriendsA': ['მეგობრები და ძებნა', 'Friends and search'], 'fd.film': ['გადაღება', 'Film'], 'fd.gallery': ['გალერეიდან', 'From the gallery'],
+  'fd.findFriendsA': ['მეგობრები და ძებნა', 'Friends and search'],
   'fd.rules': ['მაქს. {m} წამი · 720p-დან 4K-მდე · ერთი ფაილი მაქს. {n} MB. ვიდეო იტვირთება ისე, როგორც გადაღებულია — ხარისხი არ იცვლება.', 'Up to {m} seconds · 720p to 4K · one file up to {n} MB. The video is uploaded exactly as it was filmed — its quality is not changed.'],
   'fd.asIs': ['ხარისხი უცვლელია', 'quality unchanged'], 'fd.song': ['სიმღერა ან რიტმი', 'Song or rhythm'], 'fd.songPh': ['სიმღერის ან რიტმის სახელი', 'Name of the song or rhythm'],
   'fd.reelLong': ['ვიდეო {m} წამზე გრძელია — ფიდში მაქს. {m} წამი იდება.', 'The video is longer than {m} seconds — the feed takes {m} seconds at most.'],
   'fd.reelSmall': ['ვიდეოს გარჩევადობა ({n}p) დაბალია — საჭიროა მინიმუმ 720p.', 'The video’s resolution ({n}p) is too low — at least 720p is needed.'],
   'fd.reelHuge': ['ვიდეო 4K-ზე დიდია — მაქსიმუმი 4K-ია.', 'The video is larger than 4K — 4K is the maximum.'],
   'fd.reelHeavy': ['ვიდეო {s} MB-ია, სერვერი კი ახლა ერთ ფაილად მაქს. {n} MB-ს იღებს. ხარისხს არ ვამცირებთ, ამიტომ ეს ფაილი ვერ აიტვირთება — სცადე უფრო მოკლე ვიდეო.', 'The video is {s} MB, and the server takes {n} MB per file for now. We do not lower the quality, so this file cannot be uploaded — try a shorter video.'],
-  'fd.recStart': ['ჩაწერის დაწყება', 'Start recording'], 'fd.recStop': ['ჩაწერის დასრულება', 'Stop recording'], 'fd.recNote': ['მაქს. 1 წუთი. ხმა იწერება ისე, როგორც ისმის.', 'Up to 1 minute. The sound is recorded as it is.'],
+  'fd.recStart': ['ჩაწერის დაწყება', 'Start recording'], 'fd.recStop': ['ჩაწერის დასრულება', 'Stop recording'], 'fd.upload': ['ატვირთვა', 'Upload'], 'fd.flip': ['კამერის შეცვლა', 'Switch camera'], 'fd.torch': ['ფანარი', 'Flash'], 'fd.timer': ['ტაიმერი', 'Timer'],
+  'fd.sec': ['{n}წმ', '{n}s'], 'fd.maxLen': ['ვიდეოს მაქსიმალური სიგრძე', 'Longest the video can be'], 'fd.retake': ['თავიდან', 'Retake'], 'fd.next': ['შემდეგი', 'Next'],
   'fd.camDenied': ['კამერაზე ან მიკროფონზე წვდომა არ არის ნებადართული.', 'Access to the camera or microphone is not allowed.'], 'fd.camNone': ['კამერა ვერ ჩაირთო ამ მოწყობილობაზე.', 'The camera could not be started on this device.'],
   'fr.title': ['მეგობრები', 'Friends'], 'fr.myNick': ['შენი nickname', 'Your nickname'],
   'fr.nickWhy': ['მეგობრები ამ სახელით გიპოვიან: ლათინური ასოები, ციფრები, _ და . (3–24 სიმბოლო).', 'Friends find you by this name: Latin letters, digits, _ and . (3–24 characters).'],
@@ -417,7 +417,7 @@ PD.social = (() => {
       const out = scroll.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(' + (-dir * 18) + '%)', opacity: 0 }], { duration: 170, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
       out.onfinish = () => { reset(true); out.cancel(); scroll.animate([{ transform: 'translateX(' + (dir * 18) + '%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: OUTQ }); };
     }
-    const newVideo = () => { P.pauseAll(); compose(p => { if (p.visibility === 'friends' && tab === 'foryou') switchTab('friends'); else prepend(p); }, () => P.resume()); };
+    const newVideo = () => { P.pauseAll(); studio(p => { if (p.visibility === 'friends' && tab === 'foryou') switchTab('friends'); else prepend(p); }, () => P.resume()); };
     const skel = () => h('div', { class: 'fd-card fd-skel', 'aria-hidden': 'true' }, [h('i', { class: 'fd-shim' }),
       h('div', { class: 'fd-rail' }, [1, 2, 3, 4].map(() => h('i', { class: 'sk-dot' }))), h('div', { class: 'fd-info' }, [h('i', { class: 'sk-line w40' }), h('i', { class: 'sk-line w80' }), h('i', { class: 'sk-line w60' })])]);
     function reset(keepHead) { [...scroll.querySelectorAll('.fd-card')].forEach(c => { io.unobserve(c); P.drop(c); }); st.ids.clear(); st.n = 0; st.done = false; st.before = null; scroll.innerHTML = ''; scroll.scrollTop = 0; if (!keepHead) head(); more(); }
@@ -621,11 +621,16 @@ PD.social = (() => {
     });
   }
 
-  /* ---------------- a new video: filmed now, or chosen from the gallery ---------------- */
-  const MAXSEC = 60, MINSIDE = 720, MAXSIDE = 4096;
-  function pickVideo(capture) {
+  /* ---------------- a new video: the camera opens at once, like a phone camera — filmed in the app, or a file from the gallery ---------------- */
+  const MAXSEC = 60, MINSIDE = 720, MAXSIDE = 4096, MODES = [60, 15], TIMERS = [0, 3, 10];
+  const RECM = ['video/mp4;codecs=avc1.640033,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
+  const CI = {
+    torch: I('<path d="M13.5 2.5L5.5 13.5h6l-1 8 8-11h-6z"/>'),
+    timer: I('<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.6 2M9.5 2.8h5M18.6 6.6l1.4-1.4"/>')
+  };
+  function pickVideo() {
     return new Promise(res => {
-      const i = h('input', { type: 'file', accept: 'video/*', hidden: true }); if (capture) i.setAttribute('capture', 'environment');
+      const i = h('input', { type: 'file', accept: 'video/*', hidden: true });
       const finish = f => { i.onchange = i.oncancel = null; i.remove(); res(f); };
       i.onchange = () => finish(i.files[0] || null); i.oncancel = () => finish(null);
       document.body.appendChild(i); i.click();
@@ -641,94 +646,192 @@ PD.social = (() => {
     if (file.size > ROOM() * 1048576) throw Object.assign(fail('reelHeavy'), { s: Math.ceil(file.size / 1048576), n: ROOM() });
   }
   const reelErr = e => { const c = e && e.code; return c === 'tooBig' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'reelLong' || c === 'tooLong' ? t('fd.reelLong', { n: e.n, m: MAXSEC }) : c === 'reelSmall' ? t('fd.reelSmall', { n: e.n }) : c === 'reelHuge' ? t('fd.reelHuge') : c === 'reelHeavy' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'too-large' ? t('fd.reelHeavy', { s: '>' + ROOM(), n: ROOM() }) : fileErr(e); };
-  /** filming inside the app, where the device has no camera app to hand the job to (a computer). Stops by itself at a minute. */
-  function recorder(done) {
+  /** cover the screen when the picture has the screen's orientation; otherwise show all of it, so nothing that is filmed is hidden */
+  const fit = v => { if (v.videoWidth) v.classList.toggle('fit', (v.videoWidth > v.videoHeight) !== (innerWidth > innerHeight)); };
+
+  /** three steps on one full screen: the camera → the clip played back → caption and post. Back steps back one. */
+  function studio(done, onClose) {
     const room = ROOM() * 1048576 * 8 * .92 / MAXSEC, AUDIO = 256000;   // bits a second that still fit the server's file limit at a full minute
-    const wantH = room >= 35e6 ? 2160 : room >= 12e6 ? 1440 : 1080;
-    const view = h('video', { class: 'rec-view', playsinline: true, autoplay: true }); view.muted = true;
-    const time = h('b', { class: 'rec-time mono', text: '0:00 / 1:00' }), go = h('button', { class: 'rec-go', type: 'button', 'aria-label': t('fd.recStart') }), note = h('small', { class: 'rec-note', 'data-t': 'fd.recNote' });
-    const root = h('div', { class: 'rec', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('fd.film') }, [view, h('button', { class: 'md-x', 'aria-label': t('close'), html: ic.close, onclick: () => close() }), h('div', { class: 'rec-bar' }, [time, go, note])]);
-    document.body.appendChild(root); PD.i18n.apply(root);
-    let stream = null, rec = null, parts = [], t0 = 0, tick = 0, closed = false, keep = false;
-    const lid = PD.layers.push(() => close(true));
-    function close(fromBack) { if (closed) return; closed = true; if (fromBack !== true) PD.layers.done(lid); clearInterval(tick); try { if (rec && rec.state !== 'inactive') rec.stop(); } catch (_) {} if (stream) stream.getTracks().forEach(x => x.stop()); root.remove(); }
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: Math.round(wantH * 16 / 9) }, height: { ideal: wantH, min: MINSIDE }, frameRate: { ideal: 60 } },
-          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 } } });   // an instrument, not a phone call: the sound is left as it is
-        if (closed) { stream.getTracks().forEach(x => x.stop()); return; }
-        view.srcObject = stream;
-      } catch (e) { close(); PD.ui.toast(t(e && e.name === 'NotAllowedError' ? 'fd.camDenied' : 'fd.camNone'), 5000); return; }
-      const mime = ['video/mp4;codecs=avc1.640033,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
-      if (!mime) { close(); PD.ui.toast(t('fd.camNone'), 5000); return; }
-      go.onclick = () => {
-        if (rec) { keep = true; rec.stop(); return; }
-        const set = stream.getVideoTracks()[0].getSettings(), px = (set.width || 1920) * (set.height || 1080) * (set.frameRate || 30);
-        rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(4e6, Math.min(room - AUDIO, px * .16))), audioBitsPerSecond: AUDIO });
-        rec.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); };
-        rec.onstop = () => { const dur = (performance.now() - t0) / 1000; const type = mime.split(';')[0], f = new File(parts, 'panduri.' + (type === 'video/mp4' ? 'mp4' : 'webm'), { type }); const ok = keep; close(); if (ok && f.size) done(f, Math.min(MAXSEC, dur)); };
-        rec.start(1000); t0 = performance.now(); root.classList.add('on'); go.setAttribute('aria-label', t('fd.recStop'));
-        tick = setInterval(() => { const s = (performance.now() - t0) / 1000; time.textContent = PD.fmtTime(s) + ' / 1:00'; if (s >= MAXSEC) { keep = true; rec.stop(); } }, 200);
-      };
-    })();
-  }
-  function compose(done, onClose) {
-    PD.ui.sheet((b, close) => {
-      let prep = null, src = null, vis = PD.store.get('fd.vis', 'public'), busy = false;
-      const stageEl = h('div', { class: 'fd-prev' });
-      const cap = h('textarea', { class: 'input', rows: '3', maxlength: '2200', placeholder: t('fd.caption'), 'aria-label': t('fd.caption'), style: 'min-height:84px;padding:10px 12px' });
-      const names = []; try { (PD.curriculum.rhythms() || []).forEach(r => { const n = PD.i18n.pick(Array.isArray(r.name) ? { ka: r.name[0], en: r.name[1] } : r.name); if (n && names.indexOf(n) < 0) names.push(n); }); } catch (_) {}
-      const listId = 'fd-songs-' + Date.now().toString(36);
-      const song = h('input', { class: 'input', maxlength: '80', list: listId, placeholder: t('fd.songPh'), 'aria-label': t('fd.song'), autocomplete: 'off' });
-      const visRow = h('div', { class: 'fd-vis', role: 'radiogroup', 'aria-label': t('fd.who') });
-      const bar = h('div', { class: 'fd-upbar', hidden: true }, [h('i')]), state = h('small', { class: 'muted fd-state', role: 'status' });
-      const go = h('button', { class: 'btn primary big', 'data-t': 'fd.post' });
-      const form = h('div', { class: 'fd-form', hidden: true }, [h('div', { class: 'ck-field' }, [cap, PD.chatkit.emojiButton(cap)]),
+    const short = room >= 35e6 ? 2160 : room >= 12e6 ? 1440 : 1080;
+    let face = PD.store.get('fd.face', 'user'), limit = MODES.indexOf(PD.store.get('fd.mode', 60)) >= 0 ? PD.store.get('fd.mode', 60) : 60, delay = 0;
+    let stream = null, rec = null, t0 = 0, tick = 0, cd = 0, gen = 0, closed = false, stage = 'cam', prep = null, src = null, busy = false, posting = false, torch = false, lid = 0;
+
+    /* the camera */
+    const view = h('video', { class: 'cam-view', playsinline: true, autoplay: true }); view.muted = true;
+    const prog = h('div', { class: 'cam-prog' }, [h('i')]), clock = h('b', { class: 'cam-clock mono' });
+    const count = h('div', { class: 'cam-count', 'aria-live': 'assertive' }), msg = h('div', { class: 'cam-msg', hidden: true });
+    const flipB = h('button', { class: 'cam-ic', type: 'button', hidden: true, 'aria-label': t('fd.flip'), html: ic.flip, onclick: () => { if (rec || cd) return; face = face === 'user' ? 'environment' : 'user'; PD.store.set('fd.face', face); buzz('select'); open(); } });
+    const torchB = h('button', { class: 'cam-ic', type: 'button', hidden: true, 'aria-label': t('fd.torch'), 'aria-pressed': 'false', html: CI.torch, onclick: async () => {
+      const tr = stream && stream.getVideoTracks()[0]; if (!tr) return;
+      try { await tr.applyConstraints({ advanced: [{ torch: !torch }] }); torch = !torch; } catch (_) {}
+      torchB.classList.toggle('on', torch); torchB.setAttribute('aria-pressed', String(torch));
+    } });
+    const timerN = h('b'), timerB = h('button', { class: 'cam-ic', type: 'button', 'aria-label': t('fd.timer'), onclick: () => { if (rec || cd) return; delay = TIMERS[(TIMERS.indexOf(delay) + 1) % TIMERS.length]; paintTimer(); buzz('select'); } }, [h('span', { html: CI.timer }), timerN]);
+    const paintTimer = () => { timerN.textContent = delay ? String(delay) : ''; timerB.classList.toggle('on', !!delay); timerB.setAttribute('aria-label', t('fd.timer') + (delay ? ' · ' + t('fd.sec', { n: delay }) : '')); };
+    const modes = h('div', { class: 'cam-modes', role: 'radiogroup', 'aria-label': t('fd.maxLen') });
+    const paintModes = () => { modes.innerHTML = ''; MODES.forEach(n => modes.appendChild(h('button', { type: 'button', role: 'radio', 'aria-checked': String(n === limit), class: n === limit ? 'on' : '', text: t('fd.sec', { n }), onclick: () => { if (rec || cd) return; limit = n; PD.store.set('fd.mode', n); paintModes(); buzz('select'); } }))); };
+    const go = h('button', { class: 'cam-go', type: 'button', 'aria-label': t('fd.recStart'), html: '<svg viewBox="0 0 88 88" aria-hidden="true"><circle class="bg" cx="44" cy="44" r="40"/><circle class="fg" cx="44" cy="44" r="40" pathLength="100"/></svg><i></i>', onclick: press });
+    const ringFg = go.querySelector('.fg');
+    const gal = h('button', { class: 'cam-gal', type: 'button', onclick: gallery }, [h('span', { html: IC.photo }), h('small', { 'data-t': 'fd.upload' })]);
+    const shot = h('section', { class: 'cam-shot' }, [view, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' }),
+      h('div', { class: 'cam-top' }, [h('button', { class: 'cam-ic cam-x', type: 'button', 'aria-label': t('close'), html: ic.close, onclick: () => close() }), prog]),
+      clock, h('div', { class: 'cam-rail' }, [flipB, torchB, timerB]), count, msg,
+      h('div', { class: 'cam-bot' }, [modes, h('div', { class: 'cam-row' }, [gal, go, h('span')])])]);
+
+    /* the clip, played back */
+    const rv = h('video', { class: 'cam-rv', playsinline: true, loop: true }), info = h('small', { class: 'cam-info' });
+    rv.onclick = () => { if (rv.paused) rv.play().catch(() => {}); else rv.pause(); };
+    const review = h('section', { class: 'cam-rev' }, [rv, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' }),
+      h('div', { class: 'cam-top' }, [h('button', { class: 'cam-ic', type: 'button', 'aria-label': t('fd.retake'), html: ic.back, onclick: retake })]),
+      h('div', { class: 'cam-bot' }, [info, h('div', { class: 'cam-acts' }, [
+        h('button', { class: 'btn cam-ghost', type: 'button', html: ic.restart + '<span data-t="fd.retake"></span>', onclick: retake }),
+        h('button', { class: 'btn primary', type: 'button', 'data-t': 'fd.next', onclick: () => show('post') })])])]);
+
+    /* caption, who sees it, post */
+    let vis = PD.store.get('fd.vis', 'public');
+    const thumb = h('video', { playsinline: true, preload: 'metadata' }); thumb.muted = true;
+    const cap = h('textarea', { class: 'input', rows: '4', maxlength: '2200', placeholder: t('fd.caption'), 'aria-label': t('fd.caption'), style: 'min-height:112px;padding:10px 12px' });
+    const names = []; try { (PD.curriculum.rhythms() || []).forEach(r => { const n = PD.i18n.pick(Array.isArray(r.name) ? { ka: r.name[0], en: r.name[1] } : r.name); if (n && names.indexOf(n) < 0) names.push(n); }); } catch (_) {}
+    const listId = 'fd-songs-' + Date.now().toString(36);
+    const song = h('input', { class: 'input', maxlength: '80', list: listId, placeholder: t('fd.songPh'), 'aria-label': t('fd.song'), autocomplete: 'off' });
+    const visRow = h('div', { class: 'fd-vis', role: 'radiogroup', 'aria-label': t('fd.who') });
+    const paintVis = () => { visRow.innerHTML = ''; [['public', IC.globe, 'fd.visPublic'], ['friends', IC.users, 'fd.visFriends']].forEach(([k, i, key]) => visRow.appendChild(h('button', { type: 'button', role: 'radio', 'aria-checked': String(vis === k), class: vis === k ? 'on' : '', html: i + '<span data-t="' + key + '"></span>', onclick: () => { vis = k; PD.store.set('fd.vis', k); paintVis(); } }))); PD.i18n.apply(visRow); };
+    const upbar = h('div', { class: 'fd-upbar', hidden: true }, [h('i')]), state = h('small', { class: 'muted fd-state', role: 'status' });
+    const postB = h('button', { class: 'btn primary big', type: 'button', 'data-t': 'fd.post', onclick: post });
+    const postEl = h('section', { class: 'cam-post' }, [
+      h('div', { class: 'cam-head' }, [h('button', { class: 'cam-ic', type: 'button', 'aria-label': t('back'), html: ic.back, onclick: () => { if (!posting) show('rev'); } }), h('h2', { 'data-t': 'fd.new' }), h('span', { class: 'cam-ic' })]),
+      h('div', { class: 'cam-form' }, [
+        h('div', { class: 'cam-caprow' }, [h('div', { class: 'ck-field' }, [cap, PD.chatkit.emojiButton(cap)]), h('button', { class: 'cam-thumb', type: 'button', 'aria-label': t('fd.video'), onclick: () => { if (!posting) show('rev'); } }, [thumb])]),
         h('label', { class: 'fd-songrow' }, [h('span', { html: IC.music }), song]), h('datalist', { id: listId }, names.map(n => h('option', { value: n }))),
-        h('small', { class: 'muted', 'data-t': 'fd.who' }), visRow, bar]);
-      const paintVis = () => { visRow.innerHTML = ''; [['public', IC.globe, 'fd.visPublic'], ['friends', IC.users, 'fd.visFriends']].forEach(([k, i, key]) => visRow.appendChild(h('button', { role: 'radio', 'aria-checked': String(vis === k), class: vis === k ? 'on' : '', html: i + '<span data-t="' + key + '"></span>', onclick: () => { vis = k; PD.store.set('fd.vis', k); paintVis(); } }))); PD.i18n.apply(visRow); };
-      async function take(file, dur) {
-        if (!file) return;
-        state.textContent = t('fd.preparing');
-        try { const p = await prepare(file, 'video', { dur }); checkReel(p, file); prep = p; state.textContent = ''; }
-        catch (e) { prep = null; state.textContent = reelErr(e); }
-        paint();
+        h('small', { class: 'muted', 'data-t': 'fd.who' }), visRow, upbar, state, postB])]);
+
+    const root = h('div', { class: 'cam', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('fd.new'), 'data-stage': 'cam' }, [shot, review, postEl,
+      h('div', { class: 'cam-busy', role: 'status' }, [h('i'), h('span', { 'data-t': 'fd.preparing' })])]);
+    document.body.appendChild(root); PD.i18n.apply(root); paintTimer(); paintModes(); paintVis();
+    const onResize = () => { fit(view); fit(rv); };
+    view.addEventListener('loadedmetadata', onResize); rv.addEventListener('loadedmetadata', onResize); addEventListener('resize', onResize);
+
+    /* Back: from posting to the clip, from the clip to the camera, from the camera out */
+    function onBack() {
+      if (closed) return;
+      if (stage === 'post' && !posting) show('rev');
+      else if (stage === 'rev') retake();
+      else if (stage === 'cam' && !busy) { close(true); return; }
+      lid = PD.layers.push(onBack);
+    }
+    lid = PD.layers.push(onBack);
+
+    function off() { gen++; clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); if (stream) stream.getTracks().forEach(x => x.stop()); stream = null; view.srcObject = null; torch = false; torchB.classList.remove('on'); }
+    function noCam(key) {
+      root.classList.add('nocam'); msg.hidden = false; msg.innerHTML = '';
+      msg.append(h('span', { html: ic.camera }), h('p', { text: t(key) }), h('small', { text: t('fd.rules', { m: MAXSEC, n: ROOM() }) }),
+        h('button', { class: 'btn primary', type: 'button', html: IC.photo + '<span data-t="fd.upload"></span>', onclick: gallery }));
+      PD.i18n.apply(msg);
+    }
+    async function open() {
+      off(); const my = gen; msg.hidden = true; root.classList.remove('nocam');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { noCam('fd.camNone'); return; }
+      const portrait = innerHeight >= innerWidth, long = Math.round(short * 16 / 9);
+      const aud = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 } };   // an instrument, not a phone call: the sound is left as it is
+      const tries = [
+        { video: { facingMode: { ideal: face }, width: { ideal: portrait ? short : long }, height: { ideal: portrait ? long : short }, frameRate: { ideal: 60 } }, audio: aud },
+        { video: { facingMode: { ideal: face } }, audio: aud },
+        { video: true, audio: true }];
+      let s = null, err = null;
+      for (const c of tries) {
+        try { s = await navigator.mediaDevices.getUserMedia(c); break; }
+        catch (e) { err = e; if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) break; }
       }
-      const film = () => { if (busy) return; if (PD.isTouch()) pickVideo(true).then(f => take(f)); else recorder(take); };
-      const gallery = () => { if (busy) return; pickVideo(false).then(f => take(f)); };
-      function paint() {
-        stageEl.innerHTML = ''; if (src) { URL.revokeObjectURL(src); src = null; }
-        form.hidden = go.hidden = !prep;
-        if (!prep) {
-          stageEl.append(h('div', { class: 'fd-two' }, [
-            h('button', { class: 'fd-pick', html: ic.camera + '<span data-t="fd.film"></span>', onclick: film }),
-            h('button', { class: 'fd-pick', html: IC.photo + '<span data-t="fd.gallery"></span>', onclick: gallery })]),
-            h('small', { class: 'muted fd-rules', text: t('fd.rules', { m: MAXSEC, n: ROOM() }) }));
-        } else {
-          src = URL.createObjectURL(prep.blob);
-          const m = prep.meta, v = h('video', { src, controls: true, playsinline: true }); v.muted = true;
-          stageEl.append(v, h('small', { class: 'muted', text: m.w + '×' + m.h + ' · ' + PD.fmtTime(m.dur) + ' · ' + (prep.blob.size / 1048576).toFixed(1) + ' MB · ' + t('fd.asIs') }),
-            h('button', { class: 'btn small quiet', 'data-t': 'fd.change', onclick: () => { if (busy) return; prep = null; paint(); } }));
-        }
-        PD.i18n.apply(stageEl);
-      }
-      go.onclick = async () => {
-        if (busy || !prep) return;
-        busy = true; go.disabled = true; bar.hidden = false;
-        try {
-          const media = await upload(prep, 'p', f => { bar.firstChild.style.width = Math.round(f * 100) + '%'; state.textContent = t('fd.uploading', { p: Math.round(f * 100) }); });
-          const row = await C.social.post({ kind: 'video', caption: cap.value.trim(), song: song.value.trim(), visibility: vis, media_path: media.media_path, thumb_path: media.thumb_path || null, media_meta: media.media_meta || {} });
-          const p = Object.assign({ author_name: (C.profile && C.profile.display_name) || '', author_nick: C.profile && C.profile.nickname, author_avatar: C.profile && C.profile.avatar_url, my_reaction: null, top: [], friend: false, saved: false, song: '' }, row);
-          close(); done && done(p);
-        } catch (e) {
-          busy = false; go.disabled = false; bar.hidden = true;
-          state.textContent = /slow-down/.test(e && e.message) ? t('fd.slow') : /video-too-long/.test(e && e.message) ? t('fd.reelLong', { n: Math.round(prep.meta.dur), m: MAXSEC }) : reelErr(e);
-        }
+      if (my !== gen || closed || stage !== 'cam') { if (s) s.getTracks().forEach(x => x.stop()); return; }
+      if (!s) { noCam(err && (err.name === 'NotAllowedError' || err.name === 'SecurityError') ? 'fd.camDenied' : 'fd.camNone'); return; }
+      stream = s; view.srcObject = s; view.play().catch(() => {});
+      const tr = s.getVideoTracks()[0], set = (tr && tr.getSettings && tr.getSettings()) || {};
+      view.classList.toggle('mirror', set.facingMode ? set.facingMode === 'user' : !PD.isTouch());   // a selfie looks like a mirror while filming; the file is not flipped
+      let caps = {}; try { caps = (tr.getCapabilities && tr.getCapabilities()) || {}; } catch (_) {}
+      torchB.hidden = !caps.torch;   // only where the browser can really switch the light on
+      try { const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); if (my === gen) flipB.hidden = cams.length < 2; } catch (_) {}
+    }
+
+    function press() {
+      if (busy || stage !== 'cam') return;
+      if (rec) { stopRec(true); return; }
+      if (cd) { clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); return; }   // a second tap during the countdown cancels it
+      if (!stream) return;
+      if (!delay) { startRec(); return; }
+      let n = delay; count.textContent = n; root.classList.add('counting'); buzz('select');
+      cd = setInterval(() => { n--; if (n > 0) { count.textContent = n; buzz('select'); return; } clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); startRec(); }, 1000);
+    }
+    function startRec() {
+      const mime = window.MediaRecorder && RECM.find(m => MediaRecorder.isTypeSupported(m));
+      if (!stream || !mime) { PD.ui.toast(t('fd.camNone'), 5000); return; }
+      const set = stream.getVideoTracks()[0].getSettings(), px = (set.width || 1920) * (set.height || 1080) * (set.frameRate || 30);
+      let r = null;
+      try { r = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(4e6, Math.min(room - AUDIO, px * .16))), audioBitsPerSecond: AUDIO }); }
+      catch (_) { try { r = new MediaRecorder(stream, { mimeType: mime }); } catch (e) { PD.ui.toast(t('fd.camNone'), 5000); return; } }
+      const lim = limit, chunks = [];
+      r.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      r.onstop = () => {
+        const dur = Math.min(lim, (performance.now() - t0) / 1000), keep = r._keep;
+        rec = null; clearInterval(tick); root.classList.remove('recording'); go.setAttribute('aria-label', t('fd.recStart')); ringFg.style.strokeDashoffset = ''; prog.firstChild.style.width = '0';
+        if (!keep || closed) return;
+        const type = (r.mimeType || mime).split(';')[0], f = new File(chunks, 'panduri.' + (/mp4/.test(type) ? 'mp4' : 'webm'), { type });
+        if (f.size) take(f, dur);
       };
-      b.append(h('h2', { 'data-t': 'fd.new' }), stageEl, form, state, go);
-      PD.i18n.apply(b); paintVis(); paint();
-      return () => { if (src) URL.revokeObjectURL(src); onClose && onClose(); };
-    });
+      rec = r; r.start(1000); t0 = performance.now(); buzz('select');
+      root.classList.add('recording'); go.setAttribute('aria-label', t('fd.recStop')); clock.textContent = '0:00 / ' + PD.fmtTime(lim);
+      tick = setInterval(() => {
+        const s = (performance.now() - t0) / 1000, f = Math.min(1, s / lim);
+        ringFg.style.strokeDashoffset = String(100 - f * 100); prog.firstChild.style.width = (f * 100) + '%';
+        clock.textContent = PD.fmtTime(s) + ' / ' + PD.fmtTime(lim);
+        if (s >= lim) stopRec(true);
+      }, 100);
+    }
+    function stopRec(keep) { if (!rec) return; rec._keep = keep; try { if (rec.state !== 'inactive') rec.stop(); } catch (_) {} }
+    function gallery() { if (rec || cd || busy) return; pickVideo().then(f => { if (f && !closed && stage === 'cam') take(f); }); }
+
+    /** a clip, filmed or chosen → checked against the feed's rules → played back */
+    async function take(file, dur) {
+      if (busy) return;
+      busy = true; root.classList.add('busy'); off();
+      try {
+        const p = await prepare(file, 'video', { dur }); checkReel(p, file);
+        if (closed) return;
+        prep = p; show('rev');
+      } catch (e) { if (!closed) { PD.ui.toast(reelErr(e), 6000); show('cam'); } }
+      finally { busy = false; root.classList.remove('busy'); }
+    }
+    function drop() { prep = null; try { rv.pause(); } catch (_) {} rv.removeAttribute('src'); thumb.removeAttribute('src'); try { rv.load(); } catch (_) {} if (src) { URL.revokeObjectURL(src); src = null; } }
+    function retake() { if (posting) return; drop(); show('cam'); }
+    function show(s) {
+      stage = s; root.dataset.stage = s;
+      if (s === 'cam') { open(); return; }
+      off();
+      if (s === 'rev') {
+        if (!src) { src = URL.createObjectURL(prep.blob); rv.src = src; thumb.src = src; }
+        const m = prep.meta; info.textContent = m.w + '×' + m.h + ' · ' + PD.fmtTime(m.dur) + ' · ' + (prep.blob.size / 1048576).toFixed(1) + ' MB · ' + t('fd.asIs');
+        rv.muted = false; rv.play().catch(() => { rv.muted = true; rv.play().catch(() => {}); });
+      } else { try { rv.pause(); } catch (_) {} }
+    }
+    async function post() {
+      if (posting || !prep) return;
+      posting = true; postB.disabled = true; upbar.hidden = false; state.textContent = '';
+      try {
+        const media = await upload(prep, 'p', f => { upbar.firstChild.style.width = Math.round(f * 100) + '%'; state.textContent = t('fd.uploading', { p: Math.round(f * 100) }); });
+        const row = await C.social.post({ kind: 'video', caption: cap.value.trim(), song: song.value.trim(), visibility: vis, media_path: media.media_path, thumb_path: media.thumb_path || null, media_meta: media.media_meta || {} });
+        const p = Object.assign({ author_name: (C.profile && C.profile.display_name) || '', author_nick: C.profile && C.profile.nickname, author_avatar: C.profile && C.profile.avatar_url, my_reaction: null, top: [], friend: false, saved: false, song: '' }, row);
+        posting = false; close(); done && done(p);
+      } catch (e) {
+        posting = false; postB.disabled = false; upbar.hidden = true;
+        state.textContent = /slow-down/.test(e && e.message) ? t('fd.slow') : /video-too-long/.test(e && e.message) ? t('fd.reelLong', { n: Math.round(prep.meta.dur), m: MAXSEC }) : reelErr(e);
+      }
+    }
+    function close(fromBack) {
+      if (closed) return; closed = true;
+      if (fromBack !== true) PD.layers.done(lid);
+      clearInterval(tick); stopRec(false); off(); drop(); removeEventListener('resize', onResize);
+      root.remove(); onClose && onClose();
+    }
+    open();
   }
 
   /* ---------------- a person: their posts, and where we stand ---------------- */
@@ -880,5 +983,5 @@ PD.social = (() => {
     return box;
   }
 
-  return { feed, friends, nickCard, profile, compose, comments, picker, holdable, glyph, glyphText, prepare, upload, urls, mediaEl, fileErr, postCard, REACTS, PANDURI, ACCEPT, IC };
+  return { feed, friends, nickCard, profile, studio, comments, picker, holdable, glyph, glyphText, prepare, upload, urls, mediaEl, fileErr, postCard, REACTS, PANDURI, ACCEPT, IC };
 })();

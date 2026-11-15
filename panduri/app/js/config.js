@@ -10,4 +10,4 @@ PD.CONFIG = Object.assign(PD.CONFIG || {}, Object.fromEntries(Object.entries({
   turn: null         // { urls: 'turn:turn.example.com:3478', username: '...', credential: '...' }
 }).filter(function (e) { return e[1]; })));
 
-PD.BUILD = "449aeb8426";
+PD.BUILD = "2b319c3b8c";
