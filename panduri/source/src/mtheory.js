@@ -256,6 +256,7 @@ PD.mtheory = (() => {
     const gn = PD.genres && PD.genres.progress ? Math.round(PD.genres.progress() * 100) : 0;
     w.append(h('div', { class: 'mth-head' }, [h('h1', { 'data-t': 'mth.title' }), h('p', { class: 'muted', 'data-t': 'mth.lead' })]));
     const stat = (k, a, b, pct) => h('div', { class: 'mth-stat' }, [h('small', { 'data-t': k }), h('b', { text: b == null ? a + '%' : a + ' / ' + b }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + pct + '%' })])]);
+    if (PD.solfege && PD.solfege.voiceSwitch) w.append(PD.solfege.voiceSwitch());   // panduri or piano: every theory page plays with it
     w.append(h('div', { class: 'mth-stats' }, [stat('mth.read', read, CH.length, CH.length ? Math.round(read / CH.length * 100) : 0), stat('mth.sf', sfDone, 9, Math.round(sfDone / 9 * 100)), stat('mth.music', gn, null, gn)]));
 
     // the interactive pages first: what you can play with

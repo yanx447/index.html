@@ -24,6 +24,7 @@ PD.audio = (() => {
     p1.connect(p2); p2.connect(hc); hc.connect(bus.inst); body = p1;
     document.addEventListener('visibilitychange', () => { if (!document.hidden && ctx.state === 'suspended') ctx.resume().catch(() => {}); });
     if (PD.samples && PD.samples.warm) setTimeout(PD.samples.warm, 0);   // the recorded notes: fetched and decoded once, the first time sound is wanted
+    if (PD.store.get('theory.voice', 'panduri') === 'piano') setTimeout(() => pianoWarm(), 0);   // the piano keys a learner who chose it will hear first
     return ctx;
   }
   const now = () => ctx ? ctx.currentTime : performance.now() / 1000;
@@ -134,17 +135,81 @@ PD.audio = (() => {
     const buf = ctx.createBuffer(1, len, sr); buf.copyToChannel ? buf.copyToChannel(out, 0) : buf.getChannelData(0).set(out);
     pianoCache.set(key, buf); return buf;
   }
+  /* ---------- the recorded piano (PD.PIANO, made by sounds/piano.cjs: all 88 keys of a real piano) ----------
+     Installable app only — the single-file build has no room for it and keeps the computed piano above. Each key is
+     fetched the first time it is wanted (the middle of the keyboard as soon as the piano is chosen) and re-tuned to
+     the exact pitch, A4 setting included, by its playback rate. */
+  const pianoRec = new Map();   // midi → { buf, p, failed }
+  const pianoUrl = m => { const n = PD.PIANO && PD.PIANO.notes[m]; return n && PD.assets && PD.assets.media && PD.assets.media[n.file] || null; };
+  const pianoRecorded = () => !!pianoUrl(60);
+  function pianoKey(midi) {   // the recorded key nearest to this pitch
+    const P = PD.PIANO; if (!P) return null;
+    return Math.max(P.first, Math.min(P.last, Math.round(midi)));
+  }
+  function pianoLoad(k) {
+    if (pianoRec.has(k)) return pianoRec.get(k);
+    const u = pianoUrl(k); if (!u || !ensure()) return null;
+    const rec = { buf: null, failed: false };
+    rec.p = fetch(u).then(r => r.ok ? r.arrayBuffer() : Promise.reject(new Error('http ' + r.status)))
+      .then(ab => new Promise((res, rej) => { const q = ctx.decodeAudioData(ab, res, rej); if (q && q.then) q.then(res, rej); }))
+      .then(b => { rec.buf = b; }, () => { rec.failed = true; });
+    pianoRec.set(k, rec); return rec;
+  }
+  /** fetch the keys a learner is likely to hear first (C3 … C6), so the first notes are not late */
+  function pianoWarm(lo, hi) { if (!pianoRecorded()) return; for (let k = lo || 48; k <= (hi || 84); k++) pianoLoad(k); }
   /** one piano note (any midi); opt: when, vel, dur (the key is let go after dur seconds) */
   function piano(midi, opt) {
     if (!ensure()) return null;
     opt = opt || {}; const vel = opt.vel == null ? .7 : opt.vel, when = Math.max(ctx.currentTime, opt.when || 0), m = Math.round(midi);
+    const k = pianoKey(midi); let rec = k != null ? pianoLoad(k) : null;
+    const loading = rec && !rec.buf && !rec.failed;
+    if (loading && !opt.noWait && when - ctx.currentTime < .03) {
+      // a tap while its recording is still on its way: it sounds as soon as the recording arrives
+      rec.p.then(() => piano(midi, Object.assign({}, opt, { noWait: true, when: 0 })));
+      return null;
+    }
+    // a note of a sequence whose key has not arrived yet keeps its time with the computed piano (only the first notes
+    // after the piano is chosen); a missing note would be worse for the ear than a different piano
+    if (loading) rec = null;
     const src = ctx.createBufferSource(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
-    src.buffer = pianoBuf(m); lp.type = 'lowpass'; lp.frequency.value = 1800 + 7000 * vel; lp.Q.value = .5;   // a softer touch is a darker tone
-    g.gain.value = .3 + .45 * vel; src.connect(lp); lp.connect(g); g.connect(bus.inst); src.start(when);
-    if (opt.dur && opt.dur < src.buffer.duration) { g.gain.setValueAtTime(g.gain.value, when + opt.dur); g.gain.setTargetAtTime(0, when + opt.dur, .06); src.stop(when + opt.dur + .5); }
+    lp.type = 'lowpass'; lp.Q.value = .5;
+    let off = 0;
+    if (rec && rec.buf) {
+      const n = PD.PIANO.notes[k]; src.buffer = rec.buf; src.playbackRate.value = PD.theory.freq(midi) / n.hz; off = n.start || 0;
+      lp.frequency.value = 2500 + 15000 * vel; g.gain.value = (.35 + .5 * vel) * (n.gain || 1);   // a softer touch is a darker tone
+    } else {
+      src.buffer = pianoBuf(m); lp.frequency.value = 1800 + 7000 * vel; g.gain.value = .3 + .45 * vel;
+    }
+    src.connect(lp); lp.connect(g); g.connect(bus.inst); src.start(when, off);
+    if (opt.dur && opt.dur < src.buffer.duration - off) { g.gain.setValueAtTime(g.gain.value, when + opt.dur); g.gain.setTargetAtTime(0, when + opt.dur, .07); src.stop(when + opt.dur + .5); }
     if (PD.detector && PD.detector.active) PD.detector.selfPlay([m], when, (opt.dur || 1.2) + .1);   // never judge our own sound
     return src;
   }
+  /* ---------- the theory pages' instrument: the panduri or the piano (the learner's choice, Theory › Sound) ----------
+     Only music theory and ear training follow it; lessons, technique tips, the trainers and the tuner stay on the panduri,
+     because there the microphone listens to the panduri. */
+  const theory = {
+    get voice() { return PD.store.get('theory.voice', 'panduri') === 'piano' ? 'piano' : 'panduri'; },
+    set voice(v) { PD.store.set('theory.voice', v === 'piano' ? 'piano' : 'panduri'); if (v === 'piano') pianoWarm(); PD.bus.emit('theoryVoice', theory.voice); },
+    /** a pitch: on the piano, or on the panduri at its lowest fret (a pitch the panduri does not have: a plain tone) */
+    midi(m, opt) {
+      opt = opt || {};
+      if (theory.voice === 'piano') return piano(m, opt);
+      const pos = PD.theory.positions(m).sort((a, b) => a.f - b.f)[0];
+      return pos ? note(pos.s, pos.f, opt) : tone(m, .9);
+    },
+    /** a string and fret: that note, or the same pitch on the piano */
+    note(s, f, opt) { return theory.voice === 'piano' ? piano(PD.theory.midi(s, f), opt) : note(s, f, opt); },
+    /** a chord shape: strummed on the panduri, or its notes struck together on the piano (rolled a little, upward for a down stroke) */
+    strum(frets, dir, opt) {
+      if (theory.voice !== 'piano') return strum(frets, dir, opt);
+      if (!ensure()) return; opt = opt || {};
+      const when = Math.max(ctx.currentTime, opt.when || 0), vel = opt.vel == null ? .7 : opt.vel;
+      const ms = frets.map((f, i) => f == null ? null : PD.theory.midi(i + 1, f)).filter(m => m != null).sort((a, b) => a - b);
+      if (dir === 'up') ms.reverse();
+      ms.forEach((m, i) => piano(m, { when: when + i * .012, vel: vel * .9, dur: opt.dur || 1.8 }));
+    }
+  };
   /* ---------- a recording played round and round (the rhythm recordings, Bani-Acharuli) ----------
      The loop points are sample-exact (AudioBufferSourceNode.loopStart/loopEnd), so a recording cut to whole
      cycles never stumbles at the seam. At most three recordings stay decoded. */
@@ -364,7 +429,7 @@ PD.audio = (() => {
   const wsolaFn = (() => { /* same algorithm, for browsers without workers */ return new Function(WSOLA + '\nreturn wsola;')(); })();
 
   return {
-    ensure, now, note, piano, strum, click, ok, blip, tone, setVol, vol, ref, loopRec,
+    ensure, now, note, piano, pianoWarm, theory, get pianoRecorded() { return pianoRecorded(); }, strum, click, ok, blip, tone, setVol, vol, ref, loopRec,
     get ctx() { return ctx; },
     get outLatency() { return ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) : 0; },
   };

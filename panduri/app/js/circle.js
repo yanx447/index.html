@@ -99,13 +99,14 @@ PD.circle = (() => {
   const voicing = c => c && ((c.voicings && c.voicings[0]) || c);
   function playMidi(m, when) {
     const pos = TH.positions(m).sort((a, b) => a.f - b.f)[0];
+    if (PD.audio.theory) return PD.audio.theory.midi(m, { when, vel: .75, dur: 1.4 });
     if (pos) PD.audio.note(pos.s, pos.f, { when, vel: .75 }); else PD.audio.tone(m, .9);
   }
   /** strum a chord; without a three-string form its tones are sounded one after another (said on the page) */
   function soundChord(root, q) {
     if (!PD.audio.ensure()) return null;
     const c = chordOf(root, q), v = voicing(c);
-    if (v && v.frets) { PD.audio.strum(v.frets, 'down', { gap: .03 }); return c; }
+    if (v && v.frets) { PD.audio.theory.strum(v.frets, 'down', { gap: .03 }); return c; }
     const T = TH.CHORD_TYPES.find(x => x.k === q); if (!T) return null;
     const base = 57 + mod(root - 9, 12), ctx = PD.audio.ctx, t0 = ctx ? ctx.currentTime + .04 : 0;
     T.iv.slice(0, 3).forEach((iv, k) => playMidi(base + iv, t0 + k * .09));

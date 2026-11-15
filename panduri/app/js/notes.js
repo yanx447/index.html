@@ -23,6 +23,7 @@ PD.theoryBook = (() => {
   /* ---------- sound ---------- */
   function playM(m, when) {
     const pos = TH.positions(m).sort((a, b) => a.f - b.f)[0];
+    if (PD.audio.theory) return PD.audio.theory.midi(m, { when, vel: .75, dur: 1.4 });   // panduri or piano: the learner's choice
     if (pos) PD.audio.note(pos.s, pos.f, { when, vel: .75 }); else PD.audio.tone(m, .9);
   }
   /** play a sequence: items are midi numbers, arrays (played together) or null (silence); gap in seconds (or an array of durations) */
@@ -211,9 +212,9 @@ PD.theoryBook = (() => {
         P('აკორდის ნოტები შეიძლება სხვადასხვა წესრიგში იყოს. ყველაზე დაბალი ნოტის მიხედვით: <b>ძირითადი სახე</b> (ქვემოთ ტონიკაა), <b>სექსტაკორდი</b> (ქვემოთ ტერციაა) და <b>კვარტსექსტაკორდი</b> (ქვემოთ კვინტაა).', 'A chord\'s notes can be stacked in different orders. By the lowest note: <b>root position</b> (root at the bottom), <b>first inversion</b> (third at the bottom) and <b>second inversion</b> (fifth at the bottom).'),
         H('„ბანი-აჭარულის“ აკორდები ფანდურზე', 'The chords of “Bani-Acharuli” on the panduri'),
         TABLE([L('აკორდი', 'Chord'), L('ლადები (A · C♯ · E)', 'Frets (A · C♯ · E)'), L('ნოტები (ქვემოდან)', 'Notes (from the bottom)'), L('სახე', 'Position'), ''], [
-          ['Dm', '0 · 1 · 1', 'A · D · F', L('კვარტსექსტაკორდი (ქვემოთ კვინტა A)', '2nd inversion (fifth A at the bottom)'), h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.strum([0, 1, 1], 'down', { gap: .03 }); } })],
-          ['B♭', '1 · 1 · 1', 'B♭ · D · F', L('ძირითადი', 'root position'), h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.strum([1, 1, 1], 'down', { gap: .03 }); } })],
-          ['C', '3 · 3 · 3', 'C · E · G', L('ძირითადი', 'root position'), h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.strum([3, 3, 3], 'down', { gap: .03 }); } })]]),
+          ['Dm', '0 · 1 · 1', 'A · D · F', L('კვარტსექსტაკორდი (ქვემოთ კვინტა A)', '2nd inversion (fifth A at the bottom)'), h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.theory.strum([0, 1, 1], 'down', { gap: .03 }); } })],
+          ['B♭', '1 · 1 · 1', 'B♭ · D · F', L('ძირითადი', 'root position'), h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.theory.strum([1, 1, 1], 'down', { gap: .03 }); } })],
+          ['C', '3 · 3 · 3', 'C · E · G', L('ძირითადი', 'root position'), h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.theory.strum([3, 3, 3], 'down', { gap: .03 }); } })]]),
         P('ფანდურის აწყობა (A C♯ E) თავად მაჟორული ტრიადაა, ამიტომ <b>ერთ ლადზე სამივე სიმის დაჭერა (ბარე) ყოველთვის მაჟორს იძლევა</b>: 1 ლადი = B♭, 3 ლადი = C, 5 ლადი = D …', 'The tuning (A C♯ E) is itself a major triad, so <b>pressing all three strings on one fret (barre) always gives a major chord</b>: fret 1 = B♭, fret 3 = C, fret 5 = D …'),
         h('button', { class: 'btn', text: L('ყველა აკორდი →', 'All chords →'), onclick: () => PD.app.go('chords') }));
     }, q: [
@@ -225,7 +226,7 @@ PD.theoryBook = (() => {
         TABLE([L('საფეხური', 'Degree'), 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'], [[L('დო მაჟორი', 'C major'), 'C', 'Dm', 'Em', 'F', 'G', 'Am', 'B°'], [L('რე მინორი', 'D minor'), '<b>Dm</b>', 'E°', 'F', 'Gm', 'Am / A', '<b>B♭</b>', '<b>C</b>']]),
         UL([['<b>I — ტონიკა</b>: მშვიდი, „სახლი“.', '<b>I — tonic</b>: calm, “home”.'], ['<b>IV — სუბდომინანტა</b>: ტონიკიდან მოშორება.', '<b>IV — subdominant</b>: moving away from home.'], ['<b>V — დომინანტა</b>: დაძაბულობა, ტონიკაში დაბრუნება სურს. მინორში ხშირად მაჟორულია (რე მინორში — A = A C♯ E: ფანდურის ღია სიმები!).', '<b>V — dominant</b>: tension that wants to return home. In minor it is often major (in D minor — A = A C♯ E: the panduri\'s open strings!).']]),
         P('„ბანი-აჭარული“ რე მინორშია: <b>Dm (I) · B♭ (VI) · C (VII)</b> — ტონიკიდან ქვემოთ, VI და VII საფეხურებზე, და ისევ ტონიკაში.', '“Bani-Acharuli” is in D minor: <b>Dm (I) · B♭ (VI) · C (VII)</b> — from the tonic to degrees VI and VII and home again.'),
-        BTN('Dm · Dm · B♭ · C', 'Dm · Dm · B♭ · C', () => { PD.audio.ensure(); const ctx = PD.audio.ctx, t0 = ctx.currentTime + .05; [[0, 1, 1], [0, 1, 1], [1, 1, 1], [3, 3, 3], [0, 1, 1]].forEach((f, i) => PD.audio.strum(f, 'down', { gap: .03, when: t0 + i * .6 })); }),
+        BTN('Dm · Dm · B♭ · C', 'Dm · Dm · B♭ · C', () => { PD.audio.ensure(); const ctx = PD.audio.ctx, t0 = ctx.currentTime + .05; [[0, 1, 1], [0, 1, 1], [1, 1, 1], [3, 3, 3], [0, 1, 1]].forEach((f, i) => PD.audio.theory.strum(f, 'down', { gap: .03, when: t0 + i * .6 })); }),
         h('button', { class: 'btn small', 'data-t': 'cf.title', onclick: () => PD.app.go('circle') }));
     }, q: [
       [['რე მინორში რომელი საფეხურია B♭?', 'In D minor, which degree is B♭?'], ['VI', 'IV', 'VII'], 0, ['D(I) E(II) F(III) G(IV) A(V) B♭(VI) C(VII).', 'D(I) E(II) F(III) G(IV) A(V) B♭(VI) C(VII).']],

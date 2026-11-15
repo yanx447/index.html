@@ -275,14 +275,14 @@ PD.genres = (() => {
         const row = h('div', { class: 'bz-row' }, [h('b', { text: x.sym }), h('small', { class: 'muted', text: PD.theory.localNote(x.ka) + (x.T ? ' · ' + L(x.T.ka, x.T.en) : '') })]);
         if (x.none) { row.append(h('small', { class: 'notice', text: t('gn.noShape') }), h('small', { class: 'muted', text: t('gn.need', { s: x.tones.join(' · ') }) })); }
         else { row.append(h('span', { class: 'sh-frets', text: x.v.frets.map(f => f === 0 ? '0' : f).join(' · ') }),
-          h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.strum(x.v.frets, 'down', { gap: .03 }); if (hb) hb.set(x.v.frets, x.v.fingers || []); } }),
+          h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.theory.strum(x.v.frets, 'down', { gap: .03 }); if (hb) hb.set(x.v.frets, x.v.fingers || []); } }),
           h('button', { class: 'btn small', text: t('ce.title'), onclick: () => PD.app.go('chords', TH.ROOT_NAMES[x.pc] + x.q) })); }
         info.append(row);
         if (i === 0 && !x.none && hb) hb.set(x.v.frets, x.v.fingers || []);
       });
       info.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'gn.rn' }), h('small', { text: b.rn })]));
       if (b.why) info.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'gn.why' }), h('small', { class: 'muted', text: L(b.why[0], b.why[1]) })]));
-      if (c && !c.none) { PD.audio.ensure(); PD.audio.strum(c.v.frets, 'down', { gap: .03 }); }
+      if (c && !c.none) { PD.audio.ensure(); PD.audio.theory.strum(c.v.frets, 'down', { gap: .03 }); }
       PD.i18n.apply(info);
     }
     /** the 12 bars in time: four beats a bar, the bar's chords splitting those beats between them */
@@ -295,7 +295,7 @@ PD.genres = (() => {
         const per = 4 / b.ch.length;
         b.ch.forEach(c => {
           marks.push({ at, i });
-          for (let k = 0; k < per; k++) if (!c.none) PD.audio.strum(c.v.frets, k % 2 ? 'up' : 'down', { when: at + k * spb, gap: .03, vel: k % 2 ? .5 : .75 });
+          for (let k = 0; k < per; k++) if (!c.none) PD.audio.theory.strum(c.v.frets, k % 2 ? 'up' : 'down', { when: at + k * spb, gap: .03, vel: k % 2 ? .5 : .75 });
           at += per * spb;
         });
       });

@@ -32,18 +32,17 @@ PD.solfege = (() => {
   /* ---------- sound ---------- */
   /* the learner's instrument for ear training: the panduri (its recorded notes) or a piano; kept per device,
      shared with the interval page */
-  const VK = 'theory.voice', voice = () => PD.store.get(VK, 'panduri') === 'piano' ? 'piano' : 'panduri';
-  function playM(m, when, vel, dur) {
-    if (voice() === 'piano' && PD.audio.piano) return PD.audio.piano(m, { when, vel: vel || .75, dur: dur || 1.4 });
-    const pos = TH.positions(m).sort((a, b) => a.f - b.f)[0]; if (pos) PD.audio.note(pos.s, pos.f, { when, vel: vel || .8 }); else PD.audio.tone && PD.audio.tone(m, .9);
-  }
+  const voice = () => PD.audio.theory.voice;
+  function playM(m, when, vel, dur) { return PD.audio.theory.midi(m, { when, vel: vel || .8, dur: dur || 1.4 }); }
   function seq(ms, gap) { PD.audio.ensure(); const c = PD.audio.ctx; if (!c) return; let t0 = c.currentTime + .06; ms.forEach((m, i) => { if (m != null) [].concat(m).forEach(x => playM(x, t0, null, i === ms.length - 1 || Array.isArray(m) ? 1.6 : Math.max(.5, gap * 1.15))); t0 += gap; }); }
   /** the panduri / piano switch; onPick runs after a change (the new sound is heard at once) */
   function voiceSwitch(onPick) {
-    const note = h('small', { class: 'muted sf-vnote', 'data-t': 'sf.vPianoD', hidden: voice() !== 'piano' });
+    const synth = () => !PD.audio.pianoRecorded;   // the installable app plays a recorded piano; the single-file build computes one
+    const note = h('small', { class: 'muted sf-vnote', 'data-t': 'sf.vPianoD', hidden: voice() !== 'piano' || !synth() });
+    if (voice() === 'piano') PD.audio.pianoWarm();
     const seg = h('div', { class: 'seg sf-voice', role: 'radiogroup', 'aria-label': t('sf.voice') }, ['panduri', 'piano'].map(v => h('button', { role: 'radio', 'aria-checked': String(voice() === v), 'aria-pressed': String(voice() === v), 'data-t': v === 'piano' ? 'sf.vPiano' : 'sf.vPanduri', onclick: () => {
-      PD.store.set(VK, v); seg.querySelectorAll('button').forEach(b => { const on = b === seg.children[v === 'piano' ? 1 : 0]; b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-checked', String(on)); });
-      note.hidden = v !== 'piano'; seq([DO], .5); if (onPick) onPick(v);
+      PD.audio.theory.voice = v; seg.querySelectorAll('button').forEach(b => { const on = b === seg.children[v === 'piano' ? 1 : 0]; b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-checked', String(on)); });
+      note.hidden = v !== 'piano' || !synth(); seq([DO], .5); if (onPick) onPick(v);
     } })));
     return h('div', { class: 'sf-vrow' }, [h('b', { 'data-t': 'sf.voice' }), seg, note]);
   }

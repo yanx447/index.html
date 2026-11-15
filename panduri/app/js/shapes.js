@@ -175,7 +175,7 @@ PD.shapes = (() => {
     function show(i) {
       sel = i; notes.querySelectorAll('.sh-n').forEach((x, k) => x.classList.toggle('on', k === i));
       const n = path && path.notes[i]; if (!n) return;
-      PD.audio.ensure(); PD.audio.note(n.s, n.f);
+      PD.audio.ensure(); PD.audio.theory.note(n.s, n.f);
       cap.textContent = n.f === 0
         ? t('sh.capOpen', { n: n.name, s: TH.stringName(n.s) })
         : t('sh.capNote', { n: n.name, s: TH.stringName(n.s), f: fLab(n.f), g: t('sh.finger', { n: n.fi }) });
@@ -201,7 +201,7 @@ PD.shapes = (() => {
         h('small', { class: 'sh-fi', text: (n.shift ? '↷ ' : '') + (n.fi ? t('sh.finger', { n: n.fi }) : t('sh.open0')) })])));
       const seq = (rev, gap) => { PD.audio.ensure(); const c = PD.audio.ctx; if (!c) return; let t0 = c.currentTime + .06;
         const list = rev ? path.notes.concat(path.notes.slice(0, -1).reverse()) : path.notes;
-        list.forEach(n => { PD.audio.note(n.s, n.f, { when: t0 }); t0 += gap; }); };
+        list.forEach(n => { PD.audio.theory.note(n.s, n.f, { when: t0 }); t0 += gap; }); };
       foot.append(h('button', { class: 'btn primary', 'data-t': 'sh.play', onclick: () => seq(true, .38) }), h('button', { class: 'btn', 'data-t': 'sh.slow', onclick: () => seq(false, .7) }));
       foot.append(h('small', { class: 'muted', 'data-t': 'sh.tapNote' }));
       if (path.shifts) foot.append(h('small', { class: 'muted', 'data-t': 'sh.shift' }));
@@ -252,7 +252,7 @@ PD.shapes = (() => {
       if (vs.length > 1) { const row = h('div', { class: 'chips-row' });
         vs.forEach((x, k) => row.append(h('button', { class: 'chip' + (k === vi ? ' on' : ''), text: t('sh.fret', { n: Math.max(...x.frets) ? Math.min(...x.frets.filter(f => f > 0)) : 0 }), onclick: () => pick(c, k) })));
         info.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', 'data-t': 'sh.more' }), row])); }
-      acts.append(h('button', { class: 'btn primary', 'data-t': 'sh.strum', onclick: () => { PD.audio.ensure(); PD.audio.strum(v.frets, 'down', { gap: .03 }); } }),
+      acts.append(h('button', { class: 'btn primary', 'data-t': 'sh.strum', onclick: () => { PD.audio.ensure(); PD.audio.theory.strum(v.frets, 'down', { gap: .03 }); } }),
         h('button', { class: 'btn', text: t('ce.title'), onclick: () => PD.app.go('chords', c.id) }));
       if (H3) { const ok = H3.setChord(v.frets, v.fingers || []); box.classList.toggle('no3d', !ok); if (!ok) info.append(h('p', { class: 'notice', 'data-t': 'sh.no3d' })); }
       PD.i18n.apply(w);

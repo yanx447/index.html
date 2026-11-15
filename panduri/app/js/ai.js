@@ -17,7 +17,7 @@ PD.i18n.add({
   'ai.bad': ['ამ ფაილს ვერ ვკითხულობ. სცადე MP3, M4A ან WAV.', 'Could not read this file. Try MP3, M4A or WAV.'], 'ai.key': ['ტონალობა', 'Key'], 'ai.bpm': ['ტემპი', 'Tempo'], 'ai.chords': ['აკორდები', 'Chords'], 'ai.speed': ['სიჩქარე', 'Speed'], 'ai.transpose': ['ტრანსპოზიცია', 'Transpose'],
   'ai.est': ['AI-ის შეფასებაა — ყურით შეამოწმე. საუკეთესოდ მუშაობს მკაფიო აკორდებიან სიმღერებზე.', 'An AI estimate — check it by ear. Works best on songs with clear chords.'],
   'ai.now': ['ახლა', 'Now'], 'ai.next': ['შემდეგი', 'Next'], 'ai.nc': ['აკორდი არ არის', 'No chord'], 'ai.used': ['სიმღერაში: {n} აკორდი', 'In the song: {n} chords'],
-  'ai.stems': ['ინსტრუმენტები', 'Instruments'], 'ai.stemsD': ['AI სიმღერას ყოფს ინსტრუმენტებად: ვოკალი · დრამი · ბასი · დანარჩენი (ფანდური…), სურვილისამებრ გიტარა და ფორტეპიანოც. თითოეულს აქვს ხმა, მარცხნივ/მარჯვნივ, M (ჩუმად) და S (მხოლოდ ეს) — ამოიღე ვოკალი და იმღერე, ან ინსტრუმენტი და თავად დაუკარი.', 'The AI splits the song into instruments: vocals · drums · bass · the rest (panduri…), optionally guitar and piano too. Each has volume, left/right, M (mute) and S (solo) — take the vocals out and sing, or the instrument out and play it yourself.'],
+  'ai.stems': ['ინსტრუმენტები', 'Instruments'], 'ai.stemsD': ['AI სიმღერას ყოფს ინსტრუმენტებად: ვოკალი · დრამი · ბასი · დანარჩენი (ფანდური…), სურვილისამებრ გიტარა და პიანინოც. თითოეულს აქვს ხმა, მარცხნივ/მარჯვნივ, M (ჩუმად) და S (მხოლოდ ეს) — ამოიღე ვოკალი და იმღერე, ან ინსტრუმენტი და თავად დაუკარი.', 'The AI splits the song into instruments: vocals · drums · bass · the rest (panduri…), optionally guitar and piano too. Each has volume, left/right, M (mute) and S (solo) — take the vocals out and sing, or the instrument out and play it yourself.'],
   'ai.split': ['ინსტრუმენტებად დაყოფა', 'Split into instruments'], 'ai.splitNote': ['პირველად AI მოდელი ერთხელ ჩამოიტვირთება (~85 MB). კომპიუტერზე, ბრაუზერში WebGPU-ით (Chrome, Edge, ახალი Safari) 4-წუთიანი სიმღერა დაახლოებით 2 წუთში იყოფა; WebGPU-ს გარეშე — 8–10 წუთში. ამ დროს აპი არ დახურო.', 'The first time, the AI model downloads once (~85 MB). On a computer, in a browser with WebGPU (Chrome, Edge, recent Safari), a 4-minute song splits in about 2 minutes; without WebGPU, in 8–10 minutes. Keep the app open meanwhile.'],
   'ai.passOn': ['უფასო სესია · „{s}“ · დარჩა {left}', 'Free session · “{s}” · {left} left'],
   'ai.passBusy': ['ეს უფასო სესია „{s}“-სთვისაა (დარჩა {left}). სხვა სიმღერა დღეს ვერ გაიხსნება — პრემიუმში შეზღუდვა არ არის.', 'This free session is for “{s}” ({left} left). Another song cannot be opened today — Premium has no limit.'],
@@ -129,7 +129,7 @@ PD.i18n.add({
 
   'ai.pitch': ['ტონი', 'Pitch'], 'ai.pitchD': ['ნახევარტონი — ხმა და აკორდებიც იცვლება', 'semitones — the sound and the chords move together'], 'ai.metro': ['მეტრონომი', 'Metronome'], 'ai.click': ['კლიკი', 'Click'], 'ai.clickVol': ['კლიკის ხმა', 'Click volume'], 'ai.countIn': ['თვლა', 'Count-in'],
   'ai.loop': ['გამეორება', 'Loop'], 'ai.loopA': ['გამეორების დასაწყისი', 'Loop start'], 'ai.loopB': ['გამეორების დასასრული', 'Loop end'], 'ai.loopOff': ['გამეორების გამორთვა', 'Loop off'], 'ai.bars': ['{n} ტაქტი', '{n} bar(s)'], 'ai.barN': ['ტაქტი {n}', 'Bar {n}'],
-  'ai.guitar': ['გიტარა', 'Guitar'], 'ai.piano': ['ფორტეპიანო', 'Piano'], 'ai.model': ['ინსტრუმენტები', 'Instruments'], 'ai.m4': ['4 · ვოკ., დრამი, ბასი, დანარჩ.', '4 · vocals, drums, bass, rest'], 'ai.m6': ['6 · + გიტარა, ფორტეპიანო', '6 · + guitar, piano'],
+  'ai.guitar': ['გიტარა', 'Guitar'], 'ai.piano': ['პიანინო', 'Piano'], 'ai.model': ['ინსტრუმენტები', 'Instruments'], 'ai.m4': ['4 · ვოკ., დრამი, ბასი, დანარჩ.', '4 · vocals, drums, bass, rest'], 'ai.m6': ['6 · + გიტარა, პიანინო', '6 · + guitar, piano'], 'ai.m6D': ['პიანინოს და გიტარას მხოლოდ ზუსტი ძრავა ყოფს — ის კომპიუტერის მეხსიერებას საჭიროებს. დაყოფის შემდეგ ნოტების ამოცნობაში შეგიძლია აირჩიო მხოლოდ პიანინო.', 'Only the accurate engine separates the piano and the guitar — it needs a computer\'s memory. After the split, note transcription can listen to the piano alone.'],
   'ai.vol': ['ხმა', 'Volume'], 'ai.pan': ['მარცხნივ / მარჯვნივ', 'Left / right'], 'ai.export': ['მიქსის შენახვა (WAV)', 'Save the mix (WAV)'], 'ai.mixName': ['ჩემი მიქსი', 'my mix'], 'ai.again': ['ხელახლა დაყოფა', 'Split again'],
   'ai.partInfo': ['დაყოფილია: {a}–{b}', 'Split: {a}–{b}'], 'ai.mixNote': ['მიქსის შენახვაში სიჩქარე, ტონი, ხმები, პანორამა და ეფექტები ისე შეინახება, როგორც ახლა ისმის.', 'The saved mix keeps the speed, pitch, levels, panning and effects you hear now.'],
   'ai.pAll': ['ყველა', 'All'], 'ai.pKaraoke': ['🎤 ვოკალის გარეშე', '🎤 No vocals'], 'ai.pVocal': ['მხოლოდ ვოკალი', 'Vocals only'], 'ai.pNoDrums': ['დრამის გარეშე', 'No drums'], 'ai.pNoBass': ['ბასის გარეშე', 'No bass'], 'ai.pPlay': ['🪕 შენ უკრავ (ინსტრუმენტის გარეშე)', '🪕 You play (instrument muted)'], 'ai.reload': ['ეს სიმღერა ჯერ არ იყო შენახული — აირჩიე ფაილი კიდევ ერთხელ, შემდეგ უკვე შენახული დარჩება.', 'This song was not saved yet — pick the file once more; after that it stays saved.'], 'ai.reloadS': ['შეეხე და ფაილი კიდევ ერთხელ აირჩიე', 'Tap and pick the file once more'], 'ai.forget': ['სიიდან წაშლა', 'Remove from list'], 'ai.home': ['AI: შენი სიმღერის აკორდები', 'AI: chords of your song'], 'ai.homeD': ['ჩატვირთე სიმღერა — AI აკორდებს ფანდურზე გაჩვენებს და ინსტრუმენტებს დაყოფს', 'Load a song — the AI shows its chords on the panduri and splits the instruments']
@@ -1364,19 +1364,29 @@ PD.ai = (() => {
       if (!choices.length) choices.push(['30', t('ai.first', { n: 30 })]);
       let pick = choices[0][0], model = PD.store.get('ai.model', '4');
       const seg = h('div', { class: 'seg' }, choices.map(([k, l]) => h('button', { 'aria-pressed': String(k === pick), text: l, onclick: e => { pick = k; seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
-      const mseg = h('div', { class: 'seg' }, [['4', 'ai.m4'], ['6', 'ai.m6']].map(([k, l]) => h('button', { 'aria-pressed': String(k === model), 'data-v': k, text: t(l), onclick: e => { model = k; PD.store.set('ai.model', k); mseg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } })));
+      const mseg = h('div', { class: 'seg' }, [['4', 'ai.m4'], ['6', 'ai.m6']].map(([k, l]) => h('button', { 'aria-pressed': String(k === model), 'data-v': k, text: t(l), onclick: e => { model = k; PD.store.set('ai.model', k); mseg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === e.currentTarget))); if (k === '6' && engine !== 'heavy') setEngine('heavy'); mNote.hidden = k !== '6'; } })));
       // which engine: the big one is better but needs a computer's memory; the light one loads one
       // instrument at a time and fits on a phone
       let engine = PD.store.get('ai.engine', small ? 'light' : 'heavy');
       const eseg = h('div', { class: 'seg' }, [['light', 'ai.engLight'], ['heavy', 'ai.engHeavy']].map(([k, l]) =>
-        h('button', { 'aria-pressed': String(k === engine), text: t(l), onclick: e => { engine = k; PD.store.set('ai.engine', k); eseg.querySelectorAll('button').forEach(b2 => b2.setAttribute('aria-pressed', String(b2 === e.currentTarget))); mrow.hidden = engine !== 'heavy' || !has6; eNote.textContent = t(engine === 'light' ? 'ai.engLightD' : 'ai.engHeavyD'); } })));
+        h('button', { 'aria-pressed': String(k === engine), 'data-v': k, text: t(l), onclick: () => setEngine(k) })));
+      // the light engine (Spleeter) knows only four instruments: choosing it brings the choice back to four;
+      // the piano and the guitar (six instruments) come only from the accurate engine, so choosing them chooses it
+      function setEngine(k) {
+        engine = k; PD.store.set('ai.engine', k); eseg.querySelectorAll('button').forEach(b2 => b2.setAttribute('aria-pressed', String(b2.dataset.v === k)));
+        eNote.textContent = t(engine === 'light' ? 'ai.engLightD' : 'ai.engHeavyD');
+        if (k === 'light' && model === '6') { model = '4'; PD.store.set('ai.model', '4'); mseg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === '4'))); mNote.hidden = true; }
+      }
       const eNote = h('small', { class: 'muted', text: t(engine === 'light' ? 'ai.engLightD' : 'ai.engHeavyD') });
       const erow = h('div', { class: 'ai-row' }, [h('span', { class: 'muted', text: t('ai.engine') }), eseg]);
+      const mNote = h('small', { class: 'muted', 'data-t': 'ai.m6D', hidden: !(model === '6' && engine === 'heavy') });
       const mrow = h('div', { class: 'ai-row', hidden: true }, [h('span', { class: 'muted', text: t('ai.model') }), mseg]);
-      check6().then(ok => { mrow.hidden = !ok || engine !== 'heavy'; if (!ok) model = '4'; });
+      if (engine === 'light' && model === '6') model = '4';
+      mseg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === model)));
+      check6().then(ok => { mrow.hidden = !ok; if (!ok) { model = '4'; mNote.hidden = true; } });
       const prog = h('div', { class: 'ai-prog', hidden: true }), msg = h('div', { class: 'ai-msg', 'aria-live': 'polite' });
       const go = h('button', { class: 'btn primary big', html: '<span class="ai-spark">✦</span> <span data-t="ai.split"></span>', onclick: () => run().catch(e => { go.disabled = false; prog.hidden = true; msg.textContent = t('ai.fail', { e: e.message || String(e) }); }) });
-      box.append(erow, eNote, mrow, h('div', { class: 'ai-row' }, [h('span', { class: 'muted', 'data-t': 'ai.range' }), seg]), go, h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'ai.splitNote' }), h('p', { class: 'notice', style: 'font-size:12.5px', text: t('ai.memWarn') }), prog, msg);
+      box.append(mrow, mNote, erow, eNote, h('div', { class: 'ai-row' }, [h('span', { class: 'muted', 'data-t': 'ai.range' }), seg]), go, h('p', { class: 'muted', style: 'font-size:12.5px', 'data-t': 'ai.splitNote' }), h('p', { class: 'notice', style: 'font-size:12.5px', text: t('ai.memWarn') }), prog, msg);
       async function run() {
         if (S !== song || !song.deck) return;
         go.disabled = true; prog.hidden = false; msg.textContent = '';

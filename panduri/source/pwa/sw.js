@@ -2,8 +2,9 @@
    Shell: cache-first with versioned caches. Navigation: network-first, offline fallback.
    Teacher media: served from the 'pd-media-*' cache ONLY when the learner explicitly downloaded it;
    large audio/video is never cached silently. The one exception is the instrument itself: the recorded notes
-   (media/strings/, 54 files, about 1.4 MB) and the tuner's three plucks are kept in 'pd-sound-*' the first time
-   they are played, so the panduri sounds like a panduri offline too. Old shell caches are deleted on activate;
+   (media/strings/, 54 files, about 1.4 MB), the recorded piano keys (media/piano/, 88 files, 1.9 MB — each only once
+   it has been played) and the tuner's three plucks are kept in 'pd-sound-*' the first time they are played, so the
+   panduri sounds like a panduri — and the piano like a piano — offline too. Old shell caches are deleted on activate;
    learner data (localStorage / IndexedDB) is never touched. */
 const VERSION = '__VERSION__';
 const SHELL_CACHE = 'pd-shell-' + VERSION;
@@ -27,7 +28,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(SHELL_CACHE).then(c => c.put(req, copy)); return r; }).catch(() => caches.match(req)));
     return;
   }
-  if (url.origin === location.origin && /\/(media\/strings|tuner\/audio)\/[^/]+\.mp3$/.test(url.pathname)) {
+  if (url.origin === location.origin && /\/(media\/strings|media\/piano|tuner\/audio)\/[^/]+\.mp3$/.test(url.pathname)) {
     e.respondWith(caches.open(SOUND_CACHE).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
     return;
   }
