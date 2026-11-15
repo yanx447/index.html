@@ -17,6 +17,7 @@ PD.i18n.add({
   'sf.i1': ['სეკუნდა · ტერცია · კვინტა', 'second · third · fifth'], 'sf.i2': ['+ კვარტა · ოქტავა', '+ fourth · octave'], 'sf.i3': ['ყველა, დიდი და პატარა', 'all, major and minor'],
   'sf.play': ['▶ კიდევ მოსმენა', '▶ Listen again'], 'sf.do': ['▶ დო', '▶ do'], 'sf.next': ['შემდეგი', 'Next'], 'sf.right': ['სწორია!', 'Right!'], 'sf.wrong': ['არა — ეს იყო {x}', 'No — it was {x}'],
   'sf.score': ['{a} / {b} · სერია {s}', '{a} / {b} · streak {s}'], 'sf.best': ['საუკეთესო: {p}%', 'Best: {p}%'],
+  'sf.voice': ['ხმა', 'Sound'], 'sf.vPanduri': ['ფანდური', 'Panduri'], 'sf.vPiano': ['პიანინო', 'Piano'], 'sf.vPianoD': ['პიანინოს ხმას აპი თავად ქმნის — ეს ჩანაწერი არ არის.', 'The app makes the piano sound itself — it is not a recording.'],
   'sf.singNow': ['იმღერე: {x}', 'Sing: {x}'], 'sf.mic': ['მიკროფონის ჩართვა', 'Turn on the microphone'], 'sf.low': ['დაბლა ხარ — აიწიე', 'Too low — go up'], 'sf.high': ['მაღლა ხარ — დაიწიე', 'Too high — go down'], 'sf.ok': ['ზუსტია! ✓', 'In tune! ✓'], 'sf.listening': ['გისმენ…', 'Listening…']
 });
 PD.solfege = (() => {
@@ -29,8 +30,23 @@ PD.solfege = (() => {
   const IVN = k => L(IVS[k][0], IVS[k][1]);
   const LEVELS = { hear: [3, 5, 8], iv: [[2, 4, 7], [2, 4, 5, 7, 12], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]], sing: [3, 5, 8] };
   /* ---------- sound ---------- */
-  function playM(m, when, vel) { const pos = TH.positions(m).sort((a, b) => a.f - b.f)[0]; if (pos) PD.audio.note(pos.s, pos.f, { when, vel: vel || .8 }); else PD.audio.tone && PD.audio.tone(m, .9); }
-  function seq(ms, gap) { PD.audio.ensure(); const c = PD.audio.ctx; if (!c) return; let t0 = c.currentTime + .06; ms.forEach(m => { if (m != null) [].concat(m).forEach(x => playM(x, t0)); t0 += gap; }); }
+  /* the learner's instrument for ear training: the panduri (its recorded notes) or a piano; kept per device,
+     shared with the interval page */
+  const VK = 'theory.voice', voice = () => PD.store.get(VK, 'panduri') === 'piano' ? 'piano' : 'panduri';
+  function playM(m, when, vel, dur) {
+    if (voice() === 'piano' && PD.audio.piano) return PD.audio.piano(m, { when, vel: vel || .75, dur: dur || 1.4 });
+    const pos = TH.positions(m).sort((a, b) => a.f - b.f)[0]; if (pos) PD.audio.note(pos.s, pos.f, { when, vel: vel || .8 }); else PD.audio.tone && PD.audio.tone(m, .9);
+  }
+  function seq(ms, gap) { PD.audio.ensure(); const c = PD.audio.ctx; if (!c) return; let t0 = c.currentTime + .06; ms.forEach((m, i) => { if (m != null) [].concat(m).forEach(x => playM(x, t0, null, i === ms.length - 1 || Array.isArray(m) ? 1.6 : Math.max(.5, gap * 1.15))); t0 += gap; }); }
+  /** the panduri / piano switch; onPick runs after a change (the new sound is heard at once) */
+  function voiceSwitch(onPick) {
+    const note = h('small', { class: 'muted sf-vnote', 'data-t': 'sf.vPianoD', hidden: voice() !== 'piano' });
+    const seg = h('div', { class: 'seg sf-voice', role: 'radiogroup', 'aria-label': t('sf.voice') }, ['panduri', 'piano'].map(v => h('button', { role: 'radio', 'aria-checked': String(voice() === v), 'aria-pressed': String(voice() === v), 'data-t': v === 'piano' ? 'sf.vPiano' : 'sf.vPanduri', onclick: () => {
+      PD.store.set(VK, v); seg.querySelectorAll('button').forEach(b => { const on = b === seg.children[v === 'piano' ? 1 : 0]; b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-checked', String(on)); });
+      note.hidden = v !== 'piano'; seq([DO], .5); if (onPick) onPick(v);
+    } })));
+    return h('div', { class: 'sf-vrow' }, [h('b', { 'data-t': 'sf.voice' }), seg, note]);
+  }
   /* ---------- scores ---------- */
   const K = 'solfege.best';
   const best = () => PD.store.get(K, {});
@@ -47,7 +63,7 @@ PD.solfege = (() => {
     const lvls = h('div', { class: 'chips-row' }, [1, 2, 3].map(n => h('button', { class: 'chip' + (done(ex, n) ? ' done' : ''), 'aria-pressed': String(n === lv), text: t('sf.lvl', { n }) + ' · ' + t((ex === 'iv' ? 'sf.i' : 'sf.l') + n), onclick: () => PD.app.go('solfege', ex + ':' + n, true) })));
     const card = h('section', { class: 'sf-card' }), desc = h('p', { class: 'fg2', 'data-t': 'sf.' + ex + 'D' });
     const score = h('div', { class: 'sf-score' });
-    w.append(tabs, lvls, desc, card, score);
+    w.append(voiceSwitch(), tabs, lvls, desc, card, score);
     let n = 0, right = 0, streak = 0, cur = null, locked = false, micMine = false, lockT = 0, frames = [];
     const ROUNDS = 10;
     const showScore = () => { score.innerHTML = ''; score.append(h('span', { text: t('sf.score', { a: right, b: n, s: streak }) }), h('span', { class: 'muted', text: t('sf.best', { p: Math.round((best()[ex + lv] || 0) * 100) }) })); };
@@ -102,5 +118,5 @@ PD.solfege = (() => {
     showScore();
     ({ hear: hearRound, iv: ivRound, sing: singRound })[ex]();
   }
-  return { page, done, best };
+  return { page, done, best, voice, voiceSwitch, playM };
 })();

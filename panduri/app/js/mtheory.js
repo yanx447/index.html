@@ -49,11 +49,14 @@ PD.mtheory = (() => {
   const src = k => h('span', { class: 'tp-src ' + k, text: PD.ui.srcLabel(k === 'general' ? 'cf.srcGen' : 'tp.src.' + k) });   // the theory label, not the tips' "advice for string players"
 
   /* ---------- sound (the panduri's own notes where they exist) ---------- */
-  function playM(m, when) { const pos = TH.positions(m).sort((a, b) => a.f - b.f)[0]; if (pos) PD.audio.note(pos.s, pos.f, { when, vel: .8 }); else if (PD.audio.tone) PD.audio.tone(m, .9); }
+  function playM(m, when, dur) {
+    if (PD.solfege && PD.solfege.playM) return PD.solfege.playM(m, when, .8, dur);   // panduri or piano: the learner's choice (solfège page)
+    const pos = TH.positions(m).sort((a, b) => a.f - b.f)[0]; if (pos) PD.audio.note(pos.s, pos.f, { when, vel: .8 }); else if (PD.audio.tone) PD.audio.tone(m, .9);
+  }
   function seq(items, gaps) {
     PD.audio.ensure(); const ctx = PD.audio.ctx; if (!ctx) return;
     let at = ctx.currentTime + .06;
-    items.forEach((m, i) => { if (m != null) [].concat(m).forEach(x => playM(x, at)); at += Array.isArray(gaps) ? gaps[i] : gaps; });
+    items.forEach((m, i) => { const g = Array.isArray(gaps) ? gaps[i] : gaps; if (m != null) [].concat(m).forEach(x => playM(x, at, i === items.length - 1 || Array.isArray(m) ? 1.8 : Math.max(.5, g * 1.15))); at += g; });
   }
 
   /* ---------- spelling: an interval is spelled by its name (a 3rd above C is E, never F♭) ---------- */
@@ -161,6 +164,7 @@ PD.mtheory = (() => {
     const sec = (key, kids) => h('section', { class: 'mth-sec' }, [h('h2', { class: 'mth-h', 'data-t': key }), ...kids]);
     const P = (ka, en) => h('p', { class: 'tb-p', html: L(ka, en) });
 
+    if (PD.solfege && PD.solfege.voiceSwitch) w.append(PD.solfege.voiceSwitch());
     w.append(h('div', { class: 'mth-rootbar' }, [h('b', { 'data-t': 'mth.iv.root' }), rootRow]), grid);
 
     w.append(sec('mth.iv.namesH', [h('p', { class: 'tb-p', 'data-th': 'mth.iv.namesP' }),

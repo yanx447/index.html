@@ -99,6 +99,52 @@ PD.audio = (() => {
     o.connect(g); g.connect(bus.ui); o.start(t0); o2.start(t0); o.stop(t0 + dur); o2.stop(t0 + dur);
     return { stop() { try { g.gain.cancelScheduledValues(0); g.gain.setTargetAtTime(0, ctx.currentTime, .03); o.stop(ctx.currentTime + .15); o2.stop(ctx.currentTime + .15); } catch (_) {} } };
   }
+  /* ---------- piano: computed, not recorded ----------
+     A struck string: partials slightly stretched upward (inharmonicity grows with pitch), each pair of
+     unison strings a hair apart so the tone breathes, a strike point near 1/8 of the string that thins
+     the 8th partial, higher partials dying first, a fast "prompt" decay over a long aftersound, and a
+     short felt-hammer thump. Rendered once per note into a buffer and kept, like the Karplus–Strong fallback. */
+  const pianoCache = new Map();
+  function pianoBuf(midi) {
+    const key = midi + ':' + ctx.sampleRate; if (pianoCache.has(key)) return pianoCache.get(key);
+    const sr = ctx.sampleRate, f0 = PD.theory.freq(midi);
+    const T = Math.max(1.2, Math.min(3.6, 3.2 - (midi - 48) * .045)), len = Math.floor(sr * T), out = new Float32Array(len);
+    const B = .00012 * Math.pow(2, (midi - 60) / 20), tau1 = T * .42;
+    for (let n = 1; n <= 18; n++) {
+      const fn = f0 * n * Math.sqrt(1 + B * n * n); if (fn > Math.min(11000, sr * .45)) break;
+      const amp = Math.pow(n, -1.05) * (.25 + .75 * Math.abs(Math.sin(Math.PI * n / 8.3))) * Math.exp(-fn / 7000);
+      const tau = tau1 / (1 + .32 * (n - 1)), r1 = Math.exp(-1 / (sr * tau * .18)), r2 = Math.exp(-1 / (sr * tau));
+      for (const det of [1.00028, .99972]) {
+        const w = 2 * Math.PI * fn * det / sr, cw = Math.cos(w), sw = Math.sin(w);
+        let x = 0, y = 1, a1 = amp * .62 / 2, a2 = amp * .38 / 2;
+        for (let i = 0; i < len; i++) {
+          out[i] += (a1 + a2) * x;
+          const nx = x * cw + y * sw; y = y * cw - x * sw; x = nx; a1 *= r1; a2 *= r2;
+          if (a2 < 1e-5) break;
+        }
+      }
+    }
+    let lp = 0, seed = midi * 7919 + 1;   // the hammer: a few milliseconds of soft, low-passed noise
+    const thump = Math.floor(sr * .03), cut = Math.min(.5, 2 * Math.PI * Math.min(3500, f0 * 6) / sr);
+    for (let i = 0; i < thump; i++) { seed = (seed * 16807) % 2147483647; lp += cut * ((seed / 2147483647) * 2 - 1 - lp); out[i] += lp * .5 * Math.exp(-i / (sr * .006)); }
+    const att = Math.floor(sr * .0025); for (let i = 0; i < att; i++) out[i] *= i / att;
+    const fade = Math.floor(sr * .08); for (let i = 0; i < fade; i++) out[len - 1 - i] *= i / fade;
+    let peak = 0; for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(out[i]));
+    const k = .9 / (peak || 1); for (let i = 0; i < len; i++) out[i] *= k;
+    const buf = ctx.createBuffer(1, len, sr); buf.copyToChannel ? buf.copyToChannel(out, 0) : buf.getChannelData(0).set(out);
+    pianoCache.set(key, buf); return buf;
+  }
+  /** one piano note (any midi); opt: when, vel, dur (the key is let go after dur seconds) */
+  function piano(midi, opt) {
+    if (!ensure()) return null;
+    opt = opt || {}; const vel = opt.vel == null ? .7 : opt.vel, when = Math.max(ctx.currentTime, opt.when || 0), m = Math.round(midi);
+    const src = ctx.createBufferSource(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+    src.buffer = pianoBuf(m); lp.type = 'lowpass'; lp.frequency.value = 1800 + 7000 * vel; lp.Q.value = .5;   // a softer touch is a darker tone
+    g.gain.value = .3 + .45 * vel; src.connect(lp); lp.connect(g); g.connect(bus.inst); src.start(when);
+    if (opt.dur && opt.dur < src.buffer.duration) { g.gain.setValueAtTime(g.gain.value, when + opt.dur); g.gain.setTargetAtTime(0, when + opt.dur, .06); src.stop(when + opt.dur + .5); }
+    if (PD.detector && PD.detector.active) PD.detector.selfPlay([m], when, (opt.dur || 1.2) + .1);   // never judge our own sound
+    return src;
+  }
   /* ---------- a recording played round and round (the rhythm recordings, Bani-Acharuli) ----------
      The loop points are sample-exact (AudioBufferSourceNode.loopStart/loopEnd), so a recording cut to whole
      cycles never stumbles at the seam. At most three recordings stay decoded. */
@@ -318,7 +364,7 @@ PD.audio = (() => {
   const wsolaFn = (() => { /* same algorithm, for browsers without workers */ return new Function(WSOLA + '\nreturn wsola;')(); })();
 
   return {
-    ensure, now, note, strum, click, ok, blip, tone, setVol, vol, ref, loopRec,
+    ensure, now, note, piano, strum, click, ok, blip, tone, setVol, vol, ref, loopRec,
     get ctx() { return ctx; },
     get outLatency() { return ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) : 0; },
   };

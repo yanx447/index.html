@@ -5137,3 +5137,9 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
 .mth-quiz .tb-opts .btn.ok { background: #3e7a45; color: #fff; box-shadow: none; opacity: 1; }
 .mth-quiz .tb-opts .btn.bad { background: #8e3b22; color: #fff; box-shadow: none; opacity: 1; }
 
+/* the panduri / piano switch (solfège and the interval page) */
+.sf-vrow { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); margin: var(--s3) 0; }
+.sf-vrow > b { font-size: 13px; color: var(--muted); font-weight: 600; }
+.sf-voice > button { min-width: 96px; }
+.sf-vnote { flex-basis: 100%; font-size: 12px; }
+
