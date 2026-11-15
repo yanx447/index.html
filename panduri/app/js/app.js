@@ -157,26 +157,57 @@ PD.app = (() => {
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
-  // One composited reflection follows the pointer; no render loop while idle.
+  // Track a single gesture, keeping the original button as the tap target.
+  // Capture lets a drag finish outside the bar without leaving a pressed state.
   function navigationGlass(nav) {
     const clip = h('span', { class: 'nv-glass-track', 'aria-hidden': 'true' });
     const lens = h('span', { class: 'nv-glass-lens' }); clip.append(lens); nav.append(clip);
-    let frame = 0, x = 0, y = 0, start = null, dragged = false;
+    let frame = 0, x = 0, y = 0, gesture = null, blockedClick = null;
     const quiet = () => document.documentElement.matches('.rm,.solid-nav,.tv,.hc') || matchMedia('(prefers-reduced-motion: reduce), (prefers-reduced-transparency: reduce), (update: slow)').matches;
-    const move = e => {
-      if (!e.isPrimary) return;
-      if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) dragged = true;
-      if (quiet()) return;
-      const rect = nav.getBoundingClientRect(); x = e.clientX - rect.left; y = e.clientY - rect.top + nav.scrollTop;
-      nav.classList.add('glass-tracking');
-      if (!frame) frame = requestAnimationFrame(() => { frame = 0; lens.style.transform = 'translate3d(' + (x - 70) + 'px,' + (y - 36) + 'px,0)'; nav.style.setProperty('--glass-x', x + 'px'); nav.style.setProperty('--glass-y', y + 'px'); });
+    const clearVisual = () => {
+      nav.classList.remove('glass-tracking', 'glass-pressed');
+      if (frame) cancelAnimationFrame(frame); frame = 0;
     };
-    const end = () => { start = null; nav.classList.remove('glass-tracking', 'glass-pressed'); if (frame) cancelAnimationFrame(frame); frame = 0; };
+    const move = e => {
+      if (!e.isPrimary || (gesture && e.pointerId !== gesture.id)) return;
+      if (gesture && Math.hypot(e.clientX - gesture.x, e.clientY - gesture.y) > 10) gesture.dragged = true;
+      if (quiet()) { clearVisual(); return; }
+      const rect = nav.getBoundingClientRect();
+      x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+      y = Math.max(0, Math.min(rect.height, e.clientY - rect.top)) + nav.scrollTop;
+      nav.classList.add('glass-tracking');
+      if (!frame) frame = requestAnimationFrame(() => {
+        frame = 0; lens.style.transform = 'translate3d(' + (x - 70) + 'px,' + (y - 36) + 'px,0)';
+        nav.style.setProperty('--glass-x', x + 'px'); nav.style.setProperty('--glass-y', y + 'px');
+      });
+    };
+    const cancel = () => { gesture = null; blockedClick = null; clearVisual(); };
     nav.addEventListener('pointermove', move, { passive: true });
-    nav.addEventListener('pointerdown', e => { if (!e.isPrimary) return; start = { x: e.clientX, y: e.clientY }; dragged = false; move(e); if (!quiet()) nav.classList.add('glass-pressed'); }, { passive: true });
-    ['pointerup', 'pointercancel', 'pointerleave', 'lostpointercapture'].forEach(type => nav.addEventListener(type, end, { passive: true }));
-    // A swipe is a material interaction, not an accidental destination change.
-    nav.addEventListener('click', e => { if (dragged && e.detail !== 0) { e.preventDefault(); e.stopImmediatePropagation(); } dragged = false; }, true);
+    nav.addEventListener('pointerdown', e => {
+      if (!e.isPrimary || e.button !== 0 || gesture) return;
+      blockedClick = null;
+      gesture = { id: e.pointerId, x: e.clientX, y: e.clientY, dragged: false };
+      const target = e.target.closest('.nv');
+      if (target) target.setPointerCapture(e.pointerId);
+      move(e); if (!quiet()) nav.classList.add('glass-pressed');
+    }, { passive: true });
+    nav.addEventListener('pointerup', e => {
+      if (!gesture || e.pointerId !== gesture.id) return;
+      move(e);
+      if (gesture.dragged) blockedClick = { id: e.pointerId, until: performance.now() + 500 };
+      gesture = null; clearVisual();
+    }, { passive: true });
+    nav.addEventListener('pointercancel', e => { if (gesture && e.pointerId === gesture.id) cancel(); }, { passive: true });
+    nav.addEventListener('lostpointercapture', e => { if (gesture && e.pointerId === gesture.id) cancel(); }, { passive: true });
+    nav.addEventListener('pointerleave', () => { if (!gesture) clearVisual(); }, { passive: true });
+    window.addEventListener('blur', cancel);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) cancel(); });
+    nav.addEventListener('click', e => {
+      const block = blockedClick; blockedClick = null;
+      if (block && e.detail !== 0 && performance.now() < block.until && e.pointerId === block.id) {
+        e.preventDefault(); e.stopImmediatePropagation();
+      }
+    }, true);
   }
 
   function shell() {
