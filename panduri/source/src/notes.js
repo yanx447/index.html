@@ -307,7 +307,7 @@ PD.theoryBook = (() => {
     const c = CH.find(x => x.id === param);
     if (c) return chapter(w, c);
     const d = done(), n = CH.filter(x => d[x.id]).length;
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('learn') }), h('h1', { 'data-t': 'tb.title', style: 'margin:0' })]),
+    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('mtheory') }), h('h1', { 'data-t': 'tb.title', style: 'margin:0' })]),
       h('p', { class: 'fg2', 'data-t': 'tb.lead' }),
       h('div', { class: 'tb-prog' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(n / CH.length * 100) + '%' })]), h('small', { class: 'muted', text: t('tb.read', { a: n, b: CH.length }) })]),
       h('button', { class: 'tbs-glb', onclick: () => PD.app.go('theory', 'glossary') }, [h('b', { text: L('ლექსიკონი', 'Glossary') }), h('small', { text: L('მუსიკის ყველა სიტყვა მარტივად', 'Every music word, simply') })]),

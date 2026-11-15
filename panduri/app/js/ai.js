@@ -521,7 +521,7 @@ PD.ai = (() => {
     }
     const onFsChange = () => { if (!document.fullscreenElement && document.body.classList.contains('ai-full')) setFull(false); };
     document.addEventListener('fullscreenchange', onFsChange);
-    const onFsKey = e => { if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return; if (e.key === 'f' || e.key === 'F' || e.key === 'ფ') { e.preventDefault(); setFull(!document.body.classList.contains('ai-full')); } };
+    const onFsKey = e => { if (e.target?.closest?.('.apr-editor')) return; if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return; if (e.key === 'f' || e.key === 'F' || e.key === 'ფ') { e.preventDefault(); setFull(!document.body.classList.contains('ai-full')); } };
     document.addEventListener('keydown', onFsKey);
     const headRow = h('div', { class: 'row pg-head' }, [PD.app.route === 'ai' ? null : h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: back }), h('h1', { 'data-t': 'ai.title', style: 'margin:0' }), h('span', { class: 'ai-badge', text: 'AI' }), h('span', { class: 'spacer' }), fsBtn]);
     w.append(headRow, leadP);
@@ -566,7 +566,8 @@ PD.ai = (() => {
       finally { requestingMic = false; recordButton.disabled = false; }
     } });
     own(() => { recordGone = true; if (recorder?.state === 'recording') recorder.stop(); stopMic(); });
-    w.append(input, drop, h('div', { class: 'as-record' }, [recordButton, recordStatus, recordHint, liveStatus]), passEl, status, body);
+    const importBox = PD.aiUI.fold('apr.import', [input, drop, h('div', { class: 'as-record' }, [recordButton, recordStatus, recordHint, liveStatus])], true);
+    w.append(importBox, passEl, status, body);
     let S = null;   // the current song
     const stopAll = () => { if (S && S.cancelSplit) S.cancelSplit(); for (const w of [worker, splWorker]) { try { w && w.terminate(); } catch (_) {} } worker = null; splWorker = null; if (S) { if (S.tr) S.tr.destroy(); cancelAnimationFrame(S.raf); if (S.deck) S.deck.destroy(); S.deck = null; if (S.vid) { try { S.vid.pause(); S.vid.removeAttribute('src'); S.vid.load(); } catch (_) {} S.vid = null; } if (S.vidURL) { try { URL.revokeObjectURL(S.vidURL); } catch (_) {} S.vidURL = null; } } };
     own(() => { document.removeEventListener('fullscreenchange', onFsChange); document.removeEventListener('keydown', onFsKey); if (document.body.classList.contains('ai-full')) setFull(false); });   // leaving the studio leaves the full screen
@@ -789,10 +790,11 @@ PD.ai = (() => {
         h('small', { class: 'muted', text: t('ai.gotoD') })]);
       /* ---- the deck stays on screen: the transport, the ribbon and what is playing now.
               Everything else lives in a tab, and switching a tab never touches the sound. ---- */
-      leadP.hidden = true; drop.classList.add('mini');
+      leadP.hidden = true; drop.classList.add('mini'); importBox.open = false;
       own(() => { leadP.hidden = false; drop.classList.remove('mini'); if (recentBox) recentBox.hidden = !PD.store.get('ai.recent', []).length; });
-      const deck = h('section', { class: 'ai-deck' }, [vidBox, rWrap, transport, seek, h('div', { class: 'ai-nn' }, [nowEl, nextEl])]);
-      const overview = h('section', { class: 'ai-pane ai-player' }, [gotoRow, nv,
+      const deck = h('section', { class: 'ai-deck' }, [transport, seek]);
+      const audioDetails = PD.aiUI.fold('apr.audio', [vidBox, rWrap, h('div', { class: 'ai-nn' }, [nowEl, nextEl])], true);
+      const overview = h('section', { class: 'ai-pane ai-player' }, [audioDetails, PD.aiUI.fold('apr.neck', [nv]), PD.aiUI.fold('apr.controls', [gotoRow,
         h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.hand') }),
           h('div', { class: 'ai-tc' }, [h('label', { class: 'sw' }, [h3on, h('i'), h('span', { text: t('ai.handOn') })]), h('small', { class: 'muted', text: t('ai.handD') })])]),
         h3wrap,
@@ -802,19 +804,23 @@ PD.ai = (() => {
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.metro') }), h('div', { class: 'ai-tc' }, [clickT, clickV, ciT])]),
           h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('ai.loop') }), h('div', { class: 'ai-tc' }, [lA, lB, lBars(1), lBars(4), lOff, loopTxt])]),
           tempoTool(), chordTool(), fxTool]),
-        chipRow, h('small', { class: 'muted ai-keys', text: t('ai.keys') }), h('p', { class: 'notice', 'data-t': 'ai.est' })]);
+        chipRow, h('small', { class: 'muted ai-keys', text: t('ai.keys') }), h('p', { class: 'notice', 'data-t': 'ai.est' })])]);
       const chordsPane = sheetPanel(), rhythmPane = rhythmPanel(), stemsPane = stemsPanel(), trPane = trPanel();
       const learn = PD.aiLessons.panel({ get S() { return S; }, pro: () => pro('ai.learn'), lock: () => lock('ai.learn') }), learnPane = learn.el;
       S.onLearn = () => { if (learnPane.isConnected) learn.draw(); };
       [chordsPane, rhythmPane, stemsPane, trPane, learnPane].forEach(e => e.classList.add('ai-pane'));
-      const TABS = [['overview', 'ai.tOver'], ['learn', 'al.tab'], ['instruments', 'ai.tInst'], ['chords', 'ai.tChords'], ['rhythm', 'ai.tRhythm'], ['solo', 'ai.tSolo'], ['roll', 'ai.tRoll'], ['notation', 'ai.tNote']];
-      const PANE = { overview, learn: learnPane, instruments: stemsPane, chords: chordsPane, rhythm: rhythmPane, solo: trPane, roll: trPane, notation: trPane };
-      const TRVIEW = { solo: 'let', roll: 'roll', notation: 'staff' };
-      const tabBar = h('nav', { class: 'ai-tabs', role: 'tablist' });
+      const TABS = [['overview', 'apr.audio'], ['roll', 'apr.notes'], ['tab', 'apr.tab'], ['learn', 'apr.practice'], ['instruments', 'ai.tInst'], ['chords', 'ai.tChords'], ['rhythm', 'ai.tRhythm'], ['solo', 'ai.tSolo'], ['notation', 'apr.score']];
+      const PANE = { overview, learn: learnPane, instruments: stemsPane, chords: chordsPane, rhythm: rhythmPane, solo: trPane, roll: trPane, notation: trPane, tab: trPane };
+      const TRVIEW = { solo: 'let', roll: 'roll', notation: 'staff', tab: 'tab' };
+      const tabBar = h('nav', { class: 'apr-navigation', 'aria-label': t('apr.section') });
+      const destination = h('select', { 'aria-label': t('apr.section'), onchange: e => showTab(e.target.value) });
+      TABS.forEach(([k, label]) => destination.append(h('option', { value: k, text: t(label) })));
+      tabBar.append(h('label', {}, [h('span', { text: t('apr.section') }), destination]));
       const paneBox = h('div', { class: 'ai-panes' }, [overview, learnPane, stemsPane, chordsPane, rhythmPane, trPane]);
       let tab = PD.store.get('ai.tab', 'overview'); if (!PANE[tab]) tab = 'overview';
       function showTab(k) {
-        tab = k; PD.store.set('ai.tab', k); body.classList.toggle('as-mode', ['notation', 'solo', 'roll'].includes(k));
+        tab = k; PD.store.set('ai.tab', k); body.classList.toggle('as-mode', ['notation', 'solo', 'roll', 'tab'].includes(k));
+        destination.value = k;
         const want = PANE[k];
         panes.forEach(e => { e.hidden = e !== want; });
         tabBar.querySelectorAll('button').forEach(b2 => { const on = b2.dataset.k === k; b2.classList.toggle('on', on); b2.setAttribute('aria-selected', String(on)); if (on) try { b2.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (_) {} });
@@ -822,10 +828,10 @@ PD.ai = (() => {
         // a canvas that was hidden has no width: give everything a chance to measure again
         requestAnimationFrame(() => { try { neck.layout(); } catch (_) {} last = null; drawRibbon(); if (S.tr && S.tr.regrid) S.tr.regrid(); });
       }
-      TABS.forEach(([k, lab]) => tabBar.append(h('button', { class: 'tab', role: 'tab', 'data-k': k, 'data-t': lab, onclick: () => showTab(k) })));
+      TABS.slice(0, 4).forEach(([k, lab]) => tabBar.append(h('button', { class: 'tab', role: 'tab', 'data-k': k, 'data-t': lab, onclick: () => showTab(k) })));
       S.swapPane = (oldEl, newEl) => { Object.keys(PANE).forEach(k => { if (PANE[k] === oldEl) PANE[k] = newEl; }); const i = panes.indexOf(oldEl); if (i >= 0) panes[i] = newEl; };
       const panes = [overview, learnPane, stemsPane, chordsPane, rhythmPane, trPane];
-      body.append(deck, tabBar, paneBox);
+      body.append(tabBar, deck, paneBox);
       showTab(tab);
       PD.i18n.apply(body);
       function fact(k, v) { return h('div', { class: 'ai-fact' }, [h('small', { 'data-t': k }), v]); }
@@ -1302,7 +1308,7 @@ PD.ai = (() => {
       };
       // keyboard: space play/pause, ←/→ 5 s
       const onKey = e => {
-        if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return;
+        if (e.target?.closest?.('.apr-editor')) return; if (/INPUT|TEXTAREA|SELECT/.test((e.target && e.target.tagName) || '')) return;
         const st = e.shiftKey ? 1 : 5;
         if (e.code === 'Space') { e.preventDefault(); dk.toggle(); }
         else if (e.key === 'ArrowLeft') { e.preventDefault(); jump(-st); }
@@ -1496,7 +1502,7 @@ PD.ai = (() => {
       return box;
     }
     // recent analyses: tap to reopen (song + chords are kept on this device)
-    const recentBox = h('section', { class: 'ai-recent' }); w.append(recentBox);
+    const recentBox = h('section', { class: 'ai-recent' }); const libraryFold = PD.aiUI.fold('apr.library', [recentBox]); w.append(libraryFold);
     const IC = { play: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
       more: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></svg>',
       edit: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>',

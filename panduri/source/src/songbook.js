@@ -32,7 +32,12 @@ PD.i18n.add({
   'sb.shWeb': ['წყაროს სქემა', 'from the source chart'], 'sb.shCalc': ['გამოთვლილი აწყობიდან', 'computed from the tuning'],
   'sb.noShape': ['ამ აკორდს სამ სიმზე პოზიცია არ აქვს — სიმღერაში გამოტოვებულია.', 'This chord has no three-string position — it is left out of the song.'],
   'sb.slash': ['{a} აქ {b}-ადაა აღებული: ბანის ბგერა A სიმზე დაბლა ფანდურზე არ არსებობს.', '{a} is taken here as {b}: its bass note lies below the A string, which the panduri does not have.'],
-  'sb.sources': ['წყაროები', 'Sources'], 'sb.who': ['ავტორები', 'Authors']
+  'sb.sources': ['წყაროები', 'Sources'], 'sb.who': ['ავტორები', 'Authors'],
+  'sb.artist': ['ვინ ასრულებს', 'Who performs it'], 'sb.rec': ['ჩანაწერი YouTube-ზე', 'Recording on YouTube'],
+  'sb.pendTag': ['აკორდები ჯერ არ არის', 'No chords yet'],
+  'sb.pend': ['ამ სიმღერის აკორდები ჯერ არ გვაქვს. ინტერნეტში მხოლოდ ორნაირი წყარო მოიძებნა: ან მათი გამოყენება საიტის წესებით აკრძალულია, ან აკორდებს ავტომატურად აფასებენ და მხოლოდ ჩამონათვალს იძლევიან, თანმიმდევრობის გარეშე. აკორდებს არ ვიგონებთ — დაემატება, როცა სანდო წყარო გვექნება.', 'We do not have the chords of this song yet. The web offered only two kinds of source: ones whose rules forbid reuse, and automatic estimates that list the chords without their order. We do not make chords up — they will be added once there is a reliable source.'],
+  'sb.pendAi': ['გაქვს ამ სიმღერის ჩანაწერი? ატვირთე AI სტუდიაში: აპი აკორდებს და ტემპს შენს მოწყობილობაზე იპოვის, ფანდურზე გაჩვენებს და გაკვეთილსაც შექმნი.', 'Have a recording of this song? Load it into the AI studio: the app finds the chords and the tempo on your device, shows them on the panduri, and you can make a lesson from it.'],
+  'sb.toAi': ['AI სტუდიის გახსნა', 'Open the AI studio']
 });
 
 PD.songbook = (() => {
@@ -68,6 +73,18 @@ PD.songbook = (() => {
       // the page: verse · refrain ×2 · verse (chords written only over the first) · refrain ×6
       form: ['A', 'B', 'B', 'A', 'B', 'B', 'B', 'B', 'B', 'B'],
       sources: [[L('guitaretab.com (chordie.com-ის გავლით) — მგზავრები, „მე მოვიგონე“', 'guitaretab.com (via chordie.com) — Mgzavrebi, Me Movigone'), 'https://www.chordie.com/chord.pere/www.guitaretab.com/m/mgzavrebi/230109.html']] }
+  ];
+  /* ---------------- songs asked for whose chords have no usable source yet ----------------
+     Searched (Nov 2026): akordebi.ge has them but its terms forbid copying and commercial use;
+     Chordify / ChordU give only automatic chord sets, without order. So: name, performer, and the way
+     to get the chords today (the AI studio on the learner's own recording). No chord is invented. */
+  const PENDING = [
+    { id: 'sb-apareka', title: L('ზეცას შახენეო აპარეკა', 'Zetsas Shakheneo Apareka'), who: L('ალუდა ქეთელაური.', 'Aluda Ketelauri.') },
+    { id: 'sb-gudanis-jvari', title: L('გუდანის ჯვარი', 'Gudanis Jvari'), who: L('ალუდა ქეთელაური.', 'Aluda Ketelauri.') },
+    { id: 'sb-shen-alazano', title: L('შენ ალაზანო', 'Shen Alazano'), who: L('თუშური სიმღერა; ასრულებენ ლელა ნაყეური და „ჩვენებურები“.', 'A Tushetian song; performed by Lela Nakeuri & Chveneburebi.'), rec: 'https://www.youtube.com/watch?v=XCu-Q15UOS8' },
+    { id: 'sb-gamoghmit-me-var', title: L('გამოღმით მე ვარ', 'Gamoghmit Me Var'), who: L('ასრულებენ ლევან კბილაშვილი და ნათია დევდარიანი.', 'Performed by Levan Kbilashvili & Natia Devdariani.'), rec: 'https://www.youtube.com/watch?v=K9Pq-HpiKYU' },
+    { id: 'sb-nu-gikvars-qalav', title: L('ნუ გიყვარს ქალავ', 'Nu Gikvars Qalav'), who: L('ასრულებენ ანსამბლები „მართვე“, „თაობა“, „ბასიანი“ და სხვები.', 'Performed by the ensembles Martve, Taoba, Basiani and others.') },
+    { id: 'sb-davluri', title: L('დავლური', 'Davluri'), who: L('საცეკვაო მელოდია.', 'A dance melody.') }
   ];
 
   /* ---------------- per-device practice choices: rhythm and rhythms per chord ---------------- */
@@ -113,7 +130,9 @@ PD.songbook = (() => {
       title: S.title, desc: L('ცნობილი ქართული სიმღერა — აკორდები ინტერნეტიდან, ფანდურზე გადატანილი. მასწავლებელს ჯერ არ შეუმოწმებია.', 'A well-known Georgian song — chords from the web, set on the panduri. Not yet checked by the teacher.'),
       bpm: prefs(S.id).bpm || S.bpm, meter: [cyc, 4], events: ev, sections: secs, sbRhythm: R.id, skills: ['chords', 'strumming'] };
   }
-  PD.lessons.provide(() => SONGS.map(S => { try { return lessonOf(S); } catch (_) { return null; } }).filter(Boolean));
+  const pendingLesson = S => ({ id: S.id, type: 'song', level: 1, demo: false, source: 'draft', songbook: true, pending: true, title: S.title,
+    desc: L('აკორდები ჯერ არ გვაქვს — ქვემოთ წერია, რატომ და როგორ იპოვი მათ ახლავე.', 'No chords yet — below it says why, and how to find them today.'), bpm: 72, meter: [4, 4], events: [], skills: ['chords'] });
+  PD.lessons.provide(() => SONGS.map(S => { try { return lessonOf(S); } catch (_) { return null; } }).filter(Boolean).concat(PENDING.map(pendingLesson)));
 
   /* ---------------- the block on the song's page ---------------- */
   function diagram(sh) {
@@ -137,7 +156,17 @@ PD.songbook = (() => {
     });
     return s;
   }
+  function pendingBlock(S) {
+    const pick = PD.i18n.pick, wrap = h('div', { class: 'sb' });
+    wrap.append(h('p', { class: 'notice' }, [h('span', { class: 'tag demo', 'data-t': 'sb.pendTag' }), h('span', { 'data-t': 'sb.pend' })]),
+      h('section', { class: 'sx-block' }, [h('p', { class: 'fg2', 'data-t': 'sb.pendAi' }), h('div', {}, [h('button', { class: 'btn primary', 'data-t': 'sb.toAi', onclick: () => PD.app.go('ai') })])]),
+      h('section', { class: 'sx-block gn-src' }, [h('b', { 'data-t': 'sb.artist' }), h('p', { class: 'fg2', text: pick(S.who) }),
+        S.rec ? h('a', { href: S.rec, target: '_blank', rel: 'noopener noreferrer', 'data-t': 'sb.rec' }) : null].filter(Boolean)));
+    PD.i18n.apply(wrap);
+    return wrap;
+  }
   function block(l) {
+    const P0 = PENDING.find(x => x.id === l.id); if (P0) return pendingBlock(P0);
     const S = SONGS.find(x => x.id === l.id); if (!S) return null;
     const R = rhythmOf(S), P = prefs(S.id), pick = PD.i18n.pick;
     const wrap = h('div', { class: 'sb' });
@@ -179,5 +208,5 @@ PD.songbook = (() => {
     PD.i18n.apply(wrap);
     return wrap;
   }
-  return { SONGS, block, lessonOf };
+  return { SONGS, PENDING, block, lessonOf };
 })();

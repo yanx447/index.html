@@ -1,6 +1,6 @@
 {
   "name": "panduri-learning",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Panduri Learning — learn the Georgian three-string panduri on your real instrument; the app listens through the microphone.",
   "scripts": {

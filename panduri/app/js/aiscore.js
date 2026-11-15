@@ -181,7 +181,7 @@ PD.i18n.add({
 /** The existing neck renderer, with a metric SVG score and TAB on the same clock. */
 PD.aiScore.workspace = function (M, o) {
   const h = PD.h, t = PD.i18n.t, A = PD.aiScore, S = A.score(M), dk = o.transport;
-  const el = h('div', { class: 'as-workspace' }), rows = [], svgNS = 'http://www.w3.org/2000/svg';
+  const el = h('div', { class: 'as-workspace as-mode-' + (o.mode || 'tab') }), rows = [], svgNS = 'http://www.w3.org/2000/svg';
   const info = h('p', { class: 'as-finger-info', 'aria-live': 'polite' });
   const neckWrap = h('div', { class: 'neckview as-neck' }), canvas = h('canvas'); neckWrap.append(canvas);
   const neck = PD.Neck(canvas, { sticky: true }); neck.mirror = PD.store.get('lefty', false);
@@ -204,7 +204,7 @@ PD.aiScore.workspace = function (M, o) {
   }
   const auto = h('button', { class: 'chip', text: t('as.follow'), 'aria-pressed': 'true', onclick: () => { follow = !follow; auto.setAttribute('aria-pressed', String(follow)); } }); controls.append(auto);
   const warning = h('p', { class: 'notice', text: t('as.pitchWarning'), hidden: true });
-  el.append(controls, warning, h('p', { class: 'muted', text: t('as.conflict') }));
+  el.append(warning);
   const sheets = h('div', { class: 'as-sheets' });
   for (let b = 0; b < S.bars; b++) {
     const width = Math.max(480, S.perBar * 120 + 100), x = beat => 78 + (beat - b * S.perBar) / S.perBar * (width - 104);
@@ -231,7 +231,9 @@ PD.aiScore.workspace = function (M, o) {
     content.querySelectorAll('[data-i]').forEach(n => { const act = () => o.select(Number(n.dataset.i)); n.onclick = act; n.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }; });
     const cursor = h('i', { class: 'as-cursor' }); content.append(cursor); row.append(content); sheets.append(row); rows.push({ row, cursor, x });
   }
-  el.append(sheets, neckWrap, info);
+  el.append(sheets);
+  if (o.mode !== 'staff') el.append(PD.aiUI.fold('apr.neck', [neckWrap, info], true));
+  el.append(PD.aiUI.fold('apr.controls', [controls, h('p', { class: 'muted', text: t('as.conflict') })]));
   function tick(p) {
     const beat = Math.max(0, S.at(p)), bar = Math.min(rows.length - 1, Math.floor(beat / S.perBar));
     rows.forEach((r, i) => { r.cursor.hidden = i !== bar; if (i === bar) { r.cursor.style.left = r.x(beat) + 'px'; if (follow && (r.x(beat) < r.row.scrollLeft || r.x(beat) > r.row.scrollLeft + r.row.clientWidth - 45)) r.row.scrollLeft = Math.max(0, r.x(beat) - r.row.clientWidth / 3); } });

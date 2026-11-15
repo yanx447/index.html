@@ -1,0 +1,75 @@
+/* ===== Music theory hub + intervals (mtheory.js) — every rule is scoped to .mth-* ===== */
+.mth-head h1 { margin: 0 0 var(--s1); }
+.mth-head p { margin: 0; }
+.mth-lead { color: var(--fg2); line-height: 1.55; }
+.mth-h { margin: var(--s6) 0 var(--s3); font-size: var(--t-title3, 19px); font-weight: 650; }
+.mth-src { margin-top: var(--s6); display: flex; gap: var(--s2); flex-wrap: wrap; }
+
+/* progress: three small numbers in a row */
+.mth-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); margin-top: var(--s4); }
+.mth-stat { display: flex; flex-direction: column; gap: 4px; padding: var(--s3); border-radius: var(--r-m); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); min-width: 0; }
+.mth-stat small { color: var(--muted); font-size: 12px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mth-stat b { font-size: 18px; font-variant-numeric: tabular-nums; }
+
+/* the interactive pages: tiles, two big ones first */
+.mth-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+.mth-tile { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s2); min-width: 0; padding: var(--s3) var(--s4) var(--s4); border: 0; border-radius: var(--r-m); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--fg); text-align: left; font: inherit; cursor: pointer; transition: transform var(--d-press, 90ms) var(--ease-out, ease-out), box-shadow .16s; }
+.mth-tile:active { transform: scale(.97); }
+.mth-tile.big { background: linear-gradient(160deg, rgba(213,167,120,.16), rgba(213,167,120,.02) 60%), var(--surface); box-shadow: inset 0 0 0 1px rgba(213,167,120,.3); }
+.mth-ic { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--surface2); color: var(--acc); }
+.mth-ic svg { width: 22px; height: 22px; }
+.mth-tt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mth-tt b { font-size: 15px; font-weight: 650; }
+.mth-tt small { color: var(--muted); font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+@media (hover: hover) and (pointer: fine) { .mth-tile:hover { box-shadow: inset 0 0 0 1px var(--line3); } }
+@media (min-width: 720px) { .mth-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* solfège: three exercises with their three level dots */
+.mth-sf { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--s2); }
+.mth-sfc { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: var(--s3) var(--s4); border: 0; border-radius: var(--r-m); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--fg); text-align: left; font: inherit; cursor: pointer; }
+.mth-sfc b { font-size: 15px; }
+.mth-sfc small { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.mth-dots { display: flex; gap: 5px; margin-top: 6px; }
+.mth-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line3); }
+.mth-dots i.on { background: var(--acc); }
+.mth-more { margin-top: var(--s2); }
+
+/* ---- the interval page ---- */
+.mth-rootbar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: var(--s3); margin: var(--s3) calc(-1 * var(--s2)) var(--s3); padding: var(--s2); border-radius: var(--r-m); background: rgba(12,12,14,.86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.mth-rootbar > b { flex: none; font-size: 13px; color: var(--muted); font-weight: 600; }
+.mth-roots { flex: 1; min-width: 0; }
+.mth-ivgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s3); }
+@media (min-width: 720px) { .mth-ivgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.mth-iv { display: flex; flex-direction: column; gap: var(--s2); padding: var(--s4); border-radius: var(--r-m); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); min-width: 0; }
+.mth-iv-h { display: flex; align-items: center; gap: var(--s3); }
+.mth-iv-h b { display: block; font-size: 18px; font-weight: 700; }
+.mth-iv-h small { color: var(--muted); font-size: 12px; }
+.mth-iv-n { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(213,167,120,.16); color: var(--acc2); font-weight: 800; font-variant-numeric: tabular-nums; }
+.mth-iv-k { display: flex; flex-direction: column; gap: 6px; padding-top: var(--s2); border-top: 1px solid var(--line); }
+.mth-iv-kt { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
+.mth-iv-kt b { font-size: 15px; font-weight: 600; }
+.mth-iv-kt small { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.mth-ab { padding: 1px 7px; border-radius: var(--r-pill); background: var(--surface2); color: var(--acc2); font-size: 12px; font-weight: 700; }
+.mth-iv-ex { display: flex; align-items: center; gap: var(--s2); }
+.mth-nn { min-width: 44px; padding: 4px 10px; border-radius: 10px; background: var(--surface2); text-align: center; font-weight: 700; font-size: 15px; }
+.mth-ar { color: var(--muted); }
+.mth-iv-pos { color: var(--muted); font-size: 12px; }
+.mth-iv-b { display: flex; flex-wrap: wrap; gap: 6px; }
+.mth-sec { margin-top: var(--s4); }
+.mth-sec > .tp-src { margin-top: var(--s2); display: inline-flex; }
+.mth-t td.mth-c { font-size: 12px; color: var(--fg2); }
+.mth-c.perf, .mth-c.perf4 { color: #8fd3a7; } .mth-c.imp { color: #a9c7f0; } .mth-c.dis { color: #e6b07a; } .mth-c.tri { color: #ef8f86; }
+.mth-cons { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--s2); margin: var(--s3) 0; }
+.mth-c-card { display: flex; flex-direction: column; gap: 3px; padding: var(--s3); border-radius: var(--r-m); background: var(--surface); box-shadow: inset 3px 0 0 var(--k, var(--line3)), inset 0 0 0 1px var(--line); }
+.mth-c-card.perf { --k: #8fd3a7; } .mth-c-card.imp { --k: #a9c7f0; } .mth-c-card.dis { --k: #e6b07a; } .mth-c-card.tri { --k: #ef8f86; }
+.mth-c-card b { font-size: 14px; } .mth-c-card small { color: var(--muted); font-size: 12px; }
+.mth-c-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.mth-quiz { display: flex; flex-direction: column; gap: var(--s3); padding: var(--s4); border-radius: var(--r-m); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.mth-quiz .seg { align-self: flex-start; }
+.mth-q { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2) var(--s3); font-size: 16px; }
+.mth-quiz .tb-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.mth-quiz > .btn.primary { align-self: flex-start; }
+.mth-links { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--s2); margin-top: var(--s6); }
+.mth-quiz .tb-opts .btn:disabled { opacity: .55; }
+.mth-quiz .tb-opts .btn.ok { background: #3e7a45; color: #fff; box-shadow: none; opacity: 1; }
+.mth-quiz .tb-opts .btn.bad { background: #8e3b22; color: #fff; box-shadow: none; opacity: 1; }

@@ -145,6 +145,7 @@ PD.app = (() => {
   const NAV = [
     ['home', 'nav.home', NI('<path d="M4 10.4 12 4l8 6.4V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.2H9v5.2H5.5A1.5 1.5 0 0 1 4 19z"/>', '<path fill="currentColor" d="M3.3 9.8 12 2.9l8.7 6.9V19a2.2 2.2 0 0 1-2.2 2.2h-4.2v-5.6H9.7v5.6H5.5A2.2 2.2 0 0 1 3.3 19z"/>')],
     ['learn', 'nav.learn', NI('<path d="M12 6.6C10.2 5.2 7.8 4.6 4 4.6v13c3.8 0 6.2.6 8 2 1.8-1.4 4.2-2 8-2v-13c-3.8 0-6.2.6-8 2z"/><path d="M12 6.6v13"/>', '<path fill="currentColor" d="M11.2 5.9C9.3 4.6 6.9 4 3.6 4a.9.9 0 0 0-.9.9v12.9c0 .5.4.9.9.9 3.4 0 5.6.5 7.6 1.8zM12.8 5.9c1.9-1.3 4.3-1.9 7.6-1.9.5 0 .9.4.9.9v12.9c0 .5-.4.9-.9.9-3.4 0-5.6.5-7.6 1.8z"/>')],
+    ['mtheory', 'nav.theory', NI('<path d="M9 18V5.5l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/><path d="M9 9.5l10-2"/>', '<path fill="currentColor" d="M8.2 5.5c0-.4.3-.8.7-.8l10-2c.5-.1 1 .3 1 .8v12a3.4 3.4 0 1 1-1.6-2.9V8.4L9.8 10v8a3.4 3.4 0 1 1-1.6-2.9z"/>')],
     ['chords', 'nav.chords', NI('<rect x="5" y="3.5" width="14" height="17" rx="2.6"/><path d="M5 9h14M5 14.5h14M9.7 3.5v17M14.3 3.5v17"/>', '<rect fill="currentColor" x="4.2" y="2.8" width="15.6" height="18.4" rx="3"/><path d="M4.2 9h15.6M4.2 14.5h15.6M9.7 2.8v18.4M14.3 2.8v18.4" stroke="#08090B" stroke-width="1.5"/>'), 'wide'],
     ['community', 'cm.title', NI('<rect x="3.5" y="5" width="17" height="14" rx="4"/><path d="M10.4 9.2v5.6l4.7-2.8z" fill="currentColor" stroke="none"/>', '<rect fill="currentColor" x="2.8" y="4.3" width="18.4" height="15.4" rx="4.5"/><path d="M10.4 9.2v5.6l4.7-2.8z" fill="#08090B"/>')],
     ['tuner', 'nav.tuner', NI('<path d="M4.4 17.5a7.6 7.6 0 1 1 15.2 0"/><path d="M12 17.5l3.7-5.2"/><circle cx="12" cy="17.5" r="1.3" fill="currentColor" stroke="none"/>', '<path fill="currentColor" d="M3.6 18.2a8.4 8.4 0 1 1 16.8 0z"/><path d="M12 17.4l3.7-5.2" stroke="#08090B" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17.4" r="1.6" fill="#08090B"/>')],
@@ -152,8 +153,8 @@ PD.app = (() => {
     ['profile', 'nav.profile', NI('<circle cx="12" cy="8.4" r="3.9"/><path d="M4.6 20.2c.9-3.7 3.8-5.7 7.4-5.7s6.5 2 7.4 5.7"/>', '<circle fill="currentColor" cx="12" cy="8.2" r="4.5"/><path fill="currentColor" d="M3.8 20.4c.9-4.2 4.1-6.6 8.2-6.6s7.3 2.4 8.2 6.6c.1.5-.3 1-.8 1H4.6c-.5 0-.9-.5-.8-1z"/>')]];
   // on the phone, screens whose tab is not in the dock light the tab they are reached from
   const DOCK_OF = { chords: 'learn', ai: 'home' };
-  const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'learn', tips: 'learn', solfege: 'learn', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
-    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'learn', circle: 'learn', chordhow: 'learn', music: 'learn', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', checkout: 'profile' };
+  const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'mtheory', mtheory: 'mtheory', tips: 'learn', solfege: 'mtheory', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', checkout: 'profile' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -335,7 +336,7 @@ PD.app = (() => {
     /* the desktop layout reads this: a page of prose gets a reading column, a page of cards gets
        the full width. On a phone it changes nothing — there is only ever one column there. */
     const READ = { theory: 1, tips: 1, music: 1, book: 1, rhythm: 1, scales: 1, chordhow: 1, solfege: 1, cert: 1 };
-    const WIDE = { chords: 1, circle: 1, library: 1, songs: 1, learn: 1, home: 1, explore: 1, community: 1, ai: 1, progress: 1 };
+    const WIDE = { chords: 1, circle: 1, mtheory: 1, library: 1, songs: 1, learn: 1, home: 1, explore: 1, community: 1, ai: 1, progress: 1 };
     document.documentElement.dataset.route = route;
     document.documentElement.dataset.col = READ[route] ? 'read' : WIDE[route] ? 'wide' : 'mid';
     PD.bus.emit('route', route);
@@ -344,7 +345,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), circle: () => PD.circle.page(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), book: () => PD.book.page(wrap, param), install: () => PD.install.page(wrap), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), checkout: () => PD.checkout.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), circle: () => PD.circle.page(wrap, param), mtheory: () => PD.mtheory.page(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), book: () => PD.book.page(wrap, param), install: () => PD.install.page(wrap), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), checkout: () => PD.checkout.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
     // offline: a page that needs the server says so at its top, and what still works (the rest of the app is offline-first)
     if (NET[route] && navigator.onLine === false) { const n = h('p', { class: 'notice net-off', role: 'status' }, [h('span', {}, [h('b', { 'data-t': 'net.offT' }), ' · ', h('span', { 'data-t': 'net.offD' })])]); const hd = wrap.firstElementChild; if (hd && /\b(pg-head|row)\b/.test(hd.className)) hd.after(n); else wrap.prepend(n); }
     PD.i18n.apply(main);
@@ -606,7 +607,7 @@ PD.app = (() => {
      Short things worth knowing, taken from material already in the app: the tips cards, the theory book's
      "remember" lines and its words, and the chapters on the world of music. Nothing is written here: each item
      keeps the source badge of where it comes from (a draft card says it is a draft), and a tap opens that page.
-     The order is shuffled once a day; each visit starts at the next one. */
+     The order is random on every visit, so nobody can tell what comes next; ‹ › walk back and forth through it. */
   function homeTips() {
     const P = PD.i18n.pick, two = a => (a && (a[0] || a[1]) ? P({ ka: a[0], en: a[1] }) : ''), plain = x => String(x || '').replace(/<[^>]+>/g, '').trim();
     const L = { tip: [], theory: [], word: [], music: [] };
@@ -623,18 +624,20 @@ PD.app = (() => {
     try { (PD.genres.CHAPTERS || []).forEach(c => { const lead = plain(two(c.lead)); if (!lead) return;
       const first = (lead.match(/^.+?[.!?](\s|$)/) || [lead])[0].trim();
       L.music.push({ kind: 'music', k: t('hmt.music'), src: 'general', title: t(c.t), text: first, go: ['music', c.id] }); }); } catch (_) {}
-    let seed = Math.floor(Date.now() / 864e5) % 233280;
-    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-    Object.values(L).forEach(a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } });
-    const out = [], ORDER = ['tip', 'theory', 'tip', 'word', 'tip', 'music'];
-    for (let n = 0; ORDER.some(k => L[k].length); n++) { const a = L[ORDER[n % ORDER.length]]; if (a.length) out.push(a.shift()); }
+    // a fresh random order on every visit, with no pattern of kinds; what was shown lately goes to the back,
+    // so the next visit does not open with something just seen
+    const all = [].concat(L.tip, L.theory, L.word, L.music), keyOf = x => x.kind + ':' + x.go.join(':');
+    for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+    const seen = new Set(PD.store.get('hm.tipSeen', []));
+    const out = all.filter(x => !seen.has(keyOf(x))).concat(all.filter(x => seen.has(keyOf(x))));
+    out.forEach(x => { x.key = keyOf(x); });
     return out;
   }
   function tipDeck() {
     const all = homeTips(); if (!all.length) return null;
     const DUR = 9000, N = all.length, GLYPH = { tip: '✦', theory: '♩', word: 'ა', music: '♫' };
     const canHover = matchMedia('(hover: hover)').matches;
-    let i = ((+PD.store.get('hm.tipAt', 0) || 0) % N + N) % N, paused = false, elapsed = 0, last = performance.now(), was = false, miss = 0, sx = null, swiped = false;
+    let i = 0, paused = false, elapsed = 0, last = performance.now(), was = false, miss = 0, sx = null, swiped = false;
     const ico = d => '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
     const stage = h('div', { class: 'hmt-stage' }), bar = h('i'), count = h('span', { class: 'hmt-n' });
     const pauseB = h('button', { class: 'hmt-b', onclick: () => { paused = !paused; syncPause(); } });
@@ -658,7 +661,7 @@ PD.app = (() => {
       if (dir) requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('from-l', 'from-r')));
       olds.forEach(old => { old.classList.add(dir < 0 ? 'to-r' : 'to-l'); old.inert = true; old.setAttribute('aria-hidden', 'true'); setTimeout(() => old.remove(), 460); });
       count.textContent = (i + 1) + ' / ' + N; elapsed = 0; bar.style.transform = 'scaleX(0)';
-      PD.store.set('hm.tipAt', (i + 1) % N);   // the next visit starts with something new
+      { const seen = PD.store.get('hm.tipSeen', []).filter(k => k !== all[i].key); seen.push(all[i].key); PD.store.set('hm.tipSeen', seen.slice(-Math.floor(N / 2))); }   // remembered so a later visit starts elsewhere
     }
     function step(d, user) { i = (i + d + N) % N; if (user) stage.setAttribute('aria-live', 'polite'); show(d); }
     stage.addEventListener('pointerdown', e => { sx = e.clientX; });
@@ -794,12 +797,9 @@ PD.app = (() => {
     // the library: every guide in one row (the same cards as before)
     const ph = PD.assets && PD.assets.photos;
     w.append(h('section', { class: 'lib' }, [h('h2', { 'data-t': 'tp.lib' }), h('div', { class: 'lib-row' }, [
-      libCard('songs', null, 'nav.songs', 'lnx.songsD', '<span class="lib-ic">' + ic.song + '</span>'), libCard('tips', 'sit', 'tp.c.start', 'ln.firstD', PD.tips.ART.sit()), libCard('tips', null, 'tp.title', 'tp.lead', PD.tips.ART.strum()), libCard('theory', null, 'tb.title', 'tb.tool', PD.tips.ART.semitone()),
+      libCard('songs', null, 'nav.songs', 'lnx.songsD', '<span class="lib-ic">' + ic.song + '</span>'), libCard('tips', 'sit', 'tp.c.start', 'ln.firstD', PD.tips.ART.sit()), libCard('tips', null, 'tp.title', 'tp.lead', PD.tips.ART.strum()), libCard('mtheory', null, 'mth.title', 'mth.lead', PD.tips.ART.semitone()),
       libCard('tips', 'parts', 'tp.parts', 'tp.partsD', ph && ph.front ? '<img src="' + ph.front + '" alt="">' : ''),
       libCard('exams', null, 'ex.title', 'ex.lead', '<span class="lib-ic">' + (ic.check || ic.learn) + '</span>'),
-      libCard('scales', null, 'sh.scales', 'sh.scalesD', '<span class="lib-ic">' + ic.frets + '</span>'),
-      libCard('music', null, 'gn.title', 'gn.lead', '<span class="lib-ic">' + (ic.world || ic.learn) + '</span>'),
-      libCard('chordhow', null, 'sh.chords', 'sh.chordsD', '<span class="lib-ic">' + ic.chord + '</span>'),
       libCard('practice', null, 'hd.practice', 'ph.lead', '<span class="lib-ic">' + ic.pulse + '</span>'), libCard('rhythms', null, 'nav.rhythms', 'rh.commonSec', PD.tips.ART.beat()), libCard('tuner', null, 'nav.tuner', 'tools.tunerD', '<span class="lib-ic">' + ic.tune + '</span>')])]));
     if (byPath && document.getElementById('lp-' + param)) requestAnimationFrame(() => document.getElementById('lp-' + param).scrollIntoView({ block: 'start' }));
     else if (focusEl) requestAnimationFrame(() => { const pg = document.getElementById('page'); if (pg && focusEl.offsetTop > pg.clientHeight * .75) focusEl.scrollIntoView({ block: 'center' }); });
@@ -851,7 +851,7 @@ PD.app = (() => {
     if (PD.author()) chips.append(h('button', { class: 'btn small', html: ic.edit + '<span data-t="les.edit"></span>', onclick: () => PD.studio.open(l.id) }));
     // a lesson the learner made in the AI studio is theirs to delete, right here
     if (l.ai && l.sid && PD.aiLessons) chips.append(h('button', { class: 'btn small ghost danger', 'data-t': 'al.del', onclick: () => PD.ui.confirm(t(PD.aiLessons.songListed(l.sid) ? 'al.delQ' : 'al.delQGone', { s: PD.i18n.pick(l.title) }), () => { PD.aiLessons.remove(l.sid); PD.ui.toast(t('al.deleted')); go('songs'); }) }));
-    if (!has) { w.append(chips, h('div', { class: 'empty', text: t('les.noNotes') })); return; }
+    if (!has) { w.append(chips); if (!l.pending) w.append(h('div', { class: 'empty', text: t('les.noNotes') })); return; }
     if (l.song) return songPage(w, l, p, chips);
     const firstUndone = stages.find(s => !(stagePct(p, s) >= 80)) || 'wait';
     w.append(h('div', { class: 'ls-actions lx-actions' }, [

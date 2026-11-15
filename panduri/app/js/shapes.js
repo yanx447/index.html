@@ -152,7 +152,7 @@ PD.shapes = (() => {
     let root = 9, kind = 'major';                       // A, as the panduri's own open chord
     if (param) { const [r, k] = String(param).split(':'); if (+r >= 0 && +r < 12) root = +r; if (SCALES[k]) kind = k; }
     let H3 = null, sel = 0, path = null, touched = false;
-    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('learn') }), h('h1', { 'data-t': 'sh.scales', style: 'margin:0' })]),
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('mtheory') }), h('h1', { 'data-t': 'sh.scales', style: 'margin:0' })]),
       h('p', { class: 'fg2', 'data-t': 'sh.scalesD' }));
     let grp = SCALES[kind].g;
     const roots = h('div', { class: 'chips-row' }), kinds = h('div', { class: 'chips-row' }), grps = h('div', { class: 'chips-row' });
@@ -218,7 +218,7 @@ PD.shapes = (() => {
     const all = (PD.curriculum.chords() || []).filter(c => !c.none);
     let cat = 'major', cur = null, H3 = null, vi = 0;
     if (param) { const c = all.find(x => x.id === param || x.name === param); if (c) { cur = c; cat = c.cat || 'major'; } }
-    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('learn') }), h('h1', { 'data-t': 'sh.chords', style: 'margin:0' })]),
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('mtheory') }), h('h1', { 'data-t': 'sh.chords', style: 'margin:0' })]),
       h('p', { class: 'fg2', 'data-t': 'sh.chordsD' }));
     const CATS = [['major', 'ce.cat.major'], ['minor', 'ce.cat.minor'], ['seventh', 'ce.cat.seventh'], ['sus', 'ce.cat.sus'], ['other', 'ce.cat.other']];
     const cats = h('div', { class: 'chips-row' }), list = h('div', { class: 'sh-list' }), box = h('section', { class: 'sh-box' }), info = h('div', { class: 'sh-info' }), acts = h('div', { class: 'sh-foot' });

@@ -791,7 +791,10 @@ PD.aimus.panel = function (o) {
   const can = k => !o[k] || o[k]();                      // no gate given → open
   const lock = f => o.lock ? o.lock(f) : null;
   const buy = f => h('button', { class: 'btn primary', text: t('pm.buy'), onclick: () => lock(f) });
-  let M = o.saved || null, busy = null, view = PD.store.get('tr.view', 'workspace'), onNeck = PD.store.get('tr.neck', true);
+  let M = o.saved || null, busy = null, view = PD.store.get('tr.view', 'roll'), onNeck = PD.store.get('tr.neck', true);
+  const pianoState = {}, undoStack = [];
+  const remember = () => { undoStack.push(JSON.parse(JSON.stringify(M))); if (undoStack.length > 30) undoStack.shift(); };
+  const editable = () => { if (can('proEdit')) return true; lock('ai.edit'); return false; };
   let cur = -1, px = PD.store.get('tr.zoom', 90), follow = true, editMode = false, edBox = null;
   let generation = 0, disposed = false;
   const RANGES = { poly: [21, 108], mel: [55, 84], high: [64, 93], low: [36, 64] };
@@ -883,46 +886,12 @@ PD.aimus.panel = function (o) {
 
   /* piano roll: a window that follows the player; drag to scrub, tap a note to go there */
   function rollView() {
-    const cv = h('canvas', { class: 'tr-roll' }), wrap = h('div', { class: 'tr-rollwrap' }, [cv]);
-    const zm = h('div', { class: 'ai-tc' }, [h('button', { class: 'btn small', text: '−', onclick: () => { px = Math.max(30, px / 1.4); PD.store.set('tr.zoom', px); draw(); } }),
-      h('button', { class: 'btn small', text: '+', onclick: () => { px = Math.min(400, px * 1.4); PD.store.set('tr.zoom', px); draw(); } })]);
-    let W = 10, H = 190, dpr = 1, vLo = null, vHi = null;
-    function size() { const r = wrap.getBoundingClientRect(); W = Math.max(10, r.width); dpr = Math.min(2, devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px'; }
-    function draw() {
-      if (!cv.isConnected) return; size();
-      const x = cv.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H);
-      const p = o.pos(), t0 = p - W / px * .35, t1 = t0 + W / px;
-      const near = M.notes.filter(n => n.t1 > t0 - 6 && n.t0 < t1 + 6).map(n => n.m), all = M.notes.map(n => n.m);
-      const ms = (near.length ? near : all).slice().sort((a, b) => a - b);
-      let lo = ms[Math.floor(ms.length * .02)] - 2, hi = ms[Math.floor(ms.length * .98)] + 2;
-      if (hi - lo < 14) { const c = (hi + lo) / 2; lo = c - 7; hi = c + 7; }
-      if (vLo == null) { vLo = lo; vHi = hi; } else { vLo += (lo - vLo) * .12; vHi += (hi - vHi) * .12; }   // the window glides instead of jumping
-      lo = vLo; hi = vHi; const span = Math.max(8, hi - lo);
-      const X = tt => (tt - t0) * px, Y = m => H - 10 - (m - lo) / span * (H - 20), rh = Math.max(4, (H - 20) / span - 1);
-      // the bars of the song
-      (M.beats || []).forEach((b, k) => { if (b < t0 - 1 || b > t1 + 1) return; const g = M.metre.beatsPerBar || 4, one = (((k - (M.metre.phase || 0)) % g) + g) % g === 0; x.fillStyle = one ? 'rgba(240,240,242,.26)' : 'rgba(240,240,242,.08)'; x.fillRect(X(b), 0, 1, H); });
-      // every note that was heard, faint, behind the line that was written out
-      if (M.poly) { x.fillStyle = 'rgba(240,240,242,.16)'; M.poly.forEach(n => { if (n.t1 < t0 || n.t0 > t1 || n.m < lo - 1 || n.m > hi + 1) return; x.fillRect(X(n.t0), Y(n.m) - rh / 2 + 1, Math.max(2, (n.t1 - n.t0) * px - 1), Math.max(2, rh - 2)); }); }
-      M.notes.forEach((n, i) => {
-        if (n.t1 < t0 || n.t0 > t1) return;
-        const a = X(n.t0), w = Math.max(3, (n.t1 - n.t0) * px - 1), y = Y(n.m);
-        x.globalAlpha = .35 + .65 * n.conf;
-        x.fillStyle = !n.reach ? 'rgba(190,120,110,.9)' : (i === cur ? '#f2f2f3' : SCOL[n.s] || '#b97a49');
-        if (x.roundRect) { x.beginPath(); x.roundRect(a, y - rh / 2, w, rh, Math.min(4, rh / 2)); x.fill(); } else x.fillRect(a, y - rh / 2, w, rh);
-        x.globalAlpha = 1;
-        if (w > 26 && rh > 9) { x.fillStyle = '#141416'; x.font = '700 ' + Math.min(12, rh - 1).toFixed(0) + "px 'Noto Sans Georgian', system-ui"; x.textBaseline = 'middle'; x.fillText(noteLabel(n), a + 3, y); }
-      });
-      x.fillStyle = '#c89670'; x.fillRect(X(p) - 1, 0, 2, H);
-      x.fillStyle = 'rgba(221,176,138,.9)'; x.beginPath(); x.moveTo(X(p) - 5, 0); x.lineTo(X(p) + 5, 0); x.lineTo(X(p), 7); x.fill();
-    }
-    cv.onpointerdown = e => {
-      const r = cv.getBoundingClientRect(), p = o.pos(), t0 = p - W / px * .35, tt = t0 + (e.clientX - r.left) / px;
-      const i = M.notes.findIndex(n => tt >= n.t0 - .04 && tt <= n.t1 + .04);
-      if (i >= 0 && editMode) return edit(i);
-      o.seek(tt);
-    };
-    const ro = new ResizeObserver(() => draw()); ro.observe(wrap);
-    return { el: h('div', {}, [h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.zoom') }), zm]), wrap]), draw, stop: () => ro.disconnect() };
+    return PD.aiPiano(M, { state: pianoState, pos: o.pos, seek: o.seek, playing: () => !!o.transport?.D.playing, canEdit: editable,
+      canUndo: () => undoStack.length > 0, undo: () => { if (!editable() || !undoStack.length) return; M = undoStack.pop(); o.save && o.save(M); render(); },
+      change: (n, patch) => { remember(); Object.assign(n, patch); changedNotes(); },
+      remove: n => { remember(); M.notes.splice(M.notes.indexOf(n), 1); changedNotes(); },
+      add: n => { remember(); M.notes.push(PD.aiScore.normalise(n)); pianoState.selected = n.id; changedNotes(); }
+    });
   }
 
   /* staff, letters, solfège, numbers and tab are all written bar by bar */
@@ -1031,8 +1000,8 @@ PD.aimus.panel = function (o) {
     };
     const select = h('select', { 'aria-label': t('as.variant'), onchange: e => choose(e.target.value) });
     [['original', 'as.original'], ['easy', 'as.easy'], ['advanced', 'aisc.advanced'], ['fingerstyle', 'as.arrangement']].forEach(([value, key]) => select.append(h('option', { value, text: t(key), selected: (M.arrangement || 'advanced') === value })));
-    row.append(select, h('button', { class: 'btn small', text: t('as.convert'), onclick: () => { A.mapNotes(M.notes); A.quantise(M.notes, M.beats, M.metre); view = 'workspace'; o.save && o.save(M); render(); } }),
-      h('button', { class: 'btn small', text: t('as.fingers'), onclick: () => { A.mapNotes(M.notes); view = 'workspace'; onNeck = true; o.save && o.save(M); render(); el.querySelector('.as-neck')?.scrollIntoView({ block: 'nearest' }); } }),
+    row.append(select, h('button', { class: 'btn small', text: t('as.convert'), onclick: () => { A.mapNotes(M.notes); A.quantise(M.notes, M.beats, M.metre); view = 'tab'; o.save && o.save(M); render(); } }),
+      h('button', { class: 'btn small', text: t('as.fingers'), onclick: () => { A.mapNotes(M.notes); view = 'tab'; onNeck = true; o.save && o.save(M); render(); el.querySelector('.as-neck')?.scrollIntoView({ block: 'nearest' }); } }),
       h('button', { class: 'btn small', text: t('as.fingerstyle'), onclick: () => choose('fingerstyle') }),
       h('button', { class: 'btn small', text: t('as.add'), onclick: () => { if (!can('proEdit')) return lock('ai.edit'); const start = Math.min(M.dur - .05, Math.max(0, o.pos())); M.notes.push(PD.aiScore.normalise({ m: TH.open(3), t0: start, t1: Math.min(M.dur, start + .5), conf: 1, corrected: true, id: 'manual-' + Date.now() })); changedNotes(); } }));
     return row;
@@ -1043,20 +1012,18 @@ PD.aimus.panel = function (o) {
     if (V && V.stop) V.stop();
     el.innerHTML = ''; el.append(title());
     if (!M) { el.append(head()); PD.i18n.apply(el); return; }
-    el.append(facts(), arrangementControls(), h('p', { class: 'notice', text: t('as.limits') }));
-    if (M.arrangement === 'fingerstyle' || M.arrangement === 'easy') el.append(h('p', { class: 'notice', text: t('as.draft') + ' ' + t('as.omitted', { n: M.omitted || 0 }) }));
-    if (!M.notes.length) { el.append(h('p', { class: 'notice', text: t('tr.none') }), head()); PD.i18n.apply(el); return; }
-    if (M.metre.unsure && !M.metre.byHand) el.append(h('p', { class: 'notice', text: t('tr.unsure') }));
-    const tabs = h('div', { class: 'tabs tr-tabs' });
-    [['workspace', 'as.workspace'], ['staff', 'tr.vStaff'], ['roll', 'tr.vRoll'], ['let', 'tr.vLet'], ['sol', 'tr.vSol'], ['num', 'tr.vNum'], ['tab', 'tr.vTab']].forEach(([k, lab]) =>
-      tabs.append(h('button', { class: 'tab' + (view === k ? ' on' : ''), text: t(lab), onclick: () => { view = k; PD.store.set('tr.view', k); render(); } })));
-    el.append(tabs);
-    V = ['workspace', 'staff', 'tab'].includes(view) ? PD.aiScore.workspace(M, { ...o, select: i => editMode ? edit(i) : o.seek(M.notes[i].t0) }) : view === 'roll' ? rollView() : listView();
+    const fold = PD.aiUI.fold;
+    const picker = h('select', { class: 'apr-view-select', 'aria-label': t('apr.view'), onchange: e => { view = e.target.value; PD.store.set('tr.view', view); render(); } });
+    [['roll', 'apr.piano'], ['staff', 'apr.score'], ['tab', 'apr.tab'], ['let', 'tr.vLet'], ['sol', 'tr.vSol'], ['num', 'tr.vNum']].forEach(([k, label]) => picker.append(h('option', { value: k, text: t(label), selected: (view === 'workspace' ? 'tab' : view) === k })));
+    const summary = h('span', { class: 'apr-summary', text: M.notes.length + ' · ' + t('tr.notes') + ' / ' + Math.round(M.bpm) + ' BPM' });
+    el.append(h('div', { class: 'apr-viewbar' }, [h('label', {}, [h('span', { text: t('apr.view') }), picker]), summary]));
+    if (!M.notes.length) { el.append(h('p', { class: 'notice', text: t('tr.none') }), arrangementControls(), head()); PD.i18n.apply(el); return; }
+    V = ['workspace', 'staff', 'tab'].includes(view) ? PD.aiScore.workspace(M, { ...o, mode: view === 'staff' ? 'staff' : 'tab', select: i => editMode ? edit(i) : o.seek(M.notes[i].t0) }) : view === 'roll' ? rollView() : listView();
     el.append(V.el);
     const nk = h('button', { class: 'ai-tg', 'aria-pressed': String(onNeck), onclick: () => { onNeck = !onNeck; PD.store.set('tr.neck', onNeck); nk.setAttribute('aria-pressed', String(onNeck)); cur = -1; o.invalidate && o.invalidate(); } }, [h('span', { text: '🪕' }), h('span', { text: t('tr.onNeck') })]);
     const ed = h('button', { class: 'ai-tg', 'aria-pressed': String(editMode), onclick: () => { if (!can('proEdit')) return lock('ai.edit'); editMode = !editMode; ed.setAttribute('aria-pressed', String(editMode)); el.classList.toggle('editing', editMode); if (!editMode && edBox) { edBox.remove(); edBox = null; } } }, [h('span', { text: '✎' }), h('span', { text: t('tr.edit') })]);
     el.classList.toggle('editing', editMode);
-    el.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.follow') }), h('div', { class: 'ai-tc' }, [nk, ed]), h('small', { class: 'muted', text: t('tr.onNeckD') + ' · ' + t('tr.editD') })]));
+    if (view !== 'roll') el.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.follow') }), h('div', { class: 'ai-tc' }, [nk, ed]), h('small', { class: 'muted', text: t('tr.onNeckD') + ' · ' + t('tr.editD') })]));
     if (M.sections && M.sections.length) {
       // how thick the melody runs in each part — measured, so a part can be called melodic without naming it a solo
       const dens = M.sections.map(s => { const n = M.notes.filter(x => x.t0 >= s.t0 && x.t0 < s.t1).length; return s.t1 > s.t0 ? n / (s.t1 - s.t0) : 0; });
@@ -1065,9 +1032,12 @@ PD.aimus.panel = function (o) {
       M.sections.forEach((s, i) => { const hot = mid > 0 && dens[i] >= mid * 1.35;
         row.append(h('button', { class: 'chip' + (hot ? ' on' : ''), onclick: () => o.seek(s.t0 + .02) },
           [h('span', { text: t('tr.part', { n: s.n }) + ' · ' + PD.fmtTime(s.t0) }), h('em', { class: 'tr-solo', text: ' ' + (hot ? t('tr.solo') + ' ' : '') + '(' + dens[i].toFixed(1) + ')' })])); });
-      el.append(h('div', { class: 'ai-tool' }, [h('span', { class: 'ai-tl', text: t('tr.sections') }), row, h('small', { class: 'muted', text: t('tr.secNote') + ' ' + t('tr.soloD') })]));
+      el.append(fold('tr.sections', [row, h('small', { class: 'muted', text: t('tr.secNote') })]));
     }
-    el.append(exports(), h('p', { class: 'notice', text: t('tr.est') }), h('details', { class: 'ai-det' }, [h('summary', { text: t('tr.redo') }), head()]));
+    el.append(fold('apr.analysis', [facts(), M.metre.unsure && !M.metre.byHand ? h('p', { class: 'notice', text: t('tr.unsure') }) : null]),
+      fold('apr.arrange', [arrangementControls(), h('p', { class: 'muted', text: t('as.draft') + ' ' + t('as.omitted', { n: M.omitted || 0 }) })]),
+      fold('apr.export', [exports()]), fold('apr.help', [h('p', { class: 'muted', text: t('as.limits') }), h('p', { class: 'muted', text: t('tr.est') })]),
+      fold('tr.redo', [head()]));
     PD.i18n.apply(el);
     V.draw && V.draw();
   }

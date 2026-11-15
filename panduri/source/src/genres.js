@@ -321,7 +321,7 @@ PD.genres = (() => {
     const c = CH.find(x => x.id === param);
     if (c) return chapter(w, c);
     const d = done(), n = CH.filter(x => d[x.id]).length;
-    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('learn') }), h('h1', { 'data-t': 'gn.title', style: 'margin:0' })]),
+    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('mtheory') }), h('h1', { 'data-t': 'gn.title', style: 'margin:0' })]),
       h('p', { class: 'fg2', 'data-t': 'gn.lead' }),
       h('p', { class: 'tb-note', 'data-t': 'gn.src' }),
       h('div', { class: 'tb-prog' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(n / CH.length * 100) + '%' })]), h('small', { class: 'muted', text: n + ' / ' + CH.length })]),
