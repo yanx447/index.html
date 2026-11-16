@@ -200,12 +200,14 @@ Found on the way: `source/supabase/schema.sql`'s `social_file_mb()` was `languag
 
 What it is: members sell instruments to each other. **Every listing is paid** (the owner's decision, 2026-11-16; there is no free listing). One of four packages puts it in the sponsored carousel, among the featured instruments and in the sponsored places of matching searches. **The package's length is also the listing's whole lifetime**: when it ends, the entire listing is deleted.
 
-| Package | Georgian | Regular | On sale | Lifetime |
+| Package | Georgian | Price | PayPal | Lifetime |
 | --- | --- | --- | --- | --- |
-| `ad24` | 24-საათიანი რეკლამა | GEL 5.00 | GEL 2.99 | 24 h |
-| `ad72` | 3-დღიანი რეკლამა | GEL 10.00 | GEL 6.99 | 72 h |
-| `ad168` | კვირის რეკლამა | GEL 20.00 | GEL 14.99 | 168 h |
-| `ad720` | თვის რეკლამა | GEL 40.00 | GEL 29.99 | 720 h |
+| `ad24` | 24-საათიანი რეკლამა | GEL 2.99 | EUR 1.03 | 24 h |
+| `ad72` | 3-დღიანი რეკლამა | GEL 6.99 | EUR 2.41 | 72 h |
+| `ad168` | კვირის რეკლამა | GEL 14.99 | EUR 5.17 | 168 h |
+| `ad720` | თვის რეკლამა | GEL 29.99 | EUR 10.34 | 720 h |
+
+**Prices lowered for good (owner, 2026-11-16).** The owner wanted a permanent "9.99 instead of 4.99". A struck-out price that is never charged is a false reference price: Georgian consumer protection forbids it, and Apple and Google refuse it. So the low prices are the real prices instead, with no struck-out price. The app compares honestly, e.g. "≈ 1 ₾ a day" for the monthly package, or the yearly Premium's monthly price against the monthly plan. Premium is **GEL 4.99 / month, 39.99 / year** (`billing.js` `PLANS`); on PayPal **EUR 1.72 / 13.79** (secrets `PAYPAL_MONTHLY_PRICE` / `PAYPAL_YEARLY_PRICE`). EUR prices are at NBG 2026-11-07, EUR 1 = GEL 2.8998. A server that already ran the first marketplace prices needs `202611170003_lower_prices.sql`.
 
 Prices live in `public.market_packages`. The owner changes them in the app (Marketplace → shield icon → Packages, `is_owner()` only). A package's length is fixed by a check constraint. The `free` row remains, switched off, only as history.
 
@@ -215,7 +217,7 @@ The owner runs them from Profile → **ფასდაკლებები** (r
 * the server charges the sale price;
 * the app shows the regular price struck out, the percentage, and when the sale ends and what the price will be after it.
 
-After the end the regular price is charged again by itself, and no struck-out price remains. A sale must be lower than the regular price and end within a year. This keeps the struck-out price a price buyers actually pay, as the consumer-protection rules and the store policies require. The prepared sale prices are 2.99 / 6.99 / 14.99 / 29.99 for the packages and 9.99 / 89.99 for Premium (PayPal EUR 3.44 / 31.03 at NBG 2026-11-07). **All sales are off until the owner switches them on.**
+After the end the regular price is charged again by itself, and no struck-out price remains. A sale must be lower than the regular price and end within a year. This keeps the struck-out price a price buyers actually pay, as the consumer-protection rules and the store policies require. No sale is prepared: the prices themselves are low. A real, time-limited sale remains possible; the owner enters its price and end date.
 
 * Premium's sales live in `supabase/migrations/202611170002_premium_sales.sql` (`premium_sales`, `owner_sales()`, `owner_premium_sale()`).
 * `billing` reads them through `premiumSales()`. With no table (not yet migrated) it charges the regular prices, as before.
@@ -245,7 +247,7 @@ After the end the regular price is charged again by itself, and no struck-out pr
 | Channel | How | Status |
 | --- | --- | --- |
 | Web, PWA, desktop | TBC hosted page in GEL (all four packages) | Code ready; **TBC merchant credentials are not configured**. Because every listing is paid, **nobody can publish a listing until a payment method is active**: the app says "Publishing switches on once card payment is activated" and keeps the draft. |
-| Web, PayPal | Only for packages whose EUR/USD price the owner has approved in the dashboard (PayPal cannot charge GEL; no silent conversion) | Code ready; **no PayPal price set**. Suggested at NBG 2026-11-07 (EUR 1 = GEL 2.8998), for the owner to approve: 1.03 / 2.41 / 5.17 / 10.35 EUR. |
+| Web, PayPal | Only for packages with a EUR/USD price (PayPal cannot charge GEL; no silent conversion) | **On**: EUR 1.03 / 2.41 / 5.17 / 10.34, set with the lowered prices. PayPal is the payment method that works today, so listings can be published through it. No real marketplace payment has been made yet. |
 | iOS / Android | Consumable in-app products `market_ad24`, `market_ad72`, `market_ad168`, `market_ad720` through RevenueCat. The server reads the transaction from RevenueCat for this account (`non_subscriptions`), rejects sandbox and receipts older than 72 h, and uses the store transaction id as the idempotency key. A store build never opens an external checkout. | Not configured: RevenueCat, the store products and their review are missing. Google Play cannot have a Georgian merchant profile (see above). |
 
 The return from a hosted page (`?payment=market-tbc|market-paypal|market-cancelled`) is a hint only. The app asks `market` → `verify`, which fetches the payment from TBC or PayPal. The callbacks (`payment-callback`) route a marketplace order to the marketplace and everything else to Premium as before. Duplicate callbacks count once: `unique(provider, payment_id)`, and the order row is locked. Refunds:
@@ -258,7 +260,7 @@ In every case the paid hours come off the listing.
 
 ### Deploy (owner, in this order)
 
-1. SQL Editor: `supabase/migrations/202611170001_marketplace.sql`, then `202611170002_premium_sales.sql`. It needs `202611090002_social.sql`, which the live server has. It can be run twice. Then verify read-only:
+1. SQL Editor: `supabase/migrations/202611170001_marketplace.sql`, `202611170002_premium_sales.sql`, then `202611170003_lower_prices.sql` (only where 0001 ran with the first prices; the live server did, 2026-11-16). It needs `202611090002_social.sql`, which the live server has. It can be run twice. Then verify read-only:
    * the tables;
    * `select * from cron.job where jobname like 'market%'`;
    * the `market` bucket (private, 50 MB);
@@ -277,3 +279,4 @@ cd ../source && APP_DIR=dist/app node --test qa/market-ui.cjs   # 2: 320/390/768
 ```
 
 The marketplace is in the installable app (PWA, desktop, native) only. `build.py` leaves it out of the single files (`dist/artifact.html`, `dist/panduri-app.html`, `APP_ONLY`): they were within a few KB of the 16 MiB limit, and the marketplace needs the server and payments anyway. The app hides its entrances there.
+

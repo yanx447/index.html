@@ -4,11 +4,12 @@
 -- the listing in the sponsored places AND define its whole lifetime: when the purchased time ends, the entire listing
 -- expires and is deleted, with its photos, video and audio. Only the financial records stay (market_promotions, market_orders).
 --
---                                 regular   on sale (while the owner runs one)   lifetime
---   ad24   24-საათიანი რეკლამა    5.00 ₾    2.99 ₾                                24 h
---   ad72   3-დღიანი რეკლამა      10.00 ₾    6.99 ₾                                72 h
---   ad168  კვირის რეკლამა        20.00 ₾   14.99 ₾                               168 h
---   ad720  თვის რეკლამა          40.00 ₾   29.99 ₾                               720 h (30 days)
+--                                 price (PayPal)        lifetime
+--   ad24   24-საათიანი რეკლამა    2.99 ₾ (1.03 EUR)     24 h
+--   ad72   3-დღიანი რეკლამა       6.99 ₾ (2.41 EUR)     72 h
+--   ad168  კვირის რეკლამა        14.99 ₾ (5.17 EUR)    168 h
+--   ad720  თვის რეკლამა          29.99 ₾ (10.34 EUR)   720 h (30 days)
+-- (the owner lowered them for good on 2026-11-16; EUR at NBG 2026-11-07, EUR 1 = GEL 2.8998)
 --
 -- A sale is real: it has an end (sale_until); before and after it the regular price is what is charged, so a struck-out
 -- regular price is never a price nobody pays. The owner switches sales on and off (market_owner_sale, is_owner()).
@@ -69,13 +70,13 @@ create table if not exists public.market_packages (
     or (id = 'ad24' and kind = 'ad' and hours = 24) or (id = 'ad72' and kind = 'ad' and hours = 72)
     or (id = 'ad168' and kind = 'ad' and hours = 168) or (id = 'ad720' and kind = 'ad' and hours = 720))
 );
--- an owner's later price changes are kept when this file runs again. The sale prices are ready; the owner switches the sale on.
-insert into public.market_packages (id, kind, hours, price_minor, sale_minor, store_product, name_ka, name_en, sort, active) values
-  ('free',  'free', 720,    0, null, null,           'უფასო განცხადება',     'Free listing',          0, false),
-  ('ad24',  'ad',    24,  500,  299, 'market_ad24',  '24-საათიანი რეკლამა',  '24-Hour Advertisement', 1, true),
-  ('ad72',  'ad',    72, 1000,  699, 'market_ad72',  '3-დღიანი რეკლამა',     '3-Day Advertisement',   2, true),
-  ('ad168', 'ad',   168, 2000, 1499, 'market_ad168', 'კვირის რეკლამა',       'Weekly Advertisement',  3, true),
-  ('ad720', 'ad',   720, 4000, 2999, 'market_ad720', 'თვის რეკლამა',         'Monthly Advertisement', 4, true)
+-- an owner's later price changes are kept when this file runs again
+insert into public.market_packages (id, kind, hours, price_minor, paypal_value, paypal_currency, store_product, name_ka, name_en, sort, active) values
+  ('free',  'free', 720,    0, null,    null,  null,           'უფასო განცხადება',     'Free listing',          0, false),
+  ('ad24',  'ad',    24,  299, '1.03',  'EUR', 'market_ad24',  '24-საათიანი რეკლამა',  '24-Hour Advertisement', 1, true),
+  ('ad72',  'ad',    72,  699, '2.41',  'EUR', 'market_ad72',  '3-დღიანი რეკლამა',     '3-Day Advertisement',   2, true),
+  ('ad168', 'ad',   168, 1499, '5.17',  'EUR', 'market_ad168', 'კვირის რეკლამა',       'Weekly Advertisement',  3, true),
+  ('ad720', 'ad',   720, 2999, '10.34', 'EUR', 'market_ad720', 'თვის რეკლამა',         'Monthly Advertisement', 4, true)
 on conflict (id) do nothing;
 -- the price charged now: the sale's while it runs, the regular one otherwise
 create or replace function public.market_price_minor(p public.market_packages) returns integer

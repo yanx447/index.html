@@ -127,7 +127,7 @@ PD.premium = (() => {
   /** what the paywall lists, in this order (f8 comes with f7, f6 is the badge) */
   const LIST = ['pm.f1', 'pm.f2', 'pm.f3', 'pm.f5', 'pm.f7', 'pm.f8', 'pm.f9', 'pm.f10', 'pm.f11', 'pm.f12', 'pm.f13', 'pm.f14', 'pm.f4', 'pm.f6'];
   const FREE_AI_HOURS = 4;   // the free studio session: one song, open for this many hours, once a day
-  const PRICE = { monthly: '14.99 ₾', yearly: '119.99 ₾' };
+  const PRICE = { monthly: '4.99 ₾', yearly: '39.99 ₾' };
   const FREE_SONGS = new Set(['bani-acharuli']);   // the first song stays free
   const PREMIUM_PATHS = new Set(['intermediate', 'advanced']);
   /** the one rule for every door into a lesson (Learn, Home, Songs, Rhythms, resume…): which premium feature it needs, or null */

@@ -80,10 +80,11 @@ test('setup: the live server\'s schema, then the marketplace (twice)', async () 
   assert.equal(ts(await sysVal(`select public.market_now()`)), T0);
 });
 
-test('the four packages: regular prices, ready sale prices (off), exact lengths; no free listing', async () => {
+test('the four packages: the low prices are the prices (no sale prepared), exact lengths, PayPal in EUR; no free listing', async () => {
   const rows = await as(null, `select id, hours, price_minor, sale_minor, sale_until, currency, name_ka, active from public.market_packages order by sort`);
   assert.deepEqual(rows.map(r => [r.id, r.hours, r.price_minor, r.sale_minor, r.sale_until, r.currency, r.active]),
-    [['free', 720, 0, null, null, 'GEL', false], ['ad24', 24, 500, 299, null, 'GEL', true], ['ad72', 72, 1000, 699, null, 'GEL', true], ['ad168', 168, 2000, 1499, null, 'GEL', true], ['ad720', 720, 4000, 2999, null, 'GEL', true]]);
+    [['free', 720, 0, null, null, 'GEL', false], ['ad24', 24, 299, null, null, 'GEL', true], ['ad72', 72, 699, null, null, 'GEL', true], ['ad168', 168, 1499, null, null, 'GEL', true], ['ad720', 720, 2999, null, null, 'GEL', true]]);
+  assert.deepEqual((await sys(`select paypal_value from public.market_packages where kind = 'ad' order by sort`)).map(r => r.paypal_value), ['1.03', '2.41', '5.17', '10.34']);
   assert.deepEqual(rows.slice(1).map(r => r.name_ka), ['24-საათიანი რეკლამა', '3-დღიანი რეკლამა', 'კვირის რეკლამა', 'თვის რეკლამა']);
   // a package's length is part of what it is: nobody can turn 24 hours into 48
   await assert.rejects(sys(`update public.market_packages set hours = 48 where id = 'ad24'`), /market_packages_hours/);
@@ -154,7 +155,7 @@ test('a listing\'s life: public from the verified payment, gone everywhere at it
   assert.equal((await expire()).deleted, 0, 'a second run finds nothing more');
 });
 
-for (const [pkg, gel, hours] of [['ad24', '5.00', 24], ['ad72', '10.00', 72], ['ad168', '20.00', 168], ['ad720', '40.00', 720]]) {
+for (const [pkg, gel, hours] of [['ad24', '2.99', 24], ['ad72', '6.99', 72], ['ad168', '14.99', 168], ['ad720', '29.99', 720]]) {
   test(`${gel} GEL promotion (${pkg}): ${hours} hours from the verified payment, then the whole listing is deleted`, async () => {
     await at(1000);
     const id = await draft(A, {}, pkg);
@@ -187,45 +188,45 @@ for (const [pkg, gel, hours] of [['ad24', '5.00', 24], ['ad72', '10.00', 72], ['
   });
 }
 
-test('a sale: the owner runs it, buyers pay 2.99 instead of 5.00 until its end, then 5.00 again by itself', async () => {
+test('a sale: the owner runs it, buyers pay 1.99 instead of 2.99 until its end, then 2.99 again by itself', async () => {
   await at(2000);
   const id = await draft(A, {}, 'ad24');
   const charge = async () => (await sysVal(`select public.market_order_check($1, $2, 'ad24')`, [A, id])).charge_minor;
-  assert.equal(await charge(), 500, 'no sale yet: the regular price');
+  assert.equal(await charge(), 299, 'no sale yet: the regular price');
   const until = iso(T0 + 2010 * HOUR);
-  await refused(ADMIN, `select public.market_owner_sale('ad24', 2.99, null, '${until}')`, /not-allowed/);
-  await refused(A, `select public.market_owner_sale('ad24', 2.99, null, '${until}')`, /not-allowed/);
-  await refused(OWNER, `select public.market_owner_sale('ad24', 5.00, null, '${until}')`, /sale-not-lower/);
-  await refused(OWNER, `select public.market_owner_sale('ad24', 6.00, null, '${until}')`, /sale-not-lower/);
-  await refused(OWNER, `select public.market_owner_sale('ad24', 2.99, null, '${iso(T0 + 1999 * HOUR)}')`, /invalid-date/);
-  await refused(OWNER, `select public.market_owner_sale('ad24', 2.99, null, '${iso(T0 + (2000 + 24 * 400) * HOUR)}')`, /invalid-date/);
-  await as(OWNER, `select public.market_owner_sale('ad24', 2.99, null, '${until}')`);
-  assert.equal(await charge(), 299);
+  await refused(ADMIN, `select public.market_owner_sale('ad24', 1.99, null, '${until}')`, /not-allowed/);
+  await refused(A, `select public.market_owner_sale('ad24', 1.99, null, '${until}')`, /not-allowed/);
+  await refused(OWNER, `select public.market_owner_sale('ad24', 2.99, null, '${until}')`, /sale-not-lower/);
+  await refused(OWNER, `select public.market_owner_sale('ad24', 3.50, null, '${until}')`, /sale-not-lower/);
+  await refused(OWNER, `select public.market_owner_sale('ad24', 1.99, null, '${iso(T0 + 1999 * HOUR)}')`, /invalid-date/);
+  await refused(OWNER, `select public.market_owner_sale('ad24', 1.99, null, '${iso(T0 + (2000 + 24 * 400) * HOUR)}')`, /invalid-date/);
+  await as(OWNER, `select public.market_owner_sale('ad24', 1.99, null, '${until}')`);
+  assert.equal(await charge(), 199);
   // an order opened during the sale keeps its price, even if paid after the sale has ended
   const ref = await order(A, id, 'ad24');
-  assert.equal((await sys(`select amount from public.market_orders where provider_id = $1`, [ref]))[0].amount, '2.99');
+  assert.equal((await sys(`select amount from public.market_orders where provider_id = $1`, [ref]))[0].amount, '1.99');
   await at(2010);
-  assert.equal(await charge(), 500, 'the sale ended: the regular price again, by itself');
+  assert.equal(await charge(), 299, 'the sale ended: the regular price again, by itself');
   assert.equal(await pay(ref), 'publish');
-  assert.equal((await sys(`select amount from public.market_promotions where payment_id = $1`, [ref]))[0].amount, '2.99');
+  assert.equal((await sys(`select amount from public.market_promotions where payment_id = $1`, [ref]))[0].amount, '1.99');
   // the regular price cannot be lowered under a sale price the owner has kept
-  await refused(OWNER, `select public.market_admin_package('ad24', 2.50, true)`, /sale-not-lower/);
+  await refused(OWNER, `select public.market_admin_package('ad24', 1.50, true)`, /sale-not-lower/);
   // switched off: until = null
-  await as(OWNER, `select public.market_owner_sale('ad24', 2.99, null, '${iso(T0 + 2020 * HOUR)}')`);
+  await as(OWNER, `select public.market_owner_sale('ad24', 1.99, null, '${iso(T0 + 2020 * HOUR)}')`);
   await as(OWNER, `select public.market_owner_sale('ad24', null, null, null)`);
-  assert.equal(await charge(), 500);
-  assert.equal((await sys(`select sale_minor from public.market_packages where id = 'ad24'`))[0].sale_minor, 299, 'the sale price is kept for the next time');
+  assert.equal(await charge(), 299);
+  assert.equal((await sys(`select sale_minor from public.market_packages where id = 'ad24'`))[0].sale_minor, 199, 'the sale price is kept for the next time');
 });
 
 test('Premium sales: the owner only, lower than the regular price, with an end; read through owner_sales()', async () => {
   await refused(ADMIN, `select public.owner_sales()`, /not-allowed/);
-  await refused(A, `select public.owner_premium_sale('monthly', 9.99, '3.44', '${iso(Date.now() + 864e5)}')`, /not-allowed/);
+  await refused(A, `select public.owner_premium_sale('monthly', 3.99, '1.38', '${iso(Date.now() + 864e5)}')`, /not-allowed/);
   await refused(null, `select public.owner_sales()`, /permission denied/);
-  await refused(OWNER, `select public.owner_premium_sale('monthly', 14.99, null, '${iso(Date.now() + 864e5)}')`, /sale-not-lower/);
-  await refused(OWNER, `select public.owner_premium_sale('monthly', 9.99, null, '${iso(Date.now() - 1000)}')`, /invalid-date/);
-  await as(OWNER, `select public.owner_premium_sale('monthly', 9.99, '3.44', '${iso(Date.now() + 864e5)}')`);
+  await refused(OWNER, `select public.owner_premium_sale('monthly', 4.99, null, '${iso(Date.now() + 864e5)}')`, /sale-not-lower/);
+  await refused(OWNER, `select public.owner_premium_sale('monthly', 3.99, null, '${iso(Date.now() - 1000)}')`, /invalid-date/);
+  await as(OWNER, `select public.owner_premium_sale('monthly', 3.99, '1.38', '${iso(Date.now() + 864e5)}')`);
   const o = await val(OWNER, `select public.owner_sales() as o`);
-  assert.deepEqual(o.premium.map(r => [r.plan, r.price_minor, r.sale_minor, r.paypal_sale_value, !!r.sale_until]), [['monthly', 1499, 999, '3.44', true], ['yearly', 11999, 8999, '31.03', false]]);
+  assert.deepEqual(o.premium.map(r => [r.plan, r.price_minor, r.sale_minor, r.paypal_sale_value, !!r.sale_until]), [['monthly', 499, 399, '1.38', true], ['yearly', 3999, null, null, false]]);
   assert.deepEqual(o.market.map(r => r.id), ['ad24', 'ad72', 'ad168', 'ad720']);
   await refused(A, `select * from public.premium_sales`, /permission denied/);
   await as(OWNER, `select public.owner_premium_sale('monthly', null, null, null)`);
@@ -408,7 +409,7 @@ test('nobody touches another seller\'s listing, files or the server\'s machinery
   // the owner sets a price; the length cannot change
   await as(OWNER, `select public.market_admin_package('ad24', 4, true, '1.38', 'EUR')`);
   assert.deepEqual((await sys(`select price_minor, hours, paypal_value from public.market_packages where id = 'ad24'`))[0], { price_minor: 400, hours: 24, paypal_value: '1.38' });
-  await as(OWNER, `select public.market_admin_package('ad24', 5, true, null, null)`);
+  await as(OWNER, `select public.market_admin_package('ad24', 2.99, true, '1.03', 'EUR')`);
   // a removed listing goes the same way as an expired one
   await as(ADMIN, `select public.market_admin_remove($1)`, [id]);
   assert.equal(await listing(id), undefined);
@@ -475,4 +476,16 @@ test('statistics: impressions, sponsored impressions, views and contacts — onc
   await as(A, `insert into public.blocks(blocked) values ('${C}')`);
   assert.equal(await get(C, id), null);
   assert.ok(!(await featured(C)).items.some(x => x.id === id));
+});
+
+test('202611170003_lower_prices: a server with the first prices (5 / 10 / 20 / 40, a sale prepared) gets the low prices for good', async () => {
+  await sys(`update public.market_packages p set price_minor = v.pr, sale_minor = v.sl, sale_until = now() + interval '3 days', paypal_value = null, paypal_currency = null
+    from (values ('ad24', 500, 299), ('ad72', 1000, 699), ('ad168', 2000, 1499), ('ad720', 4000, 2999)) v(id, pr, sl) where p.id = v.id`);
+  const lower = await mig('202611170003_lower_prices.sql');
+  await db.exec(lower); await db.exec(lower);   // twice: the same result
+  assert.deepEqual(await sys(`select id, price_minor, sale_minor, sale_until, paypal_value, paypal_currency from public.market_packages where kind = 'ad' order by sort`), [
+    { id: 'ad24', price_minor: 299, sale_minor: null, sale_until: null, paypal_value: '1.03', paypal_currency: 'EUR' },
+    { id: 'ad72', price_minor: 699, sale_minor: null, sale_until: null, paypal_value: '2.41', paypal_currency: 'EUR' },
+    { id: 'ad168', price_minor: 1499, sale_minor: null, sale_until: null, paypal_value: '5.17', paypal_currency: 'EUR' },
+    { id: 'ad720', price_minor: 2999, sale_minor: null, sale_until: null, paypal_value: '10.34', paypal_currency: 'EUR' }]);
 });

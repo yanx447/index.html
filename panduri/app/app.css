@@ -5757,4 +5757,5 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
 .mk-sale-r.on .mk-sale-h b::after { content: ''; display: inline-block; width: 8px; height: 8px; margin-inline-start: 8px; border-radius: 50%; background: var(--ok); vertical-align: middle; }
 .mk-sale-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
 .mk-sale-f { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 10px; }
+.mk-plan-day { font-size: var(--t-caption); color: var(--ok); font-weight: 600; }
 
