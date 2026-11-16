@@ -94,6 +94,8 @@ PD.i18n.add({
   'sn.chat_reaction.t': ['სიმა · რეაქცია', 'Sima · Reaction'], 'sn.chat_reaction': ['{n} რეაგირებს შენს {w}: {e}', '{n} reacted {e} to your {w}'],
   'sn.post_reaction.t': ['სიმა · რეაქცია', 'Sima · Reaction'], 'sn.post_reaction': ['{n} რეაგირებს შენს {w}: {e}', '{n} reacted {e} to your {w}'],
   'sn.post_reactions': ['{n} და კიდევ {k} რეაგირებენ შენს {w} {e}', '{n} and {k} others reacted to your {w} {e}'],
+  'sn.follow.t': ['სიმა · ახალი გამომწერი', 'Sima · New follower'], 'sn.repost.t': ['სიმა · რეპოსტი', 'Sima · Repost'],
+  'nt.noneCm': ['აქ გამოჩნდება, ვინ მოიწონა, დააკომენტარა ან გააზიარა შენი ვიდეო, ვინ გამოგიწერა და ვინ გთხოვს მეგობრობას.', 'Who liked, commented on or reposted your videos, who followed you and who wants to be friends — it all shows up here.'],
   'sn.comment.t': ['სიმა · ახალი კომენტარი', 'Sima · New comment'], 'sn.comment': ['{n} წერს შენს {w}: „{s}“', '{n} commented on your {w}: “{s}”'],
   'sn.friend_post.t': ['სიმა · მეგობრის ახალი პოსტი', 'Sima · A friend posted'], 'sn.friend_post': ['{n} ახალ {w} აზიარებს — ნახე!', '{n} shared a new {w} — take a look!'], 'sn.friend_postS': ['{n} ახალ {w} აზიარებს: „{s}“', '{n} shared a new {w}: “{s}”'],
   'sn.friend_request.t': ['სიმა · მეგობრობის თხოვნა', 'Sima · Friend request'], 'sn.friend_request': ['{n} მეგობრობას გთხოვს.', '{n} wants to be your friend.'],
@@ -136,21 +138,26 @@ PD.notify = (() => {
   /* ---------------- the app's own inbox (local reminders + Sima's notifications from the server) ---------------- */
   const raw = () => PD.store.get(LOG, []);
   const log = () => { const me = uid(); return raw().filter(x => !x.uid || x.uid === me); };   // another account's notifications on this device stay hidden
-  const unread = () => log().filter(x => !x.read).length;
+  const unread = only => log().filter(x => !x.read && (!only || only(x))).length;
+  /** what the community's own activity shows: people and your videos — likes, comments, follows, reposts, friends,
+     your videos' records. Not chats (they have their own tab), not Sima's practice reminders or the app's news. */
+  const CM = new Set(['post_reaction', 'comment', 'follow', 'repost', 'friend_request', 'friend_accept', 'friend_post', 'record', 'record_app', 'record_top']);
+  const isCommunity = x => !!x && CM.has(x.sk);
   function note(kind, title, body, go, key) {
     const all = raw();
     if (key && all.some(x => x.key === key)) return null;           // the same reminder is not repeated
     const row = { id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), kind, title, body: body || '', go: go || null, at: Date.now(), read: false, key: key || null };
-    PD.store.set(LOG, [row].concat(all).slice(0, 80));
+    PD.store.set(LOG, [row].concat(all).slice(0, 150));
     PD.bus.emit('notify.new', row);
     return row;
   }
   const serverIds = rows => rows.filter(x => x.srv).map(x => x.srv);
-  function markRead(id) {
+  /** only: read just the rows it accepts (the community's activity), on the server too */
+  function markRead(id, only) {
     const all = raw(), me = uid(), hit = [];
-    all.forEach(x => { if ((!id || x.id === id) && !x.read && (!x.uid || x.uid === me)) { x.read = true; hit.push(x); } });
+    all.forEach(x => { if ((!id || x.id === id) && !x.read && (!x.uid || x.uid === me) && (!only || only(x))) { x.read = true; hit.push(x); } });
     PD.store.set(LOG, all); PD.bus.emit('notify.read', id || null);
-    const ids = serverIds(hit); if (ids.length && C() && C().session) C().notes.read(id ? ids : null).catch(() => {});
+    const ids = serverIds(hit); if (ids.length && C() && C().session) C().notes.read(id || only ? ids : null).catch(() => {});
   }
   /** a chat that was opened: its notifications are read (the server marks them too) */
   function readTag(tags) {
@@ -158,8 +165,15 @@ PD.notify = (() => {
     all.forEach(x => { if (!x.read && x.uid === me && tags.includes(x.tag)) { x.read = true; n++; } });
     if (n) { PD.store.set(LOG, all); PD.bus.emit('notify.read', null); }
   }
-  function clear() {
-    const me = uid(); PD.store.set(LOG, raw().filter(x => x.uid && x.uid !== me)); PD.bus.emit('notify.read', null);
+  function clear(only) {
+    const me = uid();
+    if (only) {   // just these rows: gone here, read on the server (they are not fetched again — only newer ones are)
+      const all = raw(), gone = all.filter(x => (!x.uid || x.uid === me) && only(x)), ids = serverIds(gone.filter(x => !x.read));
+      PD.store.set(LOG, all.filter(x => !gone.includes(x))); PD.bus.emit('notify.read', null);
+      if (ids.length && C() && C().session) C().notes.read(ids).catch(() => {});
+      return;
+    }
+    PD.store.set(LOG, raw().filter(x => x.uid && x.uid !== me)); PD.bus.emit('notify.read', null);
     if (C() && C().session && srv.ok) C().notes.clear().catch(() => {});
   }
 
@@ -211,7 +225,7 @@ PD.notify = (() => {
   /* ---------------- Sima's notifications from the server ---------------- */
   // which switch each server kind belongs to (the push function uses the same map)
   const CAT = { message: 'social', chat_reaction: 'social', friend_request: 'social', friend_accept: 'social', friend_post: 'feed', post_reaction: 'feed', comment: 'feed',
-    record: 'records', record_app: 'records', record_top: 'records', reminder: 'practice', streak: 'practice', weekly: 'practice', idle: 'idle', update: 'news', test: 'news' };
+    follow: 'feed', repost: 'feed', record: 'records', record_app: 'records', record_top: 'records', reminder: 'practice', streak: 'practice', weekly: 'practice', idle: 'idle', update: 'news', test: 'news' };
   const srv = { ok: false, push: false, tried: false, busy: false };
   let readyRes; const ready = new Promise(r => { readyRes = r; }); setTimeout(() => readyRes(), 9000);
   const lastKey = () => 'notify.srv.' + (uid() || '-');
@@ -240,6 +254,7 @@ PD.notify = (() => {
       case 'weekly': body = +p.m ? t('sn.weekly', { m: p.m }) : t('sn.weekly0'); break;
       case 'update': body = p.s ? t('sn.update', { v: p.v, s: p.s }) : t('sn.update0', { v: p.v }); break;
       case 'test': body = t('sn.test'); break;
+      case 'follow': case 'repost': body = p.s || r.body || ''; break;
       default: return { title: r.title, body: r.body };
     }
     return { title: t('sn.' + k + '.t', { num: p.n }), body };
@@ -266,7 +281,7 @@ PD.notify = (() => {
         add.push({ id: 'n' + r.id, srv: r.id, uid: me, kind: CAT[r.kind] || 'news', sk: r.kind, title: w.title, body: w.body, go: r.go, tag: r.tag, at: Date.parse(r.created_at) || Date.now(), read: !!r.read_at }); });
       // a newer one with the same tag replaces the older unread one, as on the server (one row per chat, per post)
       const tags = new Set(); const next = add.slice().reverse().concat(all).filter(x => { if (!x.srv || !x.tag || x.read) return true; const key = x.uid + '|' + x.tag; if (tags.has(key)) return false; tags.add(key); return true; });
-      PD.store.set(LOG, next.slice(0, 80));
+      PD.store.set(LOG, next.slice(0, 150));
       PD.store.set(lastKey(), Math.max(last, rows[rows.length - 1].id));
       if (!first) add.filter(x => !x.read).forEach(arrive);
       if (add.length) PD.bus.emit('notify.new', add[add.length - 1]);
@@ -510,21 +525,37 @@ PD.notify = (() => {
   }
 
   /* ---------------- the inbox page ---------------- */
-  function page(w) {
-    w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('profile') }), h('h1', { 'data-t': 'nt.title', style: 'margin:0' })]));
+  const CMI = {   // the activity's icons, one per kind
+    post_reaction: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+    comment: '<path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.1A8 8 0 1 1 20 12z"/>',
+    follow: '<circle cx="10" cy="8" r="3.5"/><path d="M3.5 19a6.5 6.5 0 0 1 13 0M19 8v6M16 11h6"/>',
+    repost: '<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>',
+    friend: '<circle cx="9" cy="8" r="3.2"/><path d="M3 19a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/>',
+    video: '<rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="M16 10.5l5-3v9l-5-3z"/>',
+    record: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7"/>' };
+  /** the activity speaks for people, not for Sima: her name comes off the heading */
+  const esc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const noSima = v => String(v || '').replace(new RegExp('^(?:' + ['სიმა', 'Sima', t('sn.sima')].map(esc).join('|') + ')\\s*[·:—-]\\s*'), '');
+  const cmIcon = sk => CMI[sk] || CMI[{ friend_request: 'friend', friend_accept: 'friend', friend_post: 'video', record_app: 'record', record_top: 'record' }[sk]] || CMI.video;
+  /** the inbox. opt.only: show just the rows it accepts (the community's activity: no Sima, each row its own icon) */
+  function page(w, opt) {
+    opt = opt || {};
+    const only = opt.only || null, cm = !!only;
+    if (!cm) w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('profile') }), h('h1', { 'data-t': 'nt.title', style: 'margin:0' })]));
     pull();
-    const all = log();
-    if (!all.length) { w.append(h('p', { class: 'muted', 'data-t': 'nt.none' })); PD.i18n.apply(w); return; }
-    w.append(h('div', { class: 'row', style: 'gap:8px' }, [h('button', { class: 'btn small', 'data-t': 'nt.readAll', onclick: () => { markRead(); PD.app.render(); } }),
-      h('button', { class: 'btn small ghost', 'data-t': 'nt.clear', onclick: () => { clear(); PD.app.render(); } })]));
+    const all = log().filter(x => !only || only(x));
+    if (!all.length) { w.append(h('p', { class: 'muted' + (cm ? ' nt-empty' : ''), 'data-t': cm ? 'nt.noneCm' : 'nt.none' })); PD.i18n.apply(w); return; }
+    w.append(h('div', { class: 'row', style: 'gap:8px' }, [h('button', { class: 'btn small', 'data-t': 'nt.readAll', onclick: () => { markRead(null, only); PD.app.render(); } }),
+      h('button', { class: 'btn small ghost', 'data-t': 'nt.clear', onclick: () => { clear(only); PD.app.render(); } })]));
     const list = h('div', { class: 'nt-list' });
-    all.forEach(x => list.append(h('button', { class: 'nt-row' + (x.read ? '' : ' new'), onclick: () => { markRead(x.id); if (x.go) openFrom(x.go); else PD.app.render(); } }, [
-      x.srv ? h('span', { class: 'sn-av', 'aria-hidden': 'true', text: t('sn.sima')[0] }) : h('span', { class: 'nt-dot', 'aria-hidden': 'true' }),
-      h('span', { class: 'grow' }, [h('b', { text: x.title }), x.body ? h('small', { text: x.body }) : null, h('small', { class: 'muted', text: PD.ui.daysAgo(x.at) })].filter(Boolean))])));
+    all.forEach(x => list.append(h('button', { class: 'nt-row' + (x.read ? '' : ' new') + (cm ? ' cm k-' + (x.sk || '') : ''), onclick: () => { markRead(x.id); if (x.go) openFrom(x.go); else PD.app.render(); } }, [
+      cm ? h('span', { class: 'nt-ic', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + cmIcon(x.sk) + '</svg>' })
+        : x.srv ? h('span', { class: 'sn-av', 'aria-hidden': 'true', text: t('sn.sima')[0] }) : h('span', { class: 'nt-dot', 'aria-hidden': 'true' }),
+      h('span', { class: 'grow' }, [h('b', { text: cm ? noSima(x.title) : x.title }), x.body ? h('small', { text: x.body }) : null, h('small', { class: 'muted', text: PD.ui.daysAgo(x.at) })].filter(Boolean))])));
     w.append(list);
-    markRead();   // seen: the badge goes, on every device
+    markRead(null, only);   // seen: the badge goes, on every device
     PD.i18n.apply(w);
   }
 
-  return { ask, show, note, log, unread, markRead, readTag, clear, schedule, catchUp, plan, prefs, save, wants, settingsSection, page, subscribePush, pollSocial, pull, watch, openFrom, syncServer, words, KINDS, canSystem, perm, native, get server() { return { ok: srv.ok, push: srv.push }; } };
+  return { ask, show, note, log, unread, isCommunity, markRead, readTag, clear, schedule, catchUp, plan, prefs, save, wants, settingsSection, page, subscribePush, pollSocial, pull, watch, openFrom, syncServer, words, KINDS, canSystem, perm, native, get server() { return { ok: srv.ok, push: srv.push }; } };
 })();

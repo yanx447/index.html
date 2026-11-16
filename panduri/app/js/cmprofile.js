@@ -153,7 +153,7 @@ PD.cmp = (() => {
     let msgs = PD.store.get('cm.unread', 0), req = 0;
     try { msgs = ((await C.chat.list()) || []).reduce((a, r) => a + (r.unread || 0), 0); PD.store.set('cm.unread', msgs); } catch (_) {}
     try { req = ((await C.social.friends()) || []).filter(f => f.relation === 'incoming').length; } catch (_) {}
-    const act = PD.notify && PD.notify.unread ? PD.notify.unread() : 0;
+    const act = PD.notify && PD.notify.unread ? PD.notify.unread(PD.notify.isCommunity) : 0;   // only the community's own: not Sima's reminders
     [['inbox', msgs + act], ['friends', req]].forEach(([k, n]) => {
       const b = nav.querySelector('[data-k="' + k + '"]'); if (!b) return;
       let d = b.querySelector('.cnav-dot');
@@ -620,7 +620,7 @@ PD.cmp = (() => {
     w.append(h('div', { class: 'cp-top' }, [h('span', { class: 'cp-ib' }), h('b', { class: 'cp-toptitle', 'data-t': 'cn.inbox' }), h('span', { class: 'cp-ib' })]));
     inboxSeg(w, 'activity');
     const box = h('div', { class: 'cp-act' }); w.append(box);
-    try { PD.notify.page(box); const hd = box.querySelector('.pg-head'); if (hd) hd.remove(); } catch (_) {}
+    try { PD.notify.page(box, { only: PD.notify.isCommunity }); } catch (_) {}   // likes, comments, follows, reposts, friends — nothing of Sima's
     PD.i18n.apply(w);
   }
 

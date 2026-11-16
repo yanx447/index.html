@@ -254,3 +254,11 @@
   .fd-top > .fd-seg { padding: 2px; }
   .fd-top > .fd-seg.c3 button { padding-inline: 4px; font-size: 12px; }
 }
+/* the activity: each row its own icon, colour by what happened */
+.nt-row.cm { align-items: center; }
+.nt-row.cm .nt-ic { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(199,139,94,.14); color: var(--brass2, #c78b5e); }
+.nt-row.cm .nt-ic svg { width: 21px; height: 21px; }
+.nt-row.cm.k-post_reaction .nt-ic { background: rgba(232,72,85,.14); color: #e84855; }
+.nt-row.cm.k-follow .nt-ic, .nt-row.cm.k-friend_request .nt-ic, .nt-row.cm.k-friend_accept .nt-ic { background: rgba(84,140,255,.14); color: #6b9bff; }
+.nt-row.cm.k-repost .nt-ic { background: rgba(60,190,130,.14); color: #3cbe82; }
+.cp-act .nt-empty { text-align: center; padding: 28px 12px; line-height: 1.55; }
