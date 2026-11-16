@@ -403,6 +403,14 @@ PD.social = (() => {
       segInd.style.width = b.offsetWidth + 'px';   // the lit half of the glass pill slides under the chosen tab
       segInd.style.transform = 'translateX(' + b.offsetLeft + 'px)';
       if (jump) requestAnimationFrame(() => { segInd.style.transition = ''; });
+      const seg = b.parentNode;   // tabs wider than the pill: bring the chosen one to the middle
+      if (seg.scrollWidth > seg.clientWidth + 1) seg.scrollTo({ left: b.offsetLeft - (seg.clientWidth - b.offsetWidth) / 2, behavior: jump ? 'auto' : 'smooth' });
+      segEdges(seg);
+    }
+    /** the pill fades out on the side where more tabs are hidden */
+    function segEdges(seg) {
+      const x = seg.scrollLeft, more = seg.scrollWidth - seg.clientWidth;
+      seg.classList.toggle('mL', more > 1 && x > 2); seg.classList.toggle('mR', more > 1 && x < more - 2);
     }
     function head() {
       top.innerHTML = '';
@@ -414,12 +422,15 @@ PD.social = (() => {
       }
       const seg = h('div', { class: 'fd-seg', role: 'tablist' }, [segInd].concat([['following', 'cp.following'], ['friends', 'fd.friends'], ['foryou', 'fd.global']].map(([k, key]) => h('button', { role: 'tab', 'aria-selected': String(tab === k), class: tab === k ? 'on' : '', 'data-k': k, 'data-t': key,
         onclick: () => switchTab(k) }))));
+      seg.addEventListener('scroll', () => segEdges(seg), { passive: true });
       top.append(h('div', { class: 'fd-side' }, [corner('exit', 'cn.exit', ic.back, () => PD.app.go('home'))]), seg,
         h('div', { class: 'fd-side end' }, [corner('search', 'cn.search', ic.search, () => PD.app.go('community', 's'))]));
       PD.i18n.apply(top);
       paintDot('msgs', nMsg); paintDot('friends', nReq);
       requestAnimationFrame(() => placeInd(true));
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => placeInd(true));   // the Georgian font changes the words' widths
     }
+    { const re = () => placeInd(true); addEventListener('resize', re); own(() => removeEventListener('resize', re)); }
     /** the switch at the top: the line slides to it, the videos slide sideways (friends to the left of everyone) */
     function switchTab(k) {
       if (k === tab) { scroll.scrollTo({ top: 0, behavior: 'smooth' }); return; }
