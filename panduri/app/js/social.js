@@ -11,7 +11,7 @@
    Nothing here is about panduri technique: it is the members' own content.
    ===================================================================== */
 PD.i18n.add({
-  'fd.global': ['გლობალური', 'Global'], 'fd.friends': ['მეგობრები', 'Friends'], 'fd.new': ['ახალი ვიდეო', 'New video'],
+  'fd.global': ['ყველა', 'Global'], 'fd.friends': ['მეგობრები', 'Friends'], 'fd.new': ['ახალი ვიდეო', 'New video'],
   'fd.emptyG': ['ჯერ არავის დაუდია ვიდეო — იყავი პირველი!', 'Nobody has posted a video yet — be the first!'],
   'fd.emptyF': ['აქ შენი მეგობრების ვიდეოები გამოჩნდება.', 'Your friends’ videos will show here.'], 'fd.emptyS': ['რასაც შეინახავ, აქ გამოჩნდება.', 'What you save will show here.'],
   'fd.findFriends': ['მეგობრების დამატება', 'Add friends'], 'fd.emptyFo': ['აქ იმ ხალხის ვიდეოები გამოჩნდება, ვისაც გამოიწერ.', 'Videos of the people you follow show here.'], 'fd.findPeople': ['ხალხის მოძებნა', 'Find people'], 'fd.end': ['ჯერჯერობით სულ ეს არის.', 'That is all for now.'],
@@ -399,6 +399,7 @@ PD.social = (() => {
     const segInd = h('i', { class: 'fd-seg-ind', 'aria-hidden': 'true' });
     function placeInd(jump) {
       const b = top.querySelector('.fd-seg button.on'); if (!b) return;
+      segFit(b.parentNode);
       if (jump) segInd.style.transition = 'none';
       segInd.style.width = b.offsetWidth + 'px';   // the lit half of the glass pill slides under the chosen tab
       segInd.style.transform = 'translateX(' + b.offsetLeft + 'px)';
@@ -406,6 +407,11 @@ PD.social = (() => {
       const seg = b.parentNode;   // tabs wider than the pill: bring the chosen one to the middle
       if (seg.scrollWidth > seg.clientWidth + 1) seg.scrollTo({ left: b.offsetLeft - (seg.clientWidth - b.offsetWidth) / 2, behavior: jump ? 'auto' : 'smooth' });
       segEdges(seg);
+    }
+    /** the tabs are made to fit before anything scrolls: first tighter, then a step smaller (c1–c3) */
+    function segFit(seg) {
+      seg.classList.remove('c1', 'c2', 'c3');
+      for (const c of ['c1', 'c2', 'c3']) { if (seg.scrollWidth <= seg.clientWidth + 1) break; seg.classList.add(c); }
     }
     /** the pill fades out on the side where more tabs are hidden */
     function segEdges(seg) {
