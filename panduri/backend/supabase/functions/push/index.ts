@@ -49,7 +49,8 @@ function same(a: string, b: string) { if (!a || !b || a.length !== b.length) ret
 // which switch in Settings › Notifications each kind belongs to
 const CAT: Record<string, string> = { message: 'social', chat_reaction: 'social', friend_request: 'social', friend_accept: 'social',
   friend_post: 'feed', post_reaction: 'feed', comment: 'feed', record: 'records', record_app: 'records', record_top: 'records',
-  reminder: 'practice', streak: 'practice', weekly: 'practice', idle: 'idle', update: 'news', test: '' };
+  reminder: 'practice', streak: 'practice', weekly: 'practice', idle: 'idle', update: 'news', test: '',
+  market_active: 'market', market_extended: 'market', market_expiring: 'market', market_expired: 'market', market_pending: 'market', market_rejected: 'market', market_removed: 'market', market_message: 'market' };
 const URGENT = new Set(['message', 'chat_reaction', 'friend_request', 'friend_accept', 'test']);
 function quiet(tz: string) {
   try { const h = +new Intl.DateTimeFormat('en-US', { timeZone: tz || 'Asia/Tbilisi', hour: 'numeric', hourCycle: 'h23' }).format(new Date()); return h >= 23 || h < 8; }

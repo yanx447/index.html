@@ -65,3 +65,10 @@
 .pay-ret-a { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 @media (max-width: 380px) { .pay-plans { grid-template-columns: 1fr; } .pay-plan { min-height: 0; } .pay-marks { display: none; } }
 @media (prefers-reduced-motion: reduce) { .pay-ret-ic.spin { animation-duration: 2.4s; } }
+
+/* a running sale: the regular price struck out, the discount in copper (billing.sale(): only while the sale runs) */
+.price-was { display: block; font-size: .62em; font-weight: 500; color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1.5px; text-decoration-color: var(--fix); line-height: 1.1; }
+.pay-plan em.pay-off, .pw-plan em.pay-off { background: var(--fix); color: #1a0806; }
+.pay-disc { color: var(--acc2); font-weight: 600; }
+.pay-line .price-was { display: inline; font-size: inherit; }
+.pay-sale-end { margin: 0; font-size: var(--t-caption); color: var(--acc2); font-weight: 600; line-height: 1.45; }

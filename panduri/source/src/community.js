@@ -117,6 +117,7 @@ PD.community = (() => {
       w.append(h('div', { class: 'cm-links' }, [
         h('button', { class: 'cm-link', html: ic.video + '<span data-t="fd.friendsV"></span>' + CHEV, onclick: () => PD.app.go('community', 'ff') }),
         h('button', { class: 'cm-link', html: PD.social.IC.save + '<span data-t="fd.saved"></span>' + CHEV, onclick: () => PD.app.go('community', 'saved') }),
+        PD.market ? h('button', { class: 'cm-link', html: PD.market.IC.tag + '<span data-t="mk.title"></span>' + CHEV, onclick: () => PD.app.go('market') }) : null,
         h('button', { class: 'cm-link', html: PD.social.IC.flag + '<span data-t="md.blockedList"></span>' + CHEV, onclick: () => blockedSheet() }),
         C.isAdmin ? h('button', { class: 'cm-link', html: FLAG + '<span data-t="cm.reports"></span>' + CHEV, onclick: () => PD.ui.sheet(b => { const box = h('div', { class: 'cm-body' }); b.append(h('h2', { 'data-t': 'cm.reports' }), box); reports(box); }) }) : null].filter(Boolean)));
       return;

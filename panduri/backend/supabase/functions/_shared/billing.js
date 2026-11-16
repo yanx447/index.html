@@ -31,14 +31,27 @@ const hasPayPal = env => ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WE
 // A card through PayPal without a PayPal account (PayPal guest checkout). Only while TBC is absent, and only when the
 // owner has turned on "PayPal account optional" and confirmed the card form appears for this merchant.
 const hasPayPalCard = env => !hasTBC(env) && hasPayPal(env) && env('PAYPAL_GUEST_CARD') === 'true';
+/** the Premium sales running now (public.premium_sales, switched on by the owner). No table, no row, or an end in the past: none. */
+export async function premiumSales(db, now = Date.now()) {
+  try {
+    const { data, error } = await db.from('premium_sales').select('plan,sale_minor,paypal_sale_value,sale_until');
+    if (error || !Array.isArray(data)) return {};
+    return Object.fromEntries(data.filter(r => r && Object.hasOwn(PLANS, r.plan) && r.sale_minor > 0 && r.sale_minor < PLANS[r.plan] && r.sale_until && Date.parse(r.sale_until) > now).map(r => [r.plan, r]));
+  } catch (_) { return {}; }
+}
 // version 1 is what clients built before the checkout page understand: never send them a provider they cannot show.
-export function catalog(env, version = 1) {
+// sales: premiumSales(). On sale, a price is { value: the sale price (charged), regular: the price after the sale, until }.
+export function catalog(env, version = 1, sales = {}) {
   const providers = [];
   const policies = { terms: env('TERMS_URL') || null, privacy: env('PRIVACY_URL') || null };
   const validPolicies = Object.values(policies).every(v => { try { return new URL(v).protocol === 'https:'; } catch (_) { return false; } });
-  const ppPrices = () => Object.fromEntries(Object.keys(PLANS).map(p => { const v = paypalPrice(env, p); return [p, { value: v.value, currency: v.currency_code }]; }));
+  const ppPrices = () => Object.fromEntries(Object.keys(PLANS).map(p => {
+    const v = paypalPrice(env, p), sl = sales[p], sv = sl && sl.paypal_sale_value;
+    return [p, sv && /^[0-9]+\.[0-9]{2}$/.test(sv) && Number(sv) > 0 && Number(sv) < Number(v.value) ? { value: sv, currency: v.currency_code, regular: v.value, until: sl.sale_until } : { value: v.value, currency: v.currency_code }];
+  }));
+  const gel = p => { const sl = sales[p], reg = (PLANS[p] / 100).toFixed(2); return sl ? { value: (sl.sale_minor / 100).toFixed(2), currency: 'GEL', regular: reg, until: sl.sale_until } : { value: reg, currency: 'GEL' }; };
   if (hasTBC(env)) {
-    providers.push({ id: 'tbc', kind: 'card', ...(version >= 2 ? { wallets: tbcWallets(env) } : {}), prices: { monthly: { value: '14.99', currency: 'GEL' }, yearly: { value: '119.99', currency: 'GEL' } } });
+    providers.push({ id: 'tbc', kind: 'card', ...(version >= 2 ? { wallets: tbcWallets(env) } : {}), prices: { monthly: gel('monthly'), yearly: gel('yearly') } });
   }
   if (version >= 2 && hasPayPalCard(env)) providers.push({ id: 'paypal-card', kind: 'card', wallets: [], prices: ppPrices() });
   if (hasPayPal(env)) providers.push({ id: 'paypal', kind: 'paypal', prices: ppPrices() });
@@ -85,23 +98,26 @@ export function createBilling({ db, env, fetcher = fetch }) {
   }
   async function start(uid, plan, provider) {
     if (!Object.hasOwn(PLANS, plan)) throw new BillingError('invalid-plan');
-    if (!catalog(env, 2).providers.some(p => p.id === provider)) throw new BillingError('billing-not-configured', 503);
+    // the price charged is the one the catalog shows now: a running sale's, or the regular one
+    const offered = catalog(env, 2, await premiumSales(db)).providers.find(p => p.id === provider);
+    if (!offered) throw new BillingError('billing-not-configured', 503);
+    const charge = offered.prices[plan];
     await profile(uid);
     const id = crypto.randomUUID();
     if (provider === 'tbc') {
-      const result = await tbc('payments', { amount: { currency: 'GEL', total: PLANS[plan] / 100 },
+      const result = await tbc('payments', { amount: { currency: 'GEL', total: Number(charge.value) },
         returnurl: appURL(env, { payment: 'tbc' }), callbackUrl: required(env, 'SUPABASE_URL') + '/functions/v1/payment-callback?provider=tbc',
         preAuth: false, language: 'KA', merchantPaymentId: id, description: 'Panduri Premium',
         // Omit methods: TBC shows only the methods activated for this merchant (card, Apple Pay, Google Pay).
         saveCard: false });
       const link = result.links?.find(l => l.rel === 'approval_url')?.uri;
       if (!result.payId || !link || new URL(link).hostname !== 'tpay.tbcbank.ge' || new URL(link).protocol !== 'https:') throw new BillingError('invalid-checkout', 502);
-      await writeOrder({ id, provider, provider_id: result.payId, user_id: uid, plan, amount: (PLANS[plan] / 100).toFixed(2), currency: 'GEL' });
+      await writeOrder({ id, provider, provider_id: result.payId, user_id: uid, plan, amount: charge.value, currency: 'GEL' });
       return { url: link, order: result.payId, provider };
     }
     if (provider === 'paypal' || provider === 'paypal-card') {
       // The card form is PayPal's own page; the order, its verification and its webhook are an ordinary PayPal order.
-      const price = paypalPrice(env, plan), landing = provider === 'paypal-card' ? { landing_page: 'GUEST_CHECKOUT' } : {};
+      const price = { currency_code: charge.currency, value: charge.value }, landing = provider === 'paypal-card' ? { landing_page: 'GUEST_CHECKOUT' } : {};
       const result = await paypal('/v2/checkout/orders', { intent: 'CAPTURE', purchase_units: [{ reference_id: id, custom_id: uid, invoice_id: id, amount: price,
         payee: { merchant_id: required(env, 'PAYPAL_MERCHANT_ID') }, description: 'Panduri Premium — ' + plan }],
         payment_source: { paypal: { experience_context: { ...landing, user_action: 'PAY_NOW', shipping_preference: 'NO_SHIPPING', return_url: appURL(env, { payment: 'paypal' }), cancel_url: appURL(env, { payment: 'cancelled' }) } } } }, id);
@@ -151,7 +167,7 @@ export function createBilling({ db, env, fetcher = fetch }) {
     if (error) throw new BillingError('fulfillment-unavailable', 503);
     return { synced: true };
   }
-  return { user, start, verifyTBC, verifyPayPal, syncStore, paypal };
+  return { user, start, verifyTBC, verifyPayPal, syncStore, paypal, tbc, call };
 }
 export function json(value, status = 200) {
   return new Response(JSON.stringify(value), { status, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' } });
@@ -163,7 +179,7 @@ export function billingHandler(deps) {
     if (req.method !== 'POST') return json({ error: 'method' }, 405);
     try {
       const u = await billing.user(req), input = await req.json();
-      if (input.action === 'catalog') return json(catalog(deps.env, input.v === 2 ? 2 : 1));
+      if (input.action === 'catalog') return json(catalog(deps.env, input.v === 2 ? 2 : 1, input.v === 2 ? await premiumSales(deps.db) : {}));
       if (input.action === 'start') return json(await billing.start(u.id, input.plan, input.provider));
       if (input.action === 'sync-store') return json(await billing.syncStore(u.id));
       if (input.action === 'verify' && typeof input.order === 'string' && input.order.length < 150) {

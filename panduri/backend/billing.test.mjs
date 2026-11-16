@@ -10,7 +10,7 @@ function setup(overrides = {}) {
   const db = { auth: { getUser: async () => ({ data: { user: overrides.unauthorized ? null : { id: uid } } }) },
     from: table => ({
       insert: async row => { if (overrides.dbFailure) return { error: {} }; orders.push(row); return {}; },
-      select: () => { const filters = {}; const q = { eq: (k, v) => { filters[k] = v; return q; }, single: async () => table === 'profiles' ? { data: { premium_banned: !!overrides.banned } } : { data: orders.find(o => Object.entries(filters).every(([k,v]) => o[k] === v)) } }; return q; }
+      select: () => { const filters = {}; const q = { eq: (k, v) => { filters[k] = v; return q; }, single: async () => table === 'profiles' ? { data: { premium_banned: !!overrides.banned } } : { data: orders.find(o => Object.entries(filters).every(([k,v]) => o[k] === v)) }, maybeSingle: async () => ({ data: null }) }; return q; }
     }), rpc: async (name, args) => { grants.push({ name, args }); return {}; } };
   const env = key => overrides.env?.[key] ?? secrets[key];
   const fetcher = async (url, options) => {

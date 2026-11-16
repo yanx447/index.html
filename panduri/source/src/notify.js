@@ -23,6 +23,7 @@ PD.i18n.add({
   'nt.unsupported': ['ამ მოწყობილობაზე სისტემური შეტყობინება არ არის ხელმისაწვდომი — შეტყობინებები აპის შიგნით მოგივა.', 'System notifications are not available on this device — you will get them inside the app.'],
   'nt.webNote': ['ბრაუზერს დახურულ აპზე გაღვიძება არ შეუძლია: დროზე მიბმული შეხსენებები მაშინ მოვა, როცა აპი გახსნილია ან დაყენებულია მთავარ ეკრანზე. დაყენებულ (ინსტალირებულ) აპში შეხსენებები სრულად მუშაობს.', 'A browser cannot wake a closed app: timed reminders arrive while the app is open or installed on the home screen. In the installed app they work in full.'],
   'nt.kinds': ['რაზე გსურს შეტყობინება', 'What to be told about'],
+  'nt.k.market': ['ბაზარი', 'Marketplace'], 'nt.k.marketD': ['განცხადების გამოქვეყნება, ვადის ამოწურვა, წერილები მყიდველებისგან', 'A listing published or about to end, messages from buyers'],
   'nt.k.practice': ['ყოველდღიური ვარჯიში', 'Daily practice'],
   'nt.k.practiceD': ['შენს დროზე: რა დაგრჩა — გამოცდა, სიმღერა, თეორიის გამეორება; სერია და კვირის შეჯამება', 'At your hour: what is left — an exam, a song, a theory review; streaks and your week'],
   'nt.k.idle': ['დაბრუნების შეხსენება', 'Come-back reminder'],
@@ -120,7 +121,7 @@ PD.i18n.add({
 
 PD.notify = (() => {
   const h = PD.h, t = PD.i18n.t, ic = PD.ic;
-  const KINDS = ['practice', 'idle', 'exam', 'premium', 'social', 'feed', 'records', 'news'];
+  const KINDS = ['practice', 'idle', 'exam', 'premium', 'social', 'feed', 'records', 'news', 'market'];
   const K = 'notify', LOG = 'notify.log';
   const prefs = () => Object.assign({ on: false, hour: 19, quiet: true, kinds: {} }, PD.store.get(K, {}));
   const save = p => { PD.store.set(K, p); PD.bus.emit('notify', p); };
@@ -225,7 +226,8 @@ PD.notify = (() => {
   /* ---------------- Sima's notifications from the server ---------------- */
   // which switch each server kind belongs to (the push function uses the same map)
   const CAT = { message: 'social', chat_reaction: 'social', friend_request: 'social', friend_accept: 'social', friend_post: 'feed', post_reaction: 'feed', comment: 'feed',
-    follow: 'feed', repost: 'feed', record: 'records', record_app: 'records', record_top: 'records', reminder: 'practice', streak: 'practice', weekly: 'practice', idle: 'idle', update: 'news', test: 'news' };
+    follow: 'feed', repost: 'feed', record: 'records', record_app: 'records', record_top: 'records', reminder: 'practice', streak: 'practice', weekly: 'practice', idle: 'idle', update: 'news', test: 'news',
+    market_active: 'market', market_extended: 'market', market_expiring: 'market', market_expired: 'market', market_pending: 'market', market_rejected: 'market', market_removed: 'market', market_message: 'market' };
   const srv = { ok: false, push: false, tried: false, busy: false };
   let readyRes; const ready = new Promise(r => { readyRes = r; }); setTimeout(() => readyRes(), 9000);
   const lastKey = () => 'notify.srv.' + (uid() || '-');

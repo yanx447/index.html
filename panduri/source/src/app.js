@@ -154,7 +154,7 @@ PD.app = (() => {
   // on the phone, screens whose tab is not in the dock light the tab they are reached from
   const DOCK_OF = { chords: 'learn', ai: 'home' };
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'mtheory', mtheory: 'mtheory', tips: 'learn', solfege: 'mtheory', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
-    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', checkout: 'profile' };
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', checkout: 'profile', market: 'community' };
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -280,7 +280,7 @@ PD.app = (() => {
      flies the cover into it instead of sliding. A new navigation finishes any running one first, so screens never pile up. Scroll positions are
      remembered per screen and restored on Back; the last screens are kept (static) for the swipe-back gesture. */
   let lastKey = null, navDir = 'tab', quietNext = false, shareSrc = null;
-  const NET = { community: 1, inbox: 1, ai: 1, checkout: 1, pmadmin: 1 };   // the pages that need the server (or, for AI, its models)
+  const NET = { community: 1, inbox: 1, ai: 1, checkout: 1, pmadmin: 1, market: 1 };   // the pages that need the server (or, for AI, its models)
   const motionOK = () => !document.documentElement.classList.contains('rm') && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const M = { push: 340, tab: 220, share: 380, ease: 'cubic-bezier(.32,.72,0,1)', out: 'cubic-bezier(.22,1,.36,1)', par: '-28%' };
   const scrolls = {}, cache = new Map(), navStack = [];
@@ -345,7 +345,7 @@ PD.app = (() => {
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
-      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), circle: () => PD.circle.page(wrap, param), mtheory: () => PD.mtheory.page(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), book: () => PD.book.page(wrap, param), install: () => PD.install.page(wrap), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), checkout: () => PD.checkout.page(wrap, param), progress, settings, profile }[route] || home)(wrap);
+      community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), circle: () => PD.circle.page(wrap, param), mtheory: () => PD.mtheory.page(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), book: () => PD.book.page(wrap, param), install: () => PD.install.page(wrap), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), checkout: () => PD.checkout.page(wrap, param), market: () => PD.market ? PD.market.page(wrap, param) : home(wrap), progress, settings, profile }[route] || home)(wrap);
     // offline: a page that needs the server says so at its top, and what still works (the rest of the app is offline-first)
     if (NET[route] && navigator.onLine === false) { const n = h('p', { class: 'notice net-off', role: 'status' }, [h('span', {}, [h('b', { 'data-t': 'net.offT' }), ' · ', h('span', { 'data-t': 'net.offD' })])]); const hd = wrap.firstElementChild; if (hd && /\b(pg-head|row)\b/.test(hd.className)) hd.after(n); else wrap.prepend(n); }
     PD.i18n.apply(main);
@@ -1068,7 +1068,9 @@ PD.app = (() => {
       PD.exam.graduated() ? item(I('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>'), 'ex.cert', t('ex.grad'), () => go('cert'), 'accent') : null,
       item(I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), 'more.settings', null, () => go('settings')),
       item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', null, () => go('community')),
+      PD.market ? item(I('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.4"/>'), 'mk.title', t('mk.lead'), () => go('market'), 'accent') : null,
       C.isOwner ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'pa.title', null, () => go('pmadmin')) : null,
+      C.isOwner && PD.market ? item(I('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>'), 'mk.sl.title', t('mk.sl.premium') + ' · ' + t('mk.title'), () => go('market', 'sales'), 'accent') : null,
       C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => signOut())
         : item(I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'), 'pf.signin', t('au.guestD'), () => PD.auth.open(), 'accent')].filter(Boolean)));
     const favs = LS.progress.favorites().map(id => LS.get(id)).filter(Boolean);

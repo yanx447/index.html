@@ -42,7 +42,9 @@ PD.i18n.add({
   'pay.open': ['პრემიუმის გახსნა', 'Open Premium'],
   'pay.signin': ['შესვლა', 'Sign in'],
   'pay.continue': ['გადახდაზე გადასვლა', 'Continue to checkout'],
-  'pay.again': ['გადახდის გვერდზე', 'Back to checkout']
+  'pay.again': ['გადახდის გვერდზე', 'Back to checkout'],
+  'pay.off': ['−{n}%', '−{n}%'], 'pay.was': ['ჩვეულებრივი ფასი', 'Regular price'], 'pay.discount': ['ფასდაკლება', 'Discount'],
+  'pay.saleEnds': ['ფასდაკლების დასრულება: {d}. შემდეგ ფასი: {p}.', 'The sale ends: {d}. After that the price is {p}.']
 });
 
 PD.checkout = (() => {
@@ -140,21 +142,25 @@ PD.checkout = (() => {
         const price = cur && cur.prices[k];
         if (!price) continue;
         const sub = k === 'yearly' && cur.prices.monthly ? (() => { const m = Number(price.value) / 12, d = Math.round((1 - m / Number(cur.prices.monthly.value)) * 100); return d > 0 ? t('pm.perYearM', { p: money({ value: m.toFixed(2), currency: price.currency }), d }) : ''; })() : '';
+        const sl = PD.billing.sale(price);
         plans.append(h('button', { class: 'pay-plan', role: 'radio', type: 'button', 'aria-checked': String(plan === k), onclick: () => { plan = k; draw(); } }, [
-          k === 'yearly' && sub ? h('em', { 'data-t': 'pm.best' }) : null,
-          h('b', { 'data-t': 'pm.' + k }), h('span', { class: 'pay-price', text: money(price) }),
+          sl ? h('em', { class: 'pay-off', text: t('pay.off', { n: sl.pct }) }) : k === 'yearly' && sub ? h('em', { 'data-t': 'pm.best' }) : null,
+          h('b', { 'data-t': 'pm.' + k }), h('span', { class: 'pay-price' }, [sl ? h('s', { class: 'price-was', 'aria-label': t('pay.was'), text: money(sl.regular) }) : null, money(price)]),
           h('small', { text: sub || t(k === 'monthly' ? 'pm.perMonth' : 'pm.perYear') })]));
       }
       if (cur && !cur.prices[plan]) { plan = cur.prices.yearly ? 'yearly' : 'monthly'; return draw(); }
 
       summary.innerHTML = '';
       if (cur) {
-        const price = cur.prices[plan], v = validUntil(plan);
+        const price = cur.prices[plan], v = validUntil(plan), sl = PD.billing.sale(price);
         summary.append(...[
+          sl ? h('div', { class: 'pay-line sub' }, [h('span', { 'data-t': 'pay.was' }), h('s', { class: 'price-was', text: money(sl.regular) })]) : null,
+          sl ? h('div', { class: 'pay-line pay-disc' }, [h('span', { text: t('pay.discount') + ' ' + t('pay.off', { n: sl.pct }) }), h('span', { text: '−' + money({ value: (Number(sl.regular.value) - Number(price.value)).toFixed(2), currency: price.currency }) })]) : null,
           h('div', { class: 'pay-line' }, [h('span', { text: t('pay.item', { p: t('pm.' + plan) }) }), h('span', { text: money(price) })]),
           h('div', { class: 'pay-line sub' }, [h('span', { text: t('pay.valid', { d: fmtValid(v.d) }) }), v.extends ? h('span', { 'data-t': 'pay.extend' }) : null]),
           h('div', { class: 'pay-line total' }, [h('b', { 'data-t': 'pay.total' }), h('b', { text: money(price) })]),
           h('p', { class: 'muted pay-note', 'data-t': 'pm.once' }),
+          sl ? h('p', { class: 'pay-note pay-sale-end', text: t('pay.saleEnds', { d: PD.i18n.lang === 'ka' ? sl.until.getDate() + ' ' + ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'][sl.until.getMonth()] + ', ' + String(sl.until.getHours()).padStart(2, '0') + ':' + String(sl.until.getMinutes()).padStart(2, '0') : sl.until.toLocaleString(loc(), { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }), p: money(sl.regular) }) }) : null,
           price.currency !== 'GEL' ? h('p', { class: 'muted pay-note', text: t('pay.fx', { c: price.currency }) }) : null].filter(Boolean));
         go.innerHTML = IC.lock + '<span>' + PD.esc(t('pay.go', { p: money(price) })) + '</span>';
         go.disabled = false;

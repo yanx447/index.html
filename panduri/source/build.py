@@ -1,8 +1,11 @@
 """Build: one modular PWA (dist/app/) + one self-contained HTML file + the artifact fragment.
 Module order = dependency order. three3d.js is embedded as inert text and parsed only when 3D is first used."""
 import base64, os, re, json, hashlib, shutil
-ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','cmprofile','vedit','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','book','install','sima','aiworker','aispl','aideck','aiscore','aipiano','aimus','ailesson','songbook','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
+ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','social','cmprofile','market','vedit','chatkit','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','book','install','sima','aiworker','aispl','aideck','aiscore','aipiano','aimus','ailesson','songbook','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
 LAZY = {'three3d'}
+# in the installable app only, never in the single files: the marketplace needs the server and payments anyway, and the
+# single file must stay under 16 MiB (it is within a few KB of it). The app hides its entrances when PD.market is absent.
+APP_ONLY = {'market'}
 src = lambda n: open(f'src/{n}').read()
 # The stylesheet is two cascade layers: the earlier screens' rules (app.css) in `legacy`, and the design
 # system (design.css) after it. A later layer wins whatever the selector, so the design system never has to
@@ -48,6 +51,8 @@ def _chord_keys():
 CHORD_KEYS = _chord_keys()
 def assets_js(inline):
     return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + hero + '", photos: ' + json.dumps(PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ' };'
+css_single = css   # the single files: without the app-only modules' styles
+css = css + src('market.css') + '\n'
 for n in ORDER: assert '</script' not in src(n + '.js'), n
 TITLE = 'ფანდური — Panduri Learning'
 DESC = 'Learn the Georgian three-string panduri: lessons that wait for you, teacher video, tuner, chords, 3D instrument and a studio for teachers.'
@@ -74,6 +79,7 @@ FONTS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&fam
 def scripts_inline():
     out = [LANG_INLINE]   # before core.js, which reads the chosen language as soon as it runs
     for n in ORDER:
+        if n in APP_ONLY: continue
         js = src(n + '.js')
         if n in LAZY: out.append(f'<script type="text/plain" id="mod-{n}">\n{js}\n</script>')
         else: out.append(f'<script>/* {n}.js */\n{js}\n</script>')
@@ -96,7 +102,7 @@ single = f'''<!doctype html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="{FONTS}">
 <style>
-{css}
+{css_single}
 </style>
 </head>
 <body>
@@ -111,7 +117,7 @@ open('dist/panduri-app.html','w').write(single)
 frag = f'''<noscript>ფანდურის სასწავლო აპს JavaScript სჭირდება. · This app needs JavaScript.</noscript>
 {SPLASH}
 <script type="text/plain" id="pd-css">
-{css}
+{css_single}
 </script>
 <script>
 (function () {{

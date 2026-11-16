@@ -186,8 +186,11 @@ PD.premium = (() => {
           const price = current.prices[k];
           if (!price) continue;
           const label = price.display || new Intl.NumberFormat((PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US')), { style: 'currency', currency: price.currency }).format(Number(price.value));
+          // a running sale: the regular price struck out beside the sale price the server charges (never on a store price)
+          const sl = PD.billing.sale(price), fmt = x => new Intl.NumberFormat((PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US')), { style: 'currency', currency: x.currency }).format(Number(x.value));
           plans.append(h('button', { class: 'pw-plan', 'aria-pressed': String(plan === k), onclick: () => { plan = k; drawPlans(); } }, [
-            h('b', { text: t('pm.' + k) }), h('span', { class: 'pw-price', text: label }),
+            sl ? h('em', { class: 'pay-off', text: t('pay.off', { n: sl.pct }) }) : null,
+            h('b', { text: t('pm.' + k) }), h('span', { class: 'pw-price' }, [sl ? h('s', { class: 'price-was', 'aria-label': t('pay.was'), text: fmt(sl.regular) }) : null, label]),
             h('small', { text: t(k === 'monthly' ? 'pm.perMonth' : 'pm.perYear') })]));
         }
         if (!current.prices[plan]) { plan = current.prices.yearly ? 'yearly' : 'monthly'; drawPlans(); }

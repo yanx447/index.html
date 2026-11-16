@@ -84,6 +84,37 @@ PD.billing = (() => {
       return { pending: true, redirecting: true };
     } finally { busy = false; }
   }
+  /** the store's own prices for consumables (product id → "₾3.00" as the store shows it) */
+  async function consumablePrices(ids) {
+    if (!native()) return {};
+    const purchases = await store(), r = await purchases.getProducts({ productIdentifiers: ids, type: 'NON_SUBSCRIPTION' });
+    return Object.fromEntries(((r && r.products) || []).map(p => [p.identifier, p.priceString]));
+  }
+  /** buy one consumable in the store; answers the store's transaction id. The server reads the purchase from
+      RevenueCat itself before anything is granted — this result is not a receipt. */
+  async function consumable(id) {
+    if (busy) throw new Error('purchase-busy');
+    if (!native()) throw new Error('billing-not-configured');
+    const uid = C.uid; busy = true;
+    try {
+      const purchases = await store(), r = await purchases.getProducts({ productIdentifiers: [id], type: 'NON_SUBSCRIPTION' });
+      const product = r && r.products && r.products.find(p => p.identifier === id);
+      if (!product) throw new Error('product-unavailable');
+      const out = await purchases.purchaseStoreProduct({ product });
+      if (C.uid !== uid) throw new Error('account-changed');
+      const tx = out && out.transaction && (out.transaction.transactionIdentifier || out.transaction.transactionId);
+      if (!tx) throw new Error('purchase-unverified');
+      return String(tx);
+    } finally { busy = false; }
+  }
+  /** a price the server sent on sale: { regular, pct, until } — only while the sale runs (the server charges the sale price
+      and, after `until`, the regular one again). null for an ordinary price or a store price. */
+  function sale(p) {
+    if (!p || p.display || !p.regular || !p.until) return null;
+    const v = Number(p.value), r = Number(p.regular), u = Date.parse(p.until);
+    if (!(v > 0 && r > v) || !(u > Date.now())) return null;
+    return { regular: { value: p.regular, currency: p.currency }, pct: Math.round((1 - v / r) * 100), until: new Date(u) };
+  }
   async function restore() {
     if (!C.session) throw new Error('sign-in-required');
     if (native()) { const purchases = await store(); await purchases.restorePurchases(); await syncStore(); }
@@ -114,5 +145,5 @@ PD.billing = (() => {
   PD.bus.on('cloud', () => { if (lastUser !== C.uid) { lastUser = C.uid; catalogPromise = null; setTimeout(refresh, 0); } });
   const pending = () => { const uid = C.uid; return uid && PD.store.get(pendingKey(uid), null); };
   // `returned`: the buyer came back from a hosted checkout ('tbc' | 'paypal' | 'cancelled'). It is a hint for the screen, not a receipt.
-  return { options, purchase, restore, refresh, verifyPending, pending, returned: ['tbc', 'paypal', 'success', 'cancelled'].includes(returned) ? returned : null, get native() { return native(); } };
+  return { options, purchase, restore, refresh, verifyPending, pending, consumable, consumablePrices, sale, returned: ['tbc', 'paypal', 'success', 'cancelled'].includes(returned) ? returned : null, get native() { return native(); } };
 })();

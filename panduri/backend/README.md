@@ -192,3 +192,88 @@ It also carries the parts of `202611100001_reels.sql` the live server never rece
 Until it is applied the app says so where it matters ("switches on once the server has been updated"): my own profile and someone else's still show their videos from `feed()`, the + on a video still sends a friend request, and copying a link or sending to a friend in chat works. Search, following, reposts, the bio and the profile photo wait for the server.
 
 Found on the way: `source/supabase/schema.sql`'s `social_file_mb()` was `language sql`, so creating it needed `storage.buckets` to exist first; three SQL tests (moderation, reels, social) failed on that. It is plpgsql now — the same answer, the table looked up when it is called.
+
+
+## ფანდურის ბაზარი — the Panduri Marketplace (2026-11-16)
+
+**Status:** written and tested locally. **Not applied to the live project, the `market` function is not deployed, no real payment was made.** Before this, no marketplace existed in the repository or in the live database (checked read-only on 2026-11-16: 32 public tables, none of them `market_*`), so the base marketplace was built together with the four packages.
+
+What it is: members sell instruments to each other. **Every listing is paid** (the owner's decision, 2026-11-16; there is no free listing). One of four packages puts it in the sponsored carousel, among the featured instruments and in the sponsored places of matching searches. **The package's length is also the listing's whole lifetime**: when it ends, the entire listing is deleted.
+
+| Package | Georgian | Regular | On sale | Lifetime |
+| --- | --- | --- | --- | --- |
+| `ad24` | 24-საათიანი რეკლამა | GEL 5.00 | GEL 2.99 | 24 h |
+| `ad72` | 3-დღიანი რეკლამა | GEL 10.00 | GEL 6.99 | 72 h |
+| `ad168` | კვირის რეკლამა | GEL 20.00 | GEL 14.99 | 168 h |
+| `ad720` | თვის რეკლამა | GEL 40.00 | GEL 29.99 | 720 h |
+
+Prices live in `public.market_packages`. The owner changes them in the app (Marketplace → shield icon → Packages, `is_owner()` only). A package's length is fixed by a check constraint. The `free` row remains, switched off, only as history.
+
+### Discounts (Marketplace and Premium)
+
+The owner runs them from Profile → **ფასდაკლებები** (route `market:sales`, `is_owner()` on the server). Each package and each Premium plan has a sale price, an optional PayPal sale price, and an **end date**. While a sale runs:
+* the server charges the sale price;
+* the app shows the regular price struck out, the percentage, and when the sale ends and what the price will be after it.
+
+After the end the regular price is charged again by itself, and no struck-out price remains. A sale must be lower than the regular price and end within a year. This keeps the struck-out price a price buyers actually pay, as the consumer-protection rules and the store policies require. The prepared sale prices are 2.99 / 6.99 / 14.99 / 29.99 for the packages and 9.99 / 89.99 for Premium (PayPal EUR 3.44 / 31.03 at NBG 2026-11-07). **All sales are off until the owner switches them on.**
+
+* Premium's sales live in `supabase/migrations/202611170002_premium_sales.sql` (`premium_sales`, `owner_sales()`, `owner_premium_sale()`).
+* `billing` reads them through `premiumSales()`. With no table (not yet migrated) it charges the regular prices, as before.
+* An order keeps the price it was opened with, even if the sale ends before it is paid.
+* Store builds show the store's own price, never a struck-out price: introductory offers belong in App Store Connect / Play Console.
+
+### Rules the database enforces
+
+* Every time is the server's: `market_now()`. A test clock exists only where `server_config.market_test_clock = 'on'`, never on the live server.
+* Paid time starts when a **verified** payment meets a publicly active listing (`market_apply_payment`):
+  * draft → published now, for the package's hours (a draft is never public before that);
+  * live listing → the hours are **added** to the current deadline;
+  * listing under review → the hours wait (`queued_hours`) and start on approval. Moderation uses none of the paid time.
+* Public means `status = 'active' and expires_at > market_now()`, through `market_is_live()`. Every read is a security-definer function, and `market_listings` has no client grants. So an expired listing disappears from search, the carousel, sponsored places, saved lists and its own URL at that second, whether or not the cleanup has run.
+* `market_expire()` runs every minute (`pg_cron` job `market-expire`). It:
+  * warns once per deadline (3 h before for listings of ≤ 72 h, 24 h before otherwise);
+  * deletes ended listings, and drafts or refused listings untouched for 7 days;
+  * queues their files in `market_media_trash` and keeps a text-free line in `market_expired_log`.
+  
+  Each listing is deleted in its own sub-transaction: a failure is logged in `market_cleanup_errors` and retried the next minute.
+* A listing with a checkout opened in the last 2 hours, or with queued paid hours, is hidden but **not deleted**. Payment and cleanup lock the same row (`for update` / `for update skip locked`), so whichever comes second sees the first. A payment that finds its listing gone is stored as `orphaned` (to refund) and shown in the dashboard. It is never silently lost.
+* `market-media-sweep` (every 5 min) calls the `market` Edge Function with the existing `push_hook_secret`. The function deletes the queued files from the private `market` bucket through the Storage API. Each batch's result is recorded, and failures back off (5 min × 2ⁿ, at most 8 tries, then shown in the dashboard with a retry button). A file can be queued only under its own seller's folder (check constraint), and the function sends only such paths.
+* Only financial records survive a deletion: `market_promotions` and `market_orders` (their listing reference becomes null).
+
+### Payments
+
+| Channel | How | Status |
+| --- | --- | --- |
+| Web, PWA, desktop | TBC hosted page in GEL (all four packages) | Code ready; **TBC merchant credentials are not configured**. Because every listing is paid, **nobody can publish a listing until a payment method is active**: the app says "Publishing switches on once card payment is activated" and keeps the draft. |
+| Web, PayPal | Only for packages whose EUR/USD price the owner has approved in the dashboard (PayPal cannot charge GEL; no silent conversion) | Code ready; **no PayPal price set**. Suggested at NBG 2026-11-07 (EUR 1 = GEL 2.8998), for the owner to approve: 1.03 / 2.41 / 5.17 / 10.35 EUR. |
+| iOS / Android | Consumable in-app products `market_ad24`, `market_ad72`, `market_ad168`, `market_ad720` through RevenueCat. The server reads the transaction from RevenueCat for this account (`non_subscriptions`), rejects sandbox and receipts older than 72 h, and uses the store transaction id as the idempotency key. A store build never opens an external checkout. | Not configured: RevenueCat, the store products and their review are missing. Google Play cannot have a Georgian merchant profile (see above). |
+
+The return from a hosted page (`?payment=market-tbc|market-paypal|market-cancelled`) is a hint only. The app asks `market` → `verify`, which fetches the payment from TBC or PayPal. The callbacks (`payment-callback`) route a marketplace order to the marketplace and everything else to Premium as before. Duplicate callbacks count once: `unique(provider, payment_id)`, and the order row is locked. Refunds:
+* TBC `Returned` comes back on verify.
+* PayPal `PAYMENT.CAPTURE.REFUNDED`/`REVERSED` arrives once those two events are added to the existing webhook.
+* RevenueCat `CANCELLATION` of a `market_*` product comes through the store webhook.
+* Anything else: the owner records the refund in the dashboard.
+
+In every case the paid hours come off the listing.
+
+### Deploy (owner, in this order)
+
+1. SQL Editor: `supabase/migrations/202611170001_marketplace.sql`, then `202611170002_premium_sales.sql`. It needs `202611090002_social.sql`, which the live server has. It can be run twice. Then verify read-only:
+   * the tables;
+   * `select * from cron.job where jobname like 'market%'`;
+   * the `market` bucket (private, 50 MB);
+   * `server_config` has `market_url`;
+   * `market_test_clock` is **absent**.
+2. `supabase functions deploy market`, then redeploy `billing`, `payment-callback`, `store-webhook` and `push` (the shared modules changed). `config.toml` sets `verify_jwt = false` for `market`: it checks members against Supabase Auth itself, and the sweep carries the hook secret.
+3. Optional: PayPal webhook → add `PAYMENT.CAPTURE.REFUNDED` and `PAYMENT.CAPTURE.REVERSED`.
+4. Build and publish the app.
+
+### Tests
+
+```sh
+node --test market-sql.test.mjs   # 21: paid-only, every package's lifetime, sales and their end, Premium sales, public removal, cleanup, media queue, payment/cleanup race, moderation, refunds, notices, permissions
+node --test market.test.mjs       # 10: the Edge Function and billing with mocked TBC / PayPal / RevenueCat / Storage, sale prices charged
+cd ../source && APP_DIR=dist/app node --test qa/market-ui.cjs   # 2: 320/390/768/1280 px, ka + en, with a fake server
+```
+
+The marketplace is in the installable app (PWA, desktop, native) only. `build.py` leaves it out of the single files (`dist/artifact.html`, `dist/panduri-app.html`, `APP_ONLY`): they were within a few KB of the 16 MiB limit, and the marketplace needs the server and payments anyway. The app hides its entrances there.
