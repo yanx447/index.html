@@ -34,10 +34,12 @@ PD.i18n.add({
   'fd.like': ['მოწონება', 'Like'], 'fd.less': ['ნაკლები', 'less'], 'fd.sound': ['ხმა', 'Sound'], 'fd.seek': ['ვიდეოს ადგილი', 'Position in the video'], 'fd.origSound': ['ორიგინალი ხმა · {n}', 'Original sound · {n}'], 'fd.swipeHint': ['გადაფურცლე ზემოთ', 'Swipe up'], 'fd.save': ['შენახვა', 'Save'], 'fd.unsave': ['შენახულებიდან ამოღება', 'Remove from saved'], 'fd.saved': ['შენახული ვიდეოები', 'Saved videos'], 'fd.savedT': ['შენახულია', 'Saved'],
   'fd.tapSound': ['შეეხე ხმის ჩასართავად', 'Tap for sound'], 'fd.cantPlay': ['ეს ვიდეო ამ მოწყობილობაზე ვერ იკვრება.', 'This video cannot be played on this device.'],
   'fd.findFriendsA': ['მეგობრები და ძებნა', 'Friends and search'],
-  'fd.rules': ['მაქს. {m} წამი · 720p-დან 4K-მდე · ერთი ფაილი მაქს. {n} MB. თუ ვიდეოს არ შეცვლი, იტვირთება ზუსტად ისე, როგორც გადაღებულია.', 'Up to {m} seconds · 720p to 4K · one file up to {n} MB. A video you do not edit is uploaded exactly as it was filmed.'],
+  'fd.rules': ['მაქს. {m} წუთი · 720p-დან 4K-მდე · ერთი ფაილი მაქს. {n} MB. თუ ვიდეოს არ შეცვლი და ლიმიტში ეტევა, იტვირთება ზუსტად ისე, როგორც გადაღებულია.', 'Up to {m} minutes · 720p to 4K · one file up to {n} MB. A video you do not edit, and that fits, is uploaded exactly as it was filmed.'],
+  'fd.min': ['{n}წთ', '{n} min'], 'fd.lowQ': ['ამ სიგრძეზე ხარისხი დაბალი იქნება: სერვერი ერთ ფაილს მაქს. {n} MB-ს იღებს.', 'At this length the quality will be low: the server takes {n} MB per file at most.'],
+  'fd.squeeze': ['ფაილი {s} MB-ია, სერვერი მაქს. {n} MB-ს იღებს — გამოქვეყნებისას თავიდან დამუშავდება, რომ ჩაეტიოს (ამას იმდენი დრო სჭირდება, რამდენიც ვიდეოს).', 'The file is {s} MB and the server takes {n} MB — it will be made again to fit when you post it (that takes as long as the video).'],
   'fd.res': ['გარჩევადობა', 'Resolution'], 'fd.resAuto': ['ავტომატური', 'Automatic'],
   'fd.asIs': ['ხარისხი უცვლელია', 'quality unchanged'], 'fd.song': ['სიმღერა ან რიტმი', 'Song or rhythm'], 'fd.songPh': ['სიმღერის ან რიტმის სახელი', 'Name of the song or rhythm'],
-  'fd.reelLong': ['ვიდეო {m} წამზე გრძელია — ფიდში მაქს. {m} წამი იდება.', 'The video is longer than {m} seconds — the feed takes {m} seconds at most.'],
+  'fd.reelLong': ['ვიდეო {m} წუთზე გრძელია — ფიდში მაქს. {m} წუთი იდება.', 'The video is longer than {m} minutes — the feed takes {m} minutes at most.'],
   'fd.reelSmall': ['ვიდეოს გარჩევადობა ({n}p) დაბალია — საჭიროა მინიმუმ 720p.', 'The video’s resolution ({n}p) is too low — at least 720p is needed.'],
   'fd.reelHuge': ['ვიდეო 4K-ზე დიდია — მაქსიმუმი 4K-ია.', 'The video is larger than 4K — 4K is the maximum.'],
   'fd.reelHeavy': ['ვიდეო {s} MB-ია, სერვერი კი ახლა ერთ ფაილად მაქს. {n} MB-ს იღებს. ხარისხს არ ვამცირებთ, ამიტომ ეს ფაილი ვერ აიტვირთება — სცადე უფრო მოკლე ვიდეო.', 'The video is {s} MB, and the server takes {n} MB per file for now. We do not lower the quality, so this file cannot be uploaded — try a shorter video.'],
@@ -149,7 +151,7 @@ PD.social = (() => {
     const kind = want === 'any' || !want ? kindOf(file) : want;
     if (!kind || (want && want !== 'any' && kindOf(file) && kindOf(file) !== want)) throw fail('badFile');
     const most = kind === 'video' ? ROOM() : LIMIT[kind];   // a video may be as large as the server takes
-    if (file.size > most * 1048576 && !(kind === 'photo' && file.type !== 'image/gif')) throw Object.assign(fail('tooBig'), { n: most, s: Math.ceil(file.size / 1048576) });
+    if (!(opts && opts.big) && file.size > most * 1048576 && !(kind === 'photo' && file.type !== 'image/gif')) throw Object.assign(fail('tooBig'), { n: most, s: Math.ceil(file.size / 1048576) });
     const url = URL.createObjectURL(file);
     try {
       if (kind === 'photo') {
@@ -170,7 +172,7 @@ PD.social = (() => {
         const hd = await mp4Meta(file).catch(() => null);
         if (kind === 'video' && !hd) throw fail('badFile');
         const dur = (hd && hd.dur) || (m && isFinite(m.duration) ? m.duration : 0) || (opts && opts.dur) || 0;
-        if (dur > LONG[kind] * 60) throw Object.assign(fail('tooLong'), { n: LONG[kind] });
+        if (dur > LONG[kind] * 60 + 1.5) throw Object.assign(fail('tooLong'), { n: LONG[kind] });
         const meta = { dur: Math.round(dur * 10) / 10 };
         if (kind === 'video') { meta.w = hd.w; meta.h = hd.h; }
         return { kind, blob: file, ext, meta };
@@ -180,7 +182,7 @@ PD.social = (() => {
         try { m.currentTime = 0; } catch (_) {}
       }
       const dur = isFinite(m.duration) && m.duration > 0 ? m.duration : (opts && opts.dur) || 0;   // a clip filmed in the browser does not always know its own length
-      if (dur > LONG[kind] * 60) throw Object.assign(fail('tooLong'), { n: LONG[kind] });
+      if (dur > LONG[kind] * 60 + 1.5) throw Object.assign(fail('tooLong'), { n: LONG[kind] });
       const out = { kind, blob: file, ext, meta: { dur: Math.round(dur * 10) / 10 } };
       if (kind === 'video') {
         out.meta.w = m.videoWidth; out.meta.h = m.videoHeight;
@@ -212,7 +214,7 @@ PD.social = (() => {
     if (!src) return h('div', { class: 'md-miss', 'data-t': 'fd.mediaBlocked' });
     if (kind === 'photo') { const i = h('img', { class: 'md-img', alt: '', src, loading: 'lazy', decoding: 'async' }); i.onclick = () => viewer(src); return i; }
     if (kind === 'video') {
-      const v = h('video', { class: 'md-vid', src, poster, preload: 'none', playsinline: true, 'webkit-playsinline': true });
+      const v = h('video', { class: 'md-vid' + (m.media_meta && m.media_meta.mirror ? ' flipx' : ''), src, poster, preload: 'none', playsinline: true, 'webkit-playsinline': true });
       v.controls = true;
       return v;
     }
@@ -480,7 +482,7 @@ PD.social = (() => {
   function card(p, P, onGone) {
     const mine = p.author === C.uid, meta0 = p.media_meta || {};
     const tall = !meta0.w || !meta0.h || meta0.h / meta0.w >= 1.2;   // a video held upright fills the screen; one held sideways is shown whole, on its own blurred picture
-    const el = h('article', { class: 'fd-card' + (tall ? ' fd-tall' : ' fd-flat'), 'data-id': p.id, 'data-mine': mine ? '1' : '0' });
+    const el = h('article', { class: 'fd-card' + (tall ? ' fd-tall' : ' fd-flat') + (meta0.mirror ? ' flipx' : ''), 'data-id': p.id, 'data-mine': mine ? '1' : '0' });
     const still = p.thumb_path && C.storage.url(p.thumb_path);
     const kids = [];
     if (still && !tall) { const bg = h('div', { class: 'fd-bg' }); bg.style.backgroundImage = 'url("' + still.replace(/"/g, '%22') + '")'; kids.push(bg); }
@@ -624,7 +626,7 @@ PD.social = (() => {
   }
 
   /* ---------------- a new video: the camera opens at once, like a phone camera — filmed in the app, or a file from the gallery ---------------- */
-  const MAXSEC = 60, MINSIDE = 720, MAXSIDE = 4096, MODES = [60, 30, 15], TIMERS = [0, 3, 10];
+  const MAXSEC = 600, MINSIDE = 720, MAXSIDE = 4096, MODES = [600, 300, 60, 30, 15], TIMERS = [0, 3, 10];
   const RECM = ['video/mp4;codecs=avc1.640033,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
   const CI = {
     torch: I('<path d="M13.5 2.5L5.5 13.5h6l-1 8 8-11h-6z"/>'),
@@ -642,12 +644,12 @@ PD.social = (() => {
   function checkReel(prep, file) {
     const m = prep.meta || {}, lo = Math.min(m.w || 0, m.h || 0), hi = Math.max(m.w || 0, m.h || 0);
     if (!m.dur || !lo) throw fail('badFile');
-    if (m.dur > MAXSEC + .5) throw Object.assign(fail('reelLong'), { n: Math.round(m.dur) });
+    if (m.dur > MAXSEC + 1.5) throw Object.assign(fail('reelLong'), { n: Math.round(m.dur) });
     if (lo < MINSIDE) throw Object.assign(fail('reelSmall'), { n: lo });
     if (hi > MAXSIDE) throw fail('reelHuge');
     if (file.size > ROOM() * 1048576) throw Object.assign(fail('reelHeavy'), { s: Math.ceil(file.size / 1048576), n: ROOM() });
   }
-  const reelErr = e => { const c = e && e.code; return c === 'tooBig' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'reelLong' || c === 'tooLong' ? t('fd.reelLong', { n: e.n, m: MAXSEC }) : c === 'reelSmall' ? t('fd.reelSmall', { n: e.n }) : c === 'reelHuge' ? t('fd.reelHuge') : c === 'reelHeavy' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'too-large' ? t('fd.reelHeavy', { s: '>' + ROOM(), n: ROOM() }) : fileErr(e); };
+  const reelErr = e => { const c = e && e.code; return c === 'tooBig' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'reelLong' || c === 'tooLong' ? t('fd.reelLong', { n: e.n, m: MAXSEC / 60 }) : c === 'reelSmall' ? t('fd.reelSmall', { n: e.n }) : c === 'reelHuge' ? t('fd.reelHuge') : c === 'reelHeavy' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'too-large' ? t('fd.reelHeavy', { s: '>' + ROOM(), n: ROOM() }) : fileErr(e); };
   /** the camera picture, sized in pixels (not by object-fit, which some phones ignore for a live camera): it covers the
    *  screen when it has the screen's orientation; otherwise all of it shows, so nothing that is filmed is hidden */
   const fitCam = v => { if (v.videoWidth) PD.vedit.place(v, v.videoWidth, v.videoHeight, { x: 0, y: 0, w: innerWidth, h: innerHeight }, (v.videoWidth > v.videoHeight) === (innerWidth > innerHeight)); };
@@ -656,7 +658,7 @@ PD.social = (() => {
 
   /** three steps on one full screen: the camera → the clip played back → caption and post. Back steps back one. */
   function studio(done, onClose) {
-    const AUDIO = 256000, rate = () => ROOM() * 1048576 * 8 * .92 / limit;   // bits a second that still fit the server's file limit at the chosen length
+    const aud = () => limit >= 240 ? 128000 : 256000, rate = () => ROOM() * 1048576 * 8 * .92 / limit;   // bits a second that still fit the server's file limit at the chosen length
     let res = RESS.indexOf(PD.store.get('fd.res', 'auto')) >= 0 ? PD.store.get('fd.res', 'auto') : 'auto', capMax = 0;
     let face = PD.store.get('fd.face', 'user'), limit = MODES.indexOf(PD.store.get('fd.mode', 60)) >= 0 ? PD.store.get('fd.mode', 60) : 60, delay = 0;
     let stream = null, rec = null, t0 = 0, tick = 0, cd = 0, gen = 0, closed = false, stage = 'cam', prep = null, final = null, finalVer = -1, fsrc = null, ed = null, busy = false, posting = false, torch = false, lid = 0;
@@ -681,14 +683,15 @@ PD.social = (() => {
     /** shows what the camera really gives, not only what was asked for */
     const paintRes = got => { resT.textContent = got ? resLabel(got) : res === 'auto' ? '—' : resLabel(res); resA.textContent = res === 'auto' ? 'A' : ''; resB.setAttribute('aria-label', t('fd.res') + ': ' + (res === 'auto' ? t('fd.resAuto') + ' · ' : '') + resT.textContent); };
     const modes = h('div', { class: 'cam-modes', role: 'radiogroup', 'aria-label': t('fd.maxLen') });
-    const paintModes = () => { modes.innerHTML = ''; MODES.forEach(n => modes.appendChild(h('button', { type: 'button', role: 'radio', 'aria-checked': String(n === limit), class: n === limit ? 'on' : '', text: t('fd.sec', { n }), onclick: () => { if (rec || cd) return; limit = n; PD.store.set('fd.mode', n); paintModes(); buzz('select'); if (res === 'auto' && stream) open(); } }))); };
+    const qnote = h('small', { class: 'cam-qnote', role: 'status' });
+    const paintModes = () => { qnote.textContent = rate() < 3e6 ? t('fd.lowQ', { n: ROOM() }) : ''; modes.innerHTML = ''; MODES.forEach(n => modes.appendChild(h('button', { type: 'button', role: 'radio', 'aria-checked': String(n === limit), class: n === limit ? 'on' : '', text: n >= 120 ? t('fd.min', { n: n / 60 }) : t('fd.sec', { n }), onclick: () => { if (rec || cd) return; limit = n; PD.store.set('fd.mode', n); paintModes(); buzz('select'); if (res === 'auto' && stream) open(); } }))); };
     const go = h('button', { class: 'cam-go', type: 'button', 'aria-label': t('fd.recStart'), html: '<svg viewBox="0 0 88 88" aria-hidden="true"><circle class="bg" cx="44" cy="44" r="40"/><circle class="fg" cx="44" cy="44" r="40" pathLength="100"/></svg><i></i>', onclick: press });
     const ringFg = go.querySelector('.fg');
     const gal = h('button', { class: 'cam-gal', type: 'button', onclick: gallery }, [h('span', { html: IC.photo }), h('small', { 'data-t': 'fd.upload' })]);
     const shot = h('section', { class: 'cam-shot' }, [view, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' }),
       h('div', { class: 'cam-top' }, [h('button', { class: 'cam-ic cam-x', type: 'button', 'aria-label': t('close'), html: ic.close, onclick: () => close() }), prog]),
       clock, h('div', { class: 'cam-rail' }, [flipB, resB, torchB, timerB]), count, msg,
-      h('div', { class: 'cam-bot' }, [modes, h('div', { class: 'cam-row' }, [gal, go, h('span')])])]);
+      h('div', { class: 'cam-bot' }, [qnote, modes, h('div', { class: 'cam-row' }, [gal, go, h('span')])])]);
 
     /* the clip, edited (PD.vedit) */
     const review = h('section', { class: 'cam-rev' });
@@ -733,7 +736,7 @@ PD.social = (() => {
     function off() { gen++; clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); if (stream) stream.getTracks().forEach(x => x.stop()); stream = null; view.srcObject = null; torch = false; torchB.classList.remove('on'); }
     function noCam(key) {
       root.classList.add('nocam'); msg.hidden = false; msg.innerHTML = '';
-      msg.append(h('span', { html: ic.camera }), h('p', { text: t(key) }), h('small', { text: t('fd.rules', { m: MAXSEC, n: ROOM() }) }),
+      msg.append(h('span', { html: ic.camera }), h('p', { text: t(key) }), h('small', { text: t('fd.rules', { m: MAXSEC / 60, n: ROOM() }) }),
         h('button', { class: 'btn primary', type: 'button', html: IC.photo + '<span data-t="fd.upload"></span>', onclick: gallery }));
       PD.i18n.apply(msg);
     }
@@ -741,7 +744,7 @@ PD.social = (() => {
       off(); const my = gen; msg.hidden = true; root.classList.remove('nocam');
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { noCam('fd.camNone'); return; }
       // asked for in the sensor's own (landscape) terms: phones turn the picture upright themselves
-      const S0 = res === 'auto' ? (rate() >= 20e6 ? 2160 : 1080) : res, L0 = Math.round(S0 * 16 / 9);
+      const S0 = res === 'auto' ? (rate() >= 20e6 ? 2160 : rate() >= 3e6 ? 1080 : 720) : res, L0 = Math.round(S0 * 16 / 9);
       const aud = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 } };   // an instrument, not a phone call: the sound is left as it is
       const tries = [
         { video: { facingMode: { ideal: face }, width: { ideal: L0 }, height: { ideal: S0 }, frameRate: { ideal: 30 } }, audio: aud },
@@ -801,16 +804,16 @@ PD.social = (() => {
       if (!stream || !mime) { PD.ui.toast(t('fd.camNone'), 5000); return; }
       const set = stream.getVideoTracks()[0].getSettings(), px = (set.width || 1920) * (set.height || 1080) * (set.frameRate || 30);
       let r = null;
-      try { r = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(4e6, Math.min(rate() - AUDIO, px * .3, 60e6))), audioBitsPerSecond: AUDIO, videoKeyFrameIntervalDuration: 2000 }); }
+      try { r = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(3e5, Math.min(rate() - aud(), px * .3, 60e6))), audioBitsPerSecond: aud(), videoKeyFrameIntervalDuration: 2000 }); }
       catch (_) { try { r = new MediaRecorder(stream, { mimeType: mime }); } catch (e) { PD.ui.toast(t('fd.camNone'), 5000); return; } }
-      const lim = limit, chunks = [];
-      r.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      const lim = limit, chunks = [], mir = view.classList.contains('mirror'), most = ROOM() * 1048576 * .97; let bytes = 0;
+      r.ondataavailable = e => { if (e.data && e.data.size) { chunks.push(e.data); bytes += e.data.size; if (bytes > most) stopRec(true); } };   // never more than the server takes
       r.onstop = () => {
         const dur = Math.min(lim, (performance.now() - t0) / 1000), keep = r._keep;
         rec = null; clearInterval(tick); root.classList.remove('recording'); go.setAttribute('aria-label', t('fd.recStart')); ringFg.style.strokeDashoffset = ''; prog.firstChild.style.width = '0';
         if (!keep || closed) return;
         const type = (r.mimeType || mime).split(';')[0], f = new File(chunks, 'panduri.' + (/mp4/.test(type) ? 'mp4' : 'webm'), { type });
-        if (f.size) take(f, dur);
+        if (f.size) take(f, dur, mir);
       };
       rec = r; r.start(1000); t0 = performance.now(); buzz('select');
       root.classList.add('recording'); go.setAttribute('aria-label', t('fd.recStop')); clock.textContent = '0:00 / ' + PD.fmtTime(lim);
@@ -825,11 +828,13 @@ PD.social = (() => {
     function gallery() { if (rec || cd || busy) return; pickVideo().then(f => { if (f && !closed && stage === 'cam') take(f); }); }
 
     /** a clip, filmed or chosen → checked against the feed's rules → the editor */
-    async function take(file, dur) {
+    async function take(file, dur, mir) {
       if (busy) return;
       busy = true; root.classList.add('busy'); off();
       try {
-        const p = await prepare(file, 'video', { dur }); checkReel(p, file);
+        const p = await prepare(file, 'video', { dur, big: true });
+        try { checkReel(p, file); } catch (e) { if (e.code !== 'reelHeavy') throw e; p.squeeze = true; }   // too large only: the editor makes it fit
+        if (mir) p.meta.mirror = true;   // a selfie: shown the way it looked while filming
         if (closed) return;
         prep = p; show('rev');
       } catch (e) { if (!closed) { PD.ui.toast(reelErr(e), 6000); show('cam'); } }
@@ -841,10 +846,10 @@ PD.social = (() => {
       stage = s; root.dataset.stage = s;
       if (s === 'cam') { open(); return; }
       off();
-      if (s === 'rev') { if (!ed) ed = PD.vedit.mount(review, { file: prep.blob, meta: prep.meta, roomMB: ROOM(), onBack: retake, onNext: next }); else ed.show(); }
+      if (s === 'rev') { if (!ed) ed = PD.vedit.mount(review, { file: prep.blob, meta: prep.meta, roomMB: ROOM(), mirror: !!prep.meta.mirror, mustRender: !!prep.squeeze, onBack: retake, onNext: next }); else ed.show(); }
       else if (ed) ed.hide();
     }
-    function useFinal(p) { final = p; if (fsrc) URL.revokeObjectURL(fsrc); fsrc = URL.createObjectURL(p.blob); thumb.src = fsrc; }
+    function useFinal(p) { final = p; if (fsrc) URL.revokeObjectURL(fsrc); fsrc = URL.createObjectURL(p.blob); thumb.src = fsrc; thumb.classList.toggle('flipx', !!(p.meta && p.meta.mirror)); }
     /** not edited: the file as filmed. Edited: made again (once per version of the edit) and checked like any other clip. */
     async function next() {
       if (busy || !ed) return;
@@ -872,7 +877,7 @@ PD.social = (() => {
         posting = false; close(); done && done(p);
       } catch (e) {
         posting = false; postB.disabled = false; upbar.hidden = true;
-        state.textContent = /slow-down/.test(e && e.message) ? t('fd.slow') : /video-too-long/.test(e && e.message) ? t('fd.reelLong', { n: Math.round(final.meta.dur), m: MAXSEC }) : reelErr(e);
+        state.textContent = /slow-down/.test(e && e.message) ? t('fd.slow') : /video-too-long/.test(e && e.message) ? t('fd.reelLong', { n: Math.round(final.meta.dur), m: MAXSEC / 60 }) : reelErr(e);
       }
     }
     function close(fromBack) {
@@ -910,7 +915,7 @@ PD.social = (() => {
           if (!rows.length) { grid.appendChild(h('p', { class: 'muted', 'data-t': 'fd.noUserPosts' })); PD.i18n.apply(grid); return; }
           await urls(rows);
           rows.forEach(p => { const th = p.kind === 'photo' ? C.storage.url(p.media_path) : p.thumb_path ? C.storage.url(p.thumb_path) : null;
-            grid.appendChild(h('button', { class: 'fd-tile k-' + p.kind, onclick: () => { close(); PD.app.go('community', 'p:' + p.id); } }, [th ? h('img', { alt: '', src: th, loading: 'lazy' }) : h('span', { class: 'fd-tile-t', text: p.kind === 'text' ? p.caption.slice(0, 80) : '' }),
+            grid.appendChild(h('button', { class: 'fd-tile k-' + p.kind + (p.media_meta && p.media_meta.mirror ? ' flipx' : ''), onclick: () => { close(); PD.app.go('community', 'p:' + p.id); } }, [th ? h('img', { alt: '', src: th, loading: 'lazy' }) : h('span', { class: 'fd-tile-t', text: p.kind === 'text' ? p.caption.slice(0, 80) : '' }),
               p.kind === 'video' ? h('span', { class: 'fd-tile-k', html: ic.play }) : p.kind === 'audio' ? h('span', { class: 'fd-tile-k', html: IC.music }) : null, h('small', { class: 'fd-tile-n', html: glyph('panduri') + nf(p.reactions) })].filter(Boolean))); });
         } catch (e) { headBox.textContent = U().err(e); }
       })();
@@ -1024,7 +1029,7 @@ PD.social = (() => {
         if (!p) return gone();
         await urls([p]);
         const th = p.kind === 'photo' ? C.storage.url(p.media_path) : p.thumb_path ? C.storage.url(p.thumb_path) : null;
-        box.innerHTML = '';
+        box.innerHTML = ''; box.classList.toggle('flipx', !!(p.media_meta && p.media_meta.mirror));
         box.append(th ? h('img', { alt: '', src: th }) : h('span', { class: 'cm-shared-k', html: p.kind === 'audio' ? IC.music : p.kind === 'video' ? ic.video : IC.text }),
           h('span', { class: 'grow' }, [h('b', { text: label(p) }), h('small', { text: (p.caption || t('fd.' + p.kind)).slice(0, 90) })]));
         box.onclick = () => PD.app.go('community', 'p:' + p.id);

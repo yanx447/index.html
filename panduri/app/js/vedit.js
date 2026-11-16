@@ -18,6 +18,7 @@ PD.i18n.add({
   've.dn': ['ხმაურის მოშლა', 'Noise removal'], 've.dnAmt': ['სიძლიერე', 'Strength'],
   've.dnHint': ['ასუფთავებს მუდმივ ხმაურს — შიშინს, ქარის გუგუნს, მანქანების ხმაურს, ზუზუნს — და ძალიან დაბალ ხმებს ჭრის. მოკლე ხმებს (მაგალითად სიმზე თითის გასრიალებას) ბოლომდე ვერ შლის.', 'Cleans steady noise — hiss, wind rumble, traffic, hum — and cuts the very lowest sounds. Short sounds (a finger squeaking on a string, say) are not fully removed.'],
   've.dnWork': ['მუშავდება… {p}%', 'Working… {p}%'],
+  've.longAudio': ['ხმაურის მოშლა და ტალღის ფორმა 3 წუთამდე ვიდეოზე მუშაობს (უფრო გრძელი ტელეფონის მეხსიერებას ვერ ეტევა). EQ და ეფექტები მუშაობს.', 'Noise removal and the waveform work on videos up to 3 minutes (longer ones do not fit in a phone’s memory). EQ and effects work.'],
   've.noAudio': ['ამ ვიდეოს ხმა ამ მოწყობილობამ ვერ წაიკითხა: EQ და ეფექტები მუშაობს, ხმაურის მოშლა და ტალღის ფორმა — არა.', 'This device could not read the video’s sound: EQ and effects work, noise removal and the waveform do not.'],
   've.f.none': ['ორიგინალი', 'Original'], 've.f.cine': ['სინემატიკური', 'Cinematic'], 've.f.noir': ['შავ-თეთრი', 'Black & white'], 've.f.warm': ['თბილი', 'Warm'], 've.f.cool': ['ცივი', 'Cool'],
   've.f.vint': ['ვინტაჟი', 'Vintage'], 've.f.vivid': ['მკვეთრი', 'Vivid'], 've.f.moody': ['ბნელი', 'Moody'], 've.amount': ['სიძლიერე', 'Strength'],
@@ -217,11 +218,11 @@ precision highp float;
 precision mediump float;
 #endif
 varying vec2 uv;uniform sampler2D uV,uM,uB;uniform int uBgMode;uniform vec3 uBgCol,uSh,uHi;uniform vec4 uBgMap;
-uniform float uExp,uCon,uSat,uTemp,uTint,uFade,uVig,uGrain,uSplit,uLetter,uTime;uniform vec2 uRes;
+uniform float uExp,uCon,uSat,uTemp,uTint,uFade,uVig,uGrain,uSplit,uLetter,uTime,uFlip;uniform vec2 uRes;
 float hash(vec2 q){return fract(sin(dot(q,vec2(12.9898,78.233)))*43758.5453);}
 void main(){
-  vec3 c=texture2D(uV,uv).rgb;
-  if(uBgMode>0){float a=smoothstep(.32,.68,texture2D(uM,uv).r);vec3 b=uBgMode==1?uBgCol:texture2D(uB,uBgMap.zw+uv*uBgMap.xy).rgb;c=mix(b,c,a);}
+  vec2 vu=uFlip>.5?vec2(1.-uv.x,uv.y):uv;vec3 c=texture2D(uV,vu).rgb;
+  if(uBgMode>0){float a=smoothstep(.32,.68,texture2D(uM,vu).r);vec3 b=uBgMode==1?uBgCol:texture2D(uB,uBgMap.zw+uv*uBgMap.xy).rgb;c=mix(b,c,a);}
   c*=uExp;c*=vec3(1.+uTemp,1.+uTint,1.-uTemp);c=(c-.5)*uCon+.5;
   float l=dot(clamp(c,0.,1.),vec3(.2126,.7152,.0722));c=mix(vec3(l),c,uSat);
   c+=uSplit*((1.-l)*(uSh-.5)+l*(uHi-.5))*.35;c=uFade+c*(1.-uFade);
@@ -238,7 +239,7 @@ void main(){
     if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error('link'); gl.useProgram(pr);
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    const U = {}; 'uV uM uB uBgMode uBgCol uBgMap uExp uCon uSat uTemp uTint uFade uVig uGrain uSplit uSh uHi uLetter uTime uRes'.split(' ').forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
+    const U = {}; 'uV uM uB uBgMode uBgCol uBgMap uExp uCon uSat uTemp uTint uFade uVig uGrain uSplit uSh uHi uLetter uTime uRes uFlip'.split(' ').forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     const T = [0, 1, 2].map(i => {
       gl.activeTexture(gl.TEXTURE0 + i); const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
@@ -253,8 +254,9 @@ void main(){
       gl: true, get lost() { return lost; },
       video: src => up(0, src), bg: src => up(2, src),
       mask(u8, w, hh) { gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, T[1]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, w, hh, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, u8); },
-      draw(P, mode, col, map, time) {
+      draw(P, mode, col, map, time, flip) {
         if (lost) return;
+        gl.uniform1f(U.uFlip, flip ? 1 : 0);
         gl.viewport(0, 0, cv.width, cv.height);
         gl.uniform1i(U.uBgMode, mode); gl.uniform3fv(U.uBgCol, col); gl.uniform4fv(U.uBgMap, map);
         gl.uniform1f(U.uExp, P.exp); gl.uniform1f(U.uCon, P.con); gl.uniform1f(U.uSat, P.sat); gl.uniform1f(U.uTemp, P.temp); gl.uniform1f(U.uTint, P.tint);
@@ -267,7 +269,7 @@ void main(){
   /** no WebGL: the frame is drawn as it is; cutting and the sound can still be edited */
   function renderer2d(cv) {
     const c = cv.getContext('2d'); let src = null;
-    return { gl: false, lost: false, video: s => { src = s; }, bg() {}, mask() {}, draw() { if (src) c.drawImage(src, 0, 0, cv.width, cv.height); } };
+    return { gl: false, lost: false, video: s => { src = s; }, bg() {}, mask() {}, draw(P, m, col, map, time, flip) { if (!src) return; c.setTransform(flip ? -1 : 1, 0, 0, 1, flip ? cv.width : 0, 0); c.drawImage(src, 0, 0, cv.width, cv.height); c.setTransform(1, 0, 0, 1, 0, 0); } };
   }
   const ID = { exp: 1, con: 1, sat: 1, temp: 0, tint: 0, fade: 0, vig: 0, grain: 0, split: 0, sh: [.5, .5, .5], hi: [.5, .5, .5], letter: 0 };
   const PRE = {
@@ -308,7 +310,7 @@ void main(){
   /* ---------------- the editor ---------------- */
   /** o: { file, meta: {w,h,dur}, roomMB, onBack, onNext } → { dirty, version, length, render, cancel, back, hide, show, destroy } */
   function mount(root, o) {
-    const url = URL.createObjectURL(o.file);
+    const url = URL.createObjectURL(o.file), flip = !!o.mirror;   // a selfie is drawn — and made — the way it looked while filming
     let dur = o.meta.dur || 1;
     const S = { segs: [{ a: 0, b: dur }], sel: 0, filter: 'none', fk: 1, bg: 'none', aud: Object.assign({}, AUD0) };
     let ver = 0, dead = false, hidden = false, playing = false, panel = null, raf = 0, needs = true, lastT = -1, exporting = null, pendingSeek = null, audioAfterSeek = false, driftAt = 0;
@@ -319,12 +321,13 @@ void main(){
 
     /* sound */
     const AC = window.AudioContext || window.webkitAudioContext;
-    let ac = null, chain = null, spk = null, orig = null, clean = null, cleanKey = -1, elSrc = null, asrc = null, aStart = 0, aOff = 0, dnJob = 0, dnRun = null, waveCv = null;
+    let audWhy = '', ac = null, chain = null, spk = null, orig = null, clean = null, cleanKey = -1, elSrc = null, asrc = null, aStart = 0, aOff = 0, dnJob = 0, dnRun = null, waveCv = null;
     try { ac = new AC(); chain = makeChain(ac); spk = ac.createGain(); chain.out.connect(spk); spk.connect(ac.destination); chain.set(S.aud); } catch (_) { ac = null; v.muted = false; }
     const useElement = () => { if (!ac || elSrc) return; try { elSrc = ac.createMediaElementSource(v); elSrc.connect(chain.inp); v.muted = false; } catch (_) { v.muted = false; } };
     (async () => {
       if (!ac) return;
-      try { const ab = await o.file.arrayBuffer(); orig = await new Promise((res, rej) => { const q = ac.decodeAudioData(ab, res, rej); if (q && q.then) q.then(res, rej); }); } catch (_) { orig = null; }
+      if (dur > 180 || o.file.size > 200 * 1048576) audWhy = 've.longAudio';   // ~70 MB of sound a minute once decoded, more again for the noise gate
+      else try { const ab = await o.file.arrayBuffer(); orig = await new Promise((res, rej) => { const q = ac.decodeAudioData(ab, res, rej); if (q && q.then) q.then(res, rej); }); } catch (_) { orig = null; audWhy = 've.noAudio'; }
       if (dead) return;
       if (!orig) useElement(); else makeWave();
       paintPanel();
@@ -336,7 +339,7 @@ void main(){
     /* segments */
     const segIdx = t => S.segs.findIndex(s => t >= s.a - 1e-3 && t < s.b - .02);
     const total = () => S.segs.reduce((n, s) => n + s.b - s.a, 0);
-    const dirty = () => S.segs.length !== 1 || S.segs[0].a > .05 || S.segs[0].b < dur - .05 || (S.filter !== 'none' && S.fk > 0) || S.bg !== 'none' ||
+    const dirty = () => !!o.mustRender || S.segs.length !== 1 || S.segs[0].a > .05 || S.segs[0].b < dur - .05 || (S.filter !== 'none' && S.fk > 0) || S.bg !== 'none' ||
       ['vol', 'lo', 'mid', 'hi', 'comp', 'rev', 'del', 'dn'].some(k => S.aud[k] !== AUD0[k]);
 
     /* playback */
@@ -407,7 +410,7 @@ void main(){
           else if (S.bg === 'video' && bgV && bgV.readyState >= 2) { if (bgV.currentTime >= 5) bgV.currentTime = 0; R.bg(bgV); mode = 2; map = coverMap(bgV.videoWidth, bgV.videoHeight); }
         }
       }
-      R.draw(params(S.filter, S.fk), mode, [0, 0, 0], map, performance.now() / 1000);
+      R.draw(params(S.filter, S.fk), mode, [0, 0, 0], map, performance.now() / 1000, flip);
     }
     const animated = () => S.bg !== 'none' && (S.bg === 'video' || (S.bg === 'image' && gif && gif.frames.length > 1));
     function loop() {
@@ -443,7 +446,7 @@ void main(){
       place(cv, v.videoWidth, v.videoHeight, panel ? { x: 8, y: 8, w: W - 16, h: Math.max(60, box.h - 16) } : box, !panel && (v.videoWidth > v.videoHeight) === (W > H));
       tap.style.height = box.h + 'px';
     }
-    function sizeCanvas(max) { const k = Math.min(1, max / Math.max(v.videoWidth, v.videoHeight)); cv.width = Math.max(2, Math.round(v.videoWidth * k / 2) * 2); cv.height = Math.max(2, Math.round(v.videoHeight * k / 2) * 2); }
+    function sizeCanvas(max, short) { const k = Math.min(1, max / Math.max(v.videoWidth, v.videoHeight), (short || 1e9) / Math.min(v.videoWidth, v.videoHeight)); cv.width = Math.max(2, Math.round(v.videoWidth * k / 2) * 2); cv.height = Math.max(2, Math.round(v.videoHeight * k / 2) * 2); }
     v.addEventListener('loadedmetadata', () => {
       if (isFinite(v.duration) && v.duration > 0 && Math.abs(v.duration - dur) > .05) { const full = S.segs.length === 1 && S.segs[0].a === 0; dur = v.duration; S.segs.forEach(s => { s.b = Math.min(s.b, dur); }); if (full) S.segs[0].b = dur; }
       sizeCanvas(Math.min(1440, Math.max(innerWidth, innerHeight) * Math.min(2, devicePixelRatio || 1)));
@@ -454,7 +457,8 @@ void main(){
     function paintTime() { const t = v.currentTime, i = segIdx(t); let done = 0; for (let k = 0; k < S.segs.length && k < (i < 0 ? S.segs.length : i); k++) done += S.segs[k].b - S.segs[k].a; if (i >= 0) done += t - S.segs[i].a; timeEl.textContent = PD.fmtTime(done) + ' / ' + PD.fmtTime(total()); }
     function paintInfo() {
       const d = dirty();
-      infoEl.textContent = o.meta.w + '×' + o.meta.h + ' · ' + PD.fmtTime(total()) + (d ? ' · ' + t('ve.edited') : ' · ' + (o.file.size / 1048576).toFixed(1) + ' MB · ' + t('fd.asIs'));
+      if (o.mustRender) { infoEl.textContent = t('fd.squeeze', { s: Math.ceil(o.file.size / 1048576), n: o.roomMB }); }
+      else infoEl.textContent = o.meta.w + '×' + o.meta.h + ' · ' + PD.fmtTime(total()) + (d ? ' · ' + t('ve.edited') : ' · ' + (o.file.size / 1048576).toFixed(1) + ' MB · ' + t('fd.asIs'));
       toolB.clip && toolB.clip.classList.toggle('set', S.segs.length > 1 || S.segs[0].a > .05 || S.segs[0].b < dur - .05);
       toolB.sound && toolB.sound.classList.toggle('set', ['vol', 'lo', 'mid', 'hi', 'comp', 'rev', 'del', 'dn'].some(k => S.aud[k] !== AUD0[k]));
       toolB.filters && toolB.filters.classList.toggle('set', S.filter !== 'none');
@@ -470,7 +474,7 @@ void main(){
       const th = 96, tw = Math.max(16, Math.round(th * v.videoWidth / v.videoHeight)); thumbs = document.createElement('canvas'); thumbs.width = tw * thumbN; thumbs.height = th;
       const c = thumbs.getContext('2d'), tv = h('video', { playsinline: true, preload: 'auto' }); tv.muted = true; tv.playsInline = true; tv.src = url;
       (async () => {
-        try { await meta(tv); for (let i = 0; i < thumbN && !dead; i++) { await seekEl(tv, (i + .5) * dur / thumbN); c.drawImage(tv, i * tw, 0, tw, th); tls.forEach(x => x.paint()); } } catch (_) {}
+        try { await meta(tv); for (let i = 0; i < thumbN && !dead; i++) { await seekEl(tv, (i + .5) * dur / thumbN); if (flip) { c.setTransform(-1, 0, 0, 1, (i + 1) * tw, 0); c.drawImage(tv, 0, 0, tw, th); c.setTransform(1, 0, 0, 1, 0, 0); } else c.drawImage(tv, i * tw, 0, tw, th); tls.forEach(x => x.paint()); } } catch (_) {}
         tv.removeAttribute('src'); try { tv.load(); } catch (_) {}
       })();
     }
@@ -579,7 +583,7 @@ void main(){
             slider('ve.dnAmt', 10, 100, 5, () => S.aud.dnAmt, x => { S.aud.dnAmt = x; ver++; }, pct, () => { if (S.aud.dn) runDenoise(); }),
             h('small', { class: 've-hint', 'data-t': 've.dnHint' }));
           if (dnRun) dnState.textContent = t('ve.dnWork', { p: 0 });
-        } else kids.push(h('small', { class: 've-hint', 'data-t': 've.noAudio' }));
+        } else kids.push(h('small', { class: 've-hint', 'data-t': audWhy || 've.noAudio' }));
         kids.push(slider('ve.vol', 0, 200, 5, () => S.aud.vol, audioSet('vol'), pct),
           section('ve.eq'), slider('ve.low', -12, 12, 1, () => S.aud.lo, audioSet('lo'), dB), slider('ve.mid', -12, 12, 1, () => S.aud.mid, audioSet('mid'), dB), slider('ve.high', -12, 12, 1, () => S.aud.hi, audioSet('hi'), dB),
           section('ve.fx'), slider('ve.comp', 0, 100, 5, () => S.aud.comp, audioSet('comp'), pct), slider('ve.rev', 0, 100, 5, () => S.aud.rev, audioSet('rev'), pct),
@@ -594,7 +598,7 @@ void main(){
         });
         const paintChips = () => {
           if (!v.videoWidth) return;
-          Object.keys(cans).forEach(k => { R.draw(params(k, 1), 0, [0, 0, 0], [1, 1, 0, 0], 1); const c = cans[k], x = c.getContext('2d'), s = Math.min(cv.width / c.width, cv.height / c.height); x.drawImage(cv, (cv.width - c.width * s) / 2, (cv.height - c.height * s) / 2, c.width * s, c.height * s, 0, 0, c.width, c.height); });
+          Object.keys(cans).forEach(k => { R.draw(params(k, 1), 0, [0, 0, 0], [1, 1, 0, 0], 1, flip); const c = cans[k], x = c.getContext('2d'), s = Math.min(cv.width / c.width, cv.height / c.height); x.drawImage(cv, (cv.width - c.width * s) / 2, (cv.height - c.height * s) / 2, c.width * s, c.height * s, 0, 0, c.width, c.height); });
           frame(true);
         };
         requestAnimationFrame(() => { R.video(v); paintChips(); });
@@ -660,13 +664,13 @@ void main(){
       if (!mime || !cv.captureStream) throw fail('noRender');
       if (S.bg !== 'none' && !seg) { try { seg = await segmenter(); } catch (_) { throw fail('bgFail'); } }
       exporting = { cancel: false };
-      const pw = cv.width, phh = cv.height; sizeCanvas(3840);
+      const tot = total(), A = tot >= 240 ? 128000 : AUDIO, room = o.roomMB * 1048576 * 8 * .88 / Math.max(1, tot) - A;
+      const pw = cv.width, phh = cv.height; sizeCanvas(3840, room < 2.5e6 ? 720 : room < 8e6 ? 1080 : 0);   // few bits: fewer, sharper pixels (never under 720p)
       const fps = 30, vs = cv.captureStream(fps), tracks = vs.getVideoTracks().slice();
       let dest = null;
       if (ac) { dest = ac.createMediaStreamDestination(); chain.out.connect(dest); spk.gain.value = 0; tracks.push(...dest.stream.getAudioTracks()); }
-      const tot = total(), room = o.roomMB * 1048576 * 8 * .92 / Math.max(1, tot);
-      const vbr = Math.round(Math.max(3e6, Math.min(room - AUDIO, cv.width * cv.height * fps * .3, 60e6)));
-      let rec; try { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime, videoBitsPerSecond: vbr, audioBitsPerSecond: AUDIO, videoKeyFrameIntervalDuration: 2000 }); } catch (_) { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime }); }
+      const vbr = Math.round(Math.max(2e5, Math.min(room, cv.width * cv.height * fps * .3, 60e6)));
+      let rec; try { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime, videoBitsPerSecond: vbr, audioBitsPerSecond: A, videoKeyFrameIntervalDuration: 2000 }); } catch (_) { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime }); }
       const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
       const stopped = new Promise(res => { rec.onstop = res; });
       let doneT = 0;
