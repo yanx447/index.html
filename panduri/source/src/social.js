@@ -672,14 +672,20 @@ PD.social = (() => {
 
   /** three steps on one full screen: the camera → the clip played back → caption and post. Back steps back one. */
   function studio(done, onClose) {
-    const aud = () => limit >= 240 ? 128000 : 192000, rate = () => ROOM() * 1048576 * 8 * .92 / limit;   // bits a second that still fit the server's file limit at the chosen length
+    const audFor = n => n <= 60 ? 320000 : n <= 300 ? 256000 : 192000, aud = () => audFor(limit);   // the sound at the codec's best: it matters more than the picture
+    const rateFor = n => ROOM() * 1048576 * 8 * .92 / n, rate = () => rateFor(limit);   // bits a second that still fit the server's file limit at the chosen length
+    // the picture bits a resolution needs for the quality the camera aims at (PD.guard.Q.recBpp per pixel and frame, at 30 fps)
+    const need = side => ((PD.guard && PD.guard.Q.recBpp) || .05) * side * Math.round(side * 16 / 9) * 30;
+    const fits = n => rateFor(n) - audFor(n) >= need(720);   // a length that can keep at least 720p at good quality
+    const sideOk = side => rate() - aud() >= need(side);
     let res = RESS.indexOf(PD.store.get('fd.res', 'auto')) >= 0 ? PD.store.get('fd.res', 'auto') : 'auto', capMax = 0;
     try { if (PD.detector && PD.detector.active) PD.detector.stop(); } catch (_) {}   // the app's own listening lets go of the microphone first
     // the microphone's level, shown while filming: made inside the tap that opened the camera, so an iPhone lets it run
     let mac = null, mAn = null, mSrc = null, mBuf = null, mRaf = 0, mPeak = 0;
     try { mac = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {}
     let face = PD.store.get('fd.face', 'user'), limit = MODES.indexOf(PD.store.get('fd.mode', 60)) >= 0 ? PD.store.get('fd.mode', 60) : 60, delay = 0;
-    let stream = null, rec = null, t0 = 0, tick = 0, cd = 0, gen = 0, closed = false, stage = 'cam', prep = null, final = null, finalVer = -1, fsrc = null, ed = null, busy = false, posting = false, torch = false, lid = 0;
+    if (!fits(limit)) limit = MODES.filter(fits)[0] || 60;   // a length the server's limit cannot hold at good quality is not offered
+    let wtap = null, stream = null, rec = null, t0 = 0, tick = 0, cd = 0, gen = 0, closed = false, stage = 'cam', prep = null, final = null, finalVer = -1, fsrc = null, ed = null, busy = false, posting = false, torch = false, lid = 0;
 
     /* the camera */
     const view = h('video', { class: 'cam-view', playsinline: true, autoplay: true }); view.muted = true; view.playsInline = true;
@@ -709,14 +715,14 @@ PD.social = (() => {
     const paintTimer = () => { timerN.textContent = delay ? String(delay) : ''; timerB.classList.toggle('on', !!delay); timerB.setAttribute('aria-label', t('fd.timer') + (delay ? ' · ' + t('fd.sec', { n: delay }) : '')); };
     const resT = h('span', { class: 'cam-rt' }), resA = h('b');
     const resB = h('button', { class: 'cam-ic cam-res', type: 'button', 'aria-label': t('fd.res'), onclick: () => {
-      if (rec || cd) return; const opts = RESS.filter(x => x === 'auto' || !capMax || x <= capMax * 1.05);
+      if (rec || cd) return; const opts = RESS.filter(x => x === 'auto' || ((!capMax || x <= capMax * 1.05) && sideOk(x)));
       res = opts[(opts.indexOf(res) + 1) % opts.length]; PD.store.set('fd.res', res); buzz('select'); open();
     } }, [resT, resA]);
     /** shows what the camera really gives, not only what was asked for */
     const paintRes = got => { resT.textContent = got ? resLabel(got) : res === 'auto' ? '—' : resLabel(res); resA.textContent = res === 'auto' ? 'A' : ''; resB.setAttribute('aria-label', t('fd.res') + ': ' + (res === 'auto' ? t('fd.resAuto') + ' · ' : '') + resT.textContent); };
     const modes = h('div', { class: 'cam-modes', role: 'radiogroup', 'aria-label': t('fd.maxLen') });
     const qnote = h('small', { class: 'cam-qnote', role: 'status' });
-    const paintModes = () => { qnote.textContent = rate() < 3e6 ? t('fd.lowQ', { n: ROOM() }) : ''; modes.innerHTML = ''; MODES.forEach(n => modes.appendChild(h('button', { type: 'button', role: 'radio', 'aria-checked': String(n === limit), class: n === limit ? 'on' : '', text: n >= 120 ? t('fd.min', { n: n / 60 }) : t('fd.sec', { n }), onclick: () => { if (rec || cd) return; limit = n; PD.store.set('fd.mode', n); paintModes(); buzz('select'); if (res === 'auto' && stream) open(); } }))); };
+    const paintModes = () => { const off = MODES.filter(n => !fits(n)); qnote.textContent = off.length ? t('sq.modeOff', { n: ROOM() }) : rate() < 3e6 ? t('fd.lowQ', { n: ROOM() }) : ''; modes.innerHTML = ''; MODES.filter(fits).forEach(n => modes.appendChild(h('button', { type: 'button', role: 'radio', 'aria-checked': String(n === limit), class: n === limit ? 'on' : '', text: n >= 120 ? t('fd.min', { n: n / 60 }) : t('fd.sec', { n }), onclick: () => { if (rec || cd) return; limit = n; PD.store.set('fd.mode', n); paintModes(); buzz('select'); if (res === 'auto' && stream) open(); } }))); };
     const go = h('button', { class: 'cam-go', type: 'button', 'aria-label': t('fd.recStart'), html: '<svg viewBox="0 0 88 88" aria-hidden="true"><circle class="bg" cx="44" cy="44" r="40"/><circle class="fg" cx="44" cy="44" r="40" pathLength="100"/></svg><i></i>', onclick: press });
     const ringFg = go.querySelector('.fg');
     const gal = h('button', { class: 'cam-gal', type: 'button', onclick: gallery }, [h('span', { html: IC.photo }), h('small', { 'data-t': 'fd.upload' })]);
@@ -739,12 +745,14 @@ PD.social = (() => {
     const paintVis = () => { visRow.innerHTML = ''; [['public', IC.globe, 'fd.visPublic'], ['friends', IC.users, 'fd.visFriends']].forEach(([k, i, key]) => visRow.appendChild(h('button', { type: 'button', role: 'radio', 'aria-checked': String(vis === k), class: vis === k ? 'on' : '', html: i + '<span data-t="' + key + '"></span>', onclick: () => { vis = k; PD.store.set('fd.vis', k); paintVis(); } }))); PD.i18n.apply(visRow); };
     const upbar = h('div', { class: 'fd-upbar', hidden: true }, [h('i')]), state = h('small', { class: 'muted fd-state', role: 'status' });
     const postB = h('button', { class: 'btn primary big', type: 'button', 'data-t': 'fd.post', onclick: post });
+    // Sima's check (PD.guard): the clip is listened to and looked at here, before anything is uploaded
+    const simaBox = h('div', { class: 'sq-card', role: 'status', 'aria-live': 'polite' }), wavRow = h('div', { class: 'sq-wav', hidden: true });
     const postEl = h('section', { class: 'cam-post' }, [
       h('div', { class: 'cam-head' }, [h('button', { class: 'cam-ic', type: 'button', 'aria-label': t('back'), html: ic.back, onclick: () => { if (!posting) show('rev'); } }), h('h2', { 'data-t': 'fd.new' }), h('span', { class: 'cam-ic' })]),
       h('div', { class: 'cam-form' }, [
         h('div', { class: 'cam-caprow' }, [h('div', { class: 'ck-field' }, [cap, PD.chatkit.emojiButton(cap)]), h('button', { class: 'cam-thumb', type: 'button', 'aria-label': t('fd.video'), onclick: () => { if (!posting) show('rev'); } }, [thumb])]),
         h('label', { class: 'fd-songrow' }, [h('span', { html: IC.music }), song]), h('datalist', { id: listId }, names.map(n => h('option', { value: n }))),
-        h('small', { class: 'muted', 'data-t': 'fd.who' }), visRow, upbar, state, postB])]);
+        h('small', { class: 'muted', 'data-t': 'fd.who' }), visRow, simaBox, wavRow, upbar, state, postB])]);
 
     const busyT = h('span', { 'data-t': 'fd.preparing' }), busyX = h('button', { class: 'btn cam-ghost', type: 'button', hidden: true, 'data-t': 'fr.cancel', onclick: () => ed && ed.cancel() });
     const root = h('div', { class: 'cam', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('fd.new'), 'data-stage': 'cam' }, [shot, review, postEl,
@@ -791,7 +799,7 @@ PD.social = (() => {
       off(); const my = gen; msg.hidden = true; root.classList.remove('nocam');
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { noCam('fd.camNone'); return; }
       // asked for in the sensor's own (landscape) terms: phones turn the picture upright themselves
-      const S0 = res === 'auto' ? (rate() >= 20e6 ? 2160 : rate() >= 3e6 ? 1080 : 720) : res, L0 = Math.round(S0 * 16 / 9);
+      const S0 = res === 'auto' ? (sideOk(2160) ? 2160 : sideOk(1080) ? 1080 : 720) : (sideOk(res) ? res : 720), L0 = Math.round(S0 * 16 / 9);
       const aud = { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: { ideal: 2 } };   // an instrument, not a phone call: the sound is left as it is
       const tries = [
         { video: { facingMode: { ideal: face }, width: { ideal: L0 }, height: { ideal: S0 }, frameRate: { ideal: 30 } }, audio: aud },
@@ -861,7 +869,10 @@ PD.social = (() => {
       let fmt = PD.vedit.pickFormat();   // no test before filming: the take itself shows whether the sound was kept
       const mime = fmt ? fmt.m : RECM.find(m => MediaRecorder.isTypeSupported(m));
       if (!mime) { PD.ui.toast(t('fd.camNone'), 5000); return; }
-      const A = fmt ? (fmt.a ? Math.min(fmt.a, aud()) : 0) : aud();
+      const hiBad = PD.store.get('fd.hiBad', []), base = fmt ? fmt.a : 192000;
+      // the best the codec gives; a format that kept the sound only without a bitrate stays without one, and one that lost
+      // the sound at the higher rate goes back to the rate it kept it at
+      const A = fmt && !fmt.a ? 0 : hiBad.indexOf(mime) >= 0 ? Math.min(base, aud()) : aud();
       const set = stream.getVideoTracks()[0].getSettings(), px = (set.width || 1920) * (set.height || 1080) * (set.frameRate || 30);
       const ro = { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(3e5, Math.min(rate() - (A || 128000), px * .3, 60e6))), videoKeyFrameIntervalDuration: 2000 }; if (A) ro.audioBitsPerSecond = A;
       let r = null;
@@ -871,6 +882,8 @@ PD.social = (() => {
       r.ondataavailable = e => { if (e.data && e.data.size) { chunks.push(e.data); bytes += e.data.size; if (bytes > most) stopRec(true); } };   // never more than the server takes
       r.onstop = () => {
         const dur = Math.min(lim, (performance.now() - t0) / 1000), keep = r._keep;
+        let wv = null; try { wv = wtap && wtap.stop(); } catch (_) {} wtap = null;
+        if (wv && !wv.full) wv = null;   // longer than the memory allows: a WAV that stops halfway would not match the clip
         rec = null; clearInterval(tick); root.classList.remove('recording'); go.setAttribute('aria-label', t('fd.recStart')); ringFg.style.strokeDashoffset = ''; prog.firstChild.style.width = '0';
         if (!keep || closed) return;
         const heard = mac && mac.state === 'running' && mSrc;   // the meter can only judge when it is running
@@ -878,9 +891,13 @@ PD.social = (() => {
         else if (heard && mPeak < .002 && dur > 1.5) PD.ui.toast(t('fd.noSound'), 7000);
         const type = (r.mimeType || mime).split(';')[0], f = new File(chunks, 'panduri.' + (/mp4/.test(type) ? 'mp4' : 'webm'), { type });
         // the microphone was heard but the file is silent: this format drops the sound here — try another next time
-        if (f.size && dur <= 180 && mPeak > .01) { const used = fmt || { m: mime, a: A }; PD.vedit.hasSound(f).then(ok => { if (ok) PD.vedit.rememberFormat(used); else if (ok === false) { PD.vedit.forgetFormat(used); PD.ui.toast(t('fd.fmtFail'), 9000); } }); }
-        if (f.size) take(f, dur, mir);
+        if (f.size && dur <= 180 && mPeak > .01) { const used = fmt || { m: mime, a: A }, higher = A > 192000 && hiBad.indexOf(mime) < 0;   // above the rates the format test knows
+          PD.vedit.hasSound(f).then(ok => { if (ok) PD.vedit.rememberFormat(used); else if (ok === false) { if (higher) PD.store.set('fd.hiBad', hiBad.concat(mime).slice(-6)); else PD.vedit.forgetFormat(used); PD.ui.toast(t('fd.fmtFail'), 9000); } }); }
+        if (f.size) take(f, dur, mir, wv, A);
       };
+      // the microphone's own sound, uncompressed, beside the camera's file (a WAV the member can keep; Sima's fallback)
+      wtap = null;
+      try { const at = stream.getAudioTracks()[0]; if (at && mac && PD.guard) { wtap = PD.guard.tap(mac, at, PD.isTouch() ? 180 : 300); wtap.ready.catch(() => { wtap = null; }); } } catch (_) { wtap = null; }   // a phone keeps 3 minutes of it (≈ 70 MB), a computer 5
       rec = r; r.start(1000); t0 = performance.now(); buzz('select');
       root.classList.add('recording'); go.setAttribute('aria-label', t('fd.recStop')); clock.textContent = '0:00 / ' + PD.fmtTime(lim);
       tick = setInterval(() => {
@@ -894,13 +911,15 @@ PD.social = (() => {
     function gallery() { if (rec || cd || busy) return; pickVideo().then(f => { if (f && !closed && stage === 'cam') take(f); }); }
 
     /** a clip, filmed or chosen → checked against the feed's rules → the editor */
-    async function take(file, dur, mir) {
+    async function take(file, dur, mir, wv, abr) {
       if (busy) return;
       busy = true; root.classList.add('busy'); off();
       try {
         const p = await prepare(file, 'video', { dur, big: true });
         try { checkReel(p, file); } catch (e) { if (e.code !== 'reelHeavy') throw e; p.squeeze = true; }   // too large only: the editor makes it fit
         if (mir) p.meta.mirror = true;   // a selfie: shown the way it looked while filming
+        if (abr) p.meta.abr = abr;       // the sound's bitrate, for the picture's share of the file
+        p.wav = wv || null;
         if (closed) return;
         prep = p; show('rev');
       } catch (e) { if (!closed) { PD.ui.toast(reelErr(e), 6000); show('cam'); } }
@@ -914,6 +933,40 @@ PD.social = (() => {
       off();
       if (s === 'rev') { if (!ed) ed = PD.vedit.mount(review, { file: prep.blob, meta: prep.meta, roomMB: ROOM(), mirror: !!prep.meta.mirror, mustRender: !!prep.squeeze, onBack: retake, onNext: next }); else ed.show(); }
       else if (ed) ed.hide();
+      if (s === 'post') { sima(); paintWav(); }
+    }
+    /** what Sima heard and saw; Post stays off until she lets the clip through */
+    function paintSima(res) {
+      simaBox.innerHTML = ''; simaBox.className = 'sq-card ' + (res ? res.ok ? 'ok' : 'no' : 'busy');
+      postB.disabled = posting || !(res && res.ok);
+      if (!res) { simaBox.append(h('b', { class: 'sq-h' }, [h('i', { class: 'sq-spin', 'aria-hidden': 'true' }), h('span', { 'data-t': 'sq.busy' })])); PD.i18n.apply(simaBox); return; }
+      simaBox.append(h('b', { class: 'sq-h' }, [h('span', { class: 'sq-mark', 'aria-hidden': 'true', text: res.ok ? '✓' : '!' }), h('span', { 'data-t': 'sq.title' })]),
+        h('p', { 'data-t': res.ok ? 'sq.ok' : 'sq.no' }));
+      if (!res.ok) simaBox.append(h('ul', {}, (res.reasons || []).map(([k, prm]) => h('li', { text: t(k, prm || {}) }))),
+        h('small', { 'data-t': 'sq.notSent' }), h('small', { class: 'muted', 'data-t': 'sq.rule' }));
+      simaBox.append(h('small', { class: 'muted', 'data-t': 'sq.limit' }));
+      PD.i18n.apply(simaBox);
+    }
+    function sima() {
+      const f = final; if (!f) return;
+      if (f._sima) { paintSima(f._sima); return; }
+      paintSima(null);
+      if (!PD.guard) { f._sima = { ok: false, reasons: [['sq.r.noAudio']] }; paintSima(f._sima); return; }
+      // an edited clip is made again: only the clip as filmed matches the microphone's own WAV
+      PD.guard.check(f, { wav: f === prep ? prep.wav : null, abr: f.meta && f.meta.abr })
+        .catch(() => ({ ok: false, reasons: [['sq.r.noAudio']] }))
+        .then(res => { f._sima = res; if (final === f && !closed) paintSima(res); });
+    }
+    /** the take's own sound, uncompressed: the member may keep it (it is never uploaded) */
+    function paintWav() {
+      const w = prep && prep.wav; wavRow.innerHTML = ''; wavRow.hidden = !(w && PD.guard);
+      if (wavRow.hidden) return;
+      const k = w.sr % 1000 ? (w.sr / 1000).toFixed(1) : String(w.sr / 1000);
+      wavRow.append(h('button', { class: 'btn', type: 'button', html: IC.music + '<span data-t="sq.wav"></span>', onclick: () => {
+        const b = PD.guard.wav(w.chs, w.sr, 24), u = URL.createObjectURL(b), a = h('a', { href: u, download: 'panduri-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-') + '.wav' });
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
+      } }), h('small', { class: 'muted', text: t('sq.wavNote', { k, c: t(w.chs.length > 1 ? 'sq.stereo' : 'sq.mono') }) }));
+      PD.i18n.apply(wavRow);
     }
     function useFinal(p) { final = p; if (fsrc) URL.revokeObjectURL(fsrc); fsrc = URL.createObjectURL(p.blob); thumb.src = fsrc; thumb.classList.toggle('flipx', !!(p.meta && p.meta.mirror)); }
     /** not edited: the file as filmed. Edited: made again (once per version of the edit) and checked like any other clip. */
@@ -935,16 +988,16 @@ PD.social = (() => {
       } finally { busy = false; root.classList.remove('busy'); busyX.hidden = true; busyT.textContent = t('fd.preparing'); }
     }
     async function post() {
-      if (posting || !final) return;
+      if (posting || !final || !(final._sima && final._sima.ok)) return;   // nothing is uploaded that Sima did not let through
       posting = true; postB.disabled = true; upbar.hidden = false; state.textContent = '';
       try {
         const media = await upload(final, 'p', f => { upbar.firstChild.style.width = Math.round(f * 100) + '%'; state.textContent = t('fd.uploading', { p: Math.round(f * 100) }); });
-        const row = await C.social.post({ kind: 'video', caption: cap.value.trim(), song: song.value.trim(), visibility: vis, media_path: media.media_path, thumb_path: media.thumb_path || null, media_meta: media.media_meta || {} });
+        const row = await C.social.post({ kind: 'video', caption: cap.value.trim(), song: song.value.trim(), visibility: vis, media_path: media.media_path, thumb_path: media.thumb_path || null, media_meta: Object.assign({}, media.media_meta || {}, { sima: PD.guard.stamp(final._sima) }) });
         const p = Object.assign({ author_name: (C.profile && C.profile.display_name) || '', author_nick: C.profile && C.profile.nickname, author_avatar: C.profile && C.profile.avatar_url, my_reaction: null, top: [], friend: false, saved: false, song: '' }, row);
         posting = false; close(); done && done(p);
       } catch (e) {
         posting = false; postB.disabled = false; upbar.hidden = true;
-        state.textContent = /slow-down/.test(e && e.message) ? t('fd.slow') : /video-too-long/.test(e && e.message) ? t('fd.reelLong', { n: Math.round(final.meta.dur), m: MAXSEC / 60 }) : reelErr(e);
+        state.textContent = /sima-check|video-only/.test(e && e.message) ? t('sq.no') : /slow-down/.test(e && e.message) ? t('fd.slow') : /video-too-long/.test(e && e.message) ? t('fd.reelLong', { n: Math.round(final.meta.dur), m: MAXSEC / 60 }) : reelErr(e);
       }
     }
     function close(fromBack) {

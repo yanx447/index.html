@@ -3418,6 +3418,20 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .cam-post{background:var(--bg);color:var(--fg);overflow-y:auto;-webkit-user-select:auto;user-select:auto}
 .cam-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:6px;padding:calc(6px + var(--safe-t)) 6px 6px;background:var(--bg)}.cam-head h2{flex:1;margin:0;text-align:center;font-size:17px}
 .cam-form{max-width:560px;margin:0 auto;padding:8px 16px calc(24px + var(--safe-b));display:flex;flex-direction:column;gap:14px}
+/* Sima's check before a clip is posted (PD.guard) */
+.sq-card{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;border:1px solid var(--line,rgba(127,127,127,.25));background:var(--surface2,rgba(127,127,127,.08))}
+.sq-card:empty{display:none}
+.sq-card .sq-h{display:flex;align-items:center;gap:8px;font-size:15px}
+.sq-card p{margin:0;line-height:1.45}
+.sq-card ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;line-height:1.4}
+.sq-card small{line-height:1.4;overflow-wrap:anywhere}
+.sq-mark{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:13px;font-weight:700;flex:none;color:#101114}
+.sq-card.ok{border-color:color-mix(in srgb,var(--ok,#8fe0a7) 55%,transparent)}.sq-card.ok .sq-mark{background:var(--ok,#8fe0a7)}
+.sq-card.no{border-color:color-mix(in srgb,var(--fix,#ff9282) 60%,transparent)}.sq-card.no .sq-mark{background:var(--fix,#ff9282)}
+.sq-spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--surface3,rgba(127,127,127,.3));border-top-color:var(--brass,#c9a24a);animation:sq-spin .9s linear infinite;flex:none}
+@keyframes sq-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.sq-spin{animation:none}}
+.sq-wav{display:flex;flex-direction:column;gap:4px}.sq-wav .btn{align-self:flex-start;display:inline-flex;align-items:center;gap:8px}.sq-wav .btn svg{width:18px;height:18px}
 .cam-caprow{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:12px;align-items:start}
 .cam-thumb{width:92px;aspect-ratio:3/4;border:0;border-radius:10px;padding:0;overflow:hidden;background:#000000}.cam-thumb video{width:100%;height:100%;object-fit:cover;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.cam-go i,.cam-go .bg,.cam-rail,.cam-modes,.cam-gal,.cam-x{transition:none}.cam-busy i{animation-duration:2.4s}}
