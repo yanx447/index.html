@@ -750,7 +750,20 @@ PD.social = (() => {
     // the server's own file limit, once: when it is raised (a larger plan), every clip gets the extra bits by itself
     if (!PD._fileMB && C.social && C.social.fileMB) PD._fileMB = C.social.fileMB().then(n => { n = +n; if (n > 50) C.limits = Object.assign({}, C.limits, { video: n }); }, () => {});
 
-    function off() { cancelAnimationFrame(mRaf); try { mSrc && mSrc.disconnect(); } catch (_) {} mSrc = null; gen++; clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); if (stream) stream.getTracks().forEach(x => x.stop()); stream = null; view.srcObject = null; torch = false; torchB.classList.remove('on'); }
+    function off() { cancelAnimationFrame(mRaf); try { mSrc && mSrc.disconnect(); } catch (_) {} mSrc = null; gen++; clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); if (stream) stream.getTracks().forEach(x => x.stop()); stream = null; view.srcObject = null;
+      try { view.load(); } catch (_) {}   // forget the last picture's size, or the next camera is laid out with it (and stretched)
+      torch = false; torchB.classList.remove('on'); }
+    /** for a few seconds after the camera starts, lay the picture out again whenever its size changes: some phones
+        (an iPhone coming back from the editor) report the new size late and send no event for it */
+    function settle(my) {
+      let w = 0, hh = 0; const end = performance.now() + 4000;
+      const step = () => {
+        if (my !== gen || closed || stage !== 'cam') return;
+        if (view.videoWidth && (view.videoWidth !== w || view.videoHeight !== hh)) { w = view.videoWidth; hh = view.videoHeight; onResize(); }
+        if (performance.now() < end) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
     function noCam(key) {
       root.classList.add('nocam'); msg.hidden = false; msg.innerHTML = '';
       msg.append(h('span', { html: ic.camera }), h('p', { text: t(key) }), h('small', { text: t('fd.rules', { m: MAXSEC / 60, n: ROOM() }) }),
@@ -810,6 +823,7 @@ PD.social = (() => {
       if (Object.keys(adv).length) tr.applyConstraints({ advanced: [adv] }).catch(() => {});   // the camera keeps focus, exposure and colour right by itself
       if (caps.width && caps.height && caps.width.max && caps.height.max) capMax = Math.min(caps.width.max, caps.height.max);
       paintRes(set.width && set.height ? Math.min(set.width, set.height) : 0); fitCam(view);
+      settle(my);
       try { const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); if (my === gen) flipB.hidden = cams.length < 2; } catch (_) {}
     }
 
