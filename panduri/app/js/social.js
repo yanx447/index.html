@@ -37,7 +37,9 @@ PD.i18n.add({
   'fd.rules': ['მაქს. {m} წუთი · 720p-დან 4K-მდე · ერთი ფაილი მაქს. {n} MB. თუ ვიდეოს არ შეცვლი და ლიმიტში ეტევა, იტვირთება ზუსტად ისე, როგორც გადაღებულია.', 'Up to {m} minutes · 720p to 4K · one file up to {n} MB. A video you do not edit, and that fits, is uploaded exactly as it was filmed.'],
   'fd.min': ['{n}წთ', '{n} min'], 'fd.lowQ': ['ამ სიგრძეზე ხარისხი დაბალი იქნება: სერვერი ერთ ფაილს მაქს. {n} MB-ს იღებს.', 'At this length the quality will be low: the server takes {n} MB per file at most.'],
   'fd.squeeze': ['ფაილი {s} MB-ია, სერვერი მაქს. {n} MB-ს იღებს — გამოქვეყნებისას თავიდან დამუშავდება, რომ ჩაეტიოს (ამას იმდენი დრო სჭირდება, რამდენიც ვიდეოს).', 'The file is {s} MB and the server takes {n} MB — it will be made again to fit when you post it (that takes as long as the video).'],
-  'fd.res': ['გარჩევადობა', 'Resolution'], 'fd.resAuto': ['ავტომატური', 'Automatic'],
+  'fd.res': ['გარჩევადობა', 'Resolution'], 'fd.mic': ['მიკროფონი', 'Microphone'],
+  'fd.noMic': ['მიკროფონი არ ჩაირთო — ვიდეო ხმის გარეშე ჩაიწერება. შეამოწმე მიკროფონის ნებართვა.', 'The microphone did not start — the video will be recorded without sound. Check the microphone permission.'],
+  'fd.noSound': ['ჩანაწერში ხმა არ მოხვდა — მიკროფონი შეიძლება სხვა აპს უკავია. დახურე ის აპები, რომლებიც მიკროფონს იყენებენ, და სცადე თავიდან.', 'No sound reached the recording — another app may be holding the microphone. Close the apps that use it and try again.'], 'fd.resAuto': ['ავტომატური', 'Automatic'],
   'fd.asIs': ['ხარისხი უცვლელია', 'quality unchanged'], 'fd.song': ['სიმღერა ან რიტმი', 'Song or rhythm'], 'fd.songPh': ['სიმღერის ან რიტმის სახელი', 'Name of the song or rhythm'],
   'fd.reelLong': ['ვიდეო {m} წუთზე გრძელია — ფიდში მაქს. {m} წუთი იდება.', 'The video is longer than {m} minutes — the feed takes {m} minutes at most.'],
   'fd.reelSmall': ['ვიდეოს გარჩევადობა ({n}p) დაბალია — საჭიროა მინიმუმ 720p.', 'The video’s resolution ({n}p) is too low — at least 720p is needed.'],
@@ -660,6 +662,10 @@ PD.social = (() => {
   function studio(done, onClose) {
     const aud = () => limit >= 240 ? 128000 : 256000, rate = () => ROOM() * 1048576 * 8 * .92 / limit;   // bits a second that still fit the server's file limit at the chosen length
     let res = RESS.indexOf(PD.store.get('fd.res', 'auto')) >= 0 ? PD.store.get('fd.res', 'auto') : 'auto', capMax = 0;
+    try { if (PD.detector && PD.detector.active) PD.detector.stop(); } catch (_) {}   // the app's own listening lets go of the microphone first
+    // the microphone's level, shown while filming: made inside the tap that opened the camera, so an iPhone lets it run
+    let mac = null, mAn = null, mSrc = null, mBuf = null, mRaf = 0, mPeak = 0;
+    try { mac = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {}
     let face = PD.store.get('fd.face', 'user'), limit = MODES.indexOf(PD.store.get('fd.mode', 60)) >= 0 ? PD.store.get('fd.mode', 60) : 60, delay = 0;
     let stream = null, rec = null, t0 = 0, tick = 0, cd = 0, gen = 0, closed = false, stage = 'cam', prep = null, final = null, finalVer = -1, fsrc = null, ed = null, busy = false, posting = false, torch = false, lid = 0;
 
@@ -673,6 +679,20 @@ PD.social = (() => {
       try { await tr.applyConstraints({ advanced: [{ torch: !torch }] }); torch = !torch; } catch (_) {}
       torchB.classList.toggle('on', torch); torchB.setAttribute('aria-pressed', String(torch));
     } });
+    const micFill = h('i'), micB = h('div', { class: 'cam-ic cam-mic', role: 'img', 'aria-label': t('fd.mic'), html: ic.mic }, []); micB.appendChild(micFill);
+    function meter(st) {
+      cancelAnimationFrame(mRaf); try { mSrc && mSrc.disconnect(); } catch (_) {} mSrc = null;
+      const tr = st && st.getAudioTracks()[0]; micB.classList.toggle('off', !tr); micFill.style.height = '0';
+      if (!tr || !mac) return;
+      try { mSrc = mac.createMediaStreamSource(new MediaStream([tr])); mAn = mac.createAnalyser(); mAn.fftSize = 1024; mSrc.connect(mAn); mBuf = new Float32Array(mAn.fftSize); } catch (_) { return; }
+      const tick = () => {
+        mRaf = requestAnimationFrame(tick);
+        mAn.getFloatTimeDomainData(mBuf); let pk = 0; for (let i = 0; i < mBuf.length; i++) { const a = Math.abs(mBuf[i]); if (a > pk) pk = a; }
+        if (rec) mPeak = Math.max(mPeak, pk);
+        micFill.style.height = Math.min(100, Math.sqrt(pk) * 120) + '%';
+      };
+      tick();
+    }
     const timerN = h('b'), timerB = h('button', { class: 'cam-ic', type: 'button', 'aria-label': t('fd.timer'), onclick: () => { if (rec || cd) return; delay = TIMERS[(TIMERS.indexOf(delay) + 1) % TIMERS.length]; paintTimer(); buzz('select'); } }, [h('span', { html: CI.timer }), timerN]);
     const paintTimer = () => { timerN.textContent = delay ? String(delay) : ''; timerB.classList.toggle('on', !!delay); timerB.setAttribute('aria-label', t('fd.timer') + (delay ? ' · ' + t('fd.sec', { n: delay }) : '')); };
     const resT = h('span', { class: 'cam-rt' }), resA = h('b');
@@ -691,7 +711,7 @@ PD.social = (() => {
     const shot = h('section', { class: 'cam-shot' }, [view, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' }),
       h('div', { class: 'cam-top' }, [h('button', { class: 'cam-ic cam-x', type: 'button', 'aria-label': t('close'), html: ic.close, onclick: () => close() }), prog]),
       clock, h('div', { class: 'cam-rail' }, [flipB, resB, torchB, timerB]), count, msg,
-      h('div', { class: 'cam-bot' }, [qnote, modes, h('div', { class: 'cam-row' }, [gal, go, h('span')])])]);
+      h('div', { class: 'cam-bot' }, [qnote, modes, h('div', { class: 'cam-row' }, [gal, go, micB])])]);
 
     /* the clip, edited (PD.vedit) */
     const review = h('section', { class: 'cam-rev' });
@@ -733,7 +753,7 @@ PD.social = (() => {
     // the server's own file limit, once: when it is raised (a larger plan), every clip gets the extra bits by itself
     if (!PD._fileMB && C.social && C.social.fileMB) PD._fileMB = C.social.fileMB().then(n => { n = +n; if (n > 50) C.limits = Object.assign({}, C.limits, { video: n }); }, () => {});
 
-    function off() { gen++; clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); if (stream) stream.getTracks().forEach(x => x.stop()); stream = null; view.srcObject = null; torch = false; torchB.classList.remove('on'); }
+    function off() { cancelAnimationFrame(mRaf); try { mSrc && mSrc.disconnect(); } catch (_) {} mSrc = null; gen++; clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); if (stream) stream.getTracks().forEach(x => x.stop()); stream = null; view.srcObject = null; torch = false; torchB.classList.remove('on'); }
     function noCam(key) {
       root.classList.add('nocam'); msg.hidden = false; msg.innerHTML = '';
       msg.append(h('span', { html: ic.camera }), h('p', { text: t(key) }), h('small', { text: t('fd.rules', { m: MAXSEC / 60, n: ROOM() }) }),
@@ -779,6 +799,12 @@ PD.social = (() => {
           stream = s = p; view.srcObject = p; view.play().catch(() => {});
         }
       }
+      if (!s.getAudioTracks().length) {   // a camera given without a microphone: the microphone is asked for on its own
+        try { const a = await navigator.mediaDevices.getUserMedia({ audio: aud }); a.getAudioTracks().forEach(x => s.addTrack(x)); } catch (_) {}
+        if (my !== gen || closed || stage !== 'cam') return;
+        if (!s.getAudioTracks().length) PD.ui.toast(t('fd.noMic'), 6000);
+      }
+      meter(s);
       const tr = s.getVideoTracks()[0], set = (tr && tr.getSettings && tr.getSettings()) || {};
       view.classList.toggle('mirror', set.facingMode ? set.facingMode === 'user' : !PD.isTouch());   // a selfie looks like a mirror while filming; the file is not flipped
       let caps = {}; try { caps = (tr.getCapabilities && tr.getCapabilities()) || {}; } catch (_) {}
@@ -800,6 +826,8 @@ PD.social = (() => {
       cd = setInterval(() => { n--; if (n > 0) { count.textContent = n; buzz('select'); return; } clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); startRec(); }, 1000);
     }
     function startRec() {
+      if (mac && mac.state !== 'running') mac.resume().catch(() => {});
+      mPeak = 0;
       const mime = window.MediaRecorder && RECM.find(m => MediaRecorder.isTypeSupported(m));
       if (!stream || !mime) { PD.ui.toast(t('fd.camNone'), 5000); return; }
       const set = stream.getVideoTracks()[0].getSettings(), px = (set.width || 1920) * (set.height || 1080) * (set.frameRate || 30);
@@ -812,6 +840,9 @@ PD.social = (() => {
         const dur = Math.min(lim, (performance.now() - t0) / 1000), keep = r._keep;
         rec = null; clearInterval(tick); root.classList.remove('recording'); go.setAttribute('aria-label', t('fd.recStart')); ringFg.style.strokeDashoffset = ''; prog.firstChild.style.width = '0';
         if (!keep || closed) return;
+        const heard = mac && mac.state === 'running' && mSrc;   // the meter can only judge when it is running
+        if (!stream || !stream.getAudioTracks().length) PD.ui.toast(t('fd.noMic'), 6000);
+        else if (heard && mPeak < .002 && dur > 1.5) PD.ui.toast(t('fd.noSound'), 7000);
         const type = (r.mimeType || mime).split(';')[0], f = new File(chunks, 'panduri.' + (/mp4/.test(type) ? 'mp4' : 'webm'), { type });
         if (f.size) take(f, dur, mir);
       };
@@ -853,6 +884,7 @@ PD.social = (() => {
     /** not edited: the file as filmed. Edited: made again (once per version of the edit) and checked like any other clip. */
     async function next() {
       if (busy || !ed) return;
+      ed.prime();
       if (!ed.dirty()) { if (!final || final !== prep) useFinal(prep); finalVer = -1; show('post'); return; }
       if (final && finalVer === ed.version()) { show('post'); return; }
       busy = true; root.classList.add('busy'); busyX.hidden = false; busyT.textContent = t('ve.rendering', { p: 0 });
@@ -883,7 +915,7 @@ PD.social = (() => {
     function close(fromBack) {
       if (closed) return; closed = true;
       if (fromBack !== true) PD.layers.done(lid);
-      clearInterval(tick); stopRec(false); off(); drop(); removeEventListener('resize', onResize);
+      clearInterval(tick); stopRec(false); off(); drop(); removeEventListener('resize', onResize); try { mac && mac.close(); } catch (_) {}
       root.remove(); onClose && onClose();
     }
     open();

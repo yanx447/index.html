@@ -3337,6 +3337,10 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .cam-modes{max-width:100%;overflow-x:auto;scrollbar-width:none}.cam-modes::-webkit-scrollbar{display:none}.cam-modes button{flex:none;padding:0 13px}
 /* a selfie, shown the way it looked while filming (the file itself is not flipped) */
 .fd-card.flipx .fd-media video,.fd-card.flipx .fd-poster,.flipx > img,.fd-tile.flipx img,.md-vid.flipx,.cam-thumb video.flipx{transform:scaleX(-1)}.fd-card.flipx .fd-bg{transform:scaleX(-1) translateZ(0)}
+.cam-mic{position:relative;overflow:hidden}.cam-mic svg{width:24px;height:24px;position:relative;z-index:1}
+.cam-mic > i{position:absolute;left:13px;right:13px;bottom:6px;height:0;max-height:36px;border-radius:4px;background:rgba(63,191,122,.75);transition:height .08s linear}
+.cam-mic.off{color:#e5534b}.cam-mic.off::after{content:'';position:absolute;left:12px;right:12px;top:50%;height:2px;background:#e5534b;transform:rotate(-45deg);z-index:2}
+.cam-row .cam-mic{justify-self:end;width:48px;height:48px;border-radius:12px;background:rgba(0,0,0,.28)}
 .cam-res > b{top:1px;right:-2px;bottom:auto}
 .cam:not(.recording) .cam-go .fg{opacity:0}
 .cam-shade{position:absolute;left:0;right:0;pointer-events:none}.cam-shade.t{top:0;height:150px;background:linear-gradient(rgba(0,0,0,.5),transparent)}.cam-shade.b{bottom:0;height:280px;background:linear-gradient(transparent,rgba(0,0,0,.6))}

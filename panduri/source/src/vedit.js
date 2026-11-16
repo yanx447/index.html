@@ -324,13 +324,28 @@ void main(){
     let audWhy = '', ac = null, chain = null, spk = null, orig = null, clean = null, cleanKey = -1, elSrc = null, asrc = null, aStart = 0, aOff = 0, dnJob = 0, dnRun = null, waveCv = null;
     try { ac = new AC(); chain = makeChain(ac); spk = ac.createGain(); chain.out.connect(spk); spk.connect(ac.destination); chain.set(S.aud); } catch (_) { ac = null; v.muted = false; }
     const useElement = () => { if (!ac || elSrc) return; try { elSrc = ac.createMediaElementSource(v); elSrc.connect(chain.inp); v.muted = false; } catch (_) { v.muted = false; } };
+    /* Until the sound is edited it plays straight from the video element — no Web Audio, which an iPhone silences with its
+       ring/silent switch and keeps paused until a touch. Once effects are on it goes through Web Audio, told it is playback. */
+    let native = true, decoded = false;
+    const fxOn = () => S.aud.dn || ['vol', 'lo', 'mid', 'hi', 'comp', 'rev', 'del'].some(k => S.aud[k] !== AUD0[k]);
+    function route() {
+      if (exporting) return;
+      native = !fxOn() && !elSrc;   // an element routed through Web Audio cannot be taken back out of it
+      if (native) { stopAudio(); v.muted = false; return; }
+      if (!orig) { if (decoded) useElement(); return; }
+      v.muted = true; if (playing) startAudio();
+    }
+    const AS = navigator.audioSession, asPrev = AS && AS.type;
+    try { if (AS) AS.type = 'playback'; } catch (_) {}
+    v.muted = false;
     (async () => {
       if (!ac) return;
       if (dur > 180 || o.file.size > 200 * 1048576) audWhy = 've.longAudio';   // ~70 MB of sound a minute once decoded, more again for the noise gate
       else try { const ab = await o.file.arrayBuffer(); orig = await new Promise((res, rej) => { const q = ac.decodeAudioData(ab, res, rej); if (q && q.then) q.then(res, rej); }); } catch (_) { orig = null; audWhy = 've.noAudio'; }
       if (dead) return;
-      if (!orig) useElement(); else makeWave();
-      paintPanel();
+      decoded = true;
+      if (orig) makeWave();
+      route(); paintPanel();
     })();
     const curBuf = () => (S.aud.dn && clean) || orig;
     const wake = () => { if (ac && ac.state === 'suspended' && !exporting) ac.resume().catch(() => {}); };
@@ -344,7 +359,8 @@ void main(){
 
     /* playback */
     function stopAudio() { if (!asrc) return; try { asrc.stop(); } catch (_) {} try { asrc.disconnect(); } catch (_) {} asrc = null; }
-    function startAudio() {
+    function startAudio(force) {
+      if ((native && !force) || elSrc) return;
       stopAudio(); const B = curBuf(); if (!B || !ac) return;
       const t = v.currentTime, i = segIdx(t); if (i < 0) return;
       asrc = ac.createBufferSource(); asrc.buffer = B; asrc.connect(chain.inp);
@@ -539,7 +555,7 @@ void main(){
       return h('label', { class: 've-row' }, [h('span', { 'data-t': label }), inp, val]);
     }
     const dB = x => (x > 0 ? '+' : '') + x + ' dB', pct = x => Math.round(x) + '%';
-    const audioSet = k => x => { S.aud[k] = x; chain && chain.set(S.aud); ver++; paintInfo(); };
+    const audioSet = k => x => { S.aud[k] = x; chain && chain.set(S.aud); ver++; paintInfo(); route(); };
     const section = key => h('div', { class: 've-sec', 'data-t': key });
     const actB = (icon, key, fn) => h('button', { class: 'btn', type: 'button', html: icon + '<span data-t="' + key + '"></span>', onclick: fn });
 
@@ -578,7 +594,7 @@ void main(){
           const tl = timeline('wave'); kids.push(tl.el);
           const sw = h('button', { class: 've-sw' + (S.aud.dn ? ' on' : ''), type: 'button', role: 'switch', 'aria-checked': String(S.aud.dn), 'aria-label': t('ve.dn') });
           dnState = h('small', { class: 've-st', role: 'status' });
-          sw.onclick = () => { S.aud.dn = !S.aud.dn; sw.classList.toggle('on', S.aud.dn); sw.setAttribute('aria-checked', String(S.aud.dn)); ver++; paintInfo(); if (S.aud.dn) runDenoise(); else { dnJob++; dnRun = null; dnState.textContent = ''; makeWave(); if (playing) startAudio(); } };
+          sw.onclick = () => { S.aud.dn = !S.aud.dn; sw.classList.toggle('on', S.aud.dn); sw.setAttribute('aria-checked', String(S.aud.dn)); ver++; paintInfo(); route(); if (S.aud.dn) runDenoise(); else { dnJob++; dnRun = null; dnState.textContent = ''; makeWave(); if (playing) startAudio(); } };
           kids.push(h('div', { class: 've-swrow' }, [h('b', { 'data-t': 've.dn' }), dnState, sw]),
             slider('ve.dnAmt', 10, 100, 5, () => S.aud.dnAmt, x => { S.aud.dnAmt = x; ver++; }, pct, () => { if (S.aud.dn) runDenoise(); }),
             h('small', { class: 've-hint', 'data-t': 've.dnHint' }));
@@ -663,6 +679,9 @@ void main(){
       const mime = window.MediaRecorder && RECM.find(m => MediaRecorder.isTypeSupported(m));
       if (!mime || !cv.captureStream) throw fail('noRender');
       if (S.bg !== 'none' && !seg) { try { seg = await segmenter(); } catch (_) { throw fail('bgFail'); } }
+      const useBuf = !elSrc && !!curBuf();
+      if (!useBuf) useElement();
+      const wasMuted = v.muted; if (useBuf) v.muted = true;   // the buffer feeds the file; the element stays quiet
       exporting = { cancel: false };
       const tot = total(), A = tot >= 240 ? 128000 : AUDIO, room = o.roomMB * 1048576 * 8 * .88 / Math.max(1, tot) - A;
       const pw = cv.width, phh = cv.height; sizeCanvas(3840, room < 2.5e6 ? 720 : room < 8e6 ? 1080 : 0);   // few bits: fewer, sharper pixels (never under 720p)
@@ -692,7 +711,7 @@ void main(){
         stopAudio(); try { v.pause(); } catch (_) {}
         if (dest) { try { chain.out.disconnect(dest); } catch (_) {} spk.gain.value = 1; }
         vs.getTracks().forEach(x => x.stop());
-        cv.width = pw; cv.height = phh; exporting = null; if (ac) ac.resume().catch(() => {}); needs = true; layout();
+        cv.width = pw; cv.height = phh; exporting = null; v.muted = wasMuted; route(); if (ac) ac.resume().catch(() => {}); needs = true; layout();
       }
       const type = (rec.mimeType || mime).split(';')[0];
       onP(100);
@@ -715,7 +734,7 @@ void main(){
         let last = -1, still = 0;
         guard = setInterval(() => { if (v.currentTime === last) { if (++still > 16) end(); } else { still = 0; last = v.currentTime; } }, 500);   // a stall of 8 s ends the part rather than hanging
         v.addEventListener('timeupdate', tu);
-        v.play().then(() => { if (!elSrc) startAudio(); next(); }, e => { fin = true; clearInterval(guard); rej(e); });
+        v.play().then(() => { startAudio(true); next(); }, e => { fin = true; clearInterval(guard); rej(e); });
       });
     }
 
@@ -723,12 +742,15 @@ void main(){
     return {
       dirty, version: () => ver, length: total,
       render, cancel() { if (exporting) exporting.cancel = true; },
+      /** call inside the tap that starts a render: an iPhone lets sound start only there */
+      prime() { if (ac && ac.state !== 'running') ac.resume().catch(() => {}); },
       back() { if (panel) { close(); return true; } return false; },
       hide() { pause(); hidden = true; root.hidden = true; },
       show() { hidden = false; root.hidden = false; needs = true; layout(); },
       destroy() {
         dead = true; cancelAnimationFrame(raf); pause(); dnJob++; removeEventListener('resize', layout);
         try { ac && ac.close(); } catch (_) {}
+        try { if (AS) AS.type = asPrev || 'auto'; } catch (_) {}   // the camera needs the microphone back
         v.removeAttribute('src'); try { v.load(); } catch (_) {}
         if (bgV) { bgV.pause(); bgV.removeAttribute('src'); } if (bgUrl) URL.revokeObjectURL(bgUrl);
         URL.revokeObjectURL(url); root.innerHTML = ''; root.classList.remove('ve', 'panel', 'playing');
