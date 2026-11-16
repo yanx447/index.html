@@ -11,7 +11,7 @@
    Nothing here is about panduri technique: it is the members' own content.
    ===================================================================== */
 PD.i18n.add({
-  'fd.global': ['ყველა', 'Global'], 'fd.friends': ['მეგობრები', 'Friends'], 'fd.new': ['ახალი ვიდეო', 'New video'],
+  'fd.global': ['ყველა', 'Global'], 'fd.friendsV': ['მეგობრების ვიდეოები', 'Friends\' videos'], 'fd.friends': ['მეგობრები', 'Friends'], 'fd.new': ['ახალი ვიდეო', 'New video'],
   'fd.emptyG': ['ჯერ არავის დაუდია ვიდეო — იყავი პირველი!', 'Nobody has posted a video yet — be the first!'],
   'fd.emptyF': ['აქ შენი მეგობრების ვიდეოები გამოჩნდება.', 'Your friends’ videos will show here.'], 'fd.emptyS': ['რასაც შეინახავ, აქ გამოჩნდება.', 'What you save will show here.'],
   'fd.findFriends': ['მეგობრების დამატება', 'Add friends'], 'fd.emptyFo': ['აქ იმ ხალხის ვიდეოები გამოჩნდება, ვისაც გამოიწერ.', 'Videos of the people you follow show here.'], 'fd.findPeople': ['ხალხის მოძებნა', 'Find people'], 'fd.end': ['ჯერჯერობით სულ ეს არის.', 'That is all for now.'],
@@ -343,11 +343,11 @@ PD.social = (() => {
   /** a number that changes rolls instead of snapping */
   function setNum(el, text) { if (el.textContent === text) return; el.textContent = text; if (moves() && el.animate) el.animate([{ transform: 'translateY(45%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: OUTQ }); }
 
-  /** box: where the feed goes. own: the page scope. opt.one: a single video (from a notification or a chat) · opt.saved: my saved ones */
+  /** box: where the feed goes. own: the page scope. opt.one: a single video (from a notification or a chat) · opt.saved: my saved ones · opt.friends: my friends' videos */
   function feed(box, own, opt) {
     opt = opt || {};
-    const one = opt.one || null, list = opt.list || null, fixed = one ? 'one' : list ? 'list' : opt.saved ? 'saved' : null;
-    let tab = fixed || PD.store.get('fd.tab', 'foryou'); if (!fixed && tab !== 'friends' && tab !== 'following') tab = 'foryou';
+    const one = opt.one || null, list = opt.list || null, fixed = one ? 'one' : list ? 'list' : opt.saved ? 'saved' : opt.friends ? 'friends' : null;
+    let tab = fixed || PD.store.get('fd.tab', 'foryou'); if (!fixed && tab !== 'following') tab = 'foryou';   // friends' videos live under the bottom bar's friends now (opt.friends)
     const top = h('div', { class: 'fd-top' });
     const scroll = h('div', { class: 'fd-scroll', tabindex: '0', 'aria-label': t('cm.feed') });
     const hint = h('div', { class: 'fd-hint', 'aria-hidden': 'true' }, [h('span', { html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>' }), h('b', { 'data-t': 'fd.swipeHint' })]);
@@ -423,10 +423,10 @@ PD.social = (() => {
       if (fixed) {
         const LT = { user: 'cp.tVideos', reposts: 'cp.tReposts', saved: 'cp.tSaved', liked: 'cp.tLiked', history: 'cp.tHistory' };
         const title = h('b', { class: 'fd-title' });
-        if (list && (list.tab === 'tag' || list.tab === 'search')) title.textContent = (list.tab === 'tag' ? '#' : '') + (list.term || ''); else title.setAttribute('data-t', one ? 'fd.video' : list ? LT[list.tab] || 'fd.video' : 'fd.saved');
+        if (list && (list.tab === 'tag' || list.tab === 'search')) title.textContent = (list.tab === 'tag' ? '#' : '') + (list.term || ''); else title.setAttribute('data-t', fixed === 'friends' ? 'fd.friendsV' : one ? 'fd.video' : list ? LT[list.tab] || 'fd.video' : 'fd.saved');
         top.append(h('button', { class: 'fd-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), title, h('span', { class: 'fd-ic ghost' })); PD.i18n.apply(top); return;
       }
-      const seg = h('div', { class: 'fd-seg', role: 'tablist' }, [segInd].concat([['following', 'cp.following'], ['friends', 'fd.friends'], ['foryou', 'fd.global']].map(([k, key]) => h('button', { role: 'tab', 'aria-selected': String(tab === k), class: tab === k ? 'on' : '', 'data-k': k, 'data-t': key,
+      const seg = h('div', { class: 'fd-seg', role: 'tablist' }, [segInd].concat([['following', 'cp.following'], ['foryou', 'fd.global']].map(([k, key]) => h('button', { role: 'tab', 'aria-selected': String(tab === k), class: tab === k ? 'on' : '', 'data-k': k, 'data-t': key,
         onclick: () => switchTab(k) }))));
       seg.addEventListener('scroll', () => segEdges(seg), { passive: true });
       top.append(h('div', { class: 'fd-side' }, [corner('exit', 'cn.exit', ic.back, () => PD.app.go('home'))]), seg,
@@ -440,7 +440,7 @@ PD.social = (() => {
     /** the switch at the top: the line slides to it, the videos slide sideways (friends to the left of everyone) */
     function switchTab(k) {
       if (k === tab) { scroll.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-      const ORD = ['following', 'friends', 'foryou'], dir = ORD.indexOf(k) > ORD.indexOf(tab) ? 1 : -1; tab = k; PD.store.set('fd.tab', k); buzz('select');
+      const ORD = ['following', 'foryou'], dir = ORD.indexOf(k) > ORD.indexOf(tab) ? 1 : -1; tab = k; PD.store.set('fd.tab', k); buzz('select');
       top.querySelectorAll('.fd-seg button').forEach(b => { const on = b.dataset.k === k; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
       placeInd();
       if (!moves()) { reset(); return; }
@@ -448,7 +448,7 @@ PD.social = (() => {
       out.onfinish = () => { reset(true); out.cancel(); scroll.animate([{ transform: 'translateX(' + (dir * 18) + '%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: OUTQ }); };
     }
     const newVideo = () => PD.cmp.newVideo();   // the bar's + : the feed hears of the new video below
-    own(PD.bus.on('cm:posted', p => { if (fixed) return; if (p.visibility === 'friends' && tab !== 'friends') switchTab('friends'); else prepend(p); }));
+    own(PD.bus.on('cm:posted', p => { if (fixed) return; prepend(p); }));
     own(PD.bus.on('cm:cam', open => { if (open) P.pauseAll(); else P.resume(); }));
     own(PD.bus.on('cm:top', () => scroll.scrollTo({ top: 0, behavior: moves() ? 'smooth' : 'auto' })));
     const skel = () => h('div', { class: 'fd-card fd-skel', 'aria-hidden': 'true' }, [h('i', { class: 'fd-shim' }),

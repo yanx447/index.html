@@ -96,7 +96,7 @@ PD.community = (() => {
   /** the head of a screen behind the feed: back, and its name */
   const subHead = (key, more) => h('div', { class: 'cm-head cm-sub' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), h('b', { class: 'grow', 'data-t': key })].concat(more || []));
   /** The community is one screen: the video feed. Messages, friends and the saved videos open from its corners.
-      param: null (the feed) · 'chats' · 'friends' · 'saved' · 'c:<conversation>:<name>' · 'p:<post id>' */
+      param: null (the feed) · 'chats' · 'friends' · 'saved' · 'ff' (friends' videos) · 'c:<conversation>:<name>' · 'p:<post id>' */
   function page(w, param) {
     const own = PD.pageScope();
     const pg = document.getElementById('page'); if (pg) pg.classList.remove('fd-mode');
@@ -115,6 +115,7 @@ PD.community = (() => {
       w.append(h('div', { class: 'cm-top' }, [h('span', { class: 'pz-ic', 'aria-hidden': 'true' }), h('h1', { class: 'cm-h1', 'data-t': 'cm.friends' }), h('button', { class: 'pz-ic', 'aria-label': t('cn.search'), html: ic.search, onclick: () => PD.app.go('community', 's') })]), body);
       PD.social.friends(body);
       w.append(h('div', { class: 'cm-links' }, [
+        h('button', { class: 'cm-link', html: ic.video + '<span data-t="fd.friendsV"></span>' + CHEV, onclick: () => PD.app.go('community', 'ff') }),
         h('button', { class: 'cm-link', html: PD.social.IC.save + '<span data-t="fd.saved"></span>' + CHEV, onclick: () => PD.app.go('community', 'saved') }),
         h('button', { class: 'cm-link', html: PD.social.IC.flag + '<span data-t="md.blockedList"></span>' + CHEV, onclick: () => blockedSheet() }),
         C.isAdmin ? h('button', { class: 'cm-link', html: FLAG + '<span data-t="cm.reports"></span>' + CHEV, onclick: () => PD.ui.sheet(b => { const box = h('div', { class: 'cm-body' }); b.append(h('h2', { 'data-t': 'cm.reports' }), box); reports(box); }) }) : null].filter(Boolean)));
@@ -136,7 +137,7 @@ PD.community = (() => {
     // everything else is the feed, edge to edge
     w.innerHTML = ''; if (pg) pg.classList.add('fd-mode');
     const box = h('div', { class: 'fd' }); w.append(box);
-    PD.social.feed(box, own, param.indexOf('p:') === 0 ? { one: +param.slice(2) } : param === 'saved' ? { saved: true } : null);
+    PD.social.feed(box, own, param.indexOf('p:') === 0 ? { one: +param.slice(2) } : param === 'saved' ? { saved: true } : param === 'ff' ? { friends: true } : null);
   }
   /** someone seen in the last five minutes counts as here now (the server's own last_seen, nothing guessed) */
   const online = iso => !!iso && Date.now() - new Date(iso).getTime() < 5 * 60000;

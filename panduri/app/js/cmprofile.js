@@ -108,7 +108,7 @@ PD.cmp = (() => {
   const NAVS = [['home', 'cn.home'], ['friends', 'cn.friends'], ['new', 'cn.new'], ['inbox', 'cn.inbox'], ['me', 'cn.me']];
   function tabOf(param) {
     const p = String(param == null ? '' : param);
-    if (p === 'friends') return 'friends';
+    if (p === 'friends' || p === 'ff') return 'friends';
     if (p === 'chats' || p === 'activity') return 'inbox';
     if (p === 'me' || (C.uid && p === 'u:' + C.uid)) return 'me';
     if (p === '' || p.indexOf('p:') === 0) return 'home';
