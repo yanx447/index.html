@@ -224,3 +224,9 @@ test('Premium on sale: the billing function charges the owner\'s sale price whil
   assert.equal(saved[0].amount, '9.99');
   assert.equal(x.calls.find(c => c.url.endsWith('/tpay/payments')).body.amount.total, 9.99);
 });
+
+test('before the marketplace migration (no market_orders table) Premium callbacks work exactly as before', async () => {
+  const x = setup();
+  x.deps.db.from = (orig => t => t === 'market_orders' ? { select: () => { const q = { eq: () => q, maybeSingle: async () => ({ error: { message: 'relation "public.market_orders" does not exist' } }) }; return q; } } : orig(t))(x.deps.db.from);
+  assert.equal(await createMarket(x.deps).owns('tbc', 'premium-order'), false);
+});

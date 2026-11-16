@@ -368,13 +368,15 @@ PD.cloud = (() => {
       });
     },
     /** short-lived addresses for files the server lets this account read (cached until shortly before they expire) */
-    async urls(paths) {
-      const now = Date.now(), want = [...new Set((paths || []).filter(Boolean))].filter(p => !(signed.get(p) && signed.get(p).until > now + 60e3));
+    async urls(paths, bucket) {
+      // another bucket (the marketplace's `market`) is cached apart and signed for an hour: its files stop being readable soon after a listing ends
+      const b = bucket || BUCKET, key = p => b === BUCKET ? p : b + ':' + p, life = b === BUCKET ? 3 * 3600 : 3600;
+      const now = Date.now(), want = [...new Set((paths || []).filter(Boolean))].filter(p => !(signed.get(key(p)) && signed.get(key(p)).until > now + 60e3));
       for (let i = 0; i < want.length; i += 100) {
-        const rows = await http('/storage/v1/object/sign/' + BUCKET, { method: 'POST', body: { expiresIn: 3 * 3600, paths: want.slice(i, i + 100) } });
-        (rows || []).forEach(r => { if (r && r.signedURL && !r.error) signed.set(r.path, { url: conf().url + '/storage/v1' + r.signedURL, until: now + 3 * 3600e3 }); });
+        const rows = await http('/storage/v1/object/sign/' + b, { method: 'POST', body: { expiresIn: life, paths: want.slice(i, i + 100) } });
+        (rows || []).forEach(r => { if (r && r.signedURL && !r.error) signed.set(key(r.path), { url: conf().url + '/storage/v1' + r.signedURL, until: now + life * 1000 }); });
       }
-      const o = {}; (paths || []).forEach(p => { const v = p && signed.get(p); if (v) o[p] = v.url; }); return o;
+      const o = {}; (paths || []).forEach(p => { const v = p && signed.get(key(p)); if (v) o[p] = v.url; }); return o;
     },
     url: p => { const v = signed.get(p); return v ? v.url : null; },
     /** a profile photo: public, in my own folder of the 'avatars' bucket; answers its address */
@@ -427,6 +429,8 @@ PD.cloud = (() => {
     boot, auth, db, admin, people, chat, board, moderation, signal, social, storage, notes, gifs, syncProgress, pushProgress, loadProfile,
     sima: body => http('/functions/v1/sima', { method: 'POST', body, timeout: 45000 }),
     billing: body => http('/functions/v1/billing', { method: 'POST', body, timeout: 65000 }),
+    /** the marketplace's checkout and payment verification (backend/supabase/functions/market) */
+    market: body => http('/functions/v1/market', { method: 'POST', body, timeout: 65000 }),
     get configured() { return configured(); },
     get session() { return S; },
     get user() { return S && S.user; },

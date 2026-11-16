@@ -49,9 +49,10 @@ export function createMarket({ db, env, fetcher = fetch }) {
   }
   /** is this provider payment one of the marketplace's? (the payment callbacks ask before Premium's code sees it) */
   async function owns(provider, id) {
+    // a failed lookup (the table not migrated yet, a short outage) is "not ours": Premium's code then answers as before, and an
+    // unknown order there makes the provider retry later — a payment callback never fails because the marketplace is missing
     const { data, error } = await db.from('market_orders').select('id').eq('provider', provider).eq('provider_id', id).maybeSingle();
-    if (error) throw new BillingError('market-unavailable', 503);
-    return !!data;
+    return !error && !!data;
   }
   async function start(uid, listing, pkg, provider) {
     if (!UUID.test(String(listing)) || !PACKAGES.includes(pkg)) throw new BillingError('invalid-request');
