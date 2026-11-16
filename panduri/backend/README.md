@@ -280,3 +280,15 @@ cd ../source && APP_DIR=dist/app node --test qa/market-ui.cjs   # 2: 320/390/768
 
 The marketplace is in the installable app (PWA, desktop, native) only. `build.py` leaves it out of the single files (`dist/artifact.html`, `dist/panduri-app.html`, `APP_ONLY`): they were within a few KB of the 16 MiB limit, and the marketplace needs the server and payments anyway. The app hides its entrances there.
 
+
+### Messenger upgrade
+
+Apply `supabase/migrations/202611180001_messenger.sql` after moderation and social migrations. It is repeatable; existing conversation/message IDs stay intact. Applied to the live Supabase project on 2026-11-16 in one transaction; schema refresh and read-only privacy/storage checks passed.
+
+- Per-account, per-chat themes/fonts, notification and mute controls, restrictions, quick reactions, read receipts, and six-second typing activity.
+- Groups of 3–32 friends, participant-only message/media access, pins, and document attachments in the private `social` bucket. Calls remain 1:1.
+- `chat_clear` hides earlier messages for the requesting account. It preserves other members’ copies and a new message restores the inbox entry.
+- Voice recording and camera capture are explicit user actions, with preview/cancel before upload. In-chat sound is a separate preference; system push sounds follow the device settings.
+- GIF search continues to require the existing GIPHY server configuration. Calls across restrictive networks need the existing TURN configuration.
+
+Validation: `node --test messenger-sql.test.mjs social-sql.test.mjs moderation-sql.test.mjs community-sql.test.mjs`; browser suites `node qa/messenger.cjs`, `node qa/messenger-call.cjs`, `node qa/chatkit.cjs` from `source/`. Browser media tests use synthetic cameras/microphones and isolated server fixtures. They do not send real messages or access personal media. Screenshots are in `docs/v2-review/messenger/`.

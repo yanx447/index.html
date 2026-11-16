@@ -294,6 +294,15 @@ PD.cloud = (() => {
     react: (msg, emoji) => db.rpc('react_message', { msg, emoji: emoji || null }),
     reactions: conv => db.select('message_reactions', { conversation_id: 'eq.' + conv, select: 'message_id,user_id,emoji' }),
     read: conv => db.rpc('chat_mark_read', { conv }),
+    state: conv => db.rpc('chat_state', { conv }),
+    settings: (conv, settings) => db.rpc('chat_settings', { conv, settings }),
+    typing: (conv, active) => db.rpc('chat_typing', { conv, active: !!active }),
+    clear: conv => db.rpc('chat_clear', { conv }),
+    pin: (msg, keep) => db.rpc('chat_pin', { msg, keep: !!keep }),
+    group: (title, members) => db.rpc('create_chat_group', { title, members }),
+    preferences: () => db.select('chat_preferences', { select: 'conversation_id,restricted,muted,notifications,sounds' }),
+    history: (conv, before) => sel({ conversation_id: 'eq.' + conv, order: 'id.desc', limit: '100', ...(before ? { id: 'lt.' + before } : {}) }),
+    byIds: (conv, ids) => ids.length ? sel({ conversation_id: 'eq.' + conv, id: 'in.(' + ids.join(',') + ')', order: 'id.desc' }) : Promise.resolve([]),
     other: async conv => { const r = (await db.select('conversations', { id: 'eq.' + conv, select: 'a,b' }))[0]; return r.a === uid() ? r.b : r.a; }
   };
   const moderation = {

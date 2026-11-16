@@ -6,8 +6,8 @@ cd "$(dirname "$0")/.."
 PLATFORM="${1:-all}"
 VERSION_NAME="$(node -p "require('./package.json').version")"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
-CAM_TEXT="კამერა სარკეა: ხედავ საკუთარ თავს ფანდურით, სანამ აპი აკორდებს და რიტმს გიჩვენებს. გამოსახულება არ იწერება. ვიდეოზარისას სურათი მხოლოდ თანამოსაუბრეს გადაეცემა. / The camera is a mirror: you see yourself with the panduri while the app shows chords and rhythm. The picture is never recorded. During a video call it goes only to the person you are talking to."
-MIC_TEXT="ფანდური უსმენს შენს დაკვრას, რომ გაიგოს რომელი ნოტი და როდის დაუკარი. დაკვრის ხმა მხოლოდ მოწყობილობაზე მუშავდება და არსად იგზავნება. ვიდეოზარისას ხმა მხოლოდ თანამოსაუბრეს გადაეცემა. / Panduri listens to your playing to hear which note you played and when. Your playing is analysed on the device and never sent anywhere. During a video call your voice goes only to the person you are talking to."
+CAM_TEXT="კამერა ვარჯიშის სარკისთვის, ზარებისთვის და ჩათში შენი არჩეული ფოტო/ვიდეოს გადასაღებად გამოიყენება. ჩათის ჩანაწერი მხოლოდ გაგზავნისას იტვირთება. / Use the camera as a practice mirror, for calls, or to capture a chat photo or video. Chat captures are uploaded only when you choose to send them."
+MIC_TEXT="ფანდური დაკვრას მხოლოდ მოწყობილობაზე აანალიზებს. ჩათში ხმას მხოლოდ ჩაწერის ღილაკით იწერ და გაგზავნით აზიარებ. ზარის ხმა თანამოსაუბრეს გადაეცემა. / Panduri analyses playing on your device. In chat, record a voice message with the record button and share it by pressing Send. Call audio goes to the other person."
 
 if [[ "$PLATFORM" == "android" || "$PLATFORM" == "all" ]]; then
   [ -d android ] || npx cap add android

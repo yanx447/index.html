@@ -5516,6 +5516,102 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
 .nt-row.cm.k-repost .nt-ic { background: rgba(60,190,130,.14); color: #3cbe82; }
 .cp-act .nt-empty { text-align: center; padding: 28px 12px; line-height: 1.55; }
 
+/* Messenger styles follow the shell layer so a composer has one visual boundary. */
+@layer ds {
+.ms-chat{--chat-accent:#d8b38b;--chat-wash:#d8b38b12;--chat-out:#302a25;--chat-font:var(--f-ui);position:relative}
+.ms-chat[data-chat-theme=ocean]{--chat-accent:#8fc9e7;--chat-wash:#8fc9e710;--chat-out:#203440}
+.ms-chat[data-chat-theme=plum]{--chat-accent:#c5a4df;--chat-wash:#c5a4df10;--chat-out:#35283e}
+.ms-chat[data-chat-theme=sand]{--chat-accent:#e4cba5;--chat-wash:#e4cba516;--chat-out:#3b3328}
+.ms-chat[data-chat-font=serif]{--chat-font:Georgia,'Noto Serif Georgian',serif}
+.ms-chat[data-chat-font=mono]{--chat-font:ui-monospace,'Noto Sans Georgian',monospace}
+:root.chat-on .ms-head{gap:8px;padding:4px 0 14px;align-items:center;background:transparent;border-bottom:1px solid var(--line)}
+.ms-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;padding:9px;border:0;border-radius:12px;background:transparent;color:var(--fg2);cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
+.ms-icon svg{display:block;width:21px;height:21px}.ms-icon:hover{background:var(--surface2);color:var(--fg)}
+.ms-icon:focus-visible,.ms-title:focus-visible,.ms-setting:focus-visible{outline:2px solid var(--chat-accent,var(--brass));outline-offset:2px}
+.ms-icon:disabled{opacity:.35;cursor:default}.ms-icon[hidden]{display:none}
+.ms-avatar{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:14px;background:var(--chat-wash,#d8b38b14);border:1px solid var(--line);color:var(--chat-accent,var(--brass2));font-size:18px;overflow:hidden}
+.ms-avatar img{width:100%;height:100%;object-fit:cover}
+.ms-title{display:flex;flex:1;min-width:0;flex-direction:column;align-items:flex-start;gap:3px;padding:0 4px;border:0;background:transparent;color:var(--fg);text-align:start}
+.ms-title b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:650;line-height:1.4}
+.ms-presence{font-size:11px;color:var(--muted);font-weight:400;line-height:1.4}.ms-presence.is-typing{color:var(--chat-accent)}
+:root.chat-on .ms-messages{padding:18px 4px 16px;gap:7px;background:radial-gradient(ellipse at 50% 90%,var(--chat-wash),transparent 65%);scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.ms-messages .cm-msg{font-family:var(--chat-font);position:relative;padding:10px 13px 7px;border-radius:16px 16px 16px 5px;background:var(--surface2);box-shadow:none;max-width:min(82%,480px);margin:0 0 2px;min-width:76px}
+.ms-messages .cm-msg.me,:root[data-theme] .ms-messages .cm-msg.me{background:var(--chat-out);border-radius:16px 16px 5px 16px}
+.ms-messages .cm-msg p{font-family:inherit;font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
+.ms-messages .cm-msg a{color:var(--chat-accent);text-decoration:underline;text-underline-offset:3px}
+.ms-messages .cm-msg.is-sticker,.ms-messages .cm-msg.is-emoji{background:transparent;box-shadow:none;border:0;padding:4px 8px}
+.ms-messages .cm-msg.is-sticker .ck-art{width:112px;height:112px;filter:drop-shadow(0 3px 6px #0003)}
+.ms-messages .cm-msg.is-sticker .ck-st b{display:none}.ms-messages .cm-msg.is-emoji>p{font-size:34px;line-height:1.4}
+.ms-meta{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:4px;color:var(--muted);font-size:10px;line-height:1.4;font-family:var(--f-ui)}
+.ms-receipt{font-size:11px;letter-spacing:-3px;padding-inline-end:3px}.ms-receipt.is-read{color:var(--chat-accent)}
+.ms-message-more{position:absolute;inset-inline-end:calc(100% + 4px);top:6px;width:28px;height:28px;padding:5px;opacity:0;border-radius:9px}
+.cm-msg:not(.me) .ms-message-more{inset-inline-end:auto;inset-inline-start:calc(100% + 4px)}
+.cm-msg:hover .ms-message-more,.cm-msg:focus-within .ms-message-more,.ms-message-more:focus-visible{opacity:1}
+.ms-message-more svg{width:18px;height:18px}.ms-messages .cm-rx{position:static;display:flex;gap:4px;align-self:flex-start;margin:5px 0 0;padding:3px 6px;border:1px solid var(--line);background:var(--surface);border-radius:20px;max-width:100%}.ms-messages .cm-rx[hidden]{display:none}
+.ms-day{align-self:center;color:var(--muted);font-size:10px;padding:6px 12px;margin:7px 0 9px;border:1px solid var(--line);border-radius:20px;background:var(--bg)}
+.ms-empty{margin:auto;text-align:center;padding:40px 16px;color:var(--muted);font-size:13px}.ms-empty[hidden]{display:none}
+.ms-older{align-self:center;background:none;border:0;color:var(--chat-accent);padding:10px;font-size:12px}.ms-older[hidden]{display:none}
+.ms-composer{flex:none;border:1px solid var(--line2);border-radius:20px;background:var(--surface);overflow:hidden;margin:0 0 2px;box-shadow:0 8px 30px #0002}
+:root.chat-on .ms-composer .ms-entry{position:static;margin:0;padding:6px 8px 0;border:0;border-radius:0;box-shadow:none;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;display:flex;align-items:flex-end;gap:4px}
+:root.chat-on .ms-composer .cm-in,:root[data-theme] .ms-composer .cm-in{font-family:var(--chat-font);border:0!important;outline:0;border-radius:0;box-shadow:none!important;background:transparent;min-height:42px;max-height:128px;padding:10px 7px;line-height:1.5;font-size:14px;resize:none}
+.ms-composer:focus-within{border-color:color-mix(in srgb,var(--chat-accent) 55%,transparent)}
+.ms-composer .ms-send{width:38px;height:38px;margin-bottom:3px;border-radius:12px;background:var(--chat-accent);color:#1d1a17}
+.ms-composer .ms-mic{margin-bottom:3px;color:var(--chat-accent)}
+.ms-tools{display:flex;align-items:center;justify-content:flex-start;gap:3px;padding:2px 8px 7px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.ms-tools .ms-tool{width:36px;height:34px;padding:8px;border-radius:9px;color:var(--muted)}
+.ms-tools .ms-tool:hover{color:var(--chat-accent);background:var(--chat-wash)}
+.ms-tools .ms-tool svg{width:19px;height:19px}.ms-gif-label{font-size:10px;font-weight:750;border:1.5px solid currentColor;border-radius:4px;padding:2px 2px;line-height:1.1}
+.ms-status{padding:9px 12px;margin:5px 0;color:var(--fg2);background:var(--surface2);border:1px solid var(--line);border-radius:12px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}.ms-status[hidden]{display:none}
+.ms-pinbar{display:flex;align-items:center;gap:8px;flex:none;border:0;border-bottom:1px solid var(--line);background:transparent;padding:10px 7px;color:var(--chat-accent);font-size:11px;text-align:start}.ms-pinbar svg{width:16px;height:16px}.ms-pinbar[hidden]{display:none}
+.ms-sender{display:block;font-size:11px;color:var(--chat-accent);margin-bottom:4px}
+.ms-messages .md-aud{min-width:min(230px,52vw);max-width:100%;background:transparent;padding:2px 0}.ms-messages .md-aud .md-note{display:none}.ms-messages .md-aud audio{width:100%;min-width:0;height:40px;color-scheme:dark}
+.ms-voice-label{display:block;font-size:10px;color:var(--chat-accent);margin-bottom:5px}
+.ms-voice{display:flex;align-items:center;gap:7px;padding:10px 8px;border-bottom:1px solid var(--line);min-height:58px;flex-wrap:wrap}
+.ms-voice[hidden]{display:none}.ms-record-label{color:var(--muted);font-size:11px;flex:1;min-width:75px}.is-recording .ms-record-label{color:#ee8e8e}
+.ms-voice time{font-variant-numeric:tabular-nums;font-size:12px;color:var(--fg2)}
+.ms-record-bars{display:flex;gap:2px;align-items:center;height:28px;flex:1;min-width:50px;max-width:120px}.ms-record-bars i{display:block;width:3px;height:3px;border-radius:2px;background:var(--chat-accent);transition:height .1s}.ms-record-bars[hidden]{display:none}
+.ms-stop-square{width:13px;height:13px;display:block;background:#ed8585;border-radius:3px}
+.ms-voice audio{height:36px;min-width:130px;width:100%;flex:1;max-width:240px;color-scheme:dark}.ms-voice audio[hidden]{display:none}
+.ms-file{display:flex;flex-direction:column;gap:5px;max-width:280px;min-width:150px;padding:5px;text-decoration:none!important;overflow-wrap:anywhere}.ms-file svg{width:25px;height:25px}.ms-file small{color:var(--muted)}
+.ms-sheet{width:min(100%,480px);max-height:min(90dvh,860px);padding:20px;background:var(--surface);overflow-y:auto;scrollbar-width:thin}
+.ms-sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}.ms-sheet-head h2,.ms-sheet h2{font-size:17px;margin:0}.ms-sheet-head b{font-size:13px;color:var(--muted);font-weight:500}.ms-sheet .ms-icon svg{width:20px;height:20px}
+.ms-details-person{display:flex;flex-direction:column;align-items:center;gap:9px;margin:4px 0 26px}.ms-details-person .ms-avatar{width:64px;height:64px;border-radius:22px;font-size:28px;background:var(--surface2)}.ms-details-person h2{font-size:21px}.ms-details-person small{font-size:11px;color:var(--muted)}
+.ms-section-title{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin:20px 10px 9px}
+.ms-setting-list{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:10px 0;background:var(--surface2)}
+.ms-setting{display:flex;width:100%;min-height:52px;align-items:center;gap:12px;padding:13px 14px;background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--fg);font-size:13px;line-height:1.5;text-align:start}
+.ms-setting:last-child{border-bottom:0}.ms-setting:hover{background:color-mix(in srgb,var(--fg) 4%,transparent)}.ms-setting-icon{display:grid;place-items:center;width:22px;height:22px;color:var(--fg2);flex:none}.ms-setting-icon svg{width:19px;height:19px}.ms-setting-icon .rx-pan{width:22px;height:22px}.ms-setting>span:nth-child(2){flex:1}.ms-chevron{color:var(--muted);margin-inline-start:auto;font-size:20px}
+.ms-switch{cursor:pointer;justify-content:space-between}.ms-switch small{display:block;font-size:10px;line-height:1.6;color:var(--muted);max-width:310px;margin-top:4px}.ms-switch input{appearance:none;-webkit-appearance:none;width:36px;height:22px;border-radius:20px;background:var(--line2);border:1px solid var(--line2);position:relative;flex:none;cursor:pointer;transition:background .15s;margin:0}
+.ms-switch input::after{content:'';position:absolute;width:16px;height:16px;top:2px;left:2px;border-radius:50%;background:#a0a0a6;transition:transform .15s,background .15s}.ms-switch input:checked{background:var(--brass);border-color:var(--brass)}.ms-switch input:checked::after{transform:translateX(14px);background:#201d19}.ms-switch input:focus-visible{outline:2px solid var(--brass2);outline-offset:3px}.ms-switch input:disabled{opacity:.4}
+.ms-danger .ms-setting{color:#e59a98}.ms-danger .ms-setting-icon{color:inherit}
+.ms-choices{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:20px}.ms-choice{display:flex;align-items:center;gap:10px;padding:15px 12px;border-radius:14px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);font-size:12px}.ms-choice.on{border-color:var(--brass)}.ms-choice>span:last-child svg{width:16px;height:16px}.ms-swatch{width:24px;height:24px;border-radius:50%;background:#6b625a}.ms-choice[data-choice=ocean] .ms-swatch{background:#8fc9e7}.ms-choice[data-choice=plum] .ms-swatch{background:#c5a4df}.ms-choice[data-choice=sand] .ms-swatch{background:#e4cba5}.ms-choice[data-choice=serif]{font-family:Georgia,serif}.ms-choice[data-choice=mono]{font-family:monospace}.ms-font-sample{font-size:20px}
+.ms-reactions{display:flex;justify-content:space-between;gap:2px;margin:16px 0;flex-wrap:wrap}.ms-reactions .ms-icon{width:42px;height:44px;background:var(--surface2)}.ms-reactions .rx-pan{width:26px;height:26px}.ms-reactions .ms-icon>span{font-size:24px}
+.ms-library-tabs{display:flex;gap:4px;position:sticky;top:0;z-index:1;background:var(--surface);padding:7px 0 12px}.ms-library-tabs button{flex:1;padding:9px 6px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-size:11px}.ms-library-tabs button.on{background:var(--surface2);color:var(--fg)}
+.ms-library-body{display:flex;flex-direction:column;gap:8px;min-height:100px;max-height:56dvh;overflow:auto;overscroll-behavior:contain;padding:4px 0}.ms-library-body.ms-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}.ms-gallery>img,.ms-gallery>video{width:100%;height:150px;object-fit:cover;border-radius:12px}.ms-gallery>.md-aud{grid-column:1/-1;min-width:0}.ms-gallery audio{width:100%}.ms-link,.ms-pin-item{display:flex;flex-direction:column;gap:6px;color:var(--fg);padding:14px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;font-size:12px;text-align:start;overflow-wrap:anywhere}.ms-pin-item small{color:var(--muted);font-size:10px}.ms-highlight{outline:2px solid var(--chat-accent)}.ms-library-empty{grid-column:1/-1;color:var(--muted);font-size:12px;margin:14px 0}
+.ms-camera-preview{width:100%;max-height:55dvh;border-radius:16px;object-fit:contain;background:#08080a}.ms-camera-controls{display:flex;justify-content:center;gap:16px;margin-top:14px}.ms-camera-controls .ms-icon{background:var(--surface2);width:50px;height:50px}.ms-friend-list{max-height:40dvh;overflow-y:auto;margin:12px 0}.ms-sheet>.input{margin-top:10px}
+.call .call-clock{font-variant-numeric:tabular-nums;font-size:13px;opacity:.8;min-height:18px}.call .call-avatar{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:110px;height:110px;border-radius:38px;display:grid;place-items:center;background:#d8b38b14;border:1px solid #d8b38b30;color:#d8b38b;font-size:44px}.call.has-remote-video .call-avatar{display:none}
+.call .call-bar{transform:translateX(-50%);left:50%;right:auto;width:max-content;max-width:calc(100% - 20px);gap:10px;padding:12px 12px 32px;border-radius:24px;box-sizing:border-box}.call .call-b{width:46px;height:46px}.call .call-b svg{width:21px;height:21px}.call .call-b::after{font-size:9px;max-width:58px;white-space:normal;line-height:1.25}.call .call-st{top:calc(40px + var(--safe-t))}.call .call-l{top:calc(125px + var(--safe-t));width:110px;right:16px}
+@media(min-width:821px){.ms-chat{max-width:1000px!important;margin-inline:auto}.ms-composer{margin-bottom:4px}.ms-tools{gap:5px}.ms-head{padding-top:12px!important}.ms-messages .cm-msg{max-width:65%}}
+@media(max-width:370px){.ms-head{gap:3px!important}.ms-head>.ms-icon{width:34px;padding:7px}.ms-head>.ms-avatar{width:34px;height:34px}.ms-title b{font-size:13px}.ms-presence{font-size:9px}.ms-tools{gap:0;padding-inline:6px}.ms-tools .ms-tool{width:34px}.ms-sheet{padding:16px}.ms-reactions .ms-icon{width:36px}}
+@media(hover:none){.ms-message-more{opacity:.4;width:24px;height:24px}.ms-messages .cm-msg{max-width:82%}}
+@media(prefers-reduced-motion:reduce){.ms-chat *{scroll-behavior:auto!important}.ms-record-bars i,.ms-switch input,.ms-switch input::after{transition:none}}
+}
+@layer ds-imp {
+:root.chat-on .dock{display:none!important}
+:root.chat-on .page:not(.page-tuner){padding-bottom:calc(12px + var(--safe-b))!important}
+:root.chat-on .ms-composer .cm-in{border:0!important;background:transparent!important;box-shadow:none!important}
+}
+@layer ds {
+.ck-floating .ck-tabs button[role=tab]{font-size:12px;min-width:70px;height:38px;padding:0 12px;font-weight:600;border-radius:9px}
+.ck-floating{border-radius:18px;border:1px solid var(--line2)}
+.ck-floating .ck-tabs{padding:8px;gap:4px}.ck-floating .ck-tabs button.on{background:var(--surface2);color:var(--brass2)}
+.ck-pack .ck-emoji-tools input{flex:1;min-width:0}.ck-pack .ck-pack-title{font-weight:500;font-size:11px;color:var(--muted)}
+.ms-inbox-filter{align-self:center;margin:12px}.ms-inbox-filter[hidden]{display:none}
+}
+@layer ds {
+.ms-sheet{gap:0}.ms-sheet>h2{margin-bottom:12px}.ms-sheet .ms-details-person{margin-bottom:18px}
+.call-play{position:absolute;left:50%;top:65%;transform:translateX(-50%);z-index:2}.call-play[hidden]{display:none}
+}
+
 /* ფანდურის ბაზარი (market.js) — the design system's tokens only: black surfaces, copper accent.
    One column up to 1080 px; cards in a grid that holds two columns on a 320 px phone. */
 .wrap.mk { max-width: 1080px; gap: 14px; }
