@@ -53,43 +53,36 @@ PD.vedit = (() => {
 
   /* ---------------- which recording format really keeps the sound on this device ----------------
      Some browsers accept a format and its bitrate, then quietly drop the sound from the file (an AAC bitrate a mono
-     microphone cannot take, a muxer without an encoder). So each candidate is tried once with a short recording and
-     its sound decoded; the first that keeps it is remembered, and forgotten again if a real recording comes out silent. */
+     microphone cannot take, a muxer without an encoder). Nothing is tested before filming — that made the first tap
+     wait up to ten seconds. Instead the best untried format records at once, and the real recording is checked
+     afterwards: one that kept the sound is remembered, one that lost it is marked bad and the next take uses another. */
   const FMT = 'fd.recfmt', BAD = 'fd.recbad';
   const CANDS = [['video/mp4;codecs=avc1.640033,mp4a.40.2', 192000], ['video/mp4;codecs=avc1.640033,mp4a.40.2', 128000], ['video/mp4;codecs=avc1,mp4a.40.2', 128000],
     ['video/webm;codecs=vp9,opus', 192000], ['video/webm;codecs=vp8,opus', 128000], ['video/mp4', 0], ['video/webm', 0]];
-  async function hasSound(blob) {
-    try {
-      const ac = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100), ab = await blob.arrayBuffer();
-      const b = await new Promise((res, rej) => { const q = ac.decodeAudioData(ab, res, rej); if (q && q.then) q.then(res, rej); });
-      for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i++) if (d[i] !== 0) return true; }
-      return false;
-    } catch (_) { return false; }   // no sound track at all
+  /** true: the file has sound · false: none · null: could not tell in time (judged neither way) */
+  async function hasSound(blob, ms = 8000) {
+    const judge = (async () => {
+      try {
+        const ac = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100), ab = await blob.arrayBuffer();
+        const b = await new Promise((res, rej) => { const q = ac.decodeAudioData(ab, res, rej); if (q && q.then) q.then(res, rej); });
+        for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i += 7) if (d[i] !== 0) return true; }
+        return false;
+      } catch (_) { return false; }   // no sound track at all
+    })();
+    return Promise.race([judge, new Promise(z => setTimeout(() => z(null), ms))]);
   }
-  const known = () => { const f = PD.store.get(FMT, null); return f && window.MediaRecorder && MediaRecorder.isTypeSupported(f.m) ? f : null; };
+  const ok = m => window.MediaRecorder && MediaRecorder.isTypeSupported(m);
+  const known = () => { const f = PD.store.get(FMT, null); return f && ok(f.m) ? f : null; };
+  /** the format to record with now: the one that kept the sound before, else the best one not yet found bad */
+  function pick() {
+    const k = known(); if (k) return k;
+    const bad = PD.store.get(BAD, []), c = CANDS.find(([m, a]) => ok(m) && !bad.some(b => b.m === m && b.a === a)) || CANDS.find(([m]) => ok(m));
+    return c ? { m: c[0], a: c[1] } : null;
+  }
+  const remember = f => { if (f && f.m) PD.store.set(FMT, { m: f.m, a: f.a || 0 }); };
   function forget(f) {
     PD.store.del(FMT); if (!f) return;
     const bad = PD.store.get(BAD, []); if (!bad.some(b => b.m === f.m && b.a === f.a)) bad.push({ m: f.m, a: f.a }); PD.store.set(BAD, bad.slice(-12));
-  }
-  let probing = null;
-  function format(stream) {
-    const k = known(); if (k) return Promise.resolve(k);
-    if (probing) return probing;
-    if (!window.MediaRecorder || !stream || !stream.getAudioTracks().length) return Promise.resolve(null);
-    return probing = (async () => {
-      const bad = PD.store.get(BAD, []);
-      for (const [m, a] of CANDS) {
-        if (!MediaRecorder.isTypeSupported(m) || bad.some(b => b.m === m && b.a === a)) continue;
-        let r; try { r = new MediaRecorder(stream, a ? { mimeType: m, audioBitsPerSecond: a, videoBitsPerSecond: 2e6 } : { mimeType: m }); } catch (_) { continue; }
-        const parts = []; r.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); };
-        const done = new Promise(res => { r.onstop = res; r.onerror = res; });
-        try { r.start(); } catch (_) { continue; }
-        await new Promise(z => setTimeout(z, 1300)); try { r.stop(); } catch (_) {} await done;
-        if (stream.getAudioTracks().every(x => x.readyState === 'ended')) return null;   // the camera was closed meanwhile
-        if (await hasSound(new Blob(parts, { type: m.split(';')[0] }))) { const f = { m, a }; PD.store.set(FMT, f); return f; }
-      }
-      return null;   // none kept a sound (a muted microphone, say): the caller uses its default, and nothing is remembered
-    })().finally(() => { probing = null; });
   }
 
   /* ---------------- sound: FFT and the noise gate ---------------- */
@@ -717,7 +710,7 @@ void main(){
     async function render(onP) {
       if (exporting) throw fail('busy');
       pause(); if (dnRun) await dnRun;
-      const kf = known(), mime = kf ? kf.m : window.MediaRecorder && RECM.find(m => MediaRecorder.isTypeSupported(m));
+      const kf = pick(), mime = kf ? kf.m : window.MediaRecorder && RECM.find(m => MediaRecorder.isTypeSupported(m));
       if (!mime || !cv.captureStream) throw fail('noRender');
       if (S.bg !== 'none' && !seg) { try { seg = await segmenter(); } catch (_) { throw fail('bgFail'); } }
       const useBuf = !elSrc && !!curBuf();
@@ -799,5 +792,5 @@ void main(){
       }
     };
   }
-  return { mount, denoise, gifFrames, place, format, knownFormat: known, forgetFormat: forget, hasSound };
+  return { mount, denoise, gifFrames, place, pickFormat: pick, rememberFormat: remember, forgetFormat: forget, hasSound };
 })();

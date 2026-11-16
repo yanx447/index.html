@@ -38,7 +38,6 @@ PD.i18n.add({
   'fd.min': ['{n}წთ', '{n} min'], 'fd.lowQ': ['ამ სიგრძეზე ხარისხი დაბალი იქნება: სერვერი ერთ ფაილს მაქს. {n} MB-ს იღებს.', 'At this length the quality will be low: the server takes {n} MB per file at most.'],
   'fd.squeeze': ['ფაილი {s} MB-ია, სერვერი მაქს. {n} MB-ს იღებს — გამოქვეყნებისას თავიდან დამუშავდება, რომ ჩაეტიოს (ამას იმდენი დრო სჭირდება, რამდენიც ვიდეოს).', 'The file is {s} MB and the server takes {n} MB — it will be made again to fit when you post it (that takes as long as the video).'],
   'fd.res': ['გარჩევადობა', 'Resolution'],
-  'fd.checkMic': ['მოწმდება, რომელ ფორმატში იწერება ხმა… (მხოლოდ პირველად)', 'Checking which format keeps the sound… (first time only)'],
   'fd.fmtFail': ['ამ ბრაუზერმა ხმა ფაილში ვერ ჩაწერა. შემდეგ ჯერზე სხვა ფორმატს გამოიყენებს — გადაიღე თავიდან.', 'This browser did not put the sound into the file. It will use another format next time — please film again.'],
   'fd.mic': ['მიკროფონი', 'Microphone'],
   'fd.noMic': ['მიკროფონი არ ჩაირთო — ვიდეო ხმის გარეშე ჩაიწერება. შეამოწმე მიკროფონის ნებართვა.', 'The microphone did not start — the video will be recorded without sound. Check the microphone permission.'],
@@ -803,7 +802,6 @@ PD.social = (() => {
         if (!s.getAudioTracks().length) PD.ui.toast(t('fd.noMic'), 6000);
       }
       meter(s);
-      PD.vedit.format(s).catch(() => {});   // first time on this device: find, in the background, a format that keeps the sound
       const tr = s.getVideoTracks()[0], set = (tr && tr.getSettings && tr.getSettings()) || {};
       view.classList.toggle('mirror', set.facingMode ? set.facingMode === 'user' : !PD.isTouch());   // a selfie looks like a mirror while filming; the file is not flipped
       let caps = {}; try { caps = (tr.getCapabilities && tr.getCapabilities()) || {}; } catch (_) {}
@@ -824,19 +822,12 @@ PD.social = (() => {
       let n = delay; count.textContent = n; root.classList.add('counting'); buzz('select');
       cd = setInterval(() => { n--; if (n > 0) { count.textContent = n; buzz('select'); return; } clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); startRec(); }, 1000);
     }
-    let starting = false;
-    async function startRec() {
-      if (starting || rec) return;
+    function startRec() {
+      if (rec) return;
       if (mac && mac.state !== 'running') mac.resume().catch(() => {});
       mPeak = 0;
       if (!stream || !window.MediaRecorder) { PD.ui.toast(t('fd.camNone'), 5000); return; }
-      let fmt = PD.vedit.knownFormat();
-      if (!fmt) {
-        starting = true; busyT.textContent = t('fd.checkMic'); root.classList.add('busy');
-        try { fmt = await PD.vedit.format(stream); } catch (_) { fmt = null; }
-        starting = false; root.classList.remove('busy'); busyT.textContent = t('fd.preparing');
-        if (closed || stage !== 'cam' || !stream) return;
-      }
+      let fmt = PD.vedit.pickFormat();   // no test before filming: the take itself shows whether the sound was kept
       const mime = fmt ? fmt.m : RECM.find(m => MediaRecorder.isTypeSupported(m));
       if (!mime) { PD.ui.toast(t('fd.camNone'), 5000); return; }
       const A = fmt ? (fmt.a ? Math.min(fmt.a, aud()) : 0) : aud();
@@ -844,7 +835,7 @@ PD.social = (() => {
       const ro = { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(3e5, Math.min(rate() - (A || 128000), px * .3, 60e6))), videoKeyFrameIntervalDuration: 2000 }; if (A) ro.audioBitsPerSecond = A;
       let r = null;
       try { r = new MediaRecorder(stream, ro); }
-      catch (_) { try { r = new MediaRecorder(stream, { mimeType: mime }); } catch (e) { PD.ui.toast(t('fd.camNone'), 5000); return; } }
+      catch (_) { try { r = new MediaRecorder(stream, { mimeType: mime }); fmt = { m: mime, a: 0 }; } catch (e) { PD.ui.toast(t('fd.camNone'), 5000); return; } }
       const lim = limit, chunks = [], mir = view.classList.contains('mirror'), most = ROOM() * 1048576 * .97; let bytes = 0;
       r.ondataavailable = e => { if (e.data && e.data.size) { chunks.push(e.data); bytes += e.data.size; if (bytes > most) stopRec(true); } };   // never more than the server takes
       r.onstop = () => {
@@ -856,7 +847,7 @@ PD.social = (() => {
         else if (heard && mPeak < .002 && dur > 1.5) PD.ui.toast(t('fd.noSound'), 7000);
         const type = (r.mimeType || mime).split(';')[0], f = new File(chunks, 'panduri.' + (/mp4/.test(type) ? 'mp4' : 'webm'), { type });
         // the microphone was heard but the file is silent: this format drops the sound here — try another next time
-        if (f.size && dur <= 180 && mPeak > .01) PD.vedit.hasSound(f).then(ok => { if (!ok) { PD.vedit.forgetFormat(fmt || { m: mime, a: A }); PD.ui.toast(t('fd.fmtFail'), 9000); } });
+        if (f.size && dur <= 180 && mPeak > .01) { const used = fmt || { m: mime, a: A }; PD.vedit.hasSound(f).then(ok => { if (ok) PD.vedit.rememberFormat(used); else if (ok === false) { PD.vedit.forgetFormat(used); PD.ui.toast(t('fd.fmtFail'), 9000); } }); }
         if (f.size) take(f, dur, mir);
       };
       rec = r; r.start(1000); t0 = performance.now(); buzz('select');
