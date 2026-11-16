@@ -14,7 +14,7 @@ PD.i18n.add({
   'fd.global': ['გლობალური', 'Global'], 'fd.friends': ['მეგობრები', 'Friends'], 'fd.new': ['ახალი ვიდეო', 'New video'],
   'fd.emptyG': ['ჯერ არავის დაუდია ვიდეო — იყავი პირველი!', 'Nobody has posted a video yet — be the first!'],
   'fd.emptyF': ['აქ შენი მეგობრების ვიდეოები გამოჩნდება.', 'Your friends’ videos will show here.'], 'fd.emptyS': ['რასაც შეინახავ, აქ გამოჩნდება.', 'What you save will show here.'],
-  'fd.findFriends': ['მეგობრების დამატება', 'Add friends'], 'fd.end': ['ჯერჯერობით სულ ეს არის.', 'That is all for now.'],
+  'fd.findFriends': ['მეგობრების დამატება', 'Add friends'], 'fd.emptyFo': ['აქ იმ ხალხის ვიდეოები გამოჩნდება, ვისაც გამოიწერ.', 'Videos of the people you follow show here.'], 'fd.findPeople': ['ხალხის მოძებნა', 'Find people'], 'fd.end': ['ჯერჯერობით სულ ეს არის.', 'That is all for now.'],
   'fd.photo': ['ფოტო', 'Photo'], 'fd.video': ['ვიდეო', 'Video'], 'fd.audio': ['მუსიკა', 'Music'], 'fd.text': ['ტექსტი', 'Text'],
   'fd.caption': ['აღწერა — ვინ უკრავს, რა სიმღერაა…', 'Caption — who is playing, which song…'], 'fd.who': ['ვინ ნახავს', 'Who can see it'],
   'fd.visPublic': ['ყველა (გლობალური)', 'Everyone (global)'], 'fd.visFriends': ['მხოლოდ მეგობრები', 'Friends only'],
@@ -347,8 +347,8 @@ PD.social = (() => {
   /** box: where the feed goes. own: the page scope. opt.one: a single video (from a notification or a chat) · opt.saved: my saved ones */
   function feed(box, own, opt) {
     opt = opt || {};
-    const one = opt.one || null, fixed = one ? 'one' : opt.saved ? 'saved' : null;
-    let tab = fixed || PD.store.get('fd.tab', 'foryou'); if (!fixed && tab !== 'friends') tab = 'foryou';
+    const one = opt.one || null, list = opt.list || null, fixed = one ? 'one' : list ? 'list' : opt.saved ? 'saved' : null;
+    let tab = fixed || PD.store.get('fd.tab', 'foryou'); if (!fixed && tab !== 'friends' && tab !== 'following') tab = 'foryou';
     const top = h('div', { class: 'fd-top' });
     const scroll = h('div', { class: 'fd-scroll', tabindex: '0', 'aria-label': t('cm.feed') });
     const hint = h('div', { class: 'fd-hint', 'aria-hidden': 'true' }, [h('span', { html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>' }), h('b', { 'data-t': 'fd.swipeHint' })]);
@@ -356,10 +356,10 @@ PD.social = (() => {
     box.append(stage); PD.i18n.apply(stage);
     document.documentElement.classList.add('fd-on'); own(() => document.documentElement.classList.remove('fd-on'));   // Sima's button would cover the rail
     // the video runs edge to edge, under the glass dock; the caption, the rail and the seek line stay above it (--fd-under)
-    const fit = () => { const r = stage.getBoundingClientRect(), nav = document.querySelector('.dock'), nh = nav && nav.offsetHeight && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().top : innerHeight, hh = Math.max(320, innerHeight - r.top); stage.style.height = hh + 'px'; stage.style.setProperty('--fdh', hh + 'px'); stage.style.setProperty('--fd-under', Math.max(0, innerHeight - Math.min(nh, innerHeight)) + 'px'); };
+    const fit = () => { const r = stage.getBoundingClientRect(), nav = document.querySelector('.cnav.in') || document.querySelector('.dock'), nh = nav && nav.offsetHeight && getComputedStyle(nav).display !== 'none' ? nav.getBoundingClientRect().top : innerHeight, hh = Math.max(320, innerHeight - r.top); stage.style.height = hh + 'px'; stage.style.setProperty('--fdh', hh + 'px'); stage.style.setProperty('--fd-under', Math.max(0, innerHeight - Math.min(nh, innerHeight)) + 'px'); };
     fit(); requestAnimationFrame(fit); addEventListener('resize', fit); own(() => removeEventListener('resize', fit));
     const P = players(scroll);
-    const st = { ids: new Set(), n: 0, done: false, busy: false, before: null };
+    const st = { ids: new Set(), n: 0, done: false, busy: false, before: null, off: list ? list.off : 0 };
     const seen = new Set(), queue = new Set(); let viewT = null;
     const flushSeen = () => { const ids = [...queue]; queue.clear(); if (ids.length) C.social.seen(ids).catch(() => {}); };
     const iv = setInterval(flushSeen, 5000); own(() => { clearInterval(iv); flushSeen(); });
@@ -382,7 +382,7 @@ PD.social = (() => {
     let nMsg = PD.store.get('cm.unread', 0), nReq = 0;
     const dots = {};
     async function badges() {
-      if (fixed || document.hidden) return;
+      if (fixed || document.hidden || !dots.msgs) return;   // the community's bottom bar carries these numbers now
       try { nMsg = ((await C.chat.list()) || []).reduce((a, r) => a + (r.unread || 0), 0); PD.store.set('cm.unread', nMsg); } catch (_) {}
       try { nReq = ((await C.social.friends()) || []).filter(f => f.relation === 'incoming').length; } catch (_) {}
       paintDot('msgs', nMsg); paintDot('friends', nReq);
@@ -407,11 +407,16 @@ PD.social = (() => {
     }
     function head() {
       top.innerHTML = '';
-      if (fixed) { top.append(h('button', { class: 'fd-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), h('b', { class: 'fd-title', 'data-t': one ? 'fd.video' : 'fd.saved' }), h('span', { class: 'fd-ic ghost' })); PD.i18n.apply(top); return; }
-      const seg = h('div', { class: 'fd-seg', role: 'tablist' }, [segInd].concat([['friends', 'fd.friends'], ['foryou', 'fd.global']].map(([k, key]) => h('button', { role: 'tab', 'aria-selected': String(tab === k), class: tab === k ? 'on' : '', 'data-k': k, 'data-t': key,
+      if (fixed) {
+        const LT = { user: 'cp.tVideos', reposts: 'cp.tReposts', saved: 'cp.tSaved', liked: 'cp.tLiked', history: 'cp.tHistory' };
+        const title = h('b', { class: 'fd-title' });
+        if (list && (list.tab === 'tag' || list.tab === 'search')) title.textContent = (list.tab === 'tag' ? '#' : '') + (list.term || ''); else title.setAttribute('data-t', one ? 'fd.video' : list ? LT[list.tab] || 'fd.video' : 'fd.saved');
+        top.append(h('button', { class: 'fd-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), title, h('span', { class: 'fd-ic ghost' })); PD.i18n.apply(top); return;
+      }
+      const seg = h('div', { class: 'fd-seg', role: 'tablist' }, [segInd].concat([['following', 'cp.following'], ['friends', 'fd.friends'], ['foryou', 'fd.global']].map(([k, key]) => h('button', { role: 'tab', 'aria-selected': String(tab === k), class: tab === k ? 'on' : '', 'data-k': k, 'data-t': key,
         onclick: () => switchTab(k) }))));
-      top.append(h('div', { class: 'fd-side' }, [corner('friends', 'fd.findFriendsA', IC.find, () => PD.app.go('community', 'friends'))]), seg,
-        h('div', { class: 'fd-side end' }, [corner('msgs', 'cm.chats', IC.dm, () => PD.app.go('community', 'chats')), corner('new', 'fd.new', ic.plus, () => newVideo())]));
+      top.append(h('div', { class: 'fd-side' }, [corner('exit', 'cn.exit', ic.back, () => PD.app.go('home'))]), seg,
+        h('div', { class: 'fd-side end' }, [corner('search', 'cn.search', ic.search, () => PD.app.go('community', 's'))]));
       PD.i18n.apply(top);
       paintDot('msgs', nMsg); paintDot('friends', nReq);
       requestAnimationFrame(() => placeInd(true));
@@ -419,21 +424,24 @@ PD.social = (() => {
     /** the switch at the top: the line slides to it, the videos slide sideways (friends to the left of everyone) */
     function switchTab(k) {
       if (k === tab) { scroll.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-      const dir = k === 'foryou' ? 1 : -1; tab = k; PD.store.set('fd.tab', k); buzz('select');
+      const ORD = ['following', 'friends', 'foryou'], dir = ORD.indexOf(k) > ORD.indexOf(tab) ? 1 : -1; tab = k; PD.store.set('fd.tab', k); buzz('select');
       top.querySelectorAll('.fd-seg button').forEach(b => { const on = b.dataset.k === k; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
       placeInd();
       if (!moves()) { reset(); return; }
       const out = scroll.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(' + (-dir * 18) + '%)', opacity: 0 }], { duration: 170, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
       out.onfinish = () => { reset(true); out.cancel(); scroll.animate([{ transform: 'translateX(' + (dir * 18) + '%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: OUTQ }); };
     }
-    const newVideo = () => { P.pauseAll(); studio(p => { if (p.visibility === 'friends' && tab === 'foryou') switchTab('friends'); else prepend(p); }, () => P.resume()); };
+    const newVideo = () => PD.cmp.newVideo();   // the bar's + : the feed hears of the new video below
+    own(PD.bus.on('cm:posted', p => { if (fixed) return; if (p.visibility === 'friends' && tab !== 'friends') switchTab('friends'); else prepend(p); }));
+    own(PD.bus.on('cm:cam', open => { if (open) P.pauseAll(); else P.resume(); }));
+    own(PD.bus.on('cm:top', () => scroll.scrollTo({ top: 0, behavior: moves() ? 'smooth' : 'auto' })));
     const skel = () => h('div', { class: 'fd-card fd-skel', 'aria-hidden': 'true' }, [h('i', { class: 'fd-shim' }),
       h('div', { class: 'fd-rail' }, [1, 2, 3, 4].map(() => h('i', { class: 'sk-dot' }))), h('div', { class: 'fd-info' }, [h('i', { class: 'sk-line w40' }), h('i', { class: 'sk-line w80' }), h('i', { class: 'sk-line w60' })])]);
     function reset(keepHead) { [...scroll.querySelectorAll('.fd-card')].forEach(c => { io.unobserve(c); P.drop(c); }); st.ids.clear(); st.n = 0; st.done = false; st.before = null; scroll.innerHTML = ''; scroll.scrollTop = 0; if (!keepHead) head(); more(); }
     function empty() {
-      const f = tab === 'friends';
-      const e = h('div', { class: 'fd-empty' }, [h('span', { class: 'cm-big', html: tab === 'saved' ? IC.save : f ? IC.users : ic.video }), h('p', { 'data-t': one ? 'fd.unavailable' : tab === 'saved' ? 'fd.emptyS' : f ? 'fd.emptyF' : 'fd.emptyG' }),
-        fixed ? null : f ? h('button', { class: 'btn', 'data-t': 'fd.findFriends', onclick: () => PD.app.go('community', 'friends') }) : h('button', { class: 'btn primary', html: ic.plus + '<span data-t="fd.new"></span>', onclick: newVideo })].filter(Boolean));
+      const f = tab === 'friends', fo = tab === 'following';
+      const e = h('div', { class: 'fd-empty' }, [h('span', { class: 'cm-big', html: tab === 'saved' ? IC.save : f || fo ? IC.users : ic.video }), h('p', { 'data-t': one || list ? 'fd.unavailable' : tab === 'saved' ? 'fd.emptyS' : fo ? 'fd.emptyFo' : f ? 'fd.emptyF' : 'fd.emptyG' }),
+        fixed ? null : fo ? h('button', { class: 'btn', html: ic.search + '<span data-t="fd.findPeople"></span>', onclick: () => PD.app.go('community', 's') }) : f ? h('button', { class: 'btn', 'data-t': 'fd.findFriends', onclick: () => PD.app.go('community', 'friends') }) : h('button', { class: 'btn primary', html: ic.plus + '<span data-t="fd.new"></span>', onclick: newVideo })].filter(Boolean));
       scroll.appendChild(e); PD.i18n.apply(scroll); PD.motion && PD.motion.reveal(e, 40);
     }
     function add(p, first) {
@@ -452,13 +460,14 @@ PD.social = (() => {
       try {
         for (let turn = 0; turn < 6; turn++) {   // a server that has not been updated may still answer photos and text: they are passed over
           const byList = tab === 'foryou' || tab === 'saved';
-          const rows = (one ? await C.social.feed('one', { before: one }) : await C.social.feed(tab, byList ? { skip: [...st.ids], lim: 6 } : { before: st.before, lim: 6 })) || [];
+          const rows = (one ? await C.social.feed('one', { before: one }) : list ? await C.social.list(list.tab, { target: list.target, term: list.term, off: st.off, lim: 6 }) : await C.social.feed(tab, byList ? { skip: [...st.ids], lim: 6 } : { before: st.before, lim: 6 })) || [];
           if (mine !== tab) return;
           const fresh = rows.filter(r => !st.ids.has(r.id));
           fresh.forEach(r => { st.before = st.before == null ? r.id : Math.min(st.before, r.id); });
           const vids = fresh.filter(r => r.kind === 'video' && r.media_path);
           fresh.filter(r => vids.indexOf(r) < 0).forEach(r => st.ids.add(r.id));
           if (vids.length) { await urls(vids); if (mine !== tab) return; if (sk) sk.remove(); vids.forEach(p => add(p)); }
+          if (list) { st.off += rows.length; if (rows.length < 6) { st.done = true; break; } if (vids.length) break; continue; }
           if (one || !fresh.length) { st.done = true; break; }
           if (vids.length) break;
         }
@@ -504,11 +513,11 @@ PD.social = (() => {
       lastTap = now; tapT = setTimeout(() => { lastTap = 0; const was = el.classList.contains('paused'); P.tap(el); if (was && !el.classList.contains('paused')) flash(el); }, 300);
     });
     // who, what, which song
-    const name = h('button', { class: 'fd-name', onclick: () => profile(p.author) }, [h('b', { text: p.author_nick ? '@' + p.author_nick : label(p) }), p.visibility === 'friends' ? h('span', { class: 'fd-lock', title: t('fd.friendsOnly'), html: IC.users }) : null].filter(Boolean));
+    const name = h('button', { class: 'fd-name', onclick: e => { e.stopPropagation(); profile(p.author); } }, [h('b', { text: p.author_nick ? '@' + p.author_nick : label(p) }), p.visibility === 'friends' ? h('span', { class: 'fd-lock', title: t('fd.friendsOnly'), html: IC.users }) : null].filter(Boolean));
     const meta = h('small', { class: 'fd-meta', text: [p.author_nick && p.author_name ? p.author_name : '', U().ago(p.created_at), p.views ? t('fd.views', { n: nf(p.views) }) : ''].filter(Boolean).join(' · ') });
     let cap = null;
     if (p.caption) {
-      const txt = h('span', { class: 'fd-captxt', text: p.caption }), moreB = h('button', { class: 'fd-capmore', 'data-t': 'fd.more' });
+      const txt = h('span', { class: 'fd-captxt' }, PD.cmp.richText(p.caption)), moreB = h('button', { class: 'fd-capmore', 'data-t': 'fd.more' });
       cap = h('div', { class: 'fd-cap' }, [txt, moreB]);
       const toggle = () => { const open = !el.classList.contains('capopen'); el.classList.toggle('capopen', open); moreB.textContent = t(open ? 'fd.less' : 'fd.more'); };
       cap.onclick = e => { e.stopPropagation(); toggle(); };
@@ -518,13 +527,15 @@ PD.social = (() => {
     const info = h('div', { class: 'fd-info' }, [name, meta, cap, song].filter(Boolean));
     // the rail: the author (and a + to become friends) · like · comment · save · share · more · the turning disc
     const face = avatar(p.author_avatar, p.author_name, 'fd-face');
-    const plus = !mine && !p.friend && p.author_nick ? h('button', { class: 'fd-plus', 'aria-label': t('fr.send'), html: ic.plus }) : null;
+    const plus = !mine && !p.following && p.author_nick ? h('button', { class: 'fd-plus', 'aria-label': t('cp.follow'), title: t('cp.follow'), html: ic.plus }) : null;   // + follows, as in TikTok (friends ask on the profile)
     if (plus) plus.onclick = async e => {
       e.stopPropagation(); if (plus.disabled) return; plus.disabled = true; buzz('select');
       try {
-        const r = await C.social.request(p.author_nick);
+        let r = null;
+        try { await C.social.follow(p.author, true); p.following = true; }
+        catch (fe) { if (!/could not find the function|PGRST202|404/i.test((fe && fe.message) || '')) throw fe; r = await C.social.request(p.author_nick); }   // a server not updated yet: a friend request, as before
         plus.classList.add('done'); plus.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; pop(plus, 1.4);
-        PD.ui.toast(t(r === 'friend' ? 'fr.already' : 'fr.sent'), 3500);
+        if (r != null) PD.ui.toast(t(r === 'friend' ? 'fr.already' : 'fr.sent'), 3500);
         setTimeout(() => { if (moves()) plus.animate([{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(0)', opacity: 0 }], { duration: 260, easing: 'ease-in', fill: 'forwards' }).onfinish = () => plus.remove(); else plus.remove(); }, 1200);
       } catch (er) { plus.disabled = false; PD.ui.toast(friendErr(er)); }
     };
@@ -551,7 +562,7 @@ PD.social = (() => {
       h('div', { class: 'fd-col' }, [likeB, likeN]),
       act('fd-cm', 'fd.comments', RAIL.comment, () => comments(p, n => { p.comments = n; setNum(cmN, nf(n)); }), cmN),
       h('div', { class: 'fd-col' }, [saveB, svN]),
-      act('fd-sh', 'fd.share', RAIL.share, () => share(p, () => { setNum(shN, nf(p.shares)); }), shN),
+      act('fd-sh', 'fd.share', RAIL.share, () => PD.cmp.share(p, () => { setNum(shN, nf(p.shares)); }), shN),
       act('fd-morebtn', 'md.more', RAIL.more, () => postMenu(p, onGone))]);
     // the line at the bottom: drag it to go to another place in the video
     const progw = h('div', { class: 'fd-progw', role: 'slider', 'aria-label': t('fd.seek'), tabindex: '-1' }, [h('i', { class: 'fd-track' }, [bar]), time]);
@@ -600,25 +611,7 @@ PD.social = (() => {
 
   /* ---------------- share: into a chat, or out of the app ---------------- */
   const linkOf = p => location.origin + location.pathname + '?go=' + encodeURIComponent('community:p:' + p.id);
-  function share(p, onShared) {
-    PD.ui.sheet((b, close) => {
-      const list = h('div', { class: 'cm-list' });
-      b.append(h('h2', { 'data-t': 'fd.share' }), h('p', { class: 'muted', 'data-t': 'fd.sendTo' }), list,
-        h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap;margin-top:6px' }, [
-          navigator.share ? h('button', { class: 'btn', html: IC.share + '<span data-t="fd.shareOut"></span>', onclick: () => navigator.share({ title: t('app.name'), text: t('fd.shareText', { s: (p.caption || '').slice(0, 80) }), url: linkOf(p) }).catch(() => {}) }) : null,
-          h('button', { class: 'btn', html: IC.link + '<span data-t="fd.copy"></span>', onclick: async () => { try { await navigator.clipboard.writeText(linkOf(p)); PD.ui.toast(t('toast.copied')); } catch (_) {} } })].filter(Boolean)));
-      (async () => {
-        try {
-          const fr = (await C.social.friends() || []).filter(f => f.relation === 'friend');
-          if (!fr.length) { list.appendChild(h('p', { class: 'muted', 'data-t': 'fd.noFriendsYet' })); PD.i18n.apply(list); return; }
-          fr.forEach(f => { const go = h('button', { class: 'btn small', 'data-t': 'cm.send' });
-            go.onclick = async () => { go.disabled = true; try { const conv = await C.chat.open(f.id); await C.chat.send(conv, '', { post_ref: p.id }); go.textContent = t('fd.sent'); p.shares = (p.shares || 0) + 1; onShared && onShared(); } catch (e) { go.disabled = false; PD.ui.toast(U().err(e)); } };
-            list.appendChild(h('div', { class: 'cm-row' }, [avatar(f.avatar_url, f.display_name), h('div', { class: 'grow' }, [h('b', { text: f.display_name || '@' + f.nickname }), h('small', { text: '@' + (f.nickname || '') })]), go])); });
-          PD.i18n.apply(list);
-        } catch (e) { list.textContent = U().err(e); }
-      })();
-    });
-  }
+  function share(p, onShared) { return PD.cmp.share(p, onShared); }
   function postMenu(p, onGone) {
     PD.ui.sheet((b, close) => {
       const mine = p.author === C.uid;
@@ -740,7 +733,9 @@ PD.social = (() => {
     const busyT = h('span', { 'data-t': 'fd.preparing' }), busyX = h('button', { class: 'btn cam-ghost', type: 'button', hidden: true, 'data-t': 'fr.cancel', onclick: () => ed && ed.cancel() });
     const root = h('div', { class: 'cam', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('fd.new'), 'data-stage': 'cam' }, [shot, review, postEl,
       h('div', { class: 'cam-busy', role: 'status' }, [h('i'), busyT, busyX])]);
-    document.body.appendChild(root); PD.i18n.apply(root); paintTimer(); paintModes(); paintVis(); paintRes(0);
+    document.body.appendChild(root); PD.i18n.apply(root);
+    if (moves()) root.animate([{ transform: 'translateY(100%)', borderRadius: '28px' }, { transform: 'none', borderRadius: '0px' }], { duration: 420, easing: OUTQ });
+    paintTimer(); paintModes(); paintVis(); paintRes(0);
     const onResize = () => { fitCam(view); if (view.videoWidth && stream) paintRes(Math.min(view.videoWidth, view.videoHeight)); };
     view.addEventListener('loadedmetadata', onResize); view.addEventListener('resize', onResize); addEventListener('resize', onResize);
 
@@ -934,43 +929,16 @@ PD.social = (() => {
       if (closed) return; closed = true;
       if (fromBack !== true) PD.layers.done(lid);
       clearInterval(tick); stopRec(false); off(); drop(); removeEventListener('resize', onResize); try { mac && mac.close(); } catch (_) {}
-      root.remove(); onClose && onClose();
+      if (moves()) { root.style.pointerEvents = 'none'; root.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(100%)', opacity: .7, borderRadius: '28px' }], { duration: 320, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).onfinish = () => root.remove(); }
+      else root.remove();
+      onClose && onClose();
     }
     open();
   }
 
   /* ---------------- a person: their posts, and where we stand ---------------- */
-  function profile(id) {
-    if (!id) return;
-    PD.ui.sheet((b, close) => {
-      const headBox = h('div', { class: 'pf-head' }), grid = h('div', { class: 'fd-grid' });
-      b.append(headBox, h('h3', { 'data-t': 'fd.posts' }), grid);
-      (async () => {
-        try {
-          const rows = (await C.social.feed('user', { target: id, lim: 30 }) || []).filter(r => r.kind === 'video');
-          const any = rows[0];
-          const fr = id === C.uid ? null : (await C.social.friends() || []).find(f => f.id === id);
-          const nm = (fr && (fr.display_name || '@' + fr.nickname)) || (any && label(any)) || (id === C.uid ? (C.profile && C.profile.display_name) : '') || '—';
-          const nick = (fr && fr.nickname) || (any && any.author_nick) || (id === C.uid && C.profile && C.profile.nickname) || '';
-          const rel = id === C.uid ? 'self' : fr ? fr.relation : 'none';
-          const acts = h('div', { class: 'row', style: 'gap:8px;flex-wrap:wrap' });
-          if (rel === 'friend') acts.append(h('button', { class: 'btn primary small', 'data-t': 'cm.write', onclick: async () => { try { const c = await C.chat.open(id); close(); PD.app.go('community', 'c:' + c + ':' + nm); } catch (e) { PD.ui.toast(U().err(e)); } } }),
-            h('span', { class: 'chip', text: '✓ ' + t('fr.friend') }));
-          else if (rel === 'incoming') acts.append(h('button', { class: 'btn primary small', 'data-t': 'fr.accept', onclick: async () => { try { await C.social.respond(id, true); close(); profile(id); } catch (e) { PD.ui.toast(friendErr(e)); } } }));
-          else if (rel === 'outgoing') acts.append(h('span', { class: 'chip', 'data-t': 'fd.requested' }));
-          else if (rel === 'none' && nick) acts.append(h('button', { class: 'btn primary small', html: IC.addUser + '<span data-t="fr.send"></span>', onclick: async () => { try { await C.social.request(nick); close(); profile(id); PD.ui.toast(t('fr.sent'), 4000); } catch (e) { PD.ui.toast(friendErr(e)); } } }));
-          if (rel !== 'self') acts.append(h('button', { class: 'pz-ic', 'aria-label': t('md.more'), html: ic.more, onclick: () => { close(); U().userActions(id, nm); } }));
-          headBox.append(avatar(any && any.author_avatar, nm, 'big'), h('div', { class: 'grow' }, [h('h2', { text: nm, style: 'margin:0' }), nick ? h('small', { class: 'muted', text: '@' + nick }) : null, acts].filter(Boolean)));
-          PD.i18n.apply(headBox);
-          if (!rows.length) { grid.appendChild(h('p', { class: 'muted', 'data-t': 'fd.noUserPosts' })); PD.i18n.apply(grid); return; }
-          await urls(rows);
-          rows.forEach(p => { const th = p.kind === 'photo' ? C.storage.url(p.media_path) : p.thumb_path ? C.storage.url(p.thumb_path) : null;
-            grid.appendChild(h('button', { class: 'fd-tile k-' + p.kind + (p.media_meta && p.media_meta.mirror ? ' flipx' : ''), onclick: () => { close(); PD.app.go('community', 'p:' + p.id); } }, [th ? h('img', { alt: '', src: th, loading: 'lazy' }) : h('span', { class: 'fd-tile-t', text: p.kind === 'text' ? p.caption.slice(0, 80) : '' }),
-              p.kind === 'video' ? h('span', { class: 'fd-tile-k', html: ic.play }) : p.kind === 'audio' ? h('span', { class: 'fd-tile-k', html: IC.music }) : null, h('small', { class: 'fd-tile-n', html: glyph('panduri') + nf(p.reactions) })].filter(Boolean))); });
-        } catch (e) { headBox.textContent = U().err(e); }
-      })();
-    });
-  }
+  /** a person: their own page in the community (cmprofile.js) */
+  function profile(id) { if (id) PD.app.go('community', id === C.uid ? 'me' : 'u:' + id); }
 
   /* ---------------- friends ---------------- */
   const friendErr = e => { const m = e && e.message || ''; return /not-found/.test(m) ? t('fr.notFound') : /self/.test(m) ? t('fr.self') : /too-many-requests/.test(m) ? t('fr.tooMany') : U().err(e); };

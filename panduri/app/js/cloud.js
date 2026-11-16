@@ -331,18 +331,34 @@ PD.cloud = (() => {
     seen: ids => db.rpc('feed_seen', { ids }),
     comments: post => db.select('feed_comments', { post_id: 'eq.' + post, select: 'id,author,author_name,body,created_at', order: 'id.asc', limit: '300' }),
     comment: (post, body) => db.insert('feed_comments', [{ post_id: post, body }]),
-    uncomment: id => db.remove('feed_comments', { id: 'eq.' + id })
+    uncomment: id => db.remove('feed_comments', { id: 'eq.' + id }),
+    /* the community's own place (backend/supabase/migrations/202611160001_community_profiles.sql) */
+    /** one profile with its numbers: by id, by @nickname, or (neither) my own */
+    card: async (id, nick) => ((await db.rpc('profile_card', { target: id || null, nick: nick || null })) || [])[0] || null,
+    follow: (id, keep) => db.rpc('follow', { target: id, keep: keep !== false }),
+    /** which: 'followers' · 'following' */
+    followList: (id, which, off) => db.rpc('follow_list', { target: id, which, lim: 50, off: off || 0 }),
+    repost: (post, keep) => db.rpc('repost', { post, keep: keep !== false }),
+    repostsClear: () => db.rpc('reposts_clear', {}),
+    shareOut: post => db.rpc('share_out', { post }),
+    historyClear: post => db.rpc('history_clear', { post: post || null }),
+    /** tab: 'user' · 'reposts' · 'saved' · 'liked' · 'history' · 'tag' · 'search' */
+    list: (tab, o) => { o = o || {}; return db.rpc('feed_list', { tab, target: o.target || null, term: o.term || null, lim: o.lim || 12, off: o.off || 0 }); },
+    users: term => db.rpc('search_users', { term, lim: 20 }),
+    tags: term => db.rpc('tag_search', { term: term || '', lim: 20 }),
+    setBio: bio => db.rpc('set_bio', { new_bio: bio }),
+    setAvatar: url => db.rpc('set_avatar', { url: url || null })
   };
   /* ---------- the members' photos, videos and audio (the private 'social' bucket; the server decides who may read each file) ---------- */
   const BUCKET = 'social', signed = new Map();   // path → { url, until }
   const storage = {
     /** upload with progress; resolves with the stored path */
-    async upload(path, blob, onProgress) {
+    async upload(path, blob, onProgress, bucket) {
       const c = conf(); if (!c.url || !c.key) throw err('no-backend'); if (!S) throw err('no-session');
       if (S.expires_at && S.expires_at - 120 < Date.now() / 1000) await refresh().catch(() => {});
       return new Promise((res, rej) => {
         const x = new XMLHttpRequest();
-        x.open('POST', c.url + '/storage/v1/object/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/'));
+        x.open('POST', c.url + '/storage/v1/object/' + (bucket || BUCKET) + '/' + path.split('/').map(encodeURIComponent).join('/'));
         x.setRequestHeader('apikey', c.key); x.setRequestHeader('Authorization', 'Bearer ' + S.access_token);
         x.setRequestHeader('Content-Type', blob.type || 'application/octet-stream'); x.setRequestHeader('x-upsert', 'false'); x.setRequestHeader('cache-control', '31536000');
         if (onProgress) x.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
@@ -361,6 +377,15 @@ PD.cloud = (() => {
       const o = {}; (paths || []).forEach(p => { const v = p && signed.get(p); if (v) o[p] = v.url; }); return o;
     },
     url: p => { const v = signed.get(p); return v ? v.url : null; },
+    /** a profile photo: public, in my own folder of the 'avatars' bucket; answers its address */
+    async avatar(blob) {
+      const me = uid(); if (!me) throw err('no-session');
+      const path = me + '/' + Date.now().toString(36) + '.jpg';
+      await storage.upload(path, blob, null, 'avatars');
+      return conf().url + '/storage/v1/object/public/avatars/' + path;
+    },
+    /** a photo of mine that is no longer used (the address names the file; another member's is never touched) */
+    dropAvatar: url => { const m = /\/storage\/v1\/object\/public\/avatars\/(.+)$/.exec(url || ''); const me = uid(); return m && me && m[1].indexOf(me + '/') === 0 ? http('/storage/v1/object/avatars', { method: 'DELETE', body: { prefixes: [decodeURIComponent(m[1])] } }).catch(() => {}) : Promise.resolve(); },
     remove: paths => paths && paths.length ? http('/storage/v1/object/' + BUCKET, { method: 'DELETE', body: { prefixes: paths } }) : Promise.resolve(),
     /** every file of this account (before the account itself is deleted) */
     async removeMine() {

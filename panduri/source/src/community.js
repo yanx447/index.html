@@ -112,7 +112,7 @@ PD.community = (() => {
     }
     if (param === 'friends') {
       const body = h('div', { class: 'cm-body fr' });
-      w.append(h('div', { class: 'cm-top' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), h('h1', { class: 'cm-h1', 'data-t': 'cm.friends' }), h('span', { class: 'pz-ic', 'aria-hidden': 'true' })]), body);
+      w.append(h('div', { class: 'cm-top' }, [h('span', { class: 'pz-ic', 'aria-hidden': 'true' }), h('h1', { class: 'cm-h1', 'data-t': 'cm.friends' }), h('button', { class: 'pz-ic', 'aria-label': t('cn.search'), html: ic.search, onclick: () => PD.app.go('community', 's') })]), body);
       PD.social.friends(body);
       w.append(h('div', { class: 'cm-links' }, [
         h('button', { class: 'cm-link', html: PD.social.IC.save + '<span data-t="fd.saved"></span>' + CHEV, onclick: () => PD.app.go('community', 'saved') }),
@@ -122,6 +122,17 @@ PD.community = (() => {
     }
     if (!C.profile.nickname) return gate(PD.social.nickCard(true));
     if (param === 'chats') return inbox(w);
+    // the community's own places (cmprofile.js): profiles, search, a hashtag, the activity
+    if (param === 'me' || param.indexOf('u:') === 0 || param[0] === '@') return PD.cmp.profile(w, param, own);
+    if (param === 's' || param.indexOf('s:') === 0) return PD.cmp.search(w, param.slice(2), own);
+    if (param.indexOf('t:') === 0) return PD.cmp.tagPage(w, param.slice(2), own);
+    if (param === 'activity') return PD.cmp.activity(w);
+    if (param.indexOf('l:') === 0) {   // a profile's or a search's list as a feed: l:<tab>:<target or ->:<first>:<term>
+      const [, tab, target, first, ...term] = param.split(':');
+      w.innerHTML = ''; if (pg) pg.classList.add('fd-mode');
+      const box = h('div', { class: 'fd' }); w.append(box);
+      return PD.social.feed(box, own, { list: { tab, target: target && target !== '-' ? target : null, off: Math.max(0, +first || 0), term: term.join(':') || null } });
+    }
     // everything else is the feed, edge to edge
     w.innerHTML = ''; if (pg) pg.classList.add('fd-mode');
     const box = h('div', { class: 'fd' }); w.append(box);
@@ -137,8 +148,9 @@ PD.community = (() => {
     const q = h('input', { class: 'input cm-search', type: 'search', placeholder: t('cm.searchChats'), 'aria-label': t('cm.searchChats'), autocomplete: 'off' });
     const strip = h('div', { class: 'cm-strip', role: 'list' }), list = h('div', { class: 'cm-clist', role: 'list' }, skRows(4));
     const newB = h('button', { class: 'pz-ic', 'aria-label': t('cm.newChat'), title: t('cm.newChat'), html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>', onclick: () => pickFriend() });
-    w.append(h('div', { class: 'cm-top' }, [h('button', { class: 'pz-ic', 'aria-label': t('back'), html: ic.back, onclick: () => PD.app.back('community') }), h('h1', { class: 'cm-h1', 'data-t': 'cm.chats' }), newB]),
-      h('label', { class: 'cm-sbox' }, [h('span', { html: ic.search }), q]), strip, h('h3', { class: 'cm-lab', 'data-t': 'cm.chats' }), list);
+    w.append(h('div', { class: 'cm-top' }, [h('span', { class: 'pz-ic', 'aria-hidden': 'true' }), h('h1', { class: 'cm-h1', 'data-t': 'cn.inbox' }), newB]));
+    PD.cmp.inboxSeg(w, 'chats');
+    w.append(h('label', { class: 'cm-sbox' }, [h('span', { html: ic.search }), q]), strip, h('h3', { class: 'cm-lab', 'data-t': 'cm.chats' }), list);
     let rows = [], friends = [];
     function paint() {
       const f = q.value.trim().toLowerCase(), hit = r => !f || [(r.other_name || ''), (r.other_nick || '')].join(' ').toLowerCase().includes(f);

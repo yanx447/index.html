@@ -291,8 +291,11 @@ grant execute on function public.is_owner() to authenticated;
 -- each clip every bit the server allows, so raising the bucket's limit (after a plan upgrade) raises video quality by itself.
 create or replace function public.social_file_mb()
 returns integer
-language sql stable security definer set search_path = public, storage as $$
-  select coalesce((select (file_size_limit / 1048576)::integer from storage.buckets where id = 'social'), 50);
-$$;
+-- plpgsql: the bucket table is looked up when it is called, so a database whose storage schema comes later (a fresh setup,
+-- the SQL tests) can still create it; the answer is the same
+language plpgsql stable security definer set search_path = public, storage as $$
+begin
+  return coalesce((select (file_size_limit / 1048576)::integer from storage.buckets where id = 'social'), 50);
+end $$;
 revoke all on function public.social_file_mb() from public;
 grant execute on function public.social_file_mb() to anon, authenticated;

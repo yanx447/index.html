@@ -177,3 +177,18 @@ Before setting `PAYPAL_GUEST_CARD=true`: in PayPal → Account settings → Webs
 Apple Pay: TBC supports it on its hosted page once the bank activates it for the merchant (and Apple Pay on the web needs the merchant domain verified through TBC). After the bank confirms, set `TBC_WALLETS=apple_pay` (and `google_pay`) — no app change is needed. Inside the iOS store build, digital Premium must still be sold through Apple In-App Purchase, not through card checkout.
 
 Deploy order: copy the built `app/` first, then redeploy `billing` (the function is backward compatible either way). No database migration is needed: PayPal card orders are saved with provider `paypal`.
+
+
+## The community's own place: profiles, following, reposts, history, search (2026-11-16)
+
+**Status:** written and tested locally (`node --test community-sql.test.mjs`, with the rest of the SQL suite: 8 passed). **Not yet applied to the live project** — applying it from Claude Code was held back for the owner's explicit go-ahead.
+
+Apply `supabase/migrations/202611160001_community_profiles.sql` once, through the SQL Editor (or approve it in Claude Code). It needs only `202611090002_social.sql`, which the live server has. It is additive and can be run twice.
+
+What it adds: `profiles.bio` (160 characters, word filter) and `set_bio()`; a public `avatars` bucket (2 MB, JPEG/PNG/WebP, each member writes only their own folder) and `set_avatar()`; `follows` (one way, as in TikTok) with `follow()`, `follow_list()` and a notification in the receiver's language; `feed_reposts` with `repost()` and `reposts_clear()`; `feed_shares` with `share_out()` (a share out of the app counts once per person); history (`feed_views.at` is now the last time watched, `hidden` + `history_clear()`); `hashtags()` with a GIN index, `tag_search()`, `search_users()`; `profile_card()` (followers, following, and likes as the sum over the videos that exist now — a deleted video takes its likes with it); `feed_list()` for a profile's and a search's lists; `feed()` learns `following` and answers `reposted` and `following`.
+
+It also carries the parts of `202611100001_reels.sql` the live server never received (the song's name, saved videos, the `feed()` that knows them) **without** that file's one-minute limit: the camera films up to ten minutes and the live server has never limited the length. Do not apply `202611100001_reels.sql` after it.
+
+Until it is applied the app says so where it matters ("switches on once the server has been updated"): my own profile and someone else's still show their videos from `feed()`, the + on a video still sends a friend request, and copying a link or sending to a friend in chat works. Search, following, reposts, the bio and the profile photo wait for the server.
+
+Found on the way: `source/supabase/schema.sql`'s `social_file_mb()` was `language sql`, so creating it needed `storage.buckets` to exist first; three SQL tests (moderation, reels, social) failed on that. It is plpgsql now — the same answer, the table looked up when it is called.
