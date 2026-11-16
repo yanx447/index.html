@@ -16,15 +16,23 @@ PD.bus = (() => {
 
 /* ---------- persistence (local adapter; remote adapter is an interface) ---------- */
 PD.store = (() => {
-  const NS = 'pd2:', mem = {};
+  const NS = 'pd2:', mem = Object.create(null);
   let ok = true;
   try { localStorage.setItem(NS + 't', '1'); localStorage.removeItem(NS + 't'); } catch (_) { ok = false; }
   return {
     persistent: ok,
-    get(k, d) { try { const v = ok ? localStorage.getItem(NS + k) : mem[k]; return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
-    set(k, v) { const s = JSON.stringify(v); if (ok) { try { localStorage.setItem(NS + k, s); return; } catch (_) {} } mem[k] = s; },
-    del(k) { try { if (ok) localStorage.removeItem(NS + k); } catch (_) {} delete mem[k]; },
-    keys() { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith(NS)) out.push(k.slice(NS.length)); } } catch (_) { return Object.keys(mem); } return out; },
+    get(k, d) { try { const v = Object.hasOwn(mem, k) ? mem[k] : ok ? localStorage.getItem(NS + k) : null; return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
+    set(k, v) { const s = JSON.stringify(v); if (ok) { try { localStorage.setItem(NS + k, s); delete mem[k]; return; } catch (_) {} } mem[k] = s; },
+    del(k) {
+      if (ok) { try { localStorage.removeItem(NS + k); } catch (_) { mem[k] = null; return; } }
+      delete mem[k];
+    },
+    keys() {
+      const out = new Set();
+      if (ok) try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(NS)) out.add(k.slice(NS.length)); } } catch (_) {}
+      Object.keys(mem).forEach(k => { if (mem[k] == null) out.delete(k); else out.add(k); });
+      return [...out];
+    },
     /** sign-in tokens, the server address and the cached account record never go into a data file, and never come from one */
     exportAll() { const o = {}; this.keys().filter(k => !/^(cloud\.|auth\.|stash\.)/.test(k)).forEach(k => { o[k] = this.get(k); }); return o; },
     importAll(o) { Object.keys(o || {}).filter(k => !/^(cloud\.|auth\.|stash\.)/.test(k) && k !== 'progress.owner').forEach(k => this.set(k, o[k])); }

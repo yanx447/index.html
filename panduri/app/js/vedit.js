@@ -576,7 +576,7 @@ void main(){
           dnState = h('small', { class: 've-st', role: 'status' });
           sw.onclick = () => { S.aud.dn = !S.aud.dn; sw.classList.toggle('on', S.aud.dn); sw.setAttribute('aria-checked', String(S.aud.dn)); ver++; paintInfo(); if (S.aud.dn) runDenoise(); else { dnJob++; dnRun = null; dnState.textContent = ''; makeWave(); if (playing) startAudio(); } };
           kids.push(h('div', { class: 've-swrow' }, [h('b', { 'data-t': 've.dn' }), dnState, sw]),
-            slider('ve.dnAmt', 10, 100, 5, () => S.aud.dnAmt, x => { S.aud.dnAmt = x; }, pct, () => { if (S.aud.dn) runDenoise(); }),
+            slider('ve.dnAmt', 10, 100, 5, () => S.aud.dnAmt, x => { S.aud.dnAmt = x; ver++; }, pct, () => { if (S.aud.dn) runDenoise(); }),
             h('small', { class: 've-hint', 'data-t': 've.dnHint' }));
           if (dnRun) dnState.textContent = t('ve.dnWork', { p: 0 });
         } else kids.push(h('small', { class: 've-hint', 'data-t': 've.noAudio' }));
@@ -665,8 +665,8 @@ void main(){
       let dest = null;
       if (ac) { dest = ac.createMediaStreamDestination(); chain.out.connect(dest); spk.gain.value = 0; tracks.push(...dest.stream.getAudioTracks()); }
       const tot = total(), room = o.roomMB * 1048576 * 8 * .92 / Math.max(1, tot);
-      const vbr = Math.round(Math.max(3e6, Math.min(room - AUDIO, cv.width * cv.height * fps * .22, 60e6)));
-      let rec; try { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime, videoBitsPerSecond: vbr, audioBitsPerSecond: AUDIO }); } catch (_) { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime }); }
+      const vbr = Math.round(Math.max(3e6, Math.min(room - AUDIO, cv.width * cv.height * fps * .3, 60e6)));
+      let rec; try { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime, videoBitsPerSecond: vbr, audioBitsPerSecond: AUDIO, videoKeyFrameIntervalDuration: 2000 }); } catch (_) { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime }); }
       const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
       const stopped = new Promise(res => { rec.onstop = res; });
       let doneT = 0;

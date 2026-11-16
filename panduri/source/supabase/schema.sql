@@ -286,3 +286,13 @@ revoke all on function public.is_owner() from public, anon;
 grant execute on function public.is_owner() to authenticated;
 -- is_premium(): the owner always has premium; admin_list_users / admin_set_vip / admin_set_role / admin_premium
 -- check public.is_owner() instead of public.is_admin() (see the live project for the full bodies).
+
+-- social_file_mb(): the largest file the `social` bucket takes, in MB. Read-only. The camera asks for it once and gives
+-- each clip every bit the server allows, so raising the bucket's limit (after a plan upgrade) raises video quality by itself.
+create or replace function public.social_file_mb()
+returns integer
+language sql stable security definer set search_path = public, storage as $$
+  select coalesce((select (file_size_limit / 1048576)::integer from storage.buckets where id = 'social'), 50);
+$$;
+revoke all on function public.social_file_mb() from public;
+grant execute on function public.social_file_mb() to anon, authenticated;

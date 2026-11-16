@@ -202,6 +202,7 @@ export class PitchTracker {
     snap.clarity = det.clarity; snap.rawFreq = det.freq;
 
     if (!valid) {
+      this.inTuneSince = 0; // silence/attack cannot count toward a sustained in-tune reading
       if (this.lastValid && now - this.lastValidAt < HOLD_MS) {
         this.state = State.HOLD;
         snap.state = State.HOLD;
@@ -281,7 +282,7 @@ export class PitchTracker {
     else state = Math.abs(cents) <= tol ? State.IN_TUNE : State.VALID;
 
     if (state === State.IN_TUNE) { if (!this.inTuneSince) this.inTuneSince = now; }
-    else if (state === State.VALID) this.inTuneSince = 0;
+    else this.inTuneSince = 0;
 
     this.state = state;
     Object.assign(snap, {

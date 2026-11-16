@@ -148,7 +148,8 @@ PD.social = (() => {
   async function prepare(file, want, opts) {
     const kind = want === 'any' || !want ? kindOf(file) : want;
     if (!kind || (want && want !== 'any' && kindOf(file) && kindOf(file) !== want)) throw fail('badFile');
-    if (file.size > LIMIT[kind] * 1048576 && !(kind === 'photo' && file.type !== 'image/gif')) throw Object.assign(fail('tooBig'), { n: LIMIT[kind], s: Math.ceil(file.size / 1048576) });
+    const most = kind === 'video' ? ROOM() : LIMIT[kind];   // a video may be as large as the server takes
+    if (file.size > most * 1048576 && !(kind === 'photo' && file.type !== 'image/gif')) throw Object.assign(fail('tooBig'), { n: most, s: Math.ceil(file.size / 1048576) });
     const url = URL.createObjectURL(file);
     try {
       if (kind === 'photo') {
@@ -623,7 +624,7 @@ PD.social = (() => {
   }
 
   /* ---------------- a new video: the camera opens at once, like a phone camera — filmed in the app, or a file from the gallery ---------------- */
-  const MAXSEC = 60, MINSIDE = 720, MAXSIDE = 4096, MODES = [60, 15], TIMERS = [0, 3, 10];
+  const MAXSEC = 60, MINSIDE = 720, MAXSIDE = 4096, MODES = [60, 30, 15], TIMERS = [0, 3, 10];
   const RECM = ['video/mp4;codecs=avc1.640033,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
   const CI = {
     torch: I('<path d="M13.5 2.5L5.5 13.5h6l-1 8 8-11h-6z"/>'),
@@ -726,6 +727,8 @@ PD.social = (() => {
       lid = PD.layers.push(onBack);
     }
     lid = PD.layers.push(onBack);
+    // the server's own file limit, once: when it is raised (a larger plan), every clip gets the extra bits by itself
+    if (!PD._fileMB && C.social && C.social.fileMB) PD._fileMB = C.social.fileMB().then(n => { n = +n; if (n > 50) C.limits = Object.assign({}, C.limits, { video: n }); }, () => {});
 
     function off() { gen++; clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); if (stream) stream.getTracks().forEach(x => x.stop()); stream = null; view.srcObject = null; torch = false; torchB.classList.remove('on'); }
     function noCam(key) {
@@ -763,11 +766,22 @@ PD.social = (() => {
         if (my !== gen || closed || stage !== 'cam') { if (p) p.getTracks().forEach(x => x.stop()); return; }
         if (!p) { stream = null; noCam('fd.camNone'); return; }
         stream = s = p; view.srcObject = p; view.play().catch(() => {});
+        await new Promise(r => { view.addEventListener('loadedmetadata', r, { once: true }); setTimeout(r, 2500); });
+        if (my !== gen || closed || stage !== 'cam') return;
+        if (!(view.videoHeight > view.videoWidth)) {   // still not upright (a cropped square, say): the full landscape picture is better
+          p.getTracks().forEach(x => x.stop()); p = null;
+          try { p = await navigator.mediaDevices.getUserMedia(tries[0]); } catch (_) {}
+          if (my !== gen || closed || stage !== 'cam') { if (p) p.getTracks().forEach(x => x.stop()); return; }
+          if (!p) { stream = null; noCam('fd.camNone'); return; }
+          stream = s = p; view.srcObject = p; view.play().catch(() => {});
+        }
       }
       const tr = s.getVideoTracks()[0], set = (tr && tr.getSettings && tr.getSettings()) || {};
       view.classList.toggle('mirror', set.facingMode ? set.facingMode === 'user' : !PD.isTouch());   // a selfie looks like a mirror while filming; the file is not flipped
       let caps = {}; try { caps = (tr.getCapabilities && tr.getCapabilities()) || {}; } catch (_) {}
       torchB.hidden = !caps.torch;   // only where the browser can really switch the light on
+      const adv = {}; ['focusMode', 'exposureMode', 'whiteBalanceMode'].forEach(k => { if (Array.isArray(caps[k]) && caps[k].indexOf('continuous') >= 0) adv[k] = 'continuous'; });
+      if (Object.keys(adv).length) tr.applyConstraints({ advanced: [adv] }).catch(() => {});   // the camera keeps focus, exposure and colour right by itself
       if (caps.width && caps.height && caps.width.max && caps.height.max) capMax = Math.min(caps.width.max, caps.height.max);
       paintRes(set.width && set.height ? Math.min(set.width, set.height) : 0); fitCam(view);
       try { const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); if (my === gen) flipB.hidden = cams.length < 2; } catch (_) {}
@@ -787,7 +801,7 @@ PD.social = (() => {
       if (!stream || !mime) { PD.ui.toast(t('fd.camNone'), 5000); return; }
       const set = stream.getVideoTracks()[0].getSettings(), px = (set.width || 1920) * (set.height || 1080) * (set.frameRate || 30);
       let r = null;
-      try { r = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(4e6, Math.min(rate() - AUDIO, px * .2, 60e6))), audioBitsPerSecond: AUDIO }); }
+      try { r = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(4e6, Math.min(rate() - AUDIO, px * .3, 60e6))), audioBitsPerSecond: AUDIO, videoKeyFrameIntervalDuration: 2000 }); }
       catch (_) { try { r = new MediaRecorder(stream, { mimeType: mime }); } catch (e) { PD.ui.toast(t('fd.camNone'), 5000); return; } }
       const lim = limit, chunks = [];
       r.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };

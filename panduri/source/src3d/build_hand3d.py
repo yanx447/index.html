@@ -28,7 +28,7 @@ CAM = {}
 _camf = f'{R}/out/cams.json'
 if os.path.exists(_camf):
     _c = json.load(open(_camf))
-    CAM = [[int(_c[k]['front']['yaw']), int(_c[k]['front']['pitch']), int(_c[k]['player']['yaw']), int(_c[k]['player']['pitch'])] if k in _c and k not in REPAIRED else [0, 0, 0, 0] for k in keys]
+    CAM = [[int(_c[k]['front']['yaw']), int(_c[k]['front']['pitch']), int(_c[k]['player']['yaw']), int(_c[k]['player']['pitch'])] if k in _c else [0, 0, 0, 0] for k in keys]
 data = {'arm': arm, 'rig': rig, 'skin': jpg(f'{R}/skin.jpg', 1024, 82), 'skinN': jpg(f'{R}/skin_n.png', 1024, 88),
         'poseKeys': keys, 'poseVals': b64(vals.tobytes()), 'poseY': ys, 'poseQ': qs, 'poseCam': CAM}
 src = open('src3d/hand3d.src.js').read().replace('/*@DATA@*/null', json.dumps(data, separators=(',', ':')))

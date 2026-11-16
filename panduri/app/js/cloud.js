@@ -314,6 +314,8 @@ PD.cloud = (() => {
   /* ---------- friends by nickname, the feed ---------- */
   const social = {
     setNick: nick => db.rpc('set_nickname', { nick }),
+    /** MB the `social` bucket takes per file (public.social_file_mb); fails quietly where the server has no such function */
+    fileMB: () => db.rpc('social_file_mb', {}),
     find: nick => db.rpc('find_nickname', { nick }),
     friends: () => db.rpc('my_friends', {}),
     request: nick => db.rpc('friend_request', { nick }),
