@@ -131,88 +131,10 @@ authorization of the copyright holder.
     box.append(h('div',{class:'ck-emoji-tools'},[search,select]),status,grid,more); paint(); return box;
   }
 
-  /* ---------------- stickers (drawn here; the panduri is the same one as the reaction) ---------------- */
-  // Vector cutouts, not image tiles. Keep the wire IDs stable for old messages.
-  const heart = (x, y, s, c = '#FF638B') => `<path transform="translate(${x} ${y}) scale(${s})" d="M10 18S0 12 0 6C0 0 7-2 10 3c3-5 10-3 10 3 0 6-10 12-10 12Z" fill="${c}" stroke="#FFF8ED" stroke-width="2"/>`;
-  const star = (x, y, s) => `<path transform="translate(${x} ${y}) scale(${s})" d="m10 0 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" fill="#FFE176" stroke="#FFF8ED" stroke-width="2"/>`;
-  const note = (x, y, s) => `<path transform="translate(${x} ${y}) scale(${s})" d="M7 2v12a4 4 0 1 0 3 4V7l8-2v8a4 4 0 1 0 3 4V0Z" fill="#8B77FF" stroke="#FFF8ED" stroke-width="2"/>`;
-  const float = (art, extra = '') => `<g class="ck-float ${extra}">${art}</g>`;
-  function character(mood) {
-    const closed = ['love', 'thanks', 'night', 'bravo'].includes(mood);
-    const eyes = closed ? '<path d="M43 76q4-7 8 0m14 0q4-7 8 0" fill="none"/>' : '<ellipse class="ck-eye" cx="47" cy="74" rx="3" ry="4"/><ellipse class="ck-eye" cx="69" cy="74" rx="3" ry="4"/>';
-    const mouth = mood === 'think' ? '<path d="M55 85h8"/>' : mood === 'string' ? '<path d="M53 88q5-7 11 0"/>' : '<path d="M52 84q6 10 13 0Z" fill="#793741"/>';
-    return `<g class="ck-character"><g stroke="#FFF8ED" stroke-width="9" stroke-linejoin="round"><path d="M52 42V10h13v32c3 8 24 17 24 40 0 19-14 29-31 29S27 101 27 82c0-23 22-32 25-40Z" fill="#FFBF60"/></g><g stroke="#593750" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M52 43V10h13v33" fill="#B177E8"/><path d="M52 43C49 53 29 61 29 82c0 18 12 27 29 27s29-9 29-27c0-21-20-29-23-39" fill="#FFBF60"/><path d="M47 16h-5m5 11h-5m28-11h5" stroke-width="6"/><circle cx="58" cy="56" r="7" fill="#68415D"/><path d="M55 13v50m3-50v50m3-50v50" stroke="#FFF8ED" stroke-width="1"/><path d="M47 98h22" stroke-width="4"/><g class="ck-face">${eyes}<path d="M36 82h5m35 0h5" stroke="#F4828C" stroke-width="4"/>${mouth}</g><path class="ck-hand" d="M30 83q-16-12-16 0 0 7 18 9" fill="#FFC96F"/><path class="ck-wave" d="M86 84q13-1 15-16m-5 0 6 2 4-5" fill="none"/></g></g>`;
-  }
-  const accessories = {
-    panduri: () => float(star(88, 20, .9)) + float(note(4, 20, .7), 'ck-float-alt'),
-    love: () => float(heart(77, 13, 1.5)) + float(heart(5, 36, .75), 'ck-float-alt'),
-    bravo: () => float(star(82, 9, 1.5)) + float(star(3, 28, .8), 'ck-float-alt'),
-    play: () => float(note(82, 16, 1.2)) + float(note(3, 30, .8), 'ck-float-alt'),
-    again: () => '<g class="ck-orbit"><path d="M18 52a46 46 0 0 1 81-18m-1-14 3 17-17-2" fill="none" stroke="#FFF8ED" stroke-width="10" stroke-linecap="round"/><path d="M18 52a46 46 0 0 1 81-18m-1-14 3 17-17-2" fill="none" stroke="#8B77FF" stroke-width="5" stroke-linecap="round"/></g>',
-    string: () => float('<path d="M88 16q-14 18 0 18t0-18Z" fill="#66CDFF" stroke="#FFF8ED" stroke-width="3"/>') + '<path class="ck-snap" d="m15 40 8 6-8 6m13-21-2 8" fill="none" stroke="#8B77FF" stroke-width="4"/>',
-    fire: () => '<path class="ck-flame" d="M26 103C3 88 13 63 18 52c0 12 12 12 14 4-3-19 13-33 13-33-2 24 15 31 24 21 17 21 44 44 21 61Z" fill="#FF7057" stroke="#FFF8ED" stroke-width="5"/>',
-    hi: () => float(star(10, 20, .8)) + float(star(90, 30, .65), 'ck-float-alt'),
-    thanks: () => float(heart(82, 16, 1.2)) + float(star(7, 26, .65), 'ck-float-alt'),
-    tempo: () => float(note(84, 15, 1.05)),
-    night: () => float('<path d="M94 8a18 18 0 1 0 17 25A22 22 0 0 1 94 8Z" fill="#FFE176" stroke="#FFF8ED" stroke-width="3"/>') + float(star(7, 33, .65), 'ck-float-alt'),
-    think: () => float('<text x="89" y="43" fill="#8B77FF" stroke="#FFF8ED" stroke-width="4" paint-order="stroke" font-size="38" font-weight="900">?</text>')
-  };
-  const ART = Object.fromEntries(Object.entries(accessories).map(([id, draw]) => [id, () => (id === 'fire' ? draw() : '') + character(id) + (id === 'fire' ? '' : draw())]));
-  const instrument = (id) => {
-    const wrap = art => '<g class="ck-instrument ck-instrument--'+id+'" stroke="#543648" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">'+art+'</g>';
-    if (id === 'doli') return wrap('<ellipse cx="60" cy="34" rx="35" ry="13" fill="#FFE1A0" stroke="#FFF8ED" stroke-width="7"/><path d="M25 34v57c0 18 70 18 70 0V34" fill="#B45A55" stroke="#FFF8ED" stroke-width="7"/><path d="M28 38v52q32 19 64 0V38" fill="#B45A55"/><path d="m29 40 16 58 15-50 15 50 16-58M27 70h66" fill="none" stroke="#FFECC7"/><ellipse class="ck-drumhead" cx="60" cy="34" rx="35" ry="13" fill="#FFE1A0"/><path class="ck-beat-left" d="m13 8 25 16" stroke="#FFD06D" stroke-width="7"/><path class="ck-beat-right" d="m107 8-25 16" stroke="#FFD06D" stroke-width="7"/>');
-    if (id === 'garmoni') return wrap('<g class="ck-bellows"><path d="M31 27h58v67H31Z" fill="#A73C5B"/><path d="m36 29 4 63 5-63 5 63 5-63 5 63 5-63 5 63 5-63 5 63 5-63" fill="none" stroke="#FFAD94"/></g><rect x="10" y="23" width="26" height="76" rx="6" fill="#624268" stroke="#FFF8ED" stroke-width="5"/><rect x="84" y="23" width="26" height="76" rx="6" fill="#624268" stroke="#FFF8ED" stroke-width="5"/>'+Array.from({length:8},(_,i)=>'<rect x="13" y="'+(28+i*8)+'" width="15" height="7" fill="#FFF5D9"/>'+(i%3?'<path d="M13 '+(34+i*8)+'h8" stroke="#543648" stroke-width="3"/>':'')).join('')+Array.from({length:14},(_,i)=>'<circle cx="'+(92+i%2*9)+'" cy="'+(32+Math.floor(i/2)*9)+'" r="2" fill="#FFE1A0"/>').join(''));
-    const reed = id === 'duduki';
-    return wrap('<g class="ck-pipe"><path d="M51 29h18v77q-9 8-18 0Z" fill="'+(reed?'#AF6460':'#E5B36A')+'" stroke="#FFF8ED" stroke-width="7"/><path d="M51 29h18v77q-9 8-18 0Z" fill="'+(reed?'#AF6460':'#E5B36A')+'"/>'+(reed?'<path d="m49 7 22 0-4 22H53Z" fill="#FFE2A4"/><path d="M47 14h26m-23 9h20" stroke="#805666"/>':'<path d="M51 10q9-5 18 0v20H51Z" fill="#E5B36A"/><rect x="56" y="19" width="8" height="9" rx="2" fill="#694758"/>')+Array.from({length:7},(_,i)=>'<circle class="ck-finger ck-finger-'+i+'" cx="60" cy="'+(39+i*9)+'" r="2.7" fill="#543648"/>').join('')+'</g>');
-  };
-  for (const id of ['doli','garmoni','duduki','salamuri']) ART[id] = () => instrument(id) + float(note(86,10,.7)) + float(star(8,48,.6),'ck-float-alt');
-  ART['doli-fire'] = () => instrument('doli') + float(star(3,40,.9));
-  ART['garmoni-dance'] = () => instrument('garmoni') + float(note(88,0,.8));
-  ART['salamuri-song'] = () => instrument('salamuri') + float(note(82,16,1.1));
-  ART.ensemble = () => '<g transform="translate(-4 20) scale(.58)">'+character('play')+'</g><g transform="translate(45 39) scale(.64)">'+instrument('doli')+'</g>'+float(note(78,6,.8));
-  // New vector artwork uses the established cutout language and stable IDs.
-  const newMoods = {
-    coffee: () => '<g class="ck-float"><path d="M78 68h27v22q-14 15-27 0Z" fill="#C19A7C" stroke="#FFF8ED" stroke-width="4"/><path d="M106 72q18-1 10 15l-10 1M83 56q-7-8 0-14m10 14q-7-8 0-14" fill="none" stroke="#FFF8ED" stroke-width="3"/></g>',
-    party: () => '<path d="m32 43 22-39 22 37Z" fill="#9D88EB" stroke="#FFF8ED" stroke-width="4"/>'+float(star(82,10,1.2))+float(note(3,23,.8),'ck-float-alt'),
-    rain: () => '<path d="M6 35Q60-20 114 35H6Z" fill="#7AB7E2" stroke="#FFF8ED" stroke-width="4"/><path d="M60 35v22q-9 10-13 0" fill="none" stroke="#FFF8ED" stroke-width="4"/>'+float('<path d="m8 55 6-11m91 15 6-11" stroke="#8FCFFF" stroke-width="4"/>'),
-    sunny: () => float('<circle cx="92" cy="22" r="14" fill="#FFD66D" stroke="#FFF8ED" stroke-width="3"/><path d="M92 1v4m0 35v5M70 22h4m35 0h5M76 6l4 4m24 25 4 4" stroke="#FFD66D" stroke-width="3"/>'),
-    wow: () => float(star(82,10,1.4))+float(star(2,36,1),'ck-float-alt'),
-    sad: () => float('<path d="M93 24q-14 18 0 18t0-18Z" fill="#8ACFF0" stroke="#FFF8ED" stroke-width="3"/>'),
-    okay: () => float('<circle cx="91" cy="25" r="19" fill="#8FCFA7" stroke="#FFF8ED" stroke-width="4"/><path d="m80 25 8 8 15-17" fill="none" stroke="#FFF8ED" stroke-width="4"/>'),
-    wait: () => float('<circle cx="92" cy="24" r="18" fill="#99BCE8" stroke="#FFF8ED" stroke-width="4"/><path d="M92 11v14l9 5" fill="none" stroke="#FFF8ED" stroke-width="3"/>'),
-    miss: () => float(heart(78,12,1.5))+float(heart(0,33,.9),'ck-float-alt'),
-    listen: () => '<path d="M31 74V58a27 27 0 0 1 54 0v16" fill="none" stroke="#FFF8ED" stroke-width="12"/><path d="M31 74V58a27 27 0 0 1 54 0v16" fill="none" stroke="#9481D5" stroke-width="7"/><rect x="24" y="62" width="12" height="23" rx="5" fill="#9481D5"/><rect x="80" y="62" width="12" height="23" rx="5" fill="#9481D5"/>',
-    practice: () => float(note(85,10,1.25))+float(star(3,34,.9),'ck-float-alt'),
-    trophy: () => '<g class="ck-float"><path d="M78 9h29v19q-14 23-29 0ZM92 40v14m-12 1h25M78 14H67q-1 22 17 22m23-22h10q1 22-17 22" fill="#EBC16D" stroke="#FFF8ED" stroke-width="4" stroke-linejoin="round"/></g>',
-    encore: () => float(star(80,8,1.5))+float(note(3,25,1),'ck-float-alt')
-  };
-  for(const [id,draw] of Object.entries(newMoods)) ART[id]=()=>character(['sad','rain'].includes(id)?'string':['miss','sunny'].includes(id)?'love':id)+draw();
-  ART.duet=()=>'<g transform="translate(-3 12) scale(.72)">'+character('love')+'</g><g transform="translate(43 21) scale(.72)">'+character('play')+'</g>'+float(heart(48,4,.85));
-  ART.metronome=()=>'<g class="ck-instrument"><path d="m37 8-18 100h82L83 8Z" fill="#B67E6A" stroke="#FFF8ED" stroke-width="6"/><path d="m45 20-13 71h56L75 20Z" fill="#F9D8A3"/><path d="M31 98h58" stroke="#593750" stroke-width="4"/><g class="ck-orbit"><path d="M60 92V27" stroke="#593750" stroke-width="4"/><rect x="55" y="44" width="10" height="14" rx="2" fill="#A28BE2"/></g></g>'+float(note(83,6,.85));
-  ART.headphones=()=>'<g class="ck-instrument"><path d="M22 77V49a38 38 0 0 1 76 0v28" fill="none" stroke="#FFF8ED" stroke-width="16"/><path d="M22 77V49a38 38 0 0 1 76 0v28" fill="none" stroke="#9E89D9" stroke-width="9"/><rect x="12" y="61" width="23" height="37" rx="9" fill="#C8AFE8" stroke="#FFF8ED" stroke-width="4"/><rect x="85" y="61" width="23" height="37" rx="9" fill="#C8AFE8" stroke="#FFF8ED" stroke-width="4"/></g>'+float(note(46,48,1.2));
-  const instruments = ['panduri','doli','garmoni','duduki','salamuri','ensemble'];
-  const STICKERS = instruments.concat(Object.keys(ART).filter(id=>!instruments.includes(id)));
-  /** a sticker as shown in a chat or in the picker */
-  function sticker(id, small) {
-    const draw = Object.hasOwn(ART,id) ? ART[id] : null;
-    const el = h('span', { class: 'ck-st ck-st--' + (draw ? id : 'unknown') + (small ? ' small' : ''), role: small ? 'img' : 'button', 'aria-label': t('ck.st.'+id) + (small ? '' : ' · '+t('ck.replay')) }, [
-      h('span',{class:'ck-art',html:draw ? '<svg viewBox="0 0 120 120" aria-hidden="true">'+draw()+'</svg>':''}),h('b',{text:draw ? t('ck.st.'+id):''})]);
-    if(!small){
-      el.tabIndex=0;el.title=t('ck.replay');
-      const play=()=>{const art=el.querySelector('.ck-art');art.getAnimations().forEach(a=>a.cancel());art.animate([{transform:'rotate(0) scale(1)'},{transform:'rotate(-10deg) scale(1.08)',offset:.25},{transform:'rotate(9deg) scale(1.03)',offset:.65},{transform:'rotate(0) scale(1)'}],{duration:900,easing:'ease-in-out'});};
-      el.onclick=play;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();play();}};
-    }
-    return el;
-  }
-  function stickerGrid(onPick) {
-    const music = new Set([...instruments,'play','again','string','tempo','doli-fire','garmoni-dance','salamuri-song','listen','practice','duet','metronome','headphones','encore']);
-    const search=h('input',{class:'input',type:'search',placeholder:t('ck.stSearch'),'aria-label':t('ck.stickers')});
-    const select=h('select',{class:'input ck-categories','aria-label':t('ck.pack')},[['all','ck.all'],['music','ck.musicPack'],['everyday','ck.everyday']].map(([value,key])=>h('option',{value,text:t(key)})));
-    const g=h('div',{class:'ck-sts'});
-    function paint(){const q=search.value.trim().toLocaleLowerCase();g.replaceChildren(...STICKERS.filter(id=>(select.value==='all'||music.has(id)===(select.value==='music'))&&(!q||t('ck.st.'+id).toLocaleLowerCase().includes(q)||id.includes(q))).map(id=>h('button',{type:'button',class:'ck-stb','aria-label':t('ck.st.'+id),onclick:()=>onPick(id)},[sticker(id,true)])));}
-    search.oninput=select.onchange=paint;paint();
-    return h('div',{class:'ck-pack'},[h('div',{class:'ck-emoji-tools'},[search,select]),h('b',{class:'ck-pack-title',text:t('ck.pack')}),g]);
-  }
+  /* The catalogue and pack browser live in stickers.js. Old wire IDs remain supported. */
+  const STICKERS=PD.stickers.STICKERS;
+  const sticker=(id,small)=>PD.stickers.render(id,small);
+  const stickerGrid=onPick=>PD.stickers.picker(onPick);
 
   /* ---------------- GIFs (through the server) ---------------- */
   let gifOn = null;
@@ -256,7 +178,7 @@ authorization of the copyright holder.
       const r = opts.input.getBoundingClientRect(), top = vv ? vv.offsetTop : 0;
       const width = Math.min(440, (vv ? vv.width : innerWidth) - 16);
       const bottom = top + (vv ? vv.height : innerHeight), anchor = Math.max(top+76, Math.min(r.top,bottom-8));
-      const room = Math.max(60,anchor-top-16), height = Math.min(420,room);
+      const room = Math.max(60,anchor-top-16), height = Math.min(cur==='stickers'?560:420,room);
       el.style.width = width + 'px'; el.style.left = Math.max(8,Math.min(innerWidth-width-8,r.left)) + 'px';
       el.style.top = Math.max(top+8,anchor-height-8) + 'px';
       el.style.height = height + 'px';
