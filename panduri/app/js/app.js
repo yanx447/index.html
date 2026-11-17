@@ -341,7 +341,7 @@ PD.app = (() => {
     document.documentElement.dataset.col = READ[route] ? 'read' : WIDE[route] ? 'wide' : 'mid';
     PD.bus.emit('route', route);
     // the helper rides along on every screen, and keeps out of the way inside a lesson
-    try { if (PD.sima) { PD.sima.close(); if (route === 'practice' || PD.practice.active) { const f = document.querySelector('.sm-fab'); if (f) f.remove(); } else { PD.sima.mount(); setTimeout(() => PD.sima.nudge(), 1800); } } } catch (_) {}
+    try { if (PD.sima) { PD.sima.close(); if (route === 'practice' || PD.practice.active) { const f = document.querySelector('button.sm-fab'); if (f) f.remove(); } else { PD.sima.mount(); setTimeout(() => PD.sima.nudge(), 1800); } } } catch (_) {}
     ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),

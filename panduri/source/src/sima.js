@@ -451,7 +451,7 @@ PD.sima = (() => {
   // Text-only compatibility API: no speech or microphone access.
   const say = () => false, canHear = () => false, kaVoice = () => null;
   const W = { want: false, rec: null };
-  const fab = () => document.querySelector('.sm-fab');
+  const fab = () => document.querySelector('button.sm-fab');
   const listen = () => false, stopRec = () => {}, schedule = () => {}, startRec = () => false;
   let pending = false, generation = 0;
   /* what the installable app adds (simaplus.js): the player, her message of the day, the song list and search */
@@ -588,11 +588,66 @@ PD.sima = (() => {
 
   /* ---------------- the button that is always there ---------------- */
   function mount() {
-    if (document.querySelector('.sm-fab') || !S.get('sima.on', true)) return;
+    if (fab() || !S.get('sima.on', true)) return;
     const b = h('button', { class: 'sm-fab', 'aria-label': name(), onclick: () => open('') }, [h('span', { text: name()[0] })]);
     document.body.appendChild(b);
     paintDot();   // a message she wrote while you were away: a dot on her button
+    dodge();
   }
+  /* The button floats over the page, so whatever lies under it at rest is hidden — a „Delete" button, a row's arrow, a
+     badge. When the page stops, she looks under herself: if a control is there, she moves up to the nearest place
+     that is free (up to 240 px); if there is none, she slides half out to the edge, still a tap away. */
+  /* what she must not cover: text, an icon or a picture, and any small control (a button, a chip, a switch). The empty
+     background of a wide row — a whole song card is one button — is free to stand on. */
+  const SMALL = 'button, a[href], input, select, textarea, summary, [role="button"], [role="switch"], [role="tab"], [role="radio"], [role="checkbox"], [role="slider"], .chip, .tag, .badge';
+  function content(el) {
+    if (/^(SVG|PATH|IMG|CANVAS|VIDEO|INPUT|SELECT|TEXTAREA|use|svg|path|circle|rect|polyline|line|g)$/.test(el.tagName)) return true;
+    for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim()) return true;
+    const c = el.closest(SMALL); if (c && c.getBoundingClientRect().width < innerWidth * .5) return true;
+    return false;
+  }
+  // a 5 × 5 grid inside the circle: fine enough for a row's thin arrow
+  const PTS = []; for (let i = 1; i < 6; i++) for (let j = 1; j < 6; j++) if ((i - 3) ** 2 + (j - 3) ** 2 <= 9) PTS.push([i / 6, j / 6]);
+  /* where the button stands when it has not stepped aside: an invisible twin with the same class (and so the same place
+     on every screen size), which never moves — measuring the button itself would count its own step twice */
+  let ghost = null;
+  const home = () => { if (!ghost || !ghost.isConnected) { ghost = h('i', { class: 'sm-fab sm-ghost', 'aria-hidden': 'true' }); document.body.appendChild(ghost); } return ghost.getBoundingClientRect(); };
+  function under(b, lift, r) {
+    for (const [fx, fy] of PTS) {
+      const x = r.left + r.width * fx, y = r.top + r.height * fy - lift;
+      if (y < 0) return true;
+      for (const el of document.elementsFromPoint(x, y)) {
+        if (el === b || b.contains(el)) continue;
+        if (el.closest('.sm-tip')) return true;   // her own message: she does not stand on it either
+        if (el.closest('.tabbar, .dock, .rail, .sm-wrap')) break;   // the bars she already sits beside
+        if (content(el)) return true;
+        break;   // only the top-most thing under each point matters
+      }
+    }
+    return false;
+  }
+  let dT = 0;
+  function dodge() {
+    clearTimeout(dT);
+    dT = setTimeout(() => {
+      const b = fab(); if (!b || box || getComputedStyle(b).display === 'none' || document.documentElement.classList.contains('scrolling-down')) return;   // (a fixed button has no offsetParent)
+      const r = home(), was = b.classList.contains('sm-tuck') ? -1 : parseFloat(document.documentElement.style.getPropertyValue('--sm-lift')) || 0;
+      let lift = 0;
+      if (under(b, 0, r)) {
+        // a page that changes under her (the home screen's cards turn) must not make her jump: a place that is still free is kept
+        if (was > 0 && !under(b, was, r)) return;
+        lift = -1; for (let l = 16; l <= 240; l += 8) if (!under(b, l, r)) { lift = l; break; }
+      }
+      document.documentElement.style.setProperty('--sm-lift', (lift > 0 ? lift : 0) + 'px');
+      b.classList.toggle('sm-tuck', lift < 0);
+    }, 220);
+  }
+  // when a page stops scrolling, is drawn, or the window changes size
+  document.addEventListener('scroll', e => { if (e.target && e.target.classList && e.target.classList.contains('page')) dodge(); }, { passive: true, capture: true });
+  addEventListener('resize', dodge);
+  PD.bus.on('route', () => { setTimeout(dodge, 500); setTimeout(dodge, 1100); });   // after the screen has slid in
+  // a page that fills in later (a list from the server, a chapter that opens) is looked at again once it is still
+  PD.bus.on('ready', () => { const m = document.querySelector('main'); if (m && window.MutationObserver) new MutationObserver(dodge).observe(m, { childList: true, subtree: true }); });
   function refresh() { const b = fab(); if (b) b.remove(); mount(); listen(S.get('sima.wake', false)); }
   // she starts listening as soon as the app does, if the learner has allowed it
   PD.bus.on('ready', () => { if (S.get('sima.wake', false)) listen(true); });

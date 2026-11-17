@@ -636,7 +636,9 @@ button.li:hover{background:rgba(245,245,247,.02)}
 .mt-dots.pat i{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--surface);border:1px solid var(--line2);color:var(--fg2);font:700 15px/1 var(--f-ui,inherit);font-style:normal}
 .mt-dots.pat i.acc{border-color:#c78b5e;color:var(--fg);background:rgba(199,139,94,.14);box-shadow:none}
 .mt-dots.pat i.on{background:#c78b5e;color:#0b0c0f;border-color:#c78b5e;transform:scale(1.1)}
-.mt-pats{justify-content:center;margin-top:6px}
+.mt-pats{justify-content:flex-start;margin-top:6px}
+/* centred while the chips fit; when they do not, the row starts at its first chip (a centred overflow hid „Off" and „Kazbeguri" past the left edge, out of reach) */
+.mt-pats>:first-child{margin-left:auto}.mt-pats>:last-child{margin-right:auto}
 .li.off{opacity:.42}
 .mt-pn{display:block;margin-top:6px;line-height:1.45}
 .mt-pn:empty{display:none}

@@ -448,7 +448,7 @@ PD.tools = (() => {
   ];
   function explore(w, param) {
     const own = scope(), R = PD.R3D;
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': 'x3.title', style: 'margin:0' }), h('span', { class: 'spacer' }), h('button', { class: 'btn small primary', 'data-t': 'x3.tour', onclick: () => tour(0) })]));
+    w.append(h('div', { class: 'row x3-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }), h('h1', { 'data-t': 'x3.title', style: 'margin:0' }), h('span', { class: 'spacer' }), h('button', { class: 'btn small primary', 'data-t': 'x3.tour', onclick: () => tour(0) })]));
     const host = h('div', { class: 'x3d' });
     const tags = h('div', { class: 'tags' }), views = h('div', { class: 'views' }), infoEl = h('div', { class: 'info', hidden: true, role: 'status', 'aria-live': 'polite' });
     host.append(tags, views, infoEl); tags.hidden = true;

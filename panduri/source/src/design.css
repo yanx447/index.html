@@ -203,6 +203,10 @@ body.ai-full .shell, body.exam-on .shell { grid-template-columns: minmax(0,1fr);
 /* the page header: a round back button and a left-aligned title, the same on every page */
 .pg-top, .wrap > .row:first-child:has(> .backbtn) { display: flex; align-items: center; gap: var(--s3); flex-wrap: nowrap; justify-content: flex-start; text-align: left; }
 .pg-top h1, .wrap > .row:first-child:has(> .backbtn) h1 { flex: 1; min-width: 0; text-align: left; margin: 0; }
+/* the 3D panduri's header carries a wide button: on a phone it goes under the title, instead of covering it or squeezing it to a word a line */
+.wrap > .row.x3-head:first-child { flex-wrap: wrap; row-gap: var(--s2, 8px); }
+.wrap > .row.x3-head:first-child h1 { flex: 1 1 auto; min-width: max-content; }
+.wrap > .row.x3-head:first-child .spacer { display: none; }
 .backbtn, .btn.backbtn { flex: none; width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 20px; background: var(--surface); color: var(--fg); }
 .backbtn svg { width: 20px; height: 20px; }
 
@@ -555,7 +559,13 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
 /* the helper's round button stays above the dock, and steps aside while the page scrolls down */
 .sm-fab { bottom: calc(var(--nav-h) + var(--dock-gap) + 14px + var(--safe-b)) !important; right: max(14px, var(--safe-r)) !important; width: 48px !important; height: 48px !important; border: 0 !important; background: var(--surface2) !important; color: var(--acc2) !important; box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 10px 28px -8px rgba(0,0,0,.75) !important; }
 @media (min-width: 821px) { .sm-fab { bottom: 24px !important; right: 24px !important; } }
-.sm-fab { transition: transform .44s var(--spring), opacity .2s var(--ease-std) !important; }
+.sm-fab { transition: transform .44s var(--spring), opacity .2s var(--ease-std), translate .36s var(--spring) !important; }
+/* she steps aside when a control lies under her (PD.sima: dodge) — up to a free place, or half out to the edge */
+.sm-fab { translate: 0 calc(var(--sm-lift, 0px) * -1); }
+.sm-fab.sm-tuck { translate: calc(50% + max(14px, var(--safe-r, 0px))) 0; opacity: .9; }
+.sm-fab.sm-tuck:focus-visible, .sm-fab.sm-tuck:hover { translate: 0 0; }
+.sm-fab.sm-ghost { visibility: hidden !important; pointer-events: none !important; translate: none !important; transition: none !important; transform: none !important; }
+@media (prefers-reduced-motion: reduce) { .sm-fab { transition: opacity .2s linear !important; } }
 :root.scrolling-down .sm-fab { transform: translateY(18px) scale(.7) !important; opacity: 0 !important; pointer-events: none; }
 
 /* the tuner fills the page above the dock */
