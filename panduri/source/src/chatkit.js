@@ -172,23 +172,24 @@ authorization of the copyright holder.
     el.append(tabs,body);
     tabs.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;const buttons=[...tabs.querySelectorAll('[role=tab]')],at=buttons.indexOf(document.activeElement);if(at<0)return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?buttons.length-1:(at+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;buttons[next].click();tabs.querySelectorAll('[role=tab]')[next]?.focus();});
     let cur = null, revision = 0;
+    const observer=typeof ResizeObserver==='function'?new ResizeObserver(position):null;observer?.observe(opts.input.closest('.ms-composer')||opts.input);
     const vv = window.visualViewport;
     function position() {
       if (el.hidden) return;
-      const r = opts.input.getBoundingClientRect(), top = vv ? vv.offsetTop : 0;
-      const width = Math.min(440, (vv ? vv.width : innerWidth) - 16);
-      const bottom = top + (vv ? vv.height : innerHeight), anchor = Math.max(top+76, Math.min(r.top,bottom-8));
-      const room = Math.max(60,anchor-top-16), height = Math.min(cur==='stickers'?560:420,room);
-      el.style.width = width + 'px'; el.style.left = Math.max(8,Math.min(innerWidth-width-8,r.left)) + 'px';
-      el.style.top = Math.max(top+8,anchor-height-8) + 'px';
-      el.style.height = height + 'px';
+      const r=opts.input.getBoundingClientRect(),vx=vv?vv.offsetLeft:0,vy=vv?vv.offsetTop:0,vw=vv?vv.width:innerWidth,vh=vv?vv.height:innerHeight;
+      const composer=opts.input.closest('.ms-composer'),cr=composer?.getBoundingClientRect(),chat=opts.input.closest('.ms-chat'),header=chat?.querySelector('.ms-head')?.getBoundingClientRect();
+      const gap=vw<600?10:12,ceiling=Math.max(vy+gap,header?header.bottom+gap:vy+gap),anchor=Math.min(cr?cr.top:r.top,vy+vh-gap);
+      const room=Math.max(100,anchor-ceiling-gap),height=Math.min(cur==='stickers'?520:420,Math.round(vh*.64),room),width=Math.min(cur==='stickers'?500:440,vw-gap*2);
+      el.style.width=width+'px';el.style.left=Math.max(vx+gap,Math.min(vx+vw-width-gap,cr?cr.left:r.left))+'px';
+      el.style.top=Math.max(vy+gap,anchor-height-gap)+'px';el.style.height=height+'px';el.classList.toggle('ck-compact',height<330);
+
     }
     function paintTabs(gif) {
       const list = [['emoji','😊','ck.emoji']].concat(opts.onSticker ? [['stickers','🪕','ck.stickers']] : []).concat(opts.onGif ? [['gif','GIF','ck.gif']] : []);
       tabs.replaceChildren(...list.map(([k,icon,key])=>h('button',{type:'button',role:'tab','aria-selected':String(cur===k),class:cur===k?'on':'','aria-label':t(key),text:t(key),tabindex:cur===k?'0':'-1',onclick:()=>show(k)})),closeButton);
     }
     function show(k) {
-      cur=k; const token=++revision;
+      cur=k;el.dataset.tab=k; const token=++revision;
       body.replaceChildren(k==='emoji' ? emojiGrid(e=>insert(opts.input,e)) : k==='stickers' ? stickerGrid(id=>{close();opts.onSticker(id);}) : gifGrid(r=>{close();opts.onGif(r);}));
       paintTabs(gifOn === true); position(); body.scrollTop=0;
       if(opts.onGif) gifsAvailable().then(ok=>{if(token===revision && !el.hidden)paintTabs(ok);});
@@ -200,7 +201,7 @@ authorization of the copyright holder.
       document.body.append(el);el.hidden=false;show(k||cur||'emoji');
     }
     function close() { el.hidden=true; revision++; }
-    function destroy() { close();el.remove();document.removeEventListener('pointerdown',away,true);document.removeEventListener('keydown',key);window.removeEventListener('resize',position);window.removeEventListener('scroll',position,true);vv && vv.removeEventListener('resize',position);vv && vv.removeEventListener('scroll',position); }
+    function destroy() { close();observer?.disconnect();el.remove();document.removeEventListener('pointerdown',away,true);document.removeEventListener('keydown',key);window.removeEventListener('resize',position);window.removeEventListener('scroll',position,true);vv && vv.removeEventListener('resize',position);vv && vv.removeEventListener('scroll',position); }
     document.addEventListener('pointerdown',away,true);document.addEventListener('keydown',key);window.addEventListener('resize',position);window.addEventListener('scroll',position,true);vv && vv.addEventListener('resize',position);vv && vv.addEventListener('scroll',position);
     return {el,toggle,close,destroy,get open(){return !el.hidden;}};
   }

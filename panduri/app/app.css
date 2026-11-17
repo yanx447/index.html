@@ -5648,6 +5648,76 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
 .sp-pack-card{padding:9px;gap:2px}.sp-pack-cover{max-width:80px;margin-bottom:3px}.sp-pack-card b{font-size:10px;line-height:1.45}.sp-pack-card small{font-size:8px}
 @media(min-width:360px){.sp-pack-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.sp-pack-card{padding:8px}.sp-pack-cover{max-width:76px}.sp-pack-card b{font-size:9px}}
 }
+/* Motion collection: independent scroll area, fixed tools, proportionate popover. */
+@layer ds {
+.ck-floating{border-radius:20px;background:var(--surface);box-shadow:0 20px 64px #0007,inset 0 1px #ffffff09}
+.ck-floating .ck-tabs{padding:8px 10px;border-bottom:1px solid var(--line);gap:4px}
+.ck-floating .ck-tabs button[role=tab]{min-width:65px;height:36px;font-size:11px}
+.ck-floating .ck-close{width:32px;height:32px;min-height:32px;font-size:23px;border-radius:10px}
+.ck-floating[data-tab=stickers] .ck-body{overflow:hidden;padding:12px;scrollbar-gutter:auto;display:flex}
+.sp-picker{display:flex;flex-direction:column;width:100%;height:100%;gap:10px;min-height:0}
+.sp-search-row{position:static;display:flex;align-items:center;gap:7px;background:transparent;padding:0;flex:none}
+.sp-search-row .sp-search{min-height:36px;height:36px;min-width:0;flex:1;border-radius:11px;font-size:11px;margin:0}
+.sp-motion-toggle{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:11px;border:1px solid var(--line);background:var(--surface2);color:var(--fg2);font-size:15px}
+.sp-rail{gap:5px;padding:0 0 5px;min-height:34px;scrollbar-width:thin}
+.sp-rail [role=tab]{min-height:29px;padding:5px 9px;font-size:9px;border-radius:8px}
+.sp-section-head{min-height:24px;flex:none;padding:0 2px}.sp-section-head b{font-size:11px}.sp-section-head small{font-size:9px}
+.sp-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line2) transparent;align-content:start;padding:3px 5px 10px 2px;scroll-padding-block:4px}
+.sp-pack-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.sp-pack-card{position:relative;align-items:center;text-align:center;justify-content:start;padding:9px 6px 8px;gap:3px;border-radius:13px;background:linear-gradient(150deg,#ffffff07,#ffffff02);min-width:0;min-height:137px;overflow:hidden}
+.sp-pack-card[data-pack=sculpt]{border-color:#a99afa66;background:linear-gradient(135deg,#b09dff1c,#6b9fff0b)}
+.sp-pack-cover{width:86px;height:86px;max-width:100%;aspect-ratio:1;margin:0;flex:none}
+.sp-pack-cover>svg{width:100%;height:100%;overflow:visible}
+.sp-pack-card b{font-size:10px;font-weight:600;line-height:1.5;max-width:100%}.sp-pack-card small{font-size:8px;color:var(--muted)}
+.sp-picker .sp-sticker-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 5px}
+.sp-tile{border-radius:13px}.sp-picker .sp-pick{padding:18px 3px 8px;min-height:135px}
+.sp-sticker .ck-art,.ms-messages .cm-msg.is-sticker .sp-sticker .ck-art{width:156px;height:156px;filter:none}
+.sp-sticker.small{gap:4px;align-items:center}.sp-sticker.small .ck-art{width:100%;height:auto;max-width:112px;aspect-ratio:1}
+.sp-sticker.small b{font-size:10px;font-weight:500;line-height:1.45;color:var(--fg2);padding-inline:3px}
+.sp-sculpture{display:block;width:100%;height:100%}.sp-sculpture img{display:block;width:100%;height:100%;object-fit:contain}
+.sp-favorite{width:26px;height:26px;min-height:26px;top:2px;inset-inline-end:2px;background:transparent;padding:6px;opacity:.55}
+.sp-favorite.on{opacity:1}.sp-more{flex:none;margin:0;min-height:30px;padding:5px 12px;font-size:10px}
+.ck-compact .ck-tabs{padding-block:4px}.ck-compact .sp-picker{gap:5px}.ck-compact[data-tab=stickers] .ck-body{padding:7px 10px}.ck-compact .sp-search-row .sp-search,.ck-compact .sp-motion-toggle{height:30px;min-height:30px}.ck-compact .sp-rail{min-height:26px;padding-bottom:2px}.ck-compact .sp-rail [role=tab]{min-height:24px;padding-block:3px}.ck-compact .sp-section-head{min-height:22px}
+.sp-vector{overflow:visible}.sp-moving{transform-box:view-box;transform-origin:80px 80px;animation:sp-breathe 4.8s ease-in-out infinite}
+.sp-motion-spin .sp-moving{animation:sp-spin 7s linear infinite;transform-origin:80px 71px}
+.sp-motion-pendulum .sp-moving{animation:sp-pendulum 2s ease-in-out infinite;transform-origin:80px 122px}
+.sp-motion-beat .sp-moving{animation:sp-heartbeat 2.8s ease-in-out infinite}
+.sp-motion-wave .sp-moving{animation:sp-wave 3.2s ease-in-out infinite;transform-origin:80px 115px}
+.sp-motion-sway .sp-moving{animation:sp-sway 4.5s ease-in-out infinite;transform-origin:80px 120px}
+.sp-motion-tilt .sp-moving{animation:sp-play 3.6s cubic-bezier(.45,0,.3,1) infinite;transform-origin:80px 96px}
+.sp-motion-signal .sp-moving{animation:sp-signal 2.8s ease-in-out infinite}
+.sp-motion-float .sp-moving{animation:sp-float 5s ease-in-out infinite}
+.sp-motion-type .sp-moving{animation:none}.sp-letter-line{animation:sp-ink 4.5s ease-in-out infinite;animation-delay:calc(var(--line)*.12s)}
+.sp-motion-signal .sp-moving rect:nth-child(n+2){transform-box:fill-box;transform-origin:center bottom;animation:sp-meter 1.8s ease-in-out infinite}.sp-motion-signal .sp-moving rect:nth-child(3n){animation-delay:-.5s}.sp-motion-signal .sp-moving rect:nth-child(2n){animation-delay:-1.2s}
+.sp-steam{animation:sp-steam 3s ease-in-out infinite;animation-delay:calc(var(--i)*-.9s)}
+.sp-drop{animation:sp-rain 1.8s linear infinite;animation-delay:calc(var(--i)*-.31s)}
+.sp-resonance{animation:sp-resonance 2.4s ease-out infinite;animation-delay:calc(var(--i)*.22s)}
+.sp-spark{animation:sp-spark 3.7s ease-in-out infinite;transform-origin:80px 75px}.sp-ground{animation:sp-shadow 5s ease-in-out infinite;transform-origin:80px 145px}
+.sp-paused *{animation-play-state:paused!important}
+@keyframes sp-breathe{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-3px) rotate(1deg)}}
+@keyframes sp-spin{to{transform:rotate(360deg)}}
+@keyframes sp-pendulum{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+@keyframes sp-heartbeat{0%,30%,60%,100%{transform:scale(1)}14%,44%{transform:scale(1.055)}}
+@keyframes sp-wave{0%,20%,70%,100%{transform:rotate(0)}32%,52%{transform:rotate(-9deg)}42%,62%{transform:rotate(7deg)}}
+@keyframes sp-sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes sp-play{0%,100%{transform:rotate(-2deg)}40%{transform:rotate(3deg) translateY(-2px)}70%{transform:rotate(-1deg)}}
+@keyframes sp-signal{0%,100%{transform:scaleY(.95)}50%{transform:scaleY(1.04)}}
+@keyframes sp-float{0%,100%{transform:translateY(1px) rotate(-2deg)}50%{transform:translateY(-5px) rotate(2deg)}}
+@keyframes sp-ink{0%,12%,88%,100%{opacity:1;transform:translateY(0)}45%{opacity:.72;transform:translateY(-2px)}}
+@keyframes sp-meter{0%,100%{transform:scaleY(.6)}50%{transform:scaleY(1)}}
+@keyframes sp-steam{0%{opacity:0;transform:translateY(5px)}30%{opacity:.65}100%{opacity:0;transform:translateY(-12px)}}
+@keyframes sp-rain{0%{opacity:0;transform:translate(3px,-5px)}20%{opacity:.9}85%,100%{opacity:0;transform:translate(-3px,19px)}}
+@keyframes sp-resonance{0%,100%{opacity:0}30%{opacity:.7}70%{opacity:0;transform:translateX(3px)}}
+@keyframes sp-spark{0%,100%{opacity:.5;transform:scale(.9)}50%{opacity:1;transform:scale(1.04)}}
+@keyframes sp-shadow{0%,100%{opacity:.12;transform:scaleX(1)}50%{opacity:.06;transform:scaleX(.8)}}
+@media(max-width:359px){.sp-pack-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sp-pack-card{min-height:130px}.sp-picker .sp-sticker-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.sp-picker .sp-pick{min-height:112px;padding-top:16px}.sp-sticker.small b{font-size:9px}.sp-pack-cover{width:82px;height:82px}}
+@media(prefers-reduced-motion:reduce){.sp-vector *{animation:none!important}.sp-pack-card{transition:none}}
+:root.rm .sp-vector *{animation:none!important}
+}
+@layer ds {
+.sp-motion-pendulum .sp-moving{animation:none}.sp-needle{transform-origin:80px 109px;animation:sp-needle 1.8s ease-in-out infinite}
+@keyframes sp-needle{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
+}
 
 /* ფანდურის ბაზარი (market.js) — the design system's tokens only: black surfaces, copper accent.
    One column up to 1080 px; cards in a grid that holds two columns on a 320 px phone. */

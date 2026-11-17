@@ -49,8 +49,11 @@ def _chord_keys():
         if os.path.exists(f): lib.update(json.load(open(f)))
     return {k: True for k in sorted(lib) if lib[k]['worst'] <= 3.6} if lib else None
 CHORD_KEYS = _chord_keys()
+STICKER_FILES = sorted(f for f in os.listdir('assets/stickers') if f.endswith('.webp')) if os.path.isdir('assets/stickers') else []
+STICKER_MOTION = {f[:-5]: {'motion': 'stickers/' + f, 'still': 'stickers/' + f[:-5] + '-still.webp'} for f in STICKER_FILES if not f.endswith('-still.webp')}
+STICKER_DIGEST = hashlib.sha1(b''.join(open('assets/stickers/'+f,'rb').read() for f in STICKER_FILES)).hexdigest()
 def assets_js(inline):
-    return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + hero + '", photos: ' + json.dumps(PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ' };'
+    return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + hero + '", photos: ' + json.dumps(PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ', stickerMotion: ' + json.dumps({} if inline else STICKER_MOTION) + ' };'
 css_single = css   # the single files: without the app-only modules' styles
 css = css + src('market.css') + '\n'
 for n in ORDER: assert '</script' not in src(n + '.js'), n
@@ -149,7 +152,7 @@ open(app + '/app.css', 'w').write(css)
 # Every script and the stylesheet carry the build's revision in their address. index.html is fetched from the network
 # first, so a new build's page always asks for new addresses: a browser still run by the previous service worker cannot
 # answer them from its old cache (with only four files versioned, the rest of an update stayed old until a second reload).
-ASSET_REV = hashlib.sha1((css + ''.join(src(n + '.js') for n in ORDER)).encode()).hexdigest()[:10]
+ASSET_REV = hashlib.sha1((STICKER_DIGEST + css + ''.join(src(n + '.js') for n in ORDER)).encode()).hexdigest()[:10]
 VERSIONED = set(ORDER)
 tags = []
 for n in ORDER:
@@ -173,6 +176,7 @@ os.makedirs(app + '/js/lang', exist_ok=True)
 for c, d in LANG_TR.items(): open(f'{app}/js/lang/{c}.js', 'w', encoding='utf8').write('(window.PD_LANG=window.PD_LANG||{})[' + json.dumps(c) + ']=' + json.dumps({'map': d, 'templates': LANG_TEMPLATES}, ensure_ascii=False, separators=(',', ':')) + ';\n')
 for m in MEDIA: os.makedirs(os.path.dirname(app + '/media/' + m), exist_ok=True); shutil.copy(MEDIA_DIR + '/' + m, app + '/media/' + m)
 if FIG_NAMES: shutil.copytree('assets/fig', app + '/fig')
+if STICKER_FILES: shutil.copytree('assets/stickers', app + '/stickers')
 # The 3D renderer's code is fetched at start (fetch goes through the service worker, so it comes from the cache
 # offline — a synchronous XHR does not, and offline it used to stop the whole app at the welcome screen) and parsed
 # only when 3D is first used. Code that runs before the fetch is back waits for PD.R3Dready.
@@ -226,6 +230,7 @@ shell = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icon
 # The integrated tuner must work offline, and its engine changes must invalidate the app shell.
 tuner_files = sorted(str(p).replace('\\', '/') for p in __import__('pathlib').Path('ext/sami-simi').rglob('*') if p.is_file() and p.suffix in ('.js', '.css', '.html', '.woff', '.woff2'))
 shell += [p.replace('ext/sami-simi/', 'tuner/') for p in tuner_files]
+shell += ['stickers/'+f for f in STICKER_FILES]
 tuner_digest = hashlib.sha1(b''.join(open(p, 'rb').read() for p in tuner_files)).hexdigest()
 shell += [f'js/{n}.js?v={ASSET_REV}' for n in ORDER if n not in LAZY] + [f'js/assets.js?v={ASSET_REV}', f'js/config.js?v={ASSET_REV}', f'app.css?v={ASSET_REV}']
 version = hashlib.sha1((tuner_digest + css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read() + ''.join(LANG_JSON.values()) + index + json.dumps(shell)).encode()).hexdigest()[:10]
