@@ -23,6 +23,7 @@ PD.i18n.add({
   'nt.unsupported': ['ამ მოწყობილობაზე სისტემური შეტყობინება არ არის ხელმისაწვდომი — შეტყობინებები აპის შიგნით მოგივა.', 'System notifications are not available on this device — you will get them inside the app.'],
   'nt.webNote': ['ბრაუზერს დახურულ აპზე გაღვიძება არ შეუძლია: დროზე მიბმული შეხსენებები მაშინ მოვა, როცა აპი გახსნილია ან დაყენებულია მთავარ ეკრანზე. დაყენებულ (ინსტალირებულ) აპში შეხსენებები სრულად მუშაობს.', 'A browser cannot wake a closed app: timed reminders arrive while the app is open or installed on the home screen. In the installed app they work in full.'],
   'nt.kinds': ['რაზე გსურს შეტყობინება', 'What to be told about'],
+  'nt.k.sima': ['სიმას დღის რჩევა', 'Sima’s tip of the day'], 'nt.k.simaD': ['დღეში ერთხელ, 10:00-ზე: რჩევა და თეორიის ერთი ფაქტი', 'Once a day, at 10:00: a tip and one piece of theory'],
   'nt.k.market': ['ბაზარი', 'Marketplace'], 'nt.k.marketD': ['განცხადების გამოქვეყნება, ვადის ამოწურვა, წერილები მყიდველებისგან', 'A listing published or about to end, messages from buyers'],
   'nt.k.practice': ['ყოველდღიური ვარჯიში', 'Daily practice'],
   'nt.k.practiceD': ['შენს დროზე: რა დაგრჩა — გამოცდა, სიმღერა, თეორიის გამეორება; სერია და კვირის შეჯამება', 'At your hour: what is left — an exam, a song, a theory review; streaks and your week'],
@@ -121,7 +122,7 @@ PD.i18n.add({
 
 PD.notify = (() => {
   const h = PD.h, t = PD.i18n.t, ic = PD.ic;
-  const KINDS = ['practice', 'idle', 'exam', 'premium', 'social', 'feed', 'records', 'news', 'market'];
+  const KINDS = ['sima', 'practice', 'idle', 'exam', 'premium', 'social', 'feed', 'records', 'news', 'market'];
   const K = 'notify', LOG = 'notify.log';
   const prefs = () => Object.assign({ on: false, hour: 19, quiet: true, kinds: {} }, PD.store.get(K, {}));
   const save = p => { PD.store.set(K, p); PD.bus.emit('notify', p); };
@@ -379,6 +380,14 @@ PD.notify = (() => {
         if (when > now + 60000) out.push({ id: 1000 + i, kind: 'practice', at: when, title: t('nt.practiceT'), body: t('nt.practiceB', { m: goal }), go: 'daily' });
       }
     }
+    // Sima's tip of the day at 10:00 (the app writes it into her conversation itself when it is opened; today's is skipped once it has)
+    if (wants('sima') && PD.store.get('sima.on', true) && PD.store.get('sima.daily', true) && PD.sima && PD.sima.dayTip) {
+      const today = new Date(), done = PD.store.get('sima.day', '') === today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+      for (let i = done ? 1 : 0; i < 7; i++) {
+        const when = at(now + i * 864e5, 10), tip = PD.sima.dayTip(new Date(when));
+        if (tip && when > now + 60000) out.push({ id: 1400 + i, kind: 'sima', at: when, title: tip.title, body: tip.body.slice(0, 180), go: 'sima' });
+      }
+    }
     if (wants('idle') && !byServer) out.push({ id: 1100, kind: 'idle', at: now + 3 * 864e5, title: t('nt.idleT'), body: t('nt.idleB', { n: 3 }), go: 'home' });
     if (wants('exam') && !byServer) { const ex = PD.exam && (PD.exam.active() || (PD.exam.dueExam && PD.exam.dueExam()));
       const id = ex && ex.id ? ex.id : ex;
@@ -471,6 +480,7 @@ PD.notify = (() => {
   /* ---------------- a notification that was tapped ---------------- */
   function openFrom(go) {
     if (!go || !PD.app) return;
+    if (go === 'sima') { if (PD.sima) setTimeout(() => PD.sima.open(''), 300); return; }   // her message: the conversation itself
     const [r, ...rest] = String(go).split(':'), p = rest.join(':');
     try { PD.app.go(r, p || null); } catch (_) {}
   }

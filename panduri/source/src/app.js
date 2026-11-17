@@ -1134,7 +1134,7 @@ PD.app = (() => {
   }
 
 
-  const recommendedKeys = ['goalMin','glass','soundPalette','emojiAppearance','quality','fps','reduceMotion','textSize','hc','fingerSymbols','uiSounds','haptics','remoteNav','waitDefault','autoAdvance','fingerColors','showNames','showFrets','lefty','countIn','metro','assist','tolCents','clickGuard','vol','tuning','a4','sima.on','sima.nudge','devTouch'];
+  const recommendedKeys = ['goalMin','glass','soundPalette','emojiAppearance','quality','fps','reduceMotion','textSize','hc','fingerSymbols','uiSounds','haptics','remoteNav','waitDefault','autoAdvance','fingerColors','showNames','showFrets','lefty','countIn','metro','assist','tolCents','clickGuard','vol','tuning','a4','sima.on','sima.nudge','sima.daily','devTouch'];
   function restoreRecommended(undo) {
     const key='settings.recommendedBackup';
     if(undo){const saved=PD.store.get(key,null);if(!saved)return;recommendedKeys.forEach(k=>{if(Object.prototype.hasOwnProperty.call(saved,k))PD.store.set(k,saved[k]);else PD.store.del(k);});PD.store.del(key);}
@@ -1160,7 +1160,8 @@ PD.app = (() => {
       w.append(PD.notify.settingsSection({ sect, row, toggle }));
       w.append(sect('sm.title', [
         row('sm.on', '', toggle('sima.on', true, () => PD.sima.refresh())),
-        row('sm.nudgeOn', '', toggle('sima.nudge', true))]));
+        row('sm.nudgeOn', '', toggle('sima.nudge', true)),
+        row('sm.dailyOn', t('sm.dailyD'), toggle('sima.daily', true))]));
       w.append(sect('set.app', [row('set.version', PD.BUILD ? 'build ' + PD.BUILD : '', h('button', { class: 'btn small', 'data-t': 'set.update', onclick: async e2 => {
         const btn = e2.currentTarget; btn.disabled = true; btn.textContent = t('set.updating');
         const got = await PD.pwa.update();

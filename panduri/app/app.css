@@ -2539,8 +2539,17 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .sm-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
 .sm-links{display:flex;gap:4px 10px;flex-wrap:wrap;align-items:baseline;margin-top:8px;font-size:12.5px}.sm-links small{flex-basis:100%}.sm-links a{color:var(--accent,inherit);text-decoration:underline;overflow-wrap:anywhere}
 .sm-more{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+/* what she can play, and her message of the day */
+.sm-plays .sm-pl{border-color:rgba(199,139,94,.5)}
+.sm-plays .sm-pl.on{background:var(--brass-wash);border-color:var(--brass)}
+.sm-plays .sm-pl.mini{min-height:30px;padding:4px 10px;font-size:12.5px}
+.sm-plays .rh-pvl{font-size:12.5px}
+.sm-ext{text-decoration:none}
+.sm-b.day{border-color:rgba(199,139,94,.42)}
+.sm-fab.sm-new::before{content:'';position:absolute;right:1px;top:1px;width:12px;height:12px;border-radius:6px;background:#e5484d;border:2px solid var(--bg)}
 .sm-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .sm-chips::-webkit-scrollbar{display:none} .sm-chips .chip{flex:0 0 auto}
+.sm-chips{flex-shrink:0}   /* a long conversation must not squeeze the question chips to nothing */
 .sm-row{display:flex;gap:6px;align-items:center}
 .sm-in{flex:1;min-width:0}
 @media (min-width:640px){.sm-wrap{align-items:center}.sm-card{border-radius:22px;border-bottom:1px solid var(--line)}}

@@ -57,3 +57,33 @@ Offline backend checks:
   tokens. The privacy note in the app says the question may go to an internet search.
 - **Not deployed yet.** These changes are in the repository and pass `sima.test.ts`; the function running
   on Supabase is the earlier version until `supabase functions deploy sima` is run.
+
+## 2026-11-17: a music teacher — theory she works out, sounds she plays, a message a day
+
+- **Theory in the app (`src/simatheory.js`, `fact` badge).** Intervals between two notes (letters and semitones,
+  inversion), a note an interval above/below, every scale and mode spelled letter by letter (F♯ major has E♯),
+  key signatures, relative and parallel keys, the chords of a key with Roman numerals (triads and sevenths,
+  harmonic-minor V), the notes and formula of any chord the app knows, a chord named from its notes (with its
+  inversion), the key of a progression with its numerals, transposition (by semitones or to a key, with a check
+  that the panduri has a shape for each new chord), a note's frequency and the note nearest a frequency (at the
+  app's A4), tempo in milliseconds, the circle of fifths. The local answer goes to the model as `context` with
+  `computed`, and the instructions tell it to build on it and never contradict it.
+- **Instructions.** A MUSIC THEORY section (rigorous spelling, count letters and semitones, teach at the
+  learner's level, Georgian polyphony only from well-established facts) and PLAYING (`canPlay`: the ▶ buttons the
+  app shows; she never claims to hear the learner). `max_output_tokens` 1600 → 2200.
+- **Playing (`src/simaplus.js`, installable app only).** ▶ under her answers: a chord on the shape the app
+  computes, a scale or interval note by note, a rhythm at its page's tempo (the teacher's recording first when there
+  is one), a song's own recording, a progression. All on the device's own sound; nothing is sent.
+- **Songs.** „რა სიმღერები გაქვს" lists the app's songs (also by chord). A song the app does not hold gets a
+  YouTube search link (opened only when tapped) and, when signed in, the web search for its chords.
+- **Once a day she writes first** (10:00 on the lock screen where the device allows; in the app on opening): a tip
+  from the app's tips with its own source badge (teacher / general / draft), the streak or the days missed, what is
+  waiting, and one piece of theory of the day. After the day's first practice she says well done. Settings →
+  Sima → „დღეში ერთხელ თვითონ მწერს" and Settings → Notifications → „სიმას დღის რჩევა" turn it off.
+- **History is now kept on the device** (`sima.thread.<uid>` in local storage, last 80 messages, a 🗑 button
+  clears it); the last 11 turns go with each question. Nothing of it is stored on the server.
+- **Single-file build.** `simatheory` and `simaplus` are `APP_ONLY` (the single file is at its 16 MB limit);
+  there Sima answers from the app's material as before.
+- **Not deployed yet**: run `supabase functions deploy sima` for the new instructions. The client works with the
+  deployed function as it is (same request shape, ≤ 12 messages).
+

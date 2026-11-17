@@ -51,7 +51,7 @@ PD.sima = (() => {
     song: 'სიმღერ|song|песн|пісн|lied|canción|cancion|chanson|canzone|música|musica|şarkı|piosenk|أغنية|गाना|गीत|歌|曲|노래'.split('|'),
     music: 'მუსიკ|ფანდურ|დაკვრ|music|panduri|музык|пандури|музик|musik|música|musique|musica|müzik|muzyk|موسيقى|باندوري|संगीत|पांडुरी|音乐|潘杜里|音楽|パンドゥリ|음악|판두리'.split('|')
   };
-  const has = (Q, k) => KW[k].some(w => (' ' + Q + ' ').includes(w));
+  const has = (Q, k) => (KW[k] || []).some(w => (' ' + Q + ' ').includes(w));
 
   /* ---------------- chord names: Bb, B♭ and A♯ are one chord ---------------- */
   const PCN = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
@@ -75,6 +75,8 @@ PD.sima = (() => {
     });
     return out;
   }
+  /* ---------------- what she can play: the app's own shapes and sounds ---------------- */
+  const libShape = n => { const k = canon(n), c = k && chordList().find(x => canon(x.name) === k); return c ? ((c.voicings && c.voicings[0]) || c) : null; };
   const fretsOf = v => v.frets.map((f, k) => TH().stringName(k + 1) + ' ' + (f === 0 ? t('sm.open') : t('sm.fret', { n: f }))).join(' · ');
   const strokeText = st => (st || []).map(s => t(s.direction === 'down' ? 'w.down' : 'w.up')).join(' · ') +
     ' (' + (st || []).map(s => (s.direction === 'down' ? '↓' : '↑') + (s.accent ? '>' : '')).join(' ') + ')';
@@ -96,7 +98,7 @@ PD.sima = (() => {
     const R = l.songRhythm ? (PD.curriculum.anyRhythm(l.songRhythm) || (PD.aiLessons && PD.aiLessons.patterns().find(p => p.id === l.songRhythm))) : null;
     const strokes = l.beatStrokes || (R ? R.strokes : []);
     const cyc = l.cycle && l.cycle.length ? l.cycle : null;
-    const chords = cyc ? [...new Set(cyc)] : Object.keys(shapes);
+    const chords = cyc ? [...new Set(cyc)] : Object.keys(shapes).length ? Object.keys(shapes) : [...new Set((l.events || []).map(e => e.chord).filter(Boolean))];
     const meter = SD.meterLabel || (l.meter ? l.meter[0] + '/' + l.meter[1] : '');
     return { l, title: L(l.title), shapes, R, Rname: R ? (R.key ? t(R.key) : L(R.name)) : '', strokes, cyc, chords, meter, bpm: Math.round(l.bpm || 0), ai: !!l.ai,
       src: l.ai ? null : (l.chartSrc === 'teacher' || /teacher/.test(l.source || '') ? 'teacher' : 'fact'), stages: PD.lessons.stagesOf(l) };
@@ -116,7 +118,7 @@ PD.sima = (() => {
     const lines = [];
     if (all || wantC) {
       lines.push(s.cyc ? t('sm.sgCycle', { t: s.title, c: s.cyc.join(' · ') }) : t('sm.sgChords', { t: s.title, c: s.chords.join(' · ') }));
-      s.chords.forEach(n => { const sh = s.shapes[n]; if (sh) lines.push('• ' + n + ': ' + fretsOf(sh) + (sh.src === 'derived' ? ' (' + t('sg.derived') + ')' : '')); });
+      s.chords.forEach(n => { const sh = s.shapes[n] || libShape(n); if (sh && sh.frets) lines.push('• ' + n + ': ' + fretsOf(sh) + (sh.src === 'derived' ? ' (' + t('sg.derived') + ')' : '')); });
     }
     if (all || wantR) {
       if (s.Rname) lines.push(t('sm.sgRhythm', { r: s.Rname, s: strokeText(s.strokes) }) + (s.cyc ? ' ' + t('sm.sgPer') : ''));
@@ -127,7 +129,8 @@ PD.sima = (() => {
     const acts = [[t('sm.openSong'), ['lesson', l.id]]];
     if (s.R && PD.curriculum.anyRhythm(s.R.id)) acts.push([t('sm.openRhythm'), ['rhythms', s.R.id]]);
     if (s.ai) acts.push([t('ai.title'), ['ai']]);
-    return { title: s.title, lines, src: s.src, ai: s.ai, acts };
+    if (l.songbook && l.source === 'draft') lines.push(t('sb.draft'));
+    return { title: s.title, lines, src: l.songbook ? 'draft' : s.src, ai: s.ai, acts, song: l.id };
   }
 
   /* ---------------- the song open in the AI studio ---------------- */
@@ -243,7 +246,7 @@ PD.sima = (() => {
       // several chords at once ("Dm-Bb-C"): each one in a line, the first shape the app computes for it
       return { title: found.map(f => f.as).join(' · '), lines: [t('sm.chordsAre')].concat(found.map(f => { const v = (f.c.voicings && f.c.voicings[0]) || f.c;
         return '• ' + f.as + (f.as !== f.c.name ? ' (= ' + f.c.name + ')' : '') + ': ' + fretsOf(v); })),
-        src: found.every(f => f.c.src === 'teacher') ? 'teacher' : 'fact', acts: [[t('sm.openChord'), ['chords', found[0].c.id]]] };
+        src: found.every(f => f.c.src === 'teacher') ? 'teacher' : 'fact', acts: [[t('sm.openChord'), ['chords', found[0].c.id]]], chords: found.map(f => [f.c.name, f.as]) };
     }
     if (!best) all.forEach(c => {
       const ka = norm(c.ka || '').replace(/\s/g, '');
@@ -259,7 +262,7 @@ PD.sima = (() => {
     });
     return { title: as, lines: [t('sm.chordIs', { n: as })].concat(rows),
       src: best.src === 'teacher' ? 'teacher' : 'fact',
-      acts: [[t('sm.openChord'), ['chords', best.id]], [t('sm.howTaken'), ['chordhow', best.id]]] };
+      acts: [[t('sm.openChord'), ['chords', best.id]], [t('sm.howTaken'), ['chordhow', best.id]]], chord: best.name, frets: v.frets };
   }
 
   /** the instrument: how many strings and frets, how it is tuned */
@@ -297,7 +300,7 @@ PD.sima = (() => {
       // "which rhythms are there", "რითმები" — the teacher's four, one line each
       if (has(n, 'rhythm') && !has(n, 'song') && (n.split(' ').length <= 2 || /რა რი[თტ]მ|რომელი რი[თტ]მ|რამდენი რი[თტ]მ|which rhythm|what rhythms|how many rhythm/u.test(n)))
         return { title: t('nav.rhythms'), lines: [t('sm.rhythmsAre', { n: T.length })].concat(T.map(x => '• ' + L(x.name) + ' — ' + strokeText(x.strokes) + (x.meter ? ' · ' + meterText(x) : ''))),
-          src: T.every(x => x.source === 'teacher') ? 'teacher' : 'fact', acts: [[t('sm.openRhythm'), ['rhythms']], [t('sm.metro'), ['metronome']]] };
+          src: T.every(x => x.source === 'teacher') ? 'teacher' : 'fact', acts: [[t('sm.openRhythm'), ['rhythms']], [t('sm.metro'), ['metronome']]], rhythms: T.map(x => x.id) };
       return null;
     }
     const lines = r.strokes.map((s2, i) => (i + 1) + '. ' + (s2.direction === 'down' ? '↓ ' + t('w.down') : '↑ ' + t('w.up')) + (s2.accent ? ' · ' + t('rh.accent') : ''));
@@ -306,7 +309,7 @@ PD.sima = (() => {
     const inSongs = songs().filter(l => l.songRhythm === r.id).map(l => L(l.title));
     if (inSongs.length) lines.push(t('sm.rhythmSongs', { s: inSongs.join(', ') }));
     return { title: L(r.name), lines: [t('sm.rhythmIs', { n: L(r.name), c: r.strokes.length })].concat(lines),
-      src: r.source, acts: [[t('sm.openRhythm'), ['rhythms', r.id]], [t('sm.metro'), ['metronome']]] };
+      src: r.source, acts: [[t('sm.openRhythm'), ['rhythms', r.id]], [t('sm.metro'), ['metronome']]], rhythm: r.id };
   }
 
   /** what to practise, from the learner's own history */
@@ -389,14 +392,23 @@ PD.sima = (() => {
     }
     return match ?{ title: name(), lines: [t(match[1], { n: name() })], acts: [], conversational: true } : null;
   }
-  function answer(q) {
+  /** what she answers; the installable app adds what can be played (simaplus.js) */
+  const answer = q => { const a = reply(q); return EXT.decorate ? EXT.decorate(a) : a; };
+  function reply(q) {
     const Q = norm(q);
     const social = conversation(q); if (social) return social;
     if (!Q) return { title: name(), lines: [t('sm.hello', { n: name() })], src: 'fact', acts: [] };
     if (Q === norm(t('sm.q2')) || HAS(Q, ['გამოცდ', 'exam', 'экзамен', 'examen', 'prüfung', 'prufung', 'esame', 'exame', 'sınav', 'іспит', 'egzamin', 'امتحان', 'परीक्षा', '考试', '試験', '시험'])) return examAnswer();
     if (Q === norm(t('sm.q1')) || HAS(Q, ['რა ვივარჯიშ', 'რას ვივარჯიშ', 'რა ვქნა', 'რა ვაკეთო', 'სად შევჩერდი', 'შემდეგ', 'დღეს რა'])) return practiceAnswer();
+    // her advice of the day, asked for
+    if (has(Q, 'tip') && EXT.dayMessage) return EXT.dayMessage()[0];
     // a song the app holds — its chords, its rhythm, and how to learn it
     const song = findSong(Q); if (song) return songAnswer(song, Q);
+    // music theory she works out herself: intervals, scales, keys, the notes of a chord, transposition, the key of a progression
+    const th = PD.simaTheory && PD.simaTheory.answer(q); if (th) return th;
+    // the songs she has; a song looked for, to listen to
+    if (EXT.songsAnswer && (has(Q, 'songs') || /^(სიმღერები|songs)$/u.test(Q))) return EXT.songsAnswer(q);
+    if (EXT.songSearch && has(Q, 'song') && (has(Q, 'listen') || has(Q, 'search')) && !has(Q, 'chord') && !has(Q, 'rhythm')) return EXT.songSearch(q);
     // the song open in the AI studio, or a request to analyse one
     if (has(Q, 'analyse') || (has(Q, 'upload') && (has(Q, 'chord') || has(Q, 'rhythm')))) return analysisAnswer();
     // how to learn at all: the course, in order
@@ -433,7 +445,7 @@ PD.sima = (() => {
     return { title: x.title, lines: body.length ? body : [t('sm.seeLesson')], src: x.src, ai: x.ai, acts: x.go ? [[t('sm.go'), x.go]] : [],
       more: scored.slice(1, 4).filter(y => y.s >= 2).map(y => y.x) };
   }
-  const miss = () => ({ title: name(), lines: [t('sm.dontKnow')], src: 'fact',
+  const miss = () => ({ title: name(), miss: true, lines: [t('sm.dontKnow')], src: 'fact',
     acts: [[t('nav.learn'), ['learn']], [t('tp.title'), ['tips']]] });
 
   // Text-only compatibility API: no speech or microphone access.
@@ -441,14 +453,31 @@ PD.sima = (() => {
   const W = { want: false, rec: null };
   const fab = () => document.querySelector('.sm-fab');
   const listen = () => false, stopRec = () => {}, schedule = () => {}, startRec = () => false;
-  let history = [], pending = false, generation = 0;
+  let pending = false, generation = 0;
+  /* what the installable app adds (simaplus.js): the player, her message of the day, the song list and search */
+  const EXT = {};
+  const stopPlay = () => { if (EXT.stopPlay) EXT.stopPlay(); }, daily = x => EXT.daily ? EXT.daily(x) : false;
+
+  /* ---------------- the conversation, kept on this device ----------------
+     Only here, in the app's own storage (never on a server): she remembers what was said, and what she wrote
+     to you on her own, until you clear it. The last turns go with each question so a follow-up makes sense. */
+  const TK = () => 'sima.thread.' + ((PD.cloud && PD.cloud.uid) || '-');
+  const thread = () => { const a = S.get(TK(), []); return Array.isArray(a) ? a : []; };
+  function keep(e) { S.set(TK(), thread().concat(Object.assign({ at: Date.now() }, e)).slice(-80)); }
+  /** what is kept of an answer: its words, and what can be opened or played again (no functions) */
+  const pack = a => a ? { title: a.title || null, src: a.src || null, ai: !!a.ai, links: a.links || null, ext: a.ext || null,
+    acts: (a.acts || []).filter(x => x && !x[2] && x[1]).map(x => [x[0], x[1]]), play: (a.play || []).filter(x => x && x.k) } : null;
+  const hist = () => thread().filter(e => e.text && String(e.text).trim() && !e.note).slice(-11)
+    .map(e => ({ role: e.who === 'me' ? 'user' : 'assistant', content: String(e.text).slice(0, 5800) }));
+  const unreadN = () => +S.get('sima.unread', 0) || 0;
+  function paintDot() { const b = fab(), n = unreadN(); if (b && b.classList) { b.classList.toggle('sm-new', n > 0); b.setAttribute('aria-label', n > 0 ? t('sm.newMsg', { n: name() }) : name()); } }
+  function setUnread(n) { if (unreadN() !== n) S.set('sima.unread', n); paintDot(); }
 
   /* ---------------- the panel ---------------- */
   let box = null;
   function close() {
-    generation++; pending = false; history = [];
+    generation++; pending = false; stopPlay();
     if (box) { box.remove(); box = null; }
-
     if (W.want) { stopRec(); schedule(); }
   }
   function open(q) {
@@ -456,37 +485,46 @@ PD.sima = (() => {
     const log = h('div', { class: 'sm-log', role: 'log', 'aria-live': 'polite' });
     const input = h('input', { class: 'input sm-in', type: 'text', placeholder: t('sm.ask'), maxlength: '2000', 'aria-label': t('sm.ask') });
     const send = () => { if (pending) return; const v = input.value.trim(); if (!v) return; input.value = ''; put(v); };
-    const mic = canHear() ? h('button', { class: 'btn small', text: '🎤', 'aria-label': t('sm.once'), onclick: once }) : null;
+    const wipe = h('button', { class: 'btn icon quiet', 'aria-label': t('sm.clear'), title: t('sm.clear'), html: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 12.5h9l1-12.5M10 11v5M14 11v5"/></svg>', onclick: () => {
+      stopPlay(); S.set(TK(), []); log.innerHTML = ''; bubble(t('sm.cleared'), null); } });
     const head = h('div', { class: 'sm-head' }, [
       h('div', { class: 'sm-av', text: name()[0] }),
       h('div', { class: 'grow' }, [h('b', { text: name() }), h('small', { class: 'muted', text: t('sm.sub') })]),
+      wipe,
       h('button', { class: 'btn icon quiet', 'aria-label': t('close'), html: PD.ic.close || '✕', onclick: close })]);
     box = h('div', { class: 'sm-wrap', role: 'dialog', 'aria-label': name() }, [
-      h('div', { class: 'sm-card' }, [head, h('small', { class: 'muted sm-note', text: t('sm.privacy') }), log,
-        h('div', { class: 'sm-chips' }, [
-          t('sm.q1'), t('sm.q2'), t('sm.q3'), t('sm.q4')
-        ].map(lab => h('button', { class: 'chip', text: lab, onclick: () => put(lab) }))),
-        h('div', { class: 'sm-row' }, [input, mic, h('button', { class: 'btn primary', text: t('sm.send'), onclick: send })].filter(Boolean)),
-        canHear() && !S.get('sima.wake', false)
-          ? h('button', { class: 'btn small sm-wake', text: t('sm.wakeAsk', { n: name() }), onclick: async e2 => { if (await wakeOn()) e2.currentTarget.remove(); } })
-          : canHear() ? h('small', { class: 'muted sm-note', text: t('sm.wakeLive', { n: name() }) }) : null])]);
+      h('div', { class: 'sm-card' }, [head, h('small', { class: 'muted sm-note', text: t('sm.privacy') + ' ' + t('sm.kept') }), log,
+        h('div', { class: 'sm-chips' }, (EXT.chips || ['sm.q1', 'sm.q2', 'sm.q3', 'sm.q4'])
+          .map(k => t(k)).map(lab => h('button', { class: 'chip', text: lab, onclick: () => put(lab) }))),
+        h('div', { class: 'sm-row' }, [input, h('button', { class: 'btn primary', text: t('sm.send'), onclick: send })])])]);
     document.body.appendChild(box);
     input.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); send(); } };
     PD.i18n.apply(box);
-    if (q) put(q); else { bubble(t('sm.hello', { n: name() }), null); if (W.want) { stopRec(); setTimeout(() => { if (W.want && box) startRec('talk'); }, 250); } }
+    // what was said before, then today's message if she has not written yet
+    const past = thread();
+    past.forEach(e => bubble(e.text, e.who === 'me' ? null : e.meta, e.who, e.day));
+    setUnread(0);
+    if (!daily(true) && !past.length && !q) bubble(t('sm.hello', { n: name() }), null);
+    if (past.length) { const lg = box.querySelector('.sm-log'); if (lg) lg.scrollTop = lg.scrollHeight; }
+    if (q) put(q); else if (W.want) { stopRec(); setTimeout(() => { if (W.want && box) startRec('talk'); }, 250); }
     setTimeout(() => { try { input.focus({ preventScroll: true }); } catch (_) {} }, 60);
   }
   const once = () => false, wakeOn = async () => false;
   const SRC = { teacher: 'tp.src.teacher', draft: 'tp.src.draft', general: 'tp.src.general', fact: 'tp.src.fact' };
-  function bubble(text, a, who) {
+  function bubble(text, a, who, day) {
     if (!box) return;
-    const el = h('div', { class: 'sm-b ' + (who === 'me' ? 'me' : 'her') },
+    const el = h('div', { class: 'sm-b ' + (who === 'me' ? 'me' : 'her') + (day ? ' day' : '') },
       a && a.title ? [h('b', { class: 'sm-t', text: a.title }), h('p', { text })] : [h('p', { text })]);
     if (a) {
       if (a.ai) el.append(h('span', { class: 'tp-src draft', text: t('sm.aiLabel') }));
       if (a.src && SRC[a.src]) el.append(h('span', { class: 'tp-src ' + a.src, text: (PD.ui.srcLabel ? PD.ui.srcLabel(SRC[a.src]) : t(SRC[a.src])) }));
+      // what she can sound for it: a chord, a scale, a rhythm, the song itself
+      if (a.play && a.play.length && EXT.playBtn) { const pb = a.play.map(EXT.playBtn).filter(Boolean); if (pb.length) el.append(h('div', { class: 'sm-acts sm-plays' }, pb)); }
       if (a.acts && a.acts.length) el.append(h('div', { class: 'sm-acts' }, a.acts.map(([lab, go, fn]) =>
         h('button', { class: 'btn small', text: lab, onclick: () => { close(); if (fn) fn(); else if (go) PD.app.go(go[0], go[1] || null); } }))));
+      // outside the app (YouTube): opened in the browser, only when tapped
+      if (a.ext && a.ext.length && EXT.playBtn) el.append(h('div', { class: 'sm-acts' }, a.ext.filter(x => x && /^https:\/\//.test(x.url || '')).map(x =>
+        h('a', { class: 'btn small sm-ext', href: x.url, target: '_blank', rel: 'noopener noreferrer', text: x.label + ' ↗' }))));
       if (a.more && a.more.length) el.append(h('div', { class: 'sm-more' }, a.more.map(x =>
         h('button', { class: 'chip', text: x.title, onclick: () => put(x.title) }))));
     }
@@ -495,46 +533,50 @@ PD.sima = (() => {
       .filter(x => x && /^https?:\/\//.test(x.url || '')).map(x => { let host = x.url; try { host = new URL(x.url).hostname.replace(/^www\./, ''); } catch (_) {}
         return h('a', { href: x.url, target: '_blank', rel: 'noopener noreferrer', text: x.title ? String(x.title).slice(0, 80) : host }); }))));
     const lg = box.querySelector('.sm-log'); if (lg) { lg.append(el); lg.scrollTop = lg.scrollHeight; }
+    return el;
   }
+  /** "play me …": the first thing she can sound starts by itself (the tap that sent the question allows the sound) */
+  function autoPlay(el) { const b = el && el.querySelector('.sm-pl, .rh-pvl'); if (b) setTimeout(() => b.click(), 120); }
   async function put(q) {
     if (!box) open();
     if (pending) return;
     q = String(q).trim().slice(0, 2000); if (!q) return;
-    bubble(q, null, 'me');
-    const local = answer(q);
-    if (local.conversational && (!PD.cloud || !PD.cloud.configured || !PD.cloud.user)) {
-      bubble(local.lines.join('\n'), local);
-      history = history.concat({ role: 'user', content: q }, { role: 'assistant', content: local.lines.join('\n') }).slice(-10);
-      return;
-    }
-    if (!PD.cloud || !PD.cloud.configured || !PD.cloud.user) {
-      bubble(t(PD.cloud && PD.cloud.configured ? 'sm.signIn' : 'sm.notConnected'), null);
-      bubble(local.lines.join('\n'), local);
-      return;
-    }
+    const Qn = norm(q), wantsSound = has(Qn, 'listen');
+    if (wantsSound && PD.audio && PD.audio.ensure) PD.audio.ensure();   // unlocked now, while the tap is still the reason
+    const before = hist();
+    bubble(q, null, 'me'); keep({ who: 'me', text: q });
+    const local = answer(q), signed = PD.cloud && PD.cloud.configured && PD.cloud.user;
+    const showLocal = () => { const el = bubble(local.lines.join('\n'), local); keep({ who: 'her', text: local.lines.join('\n'), meta: pack(local) }); if (wantsSound) autoPlay(el); };
+    if (local.conversational && !signed) return showLocal();
+    if (!signed) { bubble(t(PD.cloud && PD.cloud.configured ? 'sm.signIn' : 'sm.notConnected'), null); return showLocal(); }
     pending = true;
     const current = generation, panel = box;
     panel.querySelectorAll('.sm-row button, .sm-chips button').forEach(b => b.disabled = true);
     const status = h('small', { class: 'muted sm-note', text: t('sm.thinking'), role: 'status' });
     panel.querySelector('.sm-log').append(status);
+    // what she found or worked out herself goes along — and its buttons stay under the AI's words
+    const useful = !local.miss && !local.conversational && (local.play || local.acts || local.ext);
     try {
-      const Qn = norm(q);
       const result = await PD.cloud.sima({
-        messages: history.concat({ role: 'user', content: q }).slice(-12), language: PD.i18n.lang,
+        messages: before.concat({ role: 'user', content: q }).slice(-12), language: PD.i18n.lang,
         // the internet only when the app does not hold the answer: a song it does not have, or the learner asks for it
         web: !!local.web || has(Qn, 'search') || ((has(Qn, 'chord') || has(Qn, 'rhythm')) && has(Qn, 'song') && !findSong(Qn)),
         context: { title: local.title, lines: local.lines.slice(0, 24), source: local.src || (local.ai ? 'ai-estimate' : null), app: digest(),
+          computed: local.src === 'fact' && !local.miss ? 'exact: worked out by the app from the notes and the tuning' : null,
+          canPlay: (local.play || []).map(x => x.label || x.k).slice(0, 10),
           related: index().filter(x => words(q).some(w => x.text.includes(stem(w)))).slice(0, 5)
             .map(x => ({ title: x.title, lines: x.body.slice(0, 8).map(l => String(l).slice(0, 400)), source: x.src })) }
       });
       if (current !== generation || panel !== box) return;
       if (!result || typeof result.text !== 'string' || !result.text.trim()) throw new Error('empty');
-      history = history.concat({ role: 'user', content: q }, { role: 'assistant', content: result.text }).slice(-10);
-      bubble(result.text, { title: name(), ai: true, links: Array.isArray(result.sources) ? result.sources : [] });
+      const a = { title: name(), ai: true, links: Array.isArray(result.sources) ? result.sources : [] };
+      if (useful) Object.assign(a, { play: local.play, ext: local.ext, acts: (local.acts || []).filter(x => !x[2]) });
+      const el = bubble(result.text, a); keep({ who: 'her', text: result.text, meta: pack(a) });
+      if (wantsSound) autoPlay(el);
     } catch (_) {
       if (current !== generation || panel !== box) return;
       bubble(t('sm.unavailable'), null);
-      bubble(local.lines.join('\n'), local);
+      showLocal();
     } finally {
       status.remove();
       if (current === generation && panel === box) {
@@ -549,6 +591,7 @@ PD.sima = (() => {
     if (document.querySelector('.sm-fab') || !S.get('sima.on', true)) return;
     const b = h('button', { class: 'sm-fab', 'aria-label': name(), onclick: () => open('') }, [h('span', { text: name()[0] })]);
     document.body.appendChild(b);
+    paintDot();   // a message she wrote while you were away: a dot on her button
   }
   function refresh() { const b = fab(); if (b) b.remove(); mount(); listen(S.get('sima.wake', false)); }
   // she starts listening as soon as the app does, if the learner has allowed it
@@ -556,8 +599,16 @@ PD.sima = (() => {
   setTimeout(() => { if (S.get('sima.wake', false)) listen(true); }, 1500);
 
   /* ---------------- she speaks first, when it helps ---------------- */
+  function popTip(text, fn) {
+    document.querySelectorAll('.sm-tip').forEach(e => e.remove());
+    const tip = h('button', { class: 'sm-tip', onclick: () => { tip.remove(); fn(); } }, [h('span', { class: 'sm-av', text: name()[0] }), h('span', { text })]);
+    document.body.appendChild(tip);
+    setTimeout(() => tip.remove(), 12000);
+  }
   function nudge() {
-    if (!S.get('sima.nudge', true) || box) return;
+    if (box) return;
+    if (daily()) return;   // her message of the day comes first, once
+    if (!S.get('sima.nudge', true)) return;
     const last = S.get('sima.lastNudge', 0); if (Date.now() - last < 6 * 3600e3) return;
     let a = null;
     const due = PD.exam && PD.exam.waiting && PD.exam.waiting();
@@ -565,16 +616,18 @@ PD.sima = (() => {
     else { const sug = PD.coach && PD.coach.today && PD.coach.today(); if (sug) a = { q: t('sm.q1') }; }
     if (!a) return;
     S.set('sima.lastNudge', Date.now());
-    const tip = h('button', { class: 'sm-tip', onclick: () => { tip.remove(); open(a.q); } },
-      [h('span', { class: 'sm-av', text: name()[0] }), h('span', { text: t('sm.nudge', { n: name() }) })]);
-    document.body.appendChild(tip);
-    setTimeout(() => tip.remove(), 12000);
+    popTip(t('sm.nudge', { n: name() }), () => open(a.q));
   }
 
   PD.bus.on('lang', () => { api._ix = null; });
+  PD.bus.on('route', stopPlay);
   // a new song from the AI studio, a teacher package, a lesson saved: she reads the list again
   ['lessons', 'curriculum', 'rhythms'].forEach(e => PD.bus.on(e, () => { api._ix = null; }));   // what she searches is the text in the chosen language
-  const api = { get NAME() { return name(); }, open, close, answer, say, listen, wakeOn, once, canHear, kaVoice, mount, refresh, nudge, index, get hearing() { return !!W.rec; } };
+  const api = { get NAME() { return name(); }, open, close, answer, say, listen, wakeOn, once, canHear, kaVoice, mount, refresh, nudge, index, daily, stopPlay,
+    dayMessage: d => EXT.dayMessage ? EXT.dayMessage(d) : [], dayTip: d => EXT.dayTip ? EXT.dayTip(d) : null, use: o => Object.assign(EXT, o), get hearing() { return !!W.rec; } };
+  // for simaplus.js: what it builds on
+  api._in = { h, S, L, name, norm, has, KW, canon, chordsIn, chordList, libShape, songs, songInfo, nextStep, keep, pack, open, setUnread, unreadN, popTip, TH,
+    bubble: (...a) => bubble(...a), get box() { return box; } };
   return api;
 })();
 
@@ -597,8 +650,7 @@ PD.i18n.add({
   'sm.sub': ['შენი სასწავლო თანამოსაუბრე • მხოლოდ ტექსტით', 'Your learning companion • text only'],
   'sm.hello': ['გამარჯობა! მე {n} ვარ. როგორ ხარ? შეგიძლია ჩვეულებრივად მომწერო და მკითხო, რაც გაინტერესებს.', 'Hello! I am {n}. How are you? You can chat naturally and ask me what you would like to know.'],
   'sm.privacy': ['AI ჩატის ტექსტი მუშავდება AI სერვისში; სიმღერის მოსაძებნად კითხვა შეიძლება ინტერნეტ-ძიებასაც გადაეცეს. პირადი მონაცემები არ ჩაწერო.', 'AI chat text is processed by an AI service; to look up a song, the question may also go to an internet search. Avoid personal details.'],
-  'sm.ask': ['დამიწერე კითხვა…', 'Type your question…'], 'sm.send': ['კითხვა', 'Ask'], 'sm.once': ['ერთხელ მკითხე ხმით', 'Ask once by voice'],
-  'sm.listening': ['გისმენ…', 'Listening…'],
+  'sm.ask': ['დამიწერე კითხვა…', 'Type your question…'], 'sm.send': ['კითხვა', 'Ask'],
   'sm.q1': ['რა ვივარჯიშო დღეს?', 'What should I practise today?'], 'sm.q2': ['გამოცდა მელოდება?', 'Is an exam waiting?'],
   'sm.q3': ['როგორ ავიღო Bm?', 'How do I take Bm?'], 'sm.q4': ['აჭარულის რითმი', 'The acharuli rhythm'],
   'sm.chordIs': ['{n} ასე აიღება:', '{n} is held like this:'],
@@ -648,17 +700,12 @@ PD.i18n.add({
   'sm.examNone': ['ახლა გამოცდა არ გელოდება.', 'No exam is waiting right now.'], 'sm.examGo': ['გამოცდაზე გადასვლა', 'Go to the exam'],
   'sm.seeLesson': ['ეს გაკვეთილი ამას ხსნის — გახსენი და ნახე.', 'This lesson explains it — open it and see.'],
   'sm.dontKnow': ['ამაზე პასუხი ამ აპში ჯერ არ არის. არ მინდა მოგიგონო — ჰკითხე მასწავლებელს, და როგორც კი დაამატებს, გეტყვი.', 'There is no answer for that in this app yet. I will not make one up — ask the teacher, and once it is added I will tell you.'],
-  'sm.noVoice': ['ამ მოწყობილობას ქართული ხმა არ აქვს — ვწერ, ხმით ვერ ვკითხულობ.', 'This device has no voice for this language — I write, but cannot read aloud.'],
   'sm.nudge': ['{n}-ს რჩევა აქვს', '{n} has a suggestion'],
   'sm.title': ['სიმა — დამხმარე', 'Sima — the helper'],
-  'sm.on': ['სიმა ჩართულია', 'Sima is on'], 'sm.voice': ['ხმით კითხულობს', 'Reads aloud'],
+  'sm.on': ['სიმა ჩართულია', 'Sima is on'],
   'sm.nudgeOn': ['თვითონ იწყებს რჩევას', 'Offers advice on her own'],
-  'sm.wake': ['სახელით გამოძახება', 'Call her by name'],
-  'sm.wakeD': ['ჩართვის შემდეგ მიკროფონი ღიად რჩება და სიტყვა „სიმა“ გახსნის მას. ყურადღება: ამ ფუნქციისთვის ბრაუზერი ხმას თავის სერვისს უგზავნის (Google/Apple) — ეს ერთადერთი ადგილია აპში, სადაც ხმა მოწყობილობიდან გადის. ნაგულისხმევად გამორთულია.', 'With this on the microphone stays open and the word “Sima” opens her. Note: for this the browser sends the audio to its own service (Google/Apple) — the one place in this app where sound leaves the device. Off by default.'],
-  'sm.wakeAsk': ['🎤 სახელით გამომიძახე — თქვი „{n}“', '🎤 Call me by name — say “{n}”'],
-  'sm.wakeLive': ['ყურს გიგდებ: სადაც არ უნდა იყო, თქვი „{n}“ და გამოვჩნდები.', 'I am listening: wherever you are, say “{n}” and I will come.'],
-  'sm.wakeOn': ['მზად ვარ — თქვი „{n}“ და გამოვჩნდები. გაკვეთილისა და ტიუნერის დროს ყურს ვიღებ, რომ მიკროფონი არ წაგართვა.', 'Ready — say “{n}” and I will come. During a lesson or the tuner I step aside so the microphone stays yours.'],
-  'sm.micNo': ['მიკროფონზე უფლება ვერ მივიღე — ბრაუზერის პარამეტრებში დაამატე.', 'I could not get the microphone — allow it in the browser settings.'],
-  'sm.micBusy': ['ახლა მიკროფონი გაკვეთილს უჭირავს — ჯერ დაასრულე.', 'The lesson is using the microphone right now — finish it first.'],
-  'sm.wakeNo': ['ამ ბრაუზერს ხმის ამოცნობა არ აქვს — ღილაკით გამოიძახე.', 'This browser cannot listen — use the button instead.']
+  /* the conversation */
+  'sm.kept': ['საუბარი მხოლოდ ამ მოწყობილობაზე ინახება.', 'The conversation is kept on this device only.'],
+  'sm.clear': ['საუბრის წაშლა', 'Clear the conversation'], 'sm.cleared': ['საუბარი წაიშალა. რით დაგეხმარო?', 'The conversation is cleared. How can I help?'],
+  'sm.newMsg': ['{n} — ახალი წერილი', '{n} — a new message']
 });
