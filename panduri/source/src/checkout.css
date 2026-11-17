@@ -72,3 +72,4 @@
 .pay-disc { color: var(--acc2); font-weight: 600; }
 .pay-line .price-was { display: inline; font-size: inherit; }
 .pay-sale-end { margin: 0; font-size: var(--t-caption); color: var(--acc2); font-weight: 600; line-height: 1.45; }
+.pay-cmp { display: block; font-size: var(--t-caption); color: var(--acc2); line-height: 1.35; margin-top: 2px; }

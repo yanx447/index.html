@@ -202,16 +202,16 @@ test('a running sale: charged and shown as 2.99 instead of 5.00; an ended sale i
 
 test('Premium on sale: the billing function charges the owner\'s sale price while it runs, and the regular price otherwise', async () => {
   const until = new Date(Date.now() + 864e5).toISOString();
-  const rows = [{ plan: 'monthly', sale_minor: 399, paypal_sale_value: '1.38', sale_until: until }, { plan: 'yearly', sale_minor: 2999, paypal_sale_value: '10.34', sale_until: new Date(Date.now() - 1).toISOString() }];
+  const rows = [{ plan: 'monthly', sale_minor: 999, paypal_sale_value: '3.44', sale_until: until }, { plan: 'yearly', sale_minor: 8999, paypal_sale_value: '31.03', sale_until: new Date(Date.now() - 1).toISOString() }];
   const db = { from: () => ({ select: async () => ({ data: rows }) }) };
   const sales = await premiumSales(db);
   assert.deepEqual(Object.keys(sales), ['monthly'], 'an ended sale is no sale');
-  const env = k => ({ PAYPAL_MONTHLY_PRICE: '1.72', PAYPAL_YEARLY_PRICE: '13.79' })[k] || secrets[k], cat = catalog(env, 2, sales);
-  assert.deepEqual(cat.providers.find(p => p.id === 'tbc').prices.monthly, { value: '3.99', currency: 'GEL', regular: '4.99', until });
-  assert.deepEqual(cat.providers.find(p => p.id === 'tbc').prices.yearly, { value: '39.99', currency: 'GEL' });
-  assert.deepEqual(cat.providers.find(p => p.id === 'paypal').prices.monthly, { value: '1.38', currency: 'EUR', regular: '1.72', until });
+  const env = k => secrets[k], cat = catalog(env, 2, sales);
+  assert.deepEqual(cat.providers.find(p => p.id === 'tbc').prices.monthly, { value: '9.99', currency: 'GEL', regular: '14.99', until });
+  assert.deepEqual(cat.providers.find(p => p.id === 'tbc').prices.yearly, { value: '119.99', currency: 'GEL' });
+  assert.deepEqual(cat.providers.find(p => p.id === 'paypal').prices.monthly, { value: '3.44', currency: 'EUR', regular: '5.17', until });
   // a sale that is not lower is ignored; no table (not yet migrated): no sale, nothing breaks
-  assert.deepEqual(await premiumSales({ from: () => ({ select: async () => ({ data: [{ plan: 'monthly', sale_minor: 499, sale_until: until }] }) }) }), {});
+  assert.deepEqual(await premiumSales({ from: () => ({ select: async () => ({ data: [{ plan: 'monthly', sale_minor: 1499, sale_until: until }] }) }) }), {});
   assert.deepEqual(await premiumSales({ from: () => ({ select: async () => ({ error: { message: 'relation does not exist' } }) }) }), {});
   // start: the order is saved with the sale price, and TBC is asked for exactly that
   const x = setup();
@@ -221,8 +221,8 @@ test('Premium on sale: the billing function charges the owner\'s sale price whil
   x.deps.db.from = (orig => t => t === 'billing_orders' ? { insert: async r => { saved.push(r); return {}; } } : orig(t))(x.deps.db.from);
   x.deps.db.from = (orig => t => t === 'profiles' ? { select: () => ({ eq: () => ({ single: async () => ({ data: { premium_banned: false } }) }) }) } : orig(t))(x.deps.db.from);
   await billing.start(uid, 'monthly', 'tbc');
-  assert.equal(saved[0].amount, '3.99');
-  assert.equal(x.calls.find(c => c.url.endsWith('/tpay/payments')).body.amount.total, 3.99);
+  assert.equal(saved[0].amount, '9.99');
+  assert.equal(x.calls.find(c => c.url.endsWith('/tpay/payments')).body.amount.total, 9.99);
 });
 
 test('before the marketplace migration (no market_orders table) Premium callbacks work exactly as before', async () => {

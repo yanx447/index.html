@@ -38,8 +38,8 @@ test('Unauthorized and blocked buyers cannot create orders', async () => {
 });
 test('TBC amount and account are selected by server; return preserves deployed path', async () => {
   const x=setup(); const r=await x.handler(req({action:'start',plan:'yearly',provider:'tbc',amount:0.01,user_id:'attacker'})); assert.equal(r.status,200);
-  assert.equal(x.orders[0].user_id,uid); assert.equal(x.orders[0].amount,'39.99');
-  const payload=x.calls.find(c=>c.url.endsWith('/tpay/payments')).body; assert.equal(payload.amount.total,39.99); assert.equal(payload.preAuth,false); assert.match(payload.returnurl,/\/index.html\/panduri\/app\/\?payment=tbc$/);
+  assert.equal(x.orders[0].user_id,uid); assert.equal(x.orders[0].amount,'119.99');
+  const payload=x.calls.find(c=>c.url.endsWith('/tpay/payments')).body; assert.equal(payload.amount.total,119.99); assert.equal(payload.preAuth,false); assert.match(payload.returnurl,/\/index.html\/panduri\/app\/\?payment=tbc$/);
 });
 test('Invalid plan, unknown provider, and unsaved order fail without checkout redirect', async () => {
   const x=setup(); await assert.rejects(x.billing.start(uid,'free','tbc'), /invalid-plan/); await assert.rejects(x.billing.start(uid,'monthly','unknown'), /billing-not-configured/);

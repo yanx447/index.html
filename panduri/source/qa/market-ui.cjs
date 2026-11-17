@@ -185,3 +185,32 @@ test('a listing that has ended answers "no longer available" at its own address'
     await context.close();
   } finally { await browser.close(); }
 });
+
+test('true comparisons, struck out: thirty one-day advertisements for the monthly one, twelve monthly payments for the year', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    for (const lang of ['ka', 'en']) {
+      const state = { mine: card(ID(90), { title: 'ჩემი ფანდური', status: 'draft', live: false, sponsored: false, expires_at: null, published_at: null }) };
+      const { context, page, errors } = await open(browser, 390, lang, state);
+      const plain = { ad24: '2.99', ad72: '6.99', ad168: '14.99', ad720: '29.99' };
+      await page.route(SB + '/functions/v1/market', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ packages: [], providers: [{ id: 'tbc', kind: 'card', wallets: [], prices: Object.fromEntries(Object.entries(plain).map(([k, v]) => [k, { value: v, currency: 'GEL' }])) }], stores: {}, policies: {} }) }));
+      await page.route(SB + '/rest/v1/market_packages*', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(PKG.map(p => Object.assign({}, p, { sale_minor: null, sale_until: null, price_minor: Math.round(Number(plain[p.id] || 0) * 100) }))) }));
+      await page.route(SB + '/functions/v1/billing', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ providers: [{ id: 'tbc', kind: 'card', wallets: [], prices: { monthly: { value: '14.99', currency: 'GEL' }, yearly: { value: '119.99', currency: 'GEL' } } }], stores: {}, policies: {} }) }));
+      await show(page, 'promote:' + ID(90));
+      assert.equal(await page.locator('.mk-plan .price-was').count(), 3, lang + ': the three longer packages, not the 24-hour one');
+      const month = await page.locator('.mk-plan').nth(3).innerText();
+      assert.match(month, /89[.,]7/); assert.match(month, /29[.,]99/); assert.match(month, /−67%/);
+      assert.match(month, lang === 'ka' ? /24-საათიანით 30 დღე/ : /Day by day, 30 days would cost/);
+      assert.equal(await page.locator('.mk-plan').nth(0).locator('.price-was').count(), 0);
+      await page.screenshot({ path: path.join(process.env.SHOTS || '/tmp', `mk-compare-${lang}.png`), fullPage: false }).catch(() => {});
+      await page.evaluate(() => { document.querySelectorAll('.sheet-back, .arr').forEach(x => x.remove()); PD.app.go('checkout', 'yearly'); });
+      await page.waitForSelector('.pay-plan .price-was', { timeout: 10000 });
+      const year = await page.locator('.pay-plan[aria-checked="true"]').innerText();
+      assert.match(year, /179[.,]88/); assert.match(year, /119[.,]99/); assert.match(year, /−33%/);
+      assert.equal(await page.locator('.pay-plan .price-was').count(), 1, lang + ': only the yearly plan has a comparison');
+      await page.screenshot({ path: path.join(process.env.SHOTS || '/tmp', `pay-compare-${lang}.png`), fullPage: false }).catch(() => {});
+      assert.deepEqual(errors, []);
+      await context.close();
+    }
+  } finally { await browser.close(); }
+});

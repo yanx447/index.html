@@ -115,6 +115,14 @@ PD.billing = (() => {
     if (!(v > 0 && r > v) || !(u > Date.now())) return null;
     return { regular: { value: p.regular, currency: p.currency }, pct: Math.round((1 - v / r) * 100), until: new Date(u) };
   }
+  /** a true comparison, shown struck out: what the same time costs bought as n of the shorter option (a year as 12 monthly
+      payments, 30 days as 30 one-day advertisements). Both prices must be real prices in the same currency. null otherwise. */
+  function compare(p, ref, n) {
+    if (!p || !ref || p.display || ref.display || p.currency !== ref.currency || !(n > 1)) return null;
+    const v = Number(p.value), r = Math.round(Number(ref.value) * n * 100) / 100;
+    if (!(v > 0 && r > v)) return null;
+    return { regular: { value: r.toFixed(2), currency: p.currency }, pct: Math.round((1 - v / r) * 100) };
+  }
   async function restore() {
     if (!C.session) throw new Error('sign-in-required');
     if (native()) { const purchases = await store(); await purchases.restorePurchases(); await syncStore(); }
@@ -145,5 +153,5 @@ PD.billing = (() => {
   PD.bus.on('cloud', () => { if (lastUser !== C.uid) { lastUser = C.uid; catalogPromise = null; setTimeout(refresh, 0); } });
   const pending = () => { const uid = C.uid; return uid && PD.store.get(pendingKey(uid), null); };
   // `returned`: the buyer came back from a hosted checkout ('tbc' | 'paypal' | 'cancelled'). It is a hint for the screen, not a receipt.
-  return { options, purchase, restore, refresh, verifyPending, pending, consumable, consumablePrices, sale, returned: ['tbc', 'paypal', 'success', 'cancelled'].includes(returned) ? returned : null, get native() { return native(); } };
+  return { options, purchase, restore, refresh, verifyPending, pending, consumable, consumablePrices, sale, compare, returned: ['tbc', 'paypal', 'success', 'cancelled'].includes(returned) ? returned : null, get native() { return native(); } };
 })();

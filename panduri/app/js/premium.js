@@ -127,7 +127,7 @@ PD.premium = (() => {
   /** what the paywall lists, in this order (f8 comes with f7, f6 is the badge) */
   const LIST = ['pm.f1', 'pm.f2', 'pm.f3', 'pm.f5', 'pm.f7', 'pm.f8', 'pm.f9', 'pm.f10', 'pm.f11', 'pm.f12', 'pm.f13', 'pm.f14', 'pm.f4', 'pm.f6'];
   const FREE_AI_HOURS = 4;   // the free studio session: one song, open for this many hours, once a day
-  const PRICE = { monthly: '4.99 ₾', yearly: '39.99 ₾' };
+  const PRICE = { monthly: '14.99 ₾', yearly: '119.99 ₾' };
   const FREE_SONGS = new Set(['bani-acharuli']);   // the first song stays free
   const PREMIUM_PATHS = new Set(['intermediate', 'advanced']);
   /** the one rule for every door into a lesson (Learn, Home, Songs, Rhythms, resume…): which premium feature it needs, or null */
@@ -187,10 +187,13 @@ PD.premium = (() => {
           if (!price) continue;
           const label = price.display || new Intl.NumberFormat((PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US')), { style: 'currency', currency: price.currency }).format(Number(price.value));
           // a running sale: the regular price struck out beside the sale price the server charges (never on a store price)
+          // the yearly plan: twelve monthly payments, struck out (a true comparison); a running sale wins over it
           const sl = PD.billing.sale(price), fmt = x => new Intl.NumberFormat((PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US')), { style: 'currency', currency: x.currency }).format(Number(x.value));
+          const cmp = !sl && k === 'yearly' ? PD.billing.compare(price, current.prices.monthly, 12) : null, was = sl || cmp;
           plans.append(h('button', { class: 'pw-plan', 'aria-pressed': String(plan === k), onclick: () => { plan = k; drawPlans(); } }, [
-            sl ? h('em', { class: 'pay-off', text: t('pay.off', { n: sl.pct }) }) : null,
-            h('b', { text: t('pm.' + k) }), h('span', { class: 'pw-price' }, [sl ? h('s', { class: 'price-was', 'aria-label': t('pay.was'), text: fmt(sl.regular) }) : null, label]),
+            was ? h('em', { class: 'pay-off', text: t('pay.off', { n: was.pct }) }) : null,
+            h('b', { text: t('pm.' + k) }), h('span', { class: 'pw-price' }, [was ? h('s', { class: 'price-was', 'aria-label': sl ? t('pay.was') : t('pay.cmpYear', { p: fmt(cmp.regular) }), text: fmt(was.regular) }) : null, label]),
+            cmp ? h('small', { class: 'pw-sub', text: t('pay.cmpYear', { p: fmt(cmp.regular) }) }) : null,
             h('small', { text: t(k === 'monthly' ? 'pm.perMonth' : 'pm.perYear') })]));
         }
         if (!current.prices[plan]) { plan = current.prices.yearly ? 'yearly' : 'monthly'; drawPlans(); }

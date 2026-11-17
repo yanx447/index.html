@@ -71,7 +71,7 @@ PD.i18n.add({
   /* choosing how to publish */
   'mk.p.title': ['აირჩიე პაკეტი', 'Choose a package'], 'mk.p.titleX': ['რეკლამის გაგრძელება', 'Extend the advertisement'], 'mk.p.titleAd': ['რეკლამის ჩართვა', 'Advertise this listing'],
   'mk.p.lead': ['ბაზარში ყველა განცხადება რეკლამაა: პაკეტი განსაზღვრავს, რამდენ ხანს დარჩება ის, და აჩვენებს მას რეკლამის კარუსელში, რჩეულებსა და ძებნის პირველ ადგილებზე.', 'Every listing in the marketplace is an advertisement: the package sets how long it stays and shows it in the sponsored carousel, among featured instruments and at the top of searches.'],
-  'mk.p.off': ['−{n}%', '−{n}%'], 'mk.p.was': ['ჩვეულებრივი ფასი', 'Regular price'], 'mk.p.perDay': ['≈ {p} დღეში', '≈ {p} a day'],
+  'mk.p.off': ['−{n}%', '−{n}%'], 'mk.p.was': ['ჩვეულებრივი ფასი', 'Regular price'], 'mk.p.cmpDays': ['24-საათიანით {n} დღე {p} იქნებოდა', 'Day by day, {n} days would cost {p}'],
   'mk.p.saleEnds': ['ფასდაკლების დასრულება: {d}. შემდეგ ფასი: {p}.', 'The sale ends: {d}. After that the price is {p}.'],
   'mk.p.hours': ['{n} საათი', '{n} hours'], 'mk.p.days': ['{n} დღე', '{n} days'], 'mk.p.plus': ['+{t}', '+{t}'],
   'mk.p.perk1': ['რეკლამის კარუსელი და რჩეულები', 'Sponsored carousel and featured places'], 'mk.p.perk2': ['ძებნის პირველი ადგილები, ფილტრების მიხედვით', 'Top places in matching searches'], 'mk.p.perk3': ['ნიშანი „რეკლამა“ და სტატისტიკა', '“Sponsored” label and statistics'],
@@ -556,11 +556,14 @@ PD.market = (() => {
     const saleOf = p => PD.billing.sale(priceOf2(p));
     function draw() {
       cards.innerHTML = '';
-      const opt = (p, title, sub, flag) => { const sl = saleOf(p); return h('button', { class: 'mk-plan' + (sl ? ' on-sale' : ''), role: 'radio', type: 'button', 'aria-checked': String(choice === p.id), onclick: () => { choice = p.id; draw(); } }, [
-        sl ? h('em', { class: 'pay-off', text: t('mk.p.off', { n: sl.pct }) }) : flag ? h('em', { text: flag }) : null, h('span', { class: 'mk-plan-n', text: title }),
-        h('span', { class: 'mk-plan-p' }, [sl ? h('s', { class: 'price-was', 'aria-label': t('mk.p.was'), text: money(sl.regular.value, sl.regular.currency) }) : null, priceText(p)]), h('small', { class: 'mk-plan-d', text: sub }),
-        // a true comparison, not a struck-out price: what one day costs in each package (the longer one is cheaper per day)
-        (() => { const pr = priceOf2(p); return pr.display || p.hours < 48 ? null : h('small', { class: 'mk-plan-day', text: t('mk.p.perDay', { p: money((Number(pr.value) / (p.hours / 24)).toFixed(2), pr.currency) }) }); })(),
+      // struck out: a running sale's regular price, or else what the same days cost as one-day advertisements (a true comparison)
+      const day = ads.find(x => x.hours === 24);
+      const opt = (p, title, sub, flag) => { const sl = saleOf(p), cmp = !sl && day && p.hours > 24 ? PD.billing.compare(priceOf2(p), priceOf2(day), p.hours / 24) : null, was = sl || cmp;
+        return h('button', { class: 'mk-plan' + (was ? ' on-sale' : ''), role: 'radio', type: 'button', 'aria-checked': String(choice === p.id), onclick: () => { choice = p.id; draw(); } }, [
+        was ? h('em', { class: 'pay-off', text: t('mk.p.off', { n: was.pct }) }) : flag ? h('em', { text: flag }) : null, h('span', { class: 'mk-plan-n', text: title }),
+        h('span', { class: 'mk-plan-p' }, [was ? h('s', { class: 'price-was', 'aria-label': sl ? t('mk.p.was') : t('mk.p.cmpDays', { n: p.hours / 24, p: money(cmp.regular.value, cmp.regular.currency) }), text: money(was.regular.value, was.regular.currency) }) : null, priceText(p)]), h('small', { class: 'mk-plan-d', text: sub }),
+        cmp ? h('small', { class: 'mk-plan-day', text: t('mk.p.cmpDays', { n: p.hours / 24, p: money(cmp.regular.value, cmp.regular.currency) }) }) : null,
+
         h('span', { class: 'pay-radio', 'aria-hidden': 'true' })]); };
       ads.forEach(p => cards.append(opt(p, name(p), it.live ? t('mk.p.plus', { t: durName(p.hours) }) : durName(p.hours),
         p.id === 'ad24' ? t('mk.p.fast') : p.id === 'ad720' ? t('mk.p.best') : null)));

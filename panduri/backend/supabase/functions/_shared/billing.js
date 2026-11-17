@@ -1,6 +1,6 @@
 // Server-only billing. Browser amounts, user IDs and payment status are never trusted.
-// Premium's real prices in tetri (lowered for good by the owner, 2026-11-16: were 14.99 / 119.99)
-export const PLANS = { monthly: 499, yearly: 3999 };
+// Premium's prices in tetri (also in SQL: public.premium_regular_minor)
+export const PLANS = { monthly: 1499, yearly: 11999 };
 export class BillingError extends Error {
   constructor(code, status = 400) { super(code); this.status = status; }
 }

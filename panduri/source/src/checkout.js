@@ -44,6 +44,7 @@ PD.i18n.add({
   'pay.continue': ['გადახდაზე გადასვლა', 'Continue to checkout'],
   'pay.again': ['გადახდის გვერდზე', 'Back to checkout'],
   'pay.off': ['−{n}%', '−{n}%'], 'pay.was': ['ჩვეულებრივი ფასი', 'Regular price'], 'pay.discount': ['ფასდაკლება', 'Discount'],
+  'pay.cmpYear': ['თვიურად გადახდისას წელი {p} ჯდება', 'Paid monthly, a year costs {p}'],
   'pay.saleEnds': ['ფასდაკლების დასრულება: {d}. შემდეგ ფასი: {p}.', 'The sale ends: {d}. After that the price is {p}.']
 });
 
@@ -142,10 +143,12 @@ PD.checkout = (() => {
         const price = cur && cur.prices[k];
         if (!price) continue;
         const sub = k === 'yearly' && cur.prices.monthly ? (() => { const m = Number(price.value) / 12, d = Math.round((1 - m / Number(cur.prices.monthly.value)) * 100); return d > 0 ? t('pm.perYearM', { p: money({ value: m.toFixed(2), currency: price.currency }), d }) : ''; })() : '';
-        const sl = PD.billing.sale(price);
+        // struck out: a running sale's regular price, or else, on the yearly plan, what twelve monthly payments really cost
+        const sl = PD.billing.sale(price), cmp = !sl && k === 'yearly' ? PD.billing.compare(price, cur.prices.monthly, 12) : null, was = sl || cmp;
         plans.append(h('button', { class: 'pay-plan', role: 'radio', type: 'button', 'aria-checked': String(plan === k), onclick: () => { plan = k; draw(); } }, [
-          sl ? h('em', { class: 'pay-off', text: t('pay.off', { n: sl.pct }) }) : k === 'yearly' && sub ? h('em', { 'data-t': 'pm.best' }) : null,
-          h('b', { 'data-t': 'pm.' + k }), h('span', { class: 'pay-price' }, [sl ? h('s', { class: 'price-was', 'aria-label': t('pay.was'), text: money(sl.regular) }) : null, money(price)]),
+          was ? h('em', { class: 'pay-off', text: t('pay.off', { n: was.pct }) }) : k === 'yearly' && sub ? h('em', { 'data-t': 'pm.best' }) : null,
+          h('b', { 'data-t': 'pm.' + k }), h('span', { class: 'pay-price' }, [was ? h('s', { class: 'price-was', 'aria-label': sl ? t('pay.was') : t('pay.cmpYear', { p: money(cmp.regular) }), text: money(was.regular) }) : null, money(price)]),
+          cmp ? h('small', { class: 'pay-cmp', text: t('pay.cmpYear', { p: money(cmp.regular) }) }) : null,
           h('small', { text: sub || t(k === 'monthly' ? 'pm.perMonth' : 'pm.perYear') })]));
       }
       if (cur && !cur.prices[plan]) { plan = cur.prices.yearly ? 'yearly' : 'monthly'; return draw(); }

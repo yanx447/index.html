@@ -220,13 +220,13 @@ test('a sale: the owner runs it, buyers pay 1.99 instead of 2.99 until its end, 
 
 test('Premium sales: the owner only, lower than the regular price, with an end; read through owner_sales()', async () => {
   await refused(ADMIN, `select public.owner_sales()`, /not-allowed/);
-  await refused(A, `select public.owner_premium_sale('monthly', 3.99, '1.38', '${iso(Date.now() + 864e5)}')`, /not-allowed/);
+  await refused(A, `select public.owner_premium_sale('monthly', 9.99, '3.44', '${iso(Date.now() + 864e5)}')`, /not-allowed/);
   await refused(null, `select public.owner_sales()`, /permission denied/);
-  await refused(OWNER, `select public.owner_premium_sale('monthly', 4.99, null, '${iso(Date.now() + 864e5)}')`, /sale-not-lower/);
-  await refused(OWNER, `select public.owner_premium_sale('monthly', 3.99, null, '${iso(Date.now() - 1000)}')`, /invalid-date/);
-  await as(OWNER, `select public.owner_premium_sale('monthly', 3.99, '1.38', '${iso(Date.now() + 864e5)}')`);
+  await refused(OWNER, `select public.owner_premium_sale('monthly', 14.99, null, '${iso(Date.now() + 864e5)}')`, /sale-not-lower/);
+  await refused(OWNER, `select public.owner_premium_sale('monthly', 9.99, null, '${iso(Date.now() - 1000)}')`, /invalid-date/);
+  await as(OWNER, `select public.owner_premium_sale('monthly', 9.99, '3.44', '${iso(Date.now() + 864e5)}')`);
   const o = await val(OWNER, `select public.owner_sales() as o`);
-  assert.deepEqual(o.premium.map(r => [r.plan, r.price_minor, r.sale_minor, r.paypal_sale_value, !!r.sale_until]), [['monthly', 499, 399, '1.38', true], ['yearly', 3999, null, null, false]]);
+  assert.deepEqual(o.premium.map(r => [r.plan, r.price_minor, r.sale_minor, r.paypal_sale_value, !!r.sale_until]), [['monthly', 1499, 999, '3.44', true], ['yearly', 11999, null, null, false]]);
   assert.deepEqual(o.market.map(r => r.id), ['ad24', 'ad72', 'ad168', 'ad720']);
   await refused(A, `select * from public.premium_sales`, /permission denied/);
   await as(OWNER, `select public.owner_premium_sale('monthly', null, null, null)`);
@@ -488,4 +488,17 @@ test('202611170003_lower_prices: a server with the first prices (5 / 10 / 20 / 4
     { id: 'ad72', price_minor: 699, sale_minor: null, sale_until: null, paypal_value: '2.41', paypal_currency: 'EUR' },
     { id: 'ad168', price_minor: 1499, sale_minor: null, sale_until: null, paypal_value: '5.17', paypal_currency: 'EUR' },
     { id: 'ad720', price_minor: 2999, sale_minor: null, sale_until: null, paypal_value: '10.34', paypal_currency: 'EUR' }]);
+});
+
+test('202611170004_premium_prices_back: a server that ran premium_sales with 4.99 / 39.99 gets 14.99 / 119.99 in its check and functions', async () => {
+  // the state the live server was left in on 2026-11-17
+  await db.exec(`update public.premium_sales set sale_minor = null, sale_until = null, paypal_sale_value = null;
+    alter table public.premium_sales drop constraint if exists premium_sales_sale_minor_check;
+    alter table public.premium_sales add constraint premium_sales_check check (sale_minor is null or (sale_minor > 0 and sale_minor < case plan when 'monthly' then 499 else 3999 end));`);   // the name the live server gave it
+  const back = await mig('202611170004_premium_prices_back.sql');
+  await db.exec(back); await db.exec(back);   // twice: the same result
+  await as(OWNER, `select public.owner_premium_sale('monthly', 9.99, null, '${iso(Date.now() + 864e5)}')`);   // 9.99 < 14.99: allowed again
+  await refused(OWNER, `select public.owner_premium_sale('yearly', 119.99, null, '${iso(Date.now() + 864e5)}')`, /sale-not-lower/);
+  assert.deepEqual((await val(OWNER, `select public.owner_sales() as o`)).premium.map(r => r.price_minor), [1499, 11999]);
+  await assert.rejects(sys(`update public.premium_sales set sale_minor = 1500 where plan = 'monthly'`), /premium_sales_sale_minor_check/);
 });

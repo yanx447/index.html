@@ -28,3 +28,10 @@ test('Unexpected checkout host and anonymous purchases fail',async()=>{const x=s
 test('Server store expiry and owner ban determine Premium; admin role alone does not',()=>{const x=setup();x.cloud.isAdmin=true;assert.equal(x.P.active,false);x.cloud.profile={store_until:'2090-01-01'};assert.equal(x.P.active,true);x.cloud.profile.premium_banned=true;assert.equal(x.P.active,false);x.cloud.isOwner=true;assert.equal(x.P.active,true)});
 
 test('Desktop Capacitor shell uses hosted checkout',async()=>{const x=setup('desktop');assert.equal(x.B.native,false);const result=await x.B.purchase('monthly','tbc');assert.equal(result.redirecting,true);assert.equal(x.redirects[0],'https://tpay.tbcbank.ge/checkout/order1');assert.equal(x.calls.some(v=>v[0]==='configure'),false)});
+
+test('A struck-out comparison is only ever a real price: twelve months, thirty days; never across currencies or store prices',()=>{const x=setup(false),c=(...a)=>JSON.parse(JSON.stringify(x.B.compare(...a)));
+ assert.deepEqual(c({value:'119.99',currency:'GEL'},{value:'14.99',currency:'GEL'},12),{regular:{value:'179.88',currency:'GEL'},pct:33});
+ assert.deepEqual(c({value:'29.99',currency:'GEL'},{value:'2.99',currency:'GEL'},30),{regular:{value:'89.70',currency:'GEL'},pct:67});
+ assert.equal(c({value:'119.99',currency:'GEL'},{value:'5.17',currency:'EUR'},12),null);
+ assert.equal(c({display:'₾119.99'},{display:'₾14.99'},12),null);
+ assert.equal(c({value:'200',currency:'GEL'},{value:'14.99',currency:'GEL'},12),null,'not cheaper: nothing struck out');});

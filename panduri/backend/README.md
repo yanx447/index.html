@@ -207,7 +207,7 @@ What it is: members sell instruments to each other. **Every listing is paid** (t
 | `ad168` | კვირის რეკლამა | GEL 14.99 | EUR 5.17 | 168 h |
 | `ad720` | თვის რეკლამა | GEL 29.99 | EUR 10.34 | 720 h |
 
-**Prices lowered for good (owner, 2026-11-16).** The owner wanted a permanent "9.99 instead of 4.99". A struck-out price that is never charged is a false reference price: Georgian consumer protection forbids it, and Apple and Google refuse it. So the low prices are the real prices instead, with no struck-out price. The app compares honestly, e.g. "≈ 1 ₾ a day" for the monthly package, or the yearly Premium's monthly price against the monthly plan. Premium is **GEL 4.99 / month, 39.99 / year** (`billing.js` `PLANS`); on PayPal **EUR 1.72 / 13.79** (secrets `PAYPAL_MONTHLY_PRICE` / `PAYPAL_YEARLY_PRICE`). EUR prices are at NBG 2026-11-07, EUR 1 = GEL 2.8998. A server that already ran the first marketplace prices needs `202611170003_lower_prices.sql`.
+**Struck-out prices are true comparisons (owner, 2026-11-17).** Premium is back at **GEL 14.99 / month, 119.99 / year** (PayPal EUR 5.17 / 41.38, unchanged secrets); the packages stay at 2.99 / 6.99 / 14.99 / 29.99. The owner wanted every price shown as "X instead of Y". A struck-out number nobody pays is a false reference price (Georgian consumer protection; Apple and Google review), so the struck-out number is always a real one (`PD.billing.compare`):
 
 Prices live in `public.market_packages`. The owner changes them in the app (Marketplace → shield icon → Packages, `is_owner()` only). A package's length is fixed by a check constraint. The `free` row remains, switched off, only as history.
 

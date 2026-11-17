@@ -1,17 +1,21 @@
 -- Premium on sale: a real, time-limited price the owner switches on and off from the app (pmadmin → Discounts).
--- The regular prices: GEL 4.99 / 39.99 (billing.js PLANS; lowered for good on 2026-11-16) and PAYPAL_MONTHLY_PRICE / PAYPAL_YEARLY_PRICE.
+-- The regular prices: GEL 14.99 / 119.99 (billing.js PLANS and public.premium_regular_minor) and PAYPAL_MONTHLY_PRICE / PAYPAL_YEARLY_PRICE.
 -- While sale_until is in the future the `billing` function charges the sale price and the app shows the regular one struck
 -- out; after it, the regular price is charged again by itself. A sale that is not lower than the regular price is ignored.
 -- Needs only 202611080002_multiplatform_billing.sql and is_owner(). Additive; can be run twice.
+/** Premium's regular prices in tetri: the same numbers as billing.js PLANS, in one place for the database */
+create or replace function public.premium_regular_minor(p text) returns integer
+language sql immutable set search_path = public as $$ select case p when 'monthly' then 1499 when 'yearly' then 11999 end $$;
 create table if not exists public.premium_sales (
   plan text primary key check (plan in ('monthly', 'yearly')),
-  sale_minor integer check (sale_minor is null or (sale_minor > 0 and sale_minor < case plan when 'monthly' then 499 else 3999 end)),
+  sale_minor integer,
   paypal_sale_value text check (paypal_sale_value is null or paypal_sale_value ~ '^[0-9]+\.[0-9]{2}$'),
   sale_until timestamptz,
   updated_at timestamptz not null default now(),
-  updated_by uuid references auth.users on delete set null
+  updated_by uuid references auth.users on delete set null,
+  constraint premium_sales_sale_minor_check check (sale_minor is null or (sale_minor > 0 and sale_minor < public.premium_regular_minor(plan)))
 );
--- no sale prepared: the prices themselves are low now. The owner can still run a real, time-limited sale from the app.
+-- no sale prepared: the owner runs a real, time-limited one from the app when wanted
 insert into public.premium_sales (plan) values ('monthly'), ('yearly') on conflict (plan) do nothing;
 alter table public.premium_sales enable row level security;   -- read by the billing function (service role) and the owner's functions
 revoke all on public.premium_sales from anon, authenticated;
@@ -28,14 +32,14 @@ begin
       from public.market_packages where kind = 'ad'$q$ into m;
   end if;
   return jsonb_build_object('now', now(), 'market', m,
-    'premium', (select coalesce(jsonb_agg(jsonb_build_object('plan', plan, 'price_minor', case plan when 'monthly' then 499 else 3999 end,
+    'premium', (select coalesce(jsonb_agg(jsonb_build_object('plan', plan, 'price_minor', public.premium_regular_minor(plan),
       'sale_minor', sale_minor, 'paypal_sale_value', paypal_sale_value, 'sale_until', sale_until) order by plan), '[]'::jsonb) from public.premium_sales));
 end $$;
 
 /** switch a Premium sale on (with its end) or off (until = null). The owner only. */
 create or replace function public.owner_premium_sale(sale_plan text, sale_gel numeric, pp_sale text, until timestamptz) returns void
 language plpgsql security definer set search_path = public as $$
-declare regular integer := case sale_plan when 'monthly' then 499 when 'yearly' then 3999 end;   -- the regular price in tetri (billing.js PLANS)
+declare regular integer := public.premium_regular_minor(sale_plan);   -- the regular price in tetri (billing.js PLANS)
 begin
   if not public.is_owner() then raise exception 'not-allowed'; end if;
   if regular is null then raise exception 'invalid-plan'; end if;
