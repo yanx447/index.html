@@ -4,7 +4,7 @@
 const { chromium } = require('playwright');
 const APP = process.env.APP_URL || 'http://localhost:8766/dist/app/';
 const code = process.argv[2] || 'ru', W = +process.env.W || 390, H = +process.env.H || 844;
-const ROUTES = [['home'], ['learn'], ['chords'], ['practice'], ['rhythms'], ['rhythm', 'khorumi'], ['theory'], ['theory', 'meter'], ['tips'], ['tips', 'tune'], ['solfege'], ['scales'], ['chordhow'], ['music'], ['music', '12bar'], ['music', 'geo'], ['book'], ['book', 'tuner'], ['install'], ['progress'], ['settings'], ['songs'], ['library'], ['exams'], ['metronome'], ['fretboard'], ['explore'], ['profile'], ['daily'], ['trainer']];
+const ROUTES = [['home'], ['learn'], ['chords'], ['practice'], ['rhythms'], ['rhythm', 'khorumi'], ['theory'], ['theory', 'meter'], ['tips'], ['tips', 'tune'], ['solfege'], ['scales'], ['chordhow'], ['music'], ['music', '12bar'], ['music', 'geo'], ['book'], ['book', 'tuner'], ['install'], ['progress'], ['settings'], ['songs'], ['library'], ['exams'], ['metronome'], ['fretboard'], ['explore'], ['profile'], ['daily'], ['trainer'], ['studio3'], ['ai', 'lib'], ['pstudio']];   // the Studio: its home, the song library, an arrangement
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const errs = [], report = {};

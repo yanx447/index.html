@@ -504,7 +504,7 @@ PD.ai = (() => {
   }
 
   /* ======================= the page ======================= */
-  function page(w) {
+  function page(w, param) {
     const own = (() => { const offs = []; const un = PD.bus.on('route', () => { offs.forEach(f => { try { f(); } catch (_) {} }); un(); }); return f => offs.push(f); })();
     const back = () => PD.app.back('songs');
     const leadP = h('p', { class: 'muted', 'data-t': 'ai.lead' });
@@ -1290,7 +1290,7 @@ PD.ai = (() => {
             return { mono: (await resample(b, 22050, 1)).getChannelData(0), offset: S.stems.from };
           }
         });
-        CUR = { res, get transcription() { return S.tr && S.tr.data; }, file: S.file, get stems() { return S && S.stems; }, get audio() { return S && S.ab; }, get transport() { return S && S.deck; } };
+        CUR = { res, get id() { return S && S.id; }, get transcription() { return S.tr && S.tr.data; }, file: S.file, get stems() { return S && S.stems; }, get audio() { return S && S.ab; }, get transport() { return S && S.deck; } };
         return S.tr.el;
       }
       own(() => { if (S && S.tr) { try { S.tr.destroy(); } catch (_) {} S.tr = null; } });
@@ -1568,6 +1568,8 @@ PD.ai = (() => {
     }
     recentList();
     const _render = render; render = function () { _render(); recentList(); };
+    // the Studio (studio3.js) hands over a file chosen on its home, or a song from its list
+    const f0 = PD.ai.take; PD.ai.take = null; if (f0) open(f0); else if (param) { const r = PD.store.get('ai.recent', []).find(x => x.id === param); if (r) reopen(r); }
   }
   return { page, analyse, allowed, BASE, _analyse: analyse, _beatsOf: beatsOf, cname, shapeOf, get current() { return CUR; } };
 })();

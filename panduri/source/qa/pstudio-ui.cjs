@@ -1,6 +1,8 @@
 /* Panduri Studio in a real browser: write on the neck, a teacher rhythm with a chord, play and loop (the strokes and
    notes that reach the sound engine are counted), edit in the piano roll and undo, save and reload, .panduri and MIDI
-   out and in, mute, the phone layout. Usage: python3 serve.py <port> & node qa/pstudio-ui.cjs <port> */
+   out and in, mute, the phone layout. Usage: python3 serve.py <port> & node qa/pstudio-ui.cjs <port>
+   Since Studio 3.0 (2026-11-19) the page opens inside the unified Studio: its view tabs and its Undo are the Studio's
+   (.s3-tab, .s3-head); everything checked here is unchanged. */
 const { chromium } = require('playwright'), assert = require('node:assert/strict');
 const PORT = process.argv[2] || '8814';
 (async () => {
@@ -10,7 +12,7 @@ const PORT = process.argv[2] || '8814';
   await p.goto(`http://localhost:${PORT}/panduri/app/`); await p.waitForTimeout(1500);
   await p.evaluate(() => { PD.store.set('onboarded', true); PD.store.set('auth.skip', true); PD.i18n.set('en'); document.querySelectorAll('.ob,.ag,.intro').forEach(o => o.remove()); PD.app.go('practice'); });
   await p.waitForTimeout(600);
-  assert.ok(await p.evaluate(() => [...document.querySelectorAll('.prow b')].some(x => x.textContent === 'Fanduri Studio')), 'the studio is listed on the practice page');
+  assert.ok(await p.evaluate(() => [...document.querySelectorAll('.prow b')].some(x => x.textContent === 'Studio')), 'the Studio (which holds Panduri Studio) is listed on the practice page');
   await p.evaluate(() => PD.app.go('pstudio')); await p.waitForTimeout(800);
   const P0 = await p.evaluate(() => PD.pstudio.project.tracks.map(t => t.kind));
   assert.deepEqual(P0, ['rhythm', 'notes'], 'a new project: a rhythm track and a melody track');
@@ -23,7 +25,7 @@ const PORT = process.argv[2] || '8814';
   assert.deepEqual(notes, [[57, 1, 0, 0], [62, 2, 1, .5], [67, 3, 3, 1]], 'three notes written from the neck, string and fret kept');
   // 2. the rhythm: the teacher's Mtiuluri, a Dm on bar 1
   await p.evaluate(() => { [...document.querySelectorAll('.pst-tc')][0].click(); }); await p.waitForTimeout(200);
-  await p.evaluate(() => { [...document.querySelectorAll('.pst-tabs button')][2].click(); }); await p.waitForTimeout(200);
+  await p.evaluate(() => { document.querySelector('#page .s3-tab[data-v="rhythm"]').click(); }); await p.waitForTimeout(200);
   await p.evaluate(() => { const s = document.querySelector('.pst-tools select'); s.value = 'mtiuluri'; s.dispatchEvent(new Event('change')); }); await p.waitForTimeout(250);
   const steps = await p.evaluate(() => PD.pstudio.project.tracks[0].rhythm.steps.map(s => (s.dir === 'down' ? 'D' : 'U') + (s.acc ? '!' : '')).join(' '));
   assert.equal(steps, 'D! D U! D U', 'Mtiuluri: the teacher\'s strokes and accents');
@@ -47,13 +49,13 @@ const PORT = process.argv[2] || '8814';
   assert.ok(looped >= 8, 'the loop came round (a bar has 5 strokes)');
   // 5. the piano roll: move the first note up a semitone, then undo
   await p.evaluate(() => { [...document.querySelectorAll('.pst-tc')][1].click(); }); await p.waitForTimeout(200);
-  await p.evaluate(() => { [...document.querySelectorAll('.pst-tabs button')][1].click(); }); await p.waitForTimeout(600);
+  await p.evaluate(() => { document.querySelector('#page .s3-tab[data-v="roll"]').click(); }); await p.waitForTimeout(600);
   const id = await p.evaluate(() => PD.pstudio.project.tracks[1].notes[0].id);
   const r = await p.evaluate(id => document.querySelector('.rl').noteRect(id), id);
   await p.mouse.click(r.x + 6, r.y + r.height / 2); await p.waitForTimeout(250); await p.keyboard.press('ArrowUp'); await p.waitForTimeout(400);
   const moved = await p.evaluate(id => { const n = PD.pstudio.project.tracks[1].notes.find(x => x.id === id); return [n.m, n.s, n.f]; }, id);
   assert.deepEqual(moved, [58, 1, 1], 'A → B♭ on the same string');
-  await p.evaluate(() => [...document.querySelectorAll('.pst-top .btn')].find(x => x.textContent === 'Undo').click()); await p.waitForTimeout(300);
+  await p.evaluate(() => document.querySelector('#page .s3-head [aria-label="Undo"]').click()); await p.waitForTimeout(300);
   assert.equal(await p.evaluate(() => PD.pstudio.project.tracks[1].notes[0].m), 57, 'undo');
   // 6. saved: reload and find it all again
   await p.waitForTimeout(900); await p.reload(); await p.waitForTimeout(1500);
@@ -75,7 +77,7 @@ const PORT = process.argv[2] || '8814';
   assert.equal(muted, 0, 'mute');
   // 9. every view at phone width: no page wider than the screen
   await p.setViewportSize({ width: 390, height: 844 });
-  for (let i = 0; i < 5; i++) { await p.evaluate(i => [...document.querySelectorAll('.pst-tabs button')][i].click(), i); await p.waitForTimeout(350);
+  for (let i = 0; i < 5; i++) { await p.evaluate(i => PD.studio3.workspace.setView(['fret', 'roll', 'rhythm', 'arrange', 'mixer'][i], true), i); await p.waitForTimeout(350);
     const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth); assert.ok(ov <= 1, 'view ' + i + ' overflows by ' + ov);
     await p.screenshot({ path: `/tmp/pstudio-${i}.png` }); }
   assert.deepEqual(errs, []);

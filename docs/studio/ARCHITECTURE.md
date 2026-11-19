@@ -87,3 +87,14 @@ library. The Mixer says what the sound is today. A professional library needs a 
 session on the teacher's panduri: every fret, every string, 3–5 dynamics, 3–4 takes, down /
 up / mute / tremolo / harmonics, and release and fret noises, at 24-bit / 48 kHz or more, with
 documented rights.
+
+## 7. Studio 3.0 (2026-11-19)
+
+The page now opens inside the unified Studio (`src/studio3.js`, docs/studio3/). `PD.pstudio.page(w, view, opt)`
+takes `opt = { embed: true, open: <project id>, onState, onOpen }`: in embed mode it draws only the track chips
+and the view — the Studio draws the header, the one transport and the view tabs, and drives the page through
+`PD.pstudio.engine` (play/stop/seek/tempo/metre/loop/metronome/count-in/undo/redo/rename/setView). Also new:
+`create(tpl)` (`'blank'`, `'rhythm:<id>'`), `importAsNew(file)`, `exportPanduri()`, `exportMidi(only)`;
+`play()` claims `PD.transport` (s3core.js) and `stop()` releases it. Without `opt` the page is the standalone
+studio described above (kept, no longer shown in the app). A rhythm preset is called the teacher's only while its
+strokes and accents are his (`pst.tMine`, `pst.changedR`): the file keeps `src: 'teacher'` after an edit.

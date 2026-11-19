@@ -1,0 +1,704 @@
+{
+ "app": "panduri/source/dist/app",
+ "browser": "webkit",
+ "date": "2026-11-19T21:15:06.896Z",
+ "passed": 37,
+ "skipped": 1,
+ "failed": 0,
+ "results": [
+  {
+   "name": "navigation: one Studio entry, no separate AI studio entry",
+   "ok": true,
+   "skipped": false,
+   "ms": 4,
+   "info": "home,learn,mtheory,chords,community,tuner,studio3,profile"
+  },
+  {
+   "name": "old link go(\"ai\") without a song opens the Studio home; the Studio tab is lit",
+   "ok": true,
+   "skipped": false,
+   "ms": 866,
+   "info": [
+    "studio3",
+    "studio3",
+    true
+   ]
+  },
+  {
+   "name": "practice page lists the one Studio (not two studios)",
+   "ok": true,
+   "skipped": false,
+   "ms": 864,
+   "info": null
+  },
+  {
+   "name": "home quick tool says Studio and opens the Studio home",
+   "ok": true,
+   "skipped": false,
+   "ms": 1372,
+   "info": "Tuner · Metronome · Chords · Studio"
+  },
+  {
+   "name": "Studio home: import, new project, MIDI/.panduri, templates with the teacher's four rhythms",
+   "ok": true,
+   "skipped": false,
+   "ms": 1,
+   "info": [
+    "Kazbeguri ↓! ↑ ↓",
+    "Mtiuluri ↓! ↓ ↑! ↓ ↑",
+    "Khorumi ↓! ↓ ↑ ↓ ↓! ↓ ↑",
+    "Acharuli ↓ ↓! ↑!"
+   ]
+  },
+  {
+   "name": "an old .panduri project (v1) stored by Panduri Studio opens by the old route go(\"pstudio\")",
+   "ok": true,
+   "skipped": false,
+   "ms": 2127,
+   "info": {
+    "route": "pstudio",
+    "title": "ძველი პროექტი · Old project",
+    "id": "p-old-fixture",
+    "bpm": 84,
+    "meter": "3/4",
+    "notes": [
+     [
+      57,
+      1,
+      0
+     ],
+     [
+      62,
+      2,
+      1
+     ],
+     [
+      40,
+      0,
+      -1
+     ]
+    ],
+    "steps": "D! U D",
+    "hist": "p:p-old-fixture:fret"
+   }
+  },
+  {
+   "name": "the side panel tells where things come from (teacher strokes; lengths not given; one unplayable note)",
+   "ok": true,
+   "skipped": false,
+   "ms": 3,
+   "info": "32 lines"
+  },
+  {
+   "name": "old link go(\"pstudio\", \"roll\") opens the piano roll view",
+   "ok": true,
+   "skipped": false,
+   "ms": 1048,
+   "info": [
+    "roll",
+    "roll",
+    true
+   ]
+  },
+  {
+   "name": "import a song from the Studio home: the AI studio analyses it (on this device) and keeps it",
+   "ok": true,
+   "skipped": false,
+   "ms": 1543,
+   "info": {
+    "route": "ai",
+    "hist": "smwo1spv1",
+    "id": "smwo1spv1",
+    "key": "Dm",
+    "bpm": 96,
+    "chords": 10,
+    "dur": 7.68,
+    "stored": false,
+    "title": "bani-acharuli",
+    "save": "The file is not saved — pick it again",
+    "note": "this browser context keeps no Blob in IndexedDB: the song is analysed, not kept, and the header says so"
+   }
+  },
+  {
+   "name": "one transport: the Studio's; the AI studio's own deck and tab bar are not shown",
+   "ok": true,
+   "skipped": false,
+   "ms": 2,
+   "info": {
+    "s3": 1,
+    "aiDeck": 0,
+    "aiTr": 0,
+    "pst": 0,
+    "aiTabs": 0,
+    "aiFacts": 1
+   }
+  },
+  {
+   "name": "the transport plays and pauses the song; the position moves",
+   "ok": true,
+   "skipped": false,
+   "ms": 1952,
+   "info": {
+    "playing": true,
+    "pos": 1.3626666666666667,
+    "clk": "0:01 / 0:07",
+    "bb": "2.1",
+    "owner": true
+   }
+  },
+  {
+   "name": "transport: loop this bar, metronome, count-in and speed reach the deck",
+   "ok": true,
+   "skipped": false,
+   "ms": 1167,
+   "info": {
+    "loop": [
+     true,
+     0.99,
+     3.53
+    ],
+    "click": true,
+    "count": true,
+    "speed": 0.75,
+    "pressed": [
+     "true",
+     "true",
+     "true"
+    ]
+   }
+  },
+  {
+   "name": "every song view opens the AI studio's own pane (nothing re-implemented)",
+   "ok": true,
+   "skipped": false,
+   "ms": 2351,
+   "info": {
+    "player": "overview",
+    "lesson": "learn",
+    "stems": "instruments",
+    "chords": "chords",
+    "tab": "tab",
+    "roll": "roll",
+    "score": "notation",
+    "melody": "solo",
+    "rhythm": "rhythm"
+   }
+  },
+  {
+   "name": "the lesson card shows only in the Lesson view",
+   "ok": true,
+   "skipped": false,
+   "ms": 418,
+   "info": {
+    "lesson": 1,
+    "player": 0
+   }
+  },
+  {
+   "name": "the song's side panel: tempo, key and chords as AI estimates; stems not separated",
+   "ok": true,
+   "skipped": false,
+   "ms": 2,
+   "info": "SOURCE / File / bani-acharuli.mp3 / audio · 90 KB / Length / 0:07 / ANALYSIS / Tempo / 96 BPM / AI · estimate / Key / Dm"
+  },
+  {
+   "name": "old link go(\"ai\", <song id>) reopens the song from this device",
+   "ok": true,
+   "skipped": true,
+   "ms": 770,
+   "info": "skipped: nothing was kept in this browser context, so there is nothing to reopen"
+  },
+  {
+   "name": "back from a workspace returns to the Studio home",
+   "ok": true,
+   "skipped": false,
+   "ms": 867,
+   "info": null
+  },
+  {
+   "name": "new blank project: one melody track; three notes written from the neck keep string and fret",
+   "ok": true,
+   "skipped": false,
+   "ms": 1134,
+   "info": [
+    [
+     57,
+     1,
+     0,
+     0
+    ],
+    [
+     62,
+     2,
+     1,
+     0.5
+    ],
+    [
+     67,
+     3,
+     3,
+     1
+    ]
+   ]
+  },
+  {
+   "name": "undo and redo from the Studio header",
+   "ok": true,
+   "skipped": false,
+   "ms": 477,
+   "info": {
+    "afterUndo": 2,
+    "afterRedo": 3
+   }
+  },
+  {
+   "name": "rename, tempo and metre from the header and the transport",
+   "ok": true,
+   "skipped": false,
+   "ms": 844,
+   "info": {
+    "name": "Studio test",
+    "bpm": 120,
+    "meter": "3/4",
+    "saved": "Saved"
+   }
+  },
+  {
+   "name": "the transport plays the arrangement: notes reach the sound engine; stop",
+   "ok": true,
+   "skipped": false,
+   "ms": 1890,
+   "info": {
+    "n": 3,
+    "playing": true,
+    "head": 2.97,
+    "owner": "pst",
+    "bb": "1.3"
+   }
+  },
+  {
+   "name": "template \"Traditional rhythm & solo\" with Mtiuluri: the teacher's strokes; the page says the lengths are not his",
+   "ok": true,
+   "skipped": false,
+   "ms": 1499,
+   "info": {
+    "steps": "D! D U! D U"
+   }
+  },
+  {
+   "name": "a stroke changed by hand: the side panel no longer calls it the teacher's",
+   "ok": true,
+   "skipped": false,
+   "ms": 2658,
+   "info": {
+    "edited": "you · corrected",
+    "undone": "teacher ✓"
+   }
+  },
+  {
+   "name": "saved: after a reload the arrangement is all there",
+   "ok": true,
+   "skipped": false,
+   "ms": 2977,
+   "info": [
+    "D! D U! D U",
+    "Untitled"
+   ]
+  },
+  {
+   "name": "export .panduri and MIDI from the header",
+   "ok": true,
+   "skipped": false,
+   "ms": 1779,
+   "info": {
+    "panduri": "ძველი პროექტი · Old project.panduri",
+    "tracks": 2,
+    "midiBytes": 257
+   }
+  },
+  {
+   "name": "open the exported files from the Studio home: each becomes its own project",
+   "ok": true,
+   "skipped": false,
+   "ms": 3372,
+   "info": {
+    "panduri": "3 notes",
+    "midi": {
+     "bpm": 84,
+     "meter": "3/4",
+     "tracks": [
+      [
+       "notes",
+       18
+      ],
+      [
+       "notes",
+       2
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "PD.transport: the arrangement starting pauses a playing AI deck, and the deck starting stops the arrangement",
+   "ok": true,
+   "skipped": false,
+   "ms": 779,
+   "info": {
+    "deckAlone": true,
+    "afterArrangement": [
+     false,
+     true
+    ],
+    "afterDeck": [
+     true,
+     false
+    ]
+   }
+  },
+  {
+   "name": "no errors on the page",
+   "ok": true,
+   "skipped": false,
+   "ms": 0,
+   "info": null
+  },
+  {
+   "name": "layout desktop-1440x900",
+   "ok": true,
+   "skipped": false,
+   "ms": 3394,
+   "info": {
+    "home": {
+     "overflowX": false,
+     "cards": 3
+    },
+    "song": {
+     "tabs": true,
+     "modes": false,
+     "side": true,
+     "transportTop": 96
+    },
+    "arr": {
+     "transportTop": 96
+    }
+   }
+  },
+  {
+   "name": "no errors at desktop-1440x900",
+   "ok": true,
+   "skipped": false,
+   "ms": 0,
+   "info": null
+  },
+  {
+   "name": "layout desktop-1920x1080",
+   "ok": true,
+   "skipped": false,
+   "ms": 3412,
+   "info": {
+    "home": {
+     "overflowX": false,
+     "cards": 3
+    },
+    "song": {
+     "tabs": true,
+     "modes": false,
+     "side": true,
+     "transportTop": 96
+    },
+    "arr": {
+     "transportTop": 96
+    }
+   }
+  },
+  {
+   "name": "no errors at desktop-1920x1080",
+   "ok": true,
+   "skipped": false,
+   "ms": 0,
+   "info": null
+  },
+  {
+   "name": "layout tablet-768x1024",
+   "ok": true,
+   "skipped": false,
+   "ms": 3366,
+   "info": {
+    "home": {
+     "overflowX": false,
+     "cards": 3
+    },
+    "song": {
+     "tabs": true,
+     "modes": false,
+     "side": false,
+     "transportTop": 84
+    },
+    "arr": {
+     "transportTop": 84
+    }
+   }
+  },
+  {
+   "name": "no errors at tablet-768x1024",
+   "ok": true,
+   "skipped": false,
+   "ms": 0,
+   "info": null
+  },
+  {
+   "name": "layout phone-390x844",
+   "ok": true,
+   "skipped": false,
+   "ms": 3356,
+   "info": {
+    "home": {
+     "overflowX": false,
+     "cards": 3
+    },
+    "song": {
+     "tabs": false,
+     "modes": true,
+     "side": false,
+     "transportTop": 80
+    },
+    "arr": {
+     "transportTop": 80
+    }
+   }
+  },
+  {
+   "name": "no errors at phone-390x844",
+   "ok": true,
+   "skipped": false,
+   "ms": 0,
+   "info": null
+  },
+  {
+   "name": "layout phone-430x932",
+   "ok": true,
+   "skipped": false,
+   "ms": 3348,
+   "info": {
+    "home": {
+     "overflowX": false,
+     "cards": 3
+    },
+    "song": {
+     "tabs": false,
+     "modes": true,
+     "side": false,
+     "transportTop": 80
+    },
+    "arr": {
+     "transportTop": 80
+    }
+   }
+  },
+  {
+   "name": "no errors at phone-430x932",
+   "ok": true,
+   "skipped": false,
+   "ms": 0,
+   "info": null
+  }
+ ],
+ "layout": [
+  {
+   "size": "desktop-1440x900",
+   "home": {
+    "overflowX": false,
+    "cards": 3
+   },
+   "song": {
+    "label": "song",
+    "overflowX": false,
+    "transport": {
+     "top": 96,
+     "bottom": 204,
+     "left": 296,
+     "right": 1392
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": true,
+    "modes": false,
+    "side": true,
+    "modesN": 4
+   },
+   "arr": {
+    "label": "arrangement",
+    "overflowX": false,
+    "transport": {
+     "top": 96,
+     "bottom": 208,
+     "left": 296,
+     "right": 1392
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": true,
+    "modes": false,
+    "side": true,
+    "modesN": 3
+   }
+  },
+  {
+   "size": "desktop-1920x1080",
+   "home": {
+    "overflowX": false,
+    "cards": 3
+   },
+   "song": {
+    "label": "song",
+    "overflowX": false,
+    "transport": {
+     "top": 96,
+     "bottom": 204,
+     "left": 296,
+     "right": 1872
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": true,
+    "modes": false,
+    "side": true,
+    "modesN": 4
+   },
+   "arr": {
+    "label": "arrangement",
+    "overflowX": false,
+    "transport": {
+     "top": 96,
+     "bottom": 208,
+     "left": 296,
+     "right": 1872
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": true,
+    "modes": false,
+    "side": true,
+    "modesN": 3
+   }
+  },
+  {
+   "size": "tablet-768x1024",
+   "home": {
+    "overflowX": false,
+    "cards": 3
+   },
+   "song": {
+    "label": "song",
+    "overflowX": false,
+    "transport": {
+     "top": 84,
+     "bottom": 192,
+     "left": 16,
+     "right": 752
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": true,
+    "modes": false,
+    "side": false,
+    "modesN": 4
+   },
+   "arr": {
+    "label": "arrangement",
+    "overflowX": false,
+    "transport": {
+     "top": 84,
+     "bottom": 196,
+     "left": 16,
+     "right": 752
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": true,
+    "modes": false,
+    "side": false,
+    "modesN": 3
+   }
+  },
+  {
+   "size": "phone-390x844",
+   "home": {
+    "overflowX": false,
+    "cards": 3
+   },
+   "song": {
+    "label": "song",
+    "overflowX": false,
+    "transport": {
+     "top": 80,
+     "bottom": 176,
+     "left": 16,
+     "right": 374
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": false,
+    "modes": true,
+    "side": false,
+    "modesN": 4
+   },
+   "arr": {
+    "label": "arrangement",
+    "overflowX": false,
+    "transport": {
+     "top": 80,
+     "bottom": 180,
+     "left": 16,
+     "right": 374
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": false,
+    "modes": true,
+    "side": false,
+    "modesN": 3
+   }
+  },
+  {
+   "size": "phone-430x932",
+   "home": {
+    "overflowX": false,
+    "cards": 3
+   },
+   "song": {
+    "label": "song",
+    "overflowX": false,
+    "transport": {
+     "top": 80,
+     "bottom": 176,
+     "left": 16,
+     "right": 414
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": false,
+    "modes": true,
+    "side": false,
+    "modesN": 4
+   },
+   "arr": {
+    "label": "arrangement",
+    "overflowX": false,
+    "transport": {
+     "top": 80,
+     "bottom": 180,
+     "left": 16,
+     "right": 414
+    },
+    "playOnFirstScreen": true,
+    "oneRow": true,
+    "tabs": false,
+    "modes": true,
+    "side": false,
+    "modesN": 3
+   }
+  }
+ ]
+}

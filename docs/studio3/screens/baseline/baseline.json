@@ -1,0 +1,416 @@
+[
+ {
+  "size": "desktop-1440",
+  "label": "ai: empty",
+  "route": "ai",
+  "scrollHeight": 900,
+  "viewport": 900,
+  "screens": 1,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    0
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": []
+ },
+ {
+  "size": "desktop-1440",
+  "label": "ai: song open",
+  "route": "ai",
+  "scrollHeight": 1393,
+  "viewport": 900,
+  "screens": 1.55,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    1
+   ],
+   [
+    ".pst-transport",
+    0
+   ],
+   [
+    ".ai-deck",
+    1
+   ]
+  ],
+  "tabs": [
+   "Audio & playback",
+   "Note editor",
+   "TAB & fingering",
+   "Practice"
+  ]
+ },
+ {
+  "size": "desktop-1440",
+  "label": "pstudio: fret",
+  "route": "pstudio",
+  "scrollHeight": 900,
+  "viewport": 900,
+  "screens": 1,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "desktop-1440",
+  "label": "pstudio: roll",
+  "route": "pstudio",
+  "scrollHeight": 1209,
+  "viewport": 900,
+  "screens": 1.34,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "desktop-1440",
+  "label": "pstudio: rhythm",
+  "route": "pstudio",
+  "scrollHeight": 900,
+  "viewport": 900,
+  "screens": 1,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "desktop-1440",
+  "label": "pstudio: arrange",
+  "route": "pstudio",
+  "scrollHeight": 900,
+  "viewport": 900,
+  "screens": 1,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "desktop-1440",
+  "label": "pstudio: mixer",
+  "route": "pstudio",
+  "scrollHeight": 900,
+  "viewport": 900,
+  "screens": 1,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "desktop-1440",
+  "errors": []
+ },
+ {
+  "size": "phone-390",
+  "label": "ai: empty",
+  "route": "ai",
+  "scrollHeight": 844,
+  "viewport": 844,
+  "screens": 1,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    0
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": []
+ },
+ {
+  "size": "phone-390",
+  "label": "ai: song open",
+  "route": "ai",
+  "scrollHeight": 1573,
+  "viewport": 844,
+  "screens": 1.86,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    1
+   ],
+   [
+    ".pst-transport",
+    0
+   ],
+   [
+    ".ai-deck",
+    1
+   ]
+  ],
+  "tabs": [
+   "Audio & playback",
+   "Note editor",
+   "TAB & fingering",
+   "Practice"
+  ]
+ },
+ {
+  "size": "phone-390",
+  "label": "pstudio: fret",
+  "route": "pstudio",
+  "scrollHeight": 928,
+  "viewport": 844,
+  "screens": 1.1,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "phone-390",
+  "label": "pstudio: roll",
+  "route": "pstudio",
+  "scrollHeight": 1313,
+  "viewport": 844,
+  "screens": 1.56,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "phone-390",
+  "label": "pstudio: rhythm",
+  "route": "pstudio",
+  "scrollHeight": 1489,
+  "viewport": 844,
+  "screens": 1.76,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "phone-390",
+  "label": "pstudio: arrange",
+  "route": "pstudio",
+  "scrollHeight": 844,
+  "viewport": 844,
+  "screens": 1,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "phone-390",
+  "label": "pstudio: mixer",
+  "route": "pstudio",
+  "scrollHeight": 986,
+  "viewport": 844,
+  "screens": 1.17,
+  "overflowX": false,
+  "players": [
+   [
+    ".ai-tr",
+    0
+   ],
+   [
+    ".pst-transport",
+    1
+   ],
+   [
+    ".ai-deck",
+    0
+   ]
+  ],
+  "tabs": [
+   "Fretboard",
+   "Piano roll",
+   "Rhythm",
+   "Arrange",
+   "Mixer"
+  ]
+ },
+ {
+  "size": "phone-390",
+  "errors": []
+ }
+]
