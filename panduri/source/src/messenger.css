@@ -282,3 +282,114 @@
 .ms-quote{flex-direction:column;align-items:flex-start;gap:3px;padding:7px 9px;max-width:100%;margin-bottom:6px;font-size:11px}.ms-quote span{max-width:100%}.ms-quote:hover{background:#ffffff13}.ms-reply-bar[hidden],.ms-latest[hidden]{display:none}
 .ms-latest{position:absolute;right:14px;bottom:115px;z-index:3;width:42px;height:42px;border:1px solid var(--line2);border-radius:100%;background:var(--surface);color:var(--chat-accent);box-shadow:0 8px 24px #0005;font-size:20px}.ms-chat-search .ms-library-body{min-height:100px}
 }
+
+/* Chat: content-sized bubbles, discreet reaction pills and one continuous input row. */
+@layer ds {
+:root.chat-on .ms-chat[data-chat-theme=graphite]{--chat-accent:#f5f5f7;--chat-out:#28282c;--chat-wash:#ffffff0b;background:#000;color:#fff}
+:root.chat-on .ms-chat[data-chat-theme=graphite] .ms-messages{background:#000}
+.ms-chat[data-chat-theme=graphite] .cm-msg:not(.me):not(.is-sticker):not(.is-emoji){background:#17171a;color:#fff}
+:root[data-theme] .ms-chat[data-chat-theme=graphite] .cm-msg.me:not(.is-sticker):not(.is-emoji){background:#29292d;color:#fff}
+:root[data-theme] .ms-messages .cm-msg:is(.is-sticker,.is-emoji){background:transparent;border-color:transparent;box-shadow:none}
+:root.chat-on .ms-messages{flex:1 1 auto;min-height:0;max-height:none;gap:7px}
+.ms-messages .cm-msg{width:fit-content;min-width:0;max-width:min(83%,560px);padding:8px 11px 6px}
+.ms-messages .cm-msg:not(.is-sticker):not(.is-emoji) p{font-size:15px;line-height:1.45}
+.ms-messages .cm-msg.is-emoji>p{font-size:35px;line-height:1.17}
+.ms-messages .cm-msg.is-sticker .ck-art{width:132px;height:132px}
+.ms-messages .cm-msg .ms-meta{font-size:10px;margin-top:3px}
+.ms-messages .cm-msg .cm-rx{display:flex;flex-wrap:wrap;align-self:flex-start;width:fit-content;max-width:100%;gap:3px;margin:4px 0 0;padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none}
+.ms-messages .cm-msg.me .cm-rx{align-self:flex-end}
+.ms-messages .cm-msg .cm-rx[hidden]{display:none}
+.ms-rx-pill{display:inline-flex;align-items:center;gap:4px;min-width:25px;min-height:24px;border:1px solid #ffffff1d;border-radius:12px;padding:2px 5px;background:#202024;color:var(--fg)}
+.ms-rx-pill[aria-pressed=true]{background:#ffffff17;border-color:#ffffff40}
+.ms-messages .cm-rx .ms-rx-pill .rx-g{display:inline-flex;align-items:center;justify-content:center;font-size:15px;line-height:1}
+.ms-messages .cm-rx .ms-rx-pill .rx-pan{width:17px;height:17px}.ms-rx-pill b{font-size:10px;margin:0}
+.ms-message-more{touch-action:manipulation}
+.ms-messages .cm-msg{touch-action:manipulation;animation:ms-arrive .22s cubic-bezier(.18,.72,.25,1) both}
+.ms-messages .cm-msg.me{transform-origin:right bottom}
+@keyframes ms-arrive{from{transform:translateY(5px) scale(.975);opacity:0}to{transform:none;opacity:1}}
+.ms-composer{margin:0;padding:4px 0;border:0;border-top:1px solid #ffffff14;border-radius:0;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+:root.chat-on .ms-composer .ms-entry{width:100%;gap:5px;padding:5px 2px;align-items:flex-end}
+.ms-input-shell{flex:1;min-width:0;min-height:43px;display:flex;align-items:flex-end;background:#18181b;border:1px solid #ffffff17;border-radius:14px;transition:border-color .18s,background .18s}
+.ms-input-shell:focus-within{background:#1e1e21;border-color:#ffffff36}
+:root.chat-on .ms-composer .cm-in{min-height:40px;width:100%;padding:9px 3px 8px 11px;color:#f5f5f7}
+.ms-input-shell .ms-tool{flex:none;width:36px;height:40px;padding:9px}
+.ms-entry>.ms-icon{width:38px;height:42px;border-radius:12px}.ms-entry>.ms-send{margin:0}
+.ms-entry .ms-attach{background:#141417;color:#f5f5f7;font-size:23px}.ms-attach span{transition:transform .18s}.ms-attach[aria-expanded=true] span{transform:rotate(45deg)}
+.ms-entry .ms-quick-send .rx-g{font-size:22px}
+.ms-composer .ms-tools{justify-content:flex-start;gap:7px;margin:0 0 4px;padding:6px 4px;animation:ms-arrive .18s ease-out}.ms-tools[hidden]{display:none}
+.ms-composer .ms-tools .ms-tool:nth-child(3){margin-inline-end:0}
+@media(max-width:360px){.ms-entry>.ms-icon{width:33px}.ms-input-shell .ms-tool{width:33px}}
+.ms-streak{display:inline-flex;align-self:center;align-items:center;gap:6px;padding:4px 10px;margin:5px 0;color:var(--fg2);border:1px solid #ffffff19;border-radius:14px;background:#141416;font-size:11px;flex:none}
+.ms-streak[hidden]{display:none}.ms-streak.is-hot{background:#442818;color:#ffbd8d;border-color:#ff8f4c32}
+.ms-messages .cm-msg.is-voice{width:min(83%,320px)}
+.vw-player{display:flex;align-items:center;gap:8px;width:100%;min-width:0;padding:3px 0;text-align:left}
+.vw-player[hidden],.vw-native{display:none}
+.vw-play,.vw-download{display:grid;place-items:center;flex:none;width:40px;height:40px;border:0;border-radius:50%;background:#ffffff12;color:#fff;padding:10px}
+.vw-play{background:#f0f0f2;color:#18181b}.vw-download{width:32px;height:34px;background:none;color:#c5c5ca;padding:7px}
+.vw-play svg,.vw-download svg{width:100%;height:100%}.vw-play:disabled,.vw-download:disabled{opacity:.55}
+.vw-meter{flex:1;min-width:0}.vw-scrub{position:relative;height:30px;display:grid;align-items:center}
+.vw-track{display:flex;align-items:center;justify-content:space-between;gap:2px;height:29px;min-width:0;background:none}
+.vw-track i{display:block;flex:1;min-width:0;height:max(2px,var(--peak));border-radius:4px;background:#83838d}.vw-track i.on{background:#f6f6f8}
+.vw-seek{position:absolute;inset:0;margin:0;width:100%;height:100%;opacity:0;cursor:ew-resize;touch-action:none;direction:ltr}
+.vw-scrub:focus-within{outline:2px solid #ffffffb0;outline-offset:2px;border-radius:8px}
+.vw-clock{display:block;font-size:10px;font-variant-numeric:tabular-nums;color:#c3c3ca;white-space:nowrap}
+.ms-voice .vw-player{padding:5px 7px;border-radius:14px;background:#ffffff06}
+@media(prefers-reduced-motion:reduce){.ms-messages .cm-msg,.ms-composer .ms-tools{animation:none}.ms-input-shell,.ms-attach span{transition:none}}
+:root.rm .ms-messages .cm-msg,:root.rm .ms-composer .ms-tools{animation:none}
+}
+@font-face {
+  font-family: 'PD Noto Sans Georgian';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(chat-fonts/notosansgeorgian.woff2) format('woff2');
+  unicode-range: U+0589, U+10A0-10FF, U+1C90-1CBA, U+1CBD-1CBF, U+205A, U+2D00-2D2F, U+2E31;
+}
+@font-face {
+  font-family: 'PD Noto Serif Georgian';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(chat-fonts/notoserifgeorgian.woff2) format('woff2');
+  unicode-range: U+0589, U+10A0-10FF, U+1C90-1CBA, U+1CBD-1CBF, U+205A, U+2D00-2D2F, U+2E31;
+}
+@font-face {
+  font-family: 'PD DM Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(chat-fonts/dmsans.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'PD Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(chat-fonts/bricolagegrotesque.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'PD IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(chat-fonts/ibmplexmono.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@layer ds {
+:root[data-app-font=noto-sans],.ms-chat[data-chat-font=noto-sans]{--pd-chosen-font:'PD Noto Sans Georgian',system-ui,sans-serif}
+:root[data-app-font=noto-serif],.ms-chat[data-chat-font=noto-serif]{--pd-chosen-font:'PD Noto Serif Georgian',Georgia,serif}
+:root[data-app-font=dm-sans],.ms-chat[data-chat-font=dm-sans]{--pd-chosen-font:'PD DM Sans','PD Noto Sans Georgian',sans-serif}
+:root[data-app-font=bricolage],.ms-chat[data-chat-font=bricolage]{--pd-chosen-font:'PD Bricolage Grotesque','Chat FiraGO',sans-serif}
+:root[data-app-font=plex-mono],.ms-chat[data-chat-font=plex-mono]{--pd-chosen-font:'PD IBM Plex Mono','PD Noto Serif Georgian',monospace}
+:root[data-app-font=humanist]{--pd-chosen-font:'Chat FiraGO',system-ui,sans-serif}
+:root[data-app-font]:not([data-app-font=default]){--f-ui:var(--pd-chosen-font,system-ui,sans-serif);--f-display:var(--f-ui);--font:var(--f-ui)}
+.ms-chat:is([data-chat-font=noto-sans],[data-chat-font=noto-serif],[data-chat-font=dm-sans],[data-chat-font=bricolage],[data-chat-font=plex-mono]){--chat-font:var(--pd-chosen-font)}
+.ms-choice[data-choice=noto-sans]{font-family:'PD Noto Sans Georgian',sans-serif}.ms-choice[data-choice=noto-serif]{font-family:'PD Noto Serif Georgian',serif}.ms-choice[data-choice=dm-sans]{font-family:'PD DM Sans','PD Noto Sans Georgian',sans-serif}.ms-choice[data-choice=bricolage]{font-family:'PD Bricolage Grotesque','Chat FiraGO',sans-serif}.ms-choice[data-choice=plex-mono]{font-family:'PD IBM Plex Mono','PD Noto Serif Georgian',monospace}
+.ps-card{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:15px 17px;margin:12px 0 16px;border-radius:17px;border:1px solid #dfae7440;background:linear-gradient(120deg,#c5833524,#a6855220)}
+.ps-icon{font-size:23px}.ps-card strong{display:block;font-size:15px}.ps-card small{display:block;color:var(--muted);margin-top:3px}.ps-card .grow{min-width:min(155px,100%)}.ps-card .btn{white-space:nowrap}
+}

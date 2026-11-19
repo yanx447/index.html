@@ -1,5 +1,9 @@
 /* Chat surfaces and gestures. Gesture cancellation never completes a destructive action. */
 PD.i18n.add({
+ 'ms.noto-sans':['Noto Sans Georgian','Noto Sans Georgian'],'ms.noto-serif':['Noto Serif Georgian','Noto Serif Georgian'],
+ 'ms.dm-sans':['DM Sans','DM Sans'],'ms.bricolage':['Bricolage Grotesque','Bricolage Grotesque'],'ms.plex-mono':['IBM Plex Mono','IBM Plex Mono'],
+ 'ms.appFont':['აპის შრიფტი','App font'],
+
  'cx.edit':['ემოჯების შეცვლა','Customize emojis'],'cx.add':['სხვა ემოჯი','More emojis'],'cx.reset':['საწყისი ემოჯები','Reset emojis'],'cx.pick':['აირჩიე ემოჯი','Choose an emoji'],'cx.slot':['შეცვალე ემოჯი {n}','Change emoji {n}'],
  'cx.quickSend':['სწრაფი რეაქციის გაგზავნა','Send quick reaction'],'cx.close':['დახურვა ან ჩამოსრიალება','Close or drag down'],'cx.pause':['ჩაწერის შეჩერება','Pause recording'],'cx.resume':['ჩაწერის გაგრძელება','Resume recording'],'cx.speed':['მოსმენის სიჩქარე','Playback speed'],'cx.recordHint':['ჩაწერე, შეაჩერე და მოუსმინე გაგზავნამდე','Record, pause and listen before sending'],
  'ms.midnight':['შუაღამე','Midnight'],'ms.aurora':['ავრორა','Aurora'],'ms.rose':['ვარდი','Rose'],'ms.forest':['ტყე','Forest'],'ms.sunset':['დაისი','Sunset'],'ms.ice':['ყინული','Ice'],
@@ -10,7 +14,10 @@ PD.i18n.add({
 PD.chatUI=(()=>{
  const h=PD.h;
  const themes=['graphite','midnight','ocean','plum','sand','aurora','rose','forest','sunset','ice'];
- const fonts=['default','system','rounded','humanist','serif','book','mono','large'];
+ const fonts=['default','system','rounded','humanist','serif','book','mono','large','noto-sans','noto-serif','dm-sans','bricolage','plex-mono'];
+ const appFonts=['default','humanist',...fonts.slice(8)];
+ function appFont(){const value=PD.store.get('app.font','default');return appFonts.includes(value)?value:'default';}
+ function setAppFont(value){if(appFonts.includes(value))PD.store.set('app.font',value);document.documentElement.dataset.appFont=appFont();}
  const glyph=k=>PD.social.REACTS.includes(k)?PD.social.glyph(k):'<span class="rx-g">'+PD.esc(k||'')+'</span>';
  const text=k=>PD.social.glyphText(k)||k||'❤️';
  function gestures(el,back){
@@ -31,5 +38,5 @@ PD.chatUI=(()=>{
   },{onClose});
  }
  function emoji(onPick){return sheet((b,close)=>{b.classList.add('cx-emoji-sheet');b.append(h('div',{class:'ms-sheet-head'},[h('h2',{text:t('cx.pick')}),h('button',{class:'ms-icon','aria-label':t('ck.close'),html:PD.ic.close,onclick:close})]),PD.chatkit.emojiGrid(value=>{close();onPick(value);}));},{center:true});}
- return {sheet,emoji,gestures,glyph,text,themes,fonts};
+ return {sheet,emoji,gestures,glyph,text,themes,fonts,appFonts,appFont,setAppFont};
 })();

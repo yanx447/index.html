@@ -50,9 +50,32 @@ test('messenger privacy, groups, files, pins, clear and notifications', async ()
   await db.exec(migration); await db.exec(migration);
   await db.exec(await readFile(new URL('supabase/migrations/202611180002_chat_glass.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('supabase/migrations/202611180003_chat_replies_search.sql', import.meta.url), 'utf8'));
+  const streakMigration=await readFile(new URL('supabase/migrations/202611180004_chat_streaks_fonts.sql', import.meta.url), 'utf8');
+  await db.exec(streakMigration); await db.exec(streakMigration);
   const state=async u=>(await as(u,`select public.chat_state('${CONV}') s`))[0].s;
   const settings=(u,patch)=>as(u,`select public.chat_settings('${CONV}','${JSON.stringify(patch)}'::jsonb)`);
   const send=(u,body)=>as(u,`insert into public.messages(conversation_id,body) values('${CONV}','${body}') returning id`);
+  const streak=async (u,conv=CONV)=>(await as(u,`select public.chat_streak('${conv}') s`))[0].s;
+  const seedDays=(conv,first,last)=>db.exec(`insert into public.chat_active_days
+    select '${conv}',(now() at time zone 'UTC')::date-i from generate_series(${first},${last}) as dates(i)
+    on conflict do nothing`);
+  assert.deepEqual(await streak(A),{days:1,today:true});
+  await refused(C,`select public.chat_streak('${CONV}')`,/denied/);
+  await refused(A,'select * from public.chat_active_days',/permission denied/);
+  await db.exec(`delete from public.chat_active_days where conversation_id='${CONV}'`);
+  await seedDays(CONV,1,2);
+  assert.deepEqual(await streak(A),{days:2,today:false});
+  await as(A,`insert into public.messages(conversation_id,sticker) values('${CONV}','doli-fire')`);
+  assert.deepEqual(await streak(A),{days:2,today:false});
+  await send(B,'Third day');
+  await send(A,'Same day');
+  assert.deepEqual(await streak(A),{days:3,today:true});
+  await db.exec(`delete from public.chat_active_days where conversation_id='${CONV}' and day=(now() at time zone 'UTC')::date-1`);
+  assert.deepEqual(await streak(A),{days:1,today:true});
+  await seedDays(CONV,1,1005);
+  assert.deepEqual(await streak(B),{days:1000,today:true});
+  await settings(A,{font:'noto-serif'});
+  assert.equal((await state(A)).preferences.font,'noto-serif');
   assert.equal((await state(A)).preferences.theme,'graphite');
   const emojiContext={PD:{h(){},i18n:{add(){}},stickers:{STICKERS:[]}},t:k=>k};vm.createContext(emojiContext);vm.runInContext((await readFile(new URL('../source/src/chatkit.js',import.meta.url),'utf8')).replace('return { emojiGrid,','return { _emoji:EMOJI, emojiGrid,'),emojiContext);
   const allEmoji=emojiContext.PD.chatkit._emoji.map(r=>r[1]);assert.equal(allEmoji.length,3944);const unsupported=(await db.query('select value from jsonb_array_elements_text($1::jsonb) as x(value) where not public.chat_emoji_allowed(value)',[JSON.stringify(allEmoji)])).rows;assert.equal(unsupported.length,0,JSON.stringify(unsupported.slice(0,20)));
@@ -97,9 +120,13 @@ test('messenger privacy, groups, files, pins, clear and notifications', async ()
   await send(B,'back again');assert.equal((await as(A,`select * from public.messages where conversation_id='${CONV}'`)).length,1);assert.equal((await as(A,`select * from public.my_conversations()`)).length,1);
   await db.exec(`insert into public.friendships(a,b,requester,status) values('${A}','${C}','${A}','accepted')`);
   const [{cid:group}]=await as(A,`select public.create_chat_group('Trio',array['${B}','${C}']::uuid[]) cid`);
+  assert.deepEqual(await streak(B,group),{days:0,today:false});
+  await seedDays(group,1,2);
   assert.notEqual(group,CONV);assert.equal((await as(A,`select public.open_conversation('${B}') cid`))[0].cid,CONV);
   await refused(A,`select public.create_chat_group('bad',array['${B}','${OWNER}']::uuid[])`,/not-friends/);
   const [{id:gm}]=await as(C,`insert into public.messages(conversation_id,body,media_path,media_kind) values('${group}','group hello','${C}/c/group.webm','audio') returning id`);
+  assert.deepEqual(await streak(B,group),{days:3,today:true});
+  await refused(OWNER,`select public.chat_streak('${group}')`,/denied/);
   await refused(B,`insert into public.messages(conversation_id,body,reply_to) values('${CONV}','wrong conversation',${gm})`,/message unavailable/);
   assert.equal((await as(B,`select * from public.messages where conversation_id='${group}'`)).length,1);assert.equal((await as(OWNER,`select * from public.messages where conversation_id='${group}'`)).length,0);
   await refused(OWNER,`insert into public.messages(conversation_id,body) values('${group}','intrude')`,/row-level security/);

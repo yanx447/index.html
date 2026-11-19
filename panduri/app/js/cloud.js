@@ -183,7 +183,7 @@ PD.cloud = (() => {
   }
   /** progress backup. Every record is merged (nothing played on either device is lost); settings take the newer copy.
       The progress on a device belongs to one account: signing in with another account puts it aside, not into the new one. */
-  const PKEYS = k => /^(prog\.|sessions$|favorites$|xp$|goalMin$|lefty$|selfLevel$|goals$|daily\.|trainer\.srs$|lessons\.user$|theory\.done$|onboarded$|intro\.done$|ob\.noPanduri$)/.test(k);
+  const PKEYS = k => /^(prog\.|practice\.days$|sessions$|favorites$|xp$|goalMin$|lefty$|selfLevel$|goals$|daily\.|trainer\.srs$|lessons\.user$|theory\.done$|onboarded$|intro\.done$|ob\.noPanduri$)/.test(k);
   // The first-run pages are once per account, and the record of them travels with the progress. Before this date it stayed
   // on one device only, so an older account with no record on the server has not skipped them: it simply was never asked.
   const FIRST_RUN_RECORDED_SINCE = Date.parse('2026-11-05T19:30:00Z');
@@ -206,6 +206,7 @@ PD.cloud = (() => {
       o.best = [a.best, b.best].filter(Boolean).sort((x, y) => (y.firstTry || 0) - (x.firstTry || 0))[0] || null;
       return o;
     }
+    if (k === 'practice.days') return [...new Set([...(Array.isArray(a)?a:[]),...(Array.isArray(b)?b:[])])].filter(Number.isInteger).sort((x,y)=>x-y).slice(-1200);
     if (k === 'sessions') return union(a, b, x => x.date + ':' + x.id).sort((x, y) => x.date - y.date).slice(-400);
     if (k === 'xp') return Math.max(+a || 0, +b || 0);
     if (/^daily\./.test(k) || k === 'theory.done') return Object.assign({}, b, a);
@@ -304,6 +305,7 @@ PD.cloud = (() => {
     reactions: conv => db.select('message_reactions', { conversation_id: 'eq.' + conv, select: 'message_id,user_id,emoji' }),
     read: conv => db.rpc('chat_mark_read', { conv }),
     state: conv => db.rpc('chat_state', { conv }),
+    streak: conv => db.rpc('chat_streak', { conv }),
     settings: (conv, settings) => db.rpc('chat_settings', { conv, settings }),
     typing: (conv, active) => db.rpc('chat_typing', { conv, active: !!active }),
     clear: conv => db.rpc('chat_clear', { conv }),

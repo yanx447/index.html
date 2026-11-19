@@ -1,7 +1,9 @@
 """Build: one modular PWA (dist/app/) + one self-contained HTML file + the artifact fragment.
 Module order = dependency order. three3d.js is embedded as inert text and parsed only when 3D is first used."""
 import base64, os, re, json, hashlib, shutil
-ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','guard','social','cmprofile','market','vedit','stickers','chatkit','chatui','messenger','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','book','install','simatheory','sima','simaplus','aiworker','aispl','aideck','aiscore','aipiano','aimus','ailesson','songbook','ai','samisimi','studio','authortools','onboard','intro','pwa','app','boot']
+from io import BytesIO
+from PIL import Image
+ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','guard','social','cmprofile','market','vedit','stickers','chatkit','chatui','voicewave','messenger','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','book','install','simatheory','sima','simaplus','aiworker','aispl','aideck','aiscore','aipiano','aimus','ailesson','songbook','ai','samisimi','studio','authortools','onboard','intro','pwa','practice-streak','app','boot']
 LAZY = {'three3d'}
 # in the installable app only, never in the single files: the marketplace needs the server and payments anyway, and the
 # single file must stay under 16 MiB (it is within a few KB of it). The app hides its entrances when PD.market is absent.
@@ -13,6 +15,14 @@ src = lambda n: open(f'src/{n}').read()
 # declarations an earlier layer wins).
 css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css') + '\n@layer ds {\n' + src('checkout.css') + '\n}\n' + src('v2.css') + '\n' + src('aiscore.css') + '\n' + src('circle.css') + '\n' + src('mtheory.css') + '\n' + src('cmprofile.css') + '\n' + src('messenger.css') + '\n'
 hero = 'data:image/jpeg;base64,' + base64.b64encode(open('assets/hero.jpg','rb').read()).decode() if os.path.exists('assets/hero.jpg') else ''
+# The standalone header is smaller to leave room for interactive features.
+inline_hero = hero
+if hero:
+    with Image.open('assets/hero.jpg') as image:
+        image.thumbnail((600, 600))
+        jpeg = BytesIO()
+        image.save(jpeg, 'JPEG', quality=74, optimize=True)
+        inline_hero = 'data:image/jpeg;base64,' + base64.b64encode(jpeg.getvalue()).decode()
 # supplied recordings (songs): files in media/ — linked in the PWA, embedded as data: URIs in the single-file builds
 # the teacher's recordings: kept once in the repository, beside the built app, so the source tree
 # does not carry a second 32 MB copy of the same files
@@ -54,9 +64,12 @@ STICKER_MOTION = {f[:-5]: {'motion': 'stickers/' + f, 'still': 'stickers/' + f[:
 CHAT_FONT_DIGEST = hashlib.sha1(b''.join(open('assets/chat-fonts/'+f,'rb').read() for f in sorted(os.listdir('assets/chat-fonts')))).hexdigest() if os.path.isdir('assets/chat-fonts') else ''
 STICKER_DIGEST = hashlib.sha1(b''.join(open('assets/stickers/'+f,'rb').read() for f in STICKER_FILES)).hexdigest()
 def assets_js(inline):
-    return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + hero + '", photos: ' + json.dumps(PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ', stickerMotion: ' + json.dumps({} if inline else STICKER_MOTION) + ' };'
-css_single = re.sub(r"(\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*')|/\*[\s\S]*?\*/", lambda m: m.group(1) if m.group(1) else ' ', css)
-css_single = re.sub(r'(?m)^[ \t]+', '', css_single)
+    return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + (inline_hero if inline else hero) + '", photos: ' + json.dumps(PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ', stickerMotion: ' + json.dumps({} if inline else STICKER_MOTION) + ' };'
+# Compact standalone CSS, preserving strings and the spaces required by selectors and calc().
+css_single = re.sub(
+    r"""("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|/\*[\s\S]*?\*/|;\s*(})|\s*([{},;])\s*|(:)\s+|[ \t\r\n]+""",
+    lambda m: next((g for g in m.groups() if g), ' '), css).strip()
+
 css = css + src('market.css') + '\n'
 for n in ORDER: assert '</script' not in src(n + '.js'), n
 TITLE = 'ფანდური — Panduri Learning'

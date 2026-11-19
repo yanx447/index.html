@@ -213,6 +213,7 @@ PD.app = (() => {
 
   function shell() {
     document.documentElement.lang = PD.i18n.lang;
+    PD.chatUI.setAppFont();
     document.documentElement.dataset.theme = 'midnight';
     document.documentElement.dataset.appearance = 'midnight';
     if (PD.store.get('hc', false)) document.documentElement.classList.add('hc');
@@ -496,14 +497,7 @@ PD.app = (() => {
   }
   const visible = l => !l.derived;
   function stat(v, k, cls) { return h('div', { class: 'stat' + (cls ? ' ' + cls : '') }, [h('b', { text: v }), h('span', { text: k })]); }
-  function streaks() {
-    const days = [...new Set(LS.progress.sessions().map(s => new Date(s.date).toDateString()))].map(d => new Date(d).getTime()).sort((a, b) => a - b);
-    let cur = 0; const d = new Date(); const set = new Set(days.map(x => new Date(x).toDateString()));
-    if (!set.has(d.toDateString())) d.setDate(d.getDate() - 1);   // today not practised yet: the streak is still alive from yesterday
-    while (set.has(d.toDateString())) { cur++; d.setDate(d.getDate() - 1); }
-    let longest = 0, run = 0; for (let i = 0; i < days.length; i++) { run = i && days[i] - days[i - 1] <= 864e5 * 1.5 ? run + 1 : 1; longest = Math.max(longest, run); }
-    return { cur, longest };
-  }
+  function streaks() { return PD.practiceStreak.status(); }
   const streak = () => streaks().cur;
   function recommended() {
     const out = [];
@@ -728,6 +722,12 @@ PD.app = (() => {
   const DIFF = { first: 1, instrument: 1, rhythms: 1, notes: 2, scales: 2, solfege: 2, deeper: 3, foundation: 1, beginner: 1, intermediate: 2, advanced: 3 };
   function learn(w) {
     w.append(h('div', { class: 'ln-head' }, [h('h1', { 'data-t': 'ln.title' }), h('p', { class: 'muted', 'data-t': 'ln.lead' })]));
+    const practiceSeries=streaks();
+    w.append(h('section',{class:'ps-card'},[
+      h('span',{class:'ps-icon','aria-hidden':'true',text:practiceSeries.cur?'🔥':'◇'}),
+      h('div',{class:'grow'},[h('strong',{text:t('ps.title')+' · '+t(practiceSeries.cur>=1000?'ps.max':'ps.days',{n:practiceSeries.cur})}),h('small',{text:t(practiceSeries.today?'ps.checked':'ps.keep')}),h('small',{text:t('ps.repeat')})]),
+      h('button',{class:'btn small',text:t('ps.start'),onclick:()=>go('daily')})
+    ]));
     { const wid = PD.exam.waiting(), we = wid && PD.exam.get(wid);
       if (we) w.append(h('button', { class: 'ex-banner', onclick: () => PD.exam.open(wid) }, [
         h('span', { class: 'ex-banner-ic', html: ic.check || '' }),
@@ -1173,7 +1173,10 @@ PD.app = (() => {
         h('button', { class: 'btn small', html: ic.ul + '<span data-t="acct.import"></span>', onclick: async () => { const f = await PD.ui.pickFile('application/json'); if (!f) return; try { const o = JSON.parse(await f.text()); PD.store.importAll(o.data || o); PD.ui.toast(t('toast.imported')); setTimeout(() => location.reload(), 600); } catch (e) { PD.ui.toast('JSON: ' + e.message); } } })])]),
       C.session ? h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': 'au.delete' }), h('small', { 'data-t': 'au.deleteD' })]),
         h('button', { class: 'btn small quiet danger', 'data-t': 'au.deleteGo', onclick: () => PD.ui.confirm(t('au.deleteQ'), async () => { try { await C.auth.deleteAccount(); PD.ui.toast(t('au.deleted'), 5000); render(); } catch (e) { PD.ui.toast((e && e.message) || String(e), 6000); } }) })]) : null])); }
+    const appFont=h('select',{class:'input','aria-label':t('ms.appFont'),onchange:e=>PD.chatUI.setAppFont(e.target.value)},
+      PD.chatUI.appFonts.map(value=>h('option',{value,text:t('ms.'+value),selected:value===PD.chatUI.appFont()})));
     w.append(sect('rf.appearance', [
+      row('ms.appFont','',appFont),
       !document.getElementById('pd-css') && row('v2.emoji', '', seg([['system', 'v2.emojiSystem'], ['noto', 'v2.emojiNoto']], PD.store.get('emojiAppearance', 'system'), v => { PD.store.set('emojiAppearance', v); document.documentElement.dataset.emoji = v; })),
       row('rf.glass', '', toggle('glass', true, v => document.documentElement.classList.toggle('solid-nav', !v))),
       row('rf.sound', '', seg([['wood', 'rf.wood'], ['soft', 'rf.soft'], ['silent', 'rf.silent']], PD.store.get('soundPalette', 'wood'), v => { PD.store.set('soundPalette', v); PD.fx.sound('select'); })),

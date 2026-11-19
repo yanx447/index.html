@@ -214,6 +214,7 @@ PD.social = (() => {
   const fileErr = e => e && e.code === 'tooBig' ? t('fd.tooBig', { n: e.n }) : e && e.code === 'tooLong' ? t('fd.tooLong', { n: e.n }) : e && e.code === 'badFile' ? t('fd.badFile') : e && e.code === 'too-large' ? t('fd.tooBig', { n: 50 }) : U().err(e);
   /** a photo, video or audio stored on the server, as an element (in a chat) */
   function mediaEl(m) {
+    if (m.media_meta?.voice && PD.voiceWave) return PD.voiceWave.message(m);
     const src = C.storage.url(m.media_path), poster = m.thumb_path ? C.storage.url(m.thumb_path) : null, kind = m.media_kind || m.kind;
     if (!src) return h('div', { class: 'md-miss', 'data-t': 'fd.mediaBlocked' });
     if (kind === 'photo') { const i = h('img', { class: 'md-img', alt: '', src, loading: 'lazy', decoding: 'async' }); i.onclick = () => viewer(src); return i; }
