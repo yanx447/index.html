@@ -55,6 +55,17 @@ if(require.main===module)(async()=>{const browser=await chromium.launch({channel
     const voiceMessage=page.locator('.ms-messages .is-voice .vw-player').last();
     await voiceMessage.waitFor();
     assert.ok(await voiceMessage.locator('i').count()>4);
+    const chromeByTheme=await voiceMessage.evaluate(player=>{
+      const message=player.closest('.is-voice'),chat=message.closest('.ms-chat'),theme=chat.dataset.chatTheme;
+      try{
+        return [theme,'graphite'].map(option=>{
+          chat.dataset.chatTheme=option;
+          const {backgroundColor,backgroundImage,borderTopWidth,boxShadow}=getComputedStyle(message);
+          return [backgroundColor,backgroundImage,borderTopWidth,boxShadow];
+        });
+      }finally{chat.dataset.chatTheme=theme;}
+    });
+    for(const chrome of chromeByTheme)assert.deepEqual(chrome,['rgba(0, 0, 0, 0)','none','0px','none']);
     const voiceDownload=page.waitForEvent('download');
     await voiceMessage.getByRole('button',{name:'Download voice message'}).click();
     assert.match((await voiceDownload).suggestedFilename(),/Panduri-voice\.(webm|m4a|ogg)$/);

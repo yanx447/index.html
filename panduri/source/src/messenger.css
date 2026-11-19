@@ -287,9 +287,9 @@
 @layer ds {
 :root.chat-on .ms-chat[data-chat-theme=graphite]{--chat-accent:#f5f5f7;--chat-out:#28282c;--chat-wash:#ffffff0b;background:#000;color:#fff}
 :root.chat-on .ms-chat[data-chat-theme=graphite] .ms-messages{background:#000}
-.ms-chat[data-chat-theme=graphite] .cm-msg:not(.me):not(.is-sticker):not(.is-emoji){background:#17171a;color:#fff}
-:root[data-theme] .ms-chat[data-chat-theme=graphite] .cm-msg.me:not(.is-sticker):not(.is-emoji){background:#29292d;color:#fff}
-:root[data-theme] .ms-messages .cm-msg:is(.is-sticker,.is-emoji){background:transparent;border-color:transparent;box-shadow:none}
+.ms-chat[data-chat-theme=graphite] .cm-msg:not(.me,.is-sticker,.is-emoji,.is-voice){background:#17171a;color:#fff}
+:root[data-theme] .ms-chat[data-chat-theme=graphite] .cm-msg.me:not(.is-sticker,.is-emoji,.is-voice){background:#29292d;color:#fff}
+:root[data-theme] .ms-messages .cm-msg:is(.is-sticker,.is-emoji,.is-voice){background:transparent;border-color:transparent;box-shadow:none}
 :root.chat-on .ms-messages{flex:1 1 auto;min-height:0;max-height:none;gap:7px}
 .ms-messages .cm-msg{width:fit-content;min-width:0;max-width:min(83%,560px);padding:8px 11px 6px}
 .ms-messages .cm-msg:not(.is-sticker):not(.is-emoji) p{font-size:15px;line-height:1.45}
@@ -321,7 +321,7 @@
 @media(max-width:360px){.ms-entry>.ms-icon{width:33px}.ms-input-shell .ms-tool{width:33px}}
 .ms-streak{display:inline-flex;align-self:center;align-items:center;gap:6px;padding:4px 10px;margin:5px 0;color:var(--fg2);border:1px solid #ffffff19;border-radius:14px;background:#141416;font-size:11px;flex:none}
 .ms-streak[hidden]{display:none}.ms-streak.is-hot{background:#442818;color:#ffbd8d;border-color:#ff8f4c32}
-.ms-messages .cm-msg.is-voice{width:min(83%,320px)}
+.ms-messages .cm-msg.is-voice{width:min(83%,320px);padding:4px 8px;border:0}
 .vw-player{display:flex;align-items:center;gap:8px;width:100%;min-width:0;padding:3px 0;text-align:left}
 .vw-player[hidden],.vw-native{display:none}
 .vw-play,.vw-download{display:grid;place-items:center;flex:none;width:40px;height:40px;border:0;border-radius:50%;background:#ffffff12;color:#fff;padding:10px}
