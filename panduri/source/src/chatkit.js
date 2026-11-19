@@ -169,7 +169,7 @@ authorization of the copyright holder.
     const el = h('div', { class: 'ck-panel ck-floating', hidden: true, role: 'dialog', 'aria-label': t('ck.emoji') + ' · ' + t('ck.stickers') });
     const tabs = h('div', { class: 'ck-tabs', role: 'tablist' }), body = h('div', { class: 'ck-body' });
     const closeButton = h('button', { type: 'button', class: 'ck-close', text: '×', 'aria-label': t('ck.close'), onclick: close });
-    el.append(tabs,body);
+    const grab=h('button',{type:'button',class:'cx-grab','aria-label':t('ck.close'),onclick:close},[h('span',{'aria-hidden':'true'})]);el.append(grab,tabs,body);let gestureCleanup=null;
     tabs.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;const buttons=[...tabs.querySelectorAll('[role=tab]')],at=buttons.indexOf(document.activeElement);if(at<0)return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?buttons.length-1:(at+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;buttons[next].click();tabs.querySelectorAll('[role=tab]')[next]?.focus();});
     let cur = null, revision = 0;
     const observer=typeof ResizeObserver==='function'?new ResizeObserver(position):null;observer?.observe(opts.input.closest('.ms-composer')||opts.input);
@@ -198,10 +198,10 @@ authorization of the copyright holder.
     function key(e) { if(e.key==='Escape' && !el.hidden){close();opts.input.focus();} }
     function toggle(k) {
       if(!el.hidden && (!k || k===cur))return close();
-      document.body.append(el);el.hidden=false;show(k||cur||'emoji');
+      document.body.append(el);if(!gestureCleanup&&PD.chatUI)gestureCleanup=PD.chatUI.gestures(el,close);el.hidden=false;show(k||cur||'emoji');
     }
     function close() { el.hidden=true; revision++; }
-    function destroy() { close();observer?.disconnect();el.remove();document.removeEventListener('pointerdown',away,true);document.removeEventListener('keydown',key);window.removeEventListener('resize',position);window.removeEventListener('scroll',position,true);vv && vv.removeEventListener('resize',position);vv && vv.removeEventListener('scroll',position); }
+    function destroy() { close();gestureCleanup?.();observer?.disconnect();el.remove();document.removeEventListener('pointerdown',away,true);document.removeEventListener('keydown',key);window.removeEventListener('resize',position);window.removeEventListener('scroll',position,true);vv && vv.removeEventListener('resize',position);vv && vv.removeEventListener('scroll',position); }
     document.addEventListener('pointerdown',away,true);document.addEventListener('keydown',key);window.addEventListener('resize',position);window.addEventListener('scroll',position,true);vv && vv.addEventListener('resize',position);vv && vv.addEventListener('scroll',position);
     return {el,toggle,close,destroy,get open(){return !el.hidden;}};
   }
@@ -221,5 +221,5 @@ authorization of the copyright holder.
   }
   const emojiSet = new Set(EMOJI.map(r=>r[1]));
   const isEmojiMessage = text => { if (!text || !Intl.Segmenter) return false; const parts = [...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(text.trim())].map(x=>x.segment).filter(x=>x.trim());return parts.length>0 && parts.length<=6 && parts.every(x=>emojiSet.has(x)); };
-  return { isEmojiMessage, panel, emojiButton, sticker, STICKERS, insert, gifsAvailable, get gifReady() { return gifOn === true; } };
+  return { emojiGrid, isEmojiMessage, panel, emojiButton, sticker, STICKERS, insert, gifsAvailable, get gifReady() { return gifOn === true; } };
 })();

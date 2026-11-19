@@ -25,3 +25,7 @@ verify_jwt = false
 # The marketplace: members are checked against Supabase Auth inside the function; the database's sweep carries the hook secret.
 [functions.market]
 verify_jwt = false
+
+# call-ice verifies Supabase Auth and chat_call_allowed before issuing timed relay credentials.
+[functions.call-ice]
+verify_jwt = false

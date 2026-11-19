@@ -1,6 +1,6 @@
 // Real browser UI and MediaRecorder, with an isolated in-memory server boundary.
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const root=path.resolve(__dirname,'../dist/app'),out=path.resolve(__dirname,'../../../docs/v2-review/messenger');fs.mkdirSync(out,{recursive:true});
+const root=process.env.PANDURI_QA_APP||path.resolve(__dirname,'../dist/app'),out=path.resolve(__dirname,'../../../docs/v2-review/messenger');fs.mkdirSync(out,{recursive:true});
 async function mount(page,lang='en'){
   await page.route('http://localhost:9876/**',route=>{const pathname=decodeURIComponent(new URL(route.request().url()).pathname);const file=path.join(root,pathname.replace(/^\//,'')+(pathname.endsWith('/')?'index.html':''));return fs.existsSync(file)?route.fulfill({path:file}):route.fulfill({status:404,body:'Not found'});});
   await page.route('https://**/*',r=>r.abort());
@@ -19,13 +19,14 @@ async function mount(page,lang='en'){
       settings:async(_,p)=>{if(failSettings)throw Error('failure');return Object.assign(prefs,p)},typing:async(_,active)=>typing.push(active),
       send:async(_,body,extra)=>{if(failSend)throw Error('failure');const m={id:rows.length+1,sender:'self',body,created_at:new Date().toISOString(),...extra};sent.push(m);rows.push(m);},
       pin:async(id,keep)=>{pins=keep?[...pins,id]:pins.filter(x=>x!==id)},
-      react:async(id,emoji)=>{reactions=[{message_id:id,user_id:'self',emoji}]},history:async()=>[...rows].reverse(),byIds:async(_,ids)=>rows.filter(r=>ids.includes(r.id)),
+      react:async(id,emoji)=>{reactions=[{message_id:id,user_id:'self',emoji}]},history:async()=>[...rows].reverse(),search:async(_,term)=>rows.filter(r=>r.body.toLowerCase().includes(term.toLowerCase())),byIds:async(_,ids)=>rows.filter(r=>ids.includes(r.id)),
       group:async(title,members)=>{window.createdGroup={title,members};return 'group-id';},clear:async()=>window.cleared=true
     });
     PD.social.urls=async()=>{};PD.social.upload=async(prep,scope,progress)=>{progress(1);window.uploaded={kind:prep.kind,type:prep.blob.type,bytes:prep.blob.size,meta:prep.meta};return {media_kind:prep.kind,media_path:'test/'+prep.ext,media_meta:prep.meta};};
     PD.cloud.storage.url=()=>'';
     PD.cloud.social.friends=async()=>[{id:'other',display_name:'ნუკრი',nickname:'nukri',relation:'friend'},{id:'third',display_name:'ანა',nickname:'ana',relation:'friend'}];
-    const w=document.querySelector('#page .wrap');w.replaceChildren();PD.messenger.view(w,'conversation','ნუკრი',fn=>cleanup.push(fn));
+    // Mount through the real router so app-level home notifications cannot replace a manually injected chat.
+    PD.community.page=w=>{const own=PD.pageScope();PD.messenger.view(w,'conversation','ნუკრი',fn=>{cleanup.push(fn);own(fn);});};PD.app.go('community','c:conversation:ნუკრი',true);
   });
   await page.locator('.ms-messages .cm-msg').first().waitFor();await page.waitForTimeout(600);
 }

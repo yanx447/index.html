@@ -74,8 +74,8 @@ PD.social = (() => {
   // the panduri as a reaction: there is no emoji for it, so the app draws one (pear-shaped body, sound hole, neck, three pegs)
   const PANDURI = '<svg viewBox="0 0 32 32" aria-hidden="true"><g transform="rotate(-32 16 16)"><path d="M14.2 3.2h3.6l.4 2.2-.4 8.2h-3.6l-.4-8.2z" fill="#696972"/><circle cx="13.3" cy="4.4" r="1.05" fill="#e2ae84"/><circle cx="18.7" cy="4.4" r="1.05" fill="#e2ae84"/><circle cx="18.9" cy="7.3" r="1.05" fill="#e2ae84"/><path d="M16 12.4c4.6 2.2 7.6 6.4 7.6 10.4 0 4.6-3.4 7.6-7.6 7.6s-7.6-3-7.6-7.6c0-4 3-8.2 7.6-10.4z" fill="#c78b5e"/><path d="M16 13.6c3.7 2 6.2 5.5 6.2 9 0 3.8-2.7 6.4-6.2 6.4" fill="none" stroke="#e2ae84" stroke-width=".7" opacity=".7"/><circle cx="16" cy="21.4" r="2.1" fill="#2A1A10"/><path d="M15.2 5.6v22.6M16 5.6v22.6M16.8 5.6v22.6" stroke="#f5f5f7" stroke-width=".28" opacity=".85"/><rect x="13.6" y="26.2" width="4.8" height="1.1" rx=".5" fill="#3a3a3f"/></g></svg>';
   /** for text that leaves the app (the lock screen, a notification): the panduri stands in as the closest emoji */
-  const glyphText = k => k === 'panduri' ? '🪕' : EMO[k] || '';
-  const glyph = k => !k ? '' : k === 'panduri' ? '<span class="rx-g rx-pan">' + PANDURI + '</span>' : '<span class="rx-g">' + EMO[k] + '</span>';
+  const glyphText = k => k === 'panduri' ? '🪕' : EMO[k] || (typeof k==='string'&&[...k].length<=32?k:'');
+  const glyph = k => !k ? '' : k === 'panduri' ? '<span class="rx-g rx-pan">' + PANDURI + '</span>' : '<span class="rx-g">' + PD.esc(EMO[k]||glyphText(k)) + '</span>';
   const I = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
   const IC = {
     comment: I('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-5 4v-4.2A2.5 2.5 0 0 1 4 13.5z"/>'),

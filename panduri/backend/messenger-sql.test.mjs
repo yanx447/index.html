@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 const { PGlite } = await import(process.env.PGLITE_MODULE || '@electric-sql/pglite');
 
@@ -47,10 +48,17 @@ test('messenger privacy, groups, files, pins, clear and notifications', async ()
   await db.exec(await readFile(new URL('supabase/migrations/202611090002_social.sql', import.meta.url), 'utf8'));   // running it twice changes nothing
   const migration=await readFile(new URL('supabase/migrations/202611180001_messenger.sql',import.meta.url),'utf8');
   await db.exec(migration); await db.exec(migration);
+  await db.exec(await readFile(new URL('supabase/migrations/202611180002_chat_glass.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('supabase/migrations/202611180003_chat_replies_search.sql', import.meta.url), 'utf8'));
   const state=async u=>(await as(u,`select public.chat_state('${CONV}') s`))[0].s;
   const settings=(u,patch)=>as(u,`select public.chat_settings('${CONV}','${JSON.stringify(patch)}'::jsonb)`);
   const send=(u,body)=>as(u,`insert into public.messages(conversation_id,body) values('${CONV}','${body}') returning id`);
   assert.equal((await state(A)).preferences.theme,'graphite');
+  const emojiContext={PD:{h(){},i18n:{add(){}},stickers:{STICKERS:[]}},t:k=>k};vm.createContext(emojiContext);vm.runInContext((await readFile(new URL('../source/src/chatkit.js',import.meta.url),'utf8')).replace('return { emojiGrid,','return { _emoji:EMOJI, emojiGrid,'),emojiContext);
+  const allEmoji=emojiContext.PD.chatkit._emoji.map(r=>r[1]);assert.equal(allEmoji.length,3944);const unsupported=(await db.query('select value from jsonb_array_elements_text($1::jsonb) as x(value) where not public.chat_emoji_allowed(value)',[JSON.stringify(allEmoji)])).rows;assert.equal(unsupported.length,0,JSON.stringify(unsupported.slice(0,20)));
+  for(const emoji of ['👍🏽','👩‍💻','🇬🇪','❤️','1️⃣'])assert.equal((await one("select public.chat_emoji_allowed('"+emoji+"') ok")).ok,true);
+  for(const value of ['hello','<script>','a',' ','x'.repeat(33)])assert.equal((await one("select public.chat_emoji_allowed('"+value+"') ok")).ok,false);
+  await as(A,`select public.chat_settings('${CONV}','{"theme":"aurora","font":"humanist","quick_reaction":"👍🏽"}')`);assert.equal((await state(A)).preferences.quick_reaction,'👍🏽');
   await refused(C,`select public.chat_state('${CONV}')`,/denied/);
   await refused(C,`select public.chat_settings('${CONV}','{}')`,/denied/);
   await refused(A,`update public.chat_preferences set shared_read=999`,/permission denied/);
@@ -63,6 +71,11 @@ test('messenger privacy, groups, files, pins, clear and notifications', async ()
   await settings(A,{typing_indicator:true});await as(A,`select public.chat_typing('${CONV}',true)`);
   await db.exec(`update public.chat_preferences set typing_at=now()-interval '10 seconds'`);assert.deepEqual((await state(B)).typing,[]);
   const [{id:message}]=await send(A,'hello receipts');await as(B,`select public.chat_mark_read('${CONV}')`);assert.equal((await state(A)).read,message);
+  const reply=await as(B,`insert into public.messages(conversation_id,body,reply_to) values('${CONV}','visible reply',${message}) returning reply_to`);
+  assert.equal(reply[0].reply_to,message);
+  assert.equal((await as(B,`select id from public.chat_search('${CONV}','RECEIPTS')`))[0].id,message);
+  assert.deepEqual(await as(C,`select id from public.chat_search('${CONV}','receipts')`),[]);
+  assert.deepEqual(await as(B,`select id from public.chat_search('${CONV}','%_')`),[]);
   await settings(B,{read_receipts:false});assert.equal((await state(A)).read,0);
   await settings(B,{read_receipts:true});await settings(A,{read_receipts:false});assert.equal((await state(A)).read,0);await settings(A,{read_receipts:true});
   const count=async()=>Number((await one(`select count(*) n from public.notifications where user_id='${B}' and kind='message'`)).n);
@@ -79,12 +92,15 @@ test('messenger privacy, groups, files, pins, clear and notifications', async ()
   assert.equal((await as(B,`select public.can_read_media('${A}/c/guide.pdf') ok`))[0].ok,true);assert.equal((await as(C,`select public.can_read_media('${A}/c/guide.pdf') ok`))[0].ok,false);
   await as(A,`select public.chat_clear('${CONV}')`);assert.equal((await as(A,`select * from public.messages where conversation_id='${CONV}'`)).length,0);
   assert.ok((await as(B,`select * from public.messages where conversation_id='${CONV}'`)).length>0);assert.equal((await as(A,`select * from public.my_conversations()`)).length,0);
+  assert.deepEqual(await as(A,`select id from public.chat_search('${CONV}','receipts')`),[]);
+  await refused(A,`insert into public.messages(conversation_id,body,reply_to) values('${CONV}','hidden quote',${message})`,/message unavailable/);
   await send(B,'back again');assert.equal((await as(A,`select * from public.messages where conversation_id='${CONV}'`)).length,1);assert.equal((await as(A,`select * from public.my_conversations()`)).length,1);
   await db.exec(`insert into public.friendships(a,b,requester,status) values('${A}','${C}','${A}','accepted')`);
   const [{cid:group}]=await as(A,`select public.create_chat_group('Trio',array['${B}','${C}']::uuid[]) cid`);
   assert.notEqual(group,CONV);assert.equal((await as(A,`select public.open_conversation('${B}') cid`))[0].cid,CONV);
   await refused(A,`select public.create_chat_group('bad',array['${B}','${OWNER}']::uuid[])`,/not-friends/);
   const [{id:gm}]=await as(C,`insert into public.messages(conversation_id,body,media_path,media_kind) values('${group}','group hello','${C}/c/group.webm','audio') returning id`);
+  await refused(B,`insert into public.messages(conversation_id,body,reply_to) values('${CONV}','wrong conversation',${gm})`,/message unavailable/);
   assert.equal((await as(B,`select * from public.messages where conversation_id='${group}'`)).length,1);assert.equal((await as(OWNER,`select * from public.messages where conversation_id='${group}'`)).length,0);
   await refused(OWNER,`insert into public.messages(conversation_id,body) values('${group}','intrude')`,/row-level security/);
   await as(B,`select public.react_message(${gm},'heart')`);await as(C,`select public.chat_pin(${gm},true)`);assert.deepEqual((await as(B,`select public.chat_state('${group}') s`))[0].s.pins,[gm]);

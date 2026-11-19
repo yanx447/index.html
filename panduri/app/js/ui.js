@@ -241,6 +241,7 @@ PD.ui = (() => {
     if (!(window.matchMedia && matchMedia('(max-width: 820px)').matches)) return;
     let g = null;
     box.addEventListener('touchstart', e => {
+      if (box.classList.contains('cx-glass')) return;
       if (e.touches.length !== 1 || box.scrollTop > 0 || e.target.closest('input, textarea, select, [type=range], .no-drag')) return;
       g = { y0: e.touches[0].clientY, y: 0, v: 0, t: performance.now(), on: false };
     }, { passive: true });

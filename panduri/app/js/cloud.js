@@ -277,10 +277,19 @@ PD.cloud = (() => {
   /* ---------- community ---------- */
   const people = term => db.rpc('people', { term: term || '' });
   // a server without the community upgrade has none of the newer columns: the chat then keeps working with text only
-  let MSG = 'id,sender,body,created_at,media_path,thumb_path,media_kind,media_meta,post_ref,sticker,gif';
+  const RICH_MSG = 'id,sender,body,created_at,media_path,thumb_path,media_kind,media_meta,post_ref,sticker,gif';
+  let MSG = RICH_MSG + ',reply_to';
   const LEGACY = 'id,sender,body,created_at';
   const old = e => e && (e.code === '42703' || e.code === 'PGRST204' || /does not exist|column/i.test(e.message || ''));
-  const sel = async q => { try { return await db.select('messages', Object.assign({}, q, { select: MSG })); } catch (e) { if (MSG !== LEGACY && old(e)) { MSG = LEGACY; return db.select('messages', Object.assign({}, q, { select: MSG })); } throw e; } };
+  async function sel(q) {
+    try { return await db.select('messages', { ...q, select: MSG }); }
+    catch (e) {
+      if (MSG === LEGACY || !old(e)) throw e;
+      MSG = MSG === RICH_MSG ? LEGACY : RICH_MSG;
+      return sel(q);
+    }
+  }
+
   const chat = {
     open: other => db.rpc('open_conversation', { other }),
     list: () => db.rpc('my_conversations', {}),
@@ -302,6 +311,7 @@ PD.cloud = (() => {
     group: (title, members) => db.rpc('create_chat_group', { title, members }),
     preferences: () => db.select('chat_preferences', { select: 'conversation_id,restricted,muted,notifications,sounds' }),
     history: (conv, before) => sel({ conversation_id: 'eq.' + conv, order: 'id.desc', limit: '100', ...(before ? { id: 'lt.' + before } : {}) }),
+    search: (conv, term, before_id = null) => db.rpc('chat_search', { conv, term, before_id }),
     byIds: (conv, ids) => ids.length ? sel({ conversation_id: 'eq.' + conv, id: 'in.(' + ids.join(',') + ')', order: 'id.desc' }) : Promise.resolve([]),
     other: async conv => { const r = (await db.select('conversations', { id: 'eq.' + conv, select: 'a,b' }))[0]; return r.a === uid() ? r.b : r.a; }
   };
@@ -430,6 +440,7 @@ PD.cloud = (() => {
     search: (q, lang) => http('/functions/v1/gifs?q=' + encodeURIComponent(q || '') + '&lang=' + encodeURIComponent(lang || 'en'), { timeout: 12000 })
   };
   const signal = {
+    ice: conv => http('/functions/v1/call-ice', { method:'POST',body:{conv},timeout:5000 }),
     send: (conv, kind, payload) => db.insert('call_signals', [{ conversation_id: conv, kind, payload }], false),
     since: (conv, after) => db.select('call_signals', { conversation_id: 'eq.' + conv, id: 'gt.' + (after || 0), select: 'id,sender,kind,payload,created_at', order: 'id.asc' })
   };
