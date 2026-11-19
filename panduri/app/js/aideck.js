@@ -143,7 +143,7 @@ PD.aiDeck = (() => {
         s.start(start, Math.max(0, tau(p))); return { s };
       });
       const tk = token; nodes[0].s.onended = () => { if (tk !== token) return; D.playing = false; D.at = D.set.from; stopNodes(); changed(); };
-      t0 = start; off = Math.max(0, tau(p)); D.playing = true; lastP = -1;
+      t0 = start; off = Math.max(0, tau(p)); D.playing = true; lastP = -1; if (PD.transport) PD.transport.claim(api);   // the Studio's one transport
       timer = setInterval(schedule, 25); schedule(); changed();
     }
     function pause() { if (!D.playing) return; D.at = pos(); token++; D.playing = false; stopNodes(); changed(); }

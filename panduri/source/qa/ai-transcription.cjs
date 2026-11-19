@@ -16,6 +16,7 @@ const server = http.createServer((req, res) => {
  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } }); const errors = []; page.on('pageerror', e => errors.push(e.message));
  await page.addInitScript(() => { localStorage.setItem('pd2:onboarded','true'); localStorage.setItem('pd2:auth.skip','true'); localStorage.setItem('pd2:lang','"en"'); });
  await page.goto(origin + '/panduri/source/dist/app/'); await page.waitForFunction(() => window.PD?.app);
+ // Studio 3.0 (2026-11-19): the AI studio opens inside the unified Studio — its views are the Studio's tabs (.s3-tab), the rest is unchanged
  await page.evaluate(() => { PD.premium.allows = () => true; document.querySelectorAll('.ag,.ob,.cine,.cine-boot').forEach(x => x.remove()); PD.app.go('ai'); });
  const metrics = await page.evaluate(async () => {
   const ctx = new AudioContext({ sampleRate: 22050 }), samples = [];
@@ -46,12 +47,12 @@ const server = http.createServer((req, res) => {
  const wav=Buffer.alloc(44+samples.length*2); wav.write('RIFF'); wav.writeUInt32LE(wav.length-8,4); wav.write('WAVEfmt ',8); wav.writeUInt32LE(16,16); wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(22050,24);wav.writeUInt32LE(44100,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(samples.length*2,40);samples.forEach((v,i)=>wav.writeInt16LE(Math.max(-32768,Math.min(32767,Math.round(v*32767))),44+i*2));
  await page.setInputFiles('input[type=file]', { name:'recorded-panduri.wav', mimeType:'audio/wav', buffer:wav });
  await page.waitForSelector('.ai-facts', { timeout:120000 });
- await page.locator('.apr-navigation select').selectOption('notation');
+ await page.locator('#page .s3-tab[data-v="score"]').click();
  await page.locator('.ai-trhead .btn.primary').click();
  await page.waitForSelector('.as-workspace', { timeout:120000 });
  const notes = await page.evaluate(()=>PD.ai.current.transcription.notes); assert.ok(notes.length>=3); assert.equal(await page.evaluate(()=>PD.ai.current.transcription.engine),'basic-pitch');
  // Piano editor: fixed keyboard lanes, explicit inspector, edits, gestures and undo.
- await page.locator('.apr-navigation select').selectOption('roll');
+ await page.locator('#page .s3-tab[data-v="roll"]').click();
  await page.waitForSelector('.rl-cv');
  await page.waitForTimeout(300);
  assert.match(await page.locator('.rl-stage').getAttribute('aria-label'),/\d+ notes/);
@@ -77,7 +78,7 @@ const server = http.createServer((req, res) => {
  assert.ok(await page.evaluate(({id,end})=>PD.ai.current.transcription.notes.find(n=>n.id===id).t1>end,{id:firstId,end:originalEnd}));
  await page.getByRole('button',{name:'Undo',exact:true}).click();
  for(const width of [390,1280]) {await page.setViewportSize({width,height:900});await page.locator('.rl').scrollIntoViewIfNeeded();await page.waitForTimeout(100);await page.screenshot({path:'/tmp/panduri-piano-'+width+'.png'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));}
- await page.locator('.apr-navigation select').selectOption('notation');
+ await page.locator('#page .s3-tab[data-v="score"]').click();
  assert.equal(await page.locator('.as-tab:visible').count(),0,'sheet does not also show TAB');
  await page.locator('.ai-trans > details').filter({has:page.locator('summary',{hasText:'Arrangement & difficulty'})}).locator('summary').click();
  await page.getByRole('button',{name:'Convert to Fanduri Tabs',exact:true}).click();
@@ -127,6 +128,7 @@ const server = http.createServer((req, res) => {
    const get=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
    navigator.mediaDevices.getUserMedia=async constraints=>{const stream=await get(constraints);window.recordedStream=stream;return stream;};
  });
+ await page.locator('#page .s3-tab[data-v="player"]').click();   // Studio 3.0: "Add audio / record" lives in the Player view
  await page.locator('details').filter({has:page.locator('summary',{hasText:'Add audio / record'})}).locator('summary').first().click();
  await page.getByRole('button',{name:'Record microphone',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('.as-live')?.textContent.includes('Live ML preview'));
@@ -137,7 +139,7 @@ const server = http.createServer((req, res) => {
  await page.waitForFunction(()=>PD.ai.current?.file.name.startsWith('Panduri-'),{},{timeout:60000});
  assert.ok(!await page.locator('video.ai-video').count(), 'audio/webm recordings are not treated as video');
  // Explicit failure is visible; no DSP fallback is substituted when ML cannot load.
- await page.locator('.apr-navigation select').selectOption('notation');
+ await page.locator('#page .s3-tab[data-v="score"]').click();
  await page.route('**/bp/nmp.onnx', route=>route.fulfill({status:503,body:'unavailable'}));
  await page.locator('.ai-trhead .btn.primary').click();
  await page.waitForFunction(()=>document.querySelector('.ai-trans').textContent.includes('ML transcription failed'),{},{timeout:60000});

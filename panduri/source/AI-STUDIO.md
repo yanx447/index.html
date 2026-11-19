@@ -51,6 +51,13 @@
 * Route: `ai` → `PD.ai.page(wrap)` (`app.js:266`).
 * შესასვლელები: ქვედა ნავიგაციის „AI" tab (`app.js:126`), მთავარი გვერდის სწრაფი ბმული
   (`app.js:471`), „სიმღერების" გვერდის ბარათი (`app.js:503`), „ინსტრუმენტების" სია (`app.js:796`).
+* **2026-11-19-დან (Studio 3.0, აპში):** nav-ში ერთი „სტუდიაა" (`studio3`); `go('ai')` პარამეტრის
+  გარეშე Studio-ს მთავარს ხსნის, `go('ai', <song id>)` — იმ სიმღერას. გვერდი ერთიან workspace-შია
+  ჩაშენებული (`src/studio3.js`): მისი სათაური, `.apr-navigation` და `.ai-deck` იქ არ ჩანს —
+  view-ებს Studio-ს tab-ები ცვლის (ამავე select-ით), დაკვრას ერთი transport
+  (`PD.ai.current.transport`). `.apr-navigation select`-ის, `.ai-body > .ai-deck`-ის ან `.ai-head`-ის
+  შეცვლა Studio-ს არღვევს — ამას `qa/studio3-ui.cjs` ამოწმებს. single file-ში ყველაფერი ისეა,
+  როგორც ადრე. იხ. `docs/studio3/ARCHITECTURE.md`.
 
 ## 3. ფაილები და პასუხისმგებლობა
 

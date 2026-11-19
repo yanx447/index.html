@@ -1,0 +1,23 @@
+{
+ "format": "panduri-project",
+ "v": 1,
+ "id": "p-old-fixture",
+ "name": "ძველი პროექტი · Old project",
+ "created": 1763500000000,
+ "modified": 1763503600000,
+ "bpm": 84,
+ "meter": [3, 4],
+ "loop": { "on": true, "from": 0, "to": 2 },
+ "tracks": [
+  { "id": "t-r", "name": "Rhythm", "kind": "rhythm", "color": "#d99a64", "mute": false, "solo": false, "vol": 0.9, "pan": 0,
+   "rhythm": { "name": { "ka": "ყაზბეგური", "en": "Kazbeguri" }, "preset": "kazbeguri", "src": "teacher", "timingSrc": "default", "bars": 2, "swing": 0,
+    "steps": [ { "dir": "down", "acc": true, "vel": 0.95, "dur": 1, "mute": false, "str": [1, 1, 1], "off": 0 },
+     { "dir": "up", "acc": false, "vel": 0.72, "dur": 1, "mute": false, "str": [1, 1, 1], "off": 0 },
+     { "dir": "down", "acc": false, "vel": 0.72, "dur": 1, "mute": false, "str": [1, 1, 1], "off": 0 } ],
+    "chords": [ { "bar": 0, "name": "Dm", "frets": [0, 1, 1] }, { "bar": 1, "name": "C", "frets": [3, 3, 3] } ] } },
+  { "id": "t-s", "name": "Solo", "kind": "notes", "color": "#6fa9e0", "mute": false, "solo": false, "vol": 0.9, "pan": 0,
+   "notes": [ { "id": "n1", "m": 57, "s": 1, "f": 0, "t": 0, "d": 1, "v": 0.8, "art": "pluck", "off": 0 },
+    { "id": "n2", "m": 62, "s": 2, "f": 1, "t": 1, "d": 0.5, "v": 0.7, "art": "pluck", "off": 0 },
+    { "id": "n3", "m": 40, "s": 0, "f": -1, "t": 1.5, "d": 0.5, "v": 0.7, "art": "pluck", "off": 0 } ] }
+ ]
+}

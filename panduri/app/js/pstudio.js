@@ -39,7 +39,8 @@ PD.i18n.add({
   'pst.chords': ['აკორდები ტაქტებზე', 'Chords by bar'], 'pst.chordNone': ['—', '—'], 'pst.pickChord': ['აკორდი ტაქტისთვის {n}', 'Chord for bar {n}'], 'pst.noShape': ['ფანდურზე ფორმა არ აქვს', 'No shape on the fanduri'],
   'pst.voicing': ['ფორმა', 'Voicing'], 'pst.preview': ['მხოლოდ ეს რითმი', 'This rhythm only'],
   'pst.tDefault': ['მასწავლებელს ამ რითმის დარტყმების ხანგრძლივობა ჯერ არ მოუცია — აქ თანაბარია. მიმართულება და აქცენტები მისია; ხანგრძლივობა შენი პროექტისთვის შეცვალე.', 'The teacher has not given this rhythm\'s stroke lengths yet — here they are even. The directions and accents are his; set the lengths for your project.'],
-  'pst.teacherR': ['მასწავლებლის რითმი', 'The teacher\'s rhythm'],
+  'pst.teacherR': ['მასწავლებლის რითმი', 'The teacher\'s rhythm'], 'pst.changedR': ['შენ შეცვალე', 'changed by you'],
+  'pst.tMine': ['ეს რითმი მასწავლებლისას ეყრდნობა, მაგრამ დარტყმა ან აქცენტი შენ შეცვალე — ის აღარ არის მასწავლებლის რითმი. დარტყმების ხანგრძლივობა მას ჯერ არ მოუცია.', 'Based on the teacher\'s rhythm, but you changed a stroke or an accent — it is no longer his rhythm. He has not given its stroke lengths yet either.'],
   'pst.loopFrom': ['ციკლი: ტაქტიდან', 'Loop: from bar'], 'pst.loopTo': ['ტაქტამდე', 'to bar'],
   'pst.sound': ['ხმა', 'Sound'], 'pst.soundD': ['მასწავლებლის ფანდური, ჩაწერილი ყოველ ლადზე (ერთი ჩანაწერი ნოტზე). სიმძლავრე ხმას ცვლის; სხვადასხვა ძალით და რამდენჯერმე ჩაწერილი ნოტები (velocity layers, round robin) ჯერ არ არის — ძრავი მათ მიიღებს, როგორც კი ჩაიწერება.', 'The teacher\'s fanduri, recorded on every fret (one take per note). Velocity changes the level; notes recorded at several strengths and several times (velocity layers, round robin) are not there yet — the engine takes them as soon as they are recorded.'],
   'pst.synth': ['ამ ფაილში ჩანაწერები არ არის — ჟღერს ფიზიკური მოდელი.', 'This build carries no recordings — a physical model sounds instead.'],
@@ -54,20 +55,33 @@ PD.pstudio = (() => {
   const SNAME = s => T().stringName(s);
 
   /* ---------- the project, saved by itself ---------- */
-  let P = null, undo = [], redo = [], saveT = 0, onSaved = null;
+  let P = null, undo = [], redo = [], saveT = 0, onSaved = null, savedNow = true;
+  /* E: the unified Studio (studio3.js) hosts this page: it draws the header, the one transport and the view tabs itself,
+     and is told of every change. Without E the page is the standalone studio it always was. */
+  let E = null;
+  const notify = () => { if (E && E.onState) { try { E.onState(); } catch (_) {} } };
   function list() { return PD.store.get(LIST, []); }
   function persist(now) {
     clearTimeout(saveT);
-    const go = () => { if (!P) return; P.modified = Date.now(); PD.store.set(KEY(P.id), P); const l = list().filter(x => x.id !== P.id); l.unshift({ id: P.id, name: P.name, modified: P.modified }); PD.store.set(LIST, l.slice(0, 200)); PD.store.set(LAST, P.id); onSaved && onSaved(true); };
-    if (now) go(); else { onSaved && onSaved(false); saveT = setTimeout(go, 600); }
+    const go = () => { if (!P) return; P.modified = Date.now(); PD.store.set(KEY(P.id), P); const l = list().filter(x => x.id !== P.id); l.unshift({ id: P.id, name: P.name, modified: P.modified }); PD.store.set(LIST, l.slice(0, 200)); PD.store.set(LAST, P.id); savedNow = true; onSaved && onSaved(true); notify(); };
+    if (now) go(); else { savedNow = false; onSaved && onSaved(false); notify(); saveT = setTimeout(go, 600); }
   }
   /** every change goes through here: undo, the save, the redraw */
   function change(fn, quiet) { undo.push(JSON.stringify(P)); if (undo.length > 120) undo.shift(); redo = []; const b0 = P.bpm; fn(P); persist(); refreshPlay(b0); if (!quiet) redraw(); }
   function doUndo() { if (!undo.length) return; redo.push(JSON.stringify(P)); P = C().parse(undo.pop()); persist(); redraw(); }
   function doRedo() { if (!redo.length) return; undo.push(JSON.stringify(P)); P = C().parse(redo.pop()); persist(); redraw(); }
   function load(id) { const o = PD.store.get(KEY(id), null); if (!o) return null; try { return C().parse(o); } catch (_) { return null; } }
-  function openProject(p) { stop(); P = p; undo = []; redo = []; persist(true); selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0] || {}).id; cursor = 0; build(); }
-  function fresh() { const p = C().project(t('pst.untitled')); p.tracks[0].name = t('pst.kRhythm'); p.tracks[1].name = t('pst.kNotes'); return p; }
+  function openProject(p) { stop(); P = p; undo = []; redo = []; head = 0; persist(true); selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0] || {}).id; cursor = 0; if (E && E.onOpen) { E.onOpen(P.id); return; } build(); notify(); }
+  /** a new project. tpl: none = a rhythm track and a melody track (as before) · 'blank' = one melody track ·
+      'rhythm:<id>' = the two tracks with that rhythm — the teacher's strokes and accents, exactly as the Rhythm view sets them */
+  function fresh(tpl) {
+    const p = C().project(t('pst.untitled')); p.tracks[0].name = t('pst.kRhythm'); p.tracks[1].name = t('pst.kNotes');
+    if (tpl === 'blank') p.tracks = [p.tracks[1]];
+    else if (tpl && String(tpl).indexOf('rhythm:') === 0) { const pr = C().presets().find(x => x.id === tpl.slice(7)); if (pr) Object.assign(p.tracks[0].rhythm, { preset: pr.id, name: pr.name, src: pr.src, timingSrc: pr.timingSrc, steps: JSON.parse(JSON.stringify(pr.steps)) }); }
+    return p;
+  }
+  /** make a project and keep it, without drawing anything: the Studio's home opens it afterwards */
+  function create(tpl, name) { stop(); P = fresh(tpl); if (name) P.name = name; undo = []; redo = []; head = 0; cursor = 0; selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0]).id; persist(true); return P.id; }
 
   /* ---------- the engine: one channel per track, a look-ahead scheduler ---------- */
   const ch = new Map();   // track id → { g, pan, an }
@@ -82,6 +96,8 @@ PD.pstudio = (() => {
   }
   const spb = () => 60 / P.bpm;
   let playing = false, t0 = 0, from = 0, evs = [], ei = 0, timer = 0, raf = 0, metroNext = 0, only = null, loopEnd = 0, countEnd = 0;
+  // the studio's one transport (PD.transport, s3core.js): whatever else was playing pauses when this starts
+  const ENG = { id: 'pst', pause: () => stop() };
   function play(opt) {
     const ctx = A().ensure(); if (!ctx || !P) return;
     stop(); opt = opt || {}; only = opt.only || null;
@@ -89,11 +105,13 @@ PD.pstudio = (() => {
     const lp = P.loop && P.loop.on, bar = C().bpb(P);
     from = lp ? P.loop.from * bar : (opt.from != null ? opt.from : head);
     loopEnd = lp ? P.loop.to * bar : C().length(P) + .5;
+    if (from >= loopEnd - 1e-6) from = 0;   // at the end: play from the top again
     const ci = P.countIn && !opt.noCount ? bar : 0;
     t0 = ctx.currentTime + .12 + ci * spb() - from * spb(); countEnd = from;
     evs = C().events(P, { only }); ei = evs.findIndex(e => e.t >= from - 1e-6); if (ei < 0) ei = evs.length;
     metroNext = Math.ceil(from - ci - 1e-6);
-    playing = true; timer = setInterval(pump, 25); pump(); tickUI(); paintTransport();
+    if (PD.transport) PD.transport.claim(ENG);
+    playing = true; timer = setInterval(pump, 25); pump(); tickUI(); paintTransport(); notify();
   }
   const firstAt = b => { const i = evs.findIndex(e => e.t >= b - 1e-6); return i < 0 ? evs.length : i; };
   function pump() {
@@ -126,10 +144,18 @@ PD.pstudio = (() => {
   function stop(atEnd) {
     if (!playing) { paintTransport(); return; }
     playing = false; clearInterval(timer); cancelAnimationFrame(raf);
+    if (PD.transport) PD.transport.release(ENG);
     const ctx = A().ctx; if (ctx) ch.forEach(c => { c.g.gain.cancelScheduledValues(ctx.currentTime); c.g.gain.setTargetAtTime(0, ctx.currentTime, .03); });   // the ringing strings are damped
     setTimeout(() => { if (!playing && P) P.tracks.forEach(channel); }, 180);
     if (atEnd) head = 0;
-    paintTransport(); views[mode] && views[mode].tick && views[mode].tick(head);
+    paintTransport(); views[mode] && views[mode].tick && views[mode].tick(head); notify();
+  }
+  /** move the playhead (in beats); playing goes on from there */
+  function seek(b) {
+    b = Math.max(0, +b || 0); const was = playing;
+    if (was) stop();
+    head = cursor = b;
+    if (was) play({ from: b, noCount: true }); else { views[mode] && views[mode].tick && views[mode].tick(head); if (mode === 'fret') redraw(); notify(); }
   }
   function tickUI() {
     if (!playing) return; const ctx = A().ctx;
@@ -145,13 +171,16 @@ PD.pstudio = (() => {
   /* ---------- the page ---------- */
   let root = null, mode = 'fret', selTrack = null, cursor = 0, len = .5, vel = .78, insert = false, chordMode = false, posEl = null, playB = null, saveEl = null, views = {}, wrapEl = null;
   const curTrack = () => P && P.tracks.find(x => x.id === selTrack);
-  function page(w, param) {
-    style(); wrapEl = w;
+  const VIEWS = ['fret', 'roll', 'rhythm', 'arrange', 'mixer'];
+  /** opt (from the unified Studio): { embed: true, open: project id, onState: called on every change } */
+  function page(w, param, opt) {
+    style(); wrapEl = w; E = opt && opt.embed ? opt : null;
+    if (E && E.open && (!P || P.id !== E.open)) { const p = load(E.open); if (p) { stop(); P = p; undo = []; redo = []; head = 0; cursor = 0; selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0] || {}).id; PD.store.set(LAST, P.id); } }
     if (!P) { const last = PD.store.get(LAST, null); P = (last && load(last)) || null; if (!P) { P = fresh(); persist(true); } selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0]).id; }
-    if (param && ['fret', 'roll', 'rhythm', 'arrange', 'mixer'].includes(param)) mode = param;
+    if (param && VIEWS.includes(param)) { mode = param; fitTrack(); }   // an old link to a view (go('pstudio', 'rhythm')) shows a track that view can show
     build();
     document.removeEventListener('keydown', keys); document.addEventListener('keydown', keys);
-    const off = PD.bus.on('route', () => { stop(); document.removeEventListener('keydown', keys); off && off(); });
+    const off = PD.bus.on('route', () => { stop(); document.removeEventListener('keydown', keys); E = null; off && off(); });
   }
   function keys(e) {
     if (!root || !root.isConnected) return; if (e.target.closest('input,textarea,select,[contenteditable]')) return;
@@ -170,6 +199,15 @@ PD.pstudio = (() => {
     const tg = (k, get, set) => { const b = h('button', { class: 'chip pst-tg', 'aria-pressed': String(!!get()), text: t(k), onclick: () => { change(p => set(p, !get())); b.setAttribute('aria-pressed', String(!!get())); } }); return b; };
     posEl = h('b', { class: 'pst-pos mono', text: '1.1' }); saveEl = h('small', { class: 'muted pst-saved', text: t('pst.saved') });
     onSaved = ok => { if (saveEl) saveEl.textContent = t(ok ? 'pst.saved' : 'pst.saving'); };
+    if (E) {   // inside the unified Studio: its header, its transport and its view tabs stand in for these three rows
+      posEl = null; playB = null; saveEl = null; onSaved = null; root.classList.add('pst-emb');
+      const tracks = h('div', { class: 'pst-tracks chips-row' }, P.tracks.map(tr => h('button', { class: 'chip pst-tc' + (tr.id === selTrack ? ' on' : ''), style: '--c:' + tr.color, onclick: () => { selTrack = tr.id; build(); notify(); } }, [h('i'), h('span', { text: (tr.kind === 'rhythm' ? '↓↑ ' : '♪ ') + (tr.name || t('pst.track')) })])));
+      const body = h('div', { class: 'pst-body' });
+      root.append(tracks, body);
+      Object.values(views).forEach(v => v && v.stop && v.stop()); views = {};
+      views[mode] = ({ fret: fretView, roll: rollView, rhythm: rhythmView, arrange: arrangeView, mixer: mixerView })[mode](body);
+      PD.i18n.apply(root); return;
+    }
     root.append(h('div', { class: 'pst-top' }, [
       h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }),
       h('b', { class: 'pst-brand', text: 'Fanduri Studio' }), name, saveEl, h('span', { class: 'grow' }),
@@ -187,6 +225,13 @@ PD.pstudio = (() => {
     paintTransport(); PD.i18n.apply(root);
   }
   function redraw() { if (!root || !root.isConnected) return; const v = views[mode]; if (v && v.redraw) v.redraw(); else build(); }
+  /** a view picks a track it can show, as the page's own tabs do */
+  function fitTrack() {
+    const want = mode === 'rhythm' ? 'rhythm' : (mode === 'fret' || mode === 'roll') ? 'notes' : null, cur = curTrack();
+    if (want && (!cur || cur.kind !== want)) { const x = P.tracks.find(q => q.kind === want); if (x) selTrack = x.id; }
+  }
+  /** the Studio's view tabs */
+  function setView(k) { if (!VIEWS.includes(k) || !P) return; mode = k; fitTrack(); build(); notify(); }
   function paintTransport() { if (playB) playB.innerHTML = (playing ? '❚❚ ' : '▶ ') + '<span>' + PD.esc(t(playing ? 'pst.stop' : 'pst.play')) + '</span>'; }
 
   /* ---------- Fretboard ---------- */
@@ -284,13 +329,15 @@ PD.pstudio = (() => {
   function rhythmView(box) {
     const tr = curTrack(); if (!tr || tr.kind !== 'rhythm') { box.append(h('p', { class: 'notice', text: t('pst.pickRhythm') })); return null; }
     const R = tr.rhythm, PR = C().presets(), ed = fn => change(p => fn(p.tracks.find(x => x.id === tr.id).rhythm));
+    // a preset stays the teacher's only while its strokes and accents are his: the file keeps src 'teacher' after an edit, so compare
+    const pr0 = PR.find(x => x.id === R.preset), mine = !!pr0 && !(pr0.steps.length === R.steps.length && pr0.steps.every((s, i) => s.dir === R.steps[i].dir && !!s.acc === !!R.steps[i].acc));
     const preset = h('select', { class: 'pst-sel', 'aria-label': t('pst.preset'), onchange: e => { const pr = PR.find(x => x.id === e.target.value); if (pr) ed(r => { r.preset = pr.id; r.name = pr.name; r.src = pr.src; r.timingSrc = pr.timingSrc; r.steps = JSON.parse(JSON.stringify(pr.steps)); }); } },
-      [h('option', { value: '', text: '—' })].concat(PR.map(pr => h('option', { value: pr.id, text: L(pr.name) + (pr.src === 'teacher' ? ' · ' + t('pst.teacherR') : ''), selected: R.preset === pr.id }))));
+      [h('option', { value: '', text: '—' })].concat(PR.map(pr => h('option', { value: pr.id, text: L(pr.name) + (pr.src === 'teacher' ? ' · ' + t(mine && R.preset === pr.id ? 'pst.changedR' : 'pst.teacherR') : ''), selected: R.preset === pr.id }))));
     const bars = h('input', { class: 'pst-num', type: 'number', min: 1, max: 256, value: R.bars, 'aria-label': t('pst.bars'), onchange: e => ed(r => { r.bars = clamp(Math.round(+e.target.value || 4), 1, 256); }) });
     const swing = h('input', { type: 'range', min: 0, max: 100, value: Math.round((R.swing || 0) * 100), 'aria-label': t('pst.swing'), onchange: e => ed(r => { r.swing = +e.target.value / 100; }) });
     box.append(h('div', { class: 'pst-tools' }, [h('label', { class: 'pst-lab' }, [h('small', { text: t('pst.preset') }), preset]), h('label', { class: 'pst-lab' }, [h('small', { text: t('pst.bars') }), bars]), h('label', { class: 'pst-lab' }, [h('small', { text: t('pst.swing') }), swing]),
       h('button', { class: 'btn small', text: '▶ ' + t('pst.preview'), onclick: () => play({ only: tr.id, from: 0 }) })]));
-    if (R.src === 'teacher' && R.timingSrc === 'default') box.append(h('p', { class: 'notice', text: t('pst.tDefault') }));
+    if (R.src === 'teacher' && R.timingSrc === 'default') box.append(h('p', { class: 'notice', text: t(mine ? 'pst.tMine' : 'pst.tDefault') }));
     // the strokes
     const durs = [[.25, '1/16'], [1 / 3, '1/8 ³'], [.5, '1/8'], [.75, '3/16'], [1, '1/4'], [1.5, '3/8'], [2, '1/2']];
     const grid = h('div', { class: 'pst-steps' }, R.steps.map((st, i) => h('div', { class: 'pst-step' + (st.acc ? ' acc' : '') + (st.mute ? ' muted' : '') }, [
@@ -377,11 +424,31 @@ PD.pstudio = (() => {
       if (/\.(mid|midi)$/i.test(f.name) || /midi/.test(f.type)) {
         const m = C().fromMidi(new Uint8Array(await f.arrayBuffer())); let un = 0;
         change(p => { if (m.bpm) p.bpm = clamp(Math.round(m.bpm), 20, 320); m.tracks.forEach(x => { const k = C().track('notes', p.tracks.length); k.name = x.name; k.notes = x.notes; un += x.notes.filter(n => !C().reach(n)).length; p.tracks.push(k); }); });
+        build();   // the new tracks show among the track chips at once
         PD.ui.toast(t('pst.midiIn', { n: m.tracks.length, u: un }), 5000); return;
       }
       const p = C().parse(await f.text()); p.id = C().uid('p'); openProject(p);
     } catch (e) { PD.ui.toast(e && e.message === 'newer-version' ? t('pst.impNew') : t('pst.impBad', { e: (e && e.message) || e }), 5000); }
   }
+  const METERS = ['2/4', '3/4', '4/4', '5/8', '6/8', '7/8', '9/8', '12/8'];
+  /** a file as a new project of its own (the Studio's home): a .panduri project, or a MIDI file whose tracks become melody
+      tracks. Throws the same errors importFile shows. → { id, tracks, unplayable } */
+  async function importAsNew(f) {
+    let p, un = 0, n = 0;
+    if (/\.(mid|midi)$/i.test(f.name) || /midi/.test(f.type)) {
+      const m = C().fromMidi(new Uint8Array(await f.arrayBuffer()));
+      if (!m.tracks.length) throw new Error('no-notes');
+      p = fresh('blank'); p.tracks = []; p.name = String(f.name || '').replace(/\.(mid|midi)$/i, '') || t('pst.untitled');
+      if (m.bpm) p.bpm = clamp(Math.round(m.bpm), 20, 320);
+      if (m.meter && METERS.includes(m.meter.join('/'))) p.meter = m.meter.slice();
+      m.tracks.forEach((x, i) => { const k = C().track('notes', i); k.name = x.name; k.notes = x.notes; un += x.notes.filter(q => !C().reach(q)).length; p.tracks.push(k); });
+      n = m.tracks.length;
+    } else { p = C().parse(await f.text()); p.id = C().uid('p'); n = p.tracks.length; }
+    stop(); P = p; undo = []; redo = []; head = 0; cursor = 0; selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0] || {}).id; persist(true);
+    return { id: P.id, tracks: n, unplayable: un };
+  }
+  const exportPanduri = () => P && download(new Blob([C().serialize(P)], { type: 'application/json' }), fname('.panduri'));
+  const exportMidi = only => P && download(new Blob([C().toMidi(P, only ? { only: selTrack } : undefined)], { type: 'audio/midi' }), only ? fname(' - ' + ((curTrack() || {}).name || 'track') + '.mid') : fname('.mid'));
   function projects() {
     PD.ui.sheet((b, close) => {
       b.append(h('h2', { text: t('pst.projects') }));
@@ -445,5 +512,19 @@ PD.pstudio = (() => {
 @media (max-width:640px){.pst-arr{--head:0px}.pst-row{grid-template-columns:1fr}.pst-ph{display:none}.pst-rhead small{display:none}.pst-neck{width:820px;height:170px}.pst-name{max-width:none}}
 ` }));
   }
-  return { page, get project() { return P; }, play, stop, importFile, _open: openProject };
+  /** what the unified Studio's header and transport drive (studio3.js): the same functions this page's own controls call */
+  const engine = {
+    get playing() { return playing; }, play: () => play(), stop: () => stop(), toggle: () => (playing ? stop() : play()),
+    rewind() { stop(); head = 0; cursor = 0; redraw(); views[mode] && views[mode].tick && views[mode].tick(head); notify(); },   // as the page's own ■
+    seek, get head() { return head; }, length: () => (P ? C().length(P) : 0), bpb: () => (P ? C().bpb(P) : 4),
+    get bpm() { return P ? P.bpm : 90; }, setBpm: v => change(p => { p.bpm = clamp(Math.round(+v) || 90, 20, 320); }),
+    get meter() { return P ? P.meter.slice() : [4, 4]; }, setMeter: m => change(p => { p.meter = String(m).split('/').map(Number); }), METERS,
+    get loop() { return !!(P && P.loop && P.loop.on); }, toggleLoop: () => change(p => { p.loop.on = !p.loop.on; }),
+    get metro() { return !!(P && P.metro); }, toggleMetro: () => change(p => { p.metro = !p.metro; }),
+    get countIn() { return !!(P && P.countIn); }, toggleCountIn: () => change(p => { p.countIn = !p.countIn; }),
+    undo: doUndo, redo: doRedo, get canUndo() { return undo.length > 0; }, get canRedo() { return redo.length > 0; },
+    get saved() { return savedNow; }, rename: n => change(p => { p.name = String(n || '').trim() || t('pst.untitled'); }, true),
+    get view() { return mode; }, setView, VIEWS
+  };
+  return { page, get project() { return P; }, play, stop, importFile, _open: openProject, engine, create, importAsNew, list, load, projects, exportPanduri, exportMidi };
 })();

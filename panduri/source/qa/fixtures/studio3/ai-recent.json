@@ -1,0 +1,4 @@
+[
+ { "id": "s-fixture-1", "name": "მრავალჟამიერი.mp3", "title": "მრავალჟამიერი", "size": 4194304, "type": "audio/mpeg", "at": 1763590000000, "key": "Dm", "bpm": 96.4, "chords": ["Dm", "B♭", "C"], "stored": true },
+ { "id": "s-fixture-2", "name": "concert.mp4", "size": 52428800, "type": "video/mp4", "at": 1763400000000, "key": "Am", "bpm": 120, "chords": ["Am", "E"], "stored": false }
+]

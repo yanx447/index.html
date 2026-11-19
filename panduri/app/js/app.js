@@ -149,12 +149,13 @@ PD.app = (() => {
     ['chords', 'nav.chords', NI('<rect x="5" y="3.5" width="14" height="17" rx="2.6"/><path d="M5 9h14M5 14.5h14M9.7 3.5v17M14.3 3.5v17"/>', '<rect fill="currentColor" x="4.2" y="2.8" width="15.6" height="18.4" rx="3"/><path d="M4.2 9h15.6M4.2 14.5h15.6M9.7 2.8v18.4M14.3 2.8v18.4" stroke="#08090B" stroke-width="1.5"/>'), 'wide'],
     ['community', 'cm.title', NI('<rect x="3.5" y="5" width="17" height="14" rx="4"/><path d="M10.4 9.2v5.6l4.7-2.8z" fill="currentColor" stroke="none"/>', '<rect fill="currentColor" x="2.8" y="4.3" width="18.4" height="15.4" rx="4.5"/><path d="M10.4 9.2v5.6l4.7-2.8z" fill="#08090B"/>')],
     ['tuner', 'nav.tuner', NI('<path d="M4.4 17.5a7.6 7.6 0 1 1 15.2 0"/><path d="M12 17.5l3.7-5.2"/><circle cx="12" cy="17.5" r="1.3" fill="currentColor" stroke="none"/>', '<path fill="currentColor" d="M3.6 18.2a8.4 8.4 0 1 1 16.8 0z"/><path d="M12 17.4l3.7-5.2" stroke="#08090B" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17.4" r="1.6" fill="#08090B"/>')],
-    ['ai', 'ai.title', NI('<path d="M11 3.8l1.7 4.6 4.6 1.7-4.6 1.7L11 16.4l-1.7-4.6-4.6-1.7 4.6-1.7z"/><path d="M18 14.6l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8z"/>', '<path fill="currentColor" d="M11 2.6l2.1 5.7 5.7 2.1-5.7 2.1L11 18.2l-2.1-5.7-5.7-2.1 5.7-2.1zM18 13.6l1 2.6 2.6 1-2.6 1-1 2.6-1-2.6-2.6-1 2.6-1z"/>'), 'wide'],
+    PD.studio3 ? PD.studio3.nav(NI) : ['ai', 'ai.title', NI('<path d="M11 3.8l1.7 4.6 4.6 1.7-4.6 1.7L11 16.4l-1.7-4.6-4.6-1.7 4.6-1.7z"/><path d="M18 14.6l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8z"/>', '<path fill="currentColor" d="M11 2.6l2.1 5.7 5.7 2.1-5.7 2.1L11 18.2l-2.1-5.7-5.7-2.1 5.7-2.1zM18 13.6l1 2.6 2.6 1-2.6 1-1 2.6-1-2.6-2.6-1 2.6-1z"/>'), 'wide'],
     ['profile', 'nav.profile', NI('<circle cx="12" cy="8.4" r="3.9"/><path d="M4.6 20.2c.9-3.7 3.8-5.7 7.4-5.7s6.5 2 7.4 5.7"/>', '<circle fill="currentColor" cx="12" cy="8.2" r="4.5"/><path fill="currentColor" d="M3.8 20.4c.9-4.2 4.1-6.6 8.2-6.6s7.3 2.4 8.2 6.6c.1.5-.3 1-.8 1H4.6c-.5 0-.9-.5-.8-1z"/>')]];
   // on the phone, screens whose tab is not in the dock light the tab they are reached from
   const DOCK_OF = { chords: 'learn', ai: 'home' };
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'mtheory', mtheory: 'mtheory', adv: 'mtheory', pstudio: 'learn', tips: 'learn', solfege: 'mtheory', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
     songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', checkout: 'profile', market: 'community' };
+  if (PD.studio3) { Object.assign(TOP, PD.studio3.top); Object.assign(DOCK_OF, PD.studio3.dock); }
   let route = 'home', param = null;
   const st = { cat: PD.store.get('home.cat', 'song'), q: '', level: 0, tempo: 0, status: 'all', sort: 'rec', skill: '', dur: 0 };
 
@@ -266,7 +267,7 @@ PD.app = (() => {
     location.reload();
   }
   function go(r, p, replace) {
-    if (r === 'library') r = 'songs'; if (r === 'more') r = 'profile'; if (r === 'tools') r = 'practice';
+    if (r === 'library') r = 'songs'; if (r === 'more') r = 'profile'; if (r === 'tools') r = 'practice'; if (r === 'ai' && p == null && PD.studio3) r = 'studio3';
     const same = r === route && (p == null ? null : p) === param;   // tapping the tab that is already open adds no history entry
     navDir = (TOP[r] === r && !(r === 'community' && p)) || replace ? 'tab' : 'fwd';   // a screen behind the feed's corners slides in
     route = r; param = p == null ? null : p;
@@ -343,7 +344,7 @@ PD.app = (() => {
     PD.bus.emit('route', route);
     // the helper rides along on every screen, and keeps out of the way inside a lesson
     try { if (PD.sima) { PD.sima.close(); if (route === 'practice' || PD.practice.active) { const f = document.querySelector('button.sm-fab'); if (f) f.remove(); } else { PD.sima.mount(); setTimeout(() => PD.sima.nudge(), 1800); } } } catch (_) {}
-    ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
+    (PD.studio3 && PD.studio3.route(route, wrap, param)) || ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
       community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), circle: () => PD.circle.page(wrap, param), mtheory: () => PD.mtheory.page(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), book: () => PD.book.page(wrap, param), install: () => PD.install.page(wrap), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), checkout: () => PD.checkout.page(wrap, param), market: () => PD.market ? PD.market.page(wrap, param) : home(wrap), adv: () => PD.advTheory ? PD.advTheory.page(wrap, param) : PD.mtheory.page(wrap), pstudio: () => PD.pstudio ? PD.pstudio.page(wrap, param) : practiceHub(wrap), progress, settings, profile }[route] || home)(wrap);
@@ -567,7 +568,7 @@ PD.app = (() => {
       tool('tuner', I('<path d="M4.4 17.5a7.6 7.6 0 1 1 15.2 0"/><path d="M12 17.5l3.7-5.2"/><circle cx="12" cy="17.5" r="1.3" fill="currentColor" stroke="none"/>'), 'nav.tuner'),
       tool('metronome', I('<path d="M8.5 20.5h7l-2.6-16h-1.8z"/><path d="M12 15l4.8-7.5"/>'), 'hx.metro'),
       tool('chords', I('<rect x="5" y="3.5" width="14" height="17" rx="2.6"/><path d="M5 9h14M5 14.5h14M9.7 3.5v17M14.3 3.5v17"/>'), 'nav.chords'),
-      tool('ai', '<b>AI</b>', 'ai.title')]));
+      tool('ai', ...(PD.studio3 ? PD.studio3.tool : ['<b>AI</b>', 'ai.title']))]));
     // the teacher's rhythms that have a recording: open the rhythm, or hear it right here
     { const RR = (PD.curriculum.rhythms() || []).filter(r => PD.rhythmsUI.hasRecording(r.id));
       if (RR.length) w.append(h('section', { class: 'hm-rh' }, [h('div', { class: 'hm-sh' }, [h('h2', { 'data-t': 'hx.rhReal' }), h('button', { class: 'linkbtn', 'data-t': 'hx.all', onclick: () => go('rhythms') })]),
@@ -1027,7 +1028,7 @@ PD.app = (() => {
     const rowI = (cls, icon, k, d, right, fn) => h('button', { class: 'prow' + (cls ? ' ' + cls : ''), onclick: fn }, [h('span', { class: 'prow-ic', html: icon }), h('span', { class: 'grow' }, [h('b', { text: t(k) }), h('small', { text: d })]), right ? h('span', { class: 'prow-n', text: right }) : null, h('span', { class: 'chev', html: ic.chevron })]);
     const list = h('div', { class: 'plist' });
     list.append(rowI('on', ic.target || ic.pulse, 'hm.daily', t('dl.lead', { m: PD.store.get('goalMin', 15) }), dn + '/' + plan.length, () => nextSeg ? PD.daily.start(nextSeg) : go('daily')));
-    const items = [PD.pstudio ? ['pstudio', '<b class="ai-badge">PS</b>', 'pst.title', 'pst.tile'] : null, ['ai', '<b class="ai-badge">AI</b>', 'ai.title', 'ai.homeD'], ['exams', ic.check || ic.learn, 'ex.title', 'ex.lead'], ['drill', ic.target || ic.learn, 'ex.drill', 'ex.drillD'], ['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['circle', PD.circle.ICON, 'cf.title', 'cf.toolD'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'trn.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
+    const items = [PD.studio3 ? PD.studio3.hub : ['ai', '<b class="ai-badge">AI</b>', 'ai.title', 'ai.homeD'], ['exams', ic.check || ic.learn, 'ex.title', 'ex.lead'], ['drill', ic.target || ic.learn, 'ex.drill', 'ex.drillD'], ['theory', ic.learn || ic.chord, 'tb.title', 'tb.tool'], ['circle', PD.circle.ICON, 'cf.title', 'cf.toolD'], ['tips', ic.star || ic.learn, 'tp.title', 'tp.lead'], ['trainer', ic.target, 'trn.title', 'ph.trainerD'], ['rhythms', ic.pulse, 'nav.rhythms', 'ph.rhythmsD'], ['metronome', ic.metro, 'mt.title', 'ph.metroD'], ['tuner', ic.tune, 'tools.tuner', 'tools.tunerD'], ['chords', ic.chord, 'tools.chords', 'tools.chordsD'], ['fretboard', ic.frets, 'tools.fret', 'tools.fretD'], ['explore', ic.cube, 'tools.3d', 'tools.3dD']];
     items.filter(Boolean).forEach(([r, icon, k, d]) => list.append(rowI('', icon, k, t(d), '', () => go(r))));
     w.append(list);
     if (PD.author()) w.append(h('div', { class: 'paths' }, [['studio', ic.edit, 'tools.studio', 'tools.studioD'], ['at:instrument', ic.frets, 'sd.instrument', 'at.instrument'], ['at:curriculum', ic.learn, 'sd.curriculum', 'at.curD'], ['at:samples', ic.mic, 'sd.samples', 'set.samples']].map(([r, icon, k, d]) => h('button', { class: 'card path tool', onclick: () => r === 'studio' ? PD.studio.open(null) : PD.authorTools[r.slice(3)]() }, [h('span', { class: 'tool-ic', html: icon }), h('h2', { 'data-t': k }), h('span', { class: 'muted', 'data-t': d })]))));
