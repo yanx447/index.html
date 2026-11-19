@@ -1008,9 +1008,10 @@ PD.aimus.panel = function (o) {
     return row;
   }
   /* ---------------- render ---------------- */
-  let V = null;
+  let V = null, N3 = null;   // N3: the TAB on the neck in depth (aitab3d.js, app only)
   function render() {
     if (V && V.stop) V.stop();
+    if (N3) { N3.stop(); N3 = null; }
     el.innerHTML = ''; el.append(title());
     if (!M) { el.append(head()); PD.i18n.apply(el); return; }
     const fold = PD.aiUI.fold;
@@ -1020,6 +1021,7 @@ PD.aimus.panel = function (o) {
     el.append(h('div', { class: 'apr-viewbar' }, [h('label', {}, [h('span', { text: t('apr.view') }), picker]), summary]));
     if (!M.notes.length) { el.append(h('p', { class: 'notice', text: t('tr.none') }), arrangementControls(), head()); PD.i18n.apply(el); return; }
     V = ['workspace', 'staff', 'tab'].includes(view) ? PD.aiScore.workspace(M, { ...o, mode: view === 'staff' ? 'staff' : 'tab', select: i => editMode ? edit(i) : o.seek(M.notes[i].t0) }) : view === 'roll' ? rollView() : listView();
+    if (PD.aiTab3d && view !== 'staff' && ['workspace', 'tab'].includes(view)) { N3 = PD.aiTab3d(M, { seek: o.seek, playing: () => !!o.transport?.D.playing }); el.append(N3.el); N3.tick(o.pos ? o.pos() : 0); }
     el.append(V.el);
     const nk = h('button', { class: 'ai-tg', 'aria-pressed': String(onNeck), onclick: () => { onNeck = !onNeck; PD.store.set('tr.neck', onNeck); nk.setAttribute('aria-pressed', String(onNeck)); cur = -1; o.invalidate && o.invalidate(); } }, [h('span', { text: '🪕' }), h('span', { text: t('tr.onNeck') })]);
     const ed = h('button', { class: 'ai-tg', 'aria-pressed': String(editMode), onclick: () => { if (!can('proEdit')) return lock('ai.edit'); editMode = !editMode; ed.setAttribute('aria-pressed', String(editMode)); el.classList.toggle('editing', editMode); if (!editMode && edBox) { edBox.remove(); edBox = null; } } }, [h('span', { text: '✎' }), h('span', { text: t('tr.edit') })]);
@@ -1048,6 +1050,7 @@ PD.aimus.panel = function (o) {
   let lastCur = -2;
   function tick(p) {
     if (!M || !M.notes.length) return;
+    if (N3) N3.tick(p);
     if (V && V.tick) { V.tick(p); return; }
     let i = -1;
     for (let k = 0; k < M.notes.length; k++) { const n = M.notes[k]; if (p >= n.t0 && p < n.t1) { i = k; break; } if (n.t0 > p) break; }
