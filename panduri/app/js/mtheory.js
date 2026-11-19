@@ -262,6 +262,7 @@ PD.mtheory = (() => {
     // the interactive pages first: what you can play with
     const tile = (k, dk, icon, go, cls) => h('button', { class: 'mth-tile' + (cls ? ' ' + cls : ''), onclick: go }, [h('span', { class: 'mth-ic', html: icon }), h('span', { class: 'mth-tt' }, [h('b', { 'data-t': k }), h('small', { 'data-t': dk })])]);
     w.append(h('h2', { class: 'mth-h', 'data-t': 'mth.tools' }), h('div', { class: 'mth-tiles' }, [
+      PD.advTheory ? tile('av.title', 'av.tile', ICON.world, () => PD.app.go('adv'), 'big') : null,   // the advanced book (app only)
       tile('mth.ivT', 'mth.ivD', ICON.iv, () => PD.app.go('mtheory', 'intervals'), 'big'),
       tile('mth.sfT', 'mth.sfD', ic.ear, () => PD.app.go('solfege'), 'big'),
       tile('cf.title', 'mth.cfD', PD.circle.ICON, () => PD.app.go('circle')),
