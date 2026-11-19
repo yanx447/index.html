@@ -1,6 +1,6 @@
 """Build: one modular PWA (dist/app/) + one self-contained HTML file + the artifact fragment.
 Module order = dependency order. three3d.js is embedded as inert text and parsed only when 3D is first used."""
-import base64, os, re, json, hashlib, shutil
+import base64, os, re, json, hashlib, shutil, sys
 from io import BytesIO
 from PIL import Image
 ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','guard','social','cmprofile','market','vedit','stickers','chatkit','chatui','voicewave','messenger','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','advdata','advjazz','advtheory','pstcore','pstudio','book','install','simatheory','sima','simaplus','aiworker','aispl','aideck','aiscore','aipiano','airoll','aitab3d','aimus','ailesson','aistage','songbook','ai','s3core','studio3','samisimi','studio','authortools','onboard','intro','pwa','practice-streak','app','boot']
@@ -262,7 +262,7 @@ for name, html, want in [('panduri-app.html', single, 1), ('app/index.html', ind
     assert all(v == want for v in c.values()), (name, c)
 # the 3D hand (chord pages): a separate file, loaded only when 3D is chosen
 if os.path.exists('render/out/poses_final.json'):
-    import subprocess; subprocess.run(['python3', 'src3d/build_hand3d.py', 'dist/app'], check=True)
+    import subprocess; subprocess.run([sys.executable, 'src3d/build_hand3d.py', 'dist/app'], check=True)   # the same Python (and Pillow) as this build
 assert len(frag.encode('utf8')) < 16 * 1024 * 1024, 'artifact.html is over the 16 MiB limit'
 print('held back (under 80%):', ', '.join(LANG_HELD) or 'none')
 print('languages', ', '.join(f"{c} {len(d)}/{len(LANG_SOURCE.get('exact', [])) + len(LANG_SOURCE['templates'])}" for c, d in LANG_TR.items()) or 'none')
