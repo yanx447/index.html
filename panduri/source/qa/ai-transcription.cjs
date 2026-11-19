@@ -46,36 +46,38 @@ const server = http.createServer((req, res) => {
  const wav=Buffer.alloc(44+samples.length*2); wav.write('RIFF'); wav.writeUInt32LE(wav.length-8,4); wav.write('WAVEfmt ',8); wav.writeUInt32LE(16,16); wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(22050,24);wav.writeUInt32LE(44100,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(samples.length*2,40);samples.forEach((v,i)=>wav.writeInt16LE(Math.max(-32768,Math.min(32767,Math.round(v*32767))),44+i*2));
  await page.setInputFiles('input[type=file]', { name:'recorded-panduri.wav', mimeType:'audio/wav', buffer:wav });
  await page.waitForSelector('.ai-facts', { timeout:120000 });
- await page.getByLabel('Workspace',{exact:true}).selectOption('notation');
+ await page.locator('.apr-navigation select').selectOption('notation');
  await page.locator('.ai-trhead .btn.primary').click();
  await page.waitForSelector('.as-workspace', { timeout:120000 });
  const notes = await page.evaluate(()=>PD.ai.current.transcription.notes); assert.ok(notes.length>=3); assert.equal(await page.evaluate(()=>PD.ai.current.transcription.engine),'basic-pitch');
  // Piano editor: fixed keyboard lanes, explicit inspector, edits, gestures and undo.
- await page.getByLabel('Workspace',{exact:true}).selectOption('roll');
- await page.waitForSelector('.apr-note');
- assert.equal(await page.locator('.apr-key').count(),88);
+ await page.locator('.apr-navigation select').selectOption('roll');
+ await page.waitForSelector('.rl-cv');
+ await page.waitForTimeout(300);
+ assert.match(await page.locator('.rl-stage').getAttribute('aria-label'),/\d+ notes/);
+ const rect = id => page.evaluate(id => document.querySelector('.rl').noteRect(id), id);
  assert.equal(await page.locator('.tr-tabs').count(),0,'no second navigation strip');
  assert.equal(await page.locator('.ai-trans > details[open]').count(),0,'advanced sections start collapsed');
  const beforePiano = await page.evaluate(()=>JSON.stringify(PD.ai.current.transcription.notes));
- const firstId = await page.locator('.apr-note').first().getAttribute('data-note-id');
- await page.locator('.apr-note').first().click();
+ const firstId = await page.evaluate(()=>PD.ai.current.transcription.notes[0].id);
+ { const r = await rect(firstId); await page.mouse.click(r.x+Math.min(8,r.width/2),r.y+r.height/2); }
  const firstPitch = await page.getByLabel('Pitch',{exact:true}).inputValue();
  await page.getByLabel('Pitch',{exact:true}).selectOption(String(+firstPitch+1));
  await page.locator('.apr-inspector').getByRole('button',{name:'Apply',exact:true}).click();
  assert.equal(await page.evaluate(id=>PD.ai.current.transcription.notes.find(n=>n.id===id).m,firstId),+firstPitch+1);
  await page.getByRole('button',{name:'Undo',exact:true}).click();
  assert.equal(await page.evaluate(()=>JSON.stringify(PD.ai.current.transcription.notes)),beforePiano);
- const noteBox = await page.locator('.apr-note').first().boundingBox();
- await page.mouse.move(noteBox.x+5,noteBox.y+noteBox.height/2);await page.mouse.down();await page.mouse.move(noteBox.x+55,noteBox.y+noteBox.height/2-22,{steps:8});await page.mouse.up();
+ const noteBox = await rect(firstId);
+ await page.mouse.move(noteBox.x+3,noteBox.y+noteBox.height/2);await page.mouse.down();await page.mouse.move(noteBox.x+53,noteBox.y+noteBox.height/2-noteBox.height-2,{steps:8});await page.mouse.up();
  assert.equal(await page.evaluate(id=>PD.ai.current.transcription.notes.find(n=>n.id===id).m,firstId),+firstPitch+1);
  await page.getByRole('button',{name:'Undo',exact:true}).click();
  const originalEnd=await page.evaluate(id=>PD.ai.current.transcription.notes.find(n=>n.id===id).t1,firstId);
- const handle=await page.locator('.apr-note .apr-resize').first().boundingBox();
- await page.mouse.move(handle.x+handle.width/2,handle.y+handle.height/2);await page.mouse.down();await page.mouse.move(handle.x+handle.width/2+40,handle.y+handle.height/2,{steps:8});await page.mouse.up();
+ const handle=await rect(firstId);
+ await page.mouse.move(handle.x+handle.width-2,handle.y+handle.height/2);await page.mouse.down();await page.mouse.move(handle.x+handle.width+38,handle.y+handle.height/2,{steps:8});await page.mouse.up();
  assert.ok(await page.evaluate(({id,end})=>PD.ai.current.transcription.notes.find(n=>n.id===id).t1>end,{id:firstId,end:originalEnd}));
  await page.getByRole('button',{name:'Undo',exact:true}).click();
- for(const width of [390,1280]) {await page.setViewportSize({width,height:900});await page.locator('.apr-editor').scrollIntoViewIfNeeded();await page.waitForTimeout(100);await page.screenshot({path:'/tmp/panduri-piano-'+width+'.png'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));}
- await page.getByLabel('Workspace',{exact:true}).selectOption('notation');
+ for(const width of [390,1280]) {await page.setViewportSize({width,height:900});await page.locator('.rl').scrollIntoViewIfNeeded();await page.waitForTimeout(100);await page.screenshot({path:'/tmp/panduri-piano-'+width+'.png'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));}
+ await page.locator('.apr-navigation select').selectOption('notation');
  assert.equal(await page.locator('.as-tab:visible').count(),0,'sheet does not also show TAB');
  await page.locator('.ai-trans > details').filter({has:page.locator('summary',{hasText:'Arrangement & difficulty'})}).locator('summary').click();
  await page.getByRole('button',{name:'Convert to Fanduri Tabs',exact:true}).click();
@@ -135,7 +137,7 @@ const server = http.createServer((req, res) => {
  await page.waitForFunction(()=>PD.ai.current?.file.name.startsWith('Panduri-'),{},{timeout:60000});
  assert.ok(!await page.locator('video.ai-video').count(), 'audio/webm recordings are not treated as video');
  // Explicit failure is visible; no DSP fallback is substituted when ML cannot load.
- await page.getByLabel('Workspace',{exact:true}).selectOption('notation');
+ await page.locator('.apr-navigation select').selectOption('notation');
  await page.route('**/bp/nmp.onnx', route=>route.fulfill({status:503,body:'unavailable'}));
  await page.locator('.ai-trhead .btn.primary').click();
  await page.waitForFunction(()=>document.querySelector('.ai-trans').textContent.includes('ML transcription failed'),{},{timeout:60000});

@@ -886,7 +886,8 @@ PD.aimus.panel = function (o) {
 
   /* piano roll: a window that follows the player; drag to scrub, tap a note to go there */
   function rollView() {
-    return PD.aiPiano(M, { state: pianoState, pos: o.pos, seek: o.seek, playing: () => !!o.transport?.D.playing, canEdit: editable,
+    return (PD.aiRoll || PD.aiPiano)(M, { state: pianoState,   // the canvas roll in the app (airoll.js), the DOM roll in the single file
+ pos: o.pos, seek: o.seek, playing: () => !!o.transport?.D.playing, canEdit: editable,
       canUndo: () => undoStack.length > 0, undo: () => { if (!editable() || !undoStack.length) return; M = undoStack.pop(); o.save && o.save(M); render(); },
       change: (n, patch) => { remember(); Object.assign(n, patch); changedNotes(); },
       remove: n => { remember(); M.notes.splice(M.notes.indexOf(n), 1); changedNotes(); },
