@@ -62,8 +62,8 @@ PD.audio = (() => {
       if (w) { const asked = ctx.currentTime, at = when, tap = at - asked < .03; w.then(() => { const late = ctx.currentTime - at; if (!tap && late > .12) return; note(s, f, Object.assign({}, opt, { noWait: true, when: Math.max(at, ctx.currentTime) })); }); return null; }
     }
     const src = ctx.createBufferSource(), g = ctx.createGain();
-    if (smp) { src.buffer = smp.buf; src.playbackRate.value = smp.rate; g.gain.value = smp.gain; src.connect(g); g.connect(bus.inst); }   // recordings bypass the synthetic body EQ
-    else { src.buffer = ks(midi, vel); g.gain.value = .32 + .22 * vel; src.connect(g); g.connect(body); }
+    if (smp) { src.buffer = smp.buf; src.playbackRate.value = smp.rate; g.gain.value = smp.gain; src.connect(g); g.connect(opt.out || bus.inst); }   // recordings bypass the synthetic body EQ
+    else { src.buffer = ks(midi, vel); g.gain.value = .32 + .22 * vel; src.connect(g); g.connect(opt.out || body); }   // opt.out: a studio track's own channel
     src.start(when, smp ? smp.offset || 0 : 0);
     if (PD.detector && PD.detector.active && !opt.guide) PD.detector.selfPlay([midi], when, (opt.dur || 1.2) + .1);   // never judge our own sound (a play-along guide is kept out by echo cancellation instead)
     if (opt.dur) { g.gain.setValueAtTime(g.gain.value, when + opt.dur); g.gain.exponentialRampToValueAtTime(.0005, when + opt.dur + .25); src.stop(when + opt.dur + .3); }
@@ -75,9 +75,9 @@ PD.audio = (() => {
     opt = opt || {}; const gap = opt.gap == null ? .018 : opt.gap, when = Math.max(ctx.currentTime, opt.when || 0), vel = opt.vel == null ? .75 : opt.vel;
     // a recorded whole-chord stroke wins when the teacher supplied one for exactly this shape and direction
     const ch = !opt.mute && PD.samples && PD.samples.pickChord(frets, dir, vel);   // a muted stroke is never the ringing chord
-    if (ch) { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = ch.buf; src.playbackRate.value = ch.rate || 1; g.gain.value = ch.gain; src.connect(g); g.connect(bus.inst); src.start(when, ch.offset || 0); if (PD.detector && PD.detector.active && !opt.guide) PD.detector.selfPlay(frets.map((f, i) => f == null ? null : PD.theory.midi(i + 1, f)).filter(x => x != null), when, 1.3); return; }
+    if (ch) { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = ch.buf; src.playbackRate.value = ch.rate || 1; g.gain.value = ch.gain; src.connect(g); g.connect(opt.out || bus.inst); src.start(when, ch.offset || 0); if (PD.detector && PD.detector.active && !opt.guide) PD.detector.selfPlay(frets.map((f, i) => f == null ? null : PD.theory.midi(i + 1, f)).filter(x => x != null), when, 1.3); return; }
     const order = dir === 'up' ? [3, 2, 1] : [1, 2, 3];
-    order.filter(s => frets[s - 1] != null).forEach((s, k) => note(s, frets[s - 1], { vel, when: when + k * gap, art: opt.mute ? 'mute' : dir === 'up' ? 'up' : 'down', guide: opt.guide }));
+    order.filter(s => frets[s - 1] != null).forEach((s, k) => note(s, frets[s - 1], { vel, when: when + k * gap, art: opt.mute ? 'mute' : dir === 'up' ? 'up' : 'down', guide: opt.guide, out: opt.out, dur: opt.dur }));
   }
   function blip(freq, dur, gain, type, when, dest) {
     if (!ensure()) return 0;
@@ -431,6 +431,7 @@ PD.audio = (() => {
   return {
     ensure, now, note, piano, pianoWarm, theory, get pianoRecorded() { return pianoRecorded(); }, strum, click, ok, blip, tone, setVol, vol, ref, loopRec,
     get ctx() { return ctx; },
+    get inst() { return bus.inst; },   // where a studio track's channel joins the instrument bus
     get outLatency() { return ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) : 0; },
   };
 })();
