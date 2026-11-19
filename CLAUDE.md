@@ -44,12 +44,18 @@ over `panduri/app/` → commit → push. **Agents do not do the last two steps.*
 ## What may be said, and how it must be marked
 
 Nothing about panduri technique may be invented. Every card, chapter and tip
-carries a source badge, and it must be true:
+carries a source in its data, and it must be true:
 
-* `teacher` — the teacher's own words or data.
-* `general` — ordinary music theory or practice advice, true of any instrument.
-* `fact` — a fact the app can derive itself (a note on a fret, an interval).
-* `draft` — written but **not yet confirmed by him**. Say so on the page.
+* `teacher` — the teacher's own words or data. **Shown** on the page.
+* `general` — ordinary music theory or practice advice, true of any instrument. Not shown.
+* `fact` — a fact the app can derive itself (a note on a fret, an interval). Not shown.
+* `draft` — written but **not yet confirmed by him**. **Shown**: say so on the page.
+
+The owner decided (2026-11-19): the app gives its information as it is — no
+lists of sources or links to where something was read, no „general theory, not
+the teacher's material" notes. Only the `teacher` and `draft` marks are visible
+(`.tp-src.general` / `.tp-src.fact` are hidden in `design.css`). Theory must
+still be correct: check facts before writing them, just do not cite them.
 
 If a change would add, alter or reorder curriculum, technique or fingerings:
 **ask him first**, or make it editable in Author Studio. Demo content is

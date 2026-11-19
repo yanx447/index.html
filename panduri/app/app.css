@@ -4571,6 +4571,13 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
 }
 @media (min-width: 1100px) { .hm-hero-art.hmt { min-height: 290px; } .hmt-foot { right: var(--s8); bottom: 30px; } .hmt-tx { padding-inline-end: 0; } }
 
+/* The information is given as it is. Only two marks stay on the page: the teacher's own word, and a draft he has not
+   yet confirmed (the panduri technique must never pass for his when it is not). „General" and „fact" are kept in the
+   data, for the app's own bookkeeping, and not shown. */
+@layer ds {
+  .tp-src.general, .tp-src.fact, .cf-src { display: none !important; }
+}
+
 @layer ds {
 /* Checkout (checkout.js). The build puts this file in the `ds` layer after design.css.
    One column, at most 560 px: a payment page reads top to bottom — plan, method, total, pay. */

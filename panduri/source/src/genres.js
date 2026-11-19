@@ -51,8 +51,7 @@ PD.genres = (() => {
   const TABLE = (head, rows) => h('div', { class: 'tb-tw' }, [h('table', { class: 'tb-t' }, [
     h('thead', {}, [h('tr', {}, head.map(c => h('th', { text: c })))]),
     h('tbody', {}, rows.map(r => h('tr', {}, r.map(c => c && c.nodeType ? h('td', {}, [c]) : h('td', { html: String(c) })))))])]);
-  const SRC = links => h('section', { class: 'gn-src' }, [h('b', { 'data-t': 'gn.sources' }),
-    h('ul', {}, links.map(([tx, u]) => h('li', {}, [h('a', { href: u, target: '_blank', rel: 'noopener noreferrer', text: tx })])))]);
+  const SRC = () => document.createDocumentFragment();   // the information is given as it is: no list of where it came from
   const REM = items => h('section', { class: 'tbs-rem' }, [h('h3', { 'data-t': 'gn.rem' }), h('ul', {}, items.map(([ka, en]) => h('li', { html: L(ka, en) })))]);
   const GOTO = (ka, en, route, param) => h('button', { class: 'btn small', text: L(ka, en), onclick: () => PD.app.go(route, param) });
 
@@ -323,7 +322,6 @@ PD.genres = (() => {
     const d = done(), n = CH.filter(x => d[x.id]).length;
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('mtheory') }), h('h1', { 'data-t': 'gn.title', style: 'margin:0' })]),
       h('p', { class: 'fg2', 'data-t': 'gn.lead' }),
-      h('p', { class: 'tb-note', 'data-t': 'gn.src' }),
       h('div', { class: 'tb-prog' }, [h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(n / CH.length * 100) + '%' })]), h('small', { class: 'muted', text: n + ' / ' + CH.length })]),
       h('div', { class: 'tb-list' }, CH.map((x, i) => h('button', { class: 'tb-card' + (d[x.id] ? ' done' : ''), onclick: () => PD.app.go('music', x.id) }, [
         h('span', { class: 'tb-num', text: d[x.id] ? '✓' : String(i + 1) }),
@@ -336,7 +334,7 @@ PD.genres = (() => {
   function chapter(w, c) {
     const i = CH.indexOf(c);
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small', html: ic.back + '<span data-t="gn.list"></span>', onclick: () => PD.app.go('music') }), h('small', { class: 'muted', text: t('gn.chapter', { n: i + 1 }) + ' / ' + CH.length })]),
-      h('h1', { class: 'tb-title', 'data-t': c.t }), h('p', { class: 'tb-note', 'data-t': 'gn.src' }));
+      h('h1', { class: 'tb-title', 'data-t': c.t }));
     const body = h('article', { class: 'tb-body' }); w.append(body);
     c.body(body);
     if (c.q && c.q.length) {

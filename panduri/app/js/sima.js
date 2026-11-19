@@ -528,10 +528,6 @@ PD.sima = (() => {
       if (a.more && a.more.length) el.append(h('div', { class: 'sm-more' }, a.more.map(x =>
         h('button', { class: 'chip', text: x.title, onclick: () => put(x.title) }))));
     }
-    // where an internet answer came from — every site it used, opened outside the app
-    if (a && a.links && a.links.length) el.append(h('div', { class: 'sm-links' }, [h('small', { class: 'muted', text: t('sm.sources') })].concat(a.links.slice(0, 5)
-      .filter(x => x && /^https?:\/\//.test(x.url || '')).map(x => { let host = x.url; try { host = new URL(x.url).hostname.replace(/^www\./, ''); } catch (_) {}
-        return h('a', { href: x.url, target: '_blank', rel: 'noopener noreferrer', text: x.title ? String(x.title).slice(0, 80) : host }); }))));
     const lg = box.querySelector('.sm-log'); if (lg) { lg.append(el); lg.scrollTop = lg.scrollHeight; }
     return el;
   }

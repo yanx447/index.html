@@ -119,7 +119,7 @@ PD.rhythmsUI = (() => {
     C.rhythms().forEach(r => { const pv = preview(r.id); box.append(pv ? h('div', { class: 'rh-item' }, [item(r, t('rh.teacher')), pv]) : item(r, t('rh.teacher'))); });
     w.append(h('h2', { class: 'rh-sec', 'data-t': 'rh.teacherSec' }), box);
     const box2 = h('div', { class: 'paths' });
-    (C.commonRhythms ? C.commonRhythms() : []).slice().sort((a, b) => a.level - b.level).forEach(r => box2.append(item(r, t('rh.gen') + ' · ' + t('lvl.' + Math.min(4, r.level)))));
+    (C.commonRhythms ? C.commonRhythms() : []).slice().sort((a, b) => a.level - b.level).forEach(r => box2.append(item(r, t('lvl.' + Math.min(4, r.level)))));
     w.append(h('h2', { class: 'rh-sec', 'data-t': 'rh.commonSec' }), h('p', { class: 'muted', style: 'margin-top:-4px', 'data-t': 'rh.commonD' }), box2);
   }
 
@@ -128,8 +128,7 @@ PD.rhythmsUI = (() => {
     const L = LS.fromRhythm(r);
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('rhythms') })]),
       h('div', { style: 'display:flex;flex-direction:column;gap:6px' }, [h('span', { class: 'kicker', text: t('nav.rhythms') + ' · ' + t('rh.strokes', { n: r.strokes.length }) }), h('h1', { text: PD.i18n.pick(r.name) }),
-        h('div', { class: 'row' }, [h('span', { class: 'tag' + (gen ? ' gen' : ''), text: t(gen ? 'rh.gen' : 'rh.teacher') }), h('span', { class: 'muted', text: t('rh.usage', { u: PD.i18n.pick(r.usage).join(' · ') }) })])]));
-    if (gen) w.append(h('p', { class: 'muted', style: 'font-size:13px;line-height:1.5', 'data-t': 'rh.genNote' }));
+        h('div', { class: 'row' }, [(gen ? null : h('span', { class: 'tag', text: t('rh.teacher') })), h('span', { class: 'muted', text: t('rh.usage', { u: PD.i18n.pick(r.usage).join(' · ') }) })])]));
     if (r.timing.src === 'default') w.append(h('p', { class: 'tag warn', style: 'display:block;padding:10px 12px;line-height:1.5', text: t('rh.timingDefault') }));
     /* live preview: pattern + current/next + right-hand animation */
     const row = patternRow(r, true);

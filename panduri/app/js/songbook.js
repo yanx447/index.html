@@ -18,7 +18,7 @@
    does not exist on this instrument. The page says so.
    ===================================================================== */
 PD.i18n.add({
-  'sb.draft': ['აკორდები ინტერნეტიდანაა — წყაროები ქვემოთ წერია. მასწავლებელს ჯერ არ შეუმოწმებია: შეიძლება მისი დაკვრა სხვანაირი იყოს.', 'The chords come from the web — the sources are listed below. The teacher has not checked them yet: the way he plays it may differ.'],
+  'sb.draft': ['ამ აკორდებს მასწავლებელი ჯერ არ შეუმოწმებია — შეიძლება მისი დაკვრა სხვანაირი იყოს.', 'The teacher has not checked these chords yet — his playing may differ.'],
   'sb.rhythm': ['რითმი', 'Rhythm'],
   'sb.rhSrc': ['წყაროს რითმი: ↓ ↓ ↑', 'The source\'s rhythm: ↓ ↓ ↑'],
   'sb.rhSrcD': ['ეს რითმი წყაროშივე წერია (ფანდურის სქემაზე). მახვილები და ხანგრძლივობა იქ არ არის — აპი სამივე დარტყმას თანაბრად უკრავს.', 'This rhythm is written in the source itself (on the panduri chart). Accents and durations are not — the app plays the three strokes evenly.'],
@@ -202,9 +202,8 @@ PD.songbook = (() => {
       return h('button', { class: 'chd sb-chd', onclick: () => PD.audio.strum(sh.frets, 'down') }, [h('b', { text: n }), h('div', { html: diagram(sh) }),
         h('small', { class: 'muted', text: sh.frets.map((f, i) => PD.theory.stringName(i + 1) + ' ' + f).join(' · ') + ' · ' + t(sh.src === 'web' ? 'sb.shWeb' : 'sb.shCalc') })]);
     })), h('small', { class: 'muted', 'data-t': 'sb.tap' })]));
-    // authors and sources
-    wrap.append(h('section', { class: 'sx-block gn-src' }, [h('b', { 'data-t': 'sb.who' }), h('p', { class: 'fg2', text: pick(S.who) }),
-      h('b', { 'data-t': 'sb.sources' }), h('ul', {}, S.sources.map(([tx, u]) => h('li', {}, [h('a', { href: u, target: '_blank', rel: 'noopener noreferrer', text: pick(tx) })])))]));
+    // who wrote the song
+    if (S.who) wrap.append(h('section', { class: 'sx-block' }, [h('b', { 'data-t': 'sb.who' }), h('p', { class: 'fg2', text: pick(S.who) })]));
     PD.i18n.apply(wrap);
     return wrap;
   }

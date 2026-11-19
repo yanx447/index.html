@@ -232,7 +232,7 @@ PD.book = (() => {
       h('span', { class: 'grow' }, [h('b', { text: e.title }), h('small', { text: e.sub }),
         h('span', { class: 'bk-tags' }, [
           showCh && e.ch ? h('em', { class: 'bk-src bk-in', text: L(e.ch.t[0], e.ch.t[1]) }) : null,
-          e.p.src && SRC[e.p.src] ? h('em', { class: 'bk-src bk-' + e.p.src, 'data-t': SRC[e.p.src] }) : null].filter(Boolean))]),
+          (e.p.src === 'teacher' || e.p.src === 'draft') ? h('em', { class: 'bk-src bk-' + e.p.src, 'data-t': SRC[e.p.src] }) : null].filter(Boolean))]),
       h('span', { class: 'chev', html: ic.chevron })]);
   }
   const BLOCK = (k, ka, en) => h('div', { class: 'bk-b' }, [h('b', { 'data-t': k }), h('p', { html: fill(L(ka, en)) })]);
