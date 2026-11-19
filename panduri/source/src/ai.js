@@ -833,6 +833,8 @@ PD.ai = (() => {
       const panes = [overview, learnPane, stemsPane, chordsPane, rhythmPane, trPane];
       body.append(tabBar, deck, paneBox);
       showTab(tab);
+      // the first thing out of the studio: the song as a panduri lesson, played like Bani-Acharuli (aistage.js, app only)
+      if (PD.aiStage) { const stage = PD.aiStage.mount(body, tabBar, { get S() { return S; }, pro: () => pro('ai.learn'), lock: () => lock('ai.learn'), edit: () => showTab('learn') }); own(() => stage && stage.destroy()); }
       PD.i18n.apply(body);
       function fact(k, v) { return h('div', { class: 'ai-fact' }, [h('small', { 'data-t': k }), v]); }
 
