@@ -8,7 +8,7 @@ PD.i18n.add({'welcome.motionPause':['ფონის მოძრაობის
    so, and "continue without an account" keeps progress on this device.
    ===================================================================== */
 PD.i18n.add({
-  'au.tagline': ['ისწავლე · დაუკარი · იმღერე', 'Learn · play · sing'], 'sp.title': ['ᲤᲐᲜᲓᲣᲠᲘ', 'PANDURI'], 'au.start': ['დაწყება', 'Get started'], 'au.signinLink': ['უკვე გაქვს ანგარიში? შესვლა', 'Have an account? Sign in'], 'au.signinTitle': ['შესვლა ან რეგისტრაცია', 'Sign in or register'], 'au.methodsD': ['პირველად შესვლისას ანგარიში ავტომატურად შეიქმნება.', 'Signing in the first time creates your account.'],
+  'au.tagline': ['ისწავლე · დაუკარი · იმღერე', 'Learn · play · sing'], 'au.brand': ['ᲤᲐᲜᲓᲣᲠᲘ', 'PANDURI'], 'au.start': ['დაწყება', 'Get started'], 'au.signinLink': ['უკვე გაქვს ანგარიში? შესვლა', 'Have an account? Sign in'], 'au.signinTitle': ['შესვლა ან რეგისტრაცია', 'Sign in or register'], 'au.methodsD': ['პირველად შესვლისას ანგარიში ავტომატურად შეიქმნება.', 'Signing in the first time creates your account.'],
   'au.delete': ['ანგარიშის წაშლა', 'Delete account'], 'au.deleteD': ['სერვერიდან სამუდამოდ წაიშლება ანგარიში, მიმოწერა, კითხვები და პროგრესის ასლი. ამ მოწყობილობაზე პროგრესი დარჩება.', 'Permanently removes the account, messages, questions and the progress backup from the server. Progress on this device stays.'],
   'au.deleteGo': ['წაშლა', 'Delete'], 'au.deleteQ': ['ნამდვილად წავშალო ანგარიში? ამის დაბრუნება შეუძლებელია.', 'Really delete the account? This cannot be undone.'], 'au.deleted': ['ანგარიში წაიშალა.', 'The account was deleted.'],
   'au.signin': ['შესვლა', 'Sign in'], 'au.signup': ['ანგარიშის შექმნა', 'Create account'], 'au.email': ['ელფოსტა', 'Email'], 'au.password': ['პაროლი', 'Password'], 'au.name': ['სახელი', 'Name'],
@@ -122,7 +122,7 @@ PD.auth = (() => {
           PD.ui.langMenu(v => PD.i18n.set(v).then(render), 'ag-lang-menu'),
           h('button', {class:'welcome-motion',type:'button','aria-label':t(root.classList.contains('motion-paused')?'welcome.motionPlay':'welcome.motionPause'),'aria-pressed':String(root.classList.contains('motion-paused')),text:root.classList.contains('motion-paused')?'▶':'Ⅱ',onclick:e=>{const paused=root.classList.toggle('motion-paused');e.currentTarget.textContent=paused?'▶':'Ⅱ';e.currentTarget.setAttribute('aria-pressed',String(paused));e.currentTarget.setAttribute('aria-label',t(paused?'welcome.motionPlay':'welcome.motionPause'));}}),
           playableInstrument(),
-          h('div', { class: 'sp-brand' }, [h('h1', { class: 'sp-name', 'data-t': 'sp.title' }), h('p', { class: 'sp-tag', 'data-t': 'au.tagline' })]),
+          h('div', { class: 'sp-brand' }, [h('h1', { class: 'sp-name', 'data-t': 'au.brand' }), h('p', { class: 'sp-tag', 'data-t': 'au.tagline' })]),
           h('div', { class: 'sp-go' }, [
             h('button', { class: 'sp-start', html: '<span data-t="au.start"></span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>', onclick: enter }),
             h('button', { class: 'sp-signin', 'data-t': 'au.signinLink', onclick: enter })])

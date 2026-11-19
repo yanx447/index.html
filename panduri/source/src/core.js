@@ -175,7 +175,7 @@ PD.i18n = (() => {
     get locale() { return info(lang).locale; },
     /** true when the text on screen is a translation nobody has checked against the Georgian original */
     get translated() { return lang !== 'ka' && lang !== 'en'; },
-    add(dict) { Object.assign(D, dict); },
+    add(dict) { for (const k in dict) if (D[k] && D[k][1] !== dict[k][1]) console.error('i18n key collision: ' + k + ' — "' + D[k][1] + '" replaced by "' + dict[k][1] + '"'); Object.assign(D, dict); },   // two modules on one key would silently show the wrong text
     has: k => !!D[k],
     t(k, v) {
       const e = D[k]; let s = e ? (lang === 'ka' ? e[0] : tr(e[1])) : k;
