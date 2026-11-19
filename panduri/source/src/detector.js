@@ -19,7 +19,7 @@ class PDCore {
     this.hop = 0; this.acc = 0; this.env = 0; this.floor = 0.003; this.gate = 0.004; this.k = 3.2; this.lastOn = -9; this.fc = 0; this.lv = 0;
     this.prev = 0; this.hf = 0; this.hfEnv = 0; this.peak = 0; this.hrPrev = 0; this.hfEnv1 = 0; this.r5 = new Float32Array(5); this.h5 = new Float32Array(5); this.k5 = 0; this.pend = null; this.sounding = false; this.lowN = 0; this.hfK = 2.4;
     this.expect = null; this.gz = null; this.chordAt = -1; this.g = new Float32Array(4096); this.hw = new Float32Array(4096); for (let i = 0; i < 4096; i++) this.hw[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / 4095);
-    // level and onsets are read through a 120 Hz high-pass (2nd-order Butterworth). The lowest panduri note is
+    // level and onsets are read through a 120 Hz high-pass (2nd-order Butterworth). The lowest fanduri note is
     // A3 = 220 Hz; below that there is only hum and rumble, and a tone whose period is longer than one 256-sample
     // frame makes the frame level swing with its phase - 50 Hz mains hum alone read as a stroke every 80 ms.
     // Pitch and the chord check still see the unfiltered signal.

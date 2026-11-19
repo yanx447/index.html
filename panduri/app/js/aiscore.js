@@ -120,7 +120,7 @@ PD.aiScore = (() => {
   }
   function musicXML(M, title) {
     const S = score(M), esc = x => String(x).replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' }[c]));
-    let xml = '<?xml version="1.0" encoding="UTF-8"?><score-partwise version="4.0"><work><work-title>' + esc(title || 'Panduri') + '</work-title></work><part-list><score-part id="P1"><part-name>Panduri</part-name></score-part></part-list><part id="P1">';
+    let xml = '<?xml version="1.0" encoding="UTF-8"?><score-partwise version="4.0"><work><work-title>' + esc(title || 'Fanduri') + '</work-title></work><part-list><score-part id="P1"><part-name>Fanduri</part-name></score-part></part-list><part id="P1">';
     for (let b = 0; b < S.bars; b++) {
       xml += '<measure number="' + (b + 1) + '">';
       if (!b) xml += '<attributes><divisions>4</divisions><time><beats>' + M.metre.num + '</beats><beat-type>' + M.metre.den + '</beat-type></time><clef><sign>G</sign><line>2</line></clef></attributes><direction><sound tempo="' + (M.bpm * (M.metre.compound ? 1.5 : 1)) + '"/></direction>';
@@ -161,7 +161,7 @@ PD.i18n.add({
   'as.recordStop': ['ჩაწერის დასრულება და ანალიზი', 'Stop recording & analyse'],
   'as.live': ['ცოცხალი ML წინასწარი ანალიზი · 4-წამიანი ფანჯარა, რამდენიმე წამის დაყოვნება', 'Live ML preview · 4-second windows, several seconds of latency'],
   'as.liveWaiting': ['ველოდები დაკვრას…', 'Waiting for playing…'],
-  'as.recordHint': ['ცოცხალი ფანდური: წინასწარი ML ანალიზი 4-წამიან ფანჯრებზე. ჩაწერა მაქსიმუმ 60 წამი; სრული ტრანსკრიფცია დასრულების შემდეგ. აუდიო მოწყობილობაზე რჩება.', 'Live panduri: ML preview uses 4-second windows. Record up to 60 seconds, then transcribe the complete take. Audio stays on this device.'],
+  'as.recordHint': ['ცოცხალი ფანდური: წინასწარი ML ანალიზი 4-წამიან ფანჯრებზე. ჩაწერა მაქსიმუმ 60 წამი; სრული ტრანსკრიფცია დასრულების შემდეგ. აუდიო მოწყობილობაზე რჩება.', 'Live fanduri: ML preview uses 4-second windows. Record up to 60 seconds, then transcribe the complete take. Audio stays on this device.'],
   'as.recordError': ['ჩაწერა ვერ მოხერხდა. შეამოწმე მიკროფონის ნებართვა და ბრაუზერის მხარდაჭერა.', 'Recording failed. Check microphone permission and browser support.'],
   'as.recording': ['იწერება · {n} წმ / 60', 'Recording · {n}s / 60'],
   'as.onset': ['დასაწყისი (წმ)', 'Onset (seconds)'],
@@ -174,7 +174,7 @@ PD.i18n.add({
   'as.tooLong': ['ტრანსკრიფციის ზღვარი: 5 წუთი. აირჩიე მოკლე ჩანაწერი ან დაყოფილი მონაკვეთი.', 'Transcription limit: 5 minutes. Choose a shorter recording or separated excerpt.'],
   'as.follow': ['ავტომატური გადახვევა', 'Auto-scroll'],
   'as.add': ['ნოტის დამატება კურსორთან', 'Add note at cursor'],
-  'as.preview': ['მოსმენა: ფანდურის ვერსია', 'Listen: panduri version'],
+  'as.preview': ['მოსმენა: ფანდურის ვერსია', 'Listen: fanduri version'],
   'as.source': ['მოსმენა: ორიგინალი', 'Listen: source audio']
 });
 

@@ -109,15 +109,15 @@ PD.curriculum = (() => {
     { id: 'first', theory: true, title: { ka: 'პირველი ნაბიჯები: დაჯდომა და დაჭერა', en: 'First steps: sitting and holding' }, steps: [
       TIP('sit'), TIP('hold'), TIP('hands'), TIP('strokes'), TIP('fingers'), TIP('lefthand'), TIP('stringnum'), TIP('warmup'), TIP('care'), EX('ex-first'),
       NEED('ვიდეო: მასწავლებელი აჩვენებს დაჯდომას და დაჭერას', 'Video: the teacher shows sitting and holding')] },
-    { id: 'instrument', theory: true, title: { ka: 'გაიცანი ფანდური', en: 'Meet the panduri' }, steps: [
-      TIP('parts'), { kind: 'tour', title: { ka: 'ფანდური 3D-ში', en: 'The panduri in 3D' } }, TIP('strings'), TIP('dots'), TIP('tab'),
+    { id: 'instrument', theory: true, title: { ka: 'გაიცანი ფანდური', en: 'Meet the fanduri' }, steps: [
+      TIP('parts'), { kind: 'tour', title: { ka: 'ფანდური 3D-ში', en: 'The fanduri in 3D' } }, TIP('strings'), TIP('dots'), TIP('tab'),
       { kind: 'tuner', title: { ka: 'აწყობა: A · C♯ · E (სამი სიმი)', en: 'Tuning: A · C♯ · E (Sami Simi)' } }, EX('ex-inst')] },
     { id: 'rhythms', theory: true, title: { ka: 'რითმი: დათვლა და დარტყმა', en: 'Rhythm: counting and the beat' }, steps: [
-      TIP('beat'), CH('meter'), CH('tempo'), TIP('count'), TIP('rhythm'), TIP('accent'), TIP('khorumi'), { kind: 'rhythms', title: { ka: 'ფანდურის და ცნობილი რითმები', en: 'Panduri and famous rhythms' } }, EX('ex-rhythm')] },
+      TIP('beat'), CH('meter'), CH('tempo'), TIP('count'), TIP('rhythm'), TIP('accent'), TIP('khorumi'), { kind: 'rhythms', title: { ka: 'ფანდურის და ცნობილი რითმები', en: 'Fanduri and famous rhythms' } }, EX('ex-rhythm')] },
     { id: 'notes', theory: true, title: { ka: 'ნოტები', en: 'Notes' }, steps: [
       TIP('pitch'), CH('names'), CH('octave'), CH('semitone'), CH('accidentals'), CH('neck'), TIP('semitone'), CH('staff'), CH('durations'), CH('rests'), { kind: 'fretboard', title: { ka: 'ნოტები ტარზე: რუკა', en: 'Notes on the neck: the map' } }, EX('ex-notes')] },
     { id: 'scales', theory: true, title: { ka: 'ინტერვალები, გამები, აკორდები', en: 'Intervals, scales, chords' }, steps: [
-      TIP('chordwhat'), CH('intervals'), TIP('octave'), CH('scales'), { kind: 'scalepage', id: 'major', title: { ka: 'მაჟორული გამა ფანდურზე', en: 'The major scale on the panduri' } }, { kind: 'scalepage', id: 'minor', title: { ka: 'მინორული გამა ფანდურზე', en: 'The minor scale on the panduri' } }, CH('key'), CH('chords'), { kind: 'chordhow', title: { ka: 'აკორდი როგორ აიღო', en: 'How to take a chord' } }, { kind: 'chords', title: { ka: 'აკორდების ბიბლიოთეკა', en: 'Chord library' } }, CH('signs'), EX('ex-harmony')] },
+      TIP('chordwhat'), CH('intervals'), TIP('octave'), CH('scales'), { kind: 'scalepage', id: 'major', title: { ka: 'მაჟორული გამა ფანდურზე', en: 'The major scale on the fanduri' } }, { kind: 'scalepage', id: 'minor', title: { ka: 'მინორული გამა ფანდურზე', en: 'The minor scale on the fanduri' } }, CH('key'), CH('chords'), { kind: 'chordhow', title: { ka: 'აკორდი როგორ აიღო', en: 'How to take a chord' } }, { kind: 'chords', title: { ka: 'აკორდების ბიბლიოთეკა', en: 'Chord library' } }, CH('signs'), EX('ex-harmony')] },
     { id: 'solfege', theory: true, title: { ka: 'სოლფეჯიო', en: 'Solfège' }, steps: [
       SF('hear', 1), SF('hear', 2), SF('iv', 1), SF('sing', 1), SF('hear', 3), SF('iv', 2), SF('sing', 2), TIP('sing'), SF('iv', 3), SF('sing', 3), EX('ex-solfege')] },
     { id: 'deeper', theory: true, title: { ka: 'რთული თეორია', en: 'Harder theory' }, steps: [
@@ -135,7 +135,7 @@ PD.curriculum = (() => {
   ];
   const PATHS_OLD = [
     { id: 'start', title: { ka: 'დასაწყისი', en: 'Getting started' }, steps: [
-      { kind: 'tour', title: { ka: 'ფანდურის ნაწილები', en: 'Parts of the panduri' } },
+      { kind: 'tour', title: { ka: 'ფანდურის ნაწილები', en: 'Parts of the fanduri' } },
       { kind: 'tuner', title: { ka: 'აწყობა: A · C♯ · E', en: 'Tuning: A · C♯ · E' } },
       { kind: 'needs', media: 'video', title: { ka: 'როგორ დავიჭიროთ ფანდური', en: 'Holding the instrument' } },
       { kind: 'lesson', id: 'gs-open-a' }, { kind: 'lesson', id: 'gs-open-c' }, { kind: 'lesson', id: 'gs-open-e' }, { kind: 'lesson', id: 'gs-three' }] },

@@ -12,13 +12,13 @@
 PD.i18n.add({
   'nav.theory': ['თეორია', 'Theory'],
   'mth.title': ['მუსიკის თეორია', 'Music theory'],
-  'mth.lead': ['ნოტები, სოლფეჯიო, ინტერვალები, გამები, აკორდები, კვინტური წრე — ყველაფერი ერთ ადგილას, ფანდურის ხმით.', 'Notes, solfège, intervals, scales, chords, the circle of fifths — all in one place, with the panduri\'s sound.'],
+  'mth.lead': ['ნოტები, სოლფეჯიო, ინტერვალები, გამები, აკორდები, კვინტური წრე — ყველაფერი ერთ ადგილას, ფანდურის ხმით.', 'Notes, solfège, intervals, scales, chords, the circle of fifths — all in one place, with the fanduri\'s sound.'],
   'mth.read': ['წაკითხული თავები', 'Chapters read'], 'mth.sf': ['სოლფეჯიოს დონეები', 'Solfège levels'], 'mth.music': ['მუსიკის ისტორია', 'Music history'],
   'mth.tools': ['ინტერაქტიული', 'Interactive'],
   'mth.ivT': ['ინტერვალები', 'Intervals'], 'mth.ivD': ['პრიმა, სეკუნდა, ტერცია … ოქტავა — მოისმინე ნებისმიერი ნოტიდან', 'Unison, second, third … octave — hear them from any note'],
   'mth.sfT': ['სოლფეჯიო', 'Solfège'], 'mth.sfD': ['სმენის ვარჯიში: გაიგონე, დაასახელე, იმღერე', 'Ear training: hear it, name it, sing it'],
   'mth.cfD': ['ტონალობები, ნიშნები და აკორდები ერთ წრეზე', 'Keys, signatures and chords on one wheel'],
-  'mth.scT': ['გამები ფანდურზე', 'Scales on the panduri'], 'mth.scD': ['მაჟორი, მინორი, პენტატონიკა — ტარზე და ხმით', 'Major, minor, pentatonic — on the neck and by ear'],
+  'mth.scT': ['გამები ფანდურზე', 'Scales on the fanduri'], 'mth.scD': ['მაჟორი, მინორი, პენტატონიკა — ტარზე და ხმით', 'Major, minor, pentatonic — on the neck and by ear'],
   'mth.chT': ['აკორდის აგება', 'Building a chord'], 'mth.chD': ['ტერციებით: ტონიკა · ტერცია · კვინტა', 'In thirds: root · third · fifth'],
   'mth.glT': ['ლექსიკონი', 'Glossary'], 'mth.glD': ['მუსიკის ყველა სიტყვა მარტივად', 'Every music word, simply'],
   'mth.gnD': ['ჟანრები, ფორმები და მათი ისტორია', 'Genres, forms and their history'],
@@ -28,15 +28,15 @@ PD.i18n.add({
   // the interval page
   'mth.iv.lead': ['<b>ინტერვალი</b> ორ ბგერას შორის მანძილია. მას ორი რამ განსაზღვრავს: <b>რამდენ ნოტის სახელს</b> მოიცავს (ეს არის მისი სახელი — პრიმა, სეკუნდა, ტერცია…) და <b>რამდენ ნახევარტონს</b> (ეს არის მისი სახეობა — დიდი, პატარა, წმინდა).', 'An <b>interval</b> is the distance between two sounds. Two things define it: <b>how many note names</b> it spans (its name — unison, second, third…) and <b>how many semitones</b> (its quality — major, minor, perfect).'],
   'mth.iv.root': ['საწყისი ნოტი', 'Starting note'], 'mth.iv.up': ['▶ ზემოთ', '▶ Up'], 'mth.iv.tog': ['▶ ერთად', '▶ Together'], 'mth.iv.down': ['▶ ქვემოთ', '▶ Down'],
-  'mth.iv.semi': ['{n} ნახევარტ.', '{n} semitones'], 'mth.iv.semi1': ['1 ნახევარტ.', '1 semitone'], 'mth.iv.on': ['ფანდურზე', 'On the panduri'],
-  'mth.iv.oneStr': ['ერთ სიმზე: {n} ლადით ზემოთ', 'On one string: {n} frets up'], 'mth.iv.none': ['ფანდურის დიაპაზონის გარეთაა', 'Outside the panduri\'s range'],
+  'mth.iv.semi': ['{n} ნახევარტ.', '{n} semitones'], 'mth.iv.semi1': ['1 ნახევარტ.', '1 semitone'], 'mth.iv.on': ['ფანდურზე', 'On the fanduri'],
+  'mth.iv.oneStr': ['ერთ სიმზე: {n} ლადით ზემოთ', 'On one string: {n} frets up'], 'mth.iv.none': ['ფანდურის დიაპაზონის გარეთაა', 'Outside the fanduri\'s range'],
   'mth.iv.namesH': ['სახელები: ლათინური რიცხვები', 'The names: Latin numbers'],
   'mth.iv.namesP': ['ინტერვალის სახელი ლათინური რიგობითი რიცხვია. ითვლება <b>ორივე კიდურა ნოტი</b>: დო → მი = დო, რე, მი = 3 ნოტი = <b>ტერცია</b>.', 'An interval\'s name is a Latin ordinal number. <b>Both end notes</b> are counted: C → E = C, D, E = 3 notes = a <b>third</b>.'],
   'mth.iv.qualH': ['სახეობა: წმინდა, დიდი, პატარა', 'Quality: perfect, major, minor'],
   'mth.iv.allH': ['ყველა ინტერვალი', 'Every interval'],
   'mth.iv.consH': ['კონსონანსი და დისონანსი', 'Consonance and dissonance'],
   'mth.iv.invH': ['ინტერვალის შებრუნება', 'Inverting an interval'],
-  'mth.iv.tunH': ['ფანდურის აწყობა ინტერვალებით', 'The panduri\'s tuning in intervals'],
+  'mth.iv.tunH': ['ფანდურის აწყობა ინტერვალებით', 'The fanduri\'s tuning in intervals'],
   'mth.iv.quizH': ['შეამოწმე თავი', 'Test yourself'], 'mth.iv.quizQ': ['{a} → {b}: რომელი ინტერვალია?', '{a} → {b}: which interval is it?'],
   'mth.iv.quizHear': ['მოისმინე: რომელი ინტერვალია?', 'Listen: which interval is it?'], 'mth.iv.mName': ['ნოტებით', 'By name'], 'mth.iv.mEar': ['სმენით', 'By ear'],
   'mth.iv.score': ['{a} / {b} სწორი', '{a} / {b} right'], 'mth.iv.next': ['შემდეგი', 'Next'], 'mth.iv.right': ['სწორია!', 'Right!'], 'mth.iv.wrong': ['არა — ეს არის {x}', 'No — it is {x}'],
@@ -201,7 +201,7 @@ PD.mtheory = (() => {
     if (pairs.length) w.append(sec('mth.iv.tunH', [
       h('ul', { class: 'tb-ul' }, pairs.map(p => h('li', {}, [h('b', { text: TH.stringName(p.a + 1) + ' → ' + TH.stringName(p.b + 1) }), ' = ' + ivName(p.v) + ' (' + semiTxt(p.d) + ') ',
         h('button', { class: 'btn small', text: '▶', 'aria-label': ivName(p.v), onclick: () => seq([open[p.a], open[p.b], [open[p.a], open[p.b]]], [.6, .7, .1]) })]))),
-      P('ფანდურზე ინტერვალი ერთ სიმზე უბრალოდ <b>ლადების რაოდენობაა</b>: 1 ლადი = 1 ნახევარტონი.', 'On the panduri an interval on one string is simply the <b>number of frets</b>: 1 fret = 1 semitone.'), src('fact')]));
+      P('ფანდურზე ინტერვალი ერთ სიმზე უბრალოდ <b>ლადების რაოდენობაა</b>: 1 ლადი = 1 ნახევარტონი.', 'On the fanduri an interval on one string is simply the <b>number of frets</b>: 1 fret = 1 semitone.'), src('fact')]));
 
     // a short self-test: by note names, or by ear
     const quiz = h('div', { class: 'mth-quiz' });

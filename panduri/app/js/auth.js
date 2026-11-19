@@ -1,4 +1,4 @@
-PD.i18n.add({'welcome.instrument':['ფანდურის გაცოცხლება','Animate the panduri']});
+PD.i18n.add({'welcome.instrument':['ფანდურის გაცოცხლება','Animate the fanduri']});
 PD.i18n.add({'welcome.motionPause':['ფონის მოძრაობის შეჩერება','Pause background motion'],'welcome.motionPlay':['ფონის მოძრაობის ჩართვა','Play background motion'],'welcome.noRecording':['ჩანაწერი ვერ ჩაიტვირთა — პირველად დაკვრას ინტერნეტი სჭირდება','Recording unavailable — the first play needs the internet']});
 /* =====================================================================
    Sign-in, first thing on first launch: Google · Facebook · phone number
@@ -8,7 +8,7 @@ PD.i18n.add({'welcome.motionPause':['ფონის მოძრაობის
    so, and "continue without an account" keeps progress on this device.
    ===================================================================== */
 PD.i18n.add({
-  'au.tagline': ['ისწავლე · დაუკარი · იმღერე', 'Learn · play · sing'], 'au.brand': ['ᲤᲐᲜᲓᲣᲠᲘ', 'PANDURI'], 'au.start': ['დაწყება', 'Get started'], 'au.signinLink': ['უკვე გაქვს ანგარიში? შესვლა', 'Have an account? Sign in'], 'au.signinTitle': ['შესვლა ან რეგისტრაცია', 'Sign in or register'], 'au.methodsD': ['პირველად შესვლისას ანგარიში ავტომატურად შეიქმნება.', 'Signing in the first time creates your account.'],
+  'au.tagline': ['ისწავლე · დაუკარი · იმღერე', 'Learn · play · sing'], 'au.brand': ['ᲤᲐᲜᲓᲣᲠᲘ', 'FANDURI'], 'au.start': ['დაწყება', 'Get started'], 'au.signinLink': ['უკვე გაქვს ანგარიში? შესვლა', 'Have an account? Sign in'], 'au.signinTitle': ['შესვლა ან რეგისტრაცია', 'Sign in or register'], 'au.methodsD': ['პირველად შესვლისას ანგარიში ავტომატურად შეიქმნება.', 'Signing in the first time creates your account.'],
   'au.delete': ['ანგარიშის წაშლა', 'Delete account'], 'au.deleteD': ['სერვერიდან სამუდამოდ წაიშლება ანგარიში, მიმოწერა, კითხვები და პროგრესის ასლი. ამ მოწყობილობაზე პროგრესი დარჩება.', 'Permanently removes the account, messages, questions and the progress backup from the server. Progress on this device stays.'],
   'au.deleteGo': ['წაშლა', 'Delete'], 'au.deleteQ': ['ნამდვილად წავშალო ანგარიში? ამის დაბრუნება შეუძლებელია.', 'Really delete the account? This cannot be undone.'], 'au.deleted': ['ანგარიში წაიშალა.', 'The account was deleted.'],
   'au.signin': ['შესვლა', 'Sign in'], 'au.signup': ['ანგარიშის შექმნა', 'Create account'], 'au.email': ['ელფოსტა', 'Email'], 'au.password': ['პაროლი', 'Password'], 'au.name': ['სახელი', 'Name'],
@@ -23,7 +23,7 @@ PD.i18n.add({
   'au.phoneNo': ['ტელეფონის ნომერი', 'Phone number'], 'au.sendCode': ['კოდის გაგზავნა', 'Send code'], 'au.code': ['SMS კოდი', 'SMS code'], 'au.codeSent': ['კოდი გაიგზავნა {p}-ზე', 'Code sent to {p}'], 'au.verifyCode': ['დადასტურება', 'Confirm'], 'au.badPhone': ['შეამოწმე ნომერი', 'Check the number'],
   'au.signedIn': ['შესული ხარ: {e}', 'Signed in as {e}'], 'au.signout': ['გასვლა', 'Sign out'], 'au.sync': ['სინქრონიზაცია', 'Sync'], 'au.syncOff': ['მიუწვდომელია — სერვერი არ არის დაკავშირებული', 'Unavailable — no server connected'],
   'au.syncOn': ['პროგრესი ანგარიშში ინახება', 'Progress is saved to your account'], 'au.subscription': ['გამოწერა', 'Subscription'], 'au.subOff': ['ამ ვერსიაში გადახდები არ არის', 'No payments in this build'],
-  'au.welcome': ['ისწავლე ფანდური ნამდვილ ინსტრუმენტზე', 'Learn the panduri on a real instrument'], 'au.welcomeD': ['აპი გიჩვენებს, გისმენს და გელოდება.', 'The app shows you, listens and waits for you.'],
+  'au.welcome': ['ისწავლე ფანდური ნამდვილ ინსტრუმენტზე', 'Learn the fanduri on a real instrument'], 'au.welcomeD': ['აპი გიჩვენებს, გისმენს და გელოდება.', 'The app shows you, listens and waits for you.'],
   'au.terms': ['შესვლით ეთანხმები, რომ შენი სახელი, ფოტო და დონე სხვა მოსწავლეებს გამოუჩნდეთ. გაკვეთილის მიკროფონი და კამერა მხოლოდ შენს მოწყობილობაზე მუშავდება; ვიდეო ზარში კი ხმა და ვიდეო პირდაპირ მეორე მონაწილეს მიდის.', 'By signing in you agree that your name, photo and level are visible to other learners. The microphone and camera in a lesson are processed on your device only; in a video call your sound and video go straight to the other person.'],
   'au.newPw': ['ახალი პაროლი', 'New password'], 'au.newPwD': ['ბმულით შემოხვედი — დააყენე ახალი პაროლი შენი ანგარიშისთვის.', 'You came from the reset link — set a new password for your account.'], 'au.pwSave': ['შენახვა', 'Save'], 'au.pwSaved': ['პაროლი შეიცვალა', 'Password changed'],
   'au.back': ['უკან', 'Back'], 'au.show': ['ჩვენება', 'Show'], 'au.hide': ['დამალვა', 'Hide'],

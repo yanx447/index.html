@@ -41,7 +41,7 @@ PD.i18n.add({
   'cp.repostOn': ['დარეპოსტდა — შენს პროფილზე ჩანს', 'Reposted — it is on your profile now'], 'cp.repostOff': ['რეპოსტი გაუქმდა', 'Repost removed'],
   'cp.ownRepost': ['საკუთარ ვიდეოს ვერ დაარეპოსტებ.', 'You cannot repost your own video.'], 'cp.friendsOnlyRepost': ['მხოლოდ მეგობრებისთვის ვიდეოს ვერ დაარეპოსტებ.', 'A friends-only video cannot be reposted.'],
   'cp.preparing': ['ვიდეო მზადდება გასაზიარებლად…', 'Preparing the video to share…'], 'cp.shareNow': ['გაზიარება — {a}', 'Share — {a}'], 'cp.shareFileNo': ['ეს მოწყობილობა ვიდეოს ფაილად ვერ აზიარებს — ბმული დაკოპირდა, ჩასვი {a}-ში.', 'This device cannot share the video file — the link is copied, paste it in {a}.'],
-  'cp.pasteIn': ['ბმული დაკოპირდა — ჩასვი {a}-ში.', 'Link copied — paste it in {a}.'], 'cp.shareText': ['{n} ფანდურის აპში', '{n} on the Panduri app'],
+  'cp.pasteIn': ['ბმული დაკოპირდა — ჩასვი {a}-ში.', 'Link copied — paste it in {a}.'], 'cp.shareText': ['{n} ფანდურის აპში', '{n} on the Fanduri app'],
   'cp.linkNote': ['ბმულით ვიდეოს ნახავს ის, ვინც აპში შესულია და ვისაც მისი ნახვა შეუძლია.', 'The link opens the video for people signed in to the app who may see it.'],
   'cp.act': ['აქტივობა', 'Activity'], 'cp.msgs': ['მესიჯები', 'Messages'],
   'cp.err': ['ვერ მოხერხდა — სცადე თავიდან.', 'That did not work — try again.']

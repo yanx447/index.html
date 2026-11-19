@@ -16,10 +16,10 @@
    ===================================================================== */
 'use strict';
 PD.i18n.add({
-  't3.title': ['TAB ფანდურის ტარზე', 'TAB on the panduri neck'],
+  't3.title': ['TAB ფანდურის ტარზე', 'TAB on the fanduri neck'],
   't3.ahead': ['წინ ჩანს', 'Look ahead'], 't3.sec': ['{n} წმ', '{n} s'],
   't3.hint': ['ნოტი მოდის თავისი სიმითა და ფრეტით — დაუკარი, როცა ნათელ ხაზს მიაღწევს. შეეხე ტარს, რომ იქ გადახვიდე.', 'Each note comes along its string, at its fret — play it as it reaches the bright line. Tap the neck to go there.'],
-  't3.none': ['ამ ნოტებს ფანდურზე ადგილი ვერ მოეძებნა.', 'None of these notes has a place on the panduri.'],
+  't3.none': ['ამ ნოტებს ფანდურზე ადგილი ვერ მოეძებნა.', 'None of these notes has a place on the fanduri.'],
   't3.open': ['ღია', 'open']
 });
 

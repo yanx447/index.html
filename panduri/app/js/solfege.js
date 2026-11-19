@@ -17,7 +17,7 @@ PD.i18n.add({
   'sf.i1': ['სეკუნდა · ტერცია · კვინტა', 'second · third · fifth'], 'sf.i2': ['+ კვარტა · ოქტავა', '+ fourth · octave'], 'sf.i3': ['ყველა, დიდი და პატარა', 'all, major and minor'],
   'sf.play': ['▶ კიდევ მოსმენა', '▶ Listen again'], 'sf.do': ['▶ დო', '▶ do'], 'sf.next': ['შემდეგი', 'Next'], 'sf.right': ['სწორია!', 'Right!'], 'sf.wrong': ['არა — ეს იყო {x}', 'No — it was {x}'],
   'sf.score': ['{a} / {b} · სერია {s}', '{a} / {b} · streak {s}'], 'sf.best': ['საუკეთესო: {p}%', 'Best: {p}%'],
-  'sf.voice': ['ხმა', 'Sound'], 'sf.vPanduri': ['ფანდური', 'Panduri'], 'sf.vPiano': ['პიანინო', 'Piano'], 'sf.vPianoD': ['პიანინოს ხმას აპი თავად ქმნის — ეს ჩანაწერი არ არის.', 'The app makes the piano sound itself — it is not a recording.'],
+  'sf.voice': ['ხმა', 'Sound'], 'sf.vPanduri': ['ფანდური', 'Fanduri'], 'sf.vPiano': ['პიანინო', 'Piano'], 'sf.vPianoD': ['პიანინოს ხმას აპი თავად ქმნის — ეს ჩანაწერი არ არის.', 'The app makes the piano sound itself — it is not a recording.'],
   'sf.singNow': ['იმღერე: {x}', 'Sing: {x}'], 'sf.mic': ['მიკროფონის ჩართვა', 'Turn on the microphone'], 'sf.low': ['დაბლა ხარ — აიწიე', 'Too low — go up'], 'sf.high': ['მაღლა ხარ — დაიწიე', 'Too high — go down'], 'sf.ok': ['ზუსტია! ✓', 'In tune! ✓'], 'sf.listening': ['გისმენ…', 'Listening…']
 });
 PD.solfege = (() => {

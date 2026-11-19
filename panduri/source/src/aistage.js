@@ -14,7 +14,7 @@
    ===================================================================== */
 'use strict';
 PD.i18n.add({
-  'ah.title': ['ფანდურის გაკვეთილი', 'As a panduri lesson'],
+  'ah.title': ['ფანდურის გაკვეთილი', 'As a fanduri lesson'],
   'ah.wait': ['AI ამზადებს გაკვეთილს — უსმენს რითმს…', 'The AI is making the lesson — listening for the rhythm…'],
   'ah.ready': ['აკორდები რითმით, გრიფი და შენი დაკვრის მოსმენა — ისე, როგორც ბანი-აჭარულში.', 'The chords with their strokes, the neck, and listening to your playing — the way Bani-Acharuli is learned.'],
   'ah.play': ['დაკვრა გაკვეთილად', 'Play it as a lesson'],

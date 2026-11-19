@@ -26,7 +26,7 @@ PD.i18n.add({
   'pay.extend': ['ახლანდელ ვადას დაემატება', 'Added to your current period'],
   'pay.fx': ['ფასი {c}-შია. თუ ბარათი სხვა ვალუტისაა, კონვერტაციას შენი ბანკი აკეთებს.', 'The price is in {c}. If your card is in another currency, your bank converts it.'],
   'pay.go': ['გადახდა · {p}', 'Pay {p}'],
-  'pay.safe': ['ბარათის მონაცემებს ფანდური ვერ ხედავს და არ ინახავს — მათ შეიყვან {w} დაცულ გვერდზე.', 'Panduri never sees or stores your card details — you type them on {w} secure page.'],
+  'pay.safe': ['ბარათის მონაცემებს ფანდური ვერ ხედავს და არ ინახავს — მათ შეიყვან {w} დაცულ გვერდზე.', 'Fanduri never sees or stores your card details — you type them on {w} secure page.'],
   'pay.safeTBC': ['TBC ბანკის', "TBC Bank's"], 'pay.safePP': ['PayPal-ის', "PayPal's"],
   'pay.how': ['როგორ მუშაობს', 'How it works'],
   'pay.h1': ['აირჩიე გეგმა და მეთოდი.', 'Choose a plan and a method.'],

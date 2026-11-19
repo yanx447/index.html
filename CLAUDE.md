@@ -93,6 +93,12 @@ and the same packs, so it always speaks the app's language. Its strings stay in
 
 Use `data-t` for plain text and `data-th` where the string carries markup.
 
+The instrument's name in Latin script is **Fanduri** (the owner's decision, 2026-11-19):
+„Fanduri", „Fanduri Studio", „the fanduri's strings" in English and in every Latin-script
+pack. Cyrillic, Arabic, Devanagari, CJK keep their own names (Пандури, パンドゥリ …).
+Code names stay `panduri`: ids, keys (`set.panduri`), storage, URLs (`/panduri/app/`),
+the `.panduri` file format, bundle ids — renaming those would break saved data and links.
+
 ## Commits
 
 End every commit message with:

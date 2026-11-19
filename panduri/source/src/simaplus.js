@@ -210,7 +210,7 @@ PD.simaPlus = (() => {
 })();
 
 PD.i18n.add({
-  'sm.pRhythm': ['რითმი — აპის ფანდური', 'The rhythm — the app’s panduri'], 'sm.pRhythmOn': ['{r} — {c}-ზე', '{r} on {c}'],
+  'sm.pRhythm': ['რითმი — აპის ფანდური', 'The rhythm — the app’s fanduri'], 'sm.pRhythmOn': ['{r} — {c}-ზე', '{r} on {c}'],
   'sm.pDefault': ['ხანგრძლივობა ჯერ მასწავლებლის მითითებული არ არის — აპი დარტყმებს თანაბრად უკრავს.', 'The teacher has not given the timing yet — the app plays the strokes evenly.'],
   'sm.pChord': ['აკორდი', 'The chord'], 'sm.pArp': ['სიმ-სიმ', 'String by string'], 'sm.pAll': ['ყველა ერთად, რიგით', 'All of them, in order'],
   'sm.pSong': ['სიმღერის ჩანაწერი', 'The recording'], 'sm.pChords': ['აკორდები რიგით', 'The chords in order'],

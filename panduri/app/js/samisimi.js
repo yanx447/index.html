@@ -1,5 +1,5 @@
 /* One tuner: Sami Simi. Keep its document warm and reuse it across routes. */
-PD.i18n.add({ 'ss.title': ['სამი სიმი', 'Sami Simi'], 'ss.sub': ['ფანდურის ტიუნერი', 'Panduri tuner'], 'ss.back': ['ფანდური', 'Panduri'] });
+PD.i18n.add({ 'ss.title': ['სამი სიმი', 'Sami Simi'], 'ss.sub': ['ფანდურის ტიუნერი', 'Fanduri tuner'], 'ss.back': ['ფანდური', 'Fanduri'] });
 PD.samiSimi = (() => {
   let frame;
   function prepare() {

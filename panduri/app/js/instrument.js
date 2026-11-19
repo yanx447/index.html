@@ -27,7 +27,7 @@ PD.instrument = (() => {
     const pos = []; for (let n = 0; n <= FR; n++) pos.push(ET(L, n));
     return {
       schema: 'panduri-instrument', v: 1, id: 'teacher-panduri',
-      name: { ka: 'მასწავლებლის ფანდური', en: "Teacher's panduri" },
+      name: { ka: 'მასწავლებლის ფანდური', en: "Teacher's fanduri" },
       notes: { ka: 'ფოტოებზე დაყრდნობით. ზომები ჯერ არ არის გაზომილი.', en: 'Based on the reference photos. Dimensions not yet measured.' },
       strings,
       stringOrder: { front: 'left→right: 1 A · 2 C♯ · 3 E', player: 'headstock left: E on top, A at the bottom', src: 'photo' },

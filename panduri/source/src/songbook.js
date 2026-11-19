@@ -21,22 +21,22 @@ PD.i18n.add({
   'sb.draft': ['ამ აკორდებს მასწავლებელი ჯერ არ შეუმოწმებია — შეიძლება მისი დაკვრა სხვანაირი იყოს.', 'The teacher has not checked these chords yet — his playing may differ.'],
   'sb.rhythm': ['რითმი', 'Rhythm'],
   'sb.rhSrc': ['წყაროს რითმი: ↓ ↓ ↑', 'The source\'s rhythm: ↓ ↓ ↑'],
-  'sb.rhSrcD': ['ეს რითმი წყაროშივე წერია (ფანდურის სქემაზე). მახვილები და ხანგრძლივობა იქ არ არის — აპი სამივე დარტყმას თანაბრად უკრავს.', 'This rhythm is written in the source itself (on the panduri chart). Accents and durations are not — the app plays the three strokes evenly.'],
+  'sb.rhSrcD': ['ეს რითმი წყაროშივე წერია (ფანდურის სქემაზე). მახვილები და ხანგრძლივობა იქ არ არის — აპი სამივე დარტყმას თანაბრად უკრავს.', 'This rhythm is written in the source itself (on the fanduri chart). Accents and durations are not — the app plays the three strokes evenly.'],
   'sb.rhNone': ['წყაროში რითმი არ წერია. აირჩიე შენ — ნაგულისხმევი „ოთხი ჩაკვრა“ უბრალოდ ყველაზე მარტივია, მასწავლებლის მითითება არ არის.', 'The source does not give a rhythm. Choose one — the default “four downs” is simply the easiest, not the teacher\'s advice.'],
   'sb.rhPick': ['სხვა რითმის არჩევა', 'Choose another rhythm'],
   'sb.grpSrc': ['წყაროდან', 'From the source'], 'sb.grpT': ['მასწავლებლის რითმები', 'The teacher\'s rhythms'], 'sb.grpG': ['ზოგადი რითმები', 'General rhythms'],
   'sb.per': ['ერთ აკორდზე', 'Per chord'], 'sb.perN': ['{n} რითმი', '{n} × rhythm'],
   'sb.perD': ['რამდენ ხანს ჟღერს თითო აკორდი, წყარო არ წერს — ეს ვარჯიშის პარამეტრია, სიმღერის ნამდვილი დრო არ არის. სიმღერას ჩანაწერთან შეამოწმე.', 'No source says how long each chord lasts — this is a practice setting, not the song\'s real timing. Check it against a recording.'],
   'sb.chart': ['აკორდები', 'Chords'], 'sb.form': ['ფორმა', 'Form'], 'sb.part': ['ნაწილი {s}', 'Part {s}'],
-  'sb.shapes': ['ფანდურზე', 'On the panduri'], 'sb.tap': ['დააჭირე — გაიგონებ.', 'Tap to hear it.'],
+  'sb.shapes': ['ფანდურზე', 'On the fanduri'], 'sb.tap': ['დააჭირე — გაიგონებ.', 'Tap to hear it.'],
   'sb.shWeb': ['წყაროს სქემა', 'from the source chart'], 'sb.shCalc': ['გამოთვლილი აწყობიდან', 'computed from the tuning'],
   'sb.noShape': ['ამ აკორდს სამ სიმზე პოზიცია არ აქვს — სიმღერაში გამოტოვებულია.', 'This chord has no three-string position — it is left out of the song.'],
-  'sb.slash': ['{a} აქ {b}-ადაა აღებული: ბანის ბგერა A სიმზე დაბლა ფანდურზე არ არსებობს.', '{a} is taken here as {b}: its bass note lies below the A string, which the panduri does not have.'],
+  'sb.slash': ['{a} აქ {b}-ადაა აღებული: ბანის ბგერა A სიმზე დაბლა ფანდურზე არ არსებობს.', '{a} is taken here as {b}: its bass note lies below the A string, which the fanduri does not have.'],
   'sb.sources': ['წყაროები', 'Sources'], 'sb.who': ['ავტორები', 'Authors'],
   'sb.artist': ['ვინ ასრულებს', 'Who performs it'], 'sb.rec': ['ჩანაწერი YouTube-ზე', 'Recording on YouTube'],
   'sb.pendTag': ['აკორდები ჯერ არ არის', 'No chords yet'],
   'sb.pend': ['ამ სიმღერის აკორდები ჯერ არ გვაქვს. ინტერნეტში მხოლოდ ორნაირი წყარო მოიძებნა: ან მათი გამოყენება საიტის წესებით აკრძალულია, ან აკორდებს ავტომატურად აფასებენ და მხოლოდ ჩამონათვალს იძლევიან, თანმიმდევრობის გარეშე. აკორდებს არ ვიგონებთ — დაემატება, როცა სანდო წყარო გვექნება.', 'We do not have the chords of this song yet. The web offered only two kinds of source: ones whose rules forbid reuse, and automatic estimates that list the chords without their order. We do not make chords up — they will be added once there is a reliable source.'],
-  'sb.pendAi': ['გაქვს ამ სიმღერის ჩანაწერი? ატვირთე AI სტუდიაში: აპი აკორდებს და ტემპს შენს მოწყობილობაზე იპოვის, ფანდურზე გაჩვენებს და გაკვეთილსაც შექმნი.', 'Have a recording of this song? Load it into the AI studio: the app finds the chords and the tempo on your device, shows them on the panduri, and you can make a lesson from it.'],
+  'sb.pendAi': ['გაქვს ამ სიმღერის ჩანაწერი? ატვირთე AI სტუდიაში: აპი აკორდებს და ტემპს შენს მოწყობილობაზე იპოვის, ფანდურზე გაჩვენებს და გაკვეთილსაც შექმნი.', 'Have a recording of this song? Load it into the AI studio: the app finds the chords and the tempo on your device, shows them on the fanduri, and you can make a lesson from it.'],
   'sb.toAi': ['AI სტუდიის გახსნა', 'Open the AI studio']
 });
 
@@ -52,7 +52,7 @@ PD.songbook = (() => {
       rhythm: ['down', 'down', 'up'],
       parts: { A: [['B♭', 'E♭', 'B♭'], ['F', 'E♭', 'B♭'], ['E♭', 'F', 'E♭', 'B♭'], ['E♭', 'B♭', 'F', 'E♭'], ['E♭', 'F', 'E♭', 'B♭'], ['E♭', 'B♭', 'F', 'E♭']] },
       form: ['A'],
-      sources: [[L('hangebi.ge — „სულიკოს“ აკორდები ფანდურისთვის (A · C♯ · E), რითმი ↓↓↑', 'hangebi.ge — Suliko chords for the panduri (A · C♯ · E), rhythm ↓↓↑'), 'https://hangebi.ge/rus/suliko_chords.html'],
+      sources: [[L('hangebi.ge — „სულიკოს“ აკორდები ფანდურისთვის (A · C♯ · E), რითმი ↓↓↑', 'hangebi.ge — Suliko chords for the fanduri (A · C♯ · E), rhythm ↓↓↑'), 'https://hangebi.ge/rus/suliko_chords.html'],
         [L('Guitar Songs Club — იგივე ჰარმონია G-ში (გიტარა), შედარებისთვის', 'Guitar Songs Club — the same harmony in G (guitar), for comparison'), 'https://eo.guitarsongs.club/song/34798'],
         [L('Wikipedia — Suliko', 'Wikipedia — Suliko'), 'https://en.wikipedia.org/wiki/Suliko']] },
     { id: 'sb-tbiliso', title: L('თბილისო', 'Tbiliso'), level: 2, bpm: 72,
@@ -127,7 +127,7 @@ PD.songbook = (() => {
       if (t0 > from) secs.push(sec('ნაწილი ' + pk + n, 'Part ' + pk + n, from, t0));
     });
     return { id: S.id, type: 'song', level: S.level, demo: false, source: 'draft', songbook: true,
-      title: S.title, desc: L('ცნობილი ქართული სიმღერა — აკორდები ინტერნეტიდან, ფანდურზე გადატანილი. მასწავლებელს ჯერ არ შეუმოწმებია.', 'A well-known Georgian song — chords from the web, set on the panduri. Not yet checked by the teacher.'),
+      title: S.title, desc: L('ცნობილი ქართული სიმღერა — აკორდები ინტერნეტიდან, ფანდურზე გადატანილი. მასწავლებელს ჯერ არ შეუმოწმებია.', 'A well-known Georgian song — chords from the web, set on the fanduri. Not yet checked by the teacher.'),
       bpm: prefs(S.id).bpm || S.bpm, meter: [cyc, 4], events: ev, sections: secs, sbRhythm: R.id, skills: ['chords', 'strumming'] };
   }
   const pendingLesson = S => ({ id: S.id, type: 'song', level: 1, demo: false, source: 'draft', songbook: true, pending: true, title: S.title,

@@ -150,7 +150,7 @@ PD.pstCore = (() => {
       Object.values(byM).forEach(es => { const ons = es.filter(e => e.on).sort((a, b) => a.t - b.t), offs = es.filter(e => !e.on).sort((a, b) => a.t - b.t);
         ons.forEach((e, i) => { const nx = ons[i + 1], off = offs[i]; if (nx && off && off.t > nx.t - 1 / PPQ) off.t = Math.max(e.t + 1 / PPQ, nx.t - 1 / PPQ); }); });
       list.sort((a, b) => a.t - b.t || a.on - b.on);
-      const name = Array.from(new TextEncoder().encode(String(tr.name || 'Panduri').slice(0, 60)));
+      const name = Array.from(new TextEncoder().encode(String(tr.name || 'Fanduri').slice(0, 60)));
       const bytes = [0, 0xff, 0x03, ...vlq(name.length), ...name, 0, 0xc0 | ch, 104];   // program 105 (GM: banjo, the nearest plucked-lute patch) for hosts without the studio's sampler
       let last = 0;
       list.forEach(e => { const tick = Math.max(0, Math.round(e.t * PPQ)); bytes.push(...vlq(tick - last), (e.on ? 0x90 : 0x80) | ch, e.m & 127, e.on ? clamp(Math.round(e.v * 127), 1, 127) : 0); last = tick; });

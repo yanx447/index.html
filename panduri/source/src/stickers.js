@@ -20,7 +20,7 @@ PD.stickers=(()=>{
     rows.forEach(([slug,k,e,symbol])=>{const item={id:id+'-'+slug,key:'sp.item.'+id+'.'+slug,pack:id,symbol,style,color,index:p.ids.length};labels[item.key]=[k,e];p.ids.push(item.id);catalog.push(item);byId.set(item.id,item);});packs.push(p);
   }
   pack('instruments','ქართული საკრავები','Georgian instruments','#c9a173','wood',[
-    ['panduri','ფანდური','Panduri','panduri'],['chonguri','ჩონგური','Chonguri','chonguri'],['doli','დოლი','Doli','drum'],['garmoni','გარმონი','Garmoni','accordion'],
+    ['panduri','ფანდური','Fanduri','panduri'],['chonguri','ჩონგური','Chonguri','chonguri'],['doli','დოლი','Doli','drum'],['garmoni','გარმონი','Garmoni','accordion'],
     ['duduki','დუდუკი','Duduki','duduki'],['salamuri','სალამური','Salamuri','flute'],['chiboni','ჭიბონი','Chiboni','bagpipe'],['changi','ჩანგი','Changi','harp'],
     ['chuniri','ჭუნირი','Chuniri','bowed'],['daira','დაირა','Daira','tambourine'],['diplipito','დიპლიპიტო','Diplipito','kettledrums'],['larchemi','ლარჭემი','Larchemi','panpipes'],
     ['strings','სამი სიმი','Three strings','strings'],['pick','პლექტრი','Plectrum','pick'],['ensemble','ანსამბლი','Ensemble','ensemble'],['case','საკრავი მზადაა','Instrument ready','instrumentcase']
@@ -304,7 +304,7 @@ PD.stickers=(()=>{
     love:'close-heart',bravo:'words-bravo',play:'sound-play',again:'sound-loop',string:'instruments-strings',fire:'nature-fire',hi:'words-hello',thanks:'replies-thanks',tempo:'sound-tempo',night:'words-night',think:'focus-idea',
     'doli-fire':'instruments-diplipito','garmoni-dance':'stage-festival','salamuri-song':'sound-harmony',coffee:'daily-espresso',party:'celebrate-confetti',rain:'moods-rain',sunny:'moods-dawn',wow:'replies-great',sad:'moods-storm',okay:'replies-okay',wait:'replies-wait',miss:'words-miss',listen:'replies-listening',practice:'focus-practice',trophy:'celebrate-trophy',encore:'stage-encore',duet:'stage-duet',metronome:'sound-tempo',headphones:'studio-headphones'};
   const legacyLabels=[
-    ['panduri','ფანდური','Panduri'],['doli','დოლი','Doli'],['garmoni','გარმონი','Garmoni'],['duduki','დუდუკი','Duduki'],['salamuri','სალამური','Salamuri'],['ensemble','ერთად ვუკრავთ','Playing together'],
+    ['panduri','ფანდური','Fanduri'],['doli','დოლი','Doli'],['garmoni','გარმონი','Garmoni'],['duduki','დუდუკი','Duduki'],['salamuri','სალამური','Salamuri'],['ensemble','ერთად ვუკრავთ','Playing together'],
     ['love','მიყვარს','Love it'],['bravo','ყოჩაღ!','Well done!'],['play','ვუკრავ','Playing'],['again','კიდევ ერთხელ!','Once more!'],['string','სიმი გამიწყდა','A string broke'],['fire','ცეცხლი!','Fire!'],['hi','გამარჯობა!','Hello!'],['thanks','მადლობა','Thank you'],['tempo','ტემპი!','Tempo!'],['night','ძილი ნებისა','Good night'],['think','როგორ?','How?'],
     ['doli-fire','დოლის რიტმი','Doli rhythm'],['garmoni-dance','გარმონის ცეკვა','Garmoni dance'],['salamuri-song','სალამურის ჰანგი','Salamuri tune'],['coffee','ყავა?','Coffee?'],['party','ვიზეიმოთ!','Let’s celebrate!'],['rain','წვიმიანი დღე','Rainy day'],['sunny','დილა მშვიდობისა','Good morning'],['wow','ვაუ!','Wow!'],['sad','მეწყინა','Feeling blue'],['okay','კარგი!','Okay!'],['wait','ერთი წუთი','One moment'],['miss','მენატრები','Miss you'],['listen','გისმენ','Listening'],['practice','ვვარჯიშობ','Practising'],['trophy','გამოგვივიდა!','We did it!'],['encore','ბისი!','Encore!'],['duet','დუეტი','Duet'],['metronome','რიტმში','In rhythm'],['headphones','ჩემი მუსიკა','My music']
   ];

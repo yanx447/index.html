@@ -10,7 +10,7 @@ const PORT = process.argv[2] || '8814';
   await p.goto(`http://localhost:${PORT}/panduri/app/`); await p.waitForTimeout(1500);
   await p.evaluate(() => { PD.store.set('onboarded', true); PD.store.set('auth.skip', true); PD.i18n.set('en'); document.querySelectorAll('.ob,.ag,.intro').forEach(o => o.remove()); PD.app.go('practice'); });
   await p.waitForTimeout(600);
-  assert.ok(await p.evaluate(() => [...document.querySelectorAll('.prow b')].some(x => x.textContent === 'Panduri Studio')), 'the studio is listed on the practice page');
+  assert.ok(await p.evaluate(() => [...document.querySelectorAll('.prow b')].some(x => x.textContent === 'Fanduri Studio')), 'the studio is listed on the practice page');
   await p.evaluate(() => PD.app.go('pstudio')); await p.waitForTimeout(800);
   const P0 = await p.evaluate(() => PD.pstudio.project.tracks.map(t => t.kind));
   assert.deepEqual(P0, ['rhythm', 'notes'], 'a new project: a rhythm track and a melody track');

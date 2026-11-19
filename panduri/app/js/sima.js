@@ -49,7 +49,7 @@ PD.sima = (() => {
     analyse: 'ანალიზ|გააანალიზ|ამოიცან|ამოცნობ|analy|анализ|аналіз|analiz|تحليل|विश्लेषण|分析|분석'.split('|'),
     upload: 'ამ სიმღერ|ეს სიმღერ|ატვირთულ|ავტვირთ|ჩემი სიმღერ|ჩემს სიმღერ|this song|my song|upload|эта песня|этой песни|эту песню|мою песню|загруз|цієї пісні|завантаж|dieses lied|hochgeladen|esta canción|subí|cette chanson|questa canzone|esta música|bu şarkı|yükle|tej piosenki|هذه الأغنية|यह गाना|这首歌|上传|この曲|アップロード|이 노래|업로드'.split('|'),
     song: 'სიმღერ|song|песн|пісн|lied|canción|cancion|chanson|canzone|música|musica|şarkı|piosenk|أغنية|गाना|गीत|歌|曲|노래'.split('|'),
-    music: 'მუსიკ|ფანდურ|დაკვრ|music|panduri|музык|пандури|музик|musik|música|musique|musica|müzik|muzyk|موسيقى|باندوري|संगीत|पांडुरी|音乐|潘杜里|音楽|パンドゥリ|음악|판두리'.split('|')
+    music: 'მუსიკ|ფანდურ|დაკვრ|music|fanduri|музык|пандури|музик|musik|música|musique|musica|müzik|muzyk|موسيقى|باندوري|संगीत|पांडुरी|音乐|潘杜里|音楽|パンドゥリ|음악|판두리'.split('|')
   };
   const has = (Q, k) => (KW[k] || []).some(w => (' ' + Q + ' ').includes(w));
 
@@ -688,9 +688,9 @@ PD.i18n.add({
   'sm.thanks': ['არაფრის! თუ კიდევ რამე დაგაინტერესებს, მომწერე.', 'You are welcome! If you have another question, just ask.'],
   'sm.goodbye': ['დროებით! როცა მოგინდება, ისევ მომწერე.', 'Bye! Come back whenever you like.'],
   'sm.creatorT': ['ვინ შექმნა აპლიკაცია', 'Who made the app'],
-  'sm.creator': ['ეს აპლიკაცია — „ფანდური" — შექმნა ნუკრი ბერიძემ. სასწავლო მასალა, რასაც აქ ხედავ (აკორდები, რითმები, თითები), მასწავლებლისაა; აპი კი ნუკრის ნამუშევარია.', 'This app — “Panduri” — was created by Nukri Beridze. The teaching material you see here (chords, rhythms, fingerings) is the teacher\'s; the app itself is Nukri\'s work.'],
-  'sm.madeMe': ['მე და მთელი ეს აპლიკაცია ნუკრი ბერიძემ შექმნა. მე აქ ვარ, რომ ფანდურის სწავლაში დაგეხმარო.', 'Nukri Beridze created me and this whole app. I am here to help you learn the panduri.'],
-  'sm.nukri': ['ნუკრი ბერიძე ამ აპლიკაციის შემქმნელია. „ფანდური" ქართულ სამსიმიან ფანდურზე დაკვრას ასწავლის ნამდვილ ინსტრუმენტზე: მიკროფონით გისმენს, გელოდება და მასწავლებლის მასალას გაჩვენებს. თუ ნუკრიზე მეტის გაგება გინდა, ჯერ მხოლოდ ეს ვიცი.', 'Nukri Beridze is the creator of this app. “Panduri” teaches the Georgian three-string panduri on a real instrument: it listens through the microphone, waits for you and shows the teacher\'s material. That is all I know about Nukri for now.'],
+  'sm.creator': ['ეს აპლიკაცია — „ფანდური" — შექმნა ნუკრი ბერიძემ. სასწავლო მასალა, რასაც აქ ხედავ (აკორდები, რითმები, თითები), მასწავლებლისაა; აპი კი ნუკრის ნამუშევარია.', 'This app — “Fanduri” — was created by Nukri Beridze. The teaching material you see here (chords, rhythms, fingerings) is the teacher\'s; the app itself is Nukri\'s work.'],
+  'sm.madeMe': ['მე და მთელი ეს აპლიკაცია ნუკრი ბერიძემ შექმნა. მე აქ ვარ, რომ ფანდურის სწავლაში დაგეხმარო.', 'Nukri Beridze created me and this whole app. I am here to help you learn the fanduri.'],
+  'sm.nukri': ['ნუკრი ბერიძე ამ აპლიკაციის შემქმნელია. „ფანდური" ქართულ სამსიმიან ფანდურზე დაკვრას ასწავლის ნამდვილ ინსტრუმენტზე: მიკროფონით გისმენს, გელოდება და მასწავლებლის მასალას გაჩვენებს. თუ ნუკრიზე მეტის გაგება გინდა, ჯერ მხოლოდ ეს ვიცი.', 'Nukri Beridze is the creator of this app. “Fanduri” teaches the Georgian three-string fanduri on a real instrument: it listens through the microphone, waits for you and shows the teacher\'s material. That is all I know about Nukri for now.'],
   'sm.who': ['მე {n} ვარ, შენი AI სასწავლო დამხმარე. შეგიძლია ჩვეულებრივად მომწერო — კითხვები დამისვა და მითხრა, რისი გაგება გინდა.', 'I am {n}, your AI learning helper. You can write naturally, ask questions and tell me what you want to understand.'],
   'sm.fine': ['მიხარია! რაზე გინდა ვისაუბროთ?', 'Glad to hear it! What would you like to talk about?'],
   'sm.aiLabel': ['AI პასუხი • შეიძლება შეცდეს', 'AI response • may make mistakes'],
@@ -705,7 +705,7 @@ PD.i18n.add({
   'sm.q1': ['რა ვივარჯიშო დღეს?', 'What should I practise today?'], 'sm.q2': ['გამოცდა მელოდება?', 'Is an exam waiting?'],
   'sm.q3': ['როგორ ავიღო Bm?', 'How do I take Bm?'], 'sm.q4': ['აჭარულის რითმი', 'The acharuli rhythm'],
   'sm.chordIs': ['{n} ასე აიღება:', '{n} is held like this:'],
-  'sm.chordsAre': ['ეს აკორდები ფანდურზე ასე აიღება (სიმები A · C♯ · E):', 'These chords on the panduri (strings A · C♯ · E):'],
+  'sm.chordsAre': ['ეს აკორდები ფანდურზე ასე აიღება (სიმები A · C♯ · E):', 'These chords on the fanduri (strings A · C♯ · E):'],
   'sm.stTech': ['რითმი — მხოლოდ მარჯვენა ხელით: {s}, {c}-ზე, ნელა და წრეზე.', 'Rhythm — the right hand only: {s} on {c}, slowly, on a loop.'],
   'sm.stChords': ['აკორდები რითმით — ყოველი დარტყმით, 60% ტემპით, მუსიკასთან ერთად.', 'Chords with the rhythm — every stroke, at 60% tempo, with the music.'],
   'sm.sgCycle': ['{t} — აკორდები: {c}. ეს წრე მთელ სიმღერაში მეორდება.', '{t} — chords: {c}. This cycle repeats through the whole song.'],
@@ -722,7 +722,7 @@ PD.i18n.add({
   'sm.aiCycle': ['მეორდება წრე: {c}', 'The repeating cycle: {c}'],
   'sm.aiTop': ['ყველაზე ხშირი აკორდები: {c}', 'The chords heard most: {c}'],
   'sm.aiCheck': ['ეს AI-ის შეფასებაა — შეამოწმე ყურით. ჩანართში „ისწავლე" მისგან გაკვეთილს გააკეთებ.', 'This is an AI estimate — check it by ear. In the “Learn it” tab you can make a lesson of it.'],
-  'sm.howLearnT': ['როგორ ვისწავლოთ ფანდურზე დაკვრა', 'How to learn the panduri'],
+  'sm.howLearnT': ['როგორ ვისწავლოთ ფანდურზე დაკვრა', 'How to learn the fanduri'],
   'sm.howLearn': ['სწავლის გვერდზე გზები ამ რიგითაა; თითოეულს თავისი ნაბიჯები აქვს:', 'On the learn page the roads come in this order; each has its own steps:'],
   'sm.howSong': ['სიმღერა ასე ისწავლება: ჯერ მოსმენა, მერე მხოლოდ რითმი მარჯვენა ხელით, მერე აკორდები რითმით, ნელა, და ბოლოს მთელი სიმღერა. მაგალითად, {t}: {c}, რითმი — {s}.', 'A song is learned like this: listen first, then the rhythm alone with the right hand, then the chords with the rhythm, slowly, and finally the whole song. For example, {t}: {c}, rhythm — {s}.'],
   'sm.yourNext': ['შენი შემდეგი ნაბიჯი: {s}', 'Your next step: {s}'],
@@ -730,8 +730,8 @@ PD.i18n.add({
   'sm.pathIs': ['ამ გზაზე {n} ნაბიჯია:', 'This road has {n} steps:'],
   'sm.rhythmsAre': ['აპში მასწავლებლის {n} რითმია:', 'The app holds the teacher\'s {n} rhythms:'],
   'sm.rhythmSongs': ['ამ რითმით იკვრება: {s}', 'Played in this rhythm: {s}'],
-  'sm.instT': ['ფანდური: სიმები, ლადები, აწყობა', 'The panduri: strings, frets, tuning'],
-  'sm.inst': ['ფანდურს 3 სიმი აქვს, ამ აპში ტარზე კი {f} ლადია. აწყობა: A · C♯ · E.', 'The panduri has 3 strings, and in this app the neck has {f} frets. Tuning: A · C♯ · E.'],
+  'sm.instT': ['ფანდური: სიმები, ლადები, აწყობა', 'The fanduri: strings, frets, tuning'],
+  'sm.inst': ['ფანდურს 3 სიმი აქვს, ამ აპში ტარზე კი {f} ლადია. აწყობა: A · C♯ · E.', 'The fanduri has 3 strings, and in this app the neck has {f} frets. Tuning: A · C♯ · E.'],
   'sm.instS': ['მასწავლებელი სიმებს ასე ასახელებს: მე-3 სიმი — ბანი (A, ყველაზე სქელი), მე-2 სიმი — მე-2 ხმა (C♯), 1-ლი სიმი — 1-ლი ხმა (E, ყველაზე თხელი).', 'The teacher names the strings: the 3rd string — the bass (A, the thickest), the 2nd string — the 2nd voice (C♯), the 1st string — the 1st voice (E, the thinnest).'],
   'sm.sources': ['წყაროები ინტერნეტიდან:', 'Sources from the internet:'],
   'sm.open': ['ღია', 'open'], 'sm.fret': ['{n} ლადი', 'fret {n}'], 'sm.thumb': ['ცერა თითი (T)', 'the thumb (T)'],

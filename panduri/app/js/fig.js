@@ -522,7 +522,7 @@ PD.fig = (() => {
         const hole = onP(PAN_AT, PAN_ANG, [PN.hole, 0]), arm = [76, 99], nk = onP(PAN_AT, PAN_ANG, [fretX(3.5), 0]);
         s += '<g opacity="' + f(c[0]) + '"><ellipse cx="' + f(hole[0] - 3) + '" cy="' + f(hole[1] + 1) + '" rx="20" ry="13" fill="none" stroke="' + K.ok + '" stroke-width=".8" transform="rotate(' + PAN_ANG + ' ' + P(hole) + ')"/>' + label(100, 14, L(['ტანი ეყრდნობა მარჯვენა ბარძაყს და სხეულს', 'The body rests on the right thigh and against you']), K.ok, 4) + '</g>';
         s += '<g opacity="' + f(c[1]) + '">' + line([70, 89], [96, 107], K.ok, 1.2) + label(100, 14, L(['მარჯვენა წინამხარი ზემოდან აკავებს', 'The right forearm holds it from above']), K.ok, 4) + '</g>';
-        s += '<g opacity="' + f(c[2]) + '"><circle cx="' + f(nk[0] + 6) + '" cy="' + f(nk[1] - 4) + '" r="9" fill="none" stroke="' + K.ok + '" stroke-width=".8" stroke-dasharray="1.6 1.3"/>' + label(104, 14, L(['მარცხენა ხელი თავისუფალია — ფანდური არ ვარდება', 'The left hand is free — the panduri stays']), K.ok, 4) + '</g>';
+        s += '<g opacity="' + f(c[2]) + '"><circle cx="' + f(nk[0] + 6) + '" cy="' + f(nk[1] - 4) + '" r="9" fill="none" stroke="' + K.ok + '" stroke-width=".8" stroke-dasharray="1.6 1.3"/>' + label(104, 14, L(['მარცხენა ხელი თავისუფალია — ფანდური არ ვარდება', 'The left hand is free — the fanduri stays']), K.ok, 4) + '</g>';
         void arm; return s;
       } },
     hands: { vb: '18 8 172 168', dur: 8, defs: id => frontDefs(id) + panduriDefs(id),
@@ -544,7 +544,7 @@ PD.fig = (() => {
         const v = C.v, n = C.n, mid = C.str[1];
         const b0 = add(add(mid, mul(n, 2.4)), mul(v, -10)), b1 = add(add(mid, mul(n, 2.4)), mul(v, 10));
         let s = '<path d="M' + P(b0) + 'C' + P(add(b0, mul(n, 9))) + ' ' + P(add(b1, mul(n, 9))) + ' ' + P(b1) + 'Z" fill="url(#' + id + 'bw)"/>' + line(b0, b1, K.spruce, .55);
-        s += label(3, 20.6, L(['ფანდური ჭრილში', 'panduri in section']), K.dim, 1.05, 'start');
+        s += label(3, 20.6, L(['ფანდური ჭრილში', 'fanduri in section']), K.dim, 1.05, 'start');
         const SC = ['#D9783F', '#78B7DE', '#EFE0B8'], NM = ['A', 'C♯', 'E'];
         C.str.forEach((p, j) => {
           const dk = ps.dir > 0 ? k - C.hitD[j] : ps.dir < 0 ? k - C.hitU[j] : (k < 1.9 && k >= 1.5 ? k - C.hitD[j] : k >= 2.9 ? k - C.hitU[j] : 9);
@@ -660,7 +660,7 @@ PD.fig = (() => {
   /* ---------------- rendered videos (real 3D hand model on the app's own panduri model) ---------------- */
   const VID = {
     lefthand: { views: [['bm_front', ['წინიდან · სარკეში', 'Front · as in a mirror']], ['bm_player', ['შენი თვალით', 'Your own view']]], loop: 7,
-      caps: [[0, 1.0, ['ხელი უახლოვდება ტარს — მაჯა თავისუფალია', 'The hand comes to the neck — the wrist is free']], [1.0, 2.2, ['T ცერა: ბანი (მე-3 სიმი), მე-2 ლადი', 'T thumb: bass (3rd string), fret 2']], [2.2, 3.4, ['1 საჩვენებელი: მე-2 ხმა (მე-2 სიმი), 1-ლი ლადი', '1 index: 2nd voice (2nd string), fret 1']], [3.4, 4.6, ['2 შუა: 1-ლი ხმა (1-ლი სიმი), მე-2 ლადი', '2 middle: 1st voice (1st string), fret 2']], [4.6, 7, ['Bm — ახლა გაიმეორე შენს ფანდურზე', 'Bm — now copy it on your panduri']]] },
+      caps: [[0, 1.0, ['ხელი უახლოვდება ტარს — მაჯა თავისუფალია', 'The hand comes to the neck — the wrist is free']], [1.0, 2.2, ['T ცერა: ბანი (მე-3 სიმი), მე-2 ლადი', 'T thumb: bass (3rd string), fret 2']], [2.2, 3.4, ['1 საჩვენებელი: მე-2 ხმა (მე-2 სიმი), 1-ლი ლადი', '1 index: 2nd voice (2nd string), fret 1']], [3.4, 4.6, ['2 შუა: 1-ლი ხმა (1-ლი სიმი), მე-2 ლადი', '2 middle: 1st voice (1st string), fret 2']], [4.6, 7, ['Bm — ახლა გაიმეორე შენს ფანდურზე', 'Bm — now copy it on your fanduri']]] },
     strokes: { views: [['strokes_side', ['გვერდიდან', 'From the side']], ['strokes_front', ['წინიდან · სარკეში', 'Front · as in a mirror']]], loop: 3.2,
       caps: [[0, .5, ['მომრგვალებული ხელი — თითქოს კვერცხი გიჭირავს', 'A rounded hand — as if holding an egg']], [.5, 1.9, ['↓ ჩამოკვრა: თითები იშლება, სიმებს ეხება ფრჩხილის წვერები', '↓ Down: the fingers open, the nail tips hit the strings']], [1.9, 3.2, ['↑ ამოკვრა: ცერა თითის ფრჩხილის წვერით', '↑ Up: with the tip of the thumbnail']]],
       note: ['მოძრაობს მხოლოდ მაჯა — მკლავი უძრავია', 'Only the wrist moves — the arm stays still'] },

@@ -13,7 +13,7 @@
    ===================================================================== */
 PD.i18n.add({
   'cf.title': ['კვინტების წრე', 'Circle of fifths'],
-  'cf.toolD': ['ტონალობები, ნიშნები, აკორდები და მიმდევრობები — დაატრიალე წრე და მოისმინე ფანდურზე.', 'Keys, signatures, chords and progressions — turn the wheel and hear them on the panduri.'],
+  'cf.toolD': ['ტონალობები, ნიშნები, აკორდები და მიმდევრობები — დაატრიალე წრე და მოისმინე ფანდურზე.', 'Keys, signatures, chords and progressions — turn the wheel and hear them on the fanduri.'],
   'cf.kit': ['თეორიის ხელსაწყოები', 'Theory toolkit'],
   'cf.tab.chords': ['აკორდები', 'Chords'], 'cf.tab.scales': ['გამები', 'Scales'], 'cf.tab.prog': ['მიმდევრობები', 'Progressions'],
   'cf.major': ['მაჟორი', 'Major'], 'cf.minor': ['მინორი', 'Minor'],
@@ -29,11 +29,11 @@ PD.i18n.add({
   'cf.scaleMaj': ['მაჟორული გამა', 'Major scale'], 'cf.scaleMin': ['ნატურალური მინორული გამა', 'Natural minor scale'],
   'cf.play': ['დაკვრა', 'Play'], 'cf.stop': ['გაჩერება', 'Stop'],
   'cf.chords': ['აკორდები', 'Chords'], 'cf.progs': ['მიმდევრობები', 'Progressions'],
-  'cf.onPan': ['ფანდურზე', 'On the panduri'], 'cf.onPanD': ['შეეხე აკორდს — აქ გამოჩნდება მისი პოზიცია.', 'Tap a chord — its position shows here.'],
-  'cf.posFact': ['პოზიცია გამოთვლილია ფანდურის აწყობიდან.', 'Position computed from the panduri\'s tuning.'],
+  'cf.onPan': ['ფანდურზე', 'On the fanduri'], 'cf.onPanD': ['შეეხე აკორდს — აქ გამოჩნდება მისი პოზიცია.', 'Tap a chord — its position shows here.'],
+  'cf.posFact': ['პოზიცია გამოთვლილია ფანდურის აწყობიდან.', 'Position computed from the fanduri\'s tuning.'],
   'cf.noPos': ['ამ აკორდს სამ სიმზე დასაკრავი ფორმა არ აქვს — ისმის ცალკეული ბგერებით.', 'This chord has no three-string form — you hear its notes one by one.'],
   'cf.openCh': ['აკორდების გვერდზე', 'Open in Chords'],
-  'cf.srcGen': ['ზოგადი მუსიკის თეორია · ფანდურზე გამოთვლილი', 'General music theory · computed for the panduri'],
+  'cf.srcGen': ['ზოგადი მუსიკის თეორია · ფანდურზე გამოთვლილი', 'General music theory · computed for the fanduri'],
   'cf.teacherP': ['მასწავლებლის მიმდევრობები', 'The teacher\'s progressions'],
   'cf.teacherD': ['მისი მიმდევრობები ამ ტონალობაში გადატანილი. მან ისინი დაასახელა: {k}.', 'His progressions, moved into this key. He named them in: {k}.'],
   'cf.p.pop': ['პოპი', 'Pop'], 'cf.p.fifties': ['50-იანების', 'Fifties'], 'cf.p.jazz': ['ჯაზური ii–V–I', 'Jazz ii–V–I'], 'cf.p.primary': ['მთავარი აკორდები', 'Primary chords'],

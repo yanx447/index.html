@@ -32,7 +32,7 @@ PD.i18n.add({
   'al.noCycle': ['მეორებადი წრე ვერ ვიპოვე — აკორდები ისე გადავა, როგორც ჩანაწერში გაიზომა.', 'No repeating cycle was found — the chords follow what was measured in the recording.'],
   'al.rhythms': ['{n} რითმი', '{n} rhythm(s)'],
   'al.unsure': ['{n} თვლაზე ({p}%) ჩანაწერი ბუნდოვანია (მაგ. სოლო ან ხმაური) — იქ წრე გრძელდება. შეამოწმე ყურით.', 'On {n} beats ({p}%) the recording is unclear (a solo or a busy mix, for example) — the cycle goes on there. Check it by ear.'],
-  'al.chords': ['აკორდები ფანდურზე', 'The chords on the panduri'],
+  'al.chords': ['აკორდები ფანდურზე', 'The chords on the fanduri'],
   'al.noShape': ['ამ აკორდს სამ სიმზე ფორმა არ აქვს — გაკვეთილში გამოტოვდება', 'This chord has no three-string shape — the lesson leaves it out'],
   'al.rhythm': ['რითმი (ერთი თვლა)', 'Rhythm (one beat)'],
   'al.rhythmD': ['ჩაკვრა თუ ამოკვრა ჩანაწერიდან არ ისმის — აირჩიე, როგორ დაუკრავ. „AI" აღნიშნავს იმას, რაც დარტყმების ნახატს ყველაზე ახლოს მიესადაგება.', 'Down or up cannot be heard in a recording — choose how you will play. “AI” marks the pattern closest to the measured strokes.'],

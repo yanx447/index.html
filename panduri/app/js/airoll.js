@@ -27,7 +27,7 @@
 'use strict';
 PD.i18n.add({
   'rl.select': ['არჩევა', 'Select'], 'rl.draw': ['ფანქარი', 'Pencil'], 'rl.erase': ['საშლელი', 'Eraser'],
-  'rl.tool': ['ხელსაწყო', 'Tool'], 'rl.scale': ['ტონალობა', 'Key'], 'rl.range': ['ფანდურის დიაპაზონი', 'Panduri range'],
+  'rl.tool': ['ხელსაწყო', 'Tool'], 'rl.scale': ['ტონალობა', 'Key'], 'rl.range': ['ფანდურის დიაპაზონი', 'Fanduri range'],
   'rl.hear': ['მოსმენა', 'Hear notes'], 'rl.vel': ['სიმძლავრე', 'Velocity'], 'rl.chords': ['აკორდები', 'Chords'],
   'rl.hint': ['შეეხე ნოტს — აირჩევ და მოისმენ · გადაათრიე — დრო და სიმაღლე · მარჯვენა კიდე — ხანგრძლივობა · ფონის გადათრევა — გადაადგილება · ⌘/Ctrl + ბორბალი — მასშტაბი', 'Tap a note to select and hear it · drag it to move in time and pitch · its right edge to lengthen · drag the background to move around · ⌘/Ctrl + wheel to zoom'],
   'rl.count': ['{n} ნოტი', '{n} notes'], 'rl.pan': ['ფანდური', 'panduri']

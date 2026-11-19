@@ -30,7 +30,7 @@ PD.i18n.add({
   'h.dir': ['დრო სწორია, მიმართულება: {d}', 'Timing is right; direction should be {d}'],
   'h.chordTouch': ['აკორდისთვის გამოიყენე ↓ / ↑ ღილაკი', 'Use the ↓ / ↑ buttons for chords'],
   'h.missed': ['გაჩერდა — დაუკარი {e}, რომ გავაგრძელოთ', 'Paused — play {e} to continue'],
-  'h.tune': ['რამდენიმე ნოტი ერთნაირად აცდენილია — იქნებ ფანდური აწყობას საჭიროებს?', 'Several notes are off in the same direction — the panduri may need tuning'],
+  'h.tune': ['რამდენიმე ნოტი ერთნაირად აცდენილია — იქნებ ფანდური აწყობას საჭიროებს?', 'Several notes are off in the same direction — the fanduri may need tuning'],
   'h.suggest': ['ვივარჯიშოთ ეს მონაკვეთი? {r} · {p}% ტემპით', 'Practice this section? {r} · {p}% tempo'],
   'h.drillUp': ['სტაბილურია — ტემპი {p}%', 'Stable — tempo up to {p}%'],
   'h.drillDone': ['მზად ხარ — ვუბრუნდებით სრულ გაკვეთილს', 'Ready — back to the full lesson'],

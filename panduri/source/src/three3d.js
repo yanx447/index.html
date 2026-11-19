@@ -12,7 +12,7 @@
 PD.i18n.add({
   'x3p.preamp': ['ტიუნერი · ექუალაიზერი', 'Tuner · Equalizer'],
   'x3p.jack': ['ჯეკის გამოსასვლელი', 'Output jack'],
-  'pi.preamp': ['ეს ელექტროაკუსტიკური ფანდურია: კორპუსზე ჩაშენებულია ტიუნერი და ექუალაიზერი. მათი არსებობა მფლობელმა დაადასტურა; 3D-ში პანელის ზომები და მართვის ელემენტების განლაგება მიახლოებითია.', 'This electro-acoustic panduri has an onboard tuner and equalizer, confirmed by the owner. The panel dimensions and control layout in 3D are approximate.'],
+  'pi.preamp': ['ეს ელექტროაკუსტიკური ფანდურია: კორპუსზე ჩაშენებულია ტიუნერი და ექუალაიზერი. მათი არსებობა მფლობელმა დაადასტურა; 3D-ში პანელის ზომები და მართვის ელემენტების განლაგება მიახლოებითია.', 'This electro-acoustic fanduri has an onboard tuner and equalizer, confirmed by the owner. The panel dimensions and control layout in 3D are approximate.'],
   'pi.jack': ['ჯეკის გამოსასვლელი კაბელის შესაერთებლად. ეს მფლობელმა დაადასტურა; 3D-ში მისი ზომა და მდებარეობა მიახლოებითაა ნაჩვენები.', 'Output jack for a cable connection, confirmed by the owner. Its size and position in 3D are approximate.'],
   'x3p.body': ['ტანი', 'Body'], 'x3p.top': ['დეკა', 'Soundboard'], 'x3p.neck': ['ტარი', 'Neck'], 'x3p.fret': ['ლადი', 'Fret'], 'x3p.string': ['სიმი', 'String'],
   'x3p.nut': ['ნულოვანი ლადი', 'Nut'], 'x3p.bridge': ['ხიდი', 'Bridge'], 'x3p.hole': ['სახმო ხვრელი', 'Sound hole'], 'x3p.head': ['თავი', 'Headstock'], 'x3p.tuners': ['მექანიკა', 'Tuners'],
@@ -590,7 +590,7 @@ void main(){
     /** raw meshes + textures (used to render the hand pictures offline with the same instrument) */
     get export() { return { meshes, TEX, POST, strings, fbHalf, SX_NUT, SX_BR, SZ_NUT, SZ_BR, SRAD, HOLES }; },
     /** move the single canvas into a host element */
-    mount(host) { if (!canvas) { const c = document.createElement('canvas'); c.className = 'gl3d'; c.setAttribute('aria-label', 'panduri 3D'); canvas = c; host.appendChild(c); if (!init(c)) return false; } else if (canvas.parentNode !== host) host.appendChild(canvas); kick(); return !failed; },
+    mount(host) { if (!canvas) { const c = document.createElement('canvas'); c.className = 'gl3d'; c.setAttribute('aria-label', 'fanduri 3D'); canvas = c; host.appendChild(c); if (!init(c)) return false; } else if (canvas.parentNode !== host) host.appendChild(canvas); kick(); return !failed; },
     fy, sxAt
   };
 })();

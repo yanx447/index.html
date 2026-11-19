@@ -3,7 +3,7 @@
    icons and small UI helpers: toast, sheet, confirm.
    ===================================================================== */
 PD.i18n.add({
-  'app.name': ['ფანდური', 'Panduri'],
+  'app.name': ['ფანდური', 'Fanduri'],
   'nav.home': ['მთავარი', 'Home'], 'nav.learn': ['სწავლა', 'Learn'], 'nav.tools': ['ხელსაწყოები', 'Tools'], 'nav.progress': ['პროგრესი', 'Progress'], 'nav.settings': ['პარამეტრები', 'Settings'],
   'cat.song': ['სიმღერები', 'Songs'], 'cat.melody': ['მელოდიები', 'Melodies'], 'cat.solo': ['სოლოები', 'Solos'], 'cat.exercise': ['სავარჯიშოები', 'Exercises'],
   'type.song': ['სიმღერა', 'Song'], 'type.melody': ['მელოდია', 'Melody'], 'type.solo': ['სოლო', 'Solo'], 'type.exercise': ['სავარჯიშო', 'Exercise'],
@@ -35,7 +35,7 @@ PD.i18n.add({
   'les.record': ['ჩაწერა დაკვრით', 'Record by playing'], 'les.edit': ['სტუდიაში რედაქტირება', 'Edit in Studio'], 'les.ref': ['ჩანაწერი ↗', 'Recording ↗'], 'les.noNotes': ['ამ სიმღერას ნოტები ჯერ არ აქვს. ჩაწერე დაკვრით ან სტუდიაში შეიყვანე — ნოტებს პროგრამა არ იგონებს.', 'This song has no notes yet. Record it by playing or enter it in the Studio — the app never invents notes.'],
   'les.resume': ['გაგრძელება: {s}', 'Resume: {s}'], 'les.best': ['საუკეთესო: {p}%', 'Best: {p}%'], 'les.maxTempo': ['მაქს. ტემპი: {p}%', 'Max tempo: {p}%'],
   'back': ['უკან', 'Back'], 'close': ['დახურვა', 'Close'], 'save': ['შენახვა', 'Save'], 'cancel': ['გაუქმება', 'Cancel'], 'delete': ['წაშლა', 'Delete'], 'confirm': ['დადასტურება', 'Confirm'], 'done': ['მზადაა', 'Done'], 'next': ['შემდეგი', 'Next'], 'prev': ['წინა', 'Previous'], 'skip': ['გამოტოვება', 'Skip'], 'yes': ['დიახ', 'Yes'], 'later': ['მოგვიანებით', 'Later'], 'on': ['ჩართ.', 'On'], 'off': ['გამორთ.', 'Off'], 'sure': ['დარწმუნებული ხარ?', 'Are you sure?'],
-  'tools.title': ['ხელსაწყოები', 'Tools'], 'tools.tuner': ['ტიუნერი', 'Tuner'], 'tools.chords': ['აკორდები', 'Chords'], 'tools.fret': ['ტარის რუკა', 'Fretboard'], 'tools.3d': ['3D ფანდური', '3D panduri'], 'tools.studio': ['სტუდია', 'Studio'],
+  'tools.title': ['ხელსაწყოები', 'Tools'], 'tools.tuner': ['ტიუნერი', 'Tuner'], 'tools.chords': ['აკორდები', 'Chords'], 'tools.fret': ['ტარის რუკა', 'Fretboard'], 'tools.3d': ['3D ფანდური', '3D fanduri'], 'tools.studio': ['სტუდია', 'Studio'],
   'tools.tunerD': ['A · C♯ · E — ავტომატური ან სიმ-სიმ.', 'A · C♯ · E — auto or string by string.'], 'tools.chordsD': ['ყველა აკორდი 3-სიმიან დიაგრამაზე, ხელით და ხმით.', 'Every chord on a 3-string diagram, with hand and sound.'], 'tools.fretD': ['17 ლადი × 3 სიმი: ნოტები, ოქტავები, „იპოვე ნოტა“.', '17 frets × 3 strings: notes, octaves, “find the note”.'], 'tools.3dD': ['შენი ინსტრუმენტი 3D-ში, ნაწილები და ტური.', 'Your instrument in 3D, its parts and a tour.'], 'tools.studioD': ['გაკვეთილის რედაქტორი მასწავლებლისთვის.', 'The lesson editor for teachers.'],
   'mic.on': ['მიკრ. ჩართულია', 'Mic on'], 'mic.off': ['მიკრ. გამორთულია', 'Mic off'], 'mic.why': ['მიკროფონი გჭირდება, რომ პროგრამამ შენი დაკვრა მოისმინოს. ხმა მხოლოდ ამ მოწყობილობაზე მუშავდება და არსად იგზავნება ან იწერება.', 'The microphone lets the app hear your playing. Audio is analysed only on this device; it is never sent or recorded.'],
   'mic.denied': ['მიკროფონზე წვდომა უარყოფილია. ჩართე ბრაუზერის პარამეტრებში, ან ივარჯიშე შეხებით.', 'Microphone access was denied. Allow it in the browser settings, or practice by touch.'],

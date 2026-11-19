@@ -5,7 +5,7 @@
    Calibration is stored per device; nothing leaves the device.
    ===================================================================== */
 PD.i18n.add({
-  'ob.hello': ['გამარჯობა!', 'Welcome!'], 'ob.lead': ['ისწავლე ფანდურზე დაკვრა: აპი გიჩვენებს, სად დაადო თითი, გელოდება და გისმენს.', 'Learn to play the panduri: the app shows where to put your fingers, waits for you and listens.'],
+  'ob.hello': ['გამარჯობა!', 'Welcome!'], 'ob.lead': ['ისწავლე ფანდურზე დაკვრა: აპი გიჩვენებს, სად დაადო თითი, გელოდება და გისმენს.', 'Learn to play the fanduri: the app shows where to put your fingers, waits for you and listens.'],
   'ob.lang': ['ენა', 'Language'], 'ob.level': ['როგორ უკრავ ახლა?', 'How do you play now?'],
   'ob.l1': ['პირველად ვიღებ ხელში', 'I am picking it up for the first time'], 'ob.l1d': ['დავიწყებთ ნაწილებით, აწყობით და ღია სიმებით', 'We start with the parts, tuning and open strings'],
   'ob.l2': ['ცოტა ვუკრავ', 'I play a little'], 'ob.l2d': ['რიტმი, თითები, პირველი მელოდიები', 'Rhythm, fingers, first melodies'],
@@ -23,8 +23,8 @@ PD.i18n.add({
   'ob.mic2': ['ხმა მხოლოდ ამ მოწყობილობაზე ანალიზდება. არაფერი იწერება და არსად იგზავნება. „გამორთვა“ მიკროფონს მართლა თიშავს.', 'Audio is analysed only on this device. Nothing is recorded or sent. "Off" really turns the microphone off.'],
   'ob.mic3': ['პატიოსნად: ბგერას კარგად ცნობს, სიმს — არა ყოველთვის. მაგ., ღია C♯ და A სიმის მე-4 ლადი ერთნაირად ჟღერს — მაშინ სიმს გაკვეთილი ადასტურებს.', 'Honestly: it recognises pitch well, the string not always. Open C♯ and A string fret 4 sound the same — then the lesson confirms the string.'],
   'ob.micYes': ['ჩართვა და კალიბრაცია', 'Turn on and calibrate'], 'ob.micNo': ['ჯერ შეხებით', 'Touch only for now'],
-  'ob.ready': ['მზად ხარ', 'You are ready'], 'ob.readyD': ['დაიწყე ფანდურის გაცნობით ან პირდაპირ პირველი გაკვეთილით.', 'Start by getting to know the panduri, or go straight to the first lesson.'],
-  'ob.tour': ['ფანდურის გაცნობა 3D-ში', 'Meet the panduri in 3D'], 'ob.first': ['პირველი გაკვეთილი', 'First lesson'], 'ob.home': ['მთავარზე', 'Go home'],
+  'ob.ready': ['მზად ხარ', 'You are ready'], 'ob.readyD': ['დაიწყე ფანდურის გაცნობით ან პირდაპირ პირველი გაკვეთილით.', 'Start by getting to know the fanduri, or go straight to the first lesson.'],
+  'ob.tour': ['ფანდურის გაცნობა 3D-ში', 'Meet the fanduri in 3D'], 'ob.first': ['პირველი გაკვეთილი', 'First lesson'], 'ob.home': ['მთავარზე', 'Go home'],
   'cb.title': ['მიკროფონის კალიბრაცია', 'Microphone calibration'], 'cb.s1': ['სიჩუმე', 'Silence'], 'cb.s1d': ['3 წამი ნუ დაუკრავ — ოთახის ხმაურს ვზომავთ.', 'Do not play for 3 seconds — measuring room noise.'],
   'cb.measure': ['გაზომვა', 'Measure'], 'cb.noise': ['ხმაურის დონე: {v}', 'Noise level: {v}'], 'cb.loud': ['ოთახი ხმაურიანია — ამოცნობა შეიძლება გაუარესდეს.', 'The room is noisy — recognition may suffer.'],
   'cb.s2': ['მგრძნობელობა', 'Sensitivity'], 'cb.s2d': ['დაუკარი რამდენიმე ნოტი, ჩუმადაც და ხმამაღლაც. ყოველი დაკვრა უნდა დაითვალოს, სიჩუმე — არა.', 'Play a few notes, soft and loud. Every pluck should count; silence should not.'],
@@ -106,12 +106,12 @@ PD.calib = (() => {
 })();
 
 PD.i18n.add({
-  'ob.have': ['ფანდური გაქვს ხელთ?', 'Do you have a panduri with you?'], 'ob.haveY': ['კი, ახლავე ავიღებ', 'Yes, I will pick it up now'], 'ob.haveYD': ['აპი მიკროფონით მოგისმენს — ნოტი მხოლოდ ნამდვილი ბგერით ითვლება.', 'The app listens through the microphone — a note only counts when it really sounds.'],
-  'ob.haveN': ['ჯერ არა', 'Not yet'], 'ob.haveND': ['გაკვეთილებს მოუსმენ და ნახავ. დასაკრავად ნამდვილი ფანდური და მიკროფონი დაგჭირდება.', 'You can listen to and watch lessons. To play, you will need a real panduri and the microphone.'],
+  'ob.have': ['ფანდური გაქვს ხელთ?', 'Do you have a fanduri with you?'], 'ob.haveY': ['კი, ახლავე ავიღებ', 'Yes, I will pick it up now'], 'ob.haveYD': ['აპი მიკროფონით მოგისმენს — ნოტი მხოლოდ ნამდვილი ბგერით ითვლება.', 'The app listens through the microphone — a note only counts when it really sounds.'],
+  'ob.haveN': ['ჯერ არა', 'Not yet'], 'ob.haveND': ['გაკვეთილებს მოუსმენ და ნახავ. დასაკრავად ნამდვილი ფანდური და მიკროფონი დაგჭირდება.', 'You can listen to and watch lessons. To play, you will need a real fanduri and the microphone.'],
   'ob.goals': ['რა გინდა ისწავლო?', 'What do you want to learn?'], 'ob.goalsD': ['რამდენიც გინდა, მონიშნე.', 'Pick as many as you like.'],
   'gl.songs': ['სიმღერები', 'Songs'], 'gl.rhythm': ['რიტმები და ჩაკვრა', 'Rhythms and strumming'], 'gl.notes': ['ნოტები და ლადები', 'Notes and frets'], 'gl.trad': ['ტრადიციული რეპერტუარი', 'Traditional repertoire'], 'gl.accomp': ['სიმღერის აკომპანემენტი', 'Accompanying singing'],
   'ob.time': ['დღეში რამდენი წუთი?', 'How many minutes a day?'], 'ob.timeD': ['ამით დღევანდელი ვარჯიში აიწყობა. მოგვიანებით შეცვლი პროფილში.', 'Daily practice is built from this. You can change it later in Profile.'],
-  'ob.micT': ['აიღე ფანდური და მიეცი აპს მიკროფონზე წვდომა.', 'Pick up your panduri and give the app access to the microphone.'],
+  'ob.micT': ['აიღე ფანდური და მიეცი აპს მიკროფონზე წვდომა.', 'Pick up your fanduri and give the app access to the microphone.'],
   'ob.tune': ['აწყობის შემოწმება', 'Tuning check'], 'ob.tuneD': ['დაუკარი სამივე ღია სიმი, სათითაოდ. თუ რომელიმე აცდენილია, ტიუნერი გიჩვენებს რამდენით.', 'Play all three open strings, one at a time. If one is off, the tuner shows by how much.'],
   'ob.tuneNoMic': ['მიკროფონი ჩართული არ არის — აწყობას მოგვიანებით ტიუნერში შეამოწმებ.', 'The microphone is off — check tuning later in the Tuner.'],
   'ob.tuneLow': ['დაბალია', 'too low'], 'ob.tuneHigh': ['მაღალია', 'too high'], 'ob.tuneOk': ['აწყობილია', 'in tune'], 'ob.openTuner': ['ტიუნერის გახსნა', 'Open the tuner'],

@@ -13,7 +13,7 @@
    ===================================================================== */
 'use strict';
 PD.i18n.add({
-  'pst.title': ['Panduri Studio', 'Panduri Studio'], 'pst.tile': ['ნოტები, რითმები, სოლო, ტრეკები, MIDI', 'Notes, rhythms, solos, tracks, MIDI'],
+  'pst.title': ['Fanduri Studio', 'Fanduri Studio'], 'pst.tile': ['ნოტები, რითმები, სოლო, ტრეკები, MIDI', 'Notes, rhythms, solos, tracks, MIDI'],
   'pst.fret': ['ტარი', 'Fretboard'], 'pst.roll': ['Piano roll', 'Piano roll'], 'pst.rhythm': ['რითმი', 'Rhythm'], 'pst.arrange': ['ტრეკები', 'Arrange'], 'pst.mixer': ['მიქშერი', 'Mixer'],
   'pst.play': ['დაკვრა', 'Play'], 'pst.stop': ['გაჩერება', 'Stop'], 'pst.loop': ['ციკლი', 'Loop'], 'pst.metro': ['მეტრონომი', 'Metronome'], 'pst.count': ['ათვლა', 'Count-in'],
   'pst.bpm': ['BPM', 'BPM'], 'pst.meter': ['ზომა', 'Metre'], 'pst.saved': ['შენახულია', 'Saved'], 'pst.saving': ['ინახება…', 'Saving…'],
@@ -21,7 +21,7 @@ PD.i18n.add({
   'pst.delQ': ['წაიშალოს „{n}"?', 'Delete “{n}”?'], 'pst.untitled': ['უსახელო', 'Untitled'], 'pst.copy': ['{n} (ასლი)', '{n} (copy)'],
   'pst.exp': ['.panduri ფაილი', '.panduri file'], 'pst.imp': ['ფაილის გახსნა (.panduri / MIDI)', 'Open a file (.panduri / MIDI)'], 'pst.midi': ['MIDI ექსპორტი', 'Export MIDI'], 'pst.midiT': ['მხოლოდ ეს ტრეკი (MIDI)', 'This track only (MIDI)'],
   'pst.impBad': ['ფაილი ვერ წავიკითხე: {e}', 'The file could not be read: {e}'], 'pst.impNew': ['ეს ფაილი აპის უფრო ახალი ვერსიითაა შექმნილი — განაახლე აპი.', 'This file was made by a newer version of the app — update the app.'],
-  'pst.midiIn': ['MIDI-დან დაემატა {n} ტრეკი; {u} ნოტი ფანდურს არ აქვს (ნაჩვენებია, არ ჟღერს).', '{n} track(s) added from MIDI; {u} note(s) the panduri does not have (shown, not played).'],
+  'pst.midiIn': ['MIDI-დან დაემატა {n} ტრეკი; {u} ნოტი ფანდურს არ აქვს (ნაჩვენებია, არ ჟღერს).', '{n} track(s) added from MIDI; {u} note(s) the fanduri does not have (shown, not played).'],
   'pst.track': ['ტრეკი', 'Track'], 'pst.addNotes': ['+ მელოდიის ტრეკი', '+ Melody track'], 'pst.addRhythm': ['+ რითმის ტრეკი', '+ Rhythm track'], 'pst.kNotes': ['მელოდია / სოლო', 'Melody / solo'], 'pst.kRhythm': ['რითმი', 'Rhythm'],
   'pst.mute': ['M', 'M'], 'pst.solo': ['S', 'S'], 'pst.vol': ['ხმა', 'Volume'], 'pst.pan': ['მხარე', 'Pan'], 'pst.name': ['სახელი', 'Name'],
   'pst.insert': ['ჩაწერა ტარიდან', 'Write from the neck'], 'pst.chordMode': ['აკორდი (ერთ დროზე)', 'Chord (same time)'], 'pst.len': ['ხანგრძლივობა', 'Length'], 'pst.velo': ['სიმძლავრე', 'Velocity'],
@@ -30,18 +30,18 @@ PD.i18n.add({
   'pst.pickNotes': ['აირჩიე მელოდიის ტრეკი', 'Choose a melody track'], 'pst.pickRhythm': ['აირჩიე რითმის ტრეკი', 'Choose a rhythm track'],
   'pst.sel': ['არჩეული ნოტი', 'Selected note'], 'pst.none': ['ნოტი არ არის არჩეული', 'No note selected'], 'pst.str': ['სიმი', 'String'], 'pst.fretN': ['ლადი', 'Fret'],
   'pst.dur': ['ხანგრძლ. (დარტყ.)', 'Duration (beats)'], 'pst.art': ['არტიკულაცია', 'Articulation'], 'pst.offset': ['გადახრა (მწმ)', 'Offset (ms)'], 'pst.alt': ['სხვა ადგილი ტარზე', 'Another place on the neck'],
-  'pst.unplay': ['ფანდურს ეს ნოტი არ აქვს — ნაჩვენებია, მაგრამ არ ჟღერს', 'The panduri does not have this note — shown, not played'],
+  'pst.unplay': ['ფანდურს ეს ნოტი არ აქვს — ნაჩვენებია, მაგრამ არ ჟღერს', 'The fanduri does not have this note — shown, not played'],
   'pst.a.pluck': ['ჩვეულებრივი', 'Normal pluck'], 'pst.a.down': ['ჩაკვრა', 'Downstroke'], 'pst.a.up': ['ამოკვრა', 'Upstroke'], 'pst.a.mute': ['ჩახშობილი', 'Muted'],
   'pst.quant': ['კვანტიზაცია', 'Quantize'], 'pst.human': ['ჰუმანიზაცია', 'Humanize'], 'pst.tr': ['ტრანსპოზიცია', 'Transpose'], 'pst.dupN': ['ნოტის გამრავლება', 'Duplicate note'], 'pst.delN': ['ნოტის წაშლა', 'Delete note'],
   'pst.undo': ['უკან', 'Undo'], 'pst.redo': ['წინ', 'Redo'], 'pst.grid': ['ბადე', 'Grid'],
   'pst.preset': ['რითმი', 'Rhythm'], 'pst.bars': ['ტაქტები', 'Bars'], 'pst.swing': ['სვინგი', 'Swing'], 'pst.addStep': ['+ დარტყმა', '+ Stroke'], 'pst.delStep': ['დარტყმის წაშლა', 'Remove stroke'],
   'pst.down': ['ჩაკვრა ↓', 'Down ↓'], 'pst.up': ['ამოკვრა ↑', 'Up ↑'], 'pst.acc': ['აქცენტი', 'Accent'], 'pst.mutedS': ['ჩახშობა', 'Mute'], 'pst.stepLen': ['ხანგრძლ.', 'Length'],
-  'pst.chords': ['აკორდები ტაქტებზე', 'Chords by bar'], 'pst.chordNone': ['—', '—'], 'pst.pickChord': ['აკორდი ტაქტისთვის {n}', 'Chord for bar {n}'], 'pst.noShape': ['ფანდურზე ფორმა არ აქვს', 'No shape on the panduri'],
+  'pst.chords': ['აკორდები ტაქტებზე', 'Chords by bar'], 'pst.chordNone': ['—', '—'], 'pst.pickChord': ['აკორდი ტაქტისთვის {n}', 'Chord for bar {n}'], 'pst.noShape': ['ფანდურზე ფორმა არ აქვს', 'No shape on the fanduri'],
   'pst.voicing': ['ფორმა', 'Voicing'], 'pst.preview': ['მხოლოდ ეს რითმი', 'This rhythm only'],
   'pst.tDefault': ['მასწავლებელს ამ რითმის დარტყმების ხანგრძლივობა ჯერ არ მოუცია — აქ თანაბარია. მიმართულება და აქცენტები მისია; ხანგრძლივობა შენი პროექტისთვის შეცვალე.', 'The teacher has not given this rhythm\'s stroke lengths yet — here they are even. The directions and accents are his; set the lengths for your project.'],
   'pst.teacherR': ['მასწავლებლის რითმი', 'The teacher\'s rhythm'],
   'pst.loopFrom': ['ციკლი: ტაქტიდან', 'Loop: from bar'], 'pst.loopTo': ['ტაქტამდე', 'to bar'],
-  'pst.sound': ['ხმა', 'Sound'], 'pst.soundD': ['მასწავლებლის ფანდური, ჩაწერილი ყოველ ლადზე (ერთი ჩანაწერი ნოტზე). სიმძლავრე ხმას ცვლის; სხვადასხვა ძალით და რამდენჯერმე ჩაწერილი ნოტები (velocity layers, round robin) ჯერ არ არის — ძრავი მათ მიიღებს, როგორც კი ჩაიწერება.', 'The teacher\'s panduri, recorded on every fret (one take per note). Velocity changes the level; notes recorded at several strengths and several times (velocity layers, round robin) are not there yet — the engine takes them as soon as they are recorded.'],
+  'pst.sound': ['ხმა', 'Sound'], 'pst.soundD': ['მასწავლებლის ფანდური, ჩაწერილი ყოველ ლადზე (ერთი ჩანაწერი ნოტზე). სიმძლავრე ხმას ცვლის; სხვადასხვა ძალით და რამდენჯერმე ჩაწერილი ნოტები (velocity layers, round robin) ჯერ არ არის — ძრავი მათ მიიღებს, როგორც კი ჩაიწერება.', 'The teacher\'s fanduri, recorded on every fret (one take per note). Velocity changes the level; notes recorded at several strengths and several times (velocity layers, round robin) are not there yet — the engine takes them as soon as they are recorded.'],
   'pst.synth': ['ამ ფაილში ჩანაწერები არ არის — ჟღერს ფიზიკური მოდელი.', 'This build carries no recordings — a physical model sounds instead.'],
   'pst.empty': ['ამ ტრეკზე ნოტი ჯერ არ არის.', 'No notes on this track yet.']
 });
@@ -172,7 +172,7 @@ PD.pstudio = (() => {
     onSaved = ok => { if (saveEl) saveEl.textContent = t(ok ? 'pst.saved' : 'pst.saving'); };
     root.append(h('div', { class: 'pst-top' }, [
       h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('practice') }),
-      h('b', { class: 'pst-brand', text: 'Panduri Studio' }), name, saveEl, h('span', { class: 'grow' }),
+      h('b', { class: 'pst-brand', text: 'Fanduri Studio' }), name, saveEl, h('span', { class: 'grow' }),
       h('button', { class: 'btn small', text: t('pst.projects'), onclick: projects }),
       h('button', { class: 'btn small', text: t('pst.undo'), onclick: doUndo }), h('button', { class: 'btn small', text: t('pst.redo'), onclick: doRedo })]),
       h('div', { class: 'pst-transport' }, [playB, stopB, posEl, h('label', { class: 'pst-lab' }, [h('small', { text: 'BPM' }), bpm]), h('label', { class: 'pst-lab' }, [h('small', { text: t('pst.meter') }), meter]),

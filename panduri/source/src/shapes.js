@@ -11,7 +11,7 @@
    fret), and the teacher's own rule is marked where it applies.
    ===================================================================== */
 PD.i18n.add({
-  'sh.scales': ['გამები ფანდურზე', 'Scales on the panduri'],
+  'sh.scales': ['გამები ფანდურზე', 'Scales on the fanduri'],
   'sh.scalesD': ['19 გამა — მაჟორიდან ბლუზურამდე: რომელ სიმზე, რომელ ლადზე და რომელი თითით.', '19 scales, from major to the blues — on which string, which fret and with which finger.'],
   'sh.chords': ['აკორდი როგორ აიღო', 'How to take a chord'],
   'sh.chordsD': ['თითოეული აკორდი: ლადები, თითები და 3D ხელი.', 'Every chord: the frets, the fingers and the 3D hand.'],
@@ -30,7 +30,7 @@ PD.i18n.add({
   'sh.g.penta': ['პენტატონიკა და ბლუზი', 'Pentatonic & blues'], 'sh.g.sym': ['სიმეტრიული', 'Symmetrical'],
   'sh.mode7': ['მოდუსები ერთი და იგივე შვიდი ნოტია, უბრალოდ სხვა ნოტიდან დათვლილი: დორიული = მაჟორი მე-2 საფეხურიდან, ფრიგიული — მე-3-დან და ასე შემდეგ. ამიტომ ჟღერს ყოველი სხვანაირად.', 'The modes are the same seven notes counted from a different one: Dorian is the major scale from its 2nd degree, Phrygian from the 3rd, and so on. That is why each has its own colour.'],
   'sh.symN': ['სიმეტრიულ გამებს ტონიკა სუსტად აქვს — ერთი და იგივე ნაბიჯი მეორდება, ამიტომ ყველა ნოტი თანაბრად ჟღერს. ჯაზში დომინანტ-აკორდებზე იყენებენ.', 'A symmetrical scale has a weak home note — the same step repeats, so every note weighs the same. In jazz they are used over dominant chords.'],
-  'sh.bluesN': ['ბლუზური გამა = მინორული პენტატონიკა + ♭5 („ბლუზური ნოტი“). ფანდურზე ეს ნოტი ლადზე ზუსტად არის, ხმის „მოწევა“ (bend) კი ფანდურის ხერხი არ არის — მასწავლებლისგან ასეთი ხერხი ჩვენ არ გვაქვს.', 'The blues scale = the minor pentatonic plus the ♭5, the "blue note". On the panduri that note sits exactly on a fret; bending it is not a panduri technique — we have no such technique from the teacher.'],
+  'sh.bluesN': ['ბლუზური გამა = მინორული პენტატონიკა + ♭5 („ბლუზური ნოტი“). ფანდურზე ეს ნოტი ლადზე ზუსტად არის, ხმის „მოწევა“ (bend) კი ფანდურის ხერხი არ არის — მასწავლებლისგან ასეთი ხერხი ჩვენ არ გვაქვს.', 'The blues scale = the minor pentatonic plus the ♭5, the "blue note". On the fanduri that note sits exactly on a fret; bending it is not a fanduri technique — we have no such technique from the teacher.'],
   'sh.steps': ['ნაბიჯები: {s}', 'Steps: {s}'],
   'sh.notes': ['გამის ნოტები', 'The notes of the scale'],
   'sh.play': ['▶ მოსმენა (ზემოთ და ქვემოთ)', '▶ Listen (up and down)'],

@@ -44,7 +44,7 @@ PD.i18n.add({
   'ck.attach': ['მიმაგრება', 'Attach'], 'ck.media': ['ფოტო ან ვიდეო', 'Photo or video'], 'ck.audio': ['აუდიო ან მუსიკა', 'Audio or music'],
   'ck.gifSearch': ['მოძებნე GIF…', 'Search GIFs…'], 'ck.gifNone': ['ვერაფერი მოიძებნა.', 'Nothing found.'], 'ck.gifBy': ['GIF-ები: GIPHY', 'GIFs by GIPHY'],
   'ck.cat.smile': ['სახეები', 'Faces'], 'ck.cat.hand': ['ჟესტები და გულები', 'Gestures and hearts'], 'ck.cat.music': ['მუსიკა', 'Music'], 'ck.cat.food': ['ბუნება და სუფრა', 'Nature and food'], 'ck.cat.misc': ['სხვა', 'Other'],
-  'ck.st.panduri': ['ფანდური', 'Panduri'], 'ck.st.love': ['მიყვარს', 'Love it'], 'ck.st.bravo': ['ყოჩაღ!', 'Well done!'], 'ck.st.play': ['ვუკრავ', 'Playing'],
+  'ck.st.panduri': ['ფანდური', 'Fanduri'], 'ck.st.love': ['მიყვარს', 'Love it'], 'ck.st.bravo': ['ყოჩაღ!', 'Well done!'], 'ck.st.play': ['ვუკრავ', 'Playing'],
   'ck.st.again': ['კიდევ ერთხელ!', 'Once more!'], 'ck.st.string': ['სიმი გამიწყდა', 'A string broke'], 'ck.st.fire': ['ცეცხლი!', 'Fire!'], 'ck.st.hi': ['გამარჯობა!', 'Hello!'],
   'ck.st.thanks': ['მადლობა', 'Thank you'], 'ck.st.tempo': ['ტემპი!', 'Tempo!'], 'ck.st.night': ['ძილი ნებისა', 'Good night'], 'ck.st.think': ['როგორ?', 'How?']
 });

@@ -72,7 +72,7 @@ css_single = re.sub(
 
 css = css + src('market.css') + '\n'
 for n in ORDER: assert '</script' not in src(n + '.js'), n
-TITLE = 'ფანდური — Panduri Learning'
+TITLE = 'ფანდური — Fanduri Learning'
 DESC = 'Learn the Georgian three-string panduri: lessons that wait for you, teacher video, tuner, chords, 3D instrument and a studio for teachers.'
 # the languages other than Georgian and English: one pack per language, arrays aligned with a shared list of the
 # English source, so the single-file build does not carry the English once per language

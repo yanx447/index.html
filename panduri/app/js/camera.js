@@ -7,9 +7,9 @@
    The picture is a mirror only: it is never recorded, uploaded or analysed.
    ===================================================================== */
 PD.i18n.add({
-  'cam.title': ['კამერით სწავლა', 'Learn with the camera'], 'cam.lead': ['ჩართე კამერა, დაიჭირე ფანდური, ჩაჯექი ჩარჩოში და დაუკარი აპთან ერთად.', 'Turn on the camera, take the panduri, sit in the frame and play along with the app.'],
+  'cam.title': ['კამერით სწავლა', 'Learn with the camera'], 'cam.lead': ['ჩართე კამერა, დაიჭირე ფანდური, ჩაჯექი ჩარჩოში და დაუკარი აპთან ერთად.', 'Turn on the camera, take the fanduri, sit in the frame and play along with the app.'],
   'cam.what': ['რა ვისწავლოთ?', 'What shall we learn?'], 'cam.hand': ['რომელი ხელით ჩამოკრავ?', 'Which hand strums?'], 'cam.right': ['მარჯვენით', 'Right hand'], 'cam.left': ['მარცხენით', 'Left hand'],
-  'cam.place': ['დადე ტელეფონი 1–1.5 მეტრზე, თვალის სიმაღლეზე. მთელი ფანდური უნდა ჩანდეს ჩარჩოში.', 'Place the phone 1–1.5 m away at eye level. The whole panduri should be inside the frame.'],
+  'cam.place': ['დადე ტელეფონი 1–1.5 მეტრზე, თვალის სიმაღლეზე. მთელი ფანდური უნდა ჩანდეს ჩარჩოში.', 'Place the phone 1–1.5 m away at eye level. The whole fanduri should be inside the frame.'],
   'cam.start': ['კამერის ჩართვა', 'Turn on the camera'], 'cam.frame': ['ჩაჯექი ჩარჩოში', 'Sit inside the frame'], 'cam.private': ['გამოსახულება არსად იწერება და არსად იგზავნება — ეს მხოლოდ სარკეა.', 'The picture is never recorded or sent anywhere — it is just a mirror.'],
   'cam.denied': ['კამერაზე წვდომა არ არის — ჩართე ბრაუზერის/ტელეფონის პარამეტრებში. ვარჯიში კამერის გარეშე გაგრძელდება.', 'No camera access — allow it in the browser/phone settings. Practice continues without the camera.'],
   'cam.none': ['ამ მოწყობილობაზე კამერა ვერ მოიძებნა.', 'No camera was found on this device.'], 'cam.song': ['სიმღერა', 'Song'], 'cam.lesson': ['გაკვეთილი', 'Lesson'], 'cam.program': ['ლეველის პროგრამა', 'Level program'],

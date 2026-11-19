@@ -724,7 +724,7 @@ PD.aimus = (() => {
   /** Exact event columns: dense notes never overwrite one another in exported TAB. */
   function tabText(M, title) {
     const S = PD.aiScore.score(M), t = PD.i18n.t;
-    let out = (title || 'Panduri') + '\n' + [3, 2, 1].map(s => TH.name(TH.open(s))).join(' · ') + ' · ' + M.metre.num + '/' + M.metre.den + ' · ' + Math.round(M.bpm) + ' BPM\n';
+    let out = (title || 'Fanduri') + '\n' + [3, 2, 1].map(s => TH.name(TH.open(s))).join(' · ') + ' · ' + M.metre.num + '/' + M.metre.den + ' · ' + Math.round(M.bpm) + ' BPM\n';
     for (let b = 0; b < S.bars; b++) {
       const events = S.events.filter(e => e.bar === b && e.n), starts = [...new Set(events.map(e => e.start))].sort((a, b) => a - b);
       out += '\n' + t('tr.bar', { n: b + 1 }) + '\n';
@@ -762,15 +762,15 @@ PD.i18n.add({
   'tr.working': ['ვუსმენ ნოტებს…', 'Listening for notes…'], 'tr.cancel': ['შეჩერება', 'Stop'], 'tr.src': ['რას მოვუსმინო', 'What to listen to'],
   'tr.srcOrig': ['მთლიან სიმღერას', 'The whole song'], 'tr.range': ['დიაპაზონი', 'Range'],
   'tr.rMel': ['მელოდია', 'Melody'], 'tr.rHigh': ['მაღალი', 'High'], 'tr.rLow': ['ბასი', 'Bass'],
-  'tr.notes': ['ნოტები', 'Notes'], 'tr.meter': ['ზომა', 'Time signature'], 'tr.unplay': ['ფანდურზე არ იკვრება', 'Not playable on the panduri'],
+  'tr.notes': ['ნოტები', 'Notes'], 'tr.meter': ['ზომა', 'Time signature'], 'tr.unplay': ['ფანდურზე არ იკვრება', 'Not playable on the fanduri'],
   'tr.none': ['ნოტი ვერ ვიპოვე. სცადე სხვა დიაპაზონი, ან ჯერ ინსტრუმენტებად დაყავი.', 'No notes found. Try another range, or split the instruments first.'],
-  'tr.vStaff': ['სანოტო', 'Staff'], 'tr.vRoll': ['პიანო', 'Piano roll'], 'tr.vLet': ['ასოები', 'Letters'], 'tr.vSol': ['სოლფეჯიო', 'Solfège'], 'tr.vNum': ['ციფრები', 'Numbers'], 'tr.vTab': ['ტაბი', 'Panduri tab'],
+  'tr.vStaff': ['სანოტო', 'Staff'], 'tr.vRoll': ['პიანო', 'Piano roll'], 'tr.vLet': ['ასოები', 'Letters'], 'tr.vSol': ['სოლფეჯიო', 'Solfège'], 'tr.vNum': ['ციფრები', 'Numbers'], 'tr.vTab': ['ტაბი', 'Fanduri tab'],
   'tr.onNeck': ['ნოტი ფანდურზე', 'Note on the neck'], 'tr.onNeckD': ['დაკვრისას გრიფზე აკორდის ნაცვლად მიმდინარე ნოტი ჩანს', 'During playback the neck shows the current note instead of the chord'],
   'tr.conf': ['სანდოობა', 'Confidence'], 'tr.cHigh': ['მაღალი', 'high'], 'tr.cMid': ['საშუალო', 'medium'], 'tr.cLow': ['დაბალი', 'low'],
   'tr.unsure': ['ზუსტად ვერ განვსაზღვრე — შეგიძლია ხელით შეცვალო', 'Could not be determined with confidence — you can set it by hand'],
   'tr.alt': ['სხვა შესაძლო წაკითხვა', 'Another possible reading'], 'tr.bar': ['ტაქტი {n}', 'Bar {n}'],
   'tr.exp': ['შენახვა', 'Export'], 'tr.expMidi': ['MIDI', 'MIDI'], 'tr.expXml': ['MusicXML', 'MusicXML'], 'tr.expJson': ['JSON', 'JSON'], 'tr.expTab': ['ტაბი (ტექსტი)', 'Tab (text)'], 'tr.expPdf': ['ბეჭდვა · PDF', 'Print · PDF'],
-  'tr.expNote': ['MIDI-ში ფანდურის სიმი და ლადი არ ინახება — ისინი JSON-სა და ტაბშია.', 'MIDI does not carry the panduri string and fret — those are in the JSON and in the tab.'],
+  'tr.expNote': ['MIDI-ში ფანდურის სიმი და ლადი არ ინახება — ისინი JSON-სა და ტაბშია.', 'MIDI does not carry the fanduri string and fret — those are in the JSON and in the tab.'],
   'tr.est': ['ეს AI-ის გაზომვაა და არა დადასტურებული ნოტაცია. სანდოობა ყოველ ნოტზე წერია; შეამოწმე ყურით.', 'This is what the AI measured, not a verified score. Every note carries its confidence; check it by ear.'],
   'tr.oct': ['ოქტავით {d}: {n}', 'octave {d}: {n}'], 'tr.sections': ['ნაწილები', 'Parts'], 'tr.part': ['ნაწილი {n}', 'Part {n}'],
   'tr.secNote': ['ნაწილები იქ იყოფა, სადაც მუსიკა იცვლება. სახელებს არ ვარქმევ — აუდიო არ ამბობს, რომელია მისამღერი.', 'The parts are cut where the music changes. They are not named — the audio does not say which one is a chorus.'],
@@ -780,7 +780,7 @@ PD.i18n.add({
   'tr.pos': ['{s} სიმი · {f} ლადი', 'string {s} · fret {f}'], 'tr.open': ['ღია', 'open'], 'tr.nope': ['ვერ იკვრება', 'not playable'],
   'tr.zoom': ['მასშტაბი', 'Zoom'], 'tr.follow': ['თან მიჰყვება', 'Follow'],
   'tr.pm': ['პრემიუმი', 'Premium'],
-  'tr.pmTr': ['ნოტების ამოცნობა (ნოტი ნოტზე, ექვსი ხედი და ფანდურზე ჩვენება) პრემიუმშია. ტემპი, ტონალობა, აკორდები და რითმი უფასოდ მუშაობს.', 'Note-by-note transcription (six views, shown on the panduri) is in Premium. Tempo, key, chords and rhythm work for free.'],
+  'tr.pmTr': ['ნოტების ამოცნობა (ნოტი ნოტზე, ექვსი ხედი და ფანდურზე ჩვენება) პრემიუმშია. ტემპი, ტონალობა, აკორდები და რითმი უფასოდ მუშაობს.', 'Note-by-note transcription (six views, shown on the fanduri) is in Premium. Tempo, key, chords and rhythm work for free.'],
   'tr.pmExp': ['ექსპორტი (MIDI · MusicXML · ტაბი · JSON) პრემიუმშია.', 'Export (MIDI · MusicXML · tab · JSON) is in Premium.'],
   'tr.edit': ['შესწორება', 'Correct'], 'tr.editD': ['შესწორებისას შეეხე ნოტს და შეცვალე სიმაღლე, სიმი ან ლადი', 'In correct mode, tap a note to change its pitch, string or fret']
 });

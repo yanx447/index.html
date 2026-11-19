@@ -178,7 +178,7 @@ PD.advData = (() => {
         ['play', ['4–3 დაკავება G-ზე', '4–3 suspension over G'], { ch: ['G2 D4 G4 C5', 'G2 D4 G4 B4'], gap: 1.2 }],
         ['play', ['გამავალი ბგერები C-ზე', 'Passing tones over C'], { mel: 'C4 D4 E4 F4 G4', gap: .35 }],
         ['h', 'ორგანული პუნქტი', 'The pedal point'],
-        ['p', 'ბასი ერთ ნოტზე „ჩერდება“, ზემოთ კი ჰარმონია იცვლება — ხშირად ტონიკაზე (დასასრულში) ან დომინანტაზე (რეპრიზის წინ). ფანდურზე ღია სიმიც ასე მოქმედებს — ბურდონი.', 'The bass “stays” on one note while the harmony moves above it — often the tonic (at the end) or the dominant (before a return). On the panduri an open string does the same — a drone.'],
+        ['p', 'ბასი ერთ ნოტზე „ჩერდება“, ზემოთ კი ჰარმონია იცვლება — ხშირად ტონიკაზე (დასასრულში) ან დომინანტაზე (რეპრიზის წინ). ფანდურზე ღია სიმიც ასე მოქმედებს — ბურდონი.', 'The bass “stays” on one note while the harmony moves above it — often the tonic (at the end) or the dominant (before a return). On the fanduri an open string does the same — a drone.'],
         ['play', ['დომინანტის პუნქტი: G ბასში', 'A dominant pedal: G in the bass'], { ch: ['G2 C4 E4 G4', 'G2 B3 D4 F4', 'G2 C4 F4 A4', 'G2 B3 D4 G4', 'C3 C4 E4 G4'], gap: .9 }]],
       q: [
         [['4–3 დაკავება როგორ იხსნება?', 'How does a 4–3 suspension resolve?'], [['ნაბიჯით ქვემოთ', 'Down by step'], ['ნაბიჯით ზემოთ', 'Up by step'], ['ნახტომით', 'By leap']], 0, ['კვარტა ტერციაზე ეშვება.', 'The fourth falls to the third.']],

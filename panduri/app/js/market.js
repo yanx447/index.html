@@ -11,14 +11,14 @@
      · 'mine' · 'saved' · 'seller:<uid>' · 'inbox' · 't:<listing>:<buyer>' · 'admin' · 'sales' · 'return'
    ===================================================================== */
 PD.i18n.add({
-  'mk.title': ['ფანდურის ბაზარი', 'Panduri Marketplace'],
-  'mk.lead': ['იყიდე და გაყიდე ფანდური, ჩონგური და აქსესუარები.', 'Buy and sell panduri, chonguri and accessories.'],
+  'mk.title': ['ფანდურის ბაზარი', 'Fanduri Marketplace'],
+  'mk.lead': ['იყიდე და გაყიდე ფანდური, ჩონგური და აქსესუარები.', 'Buy and sell fanduri, chonguri and accessories.'],
   'mk.add': ['განცხადების დამატება', 'Add a listing'],
   'mk.mine': ['ჩემი განცხადებები', 'My listings'], 'mk.saved': ['შენახული', 'Saved'], 'mk.inbox': ['წერილები', 'Messages'], 'mk.admin': ['ბაზრის მართვა', 'Marketplace admin'],
-  'mk.search': ['ძებნა: ფანდური, ოსტატი, ქალაქი…', 'Search: panduri, maker, city…'],
+  'mk.search': ['ძებნა: ფანდური, ოსტატი, ქალაქი…', 'Search: fanduri, maker, city…'],
   'mk.filters': ['ფილტრები', 'Filters'], 'mk.apply': ['ჩვენება', 'Show'], 'mk.reset': ['გასუფთავება', 'Clear'],
   'mk.all': ['ყველა', 'All'],
-  'mk.c.panduri': ['ფანდური', 'Panduri'], 'mk.c.chonguri': ['ჩონგური', 'Chonguri'], 'mk.c.instrument': ['სხვა ინსტრუმენტი', 'Other instrument'],
+  'mk.c.panduri': ['ფანდური', 'Fanduri'], 'mk.c.chonguri': ['ჩონგური', 'Chonguri'], 'mk.c.instrument': ['სხვა ინსტრუმენტი', 'Other instrument'],
   'mk.c.parts': ['სიმები და ნაწილები', 'Strings & parts'], 'mk.c.accessory': ['ჩასადებები და აქსესუარები', 'Cases & accessories'],
   'mk.k.new': ['ახალი', 'New'], 'mk.k.like_new': ['თითქმის ახალი', 'Like new'], 'mk.k.good': ['კარგი', 'Good'], 'mk.k.fair': ['ნახმარი', 'Used'], 'mk.k.repair': ['შესაკეთებელი', 'Needs repair'],
   'mk.sort': ['დალაგება', 'Sort'], 'mk.s.new': ['ახალი პირველი', 'Newest first'], 'mk.s.price_asc': ['ჯერ იაფი', 'Cheapest first'], 'mk.s.price_desc': ['ჯერ ძვირი', 'Most expensive first'], 'mk.s.ending': ['მალე სრულდება', 'Ending soon'],
@@ -58,7 +58,7 @@ PD.i18n.add({
   'mk.finish': ['გამოქვეყნება', 'Publish'],
   /* the form */
   'mk.newT': ['ახალი განცხადება', 'New listing'], 'mk.editT': ['განცხადების რედაქტირება', 'Edit listing'],
-  'mk.f.title': ['სათაური', 'Title'], 'mk.f.titleP': ['მაგ.: ფანდური, ცაცხვი, 2019', 'e.g. Panduri, linden wood, 2019'],
+  'mk.f.title': ['სათაური', 'Title'], 'mk.f.titleP': ['მაგ.: ფანდური, ცაცხვი, 2019', 'e.g. Fanduri, linden wood, 2019'],
   'mk.f.cat': ['კატეგორია', 'Category'], 'mk.f.cond': ['მდგომარეობა', 'Condition'], 'mk.f.price': ['ფასი', 'Price'], 'mk.f.priceP': ['ცარიელი — შეთანხმებით', 'Empty — on request'],
   'mk.f.neg': ['ვაჭრობა შესაძლებელია', 'Open to offers'], 'mk.f.city': ['ქალაქი', 'City'], 'mk.f.phone': ['ტელეფონი (არასავალდებულო)', 'Phone (optional)'],
   'mk.f.phoneD': ['ჩანს მხოლოდ ანგარიშით შესულ მყიდველს, როცა „ტელეფონის ნახვას“ დააჭერს.', 'Shown only to a signed-in buyer who taps “Show phone”.'],
@@ -90,7 +90,7 @@ PD.i18n.add({
   'mk.p.method': ['გადახდის მეთოდი', 'Payment method'], 'mk.p.pay': ['გადახდა · {p}', 'Pay {p}'],
   'mk.p.noPay': ['განცხადების გამოქვეყნება ჩაირთვება, როგორც კი ბარათით გადახდა გააქტიურდება. მონახაზი შენახულია.', 'Publishing switches on once card payment is activated. Your draft is saved.'],
   'mk.p.noStore': ['ამ ვერსიაში რეკლამის შეძენა ჯერ შეუძლებელია.', 'Advertisements cannot be bought in this version yet.'],
-  'mk.p.safe': ['ბარათის მონაცემებს ფანდური ვერ ხედავს — მათ ბანკის ან PayPal-ის დაცულ გვერდზე შეიყვან.', 'Panduri never sees your card — you type it on the bank’s or PayPal’s secure page.'],
+  'mk.p.safe': ['ბარათის მონაცემებს ფანდური ვერ ხედავს — მათ ბანკის ან PayPal-ის დაცულ გვერდზე შეიყვან.', 'Fanduri never sees your card — you type it on the bank’s or PayPal’s secure page.'],
   'mk.p.store': ['App Store / Google Play', 'App Store / Google Play'], 'mk.p.storeD': ['გადახდა შენი მაღაზიის ანგარიშით', 'Paid with your store account'],
   /* back from paying */
   'mk.r.checking': ['ვამოწმებთ გადახდას ბანკთან…', 'Checking the payment with the bank…'],

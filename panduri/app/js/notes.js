@@ -7,7 +7,7 @@
    (and in the account backup).
    ===================================================================== */
 PD.i18n.add({
-  'tb.title': ['მუსიკის თეორია: ნოტები', 'Music theory: notes'], 'tb.lead': ['ყველაფერი ნოტებზე — სახელებიდან ტონალობამდე, ფანდურის სიმებზე და ხმით.', 'Everything about notes — from names to keys, on the panduri\'s strings and with sound.'],
+  'tb.title': ['მუსიკის თეორია: ნოტები', 'Music theory: notes'], 'tb.lead': ['ყველაფერი ნოტებზე — სახელებიდან ტონალობამდე, ფანდურის სიმებზე და ხმით.', 'Everything about notes — from names to keys, on the fanduri\'s strings and with sound.'],
   'tb.read': ['{a} / {b} თავი', '{a} / {b} chapters'], 'tb.next': ['შემდეგი თავი', 'Next chapter'], 'tb.prev': ['წინა', 'Previous'], 'tb.list': ['ყველა თავი', 'All chapters'], 'tb.done': ['დასრულებული', 'Done'],
   'tb.check': ['შეამოწმე თავი', 'Check yourself'], 'tb.right': ['სწორია!', 'Correct!'], 'tb.wrong': ['არა — ', 'Not quite — '], 'tb.play': ['▶ მოსმენა', '▶ Listen'], 'tb.finish': ['დასრულება', 'Finish'],
   'tb.tool': ['ნოტები, ოქტავა, ხუთხაზედი, ხანგრძლივობა, ინტერვალები, გამები, აკორდები.', 'Notes, octaves, staff, durations, intervals, scales, chords.'], 'tb.chapter': ['თავი {n}', 'Chapter {n}']
@@ -49,7 +49,7 @@ PD.theoryBook = (() => {
       b.append(P('<b>ბგერას</b> აქვს სიმაღლე: რაც უფრო სწრაფად ირხევა სიმი, მით უფრო მაღალია ბგერა. <b>ნოტი</b> ბგერის სახელი და მისი ჩაწერის ნიშანია.', 'A <b>sound</b> has a pitch: the faster a string vibrates, the higher the sound. A <b>note</b> is the name of a sound and the sign used to write it.'),
         P('მუსიკაში 7 ძირითადი ნოტია. მათ ორი სახელწოდების სისტემით ვწერთ — ორივე ერთსა და იმავეს ნიშნავს:', 'There are 7 basic notes. Two naming systems are used — they mean the same thing:'),
         TABLE([L('სილაბური', 'Solfège'), L('ასოებით', 'Letters')], [['დო', 'C'], ['რე', 'D'], ['მი', 'E'], ['ფა', 'F'], ['სოლ', 'G'], ['ლა', 'A'], ['სი', 'B']]),
-        P('ფანდურზე ყველა მათგანის დაკვრა შეიძლება — დააჭირე და მოუსმინე:', 'All of them can be played on the panduri — tap to listen:'),
+        P('ფანდურზე ყველა მათგანის დაკვრა შეიძლება — დააჭირე და მოუსმინე:', 'All of them can be played on the fanduri — tap to listen:'),
         h('div', { class: 'tb-ns' }, ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'].map(n => NOTE(M(n), n))),
         BTN('მთლიანად, ზემოთ', 'All, going up', () => seq(['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'].map(M), .42)),
         P('სი-ს შემდეგ ისევ დო მოდის, ოღონდ უფრო მაღლა — სახელები წრეზე მეორდება.', 'After B comes C again, only higher — the names repeat in a circle.'),
@@ -62,19 +62,19 @@ PD.theoryBook = (() => {
       b.append(P('ორ ერთსახელიან ნოტს შორის მანძილს <b>ოქტავა</b> ჰქვია. ზედა ნოტი ორჯერ უფრო სწრაფად ირხევა: <b>ლა3 = 220 ჰც, ლა4 = 440 ჰც, ლა5 = 880 ჰც</b>.', 'The distance between two notes with the same name is an <b>octave</b>. The upper one vibrates twice as fast: <b>A3 = 220 Hz, A4 = 440 Hz, A5 = 880 Hz</b>.'),
         P('ოქტავას ნომრით აღვნიშნავთ: <b>C4</b> პიანინოს შუა „დო“ა; C4-დან B4-მდე ყველა ნოტს ნომერი 4 აქვს, C5-დან — 5.', 'Octaves are numbered: <b>C4</b> is middle C on the piano; every note from C4 up to B4 carries the number 4, from C5 on — 5.'),
         h('div', { class: 'tb-ns' }, ['A3', 'A4', 'A5'].map(n => NOTE(M(n), n))), BTN('ლა სამ ოქტავაში', 'A in three octaves', () => seq(['A3', 'A4', 'A5'].map(M), .7)),
-        H('ფანდურის სიმები', 'The panduri\'s strings'),
+        H('ფანდურის სიმები', 'The fanduri\'s strings'),
         TABLE([L('სიმი', 'String'), L('ნოტი', 'Note'), L('სიხშირე', 'Frequency')], [['A (ლა)', 'A3', '220.0 ' + L('ჰც', 'Hz')], ['C♯ (დო დიეზი)', 'C♯4', '277.2 ' + L('ჰც', 'Hz')], ['E (მი)', 'E4', '329.6 ' + L('ჰც', 'Hz')]]),
-        P('17 ლადით ფანდური <b>A3-დან A5-მდე</b> უკრავს — ზუსტად ორ ოქტავას. ყველაზე დაბალი ბგერა A სიმის ღია ბგერაა, ყველაზე მაღალი — E სიმის მე-17 ლადი.', 'With 17 frets the panduri plays from <b>A3 to A5</b> — exactly two octaves. The lowest sound is the open A string, the highest is the 17th fret of the E string.'),
+        P('17 ლადით ფანდური <b>A3-დან A5-მდე</b> უკრავს — ზუსტად ორ ოქტავას. ყველაზე დაბალი ბგერა A სიმის ღია ბგერაა, ყველაზე მაღალი — E სიმის მე-17 ლადი.', 'With 17 frets the fanduri plays from <b>A3 to A5</b> — exactly two octaves. The lowest sound is the open A string, the highest is the 17th fret of the E string.'),
         BTN('ფანდურის მთელი დიაპაზონი', 'The whole range', () => seq(['A3', 'A4', 'A5'].map(M), .8)));
     }, q: [
       [['A4 = 440 ჰც. რამდენია A5?', 'A4 = 440 Hz. What is A5?'], [['880 ჰც', '880 Hz'], ['660 ჰც', '660 Hz'], ['220 ჰც', '220 Hz']], 0, ['ოქტავით ზემოთ — ორჯერ მეტი.', 'One octave up — twice as much.']],
-      [['რომელია ფანდურის ყველაზე დაბალი ბგერა?', 'Which is the panduri\'s lowest sound?'], ['A3 — ღია A სიმი', 'E4 — ღია E სიმი', 'C4'], 0, ['A სიმი (A3) ყველაზე დაბალია.', 'The A string (A3) is the lowest.']]] },
+      [['რომელია ფანდურის ყველაზე დაბალი ბგერა?', 'Which is the fanduri\'s lowest sound?'], ['A3 — ღია A სიმი', 'E4 — ღია E სიმი', 'C4'], 0, ['A სიმი (A3) ყველაზე დაბალია.', 'The A string (A3) is the lowest.']]] },
 
     { id: 'semitone', t: ['ნახევარტონი, ტონი და 12 ბგერა', 'Semitones, tones and the 12 notes'], body: b => {
       b.append(P('ოქტავაში სულ <b>12 სხვადასხვა ბგერაა</b>. ორ მეზობელ ბგერას შორის ყველაზე მცირე მანძილს <b>ნახევარტონი</b> ჰქვია; ორი ნახევარტონი = <b>ტონი</b>.', 'An octave holds <b>12 different notes</b>. The smallest step between two neighbours is a <b>semitone</b>; two semitones = a <b>tone</b>.'),
         SVG(A.keyboard({ hi: ['E', 'F', 'B'] })),
         P('კლავიატურაზე კარგად ჩანს: შავი კლავიში თეთრებს შორის ნახევარტონია. <b>მი–ფა (E–F)</b> და <b>სი–დო (B–C)</b> შორის შავი კლავიში არ არის — ისინი ერთმანეთისგან მხოლოდ ნახევარტონით არიან დაშორებული; დანარჩენი თეთრი ნოტები — ტონით.', 'On a keyboard: a black key between two white keys is a semitone away from each. Between <b>E–F</b> and <b>B–C</b> there is no black key — they are only a semitone apart; the other white notes are a tone apart.'),
-        H('ფანდურზე', 'On the panduri'),
+        H('ფანდურზე', 'On the fanduri'),
         UL([['<b>1 ლადი = 1 ნახევარტონი.</b> ერთი ლადით ზემოთ — ბგერა ნახევარტონით მაღლდება.', '<b>1 fret = 1 semitone.</b> One fret up raises the sound by a semitone.'], ['<b>2 ლადი = 1 ტონი.</b>', '<b>2 frets = 1 tone.</b>'], ['<b>12 ლადი = ოქტავა.</b> მე-12 ლადზე ღია სიმის ბგერა მეორდება, ოქტავით მაღლა.', '<b>12 frets = an octave.</b> At the 12th fret the open string\'s note returns, an octave higher.']]),
         BTN('A სიმი: 0 → 12 ლადი, ნახევარტონებით', 'A string: frets 0 → 12 in semitones', () => seq(Array.from({ length: 13 }, (_, i) => M('A3') + i), .3)),
         P('12 ბგერის რიგს <b>ქრომატული გამა</b> ჰქვია: C · C♯ · D · D♯ · E · F · F♯ · G · G♯ · A · A♯ · B.', 'The row of all 12 notes is the <b>chromatic scale</b>: C · C♯ · D · D♯ · E · F · F♯ · G · G♯ · A · A♯ · B.'));
@@ -85,21 +85,21 @@ PD.theoryBook = (() => {
 
     { id: 'accidentals', t: ['დიეზი, ბემოლი, ბეკარი', 'Sharps, flats, naturals'], body: b => {
       b.append(TABLE([L('ნიშანი', 'Sign'), L('სახელი', 'Name'), L('რას აკეთებს', 'What it does')], [
-        ['♯', L('დიეზი', 'sharp'), L('ნახევარტონით ამაღლებს (ფანდურზე: +1 ლადი)', 'raises by a semitone (panduri: +1 fret)')],
+        ['♯', L('დიეზი', 'sharp'), L('ნახევარტონით ამაღლებს (ფანდურზე: +1 ლადი)', 'raises by a semitone (fanduri: +1 fret)')],
         ['♭', L('ბემოლი', 'flat'), L('ნახევარტონით ადაბლებს (−1 ლადი)', 'lowers by a semitone (−1 fret)')],
         ['♮', L('ბეკარი', 'natural'), L('აუქმებს დიეზს ან ბემოლს', 'cancels a sharp or flat')],
         ['𝄪', L('დუბლ-დიეზი', 'double sharp'), L('ტონით ამაღლებს', 'raises by a tone')],
         ['𝄫', L('დუბლ-ბემოლი', 'double flat'), L('ტონით ადაბლებს', 'lowers by a tone')]]),
         P('ერთ ბგერას ორი სახელი შეიძლება ჰქონდეს — მაგ. <b>C♯ = D♭</b>, <b>A♯ = B♭</b>. ასეთ ნოტებს <b>ენჰარმონიულად თანაბარს</b> ვუწოდებთ: ჟღერს ერთნაირად, იწერება სხვადასხვანაირად.', 'One sound can have two names — e.g. <b>C♯ = D♭</b>, <b>A♯ = B♭</b>. Such notes are <b>enharmonic</b>: they sound the same but are written differently.'),
         SVG(A.staff([{ l: 'C', o: 4, label: 'C4' }, { l: 'C', o: 4, acc: '♯', label: 'C♯4' }, { l: 'D', o: 4, acc: '♭', label: 'D♭4' }, { l: 'B', o: 4, acc: '♭', label: 'B♭4' }, { l: 'B', o: 4, acc: '♮', label: 'B4' }], { width: 300 })),
-        P('ფანდურის შუა სიმი თავად <b>C♯</b>-ზეა აწყობილი (დო დიეზი). „ბანი-აჭარულის“ <b>B♭</b> (სი ბემოლი) A სიმის პირველ ლადზეა.', 'The panduri\'s middle string is itself tuned to <b>C♯</b>. The <b>B♭</b> of “Bani-Acharuli” is on the 1st fret of the A string.'),
+        P('ფანდურის შუა სიმი თავად <b>C♯</b>-ზეა აწყობილი (დო დიეზი). „ბანი-აჭარულის“ <b>B♭</b> (სი ბემოლი) A სიმის პირველ ლადზეა.', 'The fanduri\'s middle string is itself tuned to <b>C♯</b>. The <b>B♭</b> of “Bani-Acharuli” is on the 1st fret of the A string.'),
         P('<b>ალტერაციის ნიშნები გასაღებთან</b> (ტაქტის დასაწყისში) მთელ ნაწარმოებზე მოქმედებს; ნოტის წინ დაწერილი ნიშანი — მხოლოდ ამ ტაქტის ბოლომდე.', '<b>Key signatures</b> (at the start of each line) apply to the whole piece; a sign written before a note lasts only to the end of that bar.'),
         BTN('C → C♯ → D', 'C → C♯ → D', () => seq([M('C4'), M('C♯4'), M('D4')], .55)));
     }, q: [
       [['B♭ ფანდურის A სიმზე რომელ ლადზეა?', 'Where is B♭ on the A string?'], [['1-ზე', 'Fret 1'], ['2-ზე', 'Fret 2'], ['ღიაა', 'Open string']], 0, ['A + 1 ნახევარტონი = A♯ = B♭.', 'A + 1 semitone = A♯ = B♭.']],
       [['რა ნიშნავს ♮?', 'What does ♮ mean?'], [['აუქმებს ♯ ან ♭-ს', 'Cancels a ♯ or ♭'], ['ამაღლებს ტონით', 'Raises by a tone'], ['ხმამაღლა დაუკარი', 'Play loudly']], 0, ['ბეკარი ნოტს ჩვეულ სახეს უბრუნებს.', 'A natural returns the note to its plain form.']]] },
 
-    { id: 'neck', t: ['ნოტები ფანდურის ტარზე', 'Notes on the panduri neck'], body: b => {
+    { id: 'neck', t: ['ნოტები ფანდურის ტარზე', 'Notes on the fanduri neck'], body: b => {
       const MK = (PD.instrument.profile && PD.instrument.profile.markers) || { single: [3, 5, 7, 9, 15], double: [12] }, MKS = MK.single.concat(MK.double || []).sort((x, y) => x - y);   // the instrument's own fret dots
       b.append(P('ყველა ბგერა ყველა ლადზე — <b>3 სიმი × 18 ადგილი</b> (0 = ღია სიმი, 1–17 = ლადები). დააჭირე ნებისმიერ უჯრას და მოისმენ.', 'Every sound on every fret — <b>3 strings × 18 places</b> (0 = open string, 1–17 = frets). Tap any cell to hear it.'));
       const rows = [3, 2, 1].map(s => [h('b', { text: TH.stringName(s), style: 'color:' + TH.color(s) })].concat(Array.from({ length: TH.FRETS + 1 }, (_, f) => { const m = TH.midi(s, f); return h('button', { class: 'tb-cell' + (MKS.includes(f) ? ' mk' : ''), onclick: () => { PD.audio.ensure(); PD.audio.note(s, f); } }, [h('b', { text: TH.pcName(m) }), h('small', { text: TH.nameKa(m) + ' ' + (Math.floor(Math.round(m) / 12) - 1) })]); })));
@@ -121,7 +121,7 @@ PD.theoryBook = (() => {
         UL([['<b>ხაზებზე</b> (ქვემოდან): მი · სოლ · სი · რე · ფა — E G B D F', '<b>Lines</b> (bottom up): E G B D F'], ['<b>შუალედებში</b>: ფა · ლა · დო · მი — F A C E', '<b>Spaces</b>: F A C E']]),
         SVG(A.staff([{ l: 'F', o: 4, d: 'w', label: 'F' }, { l: 'A', o: 4, d: 'w', label: 'A' }, { l: 'C', o: 5, d: 'w', label: 'C' }, { l: 'E', o: 5, d: 'w', label: 'E' }], { width: 270 })),
         H('დამატებითი ხაზები', 'Ledger lines'),
-        P('ხუთხაზედს ქვემოთ ან ზემოთ მოკლე <b>დამატებითი ხაზები</b> იწერება. ფანდურის ღია სიმები ასე გამოიყურება (ნამდვილი სიმაღლით): A3 ორ დამატებით ხაზზე, C♯4 — პირველ დამატებით ხაზზე დიეზით, E4 — პირველ ხაზზე.', 'Short <b>ledger lines</b> extend the staff below or above. The panduri\'s open strings look like this (at sounding pitch): A3 on the second ledger line, C♯4 on the first ledger line with a sharp, E4 on the bottom line.'),
+        P('ხუთხაზედს ქვემოთ ან ზემოთ მოკლე <b>დამატებითი ხაზები</b> იწერება. ფანდურის ღია სიმები ასე გამოიყურება (ნამდვილი სიმაღლით): A3 ორ დამატებით ხაზზე, C♯4 — პირველ დამატებით ხაზზე დიეზით, E4 — პირველ ხაზზე.', 'Short <b>ledger lines</b> extend the staff below or above. The fanduri\'s open strings look like this (at sounding pitch): A3 on the second ledger line, C♯4 on the first ledger line with a sharp, E4 on the bottom line.'),
         SVG(A.staff([{ l: 'A', o: 3, d: 'w', label: 'A3' }, { l: 'C', o: 4, acc: '♯', d: 'w', label: 'C♯4' }, { l: 'E', o: 4, d: 'w', label: 'E4' }, { l: 'A', o: 5, d: 'w', label: 'A5' }], { width: 300 })),
         BTN('ღია სიმები', 'Open strings', () => seq([M('A3'), M('C♯4'), M('E4')], .6)),
         H('ფას (ბანის) გასაღები', 'Bass (F) clef'),
@@ -152,7 +152,7 @@ PD.theoryBook = (() => {
           [h('span', { html: A.symbol('note', 'q') }), h('span', { html: A.symbol('rest', 'q') }), L('მეოთხედი პაუზა', 'quarter rest'), '1'],
           [h('span', { html: A.symbol('note', 'e') }), h('span', { html: A.symbol('rest', 'e') }), L('მერვედი პაუზა', 'eighth rest'), '½'],
           [h('span', { html: A.symbol('note', 's') }), h('span', { html: A.symbol('rest', 's') }), L('მეთექვსმეტედი პაუზა', 'sixteenth rest'), '¼']]),
-        P('დასამახსოვრებლად: <b>მთელი პაუზა ხაზზე „კიდია“</b> (ქვემოთ), <b>ნახევარი ხაზზე „ზის“</b> (ზემოთ). ფანდურზე პაუზის დროს სიმებს ხელს ოდნავ ადებენ, რომ ბგერა გაჩუმდეს.', 'To remember: the <b>whole rest hangs</b> below a line, the <b>half rest sits</b> on top of one. On the panduri you lightly touch the strings during a rest to stop the sound.'),
+        P('დასამახსოვრებლად: <b>მთელი პაუზა ხაზზე „კიდია“</b> (ქვემოთ), <b>ნახევარი ხაზზე „ზის“</b> (ზემოთ). ფანდურზე პაუზის დროს სიმებს ხელს ოდნავ ადებენ, რომ ბგერა გაჩუმდეს.', 'To remember: the <b>whole rest hangs</b> below a line, the <b>half rest sits</b> on top of one. On the fanduri you lightly touch the strings during a rest to stop the sound.'),
         SVG(A.staff([{ l: 'A', o: 4, d: 'q', label: '1' }, { rest: 'q', label: '2' }, { l: 'A', o: 4, d: 'q', label: '3' }, { rest: 'q', label: '4' }], { width: 260, time: [4, 4] })),
         BTN('ნოტი · პაუზა · ნოტი · პაუზა', 'Note · rest · note · rest', () => seq([M('A4'), null, M('A4'), null], .55)));
     }, q: [
@@ -181,7 +181,7 @@ PD.theoryBook = (() => {
       [['120 BPM — წამში რამდენი დარტყმაა?', '120 BPM — how many beats per second?'], ['2', '1', '120'], 0, ['120 დარტყმა / 60 წამი = 2.', '120 beats / 60 s = 2.']]] },
 
     { id: 'intervals', t: ['ინტერვალები', 'Intervals'], body: b => {
-      b.append(P('<b>ინტერვალი</b> ორ ბგერას შორის მანძილია. ითვლება ნახევარტონებით — ფანდურზე ეს უბრალოდ <b>ლადების რაოდენობაა</b> ერთ სიმზე. დააჭირე ▶ და მოისმენ A-დან:', 'An <b>interval</b> is the distance between two sounds, counted in semitones — on the panduri simply the <b>number of frets</b> on one string. Press ▶ to hear it from A:'));
+      b.append(P('<b>ინტერვალი</b> ორ ბგერას შორის მანძილია. ითვლება ნახევარტონებით — ფანდურზე ეს უბრალოდ <b>ლადების რაოდენობაა</b> ერთ სიმზე. დააჭირე ▶ და მოისმენ A-დან:', 'An <b>interval</b> is the distance between two sounds, counted in semitones — on the fanduri simply the <b>number of frets</b> on one string. Press ▶ to hear it from A:'));
       const FROM_A = ['A', 'B♭', 'B', 'C', 'C♯', 'D', 'D♯ / E♭', 'E', 'F', 'F♯', 'G', 'G♯', 'A'];   // spelled by interval (a minor 2nd from A is B♭, not A♯)
       const IV = [['წმინდა პრიმა', 'perfect unison'], ['პატარა სეკუნდა', 'minor 2nd'], ['დიდი სეკუნდა', 'major 2nd'], ['პატარა ტერცია', 'minor 3rd'], ['დიდი ტერცია', 'major 3rd'], ['წმინდა კვარტა', 'perfect 4th'], ['ტრიტონი', 'tritone'], ['წმინდა კვინტა', 'perfect 5th'], ['პატარა სექსტა', 'minor 6th'], ['დიდი სექსტა', 'major 6th'], ['პატარა სეპტიმა', 'minor 7th'], ['დიდი სეპტიმა', 'major 7th'], ['წმინდა ოქტავა', 'perfect octave']];
       b.append(TABLE([L('ნახევარტ.', 'Semit.'), L('ინტერვალი', 'Interval'), L('A-დან', 'From A'), ''], IV.map((n, i) => [String(i), L(n[0], n[1]), 'A → ' + FROM_A[i], h('button', { class: 'btn small', text: '▶', onclick: () => seq([M('A3'), M('A3') + i, [M('A3'), M('A3') + i]], [.55, .65, .1]) })])),
@@ -199,7 +199,7 @@ PD.theoryBook = (() => {
         H('რე მინორი — „ბანი-აჭარულის“ გამა', 'D minor — the scale of “Bani-Acharuli”'),
         P('რე ნატურალური მინორი: <b>D · E · F · G · A · B♭ · C · D</b> — ერთი ბემოლი (B♭). სიმღერის სამივე აკორდი — <b>Dm, B♭, C</b> — მხოლოდ ამ ნოტებისგან შედგება.', 'D natural minor: <b>D · E · F · G · A · B♭ · C · D</b> — one flat (B♭). All three chords of the song — <b>Dm, B♭, C</b> — use only these notes.'),
         SVG(A.staff(['D4', 'E4', 'F4', 'G4', 'A4', 'B♭4', 'C5', 'D5'].map(n => ({ l: n[0], o: +n.slice(-1), acc: n.includes('♭') ? '♭' : undefined, label: n.replace(/\d/, '') })), { width: 400, gap: 40 })),
-        P('ფანდურზე: ' + ['D4', 'E4', 'F4', 'G4', 'A4', 'B♭4', 'C5', 'D5'].map(n => '<b>' + n.replace(/\d/, '') + '</b> ' + where(M(n)).split(' / ')[0]).join(' · '), 'On the panduri: ' + ['D4', 'E4', 'F4', 'G4', 'A4', 'B♭4', 'C5', 'D5'].map(n => '<b>' + n.replace(/\d/, '') + '</b> ' + where(M(n)).split(' / ')[0]).join(' · ')),
+        P('ფანდურზე: ' + ['D4', 'E4', 'F4', 'G4', 'A4', 'B♭4', 'C5', 'D5'].map(n => '<b>' + n.replace(/\d/, '') + '</b> ' + where(M(n)).split(' / ')[0]).join(' · '), 'On the fanduri: ' + ['D4', 'E4', 'F4', 'G4', 'A4', 'B♭4', 'C5', 'D5'].map(n => '<b>' + n.replace(/\d/, '') + '</b> ' + where(M(n)).split(' / ')[0]).join(' · ')),
         BTN('რე მინორი', 'D minor', () => seq(['D4', 'E4', 'F4', 'G4', 'A4', 'B♭4', 'C5', 'D5'].map(M), .38)));
     }, q: [
       [['მაჟორული გამის ნაბიჯები:', 'The major scale\'s steps:'], ['ტ ტ ნ ტ ტ ტ ნ', 'ტ ნ ტ ტ ნ ტ ტ', 'ტ ტ ტ ნ ტ ტ ნ'], 0, ['მაჟორი: ტ ტ ნ ტ ტ ტ ნ.', 'Major: T T S T T T S.']],
@@ -210,7 +210,7 @@ PD.theoryBook = (() => {
         TABLE([L('სახე', 'Type'), L('ნახევარტონები', 'Semitones'), L('მაგალითი', 'Example')], [[L('მაჟორი', 'major'), '0 · 4 · 7', 'C = C E G'], [L('მინორი', 'minor'), '0 · 3 · 7', 'Dm = D F A'], [L('შემცირებული', 'diminished'), '0 · 3 · 6', 'B° = B D F'], [L('გადიდებული', 'augmented'), '0 · 4 · 8', 'C+ = C E G♯'], [L('დომინანტსეპტაკორდი', 'dominant 7th'), '0 · 4 · 7 · 10', 'A7 = A C♯ E G']]),
         H('მიმართვები', 'Inversions'),
         P('აკორდის ნოტები შეიძლება სხვადასხვა წესრიგში იყოს. ყველაზე დაბალი ნოტის მიხედვით: <b>ძირითადი სახე</b> (ქვემოთ ტონიკაა), <b>სექსტაკორდი</b> (ქვემოთ ტერციაა) და <b>კვარტსექსტაკორდი</b> (ქვემოთ კვინტაა).', 'A chord\'s notes can be stacked in different orders. By the lowest note: <b>root position</b> (root at the bottom), <b>first inversion</b> (third at the bottom) and <b>second inversion</b> (fifth at the bottom).'),
-        H('„ბანი-აჭარულის“ აკორდები ფანდურზე', 'The chords of “Bani-Acharuli” on the panduri'),
+        H('„ბანი-აჭარულის“ აკორდები ფანდურზე', 'The chords of “Bani-Acharuli” on the fanduri'),
         TABLE([L('აკორდი', 'Chord'), L('ლადები (A · C♯ · E)', 'Frets (A · C♯ · E)'), L('ნოტები (ქვემოდან)', 'Notes (from the bottom)'), L('სახე', 'Position'), ''], [
           ['Dm', '0 · 1 · 1', 'A · D · F', L('კვარტსექსტაკორდი (ქვემოთ კვინტა A)', '2nd inversion (fifth A at the bottom)'), h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.theory.strum([0, 1, 1], 'down', { gap: .03 }); } })],
           ['B♭', '1 · 1 · 1', 'B♭ · D · F', L('ძირითადი', 'root position'), h('button', { class: 'btn small', text: '▶', onclick: () => { PD.audio.ensure(); PD.audio.theory.strum([1, 1, 1], 'down', { gap: .03 }); } })],
@@ -224,7 +224,7 @@ PD.theoryBook = (() => {
     { id: 'key', t: ['ტონალობა და საფეხურები', 'Keys and scale degrees'], body: b => {
       b.append(P('<b>ტონალობა</b> გამის „სახლია“: რომელი ბგერაა მთავარი (ტონიკა) და რომელი ნოტები გამოიყენება. გამის ყოველ ნოტზე (<b>საფეხურზე</b>) აკორდი შეიძლება ავაგოთ — მათ რომაული ციფრებით ვნიშნავთ.', 'A <b>key</b> is a scale\'s home: which note is central (the tonic) and which notes are used. A chord can be built on every note (<b>degree</b>) of the scale — written with Roman numerals.'),
         TABLE([L('საფეხური', 'Degree'), 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'], [[L('დო მაჟორი', 'C major'), 'C', 'Dm', 'Em', 'F', 'G', 'Am', 'B°'], [L('რე მინორი', 'D minor'), '<b>Dm</b>', 'E°', 'F', 'Gm', 'Am / A', '<b>B♭</b>', '<b>C</b>']]),
-        UL([['<b>I — ტონიკა</b>: მშვიდი, „სახლი“.', '<b>I — tonic</b>: calm, “home”.'], ['<b>IV — სუბდომინანტა</b>: ტონიკიდან მოშორება.', '<b>IV — subdominant</b>: moving away from home.'], ['<b>V — დომინანტა</b>: დაძაბულობა, ტონიკაში დაბრუნება სურს. მინორში ხშირად მაჟორულია (რე მინორში — A = A C♯ E: ფანდურის ღია სიმები!).', '<b>V — dominant</b>: tension that wants to return home. In minor it is often major (in D minor — A = A C♯ E: the panduri\'s open strings!).']]),
+        UL([['<b>I — ტონიკა</b>: მშვიდი, „სახლი“.', '<b>I — tonic</b>: calm, “home”.'], ['<b>IV — სუბდომინანტა</b>: ტონიკიდან მოშორება.', '<b>IV — subdominant</b>: moving away from home.'], ['<b>V — დომინანტა</b>: დაძაბულობა, ტონიკაში დაბრუნება სურს. მინორში ხშირად მაჟორულია (რე მინორში — A = A C♯ E: ფანდურის ღია სიმები!).', '<b>V — dominant</b>: tension that wants to return home. In minor it is often major (in D minor — A = A C♯ E: the fanduri\'s open strings!).']]),
         P('„ბანი-აჭარული“ რე მინორშია: <b>Dm (I) · B♭ (VI) · C (VII)</b> — ტონიკიდან ქვემოთ, VI და VII საფეხურებზე, და ისევ ტონიკაში.', '“Bani-Acharuli” is in D minor: <b>Dm (I) · B♭ (VI) · C (VII)</b> — from the tonic to degrees VI and VII and home again.'),
         BTN('Dm · Dm · B♭ · C', 'Dm · Dm · B♭ · C', () => { PD.audio.ensure(); const ctx = PD.audio.ctx, t0 = ctx.currentTime + .05; [[0, 1, 1], [0, 1, 1], [1, 1, 1], [3, 3, 3], [0, 1, 1]].forEach((f, i) => PD.audio.theory.strum(f, 'down', { gap: .03, when: t0 + i * .6 })); }),
         h('button', { class: 'btn small', 'data-t': 'cf.title', onclick: () => PD.app.go('circle') }));
@@ -243,8 +243,8 @@ PD.theoryBook = (() => {
       [['რას ნიშნავს <i>f</i>?', 'What does <i>f</i> mean?'], [['ხმამაღლა', 'Loud'], ['ჩუმად', 'Soft'], ['სწრაფად', 'Fast']], 0, ['forte = ხმამაღლა.', 'forte = loud.']],
       [['აპში წითელი ისარი ნიშნავს…', 'In the app a red arrow means…'], [['აქცენტს — ძლიერად დაკვრას', 'An accent — a stronger stroke'], ['შეცდომას', 'A mistake'], ['ამოკვრას', 'An up-stroke']], 0, ['წითელი = აქცენტი.', 'Red = accent.']]] },
 
-    { id: 'app', t: ['როგორ წერს აპი ფანდურისთვის', 'How the app writes for the panduri'], body: b => {
-      b.append(P('გაკვეთილებში ნოტები ხუთხაზედის ნაცვლად <b>ფანდურის ენით</b> იწერება — ასე უფრო სწრაფად იკითხება:', 'In the lessons notes are written in the <b>panduri\'s own language</b> instead of a staff — quicker to read:'),
+    { id: 'app', t: ['როგორ წერს აპი ფანდურისთვის', 'How the app writes for the fanduri'], body: b => {
+      b.append(P('გაკვეთილებში ნოტები ხუთხაზედის ნაცვლად <b>ფანდურის ენით</b> იწერება — ასე უფრო სწრაფად იკითხება:', 'In the lessons notes are written in the <b>fanduri\'s own language</b> instead of a staff — quicker to read:'),
         TABLE([L('ნიშანი', 'Sign'), L('ნიშნავს', 'Means')], [['↓', L('ჩაკვრა (ზემოდან ქვემოთ)', 'down-stroke')], ['↑', L('ამოკვრა (ქვემოდან ზემოთ)', 'up-stroke')], ['<b style="color:#FF6B5B">↓ ↑</b>', L('აქცენტი — ძლიერად', 'accent — strongly')], ['0', L('ღია სიმი', 'open string')], ['1 … 17', L('ლადის ნომერი', 'fret number')], [L('წრე ციფრით', 'circle with a number'), L('რომელი თითით: 1 საჩვენებელი · 2 შუა · 3 არათითი · 4 ნეკი', 'which finger: 1 index · 2 middle · 3 ring · 4 little')], [L('გრძელი კაფსულა', 'long capsule'), L('ბარე — ერთი თითი რამდენიმე სიმზე', 'barre — one finger across several strings')]]),
         P('<b>რითმი</b> აპში დარტყმების ჯგუფია: მაგ. აჭარული = <b>↓ ↓ ↑</b> (ჩაკვრა · ჩაკვრა · ამოკვრა) — ერთი რითმი. „2 რითმი“ = ↓ ↓ ↑ ↓ ↓ ↑.', 'A <b>rhythm</b> in the app is a group of strokes: e.g. Acharuli = <b>↓ ↓ ↑</b> — one rhythm. “2 rhythms” = ↓ ↓ ↑ ↓ ↓ ↑.'),
         P('სიმების წესრიგი ეკრანზე: <b>ზემოთ E, შუაში C♯, ქვემოთ A</b>. სიმები ფერითაც განსხვავდება.', 'String order on screen: <b>E at the top, C♯ in the middle, A at the bottom</b>; each string also has its colour.'),
@@ -327,7 +327,7 @@ PD.theoryBook = (() => {
     if (S) {
       body.append(h('section', { class: 'tbs-easy' }, [h('h2', { class: 'tbs-h', text: L('მარტივად', 'In simple words') })].concat(S.easy.map(([ka, en]) => h('p', { html: L(ka, en) })))),
         h('section', { class: 'tbs-rem' }, [h('h3', { text: L('დაიმახსოვრე', 'Remember') }), h('ul', {}, S.remember.map(([ka, en]) => h('li', { html: L(ka, en) })))]),
-        S.try ? h('section', { class: 'tbs-try' }, [h('span', { class: 'tbs-ic', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7M17 6l-6.5 6.5"/><path d="M10.5 12.5a4.5 4.5 0 1 1-6.4 6.4 4.5 4.5 0 0 1 6.4-6.4z"/><circle cx="7.3" cy="15.7" r="1.2" fill="currentColor"/></svg>' }), h('div', {}, [h('b', { text: L('სცადე ფანდურზე', 'Try it on the panduri') }), h('p', { html: L(S.try[0], S.try[1]) })])]) : null,
+        S.try ? h('section', { class: 'tbs-try' }, [h('span', { class: 'tbs-ic', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7M17 6l-6.5 6.5"/><path d="M10.5 12.5a4.5 4.5 0 1 1-6.4 6.4 4.5 4.5 0 0 1 6.4-6.4z"/><circle cx="7.3" cy="15.7" r="1.2" fill="currentColor"/></svg>' }), h('div', {}, [h('b', { text: L('სცადე ფანდურზე', 'Try it on the fanduri') }), h('p', { html: L(S.try[0], S.try[1]) })])]) : null,
         h('div', { class: 'tbs-more' }, [h('span', { text: L('დეტალურად', 'In detail') })]));
     }
     const det = h('div', { class: 'tbs-det' }); body.append(det);

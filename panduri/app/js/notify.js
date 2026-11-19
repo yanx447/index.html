@@ -56,9 +56,9 @@ PD.i18n.add({
   'nt.devCount': ['{n} მოწყობილობა იღებს შეტყობინებებს', '{n} devices receive notifications'],
   'nt.sentAll': ['გაიგზავნა — მოვა ყველა შენს მოწყობილობაზე.', 'Sent — it will arrive on all your devices.'],
   /* the notifications the app makes itself */
-  'nt.practiceT': ['დროა ფანდური აიღო 🪕', 'Time for the panduri 🪕'],
+  'nt.practiceT': ['დროა ფანდური აიღო 🪕', 'Time for the fanduri 🪕'],
   'nt.practiceB': ['{m} წუთი დღეს — და სერია გრძელდება.', '{m} minutes today — and your streak goes on.'],
-  'nt.idleT': ['ფანდური გელოდება', 'Your panduri is waiting'],
+  'nt.idleT': ['ფანდური გელოდება', 'Your fanduri is waiting'],
   'nt.idleB': ['{n} დღეა არ გივარჯიშია. 10 წუთიც კი საკმარისია.', 'You have not played for {n} days. Even 10 minutes is enough.'],
   'nt.streakT': ['სერიას ნუ გაწყვეტ 🔥', 'Keep your streak 🔥'],
   'nt.streakB': ['{n} დღეა ვარჯიშობ — დღეს ჯერ არ გიკრავს.', '{n} days in a row — you have not played today.'],

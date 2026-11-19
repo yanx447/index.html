@@ -10,7 +10,7 @@
    ===================================================================== */
 PD.i18n.add({
   'nav.rhythms': ['რიტმები', 'Rhythms'], 'rh.lead': ['მარჯვენა ხელის რიტმები — მასწავლებლის მიერ მოწოდებული.', 'Right-hand rhythms — supplied by the teacher.'],
-  'rh.teacherSec': ['ფანდურის რითმები (მასწავლებლისგან)', 'Panduri rhythms (from the teacher)'], 'rh.commonSec': ['ცნობილი რითმები', 'Famous rhythms'],
+  'rh.teacherSec': ['ფანდურის რითმები (მასწავლებლისგან)', 'Fanduri rhythms (from the teacher)'], 'rh.commonSec': ['ცნობილი რითმები', 'Famous rhythms'],
   'rh.commonD': ['ზოგადი რითმები, რომლებიც გიტარიდან და პოპულარული მუსიკიდანაა ცნობილი. დალაგებულია მარტივიდან რთულისკენ. ციფრი = დათვლა (1 2 3 4), „&“ = „და“ ორ დათვლას შორის.', 'General strumming patterns known from the guitar and popular music, easy to hard. A number = the count (1 2 3 4), “&” = “and” between two counts.'],
   'rh.gen': ['ზოგადი · გიტარიდან ცნობილი', 'General · known from guitar'], 'rh.genNote': ['ეს არ არის მასწავლებლის რითმი — ზოგადი, ცნობილი ნიმუშია. ისრის ზემოთ წერია, სად ეცემა დარტყმა თვლაში. სადაც თვლა გამოტოვებულია, ხელი მაინც მოძრაობს ჰაერში, სიმს არ ეხება.', 'This is not the teacher\'s rhythm — it is a general, well-known pattern. Above each arrow is where the stroke falls in the count. Where a count is skipped the hand still moves in the air without touching the strings.'],
   'rh.teacher': ['მასწავლებლის მონაცემი', "Teacher's data"], 'rh.usage': ['გამოიყენება: {u}', 'Used in: {u}'], 'rh.strokes': ['{n} დარტყმა', '{n} strokes'],
@@ -41,15 +41,15 @@ PD.i18n.add({
   'rh.muOnly': ['მხოლოდ დარტყმები', 'Strokes only'],
   'rh.muErr': ['ამ ფაილს ვერ წავიკითხე. სცადე mp3 ან m4a.', 'Could not read that file. Try an mp3 or m4a.'],
   'rh.muNote': ['ტემპს აპი თვითონ პოულობს და ცოცხალ ჩანაწერს მიჰყვება. თუ მუსიკაში ტემპი ძლიერ იცვლება, დარტყმები შეიძლება ჩამორჩეს — მაშინ ხელით გაასწორე.', 'The app finds the tempo itself and follows the live recording. If the tempo moves a lot the strokes can drift — then correct them by hand.'],
-  'rh.micT': ['ვარჯიში ფანდურით', 'Practise on your panduri'], 'rh.micD': ['1-2-3-4 ათვლა, მეტრონომი, წრეზე. მიკროფონი ზომავს თითოეული დარტყმის დროს, აქცენტის სიძლიერეს, გამოტოვებულ და ზედმეტ დარტყმებს. ↓/↑ მიმართულებას ხმიდან ვერ ვიგებთ — ისრებს მიჰყევი.', 'Count-in 1-2-3-4, metronome, looped. The microphone measures each stroke’s timing, accent strength, missed and extra strokes. ↓/↑ direction cannot be heard — follow the arrows.'],
-  'rh.src': ['ხმა', 'Sound'], 'rh.srcRec': ['ნამდვილი ფანდური', 'A real panduri'], 'rh.srcRecD': ['ჩანაწერი, ნელიდან სწრაფამდე', 'A recording, slow to fast'],
+  'rh.micT': ['ვარჯიში ფანდურით', 'Practise on your fanduri'], 'rh.micD': ['1-2-3-4 ათვლა, მეტრონომი, წრეზე. მიკროფონი ზომავს თითოეული დარტყმის დროს, აქცენტის სიძლიერეს, გამოტოვებულ და ზედმეტ დარტყმებს. ↓/↑ მიმართულებას ხმიდან ვერ ვიგებთ — ისრებს მიჰყევი.', 'Count-in 1-2-3-4, metronome, looped. The microphone measures each stroke’s timing, accent strength, missed and extra strokes. ↓/↑ direction cannot be heard — follow the arrows.'],
+  'rh.src': ['ხმა', 'Sound'], 'rh.srcRec': ['ნამდვილი ფანდური', 'A real fanduri'], 'rh.srcRecD': ['ჩანაწერი, ნელიდან სწრაფამდე', 'A recording, slow to fast'],
   'rh.srcSyn': ['აპის ხმა', 'The app plays'], 'rh.srcSynD': ['ნებისმიერ ტემპზე, მეტრონომით', 'At any tempo, with the metronome'],
   'rh.recSpeed': ['სისწრაფე', 'Speed'], 'rh.recLoad': ['იტვირთება…', 'Loading…'], 'rh.recErr': ['ჩანაწერი ვერ ჩაიტვირთა — აპის ხმა უკრავს.', 'The recording could not be loaded — the app plays instead.'],
-  'rh.recNote': ['ჩანაწერი ნამდვილ ფანდურზე, წრეზე. ისრები ჩანაწერს მიჰყვება: თითოეული დარტყმის დრო აპმა თავად ჩანაწერიდან გამოითვალა.', 'A recording on a real panduri, looped. The arrows follow the recording: the app worked out the time of every stroke from the recording itself.'],
+  'rh.recNote': ['ჩანაწერი ნამდვილ ფანდურზე, წრეზე. ისრები ჩანაწერს მიჰყვება: თითოეული დარტყმის დრო აპმა თავად ჩანაწერიდან გამოითვალა.', 'A recording on a real fanduri, looped. The arrows follow the recording: the app worked out the time of every stroke from the recording itself.'],
   'rh.recTempoD': ['1 BPM = რითმის ერთი სრული წრე წუთში. ჩანაწერი ნელდება და ჩქარდება ბგერის სიმაღლის შეუცვლელად; აპი ტემპით ყველაზე ახლო ჩანაწერს იღებს. სისწრაფის ღილაკები ჩანაწერების საკუთარი ტემპებია.', '1 BPM = one whole cycle of the rhythm per minute. The recording slows down and speeds up without changing pitch; the app takes the recording nearest in tempo. The speed buttons are the recordings’ own tempos.'],
   'rh.recPrep': ['მზადდება…', 'Preparing…'],
-  'rh.pv': ['მოუსმინე: {n} ნამდვილ ფანდურზე', 'Listen: {n} on a real panduri'], 'rh.pvStop': ['გაჩერება', 'Stop'],
-  'rh.pvLabel': ['▶ {n} — ნამდვილი ფანდური', '▶ {n} — a real panduri'], 'rh.micRec': ['ჩანაწერთან ერთად · {b} BPM (ზემოთ არჩეული ტემპი)', 'With the recording · {b} BPM (the tempo chosen above)'],
+  'rh.pv': ['მოუსმინე: {n} ნამდვილ ფანდურზე', 'Listen: {n} on a real fanduri'], 'rh.pvStop': ['გაჩერება', 'Stop'],
+  'rh.pvLabel': ['▶ {n} — ნამდვილი ფანდური', '▶ {n} — a real fanduri'], 'rh.micRec': ['ჩანაწერთან ერთად · {b} BPM (ზემოთ არჩეული ტემპი)', 'With the recording · {b} BPM (the tempo chosen above)'],
   'rh.loopBars': ['წრის სიგრძე', 'Loop length'], 'rh.bars': ['{n} ტაქტი', '{n} bar(s)'], 'rh.micGo': ['დაწყება მიკროფონით', 'Start with microphone'],
   'st.loop': ['წრეზე (Loop)', 'Loop'], 'std.loop': ['ერთი ციკლი განუწყვეტლივ; ტემპი შეცვალე ↑ ↓ ან ტემპის ღილაკით.', 'One cycle over and over; change the tempo with ↑ ↓ or the tempo button.']
 });

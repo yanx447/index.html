@@ -15,7 +15,7 @@ PD.i18n.add({
   'snd.click': ['კლიკი', 'Click'], 'snd.wood': ['ხე', 'Wood'], 'snd.beep': ['ტონი', 'Beep'], 'snd.soft': ['რბილი', 'Soft'],
   /* the trainer screen's own heading: prefix trn.*, because aimus.js owns tr.title / tr.lead
      for the transcription panel and it loads later — the same key there silently won */
-  'trn.title': ['ნოტები და ლადები', 'Notes and frets'], 'trn.lead': ['აპი გეკითხება, შენ ნამდვილ ფანდურზე უკრავ — მიკროფონი ამოწმებს.', 'The app asks, you play it on your real panduri — the microphone checks.'],
+  'trn.title': ['ნოტები და ლადები', 'Notes and frets'], 'trn.lead': ['აპი გეკითხება, შენ ნამდვილ ფანდურზე უკრავ — მიკროფონი ამოწმებს.', 'The app asks, you play it on your real fanduri — the microphone checks.'],
   'tl.open': ['ღია სიმები', 'Open strings'], 'tl.f13': ['ლადები 1–3', 'Frets 1–3'], 'tl.f15': ['ლადები 1–5', 'Frets 1–5'], 'tl.f17': ['ლადები 1–7', 'Frets 1–7'], 'tl.full': ['მთელი ტარი', 'Full neck'],
   'tl.random': ['შემთხვევითი', 'Random notes'], 'tl.speed': ['სისწრაფე · 60 წმ', 'Speed · 60 s'], 'tl.ear': ['სმენით', 'Ear training'],
   'tr.playNote': ['დაუკარი {n}', 'Play {n}'], 'tr.playPos': ['დაუკარი {s} სიმის {f} ლადი', 'Play the {s} string, fret {f}'], 'tr.playOpen': ['დაუკარი ღია {s} სიმი', 'Play the open {s} string'],
