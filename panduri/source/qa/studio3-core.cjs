@@ -60,6 +60,13 @@ eq([fixedChords.analyses.chords.status, fixedChords.analyses.chords.source, fixe
 const live = X.fromSong(songs[0], res, { stems: { from: 30, len: 60, tracks: [{ name: 'vocals' }, { name: 'drums' }, { name: 'bass' }, { name: 'other' }] }, transcription: { notes: [1, 2, 3] }, lesson: true });
 eq(live.stems.map(s => [s.kind, s.kept, s.assetId]), [['vocals', 'memory', null], ['drums', 'memory', null], ['bass', 'memory', null], ['other', 'memory', null]], 'stems: their kind; kept in memory only; no saved asset');
 eq([live.analyses.notes.count, live.lessons.length, live.processingJobs.map(j => j.kind)], [3, 1, ['analysis', 'separation']], 'transcribed notes, the lesson, the jobs that ran');
+// phase 2: stems kept on the device (PD.s3stems) and what the file is (PD.s3media); the old record is still all down() gives back
+const media = { container: 'FLAC', codec: 'FLAC', lossless: true, sr: 48000, ch: 2, bits: 24 };
+const keptV = X.fromSong(songs[0], res, { stems: { from: 0, len: 30, tracks: [{ name: 'vocals' }, { name: 'other' }] }, kept: { key: 's3.stems.' + songs[0].id, engine: 'heavy', model: 'model' }, media });
+eq(keptV.stems.map(s => [s.kind, s.kept, s.assetId, s.engine]), [['vocals', 'device', 's3.stems.' + songs[0].id, 'heavy'], ['other', 'device', 's3.stems.' + songs[0].id, 'heavy']], 'kept stems: on the device, with their record and engine');
+eq(keptV.processingJobs.find(j => j.kind === 'separation').kept, 'device', 'the separation job says the stems are kept');
+eq(keptV.source.media, media, 'the source carries what its header says');
+ok(X.down(keptV) === songs[0] && !('stems' in songs[0]) && !('media' in songs[0]), 'down() still gives back the very same ai.recent record, untouched');
 
 // 6. every project on the device, newest first, from both studios' own lists
 PD.store.set('ai.recent', songs); PD.store.set('pst.list', [{ id: 'p-old-fixture', name: old.name, modified: 1763503600000 }, { id: 'p-gone', name: 'gone', modified: 1763600000000 }]); PD.store.set('pst.p.p-old-fixture', lifted);

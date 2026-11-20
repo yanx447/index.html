@@ -130,17 +130,18 @@ const AIW = function () {
   /** separate a stereo mix (Float32Array L, R at 44.1 kHz) → 4 sources × 2 channels.
       mode 'mix2' keeps only what a song lesson needs — the voice and everything else, each in mono — so a
       whole song fits: two tracks instead of eight (a 4-minute song ≈ 100 MB instead of ≈ 400 MB). */
-  async function separate(L, R, from, to, mode) {
+  async function separate(L, R, from, to, mode, ov, nsh) {
     const len = to - from, S = man.sources.length, outs = [], two = mode === 'mix2', vi = man.sources.indexOf('vocals');
     if (two) outs.push([new Float32Array(len)], [new Float32Array(len)]);
     else for (let s = 0; s < S; s++) outs.push([new Float32Array(len), new Float32Array(len)]);
-    const wsum = new Float32Array(len), stride = Math.floor(.75 * SEG), W = new Float32Array(SEG);
+    const wsum = new Float32Array(len), stride = Math.floor((1 - (ov || .25)) * SEG), W = new Float32Array(SEG);
     for (let i = 0; i < SEG; i++) W[i] = i < SEG / 2 ? (i + 1) : (SEG - i); let wm = 0; for (let i = 0; i < SEG; i++) wm = Math.max(wm, W[i]); for (let i = 0; i < SEG; i++) W[i] /= wm;
-    const offsets = []; for (let o = 0; o < len; o += stride) offsets.push(o);
+    // nsh > 1: Demucs' shift trick — more passes, segment edges moved, averaged
+    const offsets = []; for (let p = 0, P = Math.max(1, nsh | 0); p < P; p++) for (let o = -Math.round(stride * p / P); o < len; o += stride) offsets.push(o);
     const mixT = new Float32Array(2 * SEG), mag = new Float32Array(4 * NB * LE), zr = new Float32Array(NB * LE), zi = new Float32Array(NB * LE), seg = [new Float32Array(SEG), new Float32Array(SEG)], scratch = new Float32Array(SEG);
     const t0 = Date.now();
     for (let k = 0; k < offsets.length; k++) {
-      const off = offsets[k], clen = Math.min(SEG, len - off), delta = SEG - clen, start = off - Math.floor(delta / 2);
+      const off = offsets[k], clen = Math.min(SEG, len - off), delta = SEG - clen, start = off - Math.floor(delta / 2), i0 = off < 0 ? -off : 0;
       for (let c = 0; c < 2; c++) { const src = c ? R : L, d = seg[c]; for (let i = 0; i < SEG; i++) { const j = from + start + i; d[i] = j >= from && j < to ? src[j] : 0; } mixT.set(d, c * SEG); }
       for (let c = 0; c < 2; c++) { spec(seg[c], zr, zi); mag.set(zr, (c * 2) * NB * LE); mag.set(zi, (c * 2 + 1) * NB * LE); }
       const feeds = {}; feeds[sess.inputNames[0]] = new ort.Tensor('float32', mixT, [1, 2, SEG]); feeds[sess.inputNames[1]] = new ort.Tensor('float32', mag, [1, 4, NB, LE]);
@@ -151,10 +152,10 @@ const AIW = function () {
         const tmp = scratch; tmp.set(oxt.subarray((s * 2 + c) * SEG, (s * 2 + c + 1) * SEG));
         const pr = ((s * 2 + c) * 2) * NB * LE, pi = ((s * 2 + c) * 2 + 1) * NB * LE;
         ispec(ox.subarray(pr, pr + NB * LE), ox.subarray(pi, pi + NB * LE), tmp);
-        if (two) { const out = outs[s === vi ? 0 : 1][0]; for (let i = 0; i < clen; i++) out[off + i] += .5 * W[i] * tmp[tr + i]; }
-        else { const out = outs[s][c]; for (let i = 0; i < clen; i++) out[off + i] += W[i] * tmp[tr + i]; }
+        if (two) { const out = outs[s === vi ? 0 : 1][0]; for (let i = i0; i < clen; i++) out[off + i] += .5 * W[i] * tmp[tr + i]; }
+        else { const out = outs[s][c]; for (let i = i0; i < clen; i++) out[off + i] += W[i] * tmp[tr + i]; }
       }
-      for (let i = 0; i < clen; i++) wsum[off + i] += W[i];
+      for (let i = i0; i < clen; i++) wsum[off + i] += W[i];
       // the guard: after the first segment the stems must add up to the mix (Demucs sources sum to it). A GPU that
       // computes the network wrongly gives stems many times too loud — that is the crackle — so it is caught here.
       if (k === 0) {
@@ -180,7 +181,7 @@ const AIW = function () {
     try {
       if (m.cmd === 'load') { await load(m.base, m.prefer, m.dir); }
       else if (m.cmd === 'ping') post('pong', {});
-      else if (m.cmd === 'separate') { const outs = await separate(m.L, m.R, m.from || 0, m.to || m.L.length, m.mode); if (!outs) return; post('done', { stems: outs, sources: m.mode === 'mix2' ? ['vocals', 'other'] : man.sources, mono: m.mode === 'mix2' }, outs.flat().map(a => a.buffer)); }
+      else if (m.cmd === 'separate') { const outs = await separate(m.L, m.R, m.from || 0, m.to || m.L.length, m.mode, m.overlap, m.shifts); if (!outs) return; post('done', { stems: outs, sources: m.mode === 'mix2' ? ['vocals', 'other'] : man.sources, mono: m.mode === 'mix2' }, outs.flat().map(a => a.buffer)); }
       else if (m.cmd === 'selftest') { const x = new Float32Array(SEG); for (let i = 0; i < SEG; i++) x[i] = Math.sin(i * .01) * .5 + Math.sin(i * .37) * .2; const zr = new Float32Array(NB * LE), zi = new Float32Array(NB * LE); spec(x, zr, zi); const y = new Float32Array(SEG); ispec(zr, zi, y); let err = 0, mx = 0; for (let i = 0; i < SEG; i++) { err = Math.max(err, Math.abs(x[i] - y[i])); mx = Math.max(mx, Math.abs(x[i])); } post('selftest', { err, mx }); }
     } catch (err) { post('error', { msg: String(err && err.message || err) }); }
   };

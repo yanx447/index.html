@@ -171,8 +171,9 @@ PD.studio3 = (() => {
   function download(name, blob) { const a = h('a', { href: URL.createObjectURL(blob), download: name }); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
 
   /* ---------- the home ---------- */
-  function openSong(f, view) { if (view) PD.store.set(VKEY.song, view); PD.ai.take = f; PD.app.go('ai', 'new'); }
+  function openSong(f, view) { if (view) PD.store.set(VKEY.song, view); PD.ai.take = f; PD.studio3.tried = f; PD.app.go('ai', 'new'); }
   function home(w) {
+    if (PD.s3stems) PD.s3stems.gc();   // kept stems of songs no longer in the library
     let want = null;
     // the song's file input comes first on the page (the AI studio's tests and its drop target pick the first one)
     const songIn = h('input', { type: 'file', accept: ACCEPT_SONG, hidden: true, onchange: e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; const v = want; want = null; if (f) openSong(f, v); } });
@@ -341,39 +342,59 @@ PD.studio3 = (() => {
   /* ---------- a song: the AI studio inside the workspace ---------- */
   function songWS(w, param) {
     const lib = param == null || param === 'lib' || param === 'new';
-    let rec = null, lastId = null, ws = null;   // ws: set once workspace() returns (its first paint asks for the state already)
+    let rec = null, lastId = null, ws = null, sg = null, media = null, keptM = null;   // ws: set once workspace() returns (its first paint asks for the state already)
+    const syncStage = () => { if (sg && ws) sg.el.hidden = !(open() && ws.view.id === 'stems'); };
+    const reKept = () => { const c = cur(); if (PD.s3stems && c && c.id) PD.s3stems.meta(c.id).then(m => { keptM = m; if (ws) ws.refresh(); }); };
     const cur = () => PD.ai && PD.ai.current;
     const open = () => { const c = cur(); return !!(c && c.transport && ws && ws.host.querySelector('.ai-body .ai-head')); };
     const recOf = id => (PD.store.get('ai.recent', []) || []).find(r => r.id === id) || null;
     function aiTab(k) { const sel = ws.host.querySelector('.ai-body .apr-navigation select'); if (!sel) return; if (sel.value !== k) { sel.value = k; sel.dispatchEvent(new Event('change')); } }
     ws = workspace(w, 'song', {
       ready: () => open(),
-      view2: v => { if (open()) aiTab(v.ai); },
+      view2: v => { if (open()) aiTab(v.ai); syncStage(); },
       rename: v => { const id = cur() && cur().id, all = PD.store.get('ai.recent', []), e = all.find(x => x.id === id); v = String(v || '').trim(); if (!e || !v) return; e.title = v; PD.store.set('ai.recent', all); ws.refresh(); },
       state: () => {
         const on = open(), c = cur(), id = on ? c.id : null;
         if (on && id !== lastId) {   // a song has just opened: its view, its place in the history
-          lastId = id; aiTab(ws.view.ai);
+          lastId = id; aiTab(ws.view.ai); media = null; keptM = null; reKept();
+          if (PD.s3media && c.file) PD.s3media.probe(c.file).then(m => { if (lastId === id) { media = m; ws.refresh(); } });
           try { const st = history.state; if (id && st && st.r === 'ai' && st.p !== id) history.replaceState({ r: 'ai', p: id }, ''); } catch (_) {}
         }
         if (!on) lastId = null;
-        rec = id ? recOf(id) : null; if (ws) ws.host.classList.toggle('s3-on', on);
+        // a file the browser could not read: say what it is, from its own header, and what to do
+        const nt = !on && ws && ws.host.querySelector('.ai-status .notice'), tf = PD.studio3.tried;
+        if (nt && tf && PD.s3media && !nt.dataset.s3 && [t('ai.noPlay'), t('ai.bad'), t('ai.vidBad')].includes(nt.textContent)) {
+          nt.dataset.s3 = '1'; PD.s3media.probe(tf).then(m => { if (!m || !m.codec || !nt.isConnected) return;
+            nt.after(h('p', { class: 's3-fine s3-nodec', text: t('s3s.noDec', { c: m.codec, f: m.container, r: m.sr ? ' · ' + (m.sr / 1000) + ' kHz' : '', tip: t(m.codec === 'ALAC' ? 's3s.tipAlac' : 's3s.tipAny') }) })); }); }
+        rec = id ? recOf(id) : null; if (ws) ws.host.classList.toggle('s3-on', on); syncStage();
         if (!on) return { ready: false, title: t('s3.libT'), meta: t('s3.libD'), save: '', sig: 'lib' };
         const r = c.res, stems = c.stems, trd = c.transcription;
         return { ready: true, editable: !!rec, title: rec ? (rec.title || String(rec.name || '').replace(/\.[a-z0-9]{1,5}$/i, '')) : (c.file && c.file.name) || '',
           meta: t('s3.kSong'),
           save: rec && rec.stored ? t('s3.savedDev') : t('s3.unsaved'), warn: !(rec && rec.stored),
-          sig: JSON.stringify([id, rec && rec.title, rec && rec.stored, r && r.bpm, r && r.bpmBy, r && r.chords.length, !!(r && r.chords0), stems ? stems.tracks.length : 0, trd && trd.notes ? trd.notes.length : 0]) };
+          sig: JSON.stringify([id, rec && rec.title, rec && rec.stored, r && r.bpm, r && r.bpmBy, r && r.chords.length, !!(r && r.chords0), stems ? stems.tracks.length : 0, trd && trd.notes ? trd.notes.length : 0, media ? 1 : 0, keptM ? keptM.at : 0, PD.s3stems ? PD.s3stems.list().filter(j => j.song === id).map(j => j.state).join() : '']) };
       },
       info: () => {
         const c = cur(); if (!open() || !rec) return [];
-        const L = PD.aiLessons, v = X().fromSong(rec, c.res, { transcription: c.transcription, stems: c.stems, lesson: !!(L && L.usesSong && L.usesSong(rec.id)) }), A = v.analyses, tm = v.audioClock.tempoMap;
-        return [block(t('s3.src'), [kv(t('s3.file2'), v.source.name, null, [t(v.source.video ? 's3.video' : 's3.audio'), mb(v.source.size)].filter(Boolean).join(' · ')), kv(t('s3.dur'), X().clock(v.audioClock.durationSeconds))]),
+        const L = PD.aiLessons, kp = keptM && c.stems ? { key: 's3.stems.' + rec.id, engine: keptM.engine, model: keptM.model } : null;
+        const v = X().fromSong(rec, c.res, { transcription: c.transcription, stems: c.stems, kept: kp, media, lesson: !!(L && L.usesSong && L.usesSong(rec.id)) }), A = v.analyses, tm = v.audioClock.tempoMap;
+        const md = media, CP = { source: 'computed', status: 'confirmed' }, khz = r => r ? (r / 1000).toFixed(r % 1000 ? 1 : 0) + ' kHz' : null, ab = c.audio;
+        // read from the file's own header: one 'computed' mark for the lot, on the codec row
+        const mrows = md ? [kv(t('s3s.fmtB'), md.container + (md.video ? ' · ' + t('s3s.video') : '')), kv(t('s3s.codec'), md.codec, CP, md.lossless == null ? '' : t(md.lossless ? 's3s.lossless' : 's3s.lossy')),
+          kv(t('s3s.rate'), khz(md.sr)), md.bits ? kv(t('s3s.depth'), md.bits + '-bit') : null, kv(t('s3s.chs'), md.ch === 1 ? t('s3s.mono') : md.ch === 2 ? t('s3s.stereo') : md.ch ? t('s3s.chN', { n: md.ch }) : null),
+          md.kbps ? kv(t('s3s.kbps'), md.kbps + ' kbps' + (md.vbr ? ' (VBR)' : '')) : null,
+          ab ? kv(t('s3s.decoded'), md.sr && ab.sampleRate === md.sr ? t('s3s.decodedSame', { r: khz(ab.sampleRate) }) : t('s3s.decodedOther', { r: khz(ab.sampleRate), f: khz(md.sr) || '?' }), CP) : null] : [];
+        const fine = [rec.stored ? t('s3s.keptOrig') : null, md && md.lossless === false ? t('s3s.lossyD') : null].filter(Boolean);
+        const J = PD.s3stems ? PD.s3stems.list().filter(j => j.song === rec.id).slice(-4).reverse() : [];
+        const jtxt = j => t('s3s.eng.' + (j.engine === 'light' ? 'light' : 'heavy')) + (j.shifts > 1 ? ' · ' + t('s3s.passes', { n: j.shifts }) : '') + ' · ' + X().clock(j.from || 0) + '–' + X().clock((j.from || 0) + (j.len || 0));
+        return [block(t('s3.src'), [kv(t('s3.file2'), v.source.name, null, [t(v.source.video ? 's3.video' : 's3.audio'), mb(v.source.size)].filter(Boolean).join(' · ')), kv(t('s3.dur'), X().clock(v.audioClock.durationSeconds))].concat(mrows, fine.map(x => h('small', { class: 's3-fine', text: x })))),
           block(t('s3.an'), [kv(t('s3.tempo'), tm ? Math.round(tm.bpm) + ' BPM' : null, tm), kv(t('s3.key'), A.key && A.key.name, A.key, t('s3.keyD')),
             kv(t('s3.chords'), A.chords ? (A.chords.count != null ? A.chords.count : A.chords.names.length) : null, A.chords, A.chords && A.chords.names ? A.chords.names.slice(0, 8).join(' · ') : ''),
             A.notes ? kv(t('s3.melody'), A.notes.count, A.notes) : kv(t('s3.melody'), t('s3.noTr')),
             kv(t('s3.lesson'), v.lessons.length ? t('s3.yes') : t('s3.notYet'), v.lessons.length ? { source: 'ai', status: 'estimate' } : null)]),
-          block(t('s3.stems'), v.stems.length ? v.stems.map(s => kv(s.kind, X().clock(s.from) + '–' + X().clock(s.from + (s.seconds || 0)), { source: 'ai', status: 'estimate' })).concat([h('small', { class: 's3-fine', text: t('s3.memStems') })]) : [h('small', { class: 's3-fine', text: t('s3.noStems') })])];
+          block(t('s3.stems'), v.stems.length ? v.stems.map(s => kv(t({ vocals: 'ai.vocals', drums: 'ai.drums', bass: 'ai.bass', other: 'ai.other', guitar: 'ai.guitar', piano: 'ai.piano' }[s.kind] || 'ai.other'), X().clock(s.from) + '–' + X().clock(s.from + (s.seconds || 0)), { source: 'ai', status: 'estimate' }))
+            .concat([h('small', { class: 's3-fine', text: kp ? t('s3s.kept') + ' · ' + PD.s3stems.fmtMB(keptM.bytes) : PD.s3stems ? t('s3s.notKept') : t('s3.memStems') })]) : [h('small', { class: 's3-fine', text: t('s3.noStems') })]),
+          J.length ? block(t('s3s.jobs'), J.map(j => kv(t('s3s.st.' + j.state), jtxt(j), null, j.state === 'interrupted' ? t('s3s.interruptedD') : j.err || ''))) : null];
       },
       menu: () => PD.ui.sheet((b, close) => {
         const act = (k, fn) => h('button', { class: 's3-act', type: 'button', text: t(k), onclick: () => { close(); fn(); } });
@@ -385,6 +406,7 @@ PD.studio3 = (() => {
           open() ? act('s3.full', () => { const f = ws.host.querySelector('.ai-fs'); if (f) f.click(); }) : null].filter(Boolean)));
       })
     });
+    if (PD.s3stems) { sg = PD.s3stems.stage({ host: ws.host, song: () => { const c = cur(); return c && c.file && c.file.name; }, changed: reKept }); sg.el.hidden = true; ws.host.before(sg.el); }
     PD.ai.page(ws.host, lib ? null : param);
     ws.refresh();
   }

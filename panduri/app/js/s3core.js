@@ -82,17 +82,18 @@ PD.s3core = (() => {
     const cname = c => PD.ai && PD.ai.cname ? PD.ai.cname(c.root, c.q) : null;
     const chordNames = res ? [...new Set(res.chords.filter(c => c.root >= 0).map(cname).filter(Boolean))] : (r.chords || []);
     const tr = live.transcription, notes = tr && Array.isArray(tr.notes) ? tr.notes : null;
-    const stems = live.stems && Array.isArray(live.stems.tracks) ? live.stems.tracks.map(x => ({ kind: x.name, predictedInstrument: x.name, assetId: null, kept: 'memory', from: live.stems.from || 0, seconds: live.stems.len || null })) : [];
+    // live.kept: the record PD.s3stems keeps on the device for these stems (Phase 2), or nothing — then they live in memory only
+    const kp = live.kept || null, stems = live.stems && Array.isArray(live.stems.tracks) ? live.stems.tracks.map(x => ({ kind: x.name, predictedInstrument: x.name, assetId: kp ? kp.key : null, kept: kp ? 'device' : 'memory', from: live.stems.from || 0, seconds: live.stems.len || null, engine: kp ? kp.engine : null, model: kp ? kp.model : null })) : [];
     return {
       schemaVersion: SCHEMA, kind: 'song', id: 'ai:' + r.id, title: r.title || stripExt(r.name), created: r.at || null, modified: r.at || null, ownerId: null,
       sourceAssetId: r.stored ? 'ai.song.' + r.id : null,
-      source: { name: r.name, size: r.size == null ? null : r.size, type: r.type || null, video: isVideo(r), stored: !!r.stored },
+      source: { name: r.name, size: r.size == null ? null : r.size, type: r.type || null, video: isVideo(r), stored: !!r.stored, media: live.media || null },
       audioClock: {
         durationSeconds: res ? res.dur : null,
         tempoMap: res && res.beats ? tag(byHand ? 'manual' : 'ai', byHand ? 'corrected' : 'estimate', { kind: 'beats', bpm: res.bpm, beats: res.beats.length, phase: res.phase || 0 })
           : r.bpm ? tag('ai', 'estimate', { kind: 'tempo', bpm: r.bpm }) : null
       },
-      stems,   // separated stems live in memory while the song is open; they are not saved (AI-STUDIO.md §4.4)
+      stems,   // kept: 'device' when PD.s3stems saved them (IndexedDB, Int16), 'memory' while only the open song holds them
       analyses: {
         key: r.key ? tag('ai', 'estimate', { name: r.key, scope: 'nearest major/minor' }) : null,
         // count: the different chords, as the AI studio counts them; segments: how many times the chord changes
@@ -103,7 +104,7 @@ PD.s3core = (() => {
       },
       instrumentProfileId: (instrument() || {}).id || null,
       arrangements: [], lessons: live.lesson ? [{ id: 'ai-' + r.id, source: 'ai', status: 'estimate' }] : [],
-      processingJobs: [{ kind: 'analysis', engine: 'on-device', status: res || r.key ? 'complete' : 'unknown' }].concat(stems.length ? [{ kind: 'separation', engine: 'on-device', status: 'complete', kept: 'memory' }] : []),
+      processingJobs: [{ kind: 'analysis', engine: 'on-device', status: res || r.key ? 'complete' : 'unknown' }].concat(stems.length ? [{ kind: 'separation', engine: 'on-device', status: 'complete', kept: kp ? 'device' : 'memory' }] : []),
       revision: r.at || 0, saveStatus: r.stored ? 'saved' : 'unsaved',
       legacy: { store: 'ai.recent', record: r }
     };

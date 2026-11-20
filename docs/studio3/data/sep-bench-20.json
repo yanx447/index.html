@@ -1,0 +1,117 @@
+{
+ "from": 20,
+ "seconds": 40,
+ "peak": 0.443,
+ "gpu": true,
+ "rows": [
+  {
+   "variant": "d4",
+   "ep": "webgpu",
+   "seconds": 40,
+   "ms": 17377,
+   "rtf": 0.434,
+   "sdrVocals": 10.78,
+   "sdrMusic": 14.53,
+   "share": {
+    "drums": 0.263,
+    "bass": 0.372,
+    "other": 0.037,
+    "vocals": 0.328
+   },
+   "vsVoice": {
+    "drums": -2.69,
+    "bass": -3.55,
+    "other": -0.28,
+    "vocals": 10.78
+   }
+  },
+  {
+   "variant": "d4o50",
+   "ep": "webgpu",
+   "seconds": 40,
+   "ms": 21833,
+   "rtf": 0.546,
+   "sdrVocals": 10.73,
+   "sdrMusic": 14.47,
+   "share": {
+    "drums": 0.262,
+    "bass": 0.372,
+    "other": 0.036,
+    "vocals": 0.329
+   },
+   "vsVoice": {
+    "drums": -2.69,
+    "bass": -3.55,
+    "other": -0.28,
+    "vocals": 10.73
+   }
+  },
+  {
+   "variant": "d4s2",
+   "ep": "webgpu",
+   "seconds": 40,
+   "ms": 26584,
+   "rtf": 0.665,
+   "sdrVocals": 10.87,
+   "sdrMusic": 14.62,
+   "share": {
+    "drums": 0.265,
+    "bass": 0.37,
+    "other": 0.037,
+    "vocals": 0.328
+   },
+   "vsVoice": {
+    "drums": -2.7,
+    "bass": -3.53,
+    "other": -0.28,
+    "vocals": 10.87
+   }
+  },
+  {
+   "variant": "d6",
+   "ep": "webgpu",
+   "seconds": 40,
+   "ms": 17696,
+   "rtf": 0.442,
+   "sdrVocals": 13.03,
+   "sdrMusic": 15.96,
+   "share": {
+    "drums": 0.266,
+    "bass": 0.379,
+    "other": 0.007,
+    "vocals": 0.323,
+    "guitar": 0.025,
+    "piano": 0
+   },
+   "vsVoice": {
+    "drums": -2.69,
+    "bass": -3.54,
+    "other": -0.11,
+    "vocals": 13.03,
+    "guitar": -0.15,
+    "piano": 0
+   }
+  },
+  {
+   "variant": "spl",
+   "ep": "wasm",
+   "seconds": 40,
+   "ms": 9752,
+   "rtf": 0.244,
+   "sdrVocals": 0.59,
+   "sdrMusic": 4.68,
+   "share": {
+    "vocals": 0.022,
+    "drums": 0.595,
+    "bass": 0.007,
+    "other": 0.375
+   },
+   "vsVoice": {
+    "vocals": 0.59,
+    "drums": -4.71,
+    "bass": 0.36,
+    "other": 3.32
+   }
+  }
+ ]
+}

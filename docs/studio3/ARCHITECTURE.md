@@ -1,11 +1,12 @@
-# Panduri Studio 3.0 — არქიტექტურა (Phase 0 + Phase 1)
+# Panduri Studio 3.0 — არქიტექტურა (Phase 0 + 1 + 2)
 
 **თარიღი:** 2026-11-19 · **branch:** `claude/studio3-phase01` · **საწყისი წერტილი:** `origin/main` `d484be9`
 (backup: `backup/pre-studio3-2026-11-19`)
 
-ეს დოკუმენტი აღწერს, რა იყო კოდში Studio 3.0-მდე (audit), რა აიგო Phase 1-ში და როგორ, და რა
-**არ** გაკეთებულა. სპეციფიკაცია: `Panduri_Studio_3_Master_Spec_KA.md`. დანარჩენი დოკუმენტები:
-[MIGRATION.md](MIGRATION.md) · [QA.md](QA.md) · [ROADMAP.md](ROADMAP.md). Panduri Studio-ს
+ეს დოკუმენტი აღწერს, რა იყო კოდში Studio 3.0-მდე (audit), რა აიგო Phase 1-ში და Phase 2-ში (§6)
+და როგორ, და რა **არ** გაკეთებულა. სპეციფიკაცია: `Panduri_Studio_3_Master_Spec_KA.md`. დანარჩენი დოკუმენტები:
+[MIGRATION.md](MIGRATION.md) · [QA.md](QA.md) · [ROADMAP.md](ROADMAP.md) ·
+[GEORGIAN-INSTRUMENTS.md](GEORGIAN-INSTRUMENTS.md) (ქართული საკრავები: გაზომვა, კვლევა, ტესტების გეგმა). Panduri Studio-ს
 ადრინდელი არქიტექტურა: [../studio/ARCHITECTURE.md](../studio/ARCHITECTURE.md); AI სტუდია:
 [`panduri/source/AI-STUDIO.md`](../../panduri/source/AI-STUDIO.md).
 
@@ -306,7 +307,10 @@ transport ყველა ზომაზე **sticky**-ა — დაკვრ�
 | 5 | history-ს `replaceState` და `app.js`-ის შიდა `param` ერთმანეთს ცდება | დაბალი | უმნიშვნელო (გადახატვა) | — | `studio3-ui` back/reopen |
 | 6 | 133 ახალი სტრიქონი 14 ენაზე თარგმნილი არ არის | ცნობილი | ინგლისურად ჩანს | i18n-crawl: raw key 0; `i18n-extract` **არ** გაშვებულა (pack-ები 80 %-ს ქვემოთ ჩამოვიდოდა) | `i18n-crawl` |
 | 7 | ძველი QA სკრიპტები ძველ განლაგებას ელიან | მოხდა | ტესტი ცდება | 3 სკრიპტი მინიმალურად განახლდა (`QA.md`) | |
-| 8 | stem-ები და Studio-ს პროექტები მხოლოდ მოწყობილობაზეა | ცნობილი | მონაცემის დაკარგვა მოწყობილობის შეცვლისას | — | Phase 2/7 |
+| 8 | stem-ები და Studio-ს პროექტები მხოლოდ მოწყობილობაზეა (Phase 2-დან stem-ები **ინახება**, მაგრამ მხოლოდ ამ მოწყობილობაზე) | ცნობილი | მონაცემის დაკარგვა მოწყობილობის შეცვლისას | WAV export (16/32-bit) | Phase 7 |
+| 12 | შენახული stem-ები დიდია: 4 stem × სტერეო × 44.1 kHz × Int16 ≈ 42 MB/წთ | მაღალი | მოწყობილობის ადგილი | ზომა ჩანს, `estimate()`-ით შემოწმება შენახვამდე, წაშლა, `gc()` | `studio3-phase2` |
+| 13 | Spleeter-ის (მსუბუქი ძრავა) ONNX კონვერტაცია ქართულ და pop მასალაზე თითქმის არ ყოფს | გაზომილი | ცუდი stem-ები ტელეფონზე | UI წერს გაზომილ რიცხვებს და ურჩევს ზუსტ ძრავას; გამოსწორებას TensorFlow-ის საცნობარო სჭირდება | `sep-bench` |
+| 14 | ამ მანქანის Web Audio-ს საათი არ მიდის (0.005 წმ / 0.8 წმ) — „დაკვრისას პოზიცია მიდის" აქ ვერ შემოწმდება | გარემო | დაუმოწმებელი | ტესტი საათს ზომავს და ნაბიჯს მიზეზით გამოტოვებს | `studio3-phase2` |
 | 9 | Safari-ს private რეჟიმში Blob IndexedDB-ში არ ინახება; AI სტუდია მაშინ „ადგილი აღარ არის" წერს (ზუსტი მიზეზი სხვაა) | საშუალო | შეცდომაში შემყვანი ტექსტი | header წერს „ფაილი შენახული არ არის"; ტექსტის გასწორება შემდეგში | WebKit run |
 | 10 | Premium-ის კარიბჭის გვერდის ავლით გახსნა shell-იდან | დაბალი | შემოსავალი | shell მხოლოდ AI სტუდიის pane-ებს რთავს; კარიბჭე `pro()`-შია | უფასო სესიით გავლილი ტესტები |
 | 11 | `pstudio`-ს standalone კოდი აღარ ჩანს (dead code) | — | მოვლის ხარჯი | წაშლა Phase 3-ის შემდეგ | — |
@@ -323,3 +327,81 @@ transport ყველა ზომაზე **sticky**-ა — დაკვრ�
 | desktop/tablet/phone | `studio3-ui` G (5 ზომა, სქრინშოთები) |
 
 დეტალური შედეგები: [QA.md](QA.md).
+
+
+---
+
+## 6. Phase 2: import, stem-ები, job-ები, ერთი timeline (2026-11-19)
+
+**branch:** `claude/studio3-phase02` (Vercel-ის Pillow-ის fix-ზე, `claude/vercel-pillow`, რომ preview build
+გავიდეს). ახალი მოდული `src/s3stems.js` (APP_ONLY); hook-ები `ai.js`-ში (+815 B — single file-ში ლიმიტამდე
+~2.3 KB რჩება), `aiworker.js`-ში (overlap/shift-ის პარამეტრები; ნაგულისხმევი ქცევა იგივეა), `s3core.js`-ში
+(`fromSong`-ის `kept`, `media`), `studio3.js`-ში (Stems view, გვერდითი პანელი).
+
+### 6.1 Import: ფაილი ისეთი, როგორიცაა
+* `PD.s3media.probe(blob)` ფაილის **საკუთარ header-ს** კითხულობს: WAV/RF64 (PCM, float, extensible),
+  AIFF/AIFC, FLAC (STREAMINFO), MP3 (Xing/Info/VBRI — VBR-ის ზუსტი სიგრძე), ADTS AAC, MP4/M4A/MOV/3GP
+  (box-ები slice-ებით — ტელეფონის ვიდეო, რომლის `moov` ბოლოშია, მთლიანად არ იკითხება; `esds`-დან AAC-ის
+  ტიპი, არხები, SBR/PS = HE-AAC v1/v2; `alac`, `dfLa`; edit list და `iTunSMPB` — encoder-ის priming-ის
+  გარეშე სიგრძე), Ogg (Opus/Vorbis/FLAC, ბოლო გვერდის granule), WebM/Matroska (EBML: DocType, CodecID,
+  SamplingFrequency, Channels).
+* `PD.s3media.rate()` → `ai.js`-ის `decode()` ფაილს **მის საკუთარ sample rate-ზე** შიფრავს
+  (`OfflineAudioContext(1, 1, rate)`), 48 kHz-მდე: 44.1 kHz-იანი სიმღერა აღარ გადადის 48 kHz-ზე და მერე ისევ
+  44.1-ზე (Demucs). 48 kHz-ზე მაღალი (96 kHz) იშიფრება 48 kHz-ზე — ტელეფონზე ორმაგი მეხსიერება
+  მსმენელისა და მოდელისთვის არაფერს იძლევა; side panel ამას წერს („48 kHz (ფაილი: 96 kHz)"). HE-AAC
+  გამოუცხადებელი SBR-ით და AAC < 32 kHz ბრაუზერის ნაგულისხმევ სიხშირეზე რჩება. header თუ ვერ
+  წაიკითხა — ისე, როგორც ადრე.
+* **ორიგინალი ფაილი** ინახება ბაიტ-ბაიტ (`ai.song.<id>`, უცვლელი); „ორიგინალი ფაილის შენახვა"
+  timeline-ზეც არის.
+* ბრაუზერი თუ ფაილს ვერ შიფრავს (მაგ. ALAC Chrome-ში), Studio header-იდან წერს, რა არის და რა ქნას
+  (`s3s.noDec`).
+* გვერდით პანელში: ფორმატი, კოდეკი (უდანაკარგო/დანაკარგიანი), sample rate, ბიტები, არხები, bitrate,
+  „გაშიფრულია: 44.1 kHz — ფაილის საკუთარი სიხშირე, გადაყვანის გარეშე".
+
+### 6.2 Stem-ები მოწყობილობაზე
+* ფორმატი: [MIGRATION.md §1](MIGRATION.md). Int16, თითო არხი ცალკე ჩანაწერად, track-ის `g = max(1, peak)`
+  — clipping არ არის; გახსნისას ცდომილება ≤ 0.5 LSB × g (გაზომილი: 0.487 LSB).
+* შენახვამდე `navigator.storage.estimate()`: ადგილი თუ არ არის — job „მზადაა, მაგრამ არ შეინახა" და
+  მიზეზი (საჭიროა X, თავისუფალია Y); ღილაკი „შენახვა" მოგვიანებით. ჩანაწერი ნახევრად არასოდეს რჩება.
+* სიმღერის ხელახლა გახსნისას (ნებისმიერ view-ში) შენახული stem-ები თავად ბრუნდება `CUR.adopt()`-ით —
+  ხელახლა გაყოფის გარეშე; mixer-ის მდგომარეობაც (ხმა, mute, solo, pan, FX) ინახება და ბრუნდება.
+* წაშლა: „შენახული ხმების წაშლა" (სიმღერა რჩება), სიმღერის წაშლა ბიბლიოთეკიდან, `gc()` Studio-ს მთავარზე.
+
+### 6.3 Processing job-ები
+* ყოველი გაყოფა (ზუსტი/მსუბუქი, ნებისმიერი მონაკვეთი, `whole2`) — job: `queued → loading → separating →
+  saving → complete | partial | error | cancelled`; წინა სესიის დაუსრულებელი — `interrupted`.
+* პროგრესი worker-ის საკუთარი შეტყობინებებიდან (ჩამოტვირთვა, unpack, სეგმენტები, ETA), WebGPU/WASM.
+* **გაუქმება** worker-ს აჩერებს (`terminate`) და pane-ს საწყის მდგომარეობაში აბრუნებს; **ხელახლა ცდა**
+  იმავე პარამეტრებით; **შეცდომა** ითარგმნება `ai.js`-ის ტექსტით (`ai.fail`, `ai.lowmem`, `ai.gpuBad`,
+  `ai.stuck`).
+* ბოლო 12 job — `s3.jobs` (აუდიოს გარეშე); გვერდით პანელში „ბოლო დამუშავებები".
+
+### 6.4 ერთი timeline, ერთი transport
+* Stems view-ს თავში: ორიგინალის ტალღა + თითო stem-ის ტალღა ერთ დროის ღერძზე, ტაქტის ხაზები
+  სიმღერის საკუთარი დარტყმებიდან, loop-ის არე, **ერთი playhead** — AI სტუდიის deck-იდან
+  (`PD.ai.current.transport`), იგივე, რასაც Studio-ს ზედა transport მართავს. შეხება/გადათრევა = seek;
+  ←/→ = ±5 წმ.
+* გაყოფილი მონაკვეთის გარეთ stem-ს არაფერი აქვს — დაჩრდილულია; თუ AI მიქსი ისმის და იქ დააჭირე,
+  Studio ორიგინალზე გადადის. „გაყოფილი ნაწილი" timeline-ს ამ მონაკვეთზე ადიდებს.
+* M / S / WAV თითო ზოლზე. M და S **იმავე** mixer-ს მართავს (AI სტუდიის `.ai-mix`; Phase 1-ის მსგავსად
+  DOM-ით), ასე რომ ორი mixer-ი არ არსებობს; ხმა, pan, FX — mixer-ში, ზოლების ქვეშ.
+* WAV: 16-bit ან **32-bit float** (უდანაკარგო — ტესტით bit-exact).
+
+### 6.5 გაყოფის ხარისხი
+გაზომილი ბანის „აჭარულზე" ცალკე ჩაწერილი ხმითა და მუსიკით — [GEORGIAN-INSTRUMENTS.md §2](GEORGIAN-INSTRUMENTS.md#2-ბაზისური-ხარისხი-ქართულ-სიმღერაზე-fact-გაზომილი).
+* ახალი არჩევანი „მაღალი · 2 გავლა" (Demucs-ის shift trick, `ai.shifts = 2`): სამ მონაკვეთზე +0.03…+0.42
+  dB ვოკალზე, არცერთზე უარესი; ~1.8× ნელი.
+* 50 % overlap გაიზომა და **არ** ჩაირთო (−0.34 … +0.43 dB).
+* Spleeter-ის ხარისხის პრობლემა გაიზომა და აღწერილია; ფიქსი ცალკე ამოცანაა.
+
+### 6.6 Acceptance — Phase 2 → ტესტი
+| კრიტერიუმი | სად მოწმდება |
+|---|---|
+| MP3/WAV/M4A/FLAC/MP4 (+AIFF, AAC, WebM, 96 kHz float) იმპორტი, ფორმატის სწორად წაკითხვა | `studio3-phase2` probe × 12 |
+| ორიგინალის ხარისხი: საკუთარ rate-ზე, უდანაკარგოები bit-exact | `studio3-phase2` import × 7 |
+| stem-ები მუდმივად პროექტში, ხელახლა გახსნა გაყოფის გარეშე | „after a reload …" |
+| M / S / Volume / Pan / WAV თითო stem-ზე | „solo and mute …", „WAV export …", mixer (`ai-studio`) |
+| პროგრესი, გაუქმება, შეცდომა, ხელახლა ცდა | „a job that fails …", „cancelled …", „interrupted" |
+| ტალღა + stem-ები + timeline ერთ transport-ზე | „the timeline seeks …", „zooms …" |
+| ძველი ფუნქციები და მონაცემები | ძველი ტესტები ([QA.md](QA.md)), „old data is untouched" |
+| ქართული საკრავები — კვლევა, არა ფუნქცია | `geo-routing`, [GEORGIAN-INSTRUMENTS.md](GEORGIAN-INSTRUMENTS.md) |

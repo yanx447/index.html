@@ -419,11 +419,11 @@ PD.ai = (() => {
   }
 
   /* ======================= audio: decode, resample ======================= */
-  async function decode(file) {
-    const buf = await file.arrayBuffer(), ac = new (window.AudioContext || window.webkitAudioContext)();
-    const ab = await new Promise((res, rej) => { const p = ac.decodeAudioData(buf.slice(0), res, rej); if (p && p.then) p.then(res, rej); });
-    try { ac.close(); } catch (_) {}
-    return ab;
+  async function decode(file) {   // at the file's own rate when PD.s3media reads it: no resampling on the way in
+    const buf = await file.arrayBuffer(), r = PD.s3media && await PD.s3media.rate(file).catch(() => 0);
+    const dec = ac => new Promise((res, rej) => { const p = ac.decodeAudioData(buf.slice(0), res, rej); if (p && p.then) p.then(res, rej); }).finally(() => { try { ac.close(); } catch (_) {} });
+    if (r) try { return await dec(new OfflineAudioContext(1, 1, r)); } catch (_) {}
+    return dec(new (window.AudioContext || window.webkitAudioContext)());
   }
   /** last resort: a file this browser will not decode but can play — its sound is taken while it plays,
       at double speed with pitch preservation off, so the captured samples are the original at half the context rate */
@@ -667,6 +667,7 @@ PD.ai = (() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function forget(r) {
+      if (r.id && PD.s3stems) PD.s3stems.drop(r.id);
       if (r.id) { if (!(PD.aiLessons && PD.aiLessons.usesSong(r.id))) { PD.blobs.del('ai.song.' + r.id); PD.blobs.del('ai.tr.' + r.id); PD.blobs.del('ai.rhy.' + r.id); } PD.blobs.del('ai.res.' + r.id); }
       if (S && r.id && S.id === r.id) { stopAll(); S = null; body.innerHTML = ''; status.innerHTML = ''; leadP.hidden = false; drop.classList.remove('mini'); }
       PD.store.set('ai.recent', PD.store.get('ai.recent', []).filter(x => x !== r && !(x.id ? x.id === r.id : x.name === r.name)));
@@ -1290,7 +1291,8 @@ PD.ai = (() => {
             return { mono: (await resample(b, 22050, 1)).getChannelData(0), offset: S.stems.from };
           }
         });
-        CUR = { res, get id() { return S && S.id; }, get transcription() { return S.tr && S.tr.data; }, file: S.file, get stems() { return S && S.stems; }, get audio() { return S && S.ab; }, get transport() { return S && S.deck; } };
+        CUR = { res, get id() { return S && S.id; }, get transcription() { return S.tr && S.tr.data; }, file: S.file, get stems() { return S && S.stems; }, get mix() { return S && S.mix; }, get audio() { return S && S.ab; }, get transport() { return S && S.deck; },
+          adopt(st, mx) { const b = body.querySelector('section.ai-stems'); if (!S || S.stems || !b) return; S.stems = st; S.mix = mx || newMix(st.tracks); swapStems(b); } };
         return S.tr.el;
       }
       own(() => { if (S && S.tr) { try { S.tr.destroy(); } catch (_) {} S.tr = null; } });
@@ -1339,6 +1341,8 @@ PD.ai = (() => {
       return box;
     }
     const fxStore = () => ({ low: 0, mid: 0, high: 0, rev: 0, echo: 0 });
+    const newMix = tr => ({ gain: tr.map(() => 1), mute: tr.map(() => false), solo: -1, pan: tr.map(() => 0), fx: tr.map(fxStore) });
+    function swapStems(box) { const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw(); S.onLearn && S.onLearn(); }
 
     /* ---------------- instruments (premium) ---------------- */
     const LBL = { vocals: 'ai.vocals', drums: 'ai.drums', bass: 'ai.bass', other: 'ai.other', guitar: 'ai.guitar', piano: 'ai.piano' };
@@ -1400,23 +1404,22 @@ PD.ai = (() => {
         if (S !== song || !song.deck) return;
         const Ls = st44.getChannelData(0).slice(), Rs = st44.numberOfChannels > 1 ? st44.getChannelData(1).slice() : Ls.slice();
         st44 = null;
-        const from = 0, to = Ls.length;
+        const from = 0, to = Ls.length, J = PD.ai.job && PD.ai.job({ song: S.id, engine: two ? 'heavy' : engine, model: engine === 'light' && !two ? 'spl' : model === '6' && has6 && !two ? 'model6' : 'model', pick, two, from: a0, len: a1 - a0, retry: run });
         const setP = (label, p) => { prog.innerHTML = ''; prog.append(h('span', { text: label }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + Math.round(p * 100) + '%' })])); };
-        if (engine === 'light' && !two) return runLight(Ls, Rs, a0, to - from, setP);
+        if (engine === 'light' && !two) return runLight(Ls, Rs, a0, to - from, setP, J);
         setP(t('ai.dl', { a: 0, b: 85 }), 0);
         const prefer = hasGPU() ? 'webgpu' : 'wasm', dir = model === '6' && has6 && !two ? 'model6' : 'model';
         if (worker && worker.dir !== dir) { try { worker.terminate(); } catch (_) {} worker = null; }
         const wk = getWorker(m => {
-          seen = Date.now();
+          seen = Date.now(); J && J.m(m);
           if (m.type === 'dl') setP(t('ai.dl', { a: Math.round(m.got / 1048576), b: Math.round(m.total / 1048576) }), m.got / m.total * .3);
           else if (m.type === 'stage') setP(t(m.s === 'unpack' ? 'ai.unpack' : 'ai.init'), .32);
-          else if (m.type === 'ready') { setP(t('ai.proc', { p: 0, m: '…' }), .35); const a = Ls, b2 = Rs === Ls ? Ls.slice() : Rs; wk.postMessage({ cmd: 'separate', L: a, R: b2, mode: two ? 'mix2' : null }, [a.buffer, b2.buffer]); }
+          else if (m.type === 'ready') { setP(t('ai.proc', { p: 0, m: '…' }), .35); const a = Ls, b2 = Rs === Ls ? Ls.slice() : Rs; wk.postMessage({ cmd: 'separate', L: a, R: b2, mode: two ? 'mix2' : null, shifts: PD.store.get('ai.shifts', 1) }, [a.buffer, b2.buffer]); }
           else if (m.type === 'progress') setP(t('ai.proc', { p: Math.round(m.done / m.total * 100), m: PD.fmtTime(Math.max(1, m.eta)) }), .35 + .65 * m.done / m.total);
           else if (m.type === 'done') {
             const tracks = ORDER.map(n => m.sources.indexOf(n)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] || m.stems[i][0] }));
             S.stems = { id: 'stems' + Date.now(), sr: SR, from: a0, len: (to - from) / SR, tracks, two: !!m.mono };
-            S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
-            stopWatch(); useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw(); S.onLearn && S.onLearn();
+            S.mix = newMix(tracks); stopWatch(); useStems(true); prog.hidden = true; swapStems(box); J && J.done(S.stems);
           }
           else if (m.type === 'error' && m.msg === 'GPUBAD') {   // the GPU got the network wrong (the stems did not add up to the song): run again on the CPU
             PD.store.set('ai.noGpu', true); stopWatch(); try { worker && worker.terminate(); } catch (_) {} worker = null;
@@ -1428,21 +1431,22 @@ PD.ai = (() => {
         let seen = Date.now(), watch = 0;
         const stopWatch = () => { if (watch) clearInterval(watch); watch = 0; };
         const fail = text => {
-          stopWatch(); go.disabled = false; prog.hidden = true;
+          stopWatch(); go.disabled = false; prog.hidden = true; J && J.fail(text);
           msg.innerHTML = ''; msg.append(h('span', { text }));
           if (!/MB/.test(text) && pick !== '30' && pick !== 'here30') msg.append(h('button', { class: 'btn small', style: 'margin-inline-start:8px', text: t('ai.try30'), onclick: () => { pick = '30'; seg.querySelectorAll('button').forEach(b2 => b2.setAttribute('aria-pressed', String(b2.textContent === t('ai.first', { n: 30 })))); msg.textContent = ''; run(); } }));
           try { worker && worker.terminate(); } catch (_) {} worker = null;
         };
         song.cancelSplit = stopWatch; own(stopWatch);
+        if (J) J.cancel = () => { stopWatch(); try { worker && worker.terminate(); } catch (_) {} worker = null; go.disabled = false; prog.hidden = true; msg.textContent = ''; };
         watch = setInterval(() => { if (Date.now() - seen > 90000) fail(t('ai.stuck')); }, 5000);
         if (!wk.ready) { wk.dir = dir; wk.postMessage({ cmd: 'load', base: BASE, prefer, dir }); } else wk.onmessage({ data: { type: 'ready' } });
       }
-      function runLight(Ls, Rs, at, nlen, setP) {
+      function runLight(Ls, Rs, at, nlen, setP, J) {
         let seen = Date.now(), watch = 0;
-        const stop = () => { if (watch) clearInterval(watch); watch = 0; };
-        song.cancelSplit = stop; own(stop);
+        const stop = () => { if (watch) clearInterval(watch); watch = 0; }, kill = () => { stop(); go.disabled = false; prog.hidden = true; try { splWorker && splWorker.terminate(); } catch (_) {} splWorker = null; };
+        song.cancelSplit = stop; own(stop); if (J) J.cancel = () => { kill(); msg.textContent = ''; };
         const wk = getSpl(m => {
-          seen = Date.now();
+          seen = Date.now(); J && J.m(m);
           if (m.type === 'ready') { setP(t('ai.engStart'), .02); const a = Ls, b2 = Rs === Ls ? Ls.slice() : Rs; wk.postMessage({ cmd: 'separate', L: a, R: b2 }, [a.buffer, b2.buffer]); }
           else if (m.type === 'dl') setP(t('ai.engDl', { n: t(LBL[m.name] || 'ai.other'), a: Math.round(m.got / 1048576), b: Math.round((m.total || 39322000) / 1048576), i: m.i + 1, k: m.n }), (m.i + (m.total ? m.got / m.total : 0) * .5) / m.n);
           else if (m.type === 'stage') setP(t(m.s === 'dl' ? 'ai.engGet' : 'ai.engRun', { n: t(LBL[m.name] || 'ai.other'), i: m.i + 1, k: m.n }), m.i / m.n);
@@ -1451,12 +1455,11 @@ PD.ai = (() => {
             stop();
             const tracks = ORDER.map(n2 => m.sources.indexOf(n2)).filter(i => i >= 0).map(i => ({ name: m.sources[i], L: m.stems[i][0], R: m.stems[i][1] }));
             S.stems = { id: 'stems' + Date.now(), sr: SR, from: at, len: nlen / SR, tracks, engine: 'light' };
-            S.mix = { gain: tracks.map(() => 1), mute: tracks.map(() => false), solo: -1, pan: tracks.map(() => 0), fx: tracks.map(fxStore) };
-            useStems(true); prog.hidden = true; const sp = stemsPanel(); sp.className = box.className; sp.hidden = box.hidden; box.replaceWith(sp); if (S.swapPane) S.swapPane(box, sp); PD.i18n.apply(sp); S.ui && S.ui.redraw(); S.onLearn && S.onLearn();
+            S.mix = newMix(tracks); useStems(true); prog.hidden = true; swapStems(box); J && J.done(S.stems);
           }
-          else if (m.type === 'error') { stop(); go.disabled = false; prog.hidden = true; msg.textContent = t('ai.fail', { e: m.msg }); try { splWorker && splWorker.terminate(); } catch (_) {} splWorker = null; }
+          else if (m.type === 'error') { kill(); msg.textContent = t('ai.fail', { e: m.msg }); J && J.fail(msg.textContent); }
         });
-        watch = setInterval(() => { if (Date.now() - seen > 120000) { stop(); go.disabled = false; prog.hidden = true; msg.textContent = t('ai.stuck'); try { splWorker && splWorker.terminate(); } catch (_) {} splWorker = null; } }, 5000);
+        watch = setInterval(() => { if (Date.now() - seen > 120000) { kill(); msg.textContent = t('ai.stuck'); J && J.fail(msg.textContent); } }, 5000);
         setP(t('ai.engStart'), .01);
         if (!wk.ready) wk.postMessage({ cmd: 'load', base: BASE }); else wk.onmessage({ data: { type: 'ready' } });
       }
