@@ -1,4 +1,4 @@
-# Studio 3.0 — Phase 0 + 1: ტესტირების ანგარიში
+# Studio 3.0 — ტესტირების ანგარიში (Phase 0 + 1, Phase 2 — §7)
 
 **თარიღი:** 2026-11-19 · **მანქანა:** macOS (Darwin 27), Node 22.23.4, Python 3.9.6, Playwright 1.64.1
 (Chromium 1248, WebKit 2370), Google Chrome (`channel: 'chrome'` ტესტებისთვის).
@@ -104,3 +104,89 @@ saved — pick it again" — გადის. ნამდვილ Safari-შ�
   მიზეზი სხვაა — ტექსტი შეცდომაში შემყვანია.
 * `panduri/app/intro3d.js` build-ში არ იქმნება (ძველი ფაილი deploy-ის საქაღალდეში).
 * `ai-transcription.cjs`, `geo-card.cjs`, `navigation-glass.cjs` აპს ჩამორჩა (§3).
+
+
+---
+
+## 7. Phase 2 (2026-11-19, branch `claude/studio3-phase02`)
+
+**გარემო:** იგივე მანქანა; Google Chrome (`channel: 'chrome'`, WebGPU ჩართულია — Demucs WebGPU-ზე გაეშვა).
+ყველა აუდიო **ნამდვილია**: მასწავლებლის ჩანაწერი (`რითმები/აჭარული ნელი.wav`, WAV 24-bit 48 kHz მონო) და
+მისი უდანაკარგო/შეკუმშული ასლები (macOS `afconvert`), აპის MP3-ები, ბანის 320 kbps MP3 (4:39), ნამდვილი
+ტელეფონის ვიდეო (`MUSIC/snaptik_….mp4`, HE-AAC v2), ბრაუზერის მიკროფონით ჩაწერილი WebM/Opus.
+
+```sh
+cd panduri/source && python3 build.py
+node qa/studio3-core.cjs                       # 75 შემოწმება (Phase 2-მა 4 დაამატა: kept, media, down())
+node qa/studio3-phase2.cjs                     # Chrome, ნამდვილი ფაილები → docs/studio3/screens/phase2/
+node qa/sep-bench.cjs 40 d4,d4o50,d4s2,d6,spl docs/studio3/data/sep-bench-<from>.json <from>   # ხარისხი, ქართული სიმღერა
+node qa/geo-routing.cjs 20 docs/studio3/data/geo-routing.json                                 # ქართული წყაროები stem-ებში
+```
+
+### 7.1 `qa/studio3-phase2.cjs` — **41 გავიდა, 1 გამოტოვებული, 0 ჩავარდნილი**
+
+| ჯგუფი | რა შემოწმდა | შედეგი |
+|---|---|---|
+| header × 12 | WAV 24/48 მონო · FLAC 24/48 · ALAC 24/48 · AIFF 16/44.1 · WAV 16/44.1 სტერეო · WAV float32/96 · AAC-LC 192k · MP3 ×3 (96 kbps 48 kHz მონო, 96 kbps 44.1, 320 kbps 44.1) · MP4 ვიდეო HE-AAC v2 · WebM/Opus მიკროფონიდან | ✓ კონტეინერი, კოდეკი, sample rate, არხები, ბიტები, bitrate, სიგრძე (±0.06 წმ) ყველაში |
+| import × 7 | ფაილი Studio-ს მთავარიდან; `PD.ai.current.audio.sampleRate` | ✓ 48 000 / 48 000 / 44 100 / 48 000 (96k → 48k, პანელი წერს „ფაილი: 96 kHz") / 44 100 / 48 000 / 44 100 (HE-AAC v2) |
+| bit-exact | WAV 24 და FLAC 24: პირველი 4000 sample ფაილის PCM-თან | ✓ max error **0** |
+| ALAC Chrome-ში | Chrome-ს ALAC-ის გამშიფრავი არ აქვს (`decodeAudioData` და `<audio>` — error 4; Safari-ს აქვს) | ✓ AI სტუდია წერს „ვერ უკრავს", Studio დაამატებს: „ფაილი არის ALAC (M4A · 48 kHz) … Safari მას ხსნის; ან FLAC/WAV" |
+| შეცდომა → ხელახლა | მოდელის URL 404 (სერვერის გადამრთველი), cache წაშლილი | ✓ job `error`, ტექსტი „The AI could not run: download 404 manifest.json", ღილაკი „ხელახლა ცდა" → `loading → separating → saving → complete` (WebGPU) |
+| შენახვა | 30 წმ, 4 stem | ✓ 9 ჩანაწერი (1 აღწერა + 8 არხი), 20.2 MB = n × 2 არხი × 2 B × 4 |
+| M / S | timeline-ის ზოლიდან | ✓ AI სტუდიის იმავე mixer-ში: solo = vocals, mute = drums, ზოლები მკრთალდება, AI მიქსი ირთვება |
+| WAV | ერთი stem, 16-bit და 32-bit float | ✓ header-ები (1/16 და 3/32, 44.1 kHz, 2 არხი, 1 323 000 frame); float **bit-exact** stem-თან |
+| seek | timeline-ზე შეხება შუაში (გაყოფილი მონაკვეთის გარეთ) და მონაკვეთში | ✓ 139.47 / 278.9 წმ, ორიგინალზე გადართვით; zoom-ში შუა = 15.00 წმ; ერთი transport (`PD.transport.active` = deck, Panduri Studio ჩუმად) |
+| **დაკვრისას პოზიცია** | — | **– გამოტოვებული:** ამ მანქანაზე Web Audio-ს საათი არ მიდის (0.005 წმ 0.8 წამში — headless-შიც და headed-შიც, ჩვენი კოდის გარეშეც), ასე რომ აქ ვერც ერთი player ვერ წავა. ნამდვილ ბრაუზერში შესამოწმებელია |
+| გადატვირთვა | reload → სიმღერა ხელახლა | ✓ stem-ები დაბრუნდა **ახალი job-ის გარეშე**, ცდომილება 0.487 LSB (ზღვარი 0.5), mixer-ის solo/mute დაბრუნდა |
+| გაუქმება | `separating`-ში „გაუქმება" | ✓ `cancelled`, stem-ები არ არის, „გაყოფა" ხელმისაწვდომია, 1.5 წმ-ში თავისით არ „გაცოცხლდა"; „ხელახლა ცდა" → `complete` |
+| შეწყვეტა | reload `separating`-ში | ✓ `s3.jobs`-ში `interrupted`, გვერდით პანელში „შეწყდა" |
+| მსუბუქი ძრავა | Spleeter, 30 წმ | ✓ job → `complete`, შენახულია `engine: 'light'` |
+| წაშლა | „შენახული ხმების წაშლა" | ✓ 0 ჩანაწერი, სიმღერა (`ai.song.<id>`) რჩება, „ამ მოწყობილობაზე არ შეინახა" + „შენახვა" → ისევ 9 ჩანაწერი |
+| gc | ბიბლიოთეკაში არმყოფი სიმღერის ჩანაწერი | ✓ წაიშალა; ბიბლიოთეკის სიმღერისა — არა |
+| ძველი მონაცემი | ორი ძველი `ai.recent` ჩანაწერი + Panduri Studio-ს პროექტი | ✓ უცვლელი (პროექტის JSON ბაიტ-ბაიტ) |
+| 5 ზომა | 1440×900, 1920×1080, 768×1024, 390×844, 430×932 | ✓ horizontal overflow არ არის, 5 ზოლი, canvas = ზოლების სიმაღლე, ღილაკები ≥ 22 px და ეკრანზე; 4/5 სახელი ეტევა („დანარჩენი (ფანდური…)" იჭრება, სრულად — title-ში) |
+| page errors | | ✓ 0 |
+
+სქრინშოთები: [screens/phase2/](screens/phase2/).
+
+**ამ ტესტმა დაიჭირა ჩემი ორი შეცდომა, სანამ commit-ი გაკეთდებოდა:** (1) timeline-ის zoom-ის ცვლადი
+გამოცხადებამდე გამოიყენებოდა — სიმღერის workspace საერთოდ არ იხსნებოდა; (2) `Element.append(null)` წერდა
+„null"-ს. ორივე გასწორდა და ტესტი თავიდან გავიდა. parser-ის ხარვეზებიც ტესტმა იპოვა და გასწორდა: AAC-ის
+არხები (stsd-ის მუდმივი 2-ის ნაცვლად AudioSpecificConfig-იდან), `iTunSMPB`-ის სიგრძე, WebM-ის DocType.
+
+### 7.2 გაყოფა: ნაგულისხმევი უცვლელია, ხარისხი გაზომილია
+
+* **`aiworker.js`-ის ნაგულისხმევი (1 გავლა, 25 % overlap) `main`-ის worker-ის bitwise ტოლია:** ბანის
+  `full.mp3`, 12 წმ (60–72 წმ), WASM — 4 stem × 2 არხი = 4 233 600 sample, max |სხვაობა| **0**.
+* ხარისხი ქართულ სიმღერაზე (ცალკე ჩაწერილი ხმა და მუსიკა) და ქართული წყაროების routing —
+  [GEORGIAN-INSTRUMENTS.md §1–2](GEORGIAN-INSTRUMENTS.md), ნედლი მონაცემი `data/sep-bench-{20,120,200}.json`,
+  `data/geo-routing.json`. SDR ორ გაშვებაზე ციფრი-ციფრამდე იგივე გამოვიდა.
+
+### 7.3 ძველი და Phase 1-ის ტესტები — ახალი build და `origin/main` (`6d5a93e932`), ერთსა და იმავე დროს, ერთ მანქანაზე
+
+ამ სესიის შუაში ამ მანქანაზე ორი რამ შეიცვალა, რაც კოდზე არ არის დამოკიდებული: Web Audio-ს საათი
+გაჩერდა (§7.1), და Playwright-ის საკუთარ Chromium-ში `fonts.gstatic.com`-ის მოთხოვნები აღარ
+სრულდება (curl-ით იგივე ფონტი 0.5 წმ-ში მოდის), ამიტომ გვერდის `load` აღარ დგება. ამის
+გასარჩევად ყოველი ჩავარდნილი ტესტი `origin/main`-ის build-ზეც გაეშვა, ცალკე worktree-ში.
+
+| ტესტი | ახალი (Phase 2) | `origin/main` ახლა | დასკვნა |
+|---|---|---|---|
+| `studio3-core` | **75/75** ✓ | — | |
+| `pstudio-core`, `storage` | ✓ | — | |
+| `studio3-ui` Chromium | 36 ✓, 2 ✗ | 36 ✓, **იგივე 2 ✗** | ✗ = „პოზიცია მოძრაობს" (song pos 0, arrangement head 0, `playing: true`, owner სწორი) — აუდიოს საათი |
+| `studio3-ui` WebKit | 35 ✓, 1 –, 2 ✗ | — | იგივე 2 + ცნობილი Blob-ის გამოტოვება (Phase 1) |
+| `ai-studio` (ნამდვილი Spleeter, UI-ით გაყოფა, აკორდები ხმებიდან) | ✓ 4 × 926 100 | — | |
+| `pstudio-ui` | ✗ „rhythm strokes reached the engine" (`t: 0.0053`) | ✗ უფრო ადრე: „three notes written from the neck" | აუდიოს საათი; ახალი build შორს მიდის |
+| `ai-transcription` | ✗ TimeoutError | ✗ TimeoutError | ცვლილებამდეც ვარდებოდა (§3) |
+| `refresh-regressions` | suite-ში 1 ✗ (timeout, პარალელურად WASM-ის შედარება მიდიოდა); ცალკე **2/2 ✓** | 2/2 ✓ | regression არ არის |
+| `v2-shell` (9 ზომა), `first-run`, `interaction-regressions`, `ui-refresh`, `devices-ui` | ✓ | — | |
+| `settings-reset` | 3/5 | (ადრე 4/10) | ცნობილი race (memory: qa-known-failures) |
+| `i18n-crawl` ka/en/ru | ✗ `page.goto` timeout | ✗ იგივე | Google Fonts Playwright-ის Chromium-ში იჭედება; raw key-ის შემოწმება აქ ვერ ჩატარდა. ახალი `s3s.*` key-ები (`PD.i18n.add`) — prefix თავისუფალია (`grep`), ქართული + ინგლისური ყველას აქვს |
+
+### 7.4 რა არ შემოწმებულა
+* დაკვრის დროს playhead-ის მოძრაობა (ამ მანქანაზე საათი არ მიდის) — სხვა მანქანაზე/ბრაუზერში.
+* ნამდვილი iPhone/Android: stem-ების შენახვის ადგილი და დრო, Demucs ტელეფონზე; Safari-ში ALAC და
+  IndexedDB-ის ზღვრები.
+* ხმა ყურით: გაყოფის ხარისხი SDR-ით იზომა, მოსმენით — არა.
+* `i18n-crawl` (იხ. ზემოთ); Phase 2-ის 77 ახალი სტრიქონი (`s3s.*`) 14 ენაზე ინგლისურად ჩანს.
+* Ogg/Vorbis ფაილი (parser არის, ნამდვილი ფაილით ტესტი — არა); RF64, AIFF-C, MOV v2.

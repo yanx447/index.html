@@ -1,5 +1,7 @@
 # the build writes these; python3 build.py recreates them
 dist/
+# made by build_env.py on a machine without Pillow (Vercel); recreated when missing
+.venv-build/
 __pycache__/
 *.pyc
 node_modules/

@@ -1,0 +1,205 @@
+{
+ "gpu": true,
+ "rows": [
+  {
+   "label": "panduri · rhythm acharuli (slow)",
+   "file": "რითმები/აჭარული ნელი.wav",
+   "seconds": 9.7,
+   "from": 0,
+   "d4": {
+    "drums": 0,
+    "bass": 0,
+    "other": 1,
+    "vocals": 0
+   },
+   "d6": {
+    "drums": 0,
+    "bass": 0,
+    "other": 0.449,
+    "vocals": 0,
+    "guitar": 0.551,
+    "piano": 0
+   }
+  },
+  {
+   "label": "panduri · rhythm acharuli (very slow)",
+   "file": "რითმები/აჭარული ძალიან ნელი.wav",
+   "seconds": 14.1,
+   "from": 0,
+   "d4": {
+    "drums": 0,
+    "bass": 0,
+    "other": 1,
+    "vocals": 0
+   },
+   "d6": {
+    "drums": 0,
+    "bass": 0,
+    "other": 0.43,
+    "vocals": 0,
+    "guitar": 0.57,
+    "piano": 0
+   }
+  },
+  {
+   "label": "panduri · rhythm mtiuluri (normal)",
+   "file": "რითმები/მთიულური ნორმალური.wav",
+   "seconds": 5.5,
+   "from": 0,
+   "d4": {
+    "drums": 0,
+    "bass": 0,
+    "other": 1,
+    "vocals": 0
+   },
+   "d6": {
+    "drums": 0,
+    "bass": 0,
+    "other": 0,
+    "vocals": 0,
+    "guitar": 1,
+    "piano": 0
+   }
+  },
+  {
+   "label": "panduri · rhythm mtiuluri (very slow)",
+   "file": "რითმები/მთიულური ძალიან ნელი.wav",
+   "seconds": 13,
+   "from": 0,
+   "d4": {
+    "drums": 0,
+    "bass": 0,
+    "other": 1,
+    "vocals": 0
+   },
+   "d6": {
+    "drums": 0,
+    "bass": 0,
+    "other": 0,
+    "vocals": 0,
+    "guitar": 1,
+    "piano": 0
+   }
+  },
+  {
+   "label": "panduri · bass string (A)",
+   "file": "ფანდურის თითოელი სიმი/ბანი სიმი.wav",
+   "seconds": 20,
+   "from": 8.5,
+   "d4": {
+    "drums": 0.019,
+    "bass": 0,
+    "other": 0.981,
+    "vocals": 0
+   },
+   "d6": {
+    "drums": 0,
+    "bass": 0,
+    "other": 0.001,
+    "vocals": 0,
+    "guitar": 0.997,
+    "piano": 0.001
+   }
+  },
+  {
+   "label": "panduri · 2nd voice (C♯)",
+   "file": "ფანდურის თითოელი სიმი/მეორე სიმი.wav",
+   "seconds": 20,
+   "from": 0,
+   "d4": {
+    "drums": 0,
+    "bass": 0,
+    "other": 1,
+    "vocals": 0
+   },
+   "d6": {
+    "drums": 0,
+    "bass": 0,
+    "other": 0.001,
+    "vocals": 0,
+    "guitar": 0.999,
+    "piano": 0
+   }
+  },
+  {
+   "label": "panduri · 1st voice (E)",
+   "file": "ფანდურის თითოელი სიმი/პირველი სიმი.wav",
+   "seconds": 20,
+   "from": 0,
+   "d4": {
+    "drums": 0.017,
+    "bass": 0,
+    "other": 0.982,
+    "vocals": 0
+   },
+   "d6": {
+    "drums": 0.042,
+    "bass": 0,
+    "other": 0.003,
+    "vocals": 0,
+    "guitar": 0.951,
+    "piano": 0.004
+   }
+  },
+  {
+   "label": "panduri · all three strings",
+   "file": "ფანდურის თითოელი სიმი/სამივე სიმი.wav",
+   "seconds": 17.1,
+   "from": 0,
+   "d4": {
+    "drums": 0,
+    "bass": 0,
+    "other": 1,
+    "vocals": 0
+   },
+   "d6": {
+    "drums": 0,
+    "bass": 0,
+    "other": 0,
+    "vocals": 0,
+    "guitar": 1,
+    "piano": 0
+   }
+  },
+  {
+   "label": "Bani · music without voices",
+   "file": "MUSIC/ბანი - აჭარული/MUSIC.mp3",
+   "seconds": 20,
+   "from": 120,
+   "d4": {
+    "drums": 0.404,
+    "bass": 0.46,
+    "other": 0.136,
+    "vocals": 0
+   },
+   "d6": {
+    "drums": 0.439,
+    "bass": 0.474,
+    "other": 0.047,
+    "vocals": 0,
+    "guitar": 0.04,
+    "piano": 0
+   }
+  },
+  {
+   "label": "Bani · Georgian polyphonic voices",
+   "file": "MUSIC/ბანი - აჭარული/VOCAL.mp3",
+   "seconds": 20,
+   "from": 120,
+   "d4": {
+    "drums": 0,
+    "bass": 0,
+    "other": 0,
+    "vocals": 1
+   },
+   "d6": {
+    "drums": 0,
+    "bass": 0,
+    "other": 0,
+    "vocals": 1,
+    "guitar": 0,
+    "piano": 0
+   }
+  }
+ ]
+}

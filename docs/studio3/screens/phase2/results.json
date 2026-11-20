@@ -1,0 +1,521 @@
+{
+ "when": "2026-11-20T03:56:47.357Z",
+ "build": "090778e01a",
+ "failed": 0,
+ "results": [
+  {
+   "name": "probe · wav24",
+   "ok": true,
+   "skipped": false,
+   "ms": 64,
+   "info": {
+    "container": "WAV",
+    "codec": "PCM",
+    "sr": 48000,
+    "ch": 1,
+    "bits": 24,
+    "kbps": 1156,
+    "dur": 9.688
+   }
+  },
+  {
+   "name": "probe · flac",
+   "ok": true,
+   "skipped": false,
+   "ms": 39,
+   "info": {
+    "container": "FLAC",
+    "codec": "FLAC",
+    "sr": 48000,
+    "ch": 1,
+    "bits": 24,
+    "kbps": 736,
+    "dur": 9.688
+   }
+  },
+  {
+   "name": "probe · alac",
+   "ok": true,
+   "skipped": false,
+   "ms": 40,
+   "info": {
+    "container": "M4A",
+    "codec": "ALAC",
+    "sr": 48000,
+    "ch": 1,
+    "bits": 24,
+    "kbps": 748,
+    "dur": 9.688
+   }
+  },
+  {
+   "name": "probe · aiff",
+   "ok": true,
+   "skipped": false,
+   "ms": 37,
+   "info": {
+    "container": "AIFF",
+    "codec": "PCM",
+    "sr": 44100,
+    "ch": 1,
+    "bits": 16,
+    "kbps": 709,
+    "dur": 9.688
+   }
+  },
+  {
+   "name": "probe · wav16",
+   "ok": true,
+   "skipped": false,
+   "ms": 75,
+   "info": {
+    "container": "WAV",
+    "codec": "PCM",
+    "sr": 44100,
+    "ch": 2,
+    "bits": 16,
+    "kbps": 1415,
+    "dur": 9.688
+   }
+  },
+  {
+   "name": "probe · wav96",
+   "ok": true,
+   "skipped": false,
+   "ms": 162,
+   "info": {
+    "container": "WAV",
+    "codec": "IEEE float",
+    "sr": 96000,
+    "ch": 1,
+    "bits": 32,
+    "kbps": 3075,
+    "dur": 9.688
+   }
+  },
+  {
+   "name": "probe · aac",
+   "ok": true,
+   "skipped": false,
+   "ms": 15,
+   "info": {
+    "container": "M4A",
+    "codec": "AAC-LC",
+    "sr": 44100,
+    "ch": 1,
+    "bits": null,
+    "kbps": 192,
+    "dur": 9.688
+   }
+  },
+  {
+   "name": "probe · mp3music",
+   "ok": true,
+   "skipped": false,
+   "ms": 147,
+   "info": {
+    "container": "MP3",
+    "codec": "MPEG-1 Layer III",
+    "sr": 44100,
+    "ch": 2,
+    "bits": null,
+    "kbps": 96,
+    "dur": 278.988
+   }
+  },
+  {
+   "name": "probe · mp3rhy",
+   "ok": true,
+   "skipped": false,
+   "ms": 8,
+   "info": {
+    "container": "MP3",
+    "codec": "MPEG-1 Layer III",
+    "sr": 48000,
+    "ch": 1,
+    "bits": null,
+    "kbps": 96,
+    "dur": 11.664
+   }
+  },
+  {
+   "name": "probe · mp3song",
+   "ok": true,
+   "skipped": false,
+   "ms": 576,
+   "info": {
+    "container": "MP3",
+    "codec": "MPEG-1 Layer III",
+    "sr": 44100,
+    "ch": 2,
+    "bits": null,
+    "kbps": 320,
+    "dur": 278.988
+   }
+  },
+  {
+   "name": "probe · mp4video",
+   "ok": true,
+   "skipped": false,
+   "ms": 379,
+   "info": {
+    "container": "MP4",
+    "codec": "HE-AAC v2",
+    "sr": 44100,
+    "ch": 2,
+    "bits": null,
+    "kbps": 64,
+    "dur": 47.274
+   }
+  },
+  {
+   "name": "probe · WebM/Opus recorded in this browser from the microphone (as the app's recorder makes it)",
+   "ok": true,
+   "skipped": false,
+   "ms": 2135,
+   "info": {
+    "container": "WebM",
+    "codec": "Opus",
+    "sr": 48000,
+    "ch": 2,
+    "bytes": 24471
+   }
+  },
+  {
+   "name": "import · alac in Chrome: no decoder in this browser — the studio says it cannot play it (Safari can)",
+   "ok": true,
+   "skipped": false,
+   "ms": 2152,
+   "info": {
+    "message": "This browser cannot play this file at all. Try MP4, WebM, MP3, M4A or ",
+    "hint": "The file is ALAC (M4A · 48 kHz) — this browser has no decoder for this codec. Safari opens it; or convert it t"
+   }
+  },
+  {
+   "name": "import · wav24 decoded at its own rate, bit-exact",
+   "ok": true,
+   "skipped": false,
+   "ms": 1654,
+   "info": {
+    "decodedAt": 48000,
+    "ch": 1,
+    "dur": 9.688,
+    "maxErr": 0
+   }
+  },
+  {
+   "name": "import · flac decoded at its own rate, bit-exact",
+   "ok": true,
+   "skipped": false,
+   "ms": 26492,
+   "info": {
+    "decodedAt": 48000,
+    "ch": 1,
+    "dur": 9.688,
+    "maxErr": 0
+   }
+  },
+  {
+   "name": "import · wav16 decoded at its own rate",
+   "ok": true,
+   "skipped": false,
+   "ms": 1650,
+   "info": {
+    "decodedAt": 44100,
+    "ch": 2,
+    "dur": 9.688,
+    "maxErr": null
+   }
+  },
+  {
+   "name": "import · wav96 decoded at its own rate",
+   "ok": true,
+   "skipped": false,
+   "ms": 1648,
+   "info": {
+    "decodedAt": 48000,
+    "ch": 1,
+    "dur": 9.688,
+    "maxErr": null
+   }
+  },
+  {
+   "name": "import · aac decoded at its own rate",
+   "ok": true,
+   "skipped": false,
+   "ms": 1636,
+   "info": {
+    "decodedAt": 44100,
+    "ch": 1,
+    "dur": 9.688,
+    "maxErr": null
+   }
+  },
+  {
+   "name": "import · mp3rhy decoded at its own rate",
+   "ok": true,
+   "skipped": false,
+   "ms": 1626,
+   "info": {
+    "decodedAt": 48000,
+    "ch": 1,
+    "dur": 11.664,
+    "maxErr": null
+   }
+  },
+  {
+   "name": "import · mp4video decoded at its own rate",
+   "ok": true,
+   "skipped": false,
+   "ms": 2353,
+   "info": {
+    "decodedAt": 44100,
+    "ch": 2,
+    "dur": 47.274,
+    "maxErr": null
+   }
+  },
+  {
+   "name": "the song opens; the Stems view shows the original on the timeline and no stems",
+   "ok": true,
+   "skipped": false,
+   "ms": 33019,
+   "info": {
+    "lanes": 1
+   }
+  },
+  {
+   "name": "a job that fails — the model cannot be reached — says so and can be tried again",
+   "ok": true,
+   "skipped": false,
+   "ms": 38180,
+   "info": {
+    "failed": "error",
+    "message": "The AI could not run: download 404 manifest.json",
+    "retried": "loading→separating→saving→complete",
+    "ep": "webgpu"
+   }
+  },
+  {
+   "name": "the stems are on the timeline and kept on the device (Int16, per track and channel)",
+   "ok": true,
+   "skipped": false,
+   "ms": 612,
+   "info": {
+    "mb": 20.2,
+    "ep": "webgpu",
+    "seconds": 30,
+    "keys": 9
+   }
+  },
+  {
+   "name": "solo and mute from the timeline drive the one mixer",
+   "ok": true,
+   "skipped": false,
+   "ms": 490,
+   "info": {
+    "solo": 0,
+    "mixerOn": true,
+    "dimDrums": true,
+    "mode": "true",
+    "mute": [
+     false,
+     true,
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "name": "WAV export of one stem: 16-bit, and 32-bit float bit-exact",
+   "ok": true,
+   "skipped": false,
+   "ms": 208,
+   "info": {
+    "wav16": {
+     "fmt": 1,
+     "ch": 2,
+     "sr": 44100,
+     "bits": 16,
+     "frames": 1323000
+    },
+    "wav32": {
+     "fmt": 3,
+     "ch": 2,
+     "sr": 44100,
+     "bits": 32,
+     "frames": 1323000
+    },
+    "bytes32": 10584044
+   }
+  },
+  {
+   "name": "the timeline seeks the one transport; the playhead follows it",
+   "ok": true,
+   "skipped": false,
+   "ms": 1853,
+   "info": {
+    "seekTo": 139.47,
+    "ofDur": 278.9,
+    "switchedToOriginal": true,
+    "oneTransport": true
+   }
+  },
+  {
+   "name": "the playhead moves while the song plays",
+   "ok": true,
+   "skipped": true,
+   "ms": 814,
+   "info": "skipped: this machine's audio clock does not run (Web Audio advanced 0.005 s in 0.8 s), so no player here can move; played 0.00 s"
+  },
+  {
+   "name": "the timeline zooms in on the separated part, and a tap there seeks inside it",
+   "ok": true,
+   "skipped": false,
+   "ms": 667,
+   "info": {
+    "seekTo": 15,
+    "middleOfPart": 15
+   }
+  },
+  {
+   "name": "after a reload the kept stems open again without a new separation (within Int16 rounding), the mix with them",
+   "ok": true,
+   "skipped": false,
+   "ms": 28547,
+   "info": {
+    "worstLSB": 0.487,
+    "scale": 1,
+    "mixKept": true
+   }
+  },
+  {
+   "name": "a job can be cancelled and tried again",
+   "ok": true,
+   "skipped": false,
+   "ms": 41867,
+   "info": {
+    "cancelled": true,
+    "retried": "loading→separating→saving→complete"
+   }
+  },
+  {
+   "name": "a job cut off by a reload is listed as interrupted",
+   "ok": true,
+   "skipped": false,
+   "ms": 3115,
+   "info": {
+    "state": "interrupted"
+   }
+  },
+  {
+   "name": "the light engine (Spleeter) runs as a job too and is kept, marked as light",
+   "ok": true,
+   "skipped": false,
+   "ms": 10108,
+   "info": {
+    "seen": "separating→saving→complete",
+    "engine": "light",
+    "mb": 20.2
+   }
+  },
+  {
+   "name": "deleting the kept stems removes every record and keeps the song",
+   "ok": true,
+   "skipped": false,
+   "ms": 1405,
+   "info": {
+    "keys": 0,
+    "song": true,
+    "notKept": true
+   }
+  },
+  {
+   "name": "stems of a song no longer in the library are cleared (gc); the library's own songs are not touched",
+   "ok": true,
+   "skipped": false,
+   "ms": 7,
+   "info": {
+    "removed": 1,
+    "gone": 0,
+    "own": 3
+   }
+  },
+  {
+   "name": "old data is untouched: the earlier songs and the Panduri Studio project",
+   "ok": true,
+   "skipped": false,
+   "ms": 2,
+   "info": {
+    "oldSongs": 2,
+    "project": "unchanged"
+   }
+  },
+  {
+   "name": "stems that are not kept can be kept again (\"Keep them\")",
+   "ok": true,
+   "skipped": false,
+   "ms": 541,
+   "info": {
+    "keys": 9
+   }
+  },
+  {
+   "name": "Stems view at desktop-1440x900: no overflow, every lane drawn, buttons reachable",
+   "ok": true,
+   "skipped": false,
+   "ms": 1070,
+   "info": {
+    "canvas": "560×220",
+    "namesFit": "4/5"
+   }
+  },
+  {
+   "name": "Stems view at desktop-1920x1080: no overflow, every lane drawn, buttons reachable",
+   "ok": true,
+   "skipped": false,
+   "ms": 1082,
+   "info": {
+    "canvas": "1040×220",
+    "namesFit": "4/5"
+   }
+  },
+  {
+   "name": "Stems view at tablet-768x1024: no overflow, every lane drawn, buttons reachable",
+   "ok": true,
+   "skipped": false,
+   "ms": 1082,
+   "info": {
+    "canvas": "492×220",
+    "namesFit": "4/5"
+   }
+  },
+  {
+   "name": "Stems view at phone-390x844: no overflow, every lane drawn, buttons reachable",
+   "ok": true,
+   "skipped": false,
+   "ms": 1074,
+   "info": {
+    "canvas": "230×270",
+    "namesFit": "4/5"
+   }
+  },
+  {
+   "name": "Stems view at phone-430x932: no overflow, every lane drawn, buttons reachable",
+   "ok": true,
+   "skipped": false,
+   "ms": 1070,
+   "info": {
+    "canvas": "270×270",
+    "namesFit": "4/5"
+   }
+  },
+  {
+   "name": "no page errors",
+   "ok": true,
+   "skipped": false,
+   "ms": 0,
+   "info": null
+  }
+ ]
+}
