@@ -165,7 +165,8 @@ def sisdr_t(r, e):
 
 def train(fold, variant, minutes, frac=1.0, name=None):
     cfg = CFG[variant]; name = name or f'{fold}_{variant}' + (f'_f{int(frac * 100)}' if frac < 1 else ''); S = 5 if cfg['other'] else 4
-    seg = SR * 4; rng = np.random.default_rng(11); torch.manual_seed(11)
+    seg = SR * (3 if cfg['net'] == 'Net3' else 4); rng = np.random.default_rng(11); torch.manual_seed(11)
+    BS = 12 if cfg['net'] == 'Net3' else 16
     pools = {s: windows(FOLDS[fold]['train'][s], seg, frac=frac) for s in SRC}
     opool = [w for k, a, b in OTHER['train'] for w in windows([k], seg, span=(a, b))] if cfg['other'] else None
     print(name, 'train windows:', {s: len(v) for s, v in pools.items()}, 'other:', len(opool) if opool else 0, flush=True)
@@ -177,22 +178,25 @@ def train(fold, variant, minutes, frac=1.0, name=None):
         f = net.feats(M)[0] if cfg['net'] == 'Net3' else torch.log1p(M)
         net.mean.data = f.mean((0, 2)); net.std.data = f.std((0, 2)) + 1e-3
     opt = torch.optim.AdamW(net.parameters(), 1e-3, weight_decay=1e-5); step = 0; ema = None; hist = []
-    dl = iter(torch.utils.data.DataLoader(Batches(pools, opool, cfg, seg, 16), batch_size=None, num_workers=7, prefetch_factor=3, persistent_workers=True))
+    dl = iter(torch.utils.data.DataLoader(Batches(pools, opool, cfg, seg, BS), batch_size=None, num_workers=int(os.environ.get("WORKERS", 3)), prefetch_factor=2, persistent_workers=True))
     t0 = time.time()
     while time.time() - t0 < minutes * 60:
         X, Y, MH = next(dl); X = X.to(dev); Y = Y.to(dev); MH = MH.float().to(dev) if cfg['net'] == 'Net3' else None
-        Xs = stft(X); M = Xs.abs(); Ys = stft(Y.view(-1, seg)).view(16, S, F, -1)
+        Xs = stft(X); M = Xs.abs(); Ys = stft(Y.view(-1, seg)).view(BS, S, F, -1)
         g = (10 ** (LEVEL / 20) / (X.pow(2).mean(1).sqrt() + 1e-8))[:, None, None] if cfg['level_train'] else 1.0
         m = net(M * g, MH)
         loss = (m * M.unsqueeze(1) + 1e-8).pow(.3).sub((Ys.abs() + 1e-8).pow(.3)).abs().mean()
         if cfg['sisdr'] > 0:
-            est = istft((m * Xs.unsqueeze(1)).reshape(-1, F, Xs.shape[-1]), seg).view(16, S, seg)
+            est = istft((m * Xs.unsqueeze(1)).reshape(-1, F, Xs.shape[-1]), seg).view(BS, S, seg)
             present = (Y.pow(2).mean(-1) > 1e-7).float()
             loss = loss - cfg['sisdr'] * (sisdr_t(Y, est) * present).sum() / present.sum().clamp_min(1)
         opt.zero_grad(); loss.backward(); nn.utils.clip_grad_norm_(net.parameters(), 5); opt.step()
         step += 1; ema = loss.item() if ema is None else .98 * ema + .02 * loss.item()
-        if step % 200 == 0:
-            el = time.time() - t0; hist.append({'step': step, 'sec': round(el), 'loss': round(ema, 5)}); print(name, json.dumps(hist[-1]), flush=True)
+        if dev.type == 'mps' and step % 100 == 0: torch.mps.empty_cache()
+        if step % int(os.environ.get('EVERY', 200)) == 0:
+            el = time.time() - t0; hist.append({'step': step, 'sec': round(el), 'loss': round(ema, 5)})
+            if dev.type == 'mps': hist[-1]['mpsMB'] = round(torch.mps.driver_allocated_memory() / 1048576)
+            print(name, json.dumps(hist[-1]), flush=True)
             if el > minutes * 60 * .7 and opt.param_groups[0]['lr'] > 3e-4: opt.param_groups[0]['lr'] = 3e-4
     torch.save({'state': net.state_dict(), 'variant': variant, 'fold': fold, 'frac': frac, 'S': S, 'steps': step, 'seconds': round(time.time() - t0), 'hist': hist,
                 'params': sum(p.numel() for p in net.parameters()), 'trainSeconds': {s: len(v) for s, v in pools.items()}}, os.path.join(R2, name + '.pt'))
