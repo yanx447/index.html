@@ -38,3 +38,14 @@ test('unstable measurements interrupt sustained tuning time', () => {
   assert.equal(tr.snap.state, State.UNSTABLE);
   assert.equal(tr.snap.inTuneMs, 0);
 });
+
+test('a quiet A string sounding during microphone calibration is detected', () => {
+  const tracker = new PitchTracker();
+  tracker.configure({ strings: [{ freq: 220 }, { freq: 277.18 }, { freq: 329.63 }] });
+  tracker.begin(0);
+  const faintA = { freq: 220.2, clarity: .98, periodicity: .98, rms: .00032 };
+  for (let time = 0; time < 1600; time += 33) tracker.update(faintA, time);
+  assert.equal(tracker.snap.stringIndex, 0);
+  assert.equal(tracker.snap.state, State.IN_TUNE);
+  assert.ok(Math.abs(tracker.snap.cents) < 2);
+});

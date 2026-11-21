@@ -246,13 +246,13 @@ PD.aiLessons = (() => {
   function remove(sid) {
     const D = find(sid); if (!D) return;
     ['full', 'vocals', 'music'].forEach(k => { try { PD.blobs.del('ai.les.' + sid + '.' + k); } catch (_) {} });
-    if (!PD.store.get('ai.recent', []).some(r => r.id === sid)) ['ai.song.', 'ai.tr.', 'ai.rhy.', 'ai.res.'].forEach(k => { try { PD.blobs.del(k + sid); } catch (_) {} });
+    if (!(PD.studioSync?.store || PD.store).get('ai.recent', []).some(r => r.id === sid)) ['ai.song.', 'ai.tr.', 'ai.rhy.', 'ai.res.'].forEach(k => { try { PD.blobs.del(k + sid); } catch (_) {} });
     [D.id, D.id + '~chords'].forEach(id => PD.store.del('prog.' + id));
     const fav = PD.store.get('favorites', []); if (fav.includes(D.id)) PD.store.set('favorites', fav.filter(x => x !== D.id));
     save(list().filter(x => x.sid !== sid));
   }
   /** is the song this lesson came from still in the studio's list? */
-  const songListed = sid => PD.store.get('ai.recent', []).some(r => r.id === sid);
+  const songListed = sid => (PD.studioSync?.store || PD.store).get('ai.recent', []).some(r => r.id === sid);
 
   /* ---------- the panel inside the studio ---------- */
   function panel(o) {

@@ -39,6 +39,7 @@ PD.cloud = (() => {
     opt = opt || {};
     const c = conf(); if (!c.url || !c.key) throw err('no-backend');
     if (opt.auth !== false && S && S.expires_at && S.expires_at - 60 < Date.now() / 1000) await refresh().catch(() => {});
+    if (opt.user && uid() !== opt.user) throw err('no-session');
     const headers = Object.assign({ apikey: c.key, 'Content-Type': 'application/json' }, opt.headers || {});
     // signed in: the member's token. Not signed in: the legacy anon key is a JWT and goes here too; the newer
     // "publishable" key (sb_publishable_…) is not a JWT and travels only in the apikey header.
@@ -114,7 +115,13 @@ PD.cloud = (() => {
       return true;
     },
     /** delete the account and everything stored with it on the server (progress on this device stays) */
-    async deleteAccount() { await storage.removeMine().catch(() => {}); await http('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {} }); setSession(null); PD.store.set('account.mode', 'local'); PD.store.del('push.endpoint'); }
+    async deleteAccount() {
+      const owner = uid();
+      if (owner && PD.studioSync) await storage.clearStudio(owner).catch(e => { if (e.code !== '404' && e.code !== 'http-404' && !/bucket not found/i.test(e.message)) throw e; });
+      await storage.removeMine().catch(() => {}); await http('/rest/v1/rpc/delete_my_account', { method: 'POST', body: {}, user: owner });
+      PD.studioSync?.eraseAccount(owner);
+      setSession(null); PD.store.set('account.mode', 'local'); PD.store.del('push.endpoint');
+    }
   };
   /** returning from Google/Facebook (web: URL fragment; app: deep link) */
   function consumeRedirect(href) {
@@ -154,6 +161,13 @@ PD.cloud = (() => {
     update: (t, match, patch) => http('/rest/v1/' + t + '?' + q(match), { method: 'PATCH', body: patch, headers: { Prefer: 'return=representation' } }),
     remove: (t, match) => http('/rest/v1/' + t + '?' + q(match), { method: 'DELETE' }),
     rpc: (fn, args) => http('/rest/v1/rpc/' + fn, { method: 'POST', body: args || {} })
+  };
+
+  const studio = {
+    put: (owner, args) => http('/rest/v1/rpc/studio_put_project', { method: 'POST', body: args, user: owner }),
+    list: (owner, offset) => http('/rest/v1/studio_projects?' + q({
+      user_id: 'eq.' + owner, select: 'kind,project_id,revision,payload,deleted', order: 'kind,project_id', limit: 50, offset
+    }), { user: owner })
   };
 
   /* ---------- profile, progress, entitlements ---------- */
@@ -375,16 +389,18 @@ PD.cloud = (() => {
   const storage = {
     /** upload with progress; resolves with the stored path */
     async upload(path, blob, onProgress, bucket) {
-      const c = conf(); if (!c.url || !c.key) throw err('no-backend'); if (!S) throw err('no-session');
+      const c = conf(), owner = uid(); if (!c.url || !c.key) throw err('no-backend'); if (!S) throw err('no-session');
       if (S.expires_at && S.expires_at - 120 < Date.now() / 1000) await refresh().catch(() => {});
+      if (!S || uid() !== owner) throw err('no-session');
       return new Promise((res, rej) => {
         const x = new XMLHttpRequest();
         x.open('POST', c.url + '/storage/v1/object/' + (bucket || BUCKET) + '/' + path.split('/').map(encodeURIComponent).join('/'));
         x.setRequestHeader('apikey', c.key); x.setRequestHeader('Authorization', 'Bearer ' + S.access_token);
-        x.setRequestHeader('Content-Type', blob.type || 'application/octet-stream'); x.setRequestHeader('x-upsert', 'false'); x.setRequestHeader('cache-control', '31536000');
+        x.setRequestHeader('Content-Type', blob.type || 'application/octet-stream'); x.setRequestHeader('x-upsert', 'false'); x.setRequestHeader('cache-control', bucket === 'studio-projects' ? '0' : '31536000');
         if (onProgress) x.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
         x.onload = () => { if (x.status >= 200 && x.status < 300) res(path); else { let j = null; try { j = JSON.parse(x.responseText); } catch (_) {} rej(err(x.status === 413 || /too large|exceeded/i.test(x.responseText) ? 'too-large' : (j && (j.error || j.statusCode)) || 'http-' + x.status, j && j.message)); } };
-        x.onerror = () => rej(err('offline'));
+        if (bucket === 'studio-projects') x.timeout = 120000;
+        x.onerror = x.ontimeout = () => rej(err('offline'));
         x.send(blob);
       });
     },
@@ -400,6 +416,16 @@ PD.cloud = (() => {
       const o = {}; (paths || []).forEach(p => { const v = p && signed.get(key(p)); if (v) o[p] = v.url; }); return o;
     },
     url: p => { const v = signed.get(p); return v ? v.url : null; },
+    async read(path, bucket) {
+      const c = conf(), owner = uid();
+      if (!S) throw err('no-session');
+      if (S.expires_at - 60 < Date.now() / 1000) await refresh();
+      if (!S || uid() !== owner) throw err('no-session');
+      const url = c.url + '/storage/v1/object/authenticated/' + encodeURIComponent(bucket) + '/' + path.split('/').map(encodeURIComponent).join('/');
+      const r = await tfetch(url, { headers: { apikey: c.key, Authorization: 'Bearer ' + S.access_token }, cache: 'no-store' }, 90000);
+      if (!r.ok) throw err('http-' + r.status);
+      return r.blob();
+    },
     /** a profile photo: public, in my own folder of the 'avatars' bucket; answers its address */
     async avatar(blob) {
       const me = uid(); if (!me) throw err('no-session');
@@ -409,7 +435,21 @@ PD.cloud = (() => {
     },
     /** a photo of mine that is no longer used (the address names the file; another member's is never touched) */
     dropAvatar: url => { const m = /\/storage\/v1\/object\/public\/avatars\/(.+)$/.exec(url || ''); const me = uid(); return m && me && m[1].indexOf(me + '/') === 0 ? http('/storage/v1/object/avatars', { method: 'DELETE', body: { prefixes: [decodeURIComponent(m[1])] } }).catch(() => {}) : Promise.resolve(); },
-    remove: paths => paths && paths.length ? http('/storage/v1/object/' + BUCKET, { method: 'DELETE', body: { prefixes: paths } }) : Promise.resolve(),
+    remove: (paths, bucket = BUCKET) => paths?.length ? http('/storage/v1/object/' + encodeURIComponent(bucket), { method: 'DELETE', body: { prefixes: paths } }) : Promise.resolve(),
+    async clearStudio(owner) {
+      const bucket = 'studio-projects';
+      const seen = new Set();
+      for (;;) {
+        const rows = await http('/storage/v1/object/list/' + bucket, {
+          method: 'POST', body: { prefix: owner + '/', limit: 100 }, user: owner
+        });
+        const paths = (rows || []).filter(r => r?.id).map(r => owner + '/' + r.name);
+        if (paths.some(path => seen.has(path))) throw err('storage-delete');
+        paths.forEach(path => seen.add(path));
+        if (paths.length) await storage.remove(paths, bucket);
+        if (paths.length < 100) return;
+      }
+    },
     /** every file of this account (before the account itself is deleted) */
     async removeMine() {
       const me = uid(); if (!me) return;
@@ -448,7 +488,7 @@ PD.cloud = (() => {
   };
 
   return {
-    boot, auth, db, admin, people, chat, board, moderation, signal, social, storage, notes, gifs, syncProgress, pushProgress, loadProfile,
+    boot, auth, db, studio, admin, people, chat, board, moderation, signal, social, storage, notes, gifs, syncProgress, pushProgress, loadProfile,
     sima: body => http('/functions/v1/sima', { method: 'POST', body, timeout: 45000 }),
     billing: body => http('/functions/v1/billing', { method: 'POST', body, timeout: 65000 }),
     /** the marketplace's checkout and payment verification (backend/supabase/functions/market) */

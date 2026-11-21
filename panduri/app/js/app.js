@@ -1,6 +1,13 @@
 PD.i18n.add({'hmt.label':['რჩევები და ცოდნა','Tips and things to know'],'hmt.theory':['თეორია · დაიმახსოვრე','Theory · remember'],'hmt.word':['სიტყვა','A word'],'hmt.music':['მუსიკის ისტორია','Music history'],'hmt.prev':['წინა','Previous'],'hmt.next':['შემდეგი','Next'],'hmt.pause':['შეჩერება','Pause'],'hmt.play':['გაგრძელება','Resume'],'hmt.s.teacher':['მასწავლებლისგან','From the teacher'],'hmt.s.general':['ზოგადი','General'],'hmt.s.fact':['ფაქტი','Fact'],'hmt.s.draft':['მონახაზი · დასადასტურებელი','Draft · not yet confirmed']});
 PD.i18n.add({'net.offT':['ინტერნეტი არ არის','You are offline'],'net.offD':['ეს ნაწილი ინტერნეტს საჭიროებს. გაკვეთილები, ტიუნერი, აკორდები, რიტმები, მეტრონომი, ვარჯიშები და თეორია ინტერნეტის გარეშეც მუშაობს; მასწავლებლის ვიდეო — თუ ჩამოტვირთე.','This part needs the internet. Lessons, the tuner, chords, rhythms, the metronome, exercises and theory work offline; a teacher video too, once downloaded.'],'net.lost':['ინტერნეტი გაითიშა — ვარჯიში გრძელდება. საზოგადოება, AI და გადახდა კავშირის დაბრუნებისას იმუშავებს.','Offline — practice goes on. Community, AI and payments return with the connection.'],'net.back':['ინტერნეტი დაბრუნდა','Back online']});
 PD.i18n.add({
+'set.search': ['პარამეტრების ძებნა', 'Search settings'],
+'set.noMatch': ['პარამეტრი ვერ მოიძებნა', 'No settings found'],
+'set.gApp': ['აპი და შენახვა', 'App and storage'],
+'set.gAlerts': ['შეტყობინებები და სიმა', 'Notifications and Sima'],
+'set.soundLevels': ['ხმის დონეები', 'Volume levels'],
+'set.extra': ['დამატებითი', 'Advanced'],
+'set.wipeLocal': ['ამ მოწყობილობის მონაცემების წაშლა', 'Clear data on this device'],
 'set.recommended':['რეკომენდებული პარამეტრები','Recommended settings'],
 'set.restoreRecommended':['აღდგენა','Restore defaults'],
 'set.recommendedD':['აღადგენს ხმის, სწავლის, ვიზუალისა და მართვის საწყის პარამეტრებს. ენა, მიკროფონის კალიბრაცია, ანგარიშები და პროგრესი შენარჩუნდება.','Restore default sound, learning, appearance and control settings. Language, microphone calibration, accounts and progress are preserved.'],
@@ -55,7 +62,7 @@ PD.i18n.add({
   'set.quality': ['გრაფიკის ხარისხი', 'Graphics quality'], 'q.auto': ['ავტო', 'Auto'], 'q.high': ['მაღალი', 'High'], 'q.medium': ['საშუალო', 'Medium'], 'q.low': ['დაბალი', 'Low'],
   'set.hc': ['მაღალი კონტრასტი', 'High contrast'], 'set.text': ['ტექსტის ზომა', 'Text size'], 'ts.m': ['ჩვეულებრივი', 'Normal'], 'ts.l': ['დიდი', 'Large'], 'ts.xl': ['ძალიან დიდი', 'Extra large'],
   'set.motion': ['მოძრაობის შემცირება სისტემის პარამეტრით კონტროლდება.', 'Reduced motion follows your system setting.'],
-  'set.privacyD': ['გაკვეთილის, ვარჯიშისა და ტიუნერის მიკროფონი მხოლოდ ამ მოწყობილობაზე ანალიზდება: არაფერი იწერება და არაფერი იგზავნება. ანალიტიკა არ გროვდება. ორი გამონაკლისია: „სიმას სახელით გამოძახება“ ჩართული რომ იყოს, ხმას ბრაუზერი თავის სერვისს (Google/Apple) უგზავნის — ნაგულისხმევად გამორთულია; ვიდეო ზარში ხმა და ვიდეო მეორე მონაწილეს მიდის.', 'The microphone in lessons, practice and the tuner is analysed only on this device: nothing is recorded and nothing is sent. No analytics are collected. Two exceptions: with “call Sima by name” switched on, the browser sends the sound to its own service (Google/Apple) — it is off by default; and in a video call your sound and video go to the other person.'],
+  'set.privacyD': ['გაკვეთილის, ვარჯიშისა და ტიუნერის მიკროფონი მხოლოდ ამ მოწყობილობაზე ანალიზდება: არაფერი იწერება და არაფერი იგზავნება. ანალიტიკა არ გროვდება. სტუდიის მიკროფონის ჩანაწერები ამ მოწყობილობაზე ინახება. ჩათში გაგზავნილი ხმოვანი შეტყობინება და ზარის ხმა მიმღებს მიეწოდება.', 'The microphone in lessons, practice and the tuner is analysed only on this device: nothing is recorded and nothing is sent. No analytics are collected. Studio microphone recordings are stored on this device. Voice messages you send and audio during calls are shared with their recipients.'],
   'set.micNow': ['მიკროფონი ახლა: {s}', 'Microphone now: {s}'], 'set.micStop': ['მიკროფონის გამორთვა', 'Turn microphone off'], 'set.wipe': ['ყველა მონაცემის წაშლა', 'Delete all data'], 'set.wipeD': ['პროგრესი, პარამეტრები, შენი გაკვეთილები.', 'Progress, settings, your lessons.'],
   'set.authorD': ['ჩართავს სტუდიას: გაკვეთილების შექმნა და რედაქტირება.', 'Enables the Studio: create and edit lessons.'], 'set.onboard': ['საწყისი გაცნობა თავიდან', 'Run the welcome again'], 'set.keys': ['კლავიატურა', 'Keyboard'],
   'set.install': ['აპად დაყენება', 'Install as an app'], 'set.installD': ['ბრაუზერის მენიუდან: „Add to Home Screen“ / „Install“. ოფლაინ მუშაობს შენახული გაკვეთილებით.', 'From the browser menu: “Add to Home Screen” / “Install”. Saved lessons work offline.']
@@ -145,14 +152,15 @@ PD.app = (() => {
   const NAV = [
     ['home', 'nav.home', NI('<path d="M4 10.4 12 4l8 6.4V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.2H9v5.2H5.5A1.5 1.5 0 0 1 4 19z"/>', '<path fill="currentColor" d="M3.3 9.8 12 2.9l8.7 6.9V19a2.2 2.2 0 0 1-2.2 2.2h-4.2v-5.6H9.7v5.6H5.5A2.2 2.2 0 0 1 3.3 19z"/>')],
     ['learn', 'nav.learn', NI('<path d="M12 6.6C10.2 5.2 7.8 4.6 4 4.6v13c3.8 0 6.2.6 8 2 1.8-1.4 4.2-2 8-2v-13c-3.8 0-6.2.6-8 2z"/><path d="M12 6.6v13"/>', '<path fill="currentColor" d="M11.2 5.9C9.3 4.6 6.9 4 3.6 4a.9.9 0 0 0-.9.9v12.9c0 .5.4.9.9.9 3.4 0 5.6.5 7.6 1.8zM12.8 5.9c1.9-1.3 4.3-1.9 7.6-1.9.5 0 .9.4.9.9v12.9c0 .5-.4.9-.9.9-3.4 0-5.6.5-7.6 1.8z"/>')],
-    ['mtheory', 'nav.theory', NI('<path d="M9 18V5.5l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/><path d="M9 9.5l10-2"/>', '<path fill="currentColor" d="M8.2 5.5c0-.4.3-.8.7-.8l10-2c.5-.1 1 .3 1 .8v12a3.4 3.4 0 1 1-1.6-2.9V8.4L9.8 10v8a3.4 3.4 0 1 1-1.6-2.9z"/>')],
+    ['mtheory', 'nav.theory', NI('<path d="M9 18V5.5l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/><path d="M9 9.5l10-2"/>', '<path fill="currentColor" d="M8.2 5.5c0-.4.3-.8.7-.8l10-2c.5-.1 1 .3 1 .8v12a3.4 3.4 0 1 1-1.6-2.9V8.4L9.8 10v8a3.4 3.4 0 1 1-1.6-2.9z"/>'), 'wide'],
     ['chords', 'nav.chords', NI('<rect x="5" y="3.5" width="14" height="17" rx="2.6"/><path d="M5 9h14M5 14.5h14M9.7 3.5v17M14.3 3.5v17"/>', '<rect fill="currentColor" x="4.2" y="2.8" width="15.6" height="18.4" rx="3"/><path d="M4.2 9h15.6M4.2 14.5h15.6M9.7 2.8v18.4M14.3 2.8v18.4" stroke="#08090B" stroke-width="1.5"/>'), 'wide'],
     ['community', 'cm.title', NI('<rect x="3.5" y="5" width="17" height="14" rx="4"/><path d="M10.4 9.2v5.6l4.7-2.8z" fill="currentColor" stroke="none"/>', '<rect fill="currentColor" x="2.8" y="4.3" width="18.4" height="15.4" rx="4.5"/><path d="M10.4 9.2v5.6l4.7-2.8z" fill="#08090B"/>')],
     ['tuner', 'nav.tuner', NI('<path d="M4.4 17.5a7.6 7.6 0 1 1 15.2 0"/><path d="M12 17.5l3.7-5.2"/><circle cx="12" cy="17.5" r="1.3" fill="currentColor" stroke="none"/>', '<path fill="currentColor" d="M3.6 18.2a8.4 8.4 0 1 1 16.8 0z"/><path d="M12 17.4l3.7-5.2" stroke="#08090B" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17.4" r="1.6" fill="#08090B"/>')],
     PD.studio3 ? PD.studio3.nav(NI) : ['ai', 'ai.title', NI('<path d="M11 3.8l1.7 4.6 4.6 1.7-4.6 1.7L11 16.4l-1.7-4.6-4.6-1.7 4.6-1.7z"/><path d="M18 14.6l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8z"/>', '<path fill="currentColor" d="M11 2.6l2.1 5.7 5.7 2.1-5.7 2.1L11 18.2l-2.1-5.7-5.7-2.1 5.7-2.1zM18 13.6l1 2.6 2.6 1-2.6 1-1 2.6-1-2.6-2.6-1 2.6-1z"/>'), 'wide'],
+    ['chats', 'cm.chats', NI('<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>', '<path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 1-2z"/>'), 'wide'],
     ['profile', 'nav.profile', NI('<circle cx="12" cy="8.4" r="3.9"/><path d="M4.6 20.2c.9-3.7 3.8-5.7 7.4-5.7s6.5 2 7.4 5.7"/>', '<circle fill="currentColor" cx="12" cy="8.2" r="4.5"/><path fill="currentColor" d="M3.8 20.4c.9-4.2 4.1-6.6 8.2-6.6s7.3 2.4 8.2 6.6c.1.5-.3 1-.8 1H4.6c-.5 0-.9-.5-.8-1z"/>')]];
   // on the phone, screens whose tab is not in the dock light the tab they are reached from
-  const DOCK_OF = { chords: 'learn', ai: 'home' };
+  const DOCK_OF = { chords: 'learn', ai: 'home', mtheory: 'learn', chats: 'community' };
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'mtheory', mtheory: 'mtheory', adv: 'mtheory', pstudio: 'learn', tips: 'learn', solfege: 'mtheory', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
     songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', checkout: 'profile', market: 'community' };
   if (PD.studio3) { Object.assign(TOP, PD.studio3.top); Object.assign(DOCK_OF, PD.studio3.dock); }
@@ -223,23 +231,23 @@ PD.app = (() => {
     document.documentElement.dataset.ds = '1';
     const side = h('nav', { class: 'side', 'data-t-aria': 'nav.main' }, [h('div', { class: 'side-brand' }, [h('b', { 'data-t': 'app.name' }), h('small', { text: 'A · C♯ · E' })])]);
     const dock = h('nav', { class: 'dock', 'data-t-aria': 'nav.main' });
-    const mk = ([id, key, icon, wide]) => h('button', { class: 'nv', type: 'button', 'data-go': id, 'data-wide': wide ? '' : null, html: '<span class="nv-ic">' + icon + '</span><span class="nv-l" data-t="' + key + '"></span>', onclick: () => go(id) });
+    const mk = ([id, key, icon, wide]) => h('button', { class: 'nv', type: 'button', 'data-go': id, 'data-wide': wide ? '' : null, html: '<span class="nv-ic">' + icon + '</span><span class="nv-l" data-t="' + key + '"></span>', onclick: () => id === 'chats' ? go('community', 'chats') : go(id) });
     NAV.forEach(n => { side.appendChild(mk(n)); dock.appendChild(mk(n)); });
     side.append(h('span', { class: 'nv-ind', 'aria-hidden': 'true' })); dock.append(h('span', { class: 'nv-ind', 'aria-hidden': 'true' }));
     const main = h('main', { class: 'main', id: 'main' });
     document.body.append(h('div', { class: 'shell', id: 'shell' }, [side, main]), dock);
     navigationGlass(dock); navigationGlass(side);
     swipeBack();
-    /* scrolling down a page tucks the helper's button away; scrolling back up (or stopping at the top) brings it back */
-    { let lastY = 0, pg = null; document.addEventListener('scroll', e => { const el = e.target; if (!el.classList || !el.classList.contains('page')) return; if (el !== pg) { pg = el; lastY = el.scrollTop; return; }
-      const y = el.scrollTop, d = y - lastY; if (Math.abs(d) < 6) return; lastY = y; document.documentElement.classList.toggle('scrolling-down', d > 0 && y > 80); }, { passive: true, capture: true });
-      PD.bus.on('route', () => document.documentElement.classList.remove('scrolling-down')); }
     PD.i18n.apply(document);
     const title = () => { if (PD.i18n.translated) document.title = t('app.name'); };
     title(); /* A translated tab name can be longer than its tab: it shrinks to fit rather than being cut off */
     const fitNav = () => requestAnimationFrame(() => document.querySelectorAll('.dock .nv-l, .side .nv-l').forEach(sp => { sp.style.fontSize = ''; if (sp.scrollWidth > sp.clientWidth + 1 && sp.clientWidth) sp.style.fontSize = Math.max(8, parseFloat(getComputedStyle(sp).fontSize) * sp.clientWidth / sp.scrollWidth).toFixed(1) + 'px'; }));
     PD.bus.on('lang', () => { title(); render(); fitNav(); });
     fitNav(); window.addEventListener('resize', fitNav); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitNav);   // the real face is wider than the fallback
+    PD.bus.on('sima-nav', () => requestAnimationFrame(() => { if (tabNow) tabInd(tabNow, true); }));
+    PD.bus.on('studio-account', () => {
+      if (['ai', 'pstudio', 'studio3'].includes(route)) go('studio3', null, true);
+    });
     let cloudT = 0, cloudSig = '';
     PD.bus.on('cloud', e => { if (!(e && e.session) && !document.querySelector('.ag')) setTimeout(() => { if (!PD.cloud.session && !document.querySelector('.ag')) signInAgain(); }, 0); });
     PD.bus.on('cloud', e => { const sig = (e && e.session && e.session.user ? e.session.user.id : '-') + ':' + JSON.stringify(e && e.profile ? [e.profile.role, e.profile.vip_until, e.profile.display_name, e.profile.owner, e.profile.premium_banned] : 0); if (sig === cloudSig) return; cloudSig = sig; clearTimeout(cloudT); cloudT = setTimeout(() => { if (['profile', 'settings', 'community', 'home', 'learn', 'songs'].includes(route) && !PD.practice.active && !document.querySelector('.sheet-back:not(.out)')) render(true); }, 60); });
@@ -330,7 +338,8 @@ PD.app = (() => {
     settle();
     const old = $('page') || main.querySelector('.page:not(.leave)'), keepScroll = !changed && old ? old.scrollTop : 0;
     if (old && oldKey) scrolls[oldKey] = old.scrollTop;
-    const top = TOP[route] || 'home';
+    const chatRoute = route === 'community' && /^(chats$|activity$|c:)/.test(String(param));
+    const top = chatRoute ? 'chats' : TOP[route] || 'home';
     tabInd(top);
     const page = h('div', { class: 'page', id: 'page' }), wrap = h('div', { class: 'wrap' }); page.appendChild(wrap);
     if (old) old.removeAttribute('id');
@@ -338,12 +347,12 @@ PD.app = (() => {
     /* the desktop layout reads this: a page of prose gets a reading column, a page of cards gets
        the full width. On a phone it changes nothing — there is only ever one column there. */
     const READ = { theory: 1, tips: 1, music: 1, book: 1, rhythm: 1, scales: 1, chordhow: 1, solfege: 1, cert: 1 };
-    const WIDE = { chords: 1, circle: 1, mtheory: 1, library: 1, songs: 1, learn: 1, home: 1, explore: 1, community: 1, ai: 1, progress: 1, pstudio: 1 };
+    const WIDE = { chords: 1, circle: 1, mtheory: 1, library: 1, songs: 1, learn: 1, home: 1, explore: 1, community: 1, ai: 1, studio3: 1, pstudio: 1, progress: 1 };
     document.documentElement.dataset.route = route;
     document.documentElement.dataset.col = READ[route] ? 'read' : WIDE[route] ? 'wide' : 'mid';
     PD.bus.emit('route', route);
     // the helper rides along on every screen, and keeps out of the way inside a lesson
-    try { if (PD.sima) { PD.sima.close(); if (route === 'practice' || PD.practice.active) { const f = document.querySelector('button.sm-fab'); if (f) f.remove(); } else { PD.sima.mount(); setTimeout(() => PD.sima.nudge(), 1800); } } } catch (_) {}
+    try { if (PD.sima) { PD.sima.close(); if (route === 'practice' || PD.practice.active) { const f = document.querySelector('button.sm-fab'); if (f) { f.remove(); PD.bus.emit('sima-nav'); } } else { PD.sima.mount(); setTimeout(() => PD.sima.nudge(), 1800); } } } catch (_) {}
     (PD.studio3 && PD.studio3.route(route, wrap, param)) || ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
@@ -536,6 +545,7 @@ PD.app = (() => {
       h('div', { class: 'hm-hello' }, [h('p', { class: 'hm-date', text: todayLine() }), h('h1', { text: t('hx.hi') + (name ? ', ' + name : '') })]),
       h('div', { class: 'hm-acts' }, [
         h('button', { class: 'hm-ib', 'aria-label': t('nt.title') + (n ? ' (' + n + ')' : ''), onclick: () => go('inbox'), html: I('<path d="M18 10a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16S18 15 18 10"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/>', 21) + (n ? '<i>' + (n > 9 ? '9+' : n) + '</i>' : '') }),
+        h('button', { class: 'hm-ib', 'aria-label': t('cm.chats'), onclick: () => go('community', 'chats'), html: ic.chat }),
         h('button', { class: 'hm-ib', 'aria-label': t('nav.profile'), onclick: () => go('profile'), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : I('<circle cx="12" cy="8.4" r="3.9"/><path d="M4.6 20.2c.9-3.7 3.8-5.7 7.4-5.7s6.5 2 7.4 5.7"/>', 21) })])]));
     // continue learning
     const pa = primaryAction(), hasResume = pa && pa.kicker === t('hm.resume'), ts = !hasResume && nextTheoryStep();
@@ -560,7 +570,7 @@ PD.app = (() => {
     const gp = Math.round(Math.max(0, Math.min(1, tm / goal)) * 100);
     w.append(h('section', { class: 'hm-stats', 'aria-label': t('hx.goal') }, [
       h('button', { class: 'hm-stat', onclick: () => go('daily'), html: '<small>' + PD.esc(t('hx.today')) + '</small><b>' + Math.min(tm, goal) + '<em>/ ' + goal + ' ' + PD.esc(t('hx.min')) + '</em></b><span class="hm-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + gp + '"><i style="width:' + gp + '%"></i></span>' }),
-      h('button', { class: 'hm-stat', onclick: () => go('progress'), html: '<small>' + PD.esc(t('hx.streak')) + '</small><b>' + sk.cur + '<em>' + PD.esc(t('hx.days')) + '</em></b>' }),
+      h('button', { class: 'hm-stat hm-series', 'data-streak-tier': PD.practiceStreak.tier(sk.cur), onclick: () => go('progress'), html: '<small>' + PD.esc(t('hx.streak')) + '</small><b>' + sk.cur + '<em>' + PD.esc(t('hx.days')) + '</em></b>' }),
       h('button', { class: 'hm-stat', onclick: () => go('learn'), html: '<small>' + PD.esc(t('pf.level')) + '</small><b class="txt">' + PD.esc(levelName()) + '</b>' })]));
     // tools
     const tool = (r, icon, k) => h('button', { class: 'hm-tool', onclick: () => go(r) }, [h('span', { class: 'hm-tool-ic', html: icon }), h('span', { 'data-t': k })]);
@@ -724,8 +734,8 @@ PD.app = (() => {
   function learn(w) {
     w.append(h('div', { class: 'ln-head' }, [h('h1', { 'data-t': 'ln.title' }), h('p', { class: 'muted', 'data-t': 'ln.lead' })]));
     const practiceSeries=streaks();
-    w.append(h('section',{class:'ps-card'},[
-      h('span',{class:'ps-icon','aria-hidden':'true',text:practiceSeries.cur?'🔥':'◇'}),
+    w.append(h('section',{class:'ps-card','data-streak-tier':PD.practiceStreak.tier(practiceSeries.cur)},[
+      h('span',{class:'ps-icon','aria-hidden':'true',text:PD.practiceStreak.tier(practiceSeries.cur)?'✦':'◇'}),
       h('div',{class:'grow'},[h('strong',{text:t('ps.title')+' · '+t(practiceSeries.cur>=1000?'ps.max':'ps.days',{n:practiceSeries.cur})}),h('small',{text:t(practiceSeries.today?'ps.checked':'ps.keep')}),h('small',{text:t('ps.repeat')})]),
       h('button',{class:'btn small',text:t('ps.start'),onclick:()=>go('daily')})
     ]));
@@ -1043,14 +1053,18 @@ PD.app = (() => {
     const fullSong = LS.all.some(l => l.type === 'song' && (LS.progress.lesson(l.id).stages || {}).perform >= 80);
     return [['firstMelody', melodyDone], ['sessions10', ss.length >= 10], ['perfectRhythm', perfectRhythm], ['notes100', notes >= 100], ['fullSong', fullSong], ['week', sk.longest >= 7]];
   }
+  const pcGear = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v3m0 13v3M2.5 12h3m13 0h3M5.3 5.3l2.1 2.1m9.2 9.2 2.1 2.1m0-13.4-2.1 2.1m-9.2 9.2-2.1 2.1"/></svg>';
   function profile(w) {
     const prof = PD.account.profile, sk = streaks(), C = PD.cloud, PM = PD.premium, lp = PD.levels.progress;
+    const avatar = prof.avatar || C.profile?.avatar_url;
     const photo = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async e => { const f = e.target.files[0]; if (!f) return; const url = await shrink(f); PD.account.setProfile({ avatar: url }); render(); } });
-    const name = h('input', { class: 'pf-name', value: prof.name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { const v = e.target.value.trim(); PD.account.setProfile({ name: v }); if (v && C.session) C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }).then(() => C.loadProfile()).catch(() => {}); } });
+    const name = h('input', { class: 'pf-name', value: prof.name || C.profile?.display_name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { const v = e.target.value.trim(); PD.account.setProfile({ name: v }); if (v && C.session) C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }).then(() => C.loadProfile()).catch(() => {}); } });
     const role = (PD.exam.graduated() ? '🎓 ' + t('ex.grad') + ' · ' : '') + (C.isOwner ? t('pf.owner') : C.isAdmin ? t('ad.admin') : PM.active ? t('pm.title') : t('pf.student'));
+    w.classList.add('pf-page');
     w.append(h('h1', { class: 'sr', 'data-t': 'nav.profile' }));
-    w.append(h('div', { class: 'pf2-head' }, [h('button', { class: 'pf2-av', 'aria-label': t('pf.photo'), onclick: () => photo.click(), html: prof.avatar ? '<img alt="" src="' + PD.esc(prof.avatar) + '">' : ic.user }), photo,
-      h('div', { class: 'grow' }, [name, h('small', { text: role })])]));
+    w.append(h('div', { class: 'pf2-head' }, [h('button', { class: 'pf2-av', 'aria-label': t('pf.photo'), onclick: () => photo.click(), html: avatar ? '<img alt="" src="' + PD.esc(avatar) + '">' : ic.user }), photo,
+      h('div', { class: 'grow' }, [name, h('small', { text: role })]),
+      h('button', { class: 'btn small pf-quick-settings', 'aria-label': t('more.settings'), title: t('more.settings'), html: pcGear, onclick: () => go('settings') })]));
     // three numbers
     const done = LS.all.filter(l => visible(l) && LS.progress.lesson(l.id).mastery >= .9).length;
     const pp = (() => { let n = 0, d = 0; LS.PATHS.forEach(p2 => p2.steps.forEach(st2 => { n++; if (stepDone(st2)) d++; })); return n ? Math.round(d / n * 100) : 0; })();
@@ -1067,8 +1081,7 @@ PD.app = (() => {
       item(I('<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'), 'nav.progress', t('hm.streak', { n: sk.cur }), () => go('progress')),
       item(I('<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>'), PM.vip ? 'pm.vip' : 'pm.title', PM.active ? PM.status() : t('pm.lead'), () => PM.paywall()),
       PD.exam.graduated() ? item(I('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>'), 'ex.cert', t('ex.grad'), () => go('cert'), 'accent') : null,
-      item(I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'), 'more.settings', null, () => go('settings')),
-      item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', null, () => go('community')),
+      item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', C.session && C.profile?.nickname ? '@' + C.profile.nickname : null, () => go('community', 'me')),
       PD.market ? item(I('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.4"/>'), 'mk.title', t('mk.lead'), () => go('market'), 'accent') : null,
       C.isOwner ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'pa.title', null, () => go('pmadmin')) : null,
       C.isOwner && PD.market ? item(I('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>'), 'mk.sl.title', t('mk.sl.premium') + ' · ' + t('mk.title'), () => go('market', 'sales'), 'accent') : null,
@@ -1093,6 +1106,10 @@ PD.app = (() => {
       stat(mastered.length + ' / ' + LS.all.filter(l => visible(l) && l.events.length).length, t('pr.completed')), stat(String(mastered.filter(l => l.type === 'song').length), t('pr.songs')),
       stat(String(rhythmsLearned) + ' / ' + PD.curriculum.rhythms().length, t('pr.rhythms')), stat(pc(noteAcc), t('pr.noteAcc')),
       stat(pc(timeAcc), t('pr.timeAcc')), stat(avgBpm ? Math.round(avgBpm) + ' BPM' : '—', t('pr.avgTempo')), stat(t('pr.days', { n: sk.longest }), t('pr.longest'))]));
+    w.append(h('section', { class: 'panel ps-progress', 'data-streak-tier': PD.practiceStreak.tier(sk.cur) }, [
+      h('h2', { text: t('ps.title') }), h('strong', { text: t(sk.cur >= 1000 ? 'ps.max' : 'ps.days', { n: sk.cur }) }),
+      PD.practiceStreak.track(sk.cur)
+    ]));
     // real improvement: last 7 days vs the 7 before
     const wk = 7 * 864e5, now = Date.now(), lastW = ss.filter(s => s.date > now - wk), prevW = ss.filter(s => s.date <= now - wk && s.date > now - 2 * wk);
     const trends = [['pr.timeAcc', s => s.waited ? null : s.timing], ['pr.noteAcc', s => s.pitch]].map(([k, f]) => { const a = avg(prevW.map(f)), b = avg(lastW.map(f)); return a != null && b != null ? h('p', { class: 'trend', text: t('pr.trend', { k: t(k), a: pc(a), b: pc(b) }) }) : null; }).filter(Boolean);
@@ -1144,7 +1161,8 @@ PD.app = (() => {
   }
   /* ---------- Settings: Audio · Learning · Visual · Language · Accessibility · Account ---------- */
   function settings(w) {
-    w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('profile') }), h('h1', { 'data-t': 'set.title', style: 'margin:0' })]));
+    w.classList.add('settings-page');
+    w.append(h('div', { class: 'row pg-head settings-head' }, [h('button', { class: 'btn small backbtn', html: ic.back + '<span class="sr" data-t="back"></span>', onclick: () => back('profile') }), h('h1', { 'data-t': 'set.title', style: 'margin:0' })]));
     const sect = (k, rows) => h('section', { class: 'set-sec' }, [h('h2', { 'data-t': k }), h('div', { class: 'list' }, rows.filter(Boolean))]);
     // a switch is named by its row's own label (the store key it writes is not a string anyone reads)
     const row = (k, d, ctrl) => { if (ctrl && ctrl.type === 'checkbox' && !ctrl.dataset.tAria) { ctrl.dataset.tAria = k; ctrl.setAttribute('aria-label', t(k)); } return h('div', { class: 'li' }, [h('div', { class: 'grow' }, [h('span', { 'data-t': k }), d ? h('small', { text: d }) : null]), ctrl]); };
@@ -1180,6 +1198,8 @@ PD.app = (() => {
       row('ms.appFont','',appFont),
       !document.getElementById('pd-css') && row('v2.emoji', '', seg([['system', 'v2.emojiSystem'], ['noto', 'v2.emojiNoto']], PD.store.get('emojiAppearance', 'system'), v => { PD.store.set('emojiAppearance', v); document.documentElement.dataset.emoji = v; })),
       row('rf.glass', '', toggle('glass', true, v => document.documentElement.classList.toggle('solid-nav', !v))),
+    ]));
+    w.append(sect('rf.sound', [
       row('rf.sound', '', seg([['wood', 'rf.wood'], ['soft', 'rf.soft'], ['silent', 'rf.silent']], PD.store.get('soundPalette', 'wood'), v => { PD.store.set('soundPalette', v); PD.fx.sound('select'); })),
       row('rf.preview', '', h('button', { class: 'btn small', 'data-t': 'rf.preview', onclick: () => PD.fx.sound('success') })),
       row('rf.tuner', '', h('button', { class: 'btn small', 'data-t': 'tu.title', onclick: () => go('tuner') }))
@@ -1192,7 +1212,9 @@ PD.app = (() => {
       row('set.noise', null, seg([['quiet', 'room.quiet'], ['normal', 'room.normal'], ['noisy', 'room.noisy']], cal.room || 'normal', v => PD.detector.setCalib({ room: v }))),
       row('set.latency', cal.date ? t('set.calibLast', { d: PD.ui.daysAgo(cal.date), l: Math.round(cal.latencyMs) }) : t('set.calibNever'), h('button', { class: 'btn small', 'data-t': 'home.start', onclick: () => PD.calib.open() })),
       row('set.tol', null, range(PD.store.get('tolCents', 35), 15, 50, 1, v => PD.store.set('tolCents', v), v => v + '¢')),
-      row('set.guard', t('set.guardD'), toggle('clickGuard', true, v => { PD.detector.guardOn = v; })),
+      row('set.guard', t('set.guardD'), toggle('clickGuard', true, v => { PD.detector.guardOn = v; }))
+    ]));
+    w.append(sect('set.soundLevels', [
       row('set.vFeedback', null, range(PD.audio.vol.ui, 0, 1, .05, v => PD.audio.setVol('ui', v), v => Math.round(v * 100))),
       row('set.vRef', null, range(PD.audio.vol.ref, 0, 1, .05, v => PD.audio.setVol('ref', v), v => Math.round(v * 100))),
       row('set.vMetro', null, range(PD.audio.vol.metro, 0, 1, .05, v => PD.audio.setVol('metro', v), v => Math.round(v * 100))),
@@ -1212,8 +1234,7 @@ PD.app = (() => {
     w.append(sect('set.visualSec', [
       row('set.quality', null, seg([['auto', 'q.auto'], ['low', 'q.low'], ['medium', 'q.balanced'], ['high', 'q.high'], ['ultra', 'q.ultra']], q, v => { PD.store.set('quality', v); if (PD.has3D()) PD.R3D.quality = v; PD.bus.emit('quality', v); })),
       row('set.fps', null, seg([['auto', 'fps.auto'], ['30', 'fps.30']], PD.store.get('fps', 'auto'), v => PD.store.set('fps', v))),
-      row('set.reduceMotion', t('set.motion'), toggle('reduceMotion', false, v => document.documentElement.classList.toggle('rm', v))),
-      row('set.fretNums', null, toggle('showFrets', true))]));
+      row('set.reduceMotion', t('set.motion'), toggle('reduceMotion', false, v => document.documentElement.classList.toggle('rm', v)))]));
     w.append(sect('set.lang', [row('set.lang', null, PD.ui.langSelect(v => PD.i18n.set(v))), PD.ui.aiNote()].filter(Boolean)));
     w.append(sect('set.a11y', [
       row('set.text', null, seg([['m', 'ts.m'], ['l', 'ts.l'], ['xl', 'ts.xl']], PD.store.get('textSize', 'm'), v => { PD.store.set('textSize', v); document.documentElement.classList.remove('ts-l', 'ts-xl'); if (v !== 'm') document.documentElement.classList.add('ts-' + v); })),
@@ -1236,20 +1257,85 @@ PD.app = (() => {
       row('set.privacy', t('set.privacyD'), null),
       row('set.onboard', null, h('button', { class: 'btn small', 'data-t': 'learn.open', onclick: () => PD.onboard.open() })),
       row('set.install', t('set.installD'), null),
-      row('set.wipe', t('set.wipeD'), h('button', { class: 'btn small', style: 'color:var(--fix)', 'data-t': 'delete', onclick: () => PD.ui.confirm(t('set.wipeD'), () => wipeAll()) }))]));
+      row('set.wipeLocal', t('set.wipeD'), h('button', { class: 'btn small', style: 'color:var(--fix)', 'data-t': 'delete', onclick: () => PD.ui.confirm(t('set.wipeD'), () => wipeAll()) }))]));
     if (PD.cloud.isOwner) w.append(sect('set.author', [row('set.author', t('set.authorD'), toggle('author', false))]));   // the owner's account only (the server's is_owner())
     const cc = PD.cloud.config(), su = h('input', { class: 'input', placeholder: 'https://xxxx.supabase.co', value: cc.url, 'aria-label': 'Supabase URL' }), sk2 = h('input', { class: 'input', placeholder: 'anon public key', value: cc.key ? cc.key.slice(0, 12) + '…' : '', 'aria-label': 'Supabase key' });
     sk2.onfocus = () => { if (/…$/.test(sk2.value)) sk2.value = ''; };
     w.append(sect('set.dev', [row('set.devTouch', t('set.devTouchD'), toggle('devTouch', false)),
       h('div', { class: 'li', style: 'flex-wrap:wrap' }, [h('div', { class: 'grow', style: 'min-width:220px' }, [h('span', { 'data-t': 'set.server' }), h('small', { text: PD.cloud.configured ? t('set.serverOn') : t('set.serverD') })]),
         h('div', { style: 'display:flex;flex-direction:column;gap:6px;flex:1 1 260px' }, [su, sk2, h('button', { class: 'btn small', 'data-t': 'set.serverSave', onclick: () => { PD.cloud.setConfig({ url: su.value, key: /…$/.test(sk2.value) ? cc.key : sk2.value }); location.reload(); } })])])]));
-    // grouped: account · learning · audio · visual · data and privacy (then the owner's tools)
-    { const G = [['set.gAccount', ['set.accountSec', 'set.lang']], ['set.gLearn', ['pf.goal', 'set.learningSec', 'set.panduri']], ['set.gAudio', ['set.audio']], ['set.gVisual', ['set.visualSec', 'set.a11y']], ['set.gData', ['set.data']], ['set.gOwner', ['pa.title', 'set.author', 'set.dev']]];
-      const secs = [...w.querySelectorAll(':scope > .set-sec')], key = el => { const x = el.querySelector(':scope > h2'); return x && x.getAttribute('data-t'); };
-      const anchor = secs[0]; if (anchor) { const frag = document.createDocumentFragment(); const used = new Set();
-        G.forEach(([gk, ks]) => { const mine = ks.map(k => secs.find(e => key(e) === k)).filter(Boolean); if (!mine.length) return; frag.append(h('h2', { class: 'set-group', 'data-t': gk })); mine.forEach(e => { used.add(e); if (t(key(e)) === t(gk)) e.classList.add('same-title'); frag.append(e); }); });
-        secs.filter(e => !used.has(e)).forEach(e => frag.append(e));
-        w.appendChild(frag); } }
+    if (PD.studioSync) {
+      const state = h('small', { class: 'muted', role: 'status' });
+      const update = () => { state.textContent = t('ssy.' + PD.studioSync.status); };
+      const sync = h('button', { class: 'btn small', text: t('ssy.retry'), hidden: !PD.cloud.uid, onclick: () => PD.studioSync.sync() });
+      w.append(sect('s3.title', [row('s3.title', t('ssy.info'), sync), h('div', { class: 'li' }, [state])]));
+      update();
+      const offStatus = PD.bus.on('studio-sync-status', update);
+      const offRoute = PD.bus.on('route', () => { offStatus(); offRoute(); });
+    }
+    settingsNavigation(w);
+  }
+
+  let selectedSettings;
+  function settingsNavigation(w) {
+    const groups = [
+      ['set.gAccount', ['set.accountSec', 'set.lang', 'dv.title']],
+      ['set.gVisual', ['rf.appearance', 'set.visualSec', 'set.a11y']],
+      ['set.gAudio', ['set.audio', 'set.soundLevels', 'rf.sound']],
+      ['set.gLearn', ['pf.goal', 'set.learningSec', 'set.panduri']],
+      ['set.gAlerts', ['nt.title', 'sm.title']],
+      ['set.gApp', ['s3.title', 'set.app', 'set.data', 'set.recommended']],
+      ['set.extra', ['pa.title', 'set.author', 'up.title', 'set.dev']]
+    ];
+    const sections = new Map([...w.querySelectorAll(':scope > .set-sec')].map(el => [el.querySelector(':scope > h2').dataset.t, el]));
+    const search = h('input', { class: 'input settings-search', type: 'search', placeholder: t('set.search'), 'aria-label': t('set.search') });
+    const nav = h('nav', { class: 'settings-nav', 'aria-label': t('set.title') });
+    const main = h('div', { class: 'settings-content' });
+    const empty = h('p', { class: 'notice', text: t('set.noMatch'), role: 'status', hidden: true });
+    const selected = groups.some(([key]) => key === selectedSettings) ? selectedSettings : groups[0][0];
+    let current = selected;
+    const panels = groups.map(([key, keys]) => {
+      const items = keys.map(k => sections.get(k)).filter(Boolean);
+      if (!items.length) return null;
+      items.forEach(item => {
+        const title = item.querySelector(':scope > h2');
+        if (t(title.dataset.t) === t(key)) title.classList.add('sr');
+      });
+      const panel = h('section', { class: 'settings-panel' }, [h('h2', { class: 'set-group', text: t(key) }), ...items]);
+      const btn = h('button', { type: 'button', text: t(key), onclick: () => { current = selectedSettings = key; search.value = ''; paint(true); } });
+      nav.append(btn); main.append(panel);
+      return { key, panel, btn, items };
+    }).filter(Boolean);
+    const match = text => text.toLocaleLowerCase().normalize('NFKC');
+    function paint(animate = false) {
+      const q = match(search.value.trim());
+      let found = false;
+      for (const { key, panel, btn, items } of panels) {
+        const on = key === current;
+        btn.setAttribute('aria-pressed', String(on && !q));
+        const groupMatch = q && match(t(key)).includes(q);
+        let hit = false;
+        for (const item of items) {
+          const heading = item.querySelector(':scope > h2');
+          const labelMatch = q && match(t(heading.dataset.t)).includes(q);
+          const rows = [...item.querySelectorAll(':scope > .list > *')];
+          const matches = el => !q || groupMatch || labelMatch || match(el.textContent).includes(q);
+          rows.forEach(el => { el.classList.toggle('settings-filtered', !matches(el)); });
+          item.hidden = !!q && !rows.some(matches);
+          hit ||= !item.hidden;
+        }
+        panel.hidden = q ? !hit : !on;
+        if (!panel.hidden) found = true;
+        if (animate && !panel.hidden) PD.motion.reveal(panel, 0);
+      }
+      empty.hidden = found;
+    }
+    main.append(empty);
+    w.append(search, h('div', { class: 'settings-layout' }, [nav, main]));
+    // Search translated row contents, including labels applied after construction.
+    PD.i18n.apply(w);
+    search.addEventListener('input', () => paint());
+    paint();
   }
 
   function nextTheoryStep() { for (const p of LS.PATHS) { if (!p.theory) continue; const real = p.steps.filter(x => x.kind !== 'needs'), s = real.find(x => !stepDone(x)); if (s) return { p, s, d: real.filter(stepDone).length, n: real.length }; } return null; }

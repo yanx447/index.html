@@ -161,9 +161,9 @@ PD.i18n.add({
   'as.recordStop': ['ჩაწერის დასრულება და ანალიზი', 'Stop recording & analyse'],
   'as.live': ['ცოცხალი ML წინასწარი ანალიზი · 4-წამიანი ფანჯარა, რამდენიმე წამის დაყოვნება', 'Live ML preview · 4-second windows, several seconds of latency'],
   'as.liveWaiting': ['ველოდები დაკვრას…', 'Waiting for playing…'],
-  'as.recordHint': ['ცოცხალი ფანდური: წინასწარი ML ანალიზი 4-წამიან ფანჯრებზე. ჩაწერა მაქსიმუმ 60 წამი; სრული ტრანსკრიფცია დასრულების შემდეგ. აუდიო მოწყობილობაზე რჩება.', 'Live fanduri: ML preview uses 4-second windows. Record up to 60 seconds, then transcribe the complete take. Audio stays on this device.'],
+  'as.recordHint': ['ცოცხალი ფანდური: წინასწარი ML ანალიზი 4-წამიან ფანჯრებზე. ჩაწერა მაქსიმუმ 5 წუთი; სრული ტრანსკრიფცია დასრულების შემდეგ. აუდიო მოწყობილობაზე რჩება.', 'Live fanduri: ML preview uses 4-second windows. Record up to 5 minutes, then transcribe the complete take. Audio stays on this device.'],
   'as.recordError': ['ჩაწერა ვერ მოხერხდა. შეამოწმე მიკროფონის ნებართვა და ბრაუზერის მხარდაჭერა.', 'Recording failed. Check microphone permission and browser support.'],
-  'as.recording': ['იწერება · {n} წმ / 60', 'Recording · {n}s / 60'],
+  'as.recording': ['იწერება · {n} / {max}', 'Recording · {n} / {max}'],
   'as.onset': ['დასაწყისი (წმ)', 'Onset (seconds)'],
   'as.duration': ['ხანგრძლივობა (წმ)', 'Duration (seconds)'],
   'as.apply': ['შენახვა', 'Apply'],
@@ -257,7 +257,7 @@ PD.aiScore.workspace = function (M, o) {
     afterwards to resolve window-boundary notes. No preview notes replace the source. */
 PD.aiScore.liveMonitor = async function (stream, base, onNotes, onError) {
   const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 22050 });
-  let job = null, ended = false, node = null, source = null;
+  let model, job = null, ended = false, node = null, source = null;
   const code = `class PanduriCapture extends AudioWorkletProcessor {
     constructor() { super(); this.size=Math.round(sampleRate*4); this.hop=Math.round(sampleRate*3); this.data=new Float32Array(this.size); this.used=0; this.total=0; }
     process(inputs) { const x=inputs[0]?.[0]; if(!x)return true;
@@ -266,7 +266,7 @@ PD.aiScore.liveMonitor = async function (stream, base, onNotes, onError) {
       return true; }
   } registerProcessor('panduri-live-capture',PanduriCapture);`;
   const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
-  const stop = () => { ended = true; if (job) job.cancel(); if (node) { node.port.onmessage = null; node.disconnect(); } source?.disconnect(); ctx.close().catch(() => {}); };
+  const stop = () => { if (ended) return; ended = true; model?.close(); if (node) { node.port.onmessage = null; node.disconnect(); } source?.disconnect(); ctx.close().catch(() => {}); };
   try {
     await ctx.audioWorklet.addModule(url); source = ctx.createMediaStreamSource(stream);
     node = new AudioWorkletNode(ctx, 'panduri-live-capture'); const silent = ctx.createGain(); silent.gain.value = 0;
@@ -274,9 +274,18 @@ PD.aiScore.liveMonitor = async function (stream, base, onNotes, onError) {
     node.port.onmessage = async e => {
       if (ended || job) return;
       const { audio, rate, offset } = e.data;
-      const mono = rate === 22050 ? audio : Float32Array.from({ length: Math.floor(audio.length * 22050 / rate) }, (_, i) => audio[Math.min(audio.length - 1, Math.round(i * rate / 22050))]);
-      try { job = PD.aimus.notesBP(mono, base, {}); const result = await job; if (!ended) onNotes(result.notes.map((n, i) => PD.aiScore.normalise({ ...n, t0: n.t0 + offset, t1: n.t1 + offset }, i))); }
-      catch (err) { if (!ended) onError(err); } finally { job = null; }
+      const mono = rate === 22050 ? audio : Float32Array.from({ length: Math.floor(audio.length * 22050 / rate) }, (_, i) => {
+        const at = i * rate / 22050, first = Math.floor(at), second = Math.min(audio.length - 1, first + 1);
+        return audio[first] + (audio[second] - audio[first]) * (at - first);
+      });
+      try {
+        model ||= PD.aimus.pitchWorker(base);
+        job = model.run(mono);
+        const result = await job;
+        if (!ended) onNotes(result.notes.map((n, i) => PD.aiScore.normalise({ ...n, t0: n.t0 + offset, t1: n.t1 + offset }, i)));
+      } catch (err) {
+        if (!ended) { stop(); onError(err); }
+      } finally { job = null; }
     };
     await ctx.resume(); return { stop };
   } catch (err) { stop(); throw err; } finally { URL.revokeObjectURL(url); }

@@ -105,7 +105,11 @@ PD.stickers=(()=>{
   const trees=(x,y,s=1,c=INK)=>`<g transform="translate(${x} ${y}) scale(${s})">${path('M0 80V8m0 5-17 26h11L-24 62h14l-23 22h66L10 62h14L6 39h11Z','#26352c',c,1.7)}</g>`;
   const drawing={};
   function define(names,fn){names.split(' ').forEach(name=>drawing[name]=fn);}
-  define('panduri chonguri',(c,s)=>{const fourth=s==='chonguri';return path('M72 43V8h16v35c2 13 32 23 32 49 0 20-18 32-40 32S40 112 40 92c0-26 30-36 32-49Z','#65452f',c,2.2)+path('M76 43V13h8v30c1 12 27 25 27 48 0 16-13 24-31 24S49 107 49 91c0-23 26-36 27-48Z','#a77b50','none')+ellipse(80,77,9,11,'#242323',c)+path('M65 107h30M65 17h7m16 0h7M65 28h7','none',INK,3)+Array.from({length:fourth?4:3},(_,i)=>path(`M${76+i*(fourth?2.6:4)} 13v94`,'none','#eee0c7',.8)).join('');});
+  define('panduri', c => path('M74 10h12v50q2 10 12 14 18 8 18 24l-7 32q-29 5-58 0l-7-32q0-16 18-24 10-4 12-14z', c, '#76492f', 2)
+    + circle(80, 94, 12, '#302522', '#75492c', 2)
+    + path('M69 16h9m5 5h9m-23 7h9m-5 11h14m-14 9h14m-17 69h20', 'none', '#855534', 2.4)
+    + path('M77 18v99m3-99v99m3-99v99', 'none', '#fff3db', .8));
+  define('chonguri',(c,s)=>{const fourth=s==='chonguri';return path('M72 43V8h16v35c2 13 32 23 32 49 0 20-18 32-40 32S40 112 40 92c0-26 30-36 32-49Z','#65452f',c,2.2)+path('M76 43V13h8v30c1 12 27 25 27 48 0 16-13 24-31 24S49 107 49 91c0-23 26-36 27-48Z','#a77b50','none')+ellipse(80,77,9,11,'#242323',c)+path('M65 107h30M65 17h7m16 0h7M65 28h7','none',INK,3)+Array.from({length:fourth?4:3},(_,i)=>path(`M${76+i*(fourth?2.6:4)} 13v94`,'none','#eee0c7',.8)).join('');});
   define('drum',(c)=>ellipse(80,39,40,14,'#c8ad86',c)+path('M40 39v62c0 21 80 21 80 0V39','#67473d',c)+ellipse(80,39,40,14,'#ba9f7a',INK)+path('m44 50 18 53 18-50 18 50 18-53M43 91h74','none','#cfb894',1.5)+path('m31 14 33 16m64-16-33 16','none',c,4));
   define('accordion',(c)=>rect(26,34,28,76,5,'#31333a',c)+rect(106,34,28,76,5,'#31333a',c)+rect(55,39,50,66,0,'#583d3c',c)+Array.from({length:8},(_,i)=>path(`M${58+i*6} 41v62`,'none',c,1.1)).join('')+Array.from({length:9},(_,i)=>rect(31,40+i*7,18,6,0,'#e7decb','#686056')).join('')+Array.from({length:12},(_,i)=>circle(114+i%2*10,45+Math.floor(i/2)*10,1.8,c,'none')).join(''));
   define('duduki flute',(c,s)=>`<g transform="rotate(22 80 65)">${rect(71,17,18,105,5,s==='duduki'?'#825f47':'#a28056',c)+path('M69 24h22m-21 7h20','none',INK,2)+Array.from({length:7},(_,i)=>circle(80,43+i*10,2,'#272522',c,1)).join('')}</g>`);
@@ -300,6 +304,20 @@ PD.stickers=(()=>{
     ['cassette','კარგი მოგონება','A good memory','cassette'],['piano','პატარა მელოდია','A little melody','piano'],['metronome','საკუთარი რიტმი','My own rhythm','metronome'],['equalizer','ვიბრაცია','Vibration','equalizer']
   ]);
   PD.i18n.add(labels);
+  pack('session','ერთად დავუკრათ','Play together','#d7a075','wood',[
+    ['warmup','გავხურდეთ','Time to warm up','warmup'],
+    ['take','კარგი ჩანაწერია','Nice take','goodtake'],
+    ['again','კიდევ ერთხელ დავუკრათ','Play it again','replaytake'],
+    ['three','სამივე სიმი აწყობილია','All three strings in tune','threestrings'],
+    ['duet','ერთად დავუკრათ','Let’s play together','twopanduri'],
+    ['ready','მზად ვარ დასაკრავად','Ready to play','readytoplay']
+  ]);
+  define('warmup', c => drawing.panduri(c) + path('M29 66H19m13-13-9-5m107 18h10m-12-13 9-5','none',c,3));
+  define('goodtake', c => drawing.record(c) + path('m61 76 13 13 27-31','none',INK,7));
+  define('replaytake', c => `<g transform="translate(50 35) scale(.6)">${drawing.panduri(c)}</g>` + path('M45 47a47 47 0 1 0 37-15M45 47l1-18m-1 18 20-1','none',c,3.5));
+  define('threestrings', c => drawing.strings(c) + path('m97 48 9 10 17-20','none',c,4));
+  define('twopanduri', c => `<g transform="translate(-9 27) rotate(-25 55 65) scale(.7)">${drawing.panduri(c)}</g><g transform="translate(60 13) rotate(17 53 70) scale(.7)">${drawing.panduri(c)}</g>`);
+  define('readytoplay', c => drawing.panduri(c) + path('m110 57 8 8 15-17','none',c,3));
   const LEGACY={panduri:'instruments-panduri',doli:'instruments-doli',garmoni:'instruments-garmoni',duduki:'instruments-duduki',salamuri:'instruments-salamuri',ensemble:'instruments-ensemble',
     love:'close-heart',bravo:'words-bravo',play:'sound-play',again:'sound-loop',string:'instruments-strings',fire:'nature-fire',hi:'words-hello',thanks:'replies-thanks',tempo:'sound-tempo',night:'words-night',think:'focus-idea',
     'doli-fire':'instruments-diplipito','garmoni-dance':'stage-festival','salamuri-song':'sound-harmony',coffee:'daily-espresso',party:'celebrate-confetti',rain:'moods-rain',sunny:'moods-dawn',wow:'replies-great',sad:'moods-storm',okay:'replies-okay',wait:'replies-wait',miss:'words-miss',listen:'replies-listening',practice:'focus-practice',trophy:'celebrate-trophy',encore:'stage-encore',duet:'stage-duet',metronome:'sound-tempo',headphones:'studio-headphones'};

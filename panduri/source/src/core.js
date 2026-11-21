@@ -34,8 +34,21 @@ PD.store = (() => {
       return [...out];
     },
     /** sign-in tokens, the server address and the cached account record never go into a data file, and never come from one */
-    exportAll() { const o = {}; this.keys().filter(k => !/^(cloud\.|auth\.|stash\.)/.test(k)).forEach(k => { o[k] = this.get(k); }); return o; },
-    importAll(o) { Object.keys(o || {}).filter(k => !/^(cloud\.|auth\.|stash\.)/.test(k) && k !== 'progress.owner').forEach(k => this.set(k, o[k])); }
+    exportAll() {
+      const studio = PD.studioSync, out = studio?.exportLocal() || {};
+      for (const k of this.keys()) {
+        if (!/^(cloud\.|auth\.|stash\.|studio\.)/.test(k) && !studio?.isLibraryKey(k)) out[k] = this.get(k);
+      }
+      return out;
+    },
+    importAll(data) {
+      const studio = PD.studioSync;
+      for (const [k, value] of Object.entries(data || {})) {
+        if (/^(cloud\.|auth\.|stash\.|studio\.)/.test(k) || k === 'progress.owner') continue;
+        if (studio?.isLibraryKey(k)) studio.importLocal(k, value);
+        else this.set(k, value);
+      }
+    }
   };
 })();
 /** author mode: only the owner's account (the server's is_owner()) with the switch on.

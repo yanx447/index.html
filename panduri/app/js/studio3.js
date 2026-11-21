@@ -38,6 +38,7 @@ PD.i18n.add({
   's3.trad': ['ტრადიციული რითმი და სოლო', 'Traditional rhythm & solo'], 's3.tradD': ['მასწავლებლის რითმი — მისი დარტყმები და აქცენტები — და სოლოს ტრეკი', "The teacher's rhythm — his strokes and accents — and a solo track"],
   's3.tradT': ['დარტყმების ხანგრძლივობა მასწავლებელს ჯერ არ მოუცია: პროექტში თანაბარია და შეგიძლია შეცვალო.', 'The teacher has not given the stroke lengths yet: in the project they are even, and you can change them.'],
   's3.learnS': ['ისწავლე სიმღერიდან', 'Learn from a song'], 's3.learnSD': ['ატვირთე სიმღერა — AI იპოვის აკორდებს და რითმს და გაკვეთილად აქცევს (Premium)', 'Import a song — the AI finds its chords and rhythm and makes it a lesson (Premium)'],
+  's3.recordD': ['ცოცხალი ანალიზი და 5 წუთამდე ჩაწერა', 'Live analysis and up to five minutes of recording'],
   's3.recent': ['ბოლო პროექტები', 'Recent projects'], 's3.none': ['ჯერ პროექტი არ გაქვს. ატვირთე სიმღერა ან დაიწყე ახალი.', 'No projects yet. Import a song or start a new one.'],
   's3.all': ['ყველა ({n})', 'All ({n})'], 's3.kSong': ['სიმღერა', 'Song'], 's3.kArr': ['არანჟირება', 'Arrangement'],
   's3.notStored': ['ფაილი შენახული არ არის', 'File not saved'], 's3.tracks': ['{n} ტრეკი', '{n} tracks'], 's3.notes': ['{n} ნოტი', '{n} notes'], 's3.track1': ['1 ტრეკი', '1 track'], 's3.note1': ['1 ნოტი', '1 note'],
@@ -82,6 +83,7 @@ PD.studio3 = (() => {
     back: SVG('<path d="M15 18l-6-6 6-6"/>', 20), more: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></svg>',
     info: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>', 20), panel: SVG('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9 4.5v15"/>', 20),
     undo: SVG('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>', 18), redo: SVG('<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>', 18),
+    mic: SVG('<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11v1a6 6 0 0 0 12 0v-1M12 18v3m-3 0h6"/>', 24),
     song: SVG('<path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 7v10M21 12h0"/>', 20), arr: SVG('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>', 20),
     upload: SVG('<path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/>', 26),
     plus: SVG('<path d="M12 5v14M5 12h14"/>', 26), file: SVG('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 14h6M9 17h4"/>', 26),
@@ -172,6 +174,8 @@ PD.studio3 = (() => {
 
   /* ---------- the home ---------- */
   function openSong(f, view) { if (view) PD.store.set(VKEY.song, view); PD.ai.take = f; PD.app.go('ai', 'new'); }
+  const library = () => PD.studioSync.store;
+  const removeIcon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16m-10 4v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
   function home(w) {
     let want = null;
     // the song's file input comes first on the page (the AI studio's tests and its drop target pick the first one)
@@ -185,19 +189,20 @@ PD.studio3 = (() => {
     w.append(songIn, root, fileIn);
     // the head and the honest pipeline: what each step does today
     const FLOW = [['s3.f1', 's3.f1d', 'ok'], ['s3.f2', 's3.f2d', 'pm'], ['s3.f3', 's3.f3d', 'ok'], ['s3.f4', 's3.f4d', 'part'], ['s3.f5', 's3.f5d', 'ok']];
-    root.append(h('header', { class: 's3-hero' }, [h('div', { class: 's3-hero-t' }, [h('h1', { text: t('s3.title') }), h('p', { class: 'muted', text: t('s3.lead') })])]),
-      h('section', { class: 's3-flow', 'aria-label': t('s3.flow') }, [h('ol', {}, FLOW.map(([k, d, st], i) => h('li', { class: 's3-step' }, [h('span', { class: 's3-n', text: String(i + 1) }), h('div', {}, [h('b', { text: t(k) }), h('small', { text: t(d) })]), h('span', { class: 's3-st s3-st-' + st, text: t('s3.' + st) })]))),
-        h('p', { class: 's3-note', text: t('s3.geo') })]));
+    root.append(h('header', { class: 's3-hero' }, [
+      h('div', { class: 's3-hero-t' }, [h('h1', { text: t('s3.title') }), h('p', { class: 'muted', text: t('s3.lead') })]),
+      h('span', { class: 's3-hero-mark', html: ICON, 'aria-hidden': 'true' })
+    ]));
     // the three ways in
     const card = (icon, k, d, fn, cls) => h('button', { class: 's3-card' + (cls ? ' ' + cls : ''), type: 'button', onclick: fn }, [h('span', { class: 's3-card-ic', html: icon }), h('b', { text: t(k) }), h('small', { text: t(d) })]);
     const imp = card(IC.upload, 's3.import', 's3.importD', () => { want = null; songIn.click(); }, 'primary');
     imp.addEventListener('dragover', e => { e.preventDefault(); imp.classList.add('over'); }); imp.addEventListener('dragleave', () => imp.classList.remove('over'));
     imp.addEventListener('drop', e => { e.preventDefault(); imp.classList.remove('over'); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) openSong(f); });
-    const acts = [imp];
+    const acts = [imp, card(IC.mic, 'as.record', 's3.recordD', () => PD.app.go('ai', 'record'))];
     if (PD.pstudio) acts.push(card(IC.plus, 's3.blank', 's3.blankD', () => { const id = PD.pstudio.create('blank'); PD.app.go('pstudio', 'p:' + id); }),
       card(IC.file, 's3.file', 's3.fileD', () => fileIn.click()));
     root.append(h('section', { class: 's3-acts' }, acts),
-      h('p', { class: 's3-more' }, [h('span', { class: 'muted', text: t('s3.more') }), ' ', h('button', { class: 'linkbtn', type: 'button', text: t('s3.lib'), onclick: () => PD.app.go('ai', 'lib') })]));
+      h('p', { class: 's3-more' }, [h('button', { class: 'linkbtn', type: 'button', text: t('s3.lib'), onclick: () => PD.app.go('ai', 'lib') })]));
     // templates: the teacher's rhythms as they are; a song made into a lesson
     const tpl = h('section', { class: 's3-tpl' }, [h('h2', { text: t('s3.tpl') })]);
     const grid = h('div', { class: 's3-tpl-grid' }); tpl.append(grid);
@@ -208,17 +213,52 @@ PD.studio3 = (() => {
     grid.append(h('button', { class: 's3-tcard', type: 'button', onclick: () => { want = 'lesson'; songIn.click(); } }, [h('span', { class: 's3-card-ic', html: IC.learn }), h('b', { text: t('s3.learnS') }), h('small', { text: t('s3.learnSD') })]));
     root.append(tpl);
     // recent: both studios' projects together, newest first
-    const all = X().index(), box = h('ul', { class: 's3-list' });
-    const row = x => h('li', {}, [h('button', { class: 's3-row', type: 'button', 'data-kind': x.kind, onclick: () => x.kind === 'song' ? PD.app.go('ai', x.ref) : PD.app.go('pstudio', 'p:' + x.ref) }, [
+    const row = x => h('li', { class: 's3-project-row' }, [h('button', { class: 's3-row', type: 'button', 'data-kind': x.kind, onclick: () => x.kind === 'song' ? PD.app.go('ai', x.ref) : PD.app.go('pstudio', 'p:' + x.ref) }, [
       h('span', { class: 's3-row-ic', html: x.kind === 'song' ? IC.song : IC.arr }),
       h('span', { class: 's3-row-t' }, [h('b', { text: x.title || '—' }), h('small', { text: [t(x.kind === 'song' ? 's3.kSong' : 's3.kArr')].concat(x.kind === 'song' ? [x.key, x.bpm ? Math.round(x.bpm) + ' BPM' : null] : [nTracks(x.tracks), nNotes(x.notes), x.bpm ? x.bpm + ' BPM' : null]).filter(Boolean).join(' · ') }),
-        x.kind === 'song' && !x.stored ? h('small', { class: 's3-warn', text: t('s3.notStored') }) : null]),
-      h('small', { class: 's3-when', text: when(x.when) }), h('span', { class: 's3-row-go', html: IC.chev })])]);
-    const N = 8, fill = n => { box.innerHTML = ''; all.slice(0, n).forEach(x => box.append(row(x))); };
-    fill(N);
-    const head = h('div', { class: 's3-sh' }, [h('h2', { text: t('s3.recent') })]);
-    if (all.length > N) head.append(h('button', { class: 'linkbtn', type: 'button', text: t('s3.all', { n: all.length }), onclick: e => { fill(all.length); e.currentTarget.remove(); } }));
-    root.append(h('section', { class: 's3-recent' }, [head, all.length ? box : h('p', { class: 'muted s3-empty', text: t('s3.none') })]));
+        x.recorded || x.large || (x.kind === 'song' && !x.stored && !x.remoteAudio)
+          ? h('small', { class: 's3-warn', text: t(x.recorded ? 'ssy.take' : x.large ? 'ssy.large' : 's3.notStored') }) : null]),
+      h('small', { class: 's3-when', text: when(x.when) }), h('span', { class: 's3-row-go', html: IC.chev })]),
+      h('button', { class: 's3-remove', type: 'button', html: removeIcon, title: t('delete'),
+        'aria-label': t('delete') + ' · ' + x.title, onclick: () => {
+          if (x.kind === 'arrangement') PD.pstudio.deleteProject(x.ref);
+          else {
+            const r = library().get('ai.recent', []).find(item => item.id === x.ref);
+            if (r) PD.ai.deleteSong(r);
+          }
+        } })]);
+    const box = h('ul', { class: 's3-list' }), head = h('div', { class: 's3-sh' });
+    const empty = h('p', { class: 'muted s3-empty', text: t('s3.none') });
+    const syncState = h('span', { class: 's3-sync-status', role: 'status' });
+    const syncButton = h('button', { class: 'btn small ghost', text: t('ssy.retry'), onclick: () => PD.studioSync.sync() });
+    const syncLine = h('div', { class: 's3-sync' }, [syncState, syncButton]);
+    let expanded = false;
+    function paint() {
+      const all = X().index();
+      box.replaceChildren(...all.slice(0, expanded ? all.length : 8).map(row));
+      empty.hidden = !!all.length;
+      head.replaceChildren(h('h2', { text: t('s3.recent') }));
+      if (!expanded && all.length > 8) head.append(h('button', { class: 'linkbtn', type: 'button', text: t('s3.all', { n: all.length }), onclick: () => { expanded = true; paint(); } }));
+    }
+    function paintSync() {
+      const state = PD.studioSync.status;
+      syncState.textContent = t('ssy.' + state);
+      syncLine.dataset.status = state;
+      syncButton.hidden = !PD.cloud.uid;
+      syncButton.disabled = state === 'busy' || state === 'offline';
+    }
+    paint(); paintSync();
+    const section = h('section', { class: 's3-recent' }, [head, syncLine, h('p', { class: 'muted s3-sync-info', text: t('ssy.info') }), box, empty]);
+    tpl.before(section);
+    root.append(h('details', { class: 's3-guide' }, [h('summary', { text: t('s3.flow') }),
+      h('div', { class: 's3-flow' }, [
+        h('ol', {}, FLOW.map(([k, d, st], i) => h('li', { class: 's3-step' }, [h('span', { class: 's3-n', text: String(i + 1) }), h('div', {}, [h('b', { text: t(k) }), h('small', { text: t(d) })]), h('span', { class: 's3-st s3-st-' + st, text: t('s3.' + st) })]))),
+        h('p', { class: 's3-note', text: t('s3.geo') })
+      ])
+    ]));
+    const offLibrary = PD.bus.on('studio-library', paint), offSync = PD.bus.on('studio-sync-status', paintSync);
+    const offRoute = PD.bus.on('route', () => { offLibrary(); offSync(); offRoute(); });
+    PD.studioSync.sync();
     PD.i18n.apply(root);
   }
 
@@ -246,7 +286,8 @@ PD.studio3 = (() => {
     const bb = h('b', { class: 's3-bb mono', title: t('s3.pos') }), clk = h('small', { class: 's3-clk mono' }), prep = h('small', { class: 's3-prep', hidden: true, text: t('s3.prep') });
     let dragging = false;
     const seek = h('input', { class: 's3-seek', type: 'range', min: 0, max: 1000, step: 1, value: 0, 'aria-label': t('s3.seek'), oninput: e => eng.seekFrac(+e.target.value / 1000), onchange: () => { dragging = false; } });
-    seek.addEventListener('pointerdown', () => { dragging = true; }); seek.addEventListener('pointerup', () => { dragging = false; });
+    seek.addEventListener('pointerdown', () => { dragging = true; });
+    ['pointerup', 'pointercancel', 'lostpointercapture', 'blur'].forEach(event => seek.addEventListener(event, () => { dragging = false; }));
     const tg = (icon, key, fn) => { const b = ib(icon, key, fn, 's3-tg'); b.setAttribute('aria-pressed', 'false'); return b; };
     const loopB = tg(IC.loop, kind === 'song' ? 's3.loopBar' : 's3.loop', () => eng.toggleLoop()), metroB = tg(IC.metro, 's3.metro', () => eng.toggleMetro()), countB = tg(IC.count, 's3.count', () => eng.toggleCountIn());
     let tempoEl, bpmIn = null, meterSel = null, speedSel = null;
@@ -340,20 +381,22 @@ PD.studio3 = (() => {
 
   /* ---------- a song: the AI studio inside the workspace ---------- */
   function songWS(w, param) {
-    const lib = param == null || param === 'lib' || param === 'new';
+    const lib = param == null || param === 'lib' || param === 'new' || param === 'record';
     let rec = null, lastId = null, ws = null;   // ws: set once workspace() returns (its first paint asks for the state already)
     const cur = () => PD.ai && PD.ai.current;
     const open = () => { const c = cur(); return !!(c && c.transport && ws && ws.host.querySelector('.ai-body .ai-head')); };
-    const recOf = id => (PD.store.get('ai.recent', []) || []).find(r => r.id === id) || null;
+    const recOf = id => ((PD.studioSync?.store || PD.store).get('ai.recent', []) || []).find(r => r.id === id) || null;
     function aiTab(k) { const sel = ws.host.querySelector('.ai-body .apr-navigation select'); if (!sel) return; if (sel.value !== k) { sel.value = k; sel.dispatchEvent(new Event('change')); } }
     ws = workspace(w, 'song', {
       ready: () => open(),
       view2: v => { if (open()) aiTab(v.ai); },
-      rename: v => { const id = cur() && cur().id, all = PD.store.get('ai.recent', []), e = all.find(x => x.id === id); v = String(v || '').trim(); if (!e || !v) return; e.title = v; PD.store.set('ai.recent', all); ws.refresh(); },
+      rename: v => { const id = cur() && cur().id, all = (PD.studioSync?.store || PD.store).get('ai.recent', []), e = all.find(x => x.id === id); v = String(v || '').trim(); if (!e || !v) return; e.title = v; (PD.studioSync?.store || PD.store).set('ai.recent', all); ws.refresh(); },
       state: () => {
         const on = open(), c = cur(), id = on ? c.id : null;
         if (on && id !== lastId) {   // a song has just opened: its view, its place in the history
-          lastId = id; aiTab(ws.view.ai);
+          lastId = id;
+          if (param === 'record') ws.setView('roll');
+          else aiTab(ws.view.ai);
           try { const st = history.state; if (id && st && st.r === 'ai' && st.p !== id) history.replaceState({ r: 'ai', p: id }, ''); } catch (_) {}
         }
         if (!on) lastId = null;
@@ -381,11 +424,12 @@ PD.studio3 = (() => {
           // another file, or a take from the microphone: the AI studio's own box, in the Player view
           open() ? act('s3.add', () => { ws.setView('player', true); const f = ws.host.querySelector(':scope > details.apr-fold'); if (f) { f.open = true; f.scrollIntoView({ block: 'center' }); } }) : null,
           act('s3.lib', () => PD.app.go('ai', 'lib')),
-          rec && rec.stored ? act('s3.dl', async () => { const bl = await PD.blobs.get('ai.song.' + rec.id); if (bl) download(rec.name, bl); }) : null,
+          rec && (rec.stored || rec.remoteAudio) ? act('s3.dl', async () => { try { const bl = await PD.studioSync.audio(rec); if (bl) download(rec.name, bl); } catch (_) { PD.ui.toast(t('ssy.fetchError')); } }) : null,
+          rec ? act('delete', () => PD.ai.deleteSong(rec, () => PD.app.go('studio3', null, true))) : null,
           open() ? act('s3.full', () => { const f = ws.host.querySelector('.ai-fs'); if (f) f.click(); }) : null].filter(Boolean)));
       })
     });
-    PD.ai.page(ws.host, lib ? null : param);
+    PD.ai.page(ws.host, lib && param !== 'record' ? null : param);
     ws.refresh();
   }
 
@@ -394,6 +438,15 @@ PD.studio3 = (() => {
     // param: a view (the old 'pstudio' links) · 'p:<id>' · 'p:<id>:<view>'
     let id = null, v0 = null; const s = param == null ? '' : String(param);
     if (s.indexOf('p:') === 0) { const a = s.split(':'); id = a[1] || null; v0 = a[2] || null; } else if (s) v0 = s;
+    if (id && !PD.pstudio.load(id)) {
+      w.append(h('p', { class: 'muted', text: t('ssy.busy'), role: 'status' }));
+      PD.studioSync.sync().then(() => {
+        if (!w.isConnected || PD.app.route !== 'pstudio' || document.getElementById('page') !== w.closest('.page')) return;
+        if (PD.pstudio.load(id)) PD.app.render(true);
+        else PD.app.go('studio3', null, true);
+      });
+      return;
+    }
     const byPst = k => (VIEWS.arrangement.find(v => v.pst === k) || {}).id;
     const E = () => PD.pstudio.engine;
     const ws = workspace(w, 'arrangement', {
@@ -420,7 +473,7 @@ PD.studio3 = (() => {
         const input = h('input', { type: 'file', accept: ACCEPT_FILE, hidden: true, onchange: () => { const f = input.files[0]; if (f) { close(); PD.pstudio.importFile(f); } } });
         b.append(h('h2', { text: t('s3.menu') }), h('div', { class: 's3-acts2' }, [act('pst.projects', () => PD.pstudio.projects()),
           h('button', { class: 's3-act', type: 'button', text: t('pst.imp'), onclick: () => input.click() }), input,
-          act('pst.exp', () => PD.pstudio.exportPanduri()), act('pst.midi', () => PD.pstudio.exportMidi()), act('pst.midiT', () => PD.pstudio.exportMidi(true))]));
+          act('delete', () => PD.pstudio.deleteProject(PD.pstudio.project.id, () => PD.app.go('studio3', null, true))), act('pst.exp', () => PD.pstudio.exportPanduri()), act('pst.midi', () => PD.pstudio.exportMidi()), act('pst.midiT', () => PD.pstudio.exportMidi(true))]));
       })
     });
     PD.pstudio.page(ws.host, ws.view.pst, { embed: true, open: id, onState: () => { if (!ws.gone) ws.refresh(); }, onOpen: nid => PD.app.go('pstudio', 'p:' + nid + ':' + E().view, true) });
@@ -444,6 +497,8 @@ PD.studio3 = (() => {
 :root[data-col="studio"] .wrap{max-width:1680px}
 .s3{display:grid;gap:var(--s6);min-width:0}.s3 .grow{flex:1}.s3 .mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 .s3 h1{margin:0;font:700 var(--t-display)/1.1 var(--f-display);letter-spacing:-.01em}.s3 h2{margin:0;font:600 var(--t-title2)/1.2 var(--f-ui)}.s3 h3{margin:0 0 6px;font:600 var(--t-foot)/1.3 var(--f-ui);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.s3-hero{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:clamp(14px,3vw,30px);border-radius:var(--r-l)}
+.s3-hero-mark{color:var(--acc2);display:grid;place-items:center;width:48px;height:48px;flex:none;border:1px solid var(--acc-line);border-radius:14px;background:var(--acc-wash)}
 .s3-hero p{margin:6px 0 0;max-width:62ch}
 .s3-flow{display:grid;gap:10px}.s3-flow ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 .s3-step{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-content:start;padding:12px;border-radius:var(--r-s);background:var(--surface);border:1px solid var(--line)}
@@ -452,11 +507,13 @@ PD.studio3 = (() => {
 .s3-st{grid-column:2;justify-self:start;font:600 11px var(--f-ui);padding:2px 8px;border-radius:var(--r-pill);border:1px solid var(--line2);color:var(--fg2)}
 .s3-st-ok{color:var(--ok);border-color:rgba(125,211,160,.35)}.s3-st-pm{color:var(--acc);border-color:var(--acc-line)}.s3-st-part{color:var(--almost);border-color:rgba(224,176,114,.4)}
 .s3-note{margin:0;font-size:var(--t-caption);color:var(--faint);line-height:1.5;max-width:90ch}
-.s3-acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.s3-acts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.s3-guide summary{color:var(--muted);cursor:pointer;padding-block:10px}
+.s3-guide .s3-flow{margin-top:6px}
 .s3-card,.s3-tcard{display:grid;gap:6px;justify-items:start;align-content:start;text-align:start;min-height:132px;padding:18px;border-radius:var(--r-m);background:var(--surface);border:1px solid var(--line2);color:var(--fg);font:inherit;cursor:pointer;transition:background var(--d-micro) var(--ease),border-color var(--d-micro) var(--ease)}
 .s3-card:hover,.s3-tcard:hover{background:var(--surface2)}.s3-card.over{border-color:var(--acc);background:var(--acc-wash)}
 .s3-card.primary{background:linear-gradient(160deg,rgba(213,167,120,.16),var(--surface) 62%);border-color:var(--acc-line)}
-.s3-card>b,.s3-tcard>b{font-size:var(--t-headline)}.s3-card>small,.s3-tcard>small{color:var(--muted);line-height:1.45}.s3-card-ic{color:var(--acc);margin-bottom:4px}
+.s3-card>b,.s3-tcard>b{font-size:var(--t-headline);overflow-wrap:anywhere}.s3-card>small,.s3-tcard>small{color:var(--muted);line-height:1.45}.s3-card-ic{color:var(--acc);margin-bottom:4px}
 .s3-more{margin:-8px 0 0;font-size:var(--t-foot)}
 .s3-tpl{display:grid;gap:12px}.s3-tpl-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px}
 .s3-tcard{cursor:default}button.s3-tcard{cursor:pointer}
@@ -513,10 +570,10 @@ PD.studio3 = (() => {
 .s3-ai .ai-head{justify-content:flex-start}
 @media (max-width:1099px){.s3-body{grid-template-columns:minmax(0,1fr)}.s3-side,.s3-grip,.s3-only-wide{display:none!important}.s3-only-narrow{display:inline-grid}
   .s3-flow ol{grid-template-columns:repeat(5,minmax(150px,1fr));overflow-x:auto;padding-bottom:4px}}
-@media (max-width:820px){.s3-acts{grid-template-columns:minmax(0,1fr)}.s3-tpl-grid{grid-template-columns:minmax(0,1fr)}.s3-card,.s3-tcard{min-height:0;grid-template-columns:auto minmax(0,1fr);column-gap:14px}.s3-card>.s3-card-ic,.s3-tcard>.s3-card-ic{grid-row:span 2;margin:2px 0 0}.s3-card>small,.s3-tcard>small{grid-column:2}.s3-tcard>.s3-rchips,.s3-tcard>.s3-tnote{grid-column:1/-1}}
+@media (max-width:1080px){.s3-acts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:599px){.s3-acts{grid-template-columns:minmax(0,1fr)}.s3-tpl-grid{grid-template-columns:minmax(0,1fr)}.s3-card,.s3-tcard{min-height:0;grid-template-columns:auto minmax(0,1fr);column-gap:14px}.s3-card>.s3-card-ic,.s3-tcard>.s3-card-ic{grid-row:span 2;margin:2px 0 0}.s3-card>small,.s3-tcard>small{grid-column:2}.s3-tcard>.s3-rchips,.s3-tcard>.s3-tnote{grid-column:1/-1}}
 @media (max-width:599px){.s3-tabs{display:none}.s3-modes{display:grid}.s3-subv:not([hidden]){display:flex}
   .s3-head{gap:6px}.s3-kind{display:none}.s3-title{font-size:var(--t-headline)}.s3-sub2{font-size:12px;flex-wrap:nowrap;gap:8px}.s3-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.s3-save{white-space:nowrap}
-  .s3-home .s3-flow{order:5}.s3-home .s3-recent{order:4}
   .s3-tr{padding:8px;border-radius:14px;gap:6px}.s3-tr-a{gap:4px;flex-wrap:nowrap}.s3-ib{width:34px;height:34px;border-radius:10px}.s3-play{width:40px;height:40px}.s3-tg{width:32px;height:32px}.s3-tgs{gap:4px}
   .s3-pos{min-width:0;flex:1 1 auto;margin:0 2px}.s3-bb{font-size:15px}.s3-clk{font-size:11px;white-space:nowrap}
   .s3-tr-b{flex-wrap:nowrap}.s3-speed{width:76px}.s3-num{width:58px}.s3-tempo{gap:4px}.s3-ws[data-kind=song] .s3-tempo{display:none}

@@ -3,17 +3,17 @@ Module order = dependency order. three3d.js is embedded as inert text and parsed
 import base64, os, re, json, hashlib, shutil
 from io import BytesIO
 from PIL import Image
-ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','guard','social','cmprofile','market','vedit','stickers','chatkit','chatui','voicewave','messenger','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','advdata','advjazz','advtheory','pstcore','pstudio','book','install','simatheory','sima','simaplus','aiworker','aispl','aideck','aiscore','aipiano','airoll','aitab3d','aimus','ailesson','aistage','songbook','ai','s3core','studio3','samisimi','studio','authortools','onboard','intro','pwa','practice-streak','app','boot']
+ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','guard','social','cmprofile','market','vedit','stickers','chatkit','chatui','voicewave','messenger','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','advdata','advjazz','advtheory','pstcore','pstudio','book','install','simatheory','sima','simaplus','aiworker','aispl','aideck','aiscore','aipiano','airoll','aitab3d','aimus','ailesson','aistage','songbook','ai','s3core','studio-sync','studio3','samisimi','studio','authortools','onboard','intro','pwa','practice-streak','app','boot']
 LAZY = {'three3d'}
 # in the installable app only, never in the single files: the marketplace needs the server and payments anyway, and the
 # single file must stay under 16 MiB (it is within a few KB of it). The app hides its entrances when PD.market is absent.
-APP_ONLY = {'market', 'simatheory', 'simaplus', 'aistage', 'airoll', 'aitab3d', 'advdata', 'advjazz', 'advtheory', 'pstcore', 'pstudio', 's3core', 'studio3'}   # Sima's theory engine and player (70 KB): the single file is at its 16 MB limit; there she answers from the app's material
+APP_ONLY = {'market', 'simatheory', 'simaplus', 'aistage', 'airoll', 'aitab3d', 'advdata', 'advjazz', 'advtheory', 'pstcore', 'pstudio', 's3core', 'studio-sync', 'studio3'}   # Sima's theory engine and player (70 KB): the single file is at its 16 MB limit; there she answers from the app's material
 src = lambda n: open(f'src/{n}').read()
 # The stylesheet is two cascade layers: the earlier screens' rules (app.css) in `legacy`, and the design
 # system (design.css) after it. A later layer wins whatever the selector, so the design system never has to
 # out-shout an old rule; `ds-imp` holds the few !important answers to legacy !important rules (for important
 # declarations an earlier layer wins).
-css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css') + '\n@layer ds {\n' + src('checkout.css') + '\n}\n' + src('v2.css') + '\n' + src('aiscore.css') + '\n' + src('circle.css') + '\n' + src('mtheory.css') + '\n' + src('cmprofile.css') + '\n' + src('messenger.css') + '\n'
+css = '@layer ds-imp, legacy, ds;\n@layer legacy {\n' + src('app.css') + '\n}\n' + src('design.css') + '\n@layer ds {\n' + src('checkout.css') + '\n}\n' + src('v2.css') + '\n' + src('aiscore.css') + '\n' + src('circle.css') + '\n' + src('mtheory.css') + '\n' + src('cmprofile.css') + '\n' + src('messenger.css') + '\n' + src('finish.css') + '\n'
 hero = 'data:image/jpeg;base64,' + base64.b64encode(open('assets/hero.jpg','rb').read()).decode() if os.path.exists('assets/hero.jpg') else ''
 # The standalone header is smaller to leave room for interactive features.
 inline_hero = hero
@@ -42,6 +42,14 @@ NOT_INLINE = ('strings/', 'rhythms/', 'piano/')   # piano/: 88 recorded keys, 1.
 media_inline = {m: 'data:audio/mpeg;base64,' + base64.b64encode(open(_inline_src(m), 'rb').read()).decode() for m in MEDIA if not _re.search(r'-\d\d\.mp3$', m) and not m.startswith(NOT_INLINE)}   # the ready-made slow versions stay out of the single file: it stretches in the browser instead, and the page must fit in 16 MB
 CONFIG = json.load(open('config.json')) if os.path.exists('config.json') else {}
 PHOTOS = {k: 'data:image/jpeg;base64,' + base64.b64encode(open('assets/pan-' + k + '.jpg','rb').read()).decode() for k in ['front','head','body','splashP','splashL'] if os.path.exists('assets/pan-' + k + '.jpg')}
+# Standalone splash photos keep their dimensions with lighter encoding.
+PHOTOS_INLINE = dict(PHOTOS)
+for key in ('splashP', 'splashL'):
+    if key in PHOTOS_INLINE:
+        with Image.open('assets/pan-' + key + '.jpg') as image:
+            photo = BytesIO()
+            image.save(photo, 'WEBP', quality=78, method=6)
+            PHOTOS_INLINE[key] = 'data:image/webp;base64,' + base64.b64encode(photo.getvalue()).decode()
 # rendered hand videos (render/ → assets/fig/): mp4 loops + jpg posters; linked in the PWA, embedded in the single-file builds
 FIG_NAMES = sorted(os.path.splitext(f)[0] for f in os.listdir('assets/fig') if f.endswith('.mp4')) if os.path.isdir('assets/fig') else []
 def fig_map(inline):
@@ -64,7 +72,7 @@ STICKER_MOTION = {f[:-5]: {'motion': 'stickers/' + f, 'still': 'stickers/' + f[:
 CHAT_FONT_DIGEST = hashlib.sha1(b''.join(open('assets/chat-fonts/'+f,'rb').read() for f in sorted(os.listdir('assets/chat-fonts')))).hexdigest() if os.path.isdir('assets/chat-fonts') else ''
 STICKER_DIGEST = hashlib.sha1(b''.join(open('assets/stickers/'+f,'rb').read() for f in STICKER_FILES)).hexdigest()
 def assets_js(inline):
-    return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + (inline_hero if inline else hero) + '", photos: ' + json.dumps(PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ', stickerMotion: ' + json.dumps({} if inline else STICKER_MOTION) + ' };'
+    return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + (inline_hero if inline else hero) + '", photos: ' + json.dumps(PHOTOS_INLINE if inline else PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ', stickerMotion: ' + json.dumps({} if inline else STICKER_MOTION) + ' };'
 # Compact standalone CSS, preserving strings and the spaces required by selectors and calc().
 css_single = re.sub(
     r"""("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|/\*[\s\S]*?\*/|;\s*(})|\s*([{},;])\s*|(:)\s+|[ \t\r\n]+""",

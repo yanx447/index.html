@@ -86,7 +86,7 @@ export class PitchTracker {
   end() { this.state = State.OFF; this.resetMeasurement(); this.snap = { ...this.blankSnapshot(), state: State.OFF }; }
 
   gate() {
-    if (this.cfg.autoSens) return Math.max(0.0006, this.noiseFloor * 1.8); // ≈ +5 dB over the room
+    if (this.cfg.autoSens) return Math.max(.00028, this.noiseFloor * 1.75); // ≈ +5 dB over the room
     return 0.045 * Math.pow(0.62, this.cfg.sens); // manual: sens 1 (deaf) … 10 (very sensitive)
   }
 
@@ -154,10 +154,11 @@ export class PitchTracker {
 
     // --- noise floor --------------------------------------------------------------------
     if (this.state === State.CALIBRATING) {
-      this.calSamples.push(rms);
+      // Do not calibrate away a string that is already ringing at mic start.
+      if (!(det.clarity >= .88 && this.nearString(det.freq, 3))) this.calSamples.push(rms);
       if (now - this.calStart >= CALIBRATE_MS) {
         const s = this.calSamples.slice().sort((a, b) => a - b);
-        const nf = s[Math.floor(s.length * 0.3)] || this.noiseFloor;
+        const nf = s[Math.floor(s.length * .25)] ?? .00018;
         this.noiseFloor = Math.min(0.05, Math.max(0.00005, nf));
         this.state = State.LISTENING;
       } else {
@@ -171,11 +172,13 @@ export class PitchTracker {
       this.noiseFloor = Math.min(0.05, Math.max(0.00005, this.noiseFloor + (rms - this.noiseFloor) * k));
     }
     const gate = this.gate();
-    const signal = rms >= gate;
+    const clearQuietNote = this.cfg.autoSens && rms >= Math.max(.00022, this.noiseFloor * 1.22)
+      && det.clarity >= .91 && this.nearString(det.freq, 2.5);
+    const signal = rms >= gate || clearQuietNote;
 
     // --- onset / attack rejection -------------------------------------------------------
     snap.onset = false;
-    if (signal && (!this.hadSignal || rms > this.slowRms * 1.9) && rms > gate * 1.3) {
+    if (signal && (!this.hadSignal || rms > this.slowRms * 1.9) && (rms > gate * 1.3 || clearQuietNote)) {
       this.attackUntil = now + ATTACK_MS;
       this.onsetAt = now;
       this.pluckPeak = rms;
@@ -195,7 +198,7 @@ export class PitchTracker {
     // nothing more than an octave below the lowest string is a panduri note (room hum, rumble,
     // a subharmonic); a string tuned a whole octave too low must still be seen, to warn about it
     const inRange = det.freq > 0 && det.freq >= this.lowestTarget() * 0.45;
-    const decayed = this.lastValid && now - this.onsetAt > 450 && rms < Math.max(gate * 1.15, this.pluckPeak * 0.09);
+    const decayed = this.lastValid && now - this.onsetAt > 450 && rms < Math.max(clearQuietNote ? this.noiseFloor * 1.2 : gate, this.pluckPeak * 0.07);
     const valid = !decayed && (signal || faint) && inRange && !inAttack && !this.cfg.awaitOnset && det.clarity >= MIN_CLARITY;
 
     snap.rms = rms; snap.gate = gate; snap.noiseFloor = this.noiseFloor;

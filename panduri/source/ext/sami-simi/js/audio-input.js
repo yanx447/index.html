@@ -60,10 +60,16 @@ export class AudioInput {
     const resumed = resumeContext(); // started synchronously inside the user gesture (iOS)
     let stream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
-        video: false,
-      });
+      const media = navigator.mediaDevices;
+      try {
+        stream = await media.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
+          video: false,
+        });
+      } catch (e) {
+        if (!['OverconstrainedError', 'TypeError'].includes(e?.name) || generation !== this.generation) throw e;
+        stream = await media.getUserMedia({ audio: true, video: false });
+      }
     } catch (e) {
       if (generation !== this.generation) throw new MicError('cancelled');
       const n = e && e.name;

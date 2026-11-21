@@ -52,6 +52,7 @@ test('messenger privacy, groups, files, pins, clear and notifications', async ()
   await db.exec(await readFile(new URL('supabase/migrations/202611180003_chat_replies_search.sql', import.meta.url), 'utf8'));
   const streakMigration=await readFile(new URL('supabase/migrations/202611180004_chat_streaks_fonts.sql', import.meta.url), 'utf8');
   await db.exec(streakMigration); await db.exec(streakMigration);
+  await db.exec(await readFile(new URL('supabase/migrations/202611210002_chat_copper.sql', import.meta.url), 'utf8'));
   const state=async u=>(await as(u,`select public.chat_state('${CONV}') s`))[0].s;
   const settings=(u,patch)=>as(u,`select public.chat_settings('${CONV}','${JSON.stringify(patch)}'::jsonb)`);
   const send=(u,body)=>as(u,`insert into public.messages(conversation_id,body) values('${CONV}','${body}') returning id`);
@@ -77,6 +78,10 @@ test('messenger privacy, groups, files, pins, clear and notifications', async ()
   await settings(A,{font:'noto-serif'});
   assert.equal((await state(A)).preferences.font,'noto-serif');
   assert.equal((await state(A)).preferences.theme,'graphite');
+  for (const theme of ['copper', 'ember', 'linen', 'obsidian']) {
+    await settings(A, { theme });
+    assert.equal((await state(A)).preferences.theme, theme);
+  }
   const emojiContext={PD:{h(){},i18n:{add(){}},stickers:{STICKERS:[]}},t:k=>k};vm.createContext(emojiContext);vm.runInContext((await readFile(new URL('../source/src/chatkit.js',import.meta.url),'utf8')).replace('return { emojiGrid,','return { _emoji:EMOJI, emojiGrid,'),emojiContext);
   const allEmoji=emojiContext.PD.chatkit._emoji.map(r=>r[1]);assert.equal(allEmoji.length,3944);const unsupported=(await db.query('select value from jsonb_array_elements_text($1::jsonb) as x(value) where not public.chat_emoji_allowed(value)',[JSON.stringify(allEmoji)])).rows;assert.equal(unsupported.length,0,JSON.stringify(unsupported.slice(0,20)));
   for(const emoji of ['👍🏽','👩‍💻','🇬🇪','❤️','1️⃣'])assert.equal((await one("select public.chat_emoji_allowed('"+emoji+"') ok")).ok,true);

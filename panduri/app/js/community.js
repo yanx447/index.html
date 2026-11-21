@@ -152,10 +152,11 @@ PD.community = (() => {
     const newB = h('button', { class: 'pz-ic', 'aria-label': t('cm.newChat'), title: t('cm.newChat'), html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>', onclick: () => pickFriend() });
     w.append(h('div', { class: 'cm-top' }, [h('span', { class: 'pz-ic', 'aria-hidden': 'true' }), h('h1', { class: 'cm-h1', 'data-t': 'cn.inbox' }), newB]));
     PD.cmp.inboxSeg(w, 'chats');
-    w.append(h('label', { class: 'cm-sbox' }, [h('span', { html: ic.search }), q]), strip, h('h3', { class: 'cm-lab', 'data-t': 'cm.chats' }), list);
+    w.classList.add('cm-inbox');
+    w.append(h('label', { class: 'cm-sbox' }, [h('span', { html: ic.search }), q]), strip);
     let rows = [], friends = [], restricted = new Set(), showRestricted = false;
-    const restrictedButton = h('button', { class:'btn small quiet ms-inbox-filter', text:t('ms.restricted'), onclick:()=>{showRestricted=!showRestricted;restrictedButton.textContent=t(showRestricted?'cm.chats':'ms.restricted');paint();} });
-    w.append(restrictedButton);
+    const restrictedButton = h('button', { class:'btn small quiet ms-inbox-filter', hidden:true, text:t('ms.restricted'), onclick:()=>{showRestricted=!showRestricted;restrictedButton.textContent=t(showRestricted?'cm.chats':'ms.restricted');paint();} });
+    w.append(h('div', { class: 'cm-chat-list-head' }, [h('h3', { class: 'cm-lab', 'data-t': 'cm.chats' }), restrictedButton]), list);
     function paint() {
       const f = q.value.trim().toLowerCase(), hit = r => !f || [(r.other_name || ''), (r.other_nick || '')].join(' ').toLowerCase().includes(f);
       list.innerHTML = '';
@@ -167,8 +168,8 @@ PD.community = (() => {
         const what = r.last_body || (r.last_kind ? t({ file:'ms.file', photo: 'cm.mPhoto', video: 'cm.mVideo', audio: 'cm.mAudio', post: 'cm.mPost', sticker: 'cm.mSticker', gif: 'cm.mGif' }[r.last_kind] || 'cm.mPost') : '');
         list.appendChild(h('button', { class: 'cm-crow' + (r.unread ? ' new' : ''), role: 'listitem', onclick: () => PD.app.go('community', 'c:' + r.id + ':' + (r.other_name || r.other_nick || '')) }, [
           face(r.other_avatar, r.other_name || r.other_nick, online(seen.get(r.other))),
-          h('span', { class: 'grow' }, [h('b', { text: r.other_name || (r.other_nick ? '@' + r.other_nick : '—') }), h('small', {}, [h('span', { class: 'cm-last', text: (r.last_sender === C.uid ? t('cm.you') + ': ' : '') + what }), h('span', { class: 'cm-ago', text: ' · ' + ago(r.last_at) })])]),
-          r.unread ? h('i', { class: 'cm-udot', 'aria-label': t('cm.unread', { n: r.unread }) }) : h('span', { class: 'cm-cam', html: ic.video })]));
+          h('span', { class: 'grow' }, [h('b', { text: r.other_name || (r.other_nick ? '@' + r.other_nick : '—') }), h('small', {}, [h('span', { class: 'cm-last', text: (r.last_sender === C.uid ? t('cm.you') + ': ' : '') + what.replace(/:(panduri|doli|salamuri):/g, (_, name) => t('ck.' + name)) }), h('span', { class: 'cm-ago', text: ' · ' + ago(r.last_at) })])]),
+          r.unread ? h('i', { class: 'cm-udot', 'aria-label': t('cm.unread', { n: r.unread }) }) : h('span', { class: 'cm-cam', 'aria-hidden': 'true', html: ic.chevron })]));
       });
       PD.i18n.apply(list); PD.motion && PD.motion.reveal(list, 0);
     }

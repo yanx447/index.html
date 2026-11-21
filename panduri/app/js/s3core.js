@@ -156,9 +156,9 @@ PD.s3core = (() => {
 
   /** every project on this device, newest first: the AI studio's songs and Panduri Studio's arrangements */
   function index() {
-    const songs = (PD.store.get('ai.recent', []) || []).filter(r => r && r.id).map(r => ({ kind: 'song', id: 'ai:' + r.id, ref: r.id, title: r.title || stripExt(r.name), when: r.at || 0, key: r.key || null, bpm: r.bpm || null, stored: !!r.stored, video: isVideo(r) }));
-    const arr = (PD.store.get('pst.list', []) || []).filter(x => x && x.id).map(x => {
-      const p = PD.store.get('pst.p.' + x.id, null), tracks = p && Array.isArray(p.tracks) ? p.tracks : [];
+    const songs = ((PD.studioSync?.store || PD.store).get('ai.recent', []) || []).filter(r => r && r.id).map(r => ({ kind: 'song', id: 'ai:' + r.id, ref: r.id, title: r.title || stripExt(r.name), when: r.at || 0, key: r.key || null, bpm: r.bpm || null, stored: !!r.stored, remoteAudio: !!r.remoteAudio, recorded: PD.studioSync?.recorded(r), large: r.size > PD.studioSync?.maxAudio, video: isVideo(r) }));
+    const arr = ((PD.studioSync?.store || PD.store).get('pst.list', []) || []).filter(x => x && x.id).map(x => {
+      const p = (PD.studioSync?.store || PD.store).get('pst.p.' + x.id, null), tracks = p && Array.isArray(p.tracks) ? p.tracks : [];
       return { kind: 'arrangement', id: 'pst:' + x.id, ref: x.id, title: x.name, when: x.modified || 0, bpm: p ? p.bpm : null, meter: p && p.meter ? p.meter.join('/') : null, tracks: tracks.length, notes: tracks.reduce((a, t) => a + (t.kind === 'notes' && t.notes ? t.notes.length : 0), 0) };
     });
     return songs.concat(arr).sort((a, b) => b.when - a.when);

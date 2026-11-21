@@ -10,6 +10,8 @@ PD.i18n.add({
   'ps.chatRule':['სერია იწყება სამი ზედიზედ დღით. დღეში ჩატში გაგზავნილი ერთი ტექსტი საკმარისია. დღე იცვლება 00:00-ზე UTC-ით.','A streak starts after three consecutive days. One text sent to this chat each day is enough. The day resets at 00:00 UTC.'],
   'ps.chatDone':['დღევანდელი ტექსტი ჩაითვალა','Today’s message is counted'],
   'ps.chatKeep':['გააგზავნე ტექსტი დღეს სერიის გასაგრძელებლად','Send a text today to keep the streak'],
+  'ps.next': ['შემდეგი ეტაპი · {n} დღე', 'Next milestone · {n} days'],
+  'ps.milestones': ['სერიის ეტაპები', 'Streak milestones'],
   'ps.max':['მიღწეულია 1000 დღე','1000 days reached']
 });
 PD.practiceStreak=(()=>{
@@ -40,5 +42,16 @@ PD.practiceStreak=(()=>{
     const days=save(PD.lessons.progress.sessions().filter(qualifies).map(s=>ordinal(s.date)));
     return summarize(days,ordinal(now));
   }
-  return {status,summarize,ordinal};
+  const milestones = [3, 10, 50, 100, 200, 500, 800, 1000];
+  const tier = days => milestones.findLast(n => n <= days) || 0;
+  function track(days) {
+    const h = PD.h, t = PD.i18n.t;
+    const next = milestones.find(n => n > days);
+    return h('div', { class: 'ps-track' }, [
+      next ? h('small', { text: t('ps.next', { n: next }) }) : null,
+      h('ul', { class: 'ps-marks', 'aria-label': t('ps.milestones') },
+        milestones.map(n => h('li', { 'data-streak-tier': n, class: n <= days ? 'reached' : '', 'aria-current': n === tier(days) ? 'step' : null, text: String(n) })))
+    ]);
+  }
+  return {status,summarize,ordinal,tier,track};
 })();

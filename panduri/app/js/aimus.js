@@ -215,26 +215,53 @@ PD.aimus = (() => {
     return out.sort((x, y) => x.t0 - y.t0);
   }
   /** every note of a mono 22.05 kHz signal, in a worker: Promise<{ notes:[{m,t0,t1,amp}] }> (.cancel() stops it) */
+  function pitchWorker(base) {
+    const body = 'const BP=(' + BPF.toString() + ')();\nlet RT=null,sess=null;\nself.onmessage=async function(e){var d=e.data;try{' +
+      'if(!sess){importScripts(d.base+"ort131/ort.wasm.min.js");RT=self.ort;RT.env.wasm.wasmPaths=d.base+"ort131/";RT.env.wasm.numThreads=1;' +
+      'var r0=await fetch(d.base+"bp/nmp.onnx");if(!r0.ok)throw new Error("model "+r0.status);sess=await RT.InferenceSession.create(new Uint8Array(await r0.arrayBuffer()),{executionProviders:["wasm"]});}' +
+      'var m=await BP.infer(RT,sess,d.mono,function(p){self.postMessage({p:p*.9});});var ns=BP.notes(m.note,m.onset,m.n,d.opt);self.postMessage({r:{notes:ns}});' +
+      '}catch(err){self.postMessage({err:String(err&&err.message||err)});}};';
+    const url = URL.createObjectURL(new Blob([body], { type: 'text/javascript' }));
+    let worker;
+    try { worker = new Worker(url); } finally { URL.revokeObjectURL(url); }
+    let job, timer;
+    function settle(ok, value) {
+      const pending = job;
+      job = null;
+      clearTimeout(timer);
+      if (pending) (ok ? pending.resolve : pending.reject)(value);
+    }
+    function close(reason = new DOMException('Cancelled', 'AbortError')) {
+      worker?.terminate();
+      worker = null;
+      settle(false, reason);
+    }
+    worker.onmessage = e => {
+      if (e.data.p != null) { job?.progress?.(e.data.p); return; }
+      if (e.data.err) settle(false, new Error(e.data.err));
+      else settle(true, e.data.r);
+    };
+    worker.onerror = e => close(new Error(e.message || 'worker'));
+    function run(mono, opt, progress) {
+      if (!worker || job) return Promise.reject(new Error('Model unavailable or busy'));
+      return new Promise((resolve, reject) => {
+        job = { resolve, reject, progress };
+        timer = setTimeout(() => close(new Error('Transcription timeout')), 300000);
+        try { worker.postMessage({ mono, base, opt: opt || {} }); }
+        catch (error) { settle(false, error); }
+      });
+    }
+    return { run, close };
+  }
   function notesBP(mono, base, opt, onProgress) {
-    let W = null, url = null, rejectJob = null, timer = null;
-    const clean = () => { if (W) W.terminate(); W = null; if (url) URL.revokeObjectURL(url); url = null; clearTimeout(timer); };
-    const p = new Promise((res, rej) => {
-      rejectJob = rej;
-      try {
-        const body = 'const BP=(' + BPF.toString() + ')();\nlet RT=null,sess=null;\nself.onmessage=async function(e){var d=e.data;try{' +
-          'if(!sess){importScripts(d.base+"ort131/ort.wasm.min.js");RT=self.ort;RT.env.wasm.wasmPaths=d.base+"ort131/";RT.env.wasm.numThreads=1;' +
-          'var r0=await fetch(d.base+"bp/nmp.onnx");if(!r0.ok)throw new Error("model "+r0.status);sess=await RT.InferenceSession.create(new Uint8Array(await r0.arrayBuffer()),{executionProviders:["wasm"]});}' +
-          'var m=await BP.infer(RT,sess,d.mono,function(p){self.postMessage({p:p*.9});});var ns=BP.notes(m.note,m.onset,m.n,d.opt);self.postMessage({r:{notes:ns}});' +
-          '}catch(err){self.postMessage({err:String(err&&err.message||err)});}};';
-        url = URL.createObjectURL(new Blob([body], { type: 'text/javascript' })); W = new Worker(url);
-        timer = setTimeout(() => { clean(); rej(new Error('Transcription timeout')); }, 300000);
-        W.onmessage = e => { const d = e.data; if (d.p != null) onProgress && onProgress(d.p); else { clean(); d.err ? rej(new Error(d.err)) : res(d.r); } };
-        W.onerror = ev => { clean(); rej(new Error((ev && ev.message) || 'worker')); };
-        W.postMessage({ mono, base, opt: opt || {} });
-      } catch (e) { clean(); rej(e); }
-    });
-    p.cancel = () => { clean(); rejectJob(new DOMException('Cancelled', 'AbortError')); };
-    return p;
+    let worker;
+    let result;
+    try {
+      worker = pitchWorker(base);
+      result = worker.run(mono, opt, onProgress).finally(() => worker.close());
+    } catch (error) { result = Promise.reject(error); }
+    result.cancel = () => worker?.close();
+    return result;
   }
   /** the melody line out of all the notes. Notes struck together (a strum, a drone under the tune) are sorted by what
       repeats: a pitch that comes back in the strums around it (±1.5 s) is the accompaniment — a chord tone or a drone —
@@ -747,7 +774,7 @@ PD.aimus = (() => {
     }, null, 1)], { type: 'application/json' });
   }
 
-  return { notesBP, melodyOf, fuse, onsets, percOnsets, rhythm, transcribe, transcribeAsync, metre, tempoAlts, quantise, mapNotes, places, sections, spell, degreeOf, solfegeOf, midiFile, musicXML, tabText, jsonOf, DURV, LO, HI };
+  return { notesBP, pitchWorker, melodyOf, fuse, onsets, percOnsets, rhythm, transcribe, transcribeAsync, metre, tempoAlts, quantise, mapNotes, places, sections, spell, degreeOf, solfegeOf, midiFile, musicXML, tabText, jsonOf, DURV, LO, HI };
 })();
 
 /* =====================================================================
@@ -825,6 +852,7 @@ PD.aimus.panel = function (o) {
     let mono, off = 0;
     try { const g = await o.getMono(src); mono = g.mono || g; off = g.offset || 0; } catch (e) { st.textContent = t('ai.bad'); busy = null; return; }
     if (job !== generation || disposed) return;
+    if (o.recorded && src === 'orig') mono = mono.subarray(0, 22050 * 300);
     if (mono.length > 22050 * 300) { busy = null; st.textContent = t('as.tooLong'); el.append(head()); return; }
     const [lo, hi] = RANGES[range] || RANGES.mel;
     let tr;
@@ -1069,5 +1097,5 @@ PD.aimus.panel = function (o) {
     if (beats) M.beats = beats; if (bpm) M.bpm = bpm;
     A.quantise(M.notes, M.beats, M.metre); o.save && o.save(M); cur = -1; lastCur = -2; render();
   }
-  return { el, tick, regrid, setView(k) { if (k && k !== view) { view = k; PD.store.set('tr.view', k); render(); } }, ownsNeck: () => !!(onNeck && M && M.notes.length), get data() { return M; }, destroy() { disposed = true; generation++; if (busy && busy.cancel) busy.cancel(); if (V && V.stop) V.stop(); } };
+  return { el, tick, regrid, run, setView(k) { if (k && k !== view) { view = k; PD.store.set('tr.view', k); render(); } }, ownsNeck: () => !!(onNeck && M && M.notes.length), get data() { return M; }, destroy() { disposed = true; generation++; if (busy && busy.cancel) busy.cancel(); if (V && V.stop) V.stop(); } };
 };

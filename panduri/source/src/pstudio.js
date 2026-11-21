@@ -50,6 +50,7 @@ PD.i18n.add({
 PD.pstudio = (() => {
   const h = PD.h, t = PD.i18n.t, C = () => PD.pstCore, A = () => PD.audio, T = () => PD.theory;
   const L = o => o && typeof o === 'object' && !Array.isArray(o) ? PD.i18n.pick(o) : o;
+  const store = () => PD.studioSync?.store || PD.store;
   const LIST = 'pst.list', KEY = id => 'pst.p.' + id, LAST = 'pst.last';
   const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
   const SNAME = s => T().stringName(s);
@@ -59,19 +60,27 @@ PD.pstudio = (() => {
   /* E: the unified Studio (studio3.js) hosts this page: it draws the header, the one transport and the view tabs itself,
      and is told of every change. Without E the page is the standalone studio it always was. */
   let E = null;
+  PD.bus.on('studio-account', () => { clearTimeout(saveT); stop(); P = null; undo = []; redo = []; });
+  PD.bus.on('studio-library', e => {
+    if (e.kind !== 'arrangement' || P?.id !== e.id) return;
+    if (e.deleted) {
+      clearTimeout(saveT); stop(); P = null; undo = []; redo = [];
+      if (PD.app.route === 'pstudio') PD.app.go('studio3', null, true);
+    } else if (savedNow && PD.app.route !== 'pstudio') P = null;
+  });
   const notify = () => { if (E && E.onState) { try { E.onState(); } catch (_) {} } };
-  function list() { return PD.store.get(LIST, []); }
+  function list() { return store().get(LIST, []); }
   function persist(now) {
     clearTimeout(saveT);
-    const go = () => { if (!P) return; P.modified = Date.now(); PD.store.set(KEY(P.id), P); const l = list().filter(x => x.id !== P.id); l.unshift({ id: P.id, name: P.name, modified: P.modified }); PD.store.set(LIST, l.slice(0, 200)); PD.store.set(LAST, P.id); savedNow = true; onSaved && onSaved(true); notify(); };
+    const go = () => { if (!P) return; P.modified = Date.now(); store().set(KEY(P.id), P); const l = list().filter(x => x.id !== P.id); l.unshift({ id: P.id, name: P.name, modified: P.modified }); store().set(LIST, l.slice(0, 200)); store().set(LAST, P.id); savedNow = true; onSaved && onSaved(true); notify(); };
     if (now) go(); else { savedNow = false; onSaved && onSaved(false); notify(); saveT = setTimeout(go, 600); }
   }
   /** every change goes through here: undo, the save, the redraw */
   function change(fn, quiet) { undo.push(JSON.stringify(P)); if (undo.length > 120) undo.shift(); redo = []; const b0 = P.bpm; fn(P); persist(); refreshPlay(b0); if (!quiet) redraw(); }
   function doUndo() { if (!undo.length) return; redo.push(JSON.stringify(P)); P = C().parse(undo.pop()); persist(); redraw(); }
   function doRedo() { if (!redo.length) return; undo.push(JSON.stringify(P)); P = C().parse(redo.pop()); persist(); redraw(); }
-  function load(id) { const o = PD.store.get(KEY(id), null); if (!o) return null; try { return C().parse(o); } catch (_) { return null; } }
-  function openProject(p) { stop(); P = p; undo = []; redo = []; head = 0; persist(true); selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0] || {}).id; cursor = 0; if (E && E.onOpen) { E.onOpen(P.id); return; } build(); notify(); }
+  function load(id) { const o = store().get(KEY(id), null); if (!o) return null; try { return C().parse(o); } catch (_) { return null; } }
+  function openProject(p) { if (P && !savedNow) persist(true); stop(); P = p; undo = []; redo = []; head = 0; persist(true); selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0] || {}).id; cursor = 0; if (E && E.onOpen) { E.onOpen(P.id); return; } build(); notify(); }
   /** a new project. tpl: none = a rhythm track and a melody track (as before) · 'blank' = one melody track ·
       'rhythm:<id>' = the two tracks with that rhythm — the teacher's strokes and accents, exactly as the Rhythm view sets them */
   function fresh(tpl) {
@@ -81,7 +90,7 @@ PD.pstudio = (() => {
     return p;
   }
   /** make a project and keep it, without drawing anything: the Studio's home opens it afterwards */
-  function create(tpl, name) { stop(); P = fresh(tpl); if (name) P.name = name; undo = []; redo = []; head = 0; cursor = 0; selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0]).id; persist(true); return P.id; }
+  function create(tpl, name) { if (P && !savedNow) persist(true); stop(); P = fresh(tpl); if (name) P.name = name; undo = []; redo = []; head = 0; cursor = 0; selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0]).id; persist(true); return P.id; }
 
   /* ---------- the engine: one channel per track, a look-ahead scheduler ---------- */
   const ch = new Map();   // track id → { g, pan, an }
@@ -173,14 +182,27 @@ PD.pstudio = (() => {
   const curTrack = () => P && P.tracks.find(x => x.id === selTrack);
   const VIEWS = ['fret', 'roll', 'rhythm', 'arrange', 'mixer'];
   /** opt (from the unified Studio): { embed: true, open: project id, onState: called on every change } */
+  function deleteProject(id, done) {
+    const project = load(id);
+    if (!project) return;
+    PD.ui.confirm(t('ssy.deleteArr', { s: project.name }), () => {
+      if (P?.id === id) { clearTimeout(saveT); stop(); P = null; undo = []; redo = []; }
+      store().del(KEY(id));
+      store().set(LIST, list().filter(x => x.id !== id));
+      if (store().get(LAST, null) === id) store().del(LAST);
+      PD.bus.emit('studio-library', { kind: 'arrangement', id, deleted: true });
+      done?.();
+    });
+  }
+
   function page(w, param, opt) {
     style(); wrapEl = w; E = opt && opt.embed ? opt : null;
-    if (E && E.open && (!P || P.id !== E.open)) { const p = load(E.open); if (p) { stop(); P = p; undo = []; redo = []; head = 0; cursor = 0; selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0] || {}).id; PD.store.set(LAST, P.id); } }
-    if (!P) { const last = PD.store.get(LAST, null); P = (last && load(last)) || null; if (!P) { P = fresh(); persist(true); } selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0]).id; }
+    if (E && E.open && (!P || P.id !== E.open || savedNow)) { const p = load(E.open); if (p) { stop(); P = p; undo = []; redo = []; head = 0; cursor = 0; selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0] || {}).id; store().set(LAST, P.id); } }
+    if (!P) { const last = store().get(LAST, null); P = (last && load(last)) || null; if (!P) { P = fresh(); persist(true); } selTrack = (P.tracks.find(x => x.kind === 'notes') || P.tracks[0]).id; }
     if (param && VIEWS.includes(param)) { mode = param; fitTrack(); }   // an old link to a view (go('pstudio', 'rhythm')) shows a track that view can show
     build();
     document.removeEventListener('keydown', keys); document.addEventListener('keydown', keys);
-    const off = PD.bus.on('route', () => { stop(); document.removeEventListener('keydown', keys); E = null; off && off(); });
+    const off = PD.bus.on('route', () => { if (P && !savedNow) persist(true); stop(); document.removeEventListener('keydown', keys); E = null; off && off(); });
   }
   function keys(e) {
     if (!root || !root.isConnected) return; if (e.target.closest('input,textarea,select,[contenteditable]')) return;
@@ -463,7 +485,7 @@ PD.pstudio = (() => {
       list().forEach(x => rows.append(h('div', { class: 'pst-prow' + (x.id === P.id ? ' on' : '') }, [h('b', { class: 'grow', text: x.name }), h('small', { class: 'muted', text: new Date(x.modified).toLocaleString(PD.i18n.locale) }),
         h('button', { class: 'btn small', text: t('pst.open'), onclick: () => { const p = load(x.id); if (p) { close(); openProject(p); } } }),
         h('button', { class: 'btn small', text: t('pst.dup'), onclick: () => { const p = load(x.id); if (!p) return; p.id = C().uid('p'); p.name = t('pst.copy', { n: p.name }); p.created = Date.now(); close(); openProject(p); } }),
-        h('button', { class: 'btn ghost small', text: t('pst.del'), onclick: () => PD.ui.confirm(t('pst.delQ', { n: x.name }), () => { PD.store.del(KEY(x.id)); PD.store.set(LIST, list().filter(k => k.id !== x.id)); if (x.id === P.id) { P = null; openProject(fresh()); } close(); }) })])));
+        h('button', { class: 'btn ghost small', text: t('pst.del'), onclick: () => deleteProject(x.id, () => { close(); if (!P) PD.app.go('studio3', null, true); }) })])));
       b.append(rows);
     });
   }
@@ -526,5 +548,5 @@ PD.pstudio = (() => {
     get saved() { return savedNow; }, rename: n => change(p => { p.name = String(n || '').trim() || t('pst.untitled'); }, true),
     get view() { return mode; }, setView, VIEWS
   };
-  return { page, get project() { return P; }, play, stop, importFile, _open: openProject, engine, create, importAsNew, list, load, projects, exportPanduri, exportMidi };
+  return { page, get project() { return P; }, play, stop, importFile, _open: openProject, engine, create, importAsNew, list, load, projects, exportPanduri, exportMidi, deleteProject };
 })();

@@ -8,7 +8,7 @@ const assert=require('node:assert/strict');
   const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log('ERROR',e.message)});
   await page.route('https://**/*',r=>r.abort());
   await page.goto(process.env.APP_URL||'http://localhost:8181/panduri/source/dist/app/');
-  async function settings(){await page.waitForFunction(()=>window.PD?.app&&document.querySelector('#main'));await page.evaluate(()=>{document.querySelectorAll('.ag,.lf,.ob').forEach(e=>e.remove());PD.app.go('settings')});}
+  async function settings(){await page.waitForFunction(()=>window.PD?.app&&document.querySelector('#main'));await page.evaluate(()=>{document.querySelectorAll('.ag,.lf,.ob').forEach(e=>e.remove());PD.app.go('settings')});const storage=await page.evaluate(()=>PD.i18n.t('set.gApp'));await page.getByRole('button',{name:storage,exact:true}).click();}
   async function confirmReload(){await Promise.all([page.waitForEvent('domcontentloaded'),page.locator('.sheet-back:not(.out) .btn.primary').click()]);await settings();}
   await settings();
   await page.evaluate(()=>{PD.store.set('goalMin',30);PD.store.set('quality','low');PD.store.set('vol',{inst:.2,metro:.1,ui:.3,ref:.4,master:.5});PD.store.set('qa.progress',{lesson:7});PD.store.set('qa.calibration',{latency:83});});

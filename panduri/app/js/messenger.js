@@ -64,8 +64,8 @@ PD.messenger = (() => {
   const safeLinks=text=>[...new Set((text||'').match(/https?:\/\/[^\s<>]+/g)||[])].map(x=>x.replace(/[.,!?;:)]+$/,''));
   function textBody(text){
     const p=h('p'); let pos=0;
-    for(const m of text.matchAll(/https?:\/\/[^\s<>]+/g)){p.append(document.createTextNode(text.slice(pos,m.index)));const url=m[0].replace(/[.,!?;:)]+$/,'');p.append(h('a',{href:url,target:'_blank',rel:'noopener noreferrer',text:url}),document.createTextNode(m[0].slice(url.length)));pos=m.index+m[0].length;}
-    p.append(document.createTextNode(text.slice(pos)));return p;
+    for(const m of text.matchAll(/https?:\/\/[^\s<>]+/g)){PD.chatkit.appendEmoji(p,text.slice(pos,m.index));const url=m[0].replace(/[.,!?;:)]+$/,'');p.append(h('a',{href:url,target:'_blank',rel:'noopener noreferrer',text:url}),document.createTextNode(m[0].slice(url.length)));pos=m.index+m[0].length;}
+    PD.chatkit.appendEmoji(p,text.slice(pos));return p;
   }
   function view(w,id,name,own){
     w.replaceChildren(); w.classList.add('ms-chat'); document.documentElement.classList.add('chat-on');
@@ -103,7 +103,7 @@ PD.messenger = (() => {
       tool('ck.audio',PD.social.IC.music,()=>attach(PD.social.ACCEPT.audio)),tool('ck.media',PD.social.IC.photo,()=>attach('image/*,video/*')),
       tool('ms.camera',icons.camera,()=>sheets.add(camera(file=>sendFile(file)))),tool('ms.file',icons.file,()=>attach('.pdf,.txt,.csv,.zip,.doc,.docx,.xls,.xlsx,.ppt,.pptx'))
     ]);
-    const quickSend=button('cx.quickSend',UI.glyph(prefs.quick_reaction),()=>sendExtra({body:UI.text(prefs.quick_reaction)}),'ms-quick-send');
+    const quickSend=button('cx.quickSend',UI.glyph(prefs.quick_reaction),()=>sendExtra({body:prefs.quick_reaction === 'panduri' ? ':panduri:' : UI.text(prefs.quick_reaction)}),'ms-quick-send');
     const attachButton=button('vw.attach','<span aria-hidden="true">+</span>',()=>{
       toolbar.hidden=!toolbar.hidden;
       attachButton.setAttribute('aria-expanded',String(!toolbar.hidden));
@@ -126,9 +126,10 @@ PD.messenger = (() => {
     }
     function streakInfo(){
       sheet((box,close)=>{
-        box.classList.add('ms-sheet');
+        box.classList.add('ms-sheet','ms-streak-sheet');
+        box.dataset.streakTier=PD.practiceStreak.tier(streak?.days || 0);
         box.append(h('div',{class:'ms-sheet-head'},[h('h2',{text:t('ps.chat')}),button('ck.close',ic.close,close)]),
-          h('strong',{text:streakLabel()}),h('p',{text:t('ps.chatRule')}),
+          h('strong',{text:streakLabel()}),h('p',{text:t('ps.chatRule')}), PD.practiceStreak.track(streak?.days || 0),
           h('p',{class:'muted',text:t(streak?.today?'ps.chatDone':'ps.chatKeep')}));
       },{center:true});
     }
@@ -138,8 +139,8 @@ PD.messenger = (() => {
       try{
         const next=await C.chat.streak(id);
         if(!alive||!next)return;
-        streak=next;streakChip.hidden=false;streakChip.classList.toggle('is-hot',streak.days>=3);
-        streakChip.replaceChildren(h('span',{'aria-hidden':'true',text:streak.days>=3?'🔥':'◇'}),h('span',{text:streakLabel()}));
+        streak=next;streakChip.hidden=false;streakChip.dataset.streakTier=PD.practiceStreak.tier(streak.days);streakChip.classList.toggle('is-hot',streak.days>=3);
+        streakChip.replaceChildren(h('span',{'aria-hidden':'true',text:streak.days>=3?'✦':'◇'}),h('span',{text:streakLabel()}));
         streakChip.setAttribute('aria-label',t('ps.chat')+' · '+streakLabel());
       }catch(_){}finally{streakBusy=false;}
     }
@@ -365,7 +366,7 @@ PD.messenger = (() => {
     async function update(patch){try{const saved=await C.chat.settings(id,patch);if(!alive)return false;prefs={...defaults,...saved};appearance();await refreshState();return true;}catch(e){PD.ui.toast(err(e));return false;}}
     function action(key,icon,fn,cls=''){return h('button',{class:'ms-setting '+cls,type:'button',onclick:fn},[h('span',{class:'ms-setting-icon','aria-hidden':'true',html:icon}),h('span',{text:t(key)}),h('span',{class:'ms-chevron',text:'›','aria-hidden':'true'})]);}
     function toggle(key,prop,hint){const input=h('input',{type:'checkbox',role:'switch','aria-label':t(key),checked:!!prefs[prop]});input.checked=!!prefs[prop];input.onchange=async()=>{const before=!input.checked;input.disabled=true;if(!await update({[prop]:input.checked}))input.checked=before;input.disabled=false;};return h('label',{class:'ms-setting ms-switch'},[h('span',{class:'grow'},[h('span',{text:t(key)}),...(hint?[h('small',{text:t(hint)})]:[])]),input]);}
-    function details(){kit.close();sheet((b,close)=>{b.classList.add('ms-sheet');const intro=h('div',{class:'ms-details-person'},[h('span',{class:'ms-avatar',text:[...(name||'?')][0]}),h('h2',{text:name||t('ms.details')}),h('small',{text:state?.group_name?t('ms.members',{n:state.members?.length||0}):t('ms.conversation')})]);
+    function details(){kit.close();sheet((b,close)=>{b.classList.add('ms-sheet');const intro=h('div',{class:'ms-details-person'},[avatar.cloneNode(true),h('h2',{text:name||t('ms.details')}),h('small',{text:state?.group_name?t('ms.members',{n:state.members?.length||0}):t('ms.conversation')})]);
       b.append(h('div',{class:'ms-sheet-head'},[h('b',{text:t('ms.details')}),button('ck.close',ic.close,close)]),intro,
         h('h3',{class:'ms-section-title',text:t('ms.personalize')}),h('div',{class:'ms-setting-list'},[
           action('ms.theme',icons.emoji,()=>choose('theme',UI.themes)),action('ms.font',icons.file,()=>choose('font',UI.fonts)),action('ms.quick',UI.glyph(prefs.quick_reaction),quick)]),
