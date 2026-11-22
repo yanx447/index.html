@@ -570,7 +570,8 @@ PD.app = (() => {
     const gp = Math.round(Math.max(0, Math.min(1, tm / goal)) * 100);
     w.append(h('section', { class: 'hm-stats', 'aria-label': t('hx.goal') }, [
       h('button', { class: 'hm-stat', onclick: () => go('daily'), html: '<small>' + PD.esc(t('hx.today')) + '</small><b>' + Math.min(tm, goal) + '<em>/ ' + goal + ' ' + PD.esc(t('hx.min')) + '</em></b><span class="hm-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + gp + '"><i style="width:' + gp + '%"></i></span>' }),
-      h('button', { class: 'hm-stat hm-series', 'data-streak-tier': PD.practiceStreak.tier(sk.cur), onclick: () => go('progress'), html: '<small>' + PD.esc(t('hx.streak')) + '</small><b>' + sk.cur + '<em>' + PD.esc(t('hx.days')) + '</em></b>' }),
+      (() => { const b = h('button', { class: 'hm-stat hm-series', 'data-streak-tier': PD.practiceStreak.tier(sk.cur), onclick: () => go('progress'), html: '<small>' + PD.esc(t('hx.streak')) + '</small><b><em>' + PD.esc(t('hx.days')) + '</em></b>' });
+        b.querySelector('b').prepend(PD.practiceStreak.flame(sk.cur, { today: sk.today, size: 'md' })); return b; })(),
       h('button', { class: 'hm-stat', onclick: () => go('learn'), html: '<small>' + PD.esc(t('pf.level')) + '</small><b class="txt">' + PD.esc(levelName()) + '</b>' })]));
     // tools
     const tool = (r, icon, k) => h('button', { class: 'hm-tool', onclick: () => go(r) }, [h('span', { class: 'hm-tool-ic', html: icon }), h('span', { 'data-t': k })]);
@@ -735,7 +736,7 @@ PD.app = (() => {
     w.append(h('div', { class: 'ln-head' }, [h('h1', { 'data-t': 'ln.title' }), h('p', { class: 'muted', 'data-t': 'ln.lead' })]));
     const practiceSeries=streaks();
     w.append(h('section',{class:'ps-card','data-streak-tier':PD.practiceStreak.tier(practiceSeries.cur)},[
-      h('span',{class:'ps-icon','aria-hidden':'true',text:PD.practiceStreak.tier(practiceSeries.cur)?'✦':'◇'}),
+      PD.practiceStreak.flame(practiceSeries.cur,{today:practiceSeries.today,size:'lg'}),
       h('div',{class:'grow'},[h('strong',{text:t('ps.title')+' · '+t(practiceSeries.cur>=1000?'ps.max':'ps.days',{n:practiceSeries.cur})}),h('small',{text:t(practiceSeries.today?'ps.checked':'ps.keep')}),h('small',{text:t('ps.repeat')})]),
       h('button',{class:'btn small',text:t('ps.start'),onclick:()=>go('daily')})
     ]));
@@ -1078,7 +1079,7 @@ PD.app = (() => {
     w.append(h('section', { class: 'pf2-menu' }, [
       item(I('<path d="M4 5a2 2 0 0 1 2-2h4v18H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-4v18h4a2 2 0 0 1 2 2z"/><path d="M10 3v18M14 3v18"/>'), 'bk.profile', t('bk.profileD'), () => go('book'), 'accent'),
       PD.install && !PD.install.standalone() ? item(I('<path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>'), 'ins.title', t('ins.lead').split(':')[0], () => go('install')) : null,
-      item(I('<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'), 'nav.progress', t('hm.streak', { n: sk.cur }), () => go('progress')),
+      item(PD.practiceStreak.flame(sk.cur, { today: sk.today, size: 'sm', num: false }).outerHTML, 'nav.progress', t('hm.streak', { n: sk.cur }), () => go('progress')),
       item(I('<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>'), PM.vip ? 'pm.vip' : 'pm.title', PM.active ? PM.status() : t('pm.lead'), () => PM.paywall()),
       PD.exam.graduated() ? item(I('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>'), 'ex.cert', t('ex.grad'), () => go('cert'), 'accent') : null,
       item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', C.session && C.profile?.nickname ? '@' + C.profile.nickname : null, () => go('community', 'me')),
@@ -1107,7 +1108,7 @@ PD.app = (() => {
       stat(String(rhythmsLearned) + ' / ' + PD.curriculum.rhythms().length, t('pr.rhythms')), stat(pc(noteAcc), t('pr.noteAcc')),
       stat(pc(timeAcc), t('pr.timeAcc')), stat(avgBpm ? Math.round(avgBpm) + ' BPM' : '—', t('pr.avgTempo')), stat(t('pr.days', { n: sk.longest }), t('pr.longest'))]));
     w.append(h('section', { class: 'panel ps-progress', 'data-streak-tier': PD.practiceStreak.tier(sk.cur) }, [
-      h('h2', { text: t('ps.title') }), h('strong', { text: t(sk.cur >= 1000 ? 'ps.max' : 'ps.days', { n: sk.cur }) }),
+      h('h2', { text: t('ps.title') }), h('div', { class: 'psf-row' }, [PD.practiceStreak.flame(sk.cur, { today: sk.today, size: 'xl' }), h('div', {}, [h('strong', { text: t(sk.cur >= 1000 ? 'ps.max' : 'ps.days', { n: sk.cur }) }), h('small', { class: 'muted', text: t(sk.cur ? (sk.today ? 'ps.lit' : 'ps.risk') : 'ps.off') })])]),
       PD.practiceStreak.track(sk.cur)
     ]));
     // real improvement: last 7 days vs the 7 before
