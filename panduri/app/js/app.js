@@ -1261,7 +1261,8 @@ PD.app = (() => {
     if (PD.cloud.isOwner) w.append(sect('set.author', [row('set.author', t('set.authorD'), toggle('author', false))]));   // the owner's account only (the server's is_owner())
     const cc = PD.cloud.config(), su = h('input', { class: 'input', placeholder: 'https://xxxx.supabase.co', value: cc.url, 'aria-label': 'Supabase URL' }), sk2 = h('input', { class: 'input', placeholder: 'anon public key', value: cc.key ? cc.key.slice(0, 12) + '…' : '', 'aria-label': 'Supabase key' });
     sk2.onfocus = () => { if (/…$/.test(sk2.value)) sk2.value = ''; };
-    w.append(sect('set.dev', [row('set.devTouch', t('set.devTouchD'), toggle('devTouch', false)),
+    // the developer's switches (touch completes a note; another server) — the owner's account only, or a development copy on this computer
+    if (PD.cloud.isOwner || /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) w.append(sect('set.dev', [row('set.devTouch', t('set.devTouchD'), toggle('devTouch', false)),
       h('div', { class: 'li', style: 'flex-wrap:wrap' }, [h('div', { class: 'grow', style: 'min-width:220px' }, [h('span', { 'data-t': 'set.server' }), h('small', { text: PD.cloud.configured ? t('set.serverOn') : t('set.serverD') })]),
         h('div', { style: 'display:flex;flex-direction:column;gap:6px;flex:1 1 260px' }, [su, sk2, h('button', { class: 'btn small', 'data-t': 'set.serverSave', onclick: () => { PD.cloud.setConfig({ url: su.value, key: /…$/.test(sk2.value) ? cc.key : sk2.value }); location.reload(); } })])])]));
     if (PD.studioSync) {

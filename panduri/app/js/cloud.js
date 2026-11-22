@@ -24,9 +24,12 @@ PD.cloud = (() => {
   function setSession(s) {
     if (s && s.access_token) S = { access_token: s.access_token, refresh_token: s.refresh_token, expires_at: s.expires_at || (Math.floor(Date.now() / 1000) + (s.expires_in || 3600)), user: s.user || (S && S.user) || null };
     else S = null;
-    PD.store.set(KEY, S); if (!S) { profile = null; PD.store.set('cloud.profile', null); }
+    // signed out, or another account signed in: the profile kept for the previous one goes (until the server answers)
+    if (!S || (profile && S.user && profile.id !== S.user.id)) { profile = null; PD.store.set('cloud.profile', null); }
+    PD.store.set(KEY, S);
     emit();
   }
+  const mine = () => !!(profile && S && S.user && profile.id === S.user.id);   // a profile cached for another account counts for nothing
   const configured = () => { const c = conf(); return !!(c.url && c.key && (/^https:\/\//.test(c.url) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(c.url))); };
 
   /** fetch with a time limit: a slow or silent server can never freeze sign-in, sign-out or sync */
@@ -498,9 +501,9 @@ PD.cloud = (() => {
     get user() { return S && S.user; },
     get uid() { return uid(); },
     get profile() { return profile; },
-    get isAdmin() { return !!(profile && profile.role === 'admin'); },
+    get isAdmin() { return mine() && profile.role === 'admin'; },
     /** the app's owner: the only account that manages premium (checked again by the server on every change) */
-    get isOwner() { return !!(profile && profile.owner); },
+    get isOwner() { return mine() && !!profile.owner; },
     get native() { return native(); },
     /** true once after arriving from a password-reset link */
     takeRecovery() { const r = recovery; recovery = false; return r; },
