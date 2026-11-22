@@ -129,7 +129,7 @@ PD.messenger = (() => {
         box.classList.add('ms-sheet','ms-streak-sheet');
         box.dataset.streakTier=PD.practiceStreak.tier(streak?.days || 0);
         box.append(h('div',{class:'ms-sheet-head'},[h('h2',{text:t('ps.chat')}),button('ck.close',ic.close,close)]),
-          h('strong',{text:streakLabel()}),h('p',{text:t('ps.chatRule')}), PD.practiceStreak.track(streak?.days || 0),
+          h('div',{class:'psf-row'},[PD.practiceStreak.flame(streak?.days||0,{today:streak?.today,start:3,size:'xl'}),h('strong',{text:streakLabel()})]),h('p',{text:t('ps.chatRule')}), PD.practiceStreak.track(streak?.days || 0),
           h('p',{class:'muted',text:t(streak?.today?'ps.chatDone':'ps.chatKeep')}));
       },{center:true});
     }
@@ -139,8 +139,12 @@ PD.messenger = (() => {
       try{
         const next=await C.chat.streak(id);
         if(!alive||!next)return;
+        const wasToday=streak&&streak.today;
         streak=next;streakChip.hidden=false;streakChip.dataset.streakTier=PD.practiceStreak.tier(streak.days);streakChip.classList.toggle('is-hot',streak.days>=3);
-        streakChip.replaceChildren(h('span',{'aria-hidden':'true',text:streak.days>=3?'✦':'◇'}),h('span',{text:streakLabel()}));
+        streakChip.replaceChildren(PD.practiceStreak.flame(streak.days,{today:streak.today,start:3,size:'sm',num:false}),h('span',{text:streakLabel()}));
+        // the first text of the day keeps the chat's flame burning: it lights up once (a streak starts at three days)
+        const day=PD.practiceStreak.ordinal(Date.now());
+        if(streak===next&&wasToday===false&&streak.today&&streak.days>=3&&PD.store.get('ms.lit.'+id,0)!==day){PD.store.set('ms.lit.'+id,day);streakChip.classList.add('psf-pop');PD.practiceStreak.ignite(streak.days,'ps.igniteChat');}
         streakChip.setAttribute('aria-label',t('ps.chat')+' · '+streakLabel());
       }catch(_){}finally{streakBusy=false;}
     }

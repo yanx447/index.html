@@ -168,7 +168,7 @@ PD.community = (() => {
         const what = r.last_body || (r.last_kind ? t({ file:'ms.file', photo: 'cm.mPhoto', video: 'cm.mVideo', audio: 'cm.mAudio', post: 'cm.mPost', sticker: 'cm.mSticker', gif: 'cm.mGif' }[r.last_kind] || 'cm.mPost') : '');
         list.appendChild(h('button', { class: 'cm-crow' + (r.unread ? ' new' : ''), role: 'listitem', onclick: () => PD.app.go('community', 'c:' + r.id + ':' + (r.other_name || r.other_nick || '')) }, [
           face(r.other_avatar, r.other_name || r.other_nick, online(seen.get(r.other))),
-          h('span', { class: 'grow' }, [h('b', { text: r.other_name || (r.other_nick ? '@' + r.other_nick : '—') }), h('small', {}, [h('span', { class: 'cm-last', text: (r.last_sender === C.uid ? t('cm.you') + ': ' : '') + what.replace(/:(panduri|doli|salamuri):/g, (_, name) => t('ck.' + name)) }), h('span', { class: 'cm-ago', text: ' · ' + ago(r.last_at) })])]),
+          h('span', { class: 'grow' }, [h('b', {}, [h('span', { text: r.other_name || (r.other_nick ? '@' + r.other_nick : '—') }), r.other && PD.practiceStreak ? (() => { const fl = h('span', { class: 'cm-streak' }); PD.practiceStreak.chatBadge(r.id, fl); return fl; })() : null]), h('small', {}, [h('span', { class: 'cm-last', text: (r.last_sender === C.uid ? t('cm.you') + ': ' : '') + what.replace(/:(panduri|doli|salamuri):/g, (_, name) => t('ck.' + name)) }), h('span', { class: 'cm-ago', text: ' · ' + ago(r.last_at) })])]),
           r.unread ? h('i', { class: 'cm-udot', 'aria-label': t('cm.unread', { n: r.unread }) }) : h('span', { class: 'cm-cam', 'aria-hidden': 'true', html: ic.chevron })]));
       });
       PD.i18n.apply(list); PD.motion && PD.motion.reveal(list, 0);
