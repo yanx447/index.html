@@ -240,9 +240,11 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
     const ctx = PD.audio.ensure(); if (!ctx) return fail('noaudio');
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return fail(window.isSecureContext ? 'nomedia' : 'insecure');
     let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: !!st.aec, noiseSuppression: false, autoGainControl: false, channelCount: 1 } }); }
+    const raw = { echoCancellation: !!st.aec, noiseSuppression: false, autoGainControl: false, channelCount: 1 }, dev = PD.store.get('mic.device', '');
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: dev ? Object.assign({ deviceId: { exact: dev } }, raw) : raw }); }
     catch (e) {
-      if (e && (e.name === 'OverconstrainedError' || e.name === 'TypeError')) { try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e2) { return fail(errName(e2)); } }
+      // the chosen microphone is gone: the default one, still unprocessed; then anything at all
+      if (e && (e.name === 'OverconstrainedError' || e.name === 'TypeError' || (dev && e.name === 'NotFoundError'))) { try { stream = await navigator.mediaDevices.getUserMedia({ audio: dev ? raw : true }); } catch (e2) { try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e3) { return fail(errName(e3)); } } }
       else return fail(errName(e));
     }
     if (st.cancel) { stream.getTracks().forEach(tr => tr.stop()); st.cancel = false; return { ok: false, err: 'cancelled' }; }
@@ -294,6 +296,9 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
     get active() { return st.on; },
     /** echo cancellation: on while a backing track plays through the speaker, so the microphone hears the panduri, not the recording */
     async setAEC(v, noRestart) { v = !!v; if (!!st.aec === v) return; st.aec = v; if (st.on && !noRestart) { st.swapping = true; stop(); try { await start(); } finally { st.swapping = false; } } },
+    /** which microphone ('' = the system's default); a running microphone switches at once */
+    async setDevice(id) { PD.store.set('mic.device', id || ''); if (st.on) { st.swapping = true; stop(); try { await start(); } finally { st.swapping = false; } } },
+    get deviceId() { const tr = st.stream && st.stream.getAudioTracks()[0], s = tr && tr.getSettings ? tr.getSettings() : {}; return s.deviceId || ''; },
     get aec() { return !!st.aec; },
     get level() { return st.level; },
     get floor() { return st.floor; },

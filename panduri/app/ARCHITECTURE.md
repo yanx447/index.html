@@ -25,6 +25,10 @@ The engine knows HOW to teach. Data defines WHAT is taught and WHICH instrument 
 | `auth.js` | sign in / sign up / reset / verify / Google · Facebook · Apple / guest UI. Calls `PD.account.remote`; without a configured backend it says so and never pretends to succeed | credentials storage |
 | `trainers.js` | metronome (lookahead scheduler, tap, signature, subdivision, sound, accent, haptic, pulse), note & fret trainer (levels, mic-graded, spaced repetition, ear, speed), daily practice plan built from history | |
 | `pwa.js`, `sw.js` | installable build: versioned shell cache, network-first navigation, explicit-only media caching, safe update prompt, persistent storage | learner data |
+| `gamecore.js` | **Games, the rules** (no DOM, no audio; tested in Node by `qa/games-core.cjs`): charts from the instrument's note map, note and stroke matching, scoring, combo, stars, records + their merge for sync, achievements, daily challenge, Arena challenge codes, the session state machine, the clock across pauses | screens |
+| `gameaudio.js` | Games, the microphone and the clock: one owner of the shared detector for every game (start, let go), metronome clicks on the audio clock (kept out of the judging), microphone choice, play-along timing calibration | judging |
+| `gameplay.js` | Games, each game's start page and screen: Note Rush, Rhythm Battle, Melody Memory, Fret Hunter, Chord Master, Song Quest, Band Jam | rules |
+| `games.js` | Games hub, start pages, the play stage (HUD, count-down, pause, results), settings, tuning check, Arena, records into the app's XP / streak / sessions | |
 | `app.js` | shell, routing, bottom nav Home · Learn · Songs · Practice · Profile; Songs browser (categories, search, filters), Learn paths (Foundation → Advanced), song intro (Learn / Practice / Full / Listen + sections), Practice hub, Profile (achievements from real data), Progress (skill map, 7-day trends), Settings | |
 
 ## Input model (mic-first)
@@ -37,6 +41,35 @@ What sound alone cannot tell (stated in the UI, never faked):
 * which string played a pitch that exists on two strings (e.g. open C♯ vs A-string fret 4) — accepted, with a hint.
 
 Lesson event schema (per note): `t` time (beats), `d` duration, `s` string, `f` fret, `fi` finger, `st` stroke, `acc` accent, `wait` (false = never stops in WAIT), `tol` (timing tolerance override).
+
+## Games (gamecore · gameaudio · gameplay · games — installable app only)
+The real fanduri is the controller; the four modules are `APP_ONLY` (the single file stays under 16 MiB) and app.js,
+cloud.js reach them through `PD.games` / `PD.gameCore` guards. Route `games` (hub), `games/<game>[:<level>:<difficulty>]`,
+`games/arena:<code>`; the side bar has a Games entry, the phone dock keeps its five tabs (Home and the Practice hub link it).
+
+* **One clock.** Song time ↔ audio clock through segments (`gameCore.clock`), so pause and resume freeze and continue
+  exactly and a stroke reported late from before a pause still maps. Visuals use `audio time − outputLatency` (what is
+  heard now); a stroke at detector time t is judged at `t − outputLatency − offset`, where the offset is this device's
+  play-along calibration (`gm.offset.<device>`, not synced). Clicks are scheduled ahead on the audio clock and passed to
+  `detector.guard`, so the metronome itself is never a stroke.
+* **What is judged.** Notes: pitch decides right or wrong (tolerance per difficulty; *unsure* is never a mistake, a wrong
+  note only with a confident reading, an octave only above 0.8), timing decides Perfect / Great / Good. A plucked string
+  reads sharpest in its first ~0.2 s (the teacher's open A: +26 ¢ there, +8 ¢ settled), so pitch only caps a note near the
+  edge of the tolerance at Great. Strokes: onset time; accent from relative strength; direction never (stated on screen);
+  the later strings of one strum (75–90 ms after the first) are the same stroke. Chords: note by note; the whole-chord
+  Goertzel check is a beta and labelled so.
+* **Records.** `games.best · games.hist · games.ach · games.daily` (versioned `{ v: 1 }`), merged per key by
+  `gameCore.merge` when the account syncs. Every finished round is one practice session (`game:<g>:<l>`), so the app's XP,
+  streak and daily minutes count it; the touch test (`devTouch`) is never saved.
+* **Material.** Note Rush, Melody Memory, Fret Hunter: positions from the instrument profile, ordinary patterns (scales,
+  arpeggios of A, D, E). Rhythm Battle: the teacher's four rhythms (order and accents untouched; equal stroke lengths are
+  the default until he gives them, and the screen says so). Chord Master: the computed library, the teacher's fingering
+  rule. Song Quest: the app's own lessons with their marks (teacher / demo / the learner's own / AI estimate). Band Jam:
+  Bani-Acharuli with its recording (stems full · music · vocals) on its measured beat map; B♭ and C shapes are marked draft.
+* **Arena** is a code (base64url JSON + checksum against typing errors); the comparison runs on the device and says it is
+  not a ranking. Live head-to-head play needs a server and does not exist.
+* QA: `qa/games-core.cjs` (Node, the rules), `qa/games-mic.cjs` (the teacher's recorded notes through Chromium's fake
+  microphone and the real detector), `qa/games-ui.cjs` (every screen and the session's life; `BROWSER=webkit`).
 
 ## Needs backend / native work
 * Accounts, verification email, social sign-in, cloud sync, purchases: implement the adapter in `core.js` and call `PD.account.configure(adapter)`.

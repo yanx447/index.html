@@ -30,14 +30,14 @@ python3 build.py
 
 | საქაღალდე | რა |
 |---|---|
-| `src/*.js` | ყველა მოდული. ჩვეულებრივი JS, ფრეიმვორკის გარეშე, ერთი სივრცე `PD`. რიგი `build.py`-ს `ORDER`-შია. სტუდია (AI სტუდია + Panduri Studio ერთად): `s3core.js`, `studio3.js` — იხ. `../../docs/studio3/`. |
+| `src/*.js` | ყველა მოდული. ჩვეულებრივი JS, ფრეიმვორკის გარეშე, ერთი სივრცე `PD`. რიგი `build.py`-ს `ORDER`-შია. თამაშები: `gamecore.js`, `gameaudio.js`, `gameplay.js`, `games.js` (მხოლოდ დასაინსტალირებელ აპში, იხ. `ARCHITECTURE.md`). სტუდია (AI სტუდია + Panduri Studio ერთად): `s3core.js`, `studio3.js` — იხ. `../../docs/studio3/`. |
 | `src/app.css` | მთელი აპის CSS, ერთ ფაილად. |
 | `src3d/` | 3D მარცხენა ხელი: `hand3d.src.js` (გამომსახველი), `build_hand3d.py` (პოზებს კოდში ჩააშენებს). |
 | `render/` | პოზების ამომხსნელი. `out/poses_final.json` — **819 ამოხსნილი პოზა, ძვირად მიღებული; ნუ წაშლი.** |
 | `pwa/` | manifest, service worker, ხატულები, მაღაზიის სურათები. |
 | `media_inline/` | ჩანაწერების მსუბუქი ასლები ერთფაილიანი აწყობისთვის. |
 | `assets/`, `ext/` | სურათები; ჩაშენებული ტიუნერი („სამი სიმი"). |
-| `qa/` | შემოწმების სკრიპტები. Studio 3.0: `studio3-core.cjs` (Node), `studio3-ui.cjs` (Chromium; `BROWSER=webkit`), `studio3-baseline.cjs`. |
+| `qa/` | შემოწმების სკრიპტები. Studio 3.0: `studio3-core.cjs` (Node), `studio3-ui.cjs` (Chromium; `BROWSER=webkit`), `studio3-baseline.cjs`. თამაშები: `games-core.cjs` (Node, წესები), `games-mic.cjs` (მასწავლებლის ჩანაწერები ვირტუალური მიკროფონით), `games-ui.cjs` (ეკრანები და სესიის სიცოცხლე). |
 | `supabase/` | სერვერის SQL. |
 
 ## რა არ დევს აქ და რატომ

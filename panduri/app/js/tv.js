@@ -9,7 +9,7 @@ PD.tv = (() => {
   const on = () => isTV || PD.store.get('remoteNav', false);
   const SEL = 'button:not([disabled]), a[href], input:not([type=hidden]):not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
   function layer() {
-    const tops = ['.ck-floating:not([hidden])', '.call', '.lvup', '.sheet-back:not(.out)', '.ag', '.ob', '.pz'];
+    const tops = ['.ck-floating:not([hidden])', '.call', '.lvup', '.sheet-back:not(.out)', '.ag', '.ob', '.gm-stage', '.pz'];
     for (const s of tops) { const els = document.querySelectorAll(s); if (els.length) return els[els.length - 1]; }
     return document.body;
   }

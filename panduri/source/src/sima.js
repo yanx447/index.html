@@ -623,7 +623,7 @@ PD.sima = (() => {
     setTimeout(() => tip.remove(), 12000);
   }
   function nudge() {
-    if (box || !fab() || !fab().getClientRects().length || document.querySelector('.sheet-back:not(.out), .as-record-meter:not([hidden])') || /^(ai|pstudio|studio3|tuner)$/.test(PD.app.route)) return;
+    if (box || !fab() || !fab().getClientRects().length || document.querySelector('.sheet-back:not(.out), .as-record-meter:not([hidden])') || /^(ai|pstudio|studio3|tuner|games)$/.test(PD.app.route)) return;
     if (daily()) return;   // her message of the day comes first, once
     if (!S.get('sima.nudge', true)) return;
     const last = S.get('sima.lastNudge', 0); if (Date.now() - last < 6 * 3600e3) return;

@@ -197,7 +197,7 @@ PD.cloud = (() => {
   }
   /** progress backup. Every record is merged (nothing played on either device is lost); settings take the newer copy.
       The progress on a device belongs to one account: signing in with another account puts it aside, not into the new one. */
-  const PKEYS = k => /^(prog\.|practice\.days$|sessions$|favorites$|xp$|goalMin$|lefty$|selfLevel$|goals$|daily\.|trainer\.srs$|lessons\.user$|theory\.done$|onboarded$|intro\.done$|ob\.noPanduri$)/.test(k);
+  const PKEYS = k => /^(prog\.|practice\.days$|sessions$|favorites$|xp$|goalMin$|lefty$|selfLevel$|goals$|daily\.|trainer\.srs$|lessons\.user$|theory\.done$|onboarded$|intro\.done$|ob\.noPanduri$|games\.(best|hist|ach|daily)$)/.test(k);
   // The first-run pages are once per account, and the record of them travels with the progress. Before this date it stayed
   // on one device only, so an older account with no record on the server has not skipped them: it simply was never asked.
   const FIRST_RUN_RECORDED_SINCE = Date.parse('2026-11-05T19:30:00Z');
@@ -224,6 +224,7 @@ PD.cloud = (() => {
     if (k === 'sessions') return union(a, b, x => x.date + ':' + x.id).sort((x, y) => x.date - y.date).slice(-400);
     if (k === 'xp') return Math.max(+a || 0, +b || 0);
     if (/^daily\./.test(k) || k === 'theory.done') return Object.assign({}, b, a);
+    if (/^games\./.test(k) && PD.gameCore) return PD.gameCore.merge(k, a, b);   // best of each record, every round kept
     if (k === 'trainer.srs') { const o = Object.assign({}, b); Object.keys(a).forEach(x => { if (!o[x] || (a[x].n || 0) >= (o[x].n || 0)) o[x] = a[x]; }); return o; }
     return localNewer ? a : b;
   }
