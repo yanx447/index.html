@@ -74,6 +74,7 @@ PD.i18n.add({
   'gm.n.strumBeta': ['მთლიანი აკორდის ამოცნობა ნამდვილი ფანდურის აკორდების ჩანაწერებით ჯერ ბოლომდე არ შემოწმებულა — ეს რეჟიმი ბეტაა, ქულა მხოლოდ მითითებაა.', 'Recognising a whole strummed chord has not yet been fully checked against recordings of real fanduri chords — this mode is a beta and its score is only a guide.'],
   'gm.set.metro': ['მეტრონომი ნოტების ნაკადში', 'Metronome in Note Rush'], 'gm.set.names': ['ნოტების სახელები ნოტებზე', 'Note names on the notes'], 'gm.set.fx': ['ეფექტები: ნაწილაკები და ნათება', 'Effects: particles and glow'],
   'gm.set.debug': ['დიაგნოსტიკის პანელი', 'Diagnostics panel'], 'gm.set.debugD': ['დეველოპერისთვის: ამოცნობილი ბგერა, სანდოობა, დროის აცდენა, დონე, დაყოვნება.', 'For developers: detected pitch, confidence, timing offset, level, latency.'],
+  'gm.nextUp': ['შემდეგი ნოტები', 'Coming next'], 'gm.live': ['ახლა', 'This round'],
   'gm.set.mic': ['მიკროფონი და დრო', 'Microphone and timing'], 'gm.setShort': ['პარამეტრები', 'Settings'], 'gm.set.view': ['ხედი', 'View'], 'gm.set.dev': ['დეველოპერი', 'Developer'],
   'gm.dbg.pitch': ['ბგერა', 'Pitch'], 'gm.dbg.conf': ['სანდოობა', 'Confidence'], 'gm.dbg.off': ['აცდენა', 'Offset'], 'gm.dbg.level': ['დონე', 'Level'], 'gm.dbg.lat': ['დაყოვნება', 'Latency'], 'gm.dbg.exp': ['მოსალოდნელი', 'Expected'], 'gm.dbg.got': ['მოსმენილი', 'Heard'], 'gm.dbg.state': ['მდგომარეობა', 'State'],
   'gm.ses': ['თამაში · {g}', 'Game · {g}'],
@@ -288,6 +289,14 @@ html.gm-on .sm-fab{display:none!important}
 .gm-btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.gm-btns .btn:only-child,.gm-btns .wide{grid-column:1/-1}
 .gm-dbg{position:absolute;right:8px;top:8px;z-index:4;pointer-events:none;font:11px/1.45 var(--f-mono);color:#cfe;background:rgba(0,0,0,.72);border:1px solid rgba(120,200,255,.25);border-radius:8px;padding:6px 8px;white-space:pre;max-width:60vw;overflow:hidden}
 .gm-spark{position:absolute;pointer-events:none}
+/* tablets and wider: the room beside a narrow play field holds live statistics and the notes coming next */
+.gm-side{position:absolute;top:84px;width:min(200px,calc(50% - 324px));display:none;gap:10px;align-content:start;padding:14px;border-radius:var(--r-l);background:linear-gradient(180deg,rgba(29,24,20,.82),rgba(18,15,12,.82));border:1px solid var(--gm-line);pointer-events:none}
+.gm-side h3{margin:0;font:700 var(--t-over)/1 var(--f-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--gm-cu2)}
+.gm-side .gm-sr{display:flex;justify-content:space-between;gap:8px;font-size:var(--t-callout);color:var(--gm-tx2)}.gm-side .gm-sr b{color:var(--gm-tx);font-variant-numeric:tabular-nums}
+.gm-side .gm-nx{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;align-items:center;padding:6px 0;border-top:1px solid rgba(255,255,255,.05)}.gm-side .gm-nx:first-of-type{border-top:0}
+.gm-side .gm-nx b{font-size:20px;color:var(--gm-tx)}.gm-side .gm-nx small{color:var(--gm-tx2);font-size:var(--t-caption)}.gm-side .gm-nx.gm-now b{color:#F1B674}
+.gm-side-l{left:max(12px,calc(50% - 516px))}.gm-side-r{right:max(12px,calc(50% - 516px))}
+@media (min-width:1000px) and (min-height:560px){.gm-side{display:grid}}
 @media (max-width:640px){.gm-row2{grid-template-columns:minmax(0,1fr)}.gm-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.gm-hero{grid-template-columns:minmax(0,1fr)}.gm-hero-b{padding:0 16px 16px}.gm-hero .gm-art{min-height:0;aspect-ratio:16/8}.gm-head h1{font-size:var(--t-title1)}.gm-sc b{font-size:19px}}
 @media (prefers-reduced-motion:reduce){.gm-stage,.gm-panel,.gm-pop,.gm-cd,.gm-rstars .gm-star.on,.gm-combo.bump b{animation:none!important}.gm-xpbar i{transition:none}}
 :root.rm .gm-stage,:root.rm .gm-panel,:root.rm .gm-pop,:root.rm .gm-cd,:root.rm .gm-rstars .gm-star.on{animation:none!important}

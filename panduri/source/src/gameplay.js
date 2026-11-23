@@ -204,6 +204,16 @@ PD.gameModes = (() => {
         }
         fx.draw(c, dt);
       }
+      let sideL = null, sideR = null, sideT = 0;
+      function side(st) {
+        const s0 = S.sc.s, n = s0.perfect + s0.great + s0.good + s0.miss, rec = PD.games.P.rec('rush', L.id, S.d);
+        sideL.innerHTML = ''; sideL.append(h('h3', { text: t('gm.live') }));
+        [['gm.j.perfect', s0.perfect], ['gm.j.great', s0.great], ['gm.j.good', s0.good], ['gm.j.miss', s0.miss], ['gm.acc', n ? Math.round((s0.perfect + s0.great * .8 + s0.good * .5) / n * 100) + '%' : '—'], ['gm.maxCombo', s0.maxCombo]]
+          .forEach(([k, v]) => sideL.append(h('div', { class: 'gm-sr' }, [h('span', { text: t(k) }), h('b', { text: String(v) })])));
+        if (rec) sideL.append(h('div', { class: 'gm-sr' }, [h('span', { text: t('gm.record') }), h('b', { text: String(rec.best) })]));
+        sideR.innerHTML = ''; sideR.append(h('h3', { text: t('gm.nextUp') }));
+        chart.filter((x, i) => !res[i] && x.t > st - D.win).slice(0, 5).forEach((x, k) => sideR.append(h('div', { class: 'gm-nx' + (k ? '' : ' gm-now') }, [h('b', { text: TH.pcName(x.midi) }), h('small', { text: posText(x) })])));
+      }
       function tap(e) {   // the developer touch test only: a tap in a lane plays that lane's nearest note (or its open string)
         if (!S.dev || S.state !== 'playing') return;
         const r = S.field.getBoundingClientRect(), x = e.clientX - r.left, k = Math.floor((x - geo.x0) / geo.lw); if (k < 0 || k > 2) return;
@@ -212,7 +222,12 @@ PD.gameModes = (() => {
       }
       const api = {
         seed, total: chart.length,
-        mount() { S.root.style.setProperty('--gm-fw', '600px'); g = canvasIn(S, layout); S.field.addEventListener('pointerdown', tap); },
+        mount() {
+          S.root.style.setProperty('--gm-fw', '600px'); g = canvasIn(S, layout); S.field.addEventListener('pointerdown', tap);
+          // wide screens: live statistics on the left, the next notes on the right (CSS shows them only where there is room)
+          sideL = h('div', { class: 'gm-side gm-side-l', 'aria-hidden': 'true' }); sideR = h('div', { class: 'gm-side gm-side-r', 'aria-hidden': 'true' });
+          S.root.append(sideL, sideR);
+        },
         schedule(hz) {
           if (!metro) return;
           for (;;) { const ts = C.start + nextBeat * C.spb; if (ts > C.len + C.spb) return; const a = S.clock.audio(ts); if (!(a < hz)) return; if (a > S.now() - .005) GA.click(a, ((nextBeat % 4) + 4) % 4 === 0); nextBeat++; }
@@ -224,6 +239,7 @@ PD.gameModes = (() => {
             S.hud.progress(st / C.len);
           }
           draw(st);
+          const now = performance.now(); if (sideL && now - sideT > 200 && sideL.offsetParent) { sideT = now; side(st); }
         },
         onOnset(ev) { const tt = S.toSong(ev.t); if (tt == null) return; M.onset(tt); flash = 1; },
         onNote(ev) {
@@ -246,7 +262,7 @@ PD.gameModes = (() => {
         test: () => M.st.map((x, i) => [x.res, x.off == null ? null : Math.round(x.off * 1000), x.cents == null ? null : Math.round(x.cents), chart[i].s]),
         dbgNote(ev) { last = ev; },
         dbg() { const nx = chart.find((n, i) => !res[i]); return { pitch: last && last.f ? Math.round(last.f) + ' Hz · ' + TH.name(last.midi) + ' ' + (last.cents > 0 ? '+' : '') + Math.round(last.cents || 0) + '¢' : '—', conf: last ? (last.conf || 0).toFixed(2) + (last.unsure ? ' ?' : '') : '—', off: lastOff != null ? Math.round(lastOff * 1000) + ' ms' : '—', level: Math.round(GA.db(S.level || 0)) + ' dBFS', exp: nx ? TH.name(nx.midi) + ' (' + TH.stringName(nx.s) + ' ' + nx.f + ')' : '—', got: last && last.midi ? TH.name(last.midi) : '—' }; },
-        destroy() { S.field.removeEventListener('pointerdown', tap); if (g) g.destroy(); S.root.style.removeProperty('--gm-fw'); }
+        destroy() { S.field.removeEventListener('pointerdown', tap); if (g) g.destroy(); if (sideL) { sideL.remove(); sideR.remove(); } S.root.style.removeProperty('--gm-fw'); }
       };
       return api;
     }
