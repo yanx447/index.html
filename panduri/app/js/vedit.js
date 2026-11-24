@@ -408,6 +408,16 @@ void main(){
   const meta = el => el.readyState >= 1 ? Promise.resolve() : new Promise((res, rej) => { el.addEventListener('loadedmetadata', () => res(), { once: true }); el.addEventListener('error', () => rej(fail('badFile')), { once: true }); });
   const MIX = PD.mixrack, AUD0 = MIX.defaults;
   const q720 = (w, h) => PD.musicCommunity.isHD(w, h);
+  const trimEpsilon = .001;
+  function keptPosition(clips, time) {
+    let elapsed = 0;
+    for (const clip of clips) {
+      if (time <= clip.a) break;
+      elapsed += Math.min(time, clip.b) - clip.a;
+      if (time < clip.b) break;
+    }
+    return elapsed;
+  }
   const neutralGrade = { exp: 0, con: 0, sat: 0, temp: 0, tint: 0, fade: 0, vig: 0, grain: 0 };
   const hasFade = clip => !!(clip?.fadeIn || clip?.fadeOut);
   function fadeEdges(clip) {
@@ -469,6 +479,7 @@ void main(){
       const wasNative = native;
       native = !fxOn() && panel !== 'sound' && !elSrc;   // an element routed through Web Audio cannot be taken back out of it
       if (native) { stopAudio(); v.muted = false; return; }
+      if (elSrc) { v.muted = false; return; }
       if (!orig) { if (decoded) useElement(); return; }
       v.muted = true; if (playing && (wasNative || !asrc)) startAudio();
     }
@@ -509,8 +520,8 @@ void main(){
       return p;
     };
     const pictureChanged = () => S.filter !== 'none' && S.fk > 0 || Object.values(S.grade).some(Boolean);
-    const dirty = () => !!o.mustRender || S.segs.length !== 1 || S.segs[0].a > .05 || S.segs[0].b < dur - .05 || pictureChanged() || !!S.crop || S.bg !== 'none' ||
-      fxOn();
+    const trimmed = () => S.segs.length !== 1 || S.segs[0].a > trimEpsilon || S.segs[0].b < dur - trimEpsilon;
+    const dirty = () => !!o.mustRender || trimmed() || pictureChanged() || !!S.crop || S.bg !== 'none' || fxOn();
 
     /* playback */
     function stopAudio() {
@@ -711,7 +722,7 @@ void main(){
       if (!dead && !exporting && !hidden && panel) layout();
     }) : null;
     if (!audioOnly) panelSize?.observe(panelEl);
-    function paintTime() { const t = v.currentTime, i = segIdx(t); let done = 0; for (let k = 0; k < S.segs.length && k < (i < 0 ? S.segs.length : i); k++) done += S.segs[k].b - S.segs[k].a; if (i >= 0) done += t - S.segs[i].a; timeEl.textContent = PD.fmtTime(done) + ' / ' + PD.fmtTime(total()); }
+    function paintTime() { timeEl.textContent = PD.fmtTime(keptPosition(S.segs, v.currentTime) + 1e-6) + ' / ' + PD.fmtTime(total() + 1e-6); }
     function paintInfo() {
       const d = dirty();
       if (audioOnly) {
@@ -720,7 +731,7 @@ void main(){
           + ((d && size > o.roomMB) || (!d && o.file.size > o.roomMB * 1048576) ? ' · ' + t('mx.trimToFit', { n: o.roomMB }) : '');
       } else if (o.mustRender) { infoEl.textContent = t('fd.squeeze', { s: Math.ceil(o.file.size / 1048576), n: o.roomMB }); }
       else infoEl.textContent = o.meta.w + '×' + o.meta.h + ' · ' + PD.fmtTime(total()) + (d ? ' · ' + t('ve.edited') : ' · ' + (o.file.size / 1048576).toFixed(1) + ' MB · ' + t('fd.asIs'));
-      toolB.clip && toolB.clip.classList.toggle('set', S.segs.length > 1 || S.segs[0].a > .05 || S.segs[0].b < dur - .05);
+      toolB.clip && toolB.clip.classList.toggle('set', trimmed());
       toolB.sound && toolB.sound.classList.toggle('set', fxOn());
       toolB.filters && toolB.filters.classList.toggle('set', pictureChanged());
       toolB.bg && toolB.bg.classList.toggle('set', S.bg !== 'none');
@@ -742,8 +753,11 @@ void main(){
       seekTo(S.segs[S.sel].a); changed(); route(); cutSound();
     }
     function setEdge(which) {
+      pause();
       const clip = S.segs[S.sel], at = v.currentTime;
-      if (at <= clip.a + MIN || at >= clip.b - MIN) { PD.ui.toast(t('ve.tooShort')); return; }
+      const valid = which === 'a' ? at > clip.a + trimEpsilon && at <= clip.b - MIN :
+        at >= clip.a + MIN && at < clip.b - trimEpsilon;
+      if (!valid) { PD.ui.toast(t('ve.tooShort')); return; }
       rememberCut(); clip[which] = at; changed();
     }
     let thumbs = null, thumbN = 10;
@@ -776,7 +790,7 @@ void main(){
         return { length, from: kind === 'thumbs' ? Math.max(0, Math.min(dur - length, zoomAt - length / 2)) : 0 };
       };
       const frac = at => { const { from, length } = view(); return (at - from) / length; };
-      const el = h('div', { class: 've-tl' + (kind === 'wave' ? ' wave' : ''), role: 'slider', 'aria-label': t('fd.seek'), tabindex: '0' }, [cvs, segBox, ph]);
+      const el = h('div', { class: 've-tl' + (kind === 'wave' ? ' wave' : ''), role: 'slider', 'aria-label': t('fd.seek'), 'aria-valuemin': 0, tabindex: '0' }, [cvs, segBox, ph]);
       function paint() {
         const w = el.clientWidth, hh = el.clientHeight, dpr = Math.min(2, devicePixelRatio || 1); if (!w) return;
         if (cvs.width !== Math.round(w * dpr)) { cvs.width = Math.round(w * dpr); cvs.height = Math.round(hh * dpr); }
@@ -821,26 +835,44 @@ void main(){
         });
         head();
       }
-      function head() { const x = frac(v.currentTime); ph.hidden = x < 0 || x > 1; ph.style.left = x * 100 + '%'; el.setAttribute('aria-valuenow', String(Math.round(v.currentTime))); el.setAttribute('aria-valuemax', String(Math.round(dur))); }
+      function head() { const x = frac(v.currentTime); ph.hidden = x < 0 || x > 1; ph.style.left = x * 100 + '%'; el.setAttribute('aria-valuenow', String(Math.min(v.currentTime, dur).toFixed(2))); el.setAttribute('aria-valuemax', String(dur.toFixed(2))); }
       el.addEventListener('pointerdown', e => {
+        if (e.button !== 0) return;
         const r = el.getBoundingClientRect(), { from, length } = view();
-        const at = x => Math.max(0, Math.min(dur, from + (x - r.left) / r.width * length)), hd = kind === 'thumbs' && e.target.dataset ? e.target.dataset.h : null;
-        pause(); if (hd) rememberCut(); try { el.setPointerCapture(e.pointerId); } catch (_) {}
+        if (!r.width) return;
+        const hd = kind === 'thumbs' && e.target.dataset?.h, i = S.sel, clip = S.segs[i];
+        const edge = hd === 'l' ? 'a' : 'b', atStart = clip[edge];
+        const low = edge === 'a' ? (i ? S.segs[i - 1].b : 0) : clip.a + MIN;
+        const high = edge === 'a' ? clip.b - MIN : (S.segs[i + 1]?.a ?? dur);
+        if (hd && high < low) return;
+        let adjusted = false;
+        pause(); try { el.setPointerCapture(e.pointerId); } catch (_) {}
         const mv = ev => {
-          const x = at(ev.clientX);
+          if (ev.pointerId !== e.pointerId) return;
           if (hd) {
-            const i = S.sel, s = S.segs[i], lo = i ? S.segs[i - 1].b : 0, hi = i < S.segs.length - 1 ? S.segs[i + 1].a : dur;
-            if (hd === 'l') { s.a = Math.max(lo, Math.min(x, s.b - MIN)); seekTo(s.a); } else { s.b = Math.min(hi, Math.max(x, s.a + MIN)); seekTo(s.b - .04); }
+            const next = Math.max(low, Math.min(high, atStart + (ev.clientX - e.clientX) / r.width * length));
+            if (Math.abs(next - clip[edge]) < trimEpsilon) return;
+            if (!adjusted) { rememberCut(); adjusted = true; }
+            clip[edge] = next;
+            seekTo(edge === 'a' ? next : Math.max(clip.a, next - .04));
             tls.forEach(q => q.paint());
           } else {
-            const i = segIdx(x);
-            if (i >= 0 && i !== S.sel && kind === 'thumbs') { S.sel = i; tls.forEach(q => q.paint()); paintPanel(); }
+            const x = Math.max(0, Math.min(dur, from + (ev.clientX - r.left) / r.width * length));
+            const selected = segIdx(x);
+            if (selected >= 0 && selected !== S.sel && kind === 'thumbs') { S.sel = selected; tls.forEach(q => q.paint()); paintPanel(); }
             seekTo(x);
           }
         };
+        const end = ev => {
+          if (ev.pointerId !== e.pointerId) return;
+          el.removeEventListener('pointermove', mv);
+          el.removeEventListener('pointerup', end); el.removeEventListener('pointercancel', end);
+          el.removeEventListener('lostpointercapture', end);
+          if (adjusted) changed();
+        };
         mv(e);
-        const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); if (hd) changed(); };
-        el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+        el.addEventListener('pointermove', mv); el.addEventListener('pointerup', end);
+        el.addEventListener('pointercancel', end); el.addEventListener('lostpointercapture', end);
       });
       el.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); pause(); seekTo(v.currentTime + (e.shiftKey ? .5 : audioOnly ? .05 : 1 / 30) * (e.key === 'ArrowLeft' ? -1 : 1)); } });
       const x = { el, paint, head }; tls.push(x); return x;
@@ -1052,26 +1084,39 @@ void main(){
       bg() {
         const st = h('small', { class: 've-st', role: 'status' }), chips = h('div', { class: 've-chips', role: 'radiogroup' });
         let seq = 0;
+        const current = token => !dead && token === seq && panel === 'bg' && st.isConnected;
+        async function loadMask(token) {
+          st.textContent = '';
+          if (S.bg === 'none' || S.bgKey !== 'person' || seg) return;
+          st.textContent = t('ve.bgLoad');
+          try {
+            const mask = await segmenter();
+            if (!current(token) || S.bgKey !== 'person') return;
+            seg = mask; st.textContent = ''; maskF = null; needs = true;
+          } catch (_) {
+            if (!current(token) || S.bgKey !== 'person') return;
+            st.textContent = t('ve.bgFail'); S.bg = 'none';
+            clearBackgroundVideo(); changed();
+          }
+        }
         const choose = async k => {
           const token = ++seq;
-          if (k === 'image' || k === 'video') { if (!(await pickBg(k)) || seq !== token) return; }
-          S.bg = k; changed();
-          st.textContent = '';
-          if (k !== 'none' && S.bgKey === 'person' && !seg) {
-            st.textContent = t('ve.bgLoad');
-            try { seg = await segmenter(); if (dead || token !== seq) return; st.textContent = ''; maskF = null; needs = true; }
-            catch (_) { if (token === seq) { st.textContent = t('ve.bgFail'); S.bg = 'none'; changed(); } }
+          if (k === 'image' || k === 'video') {
+            if (!(await pickBg(k, () => current(token)))) return;
           }
+          if (!current(token)) return;
+          S.bg = k;
+          if (k !== 'video') clearBackgroundVideo();
+          if (k !== 'image') { gif = null; still = null; stillUp = false; }
+          changed();
+          await loadMask(token);
         };
         const method = h('select', { class: 'input', 'aria-label': t('ve.key') },
           ['person', 'green', 'blue'].map(id => h('option', { value: id, text: t('ve.key.' + id) })));
         method.value = S.bgKey;
-        method.onchange = async () => {
+        method.onchange = () => {
           S.bgKey = method.value; changed();
-          if (S.bgKey === 'person' && S.bg !== 'none' && !seg) {
-            try { st.textContent = t('ve.bgLoad'); seg = await segmenter(); st.textContent = ''; needs = true; }
-            catch (_) { st.textContent = t('ve.bgFail'); S.bg = 'none'; changed(); }
-          }
+          loadMask(++seq);
         };
         const color = h('input', { type: 'color', value: S.bgColor, 'aria-label': t('ve.b.color'),
           oninput: event => { S.bgColor = event.target.value; changed(); } });
@@ -1087,25 +1132,54 @@ void main(){
           } };
       }
     };
-    async function pickBg(kind) {
-      const f = await pickFile(kind === 'video' ? 'video/*' : 'image/*'); if (!f || dead) return false;
+    function clearBackgroundVideo() {
+      if (bgV) { bgV.pause(); bgV.removeAttribute('src'); bgV.load(); }
+      if (bgUrl) URL.revokeObjectURL(bgUrl);
+      bgV = null; bgUrl = null;
+    }
+    async function pickBg(kind, current) {
+      const f = await pickFile(kind === 'video' ? 'video/*' : 'image/*');
+      if (!f || !current()) return false;
       if (kind === 'video') {
-        const nv = h('video', { playsinline: true, loop: true, preload: 'auto' }); nv.muted = true; nv.playsInline = true;
-        const u = URL.createObjectURL(f); nv.src = u;
-        try { await meta(nv); await nv.play(); } catch (_) { URL.revokeObjectURL(u); PD.ui.toast(t('ve.gifBad')); return false; }
-        if (bgV) { bgV.pause(); bgV.removeAttribute('src'); } if (bgUrl) URL.revokeObjectURL(bgUrl);
-        bgV = nv; bgUrl = u; return true;
+        const nv = h('video', { playsinline: true, loop: true, preload: 'auto' });
+        const url = URL.createObjectURL(f);
+        nv.muted = true; nv.playsInline = true;
+        try {
+          nv.src = url;
+          await meta(nv);
+          if (!current()) return false;
+          await nv.play();
+          if (!current()) return false;
+          clearBackgroundVideo(); bgV = nv; bgUrl = url;
+          return true;
+        } catch (_) {
+          if (current()) PD.ui.toast(t('ve.gifBad'));
+          return false;
+        } finally {
+          if (bgV !== nv) { nv.pause(); nv.removeAttribute('src'); nv.load(); URL.revokeObjectURL(url); }
+        }
       }
+      let url;
       try {
         if (f.type === 'image/gif' || /\.gif$/i.test(f.name)) {
-          const g = gifFrames(new Uint8Array(await f.arrayBuffer())); if (!g.frames.length) throw fail('gif');
-          gif = g; gifT0 = performance.now(); gifIdx = -1; still = null; return true;
+          const g = gifFrames(new Uint8Array(await f.arrayBuffer()));
+          if (!current()) return false;
+          if (!g.frames.length) throw fail('gif');
+          gif = g; gifT0 = performance.now(); gifIdx = -1; still = null;
+          return true;
         }
-        const u = URL.createObjectURL(f), img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; });
+        url = URL.createObjectURL(f);
+        const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+        if (!current()) return false;
         const k = Math.min(1, 2048 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
-        c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k)); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
-        still = c; stillUp = false; gif = null; return true;
-      } catch (_) { PD.ui.toast(t('ve.gifBad')); return false; }
+        c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        still = c; stillUp = false; gif = null;
+        return true;
+      } catch (_) {
+        if (current()) PD.ui.toast(t('ve.gifBad'));
+        return false;
+      } finally { if (url) URL.revokeObjectURL(url); }
     }
     let cur = null;
     function open(k, viaToolbar = false) {
@@ -1191,26 +1265,44 @@ void main(){
     /* ---- the result: drawn again frame by frame and recorded, with the sound through the same effects ---- */
     async function render(onP, download = false) {
       if (exporting) throw fail('busy');
-      pause(); compare = false; chain?.compare(false);
+      const cursor = pendingSeek ?? v.currentTime;
+      pendingSeek = null; audioAfterSeek = false;
+      pause();
+      if (compare) { compare = false; chain?.compare(false); makeWave(); }
       exporting = { cancel: false };
       try {
         if (dnRun) await dnRun;
         if (exporting.cancel) throw fail('cancel');
         if (audioOnly) return await renderSound(onP, download);
         return await renderVideo(onP);
-      } finally { exporting = null; route(); needs = true; layout(); }
+      } finally {
+        exporting = null;
+        if (!dead) { seekTo(cursor); route(); needs = true; layout(); }
+      }
     }
     async function renderVideo(onP) {
       if (!q720(v.videoWidth, v.videoHeight)) throw fail('reelSmall');
-      const kf = pick(o.file.type), mime = kf?.m;
-      if (!mime || !cv.captureStream) throw fail('noRender');
-      if (R.lost) throw fail('noRender');
+      if (!window.MediaRecorder || !cv.captureStream || R.lost) throw fail('noRender');
       if (S.bg !== 'none' && S.bgKey === 'person' && !seg) { try { seg = await segmenter(); } catch (_) { throw fail('bgFail'); } }
+      for (let format = pick(o.file.type); format; format = pick(o.file.type)) {
+        if (exporting.cancel) throw fail('cancel');
+        try { return await encodeVideo(format, onP); }
+        catch (error) {
+          if (exporting.cancel) throw fail('cancel');
+          if (error.code !== 'encoder') throw error;
+          rejectEncoder(format.m);
+          onP(0);
+        }
+      }
+      throw fail('noRender');
+    }
+    async function encodeVideo(format, onP) {
+      const mime = format.m;
       const useBuf = !elSrc && !!curBuf();
       if (!useBuf) useElement();
       if (!ac || (!useBuf && !elSrc)) throw fail('noRender');
       const wasMuted = v.muted;
-      const tot = total(), A = kf && !kf.a ? 0 : Math.min(kf ? kf.a : AUDIO, tot >= 240 ? 128000 : AUDIO), room = o.roomMB * 1048576 * 8 * .88 / Math.max(1, tot) - A;
+      const tot = total(), A = Math.min(format.a, tot >= 240 ? 128000 : AUDIO), room = o.roomMB * 1048576 * 8 * .88 / Math.max(1, tot) - A;
       const pw = cv.width, phh = cv.height;
       const [cw, ch] = cropSize();
       if (!q720(Math.floor(cw), Math.floor(ch))) throw fail('cropQuality');
@@ -1231,29 +1323,43 @@ void main(){
         const ro = { mimeType: mime, videoBitsPerSecond: vbr, videoKeyFrameIntervalDuration: 2000 };
         if (A) ro.audioBitsPerSecond = A;
         const output = new MediaStream(tracks);
-        try { rec = new MediaRecorder(output, ro); } catch (_) { rec = new MediaRecorder(output, { mimeType: mime }); }
+        try { rec = new MediaRecorder(output, ro); }
+        catch (_) {
+          try { rec = new MediaRecorder(output, { mimeType: mime }); } catch (_) { throw fail('encoder'); }
+        }
+        const encoder = new AbortController();
+        const check = () => {
+          if (exporting.cancel) throw fail('cancel');
+          if (encoder.signal.aborted) throw fail('encoder');
+        };
+        const record = (action, ...args) => {
+          try { rec[action](...args); } catch (_) { throw fail('encoder'); }
+        };
         rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
-        let recordingError, doneT = 0;
-        rec.onerror = error => { recordingError = error; if (exporting) exporting.cancel = true; };
+        rec.onerror = () => encoder.abort();
         const stopped = new Promise(resolve => { rec.onstop = resolve; });
-        if (ac) await ac.resume();
+        await ac.resume();
+        let doneT = 0;
         for (let i = 0; i < S.segs.length; i++) {
           const s = S.segs[i];
-          if (i) { if (rec.state === 'recording') rec.pause(); if (ac) await ac.suspend(); }
-          await seekEl(v, s.a); frame(true);
-          if (!i) rec.start(1000); else if (rec.state === 'paused') rec.resume();
-          if (ac) await ac.resume();
-          await playRange(s, p => onP(Math.min(99, Math.round((doneT + p) / tot * 100))));
+          check();
+          if (i) { record('pause'); await ac.suspend(); }
+          await seekEl(v, s.a); check(); frame(true, s);
+          if (i) record('resume'); else record('start', 1000);
+          await ac.resume();
+          check();
+          await playRange(s, p => onP(Math.min(99, Math.round((doneT + p) / tot * 100))), encoder.signal);
           doneT += s.b - s.a;
-          if (recordingError) throw fail('noRender');
-          if (exporting.cancel) throw fail('cancel');
+          check();
         }
-        rec.stop();
+        record('stop');
         let stopTimer;
         const timeout = new Promise((_, reject) => { stopTimer = setTimeout(() => reject(fail('noRender')), 15000); });
         try { await Promise.race([stopped, timeout]); } finally { clearTimeout(stopTimer); }
+        check();
       } catch (e) { try { if (rec && rec.state !== 'inactive') rec.stop(); } catch (_) {} throw e; }
       finally {
+        if (rec) rec.onerror = null;
         stopAudio(); try { v.pause(); } catch (_) {}
         if (dest) { try { chain.out.disconnect(dest); } catch (_) {} spk.gain.value = 1; }
         vs?.getTracks().forEach(track => track.stop());
@@ -1261,14 +1367,22 @@ void main(){
         cv.width = pw; cv.height = phh; v.muted = wasMuted; if (ac) ac.resume().catch(() => {});
       }
       const type = (rec.mimeType || mime).split(';')[0];
+      if (!chunks.length) throw fail('encoder');
       onP(100);
-      if (!chunks.length) throw fail('noRender');
       return new File(chunks, 'panduri-edit.' + (/mp4/.test(type) ? 'mp4' : 'webm'), { type });
     }
-    function playRange(s, onP) {
+    function playRange(s, onP, encoder) {
       return new Promise((res, rej) => {
         let fin = false, guard = 0;
-        const end = error => { if (fin) return; fin = true; clearInterval(guard); v.removeEventListener('timeupdate', tu); try { v.pause(); } catch (_) {} stopAudio(); if (error) rej(error); else res(); };
+        const badEncoder = () => end(fail('encoder'));
+        const end = error => {
+          if (fin) return;
+          fin = true; clearInterval(guard);
+          encoder.removeEventListener('abort', badEncoder);
+          v.removeEventListener('timeupdate', tu);
+          v.pause(); stopAudio();
+          if (error) rej(error); else res();
+        };
         const tu = () => { if (v.currentTime >= s.b - .02 || v.ended) end(); };
         const tick = (now, md) => {
           if (fin) return;
@@ -1282,7 +1396,9 @@ void main(){
         let last = -1, still = 0;
         guard = setInterval(() => { if (v.currentTime === last) { if (++still > 16) end(fail('noRender')); } else { still = 0; last = v.currentTime; } }, 500);   // a stall of 8 s ends the part rather than hanging
         v.addEventListener('timeupdate', tu);
-        v.play().then(() => { startAudio(true); next(); }, end);
+        if (encoder.aborted) { badEncoder(); return; }
+        encoder.addEventListener('abort', badEncoder, { once: true });
+        v.play().then(() => { if (!fin) { startAudio(true); next(); } }, end);
       });
     }
 
@@ -1300,10 +1416,10 @@ void main(){
         try { ac && ac.close(); } catch (_) {}
         try { if (AS) AS.type = asPrev || 'auto'; } catch (_) {}   // the camera needs the microphone back
         v.removeAttribute('src'); try { v.load(); } catch (_) {}
-        if (bgV) { bgV.pause(); bgV.removeAttribute('src'); } if (bgUrl) URL.revokeObjectURL(bgUrl);
+        clearBackgroundVideo();
         URL.revokeObjectURL(url); root.innerHTML = ''; root.classList.remove('ve', 've-audio', 'panel', 'playing');
       }
     };
   }
-  return { mount, denoise, gifFrames, place, pickFormat: pick, rememberFormat: remember, forgetFormat: forget, rejectEncoder, hasSound, fadeEdges, fadeLevel };
+  return { mount, denoise, gifFrames, place, pickFormat: pick, rememberFormat: remember, forgetFormat: forget, rejectEncoder, hasSound, fadeEdges, fadeLevel, keptPosition };
 })();

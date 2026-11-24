@@ -147,6 +147,15 @@ test('clip fades fit the retained section even when both controls exceed its len
   assert.equal(vedit.fadeLevel({ a: 2, b: 4 }, 2), 1);
 });
 
+test('the preview clock excludes removed sections before, between and after the kept clips', () => {
+  const { vedit } = load(context(), 'mixrack', 'vedit');
+  const clips = [{ a: .5, b: 1.5 }, { a: 2, b: 3 }];
+  assert.equal(vedit.keptPosition(clips, .2), 0);
+  assert.equal(vedit.keptPosition(clips, 1.7), 1);
+  assert.equal(vedit.keptPosition(clips, 2.5), 1.5);
+  assert.equal(vedit.keptPosition(clips, 4), 2);
+});
+
 test('bypassed or inactive plugins do not cause an unedited clip to be re-encoded', () => {
   const { mixrack } = load(context(), 'mixrack');
   const { defaults, changed, tailSeconds } = mixrack;
