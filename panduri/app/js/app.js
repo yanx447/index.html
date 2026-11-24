@@ -243,10 +243,21 @@ PD.app = (() => {
     PD.i18n.apply(document);
     const title = () => { if (PD.i18n.translated) document.title = t('app.name'); };
     title(); /* A translated tab name can be longer than its tab: it shrinks to fit rather than being cut off */
-    const fitNav = () => requestAnimationFrame(() => document.querySelectorAll('.dock .nv-l, .side .nv-l').forEach(sp => { sp.style.fontSize = ''; if (sp.scrollWidth > sp.clientWidth + 1 && sp.clientWidth) sp.style.fontSize = Math.max(8, parseFloat(getComputedStyle(sp).fontSize) * sp.clientWidth / sp.scrollWidth).toFixed(1) + 'px'; }));
+    // the text's own width, unrounded (scrollWidth rounds, and an ellipsis shows at a fraction of a pixel); below 8 px the
+    // letters come a little closer instead of getting smaller
+    const textW = sp => { const r = document.createRange(); r.selectNodeContents(sp); return r.getBoundingClientRect().width; };
+    const fitNav = () => requestAnimationFrame(() => document.querySelectorAll('.dock .nv-l, .side .nv-l').forEach(sp => {
+      sp.style.fontSize = ''; sp.style.letterSpacing = '';
+      // the label's box shrinks to its text and stops at the room there is: only a text wider than its box is cut
+      const bw = sp.getBoundingClientRect().width; if (!bw) return;
+      let tw = textW(sp); if (tw <= bw + .25) return;
+      const room = bw - 1;
+      for (let k = 0; k < 3 && tw > room; k++) { sp.style.fontSize = Math.max(8, parseFloat(getComputedStyle(sp).fontSize) * (room - .5) / tw).toFixed(2) + 'px'; tw = textW(sp); }
+      for (let k = 0; k < 3 && tw > room; k++) { sp.style.letterSpacing = Math.max(-.5, (parseFloat(sp.style.letterSpacing) || 0) + (room - .5 - tw) / Math.max(1, sp.textContent.length)).toFixed(2) + 'px'; tw = textW(sp); }
+    }));
     PD.bus.on('lang', () => { title(); render(); fitNav(); });
     fitNav(); window.addEventListener('resize', fitNav); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitNav);   // the real face is wider than the fallback
-    PD.bus.on('sima-nav', () => requestAnimationFrame(() => { if (tabNow) tabInd(tabNow, true); }));
+    PD.bus.on('sima-nav', () => requestAnimationFrame(() => { if (tabNow) tabInd(tabNow, true); fitNav(); }));   // Sima in the dock: one more column, narrower labels
     PD.bus.on('studio-account', () => {
       if (['ai', 'pstudio', 'studio3'].includes(route)) go('studio3', null, true);
     });
