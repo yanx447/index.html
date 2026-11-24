@@ -135,6 +135,32 @@ test('video capture skips encoders that report support but fail to start', () =>
   assert.equal(vedit.pickFormat().m, alternate.m);
 });
 
+test('clip fades fit the retained section even when both controls exceed its length', () => {
+  const { vedit } = load(context(), 'mixrack', 'vedit');
+  const clip = { a: 2, b: 4, fadeIn: 3, fadeOut: 1 };
+  assert.deepEqual(Array.from(vedit.fadeEdges(clip)), [1.5, .5]);
+  assert.equal(vedit.fadeLevel(clip, 2), 0);
+  assert.equal(vedit.fadeLevel(clip, 2.75), .5);
+  assert.equal(vedit.fadeLevel(clip, 3.5), 1);
+  assert.equal(vedit.fadeLevel(clip, 3.75), .5);
+  assert.equal(vedit.fadeLevel(clip, 4), 0);
+  assert.equal(vedit.fadeLevel({ a: 2, b: 4 }, 2), 1);
+});
+
+test('bypassed or inactive plugins do not cause an unedited clip to be re-encoded', () => {
+  const { mixrack } = load(context(), 'mixrack');
+  const { defaults, changed, tailSeconds } = mixrack;
+  const audio = overrides => ({ ...defaults, ...overrides });
+  assert.equal(changed(defaults), false);
+  assert.equal(changed(audio({ threshold: -60, deFreq: 4300, tapeDrive: 12 })), false);
+  assert.equal(changed(audio({ mid: 6, eqMask: 1 << 2, rev: 35, revOff: true, comp: 100, compOff: true })), false);
+  assert.equal(tailSeconds(audio({ rev: 25, revOff: true, del: 40, delOff: true })), 0);
+  assert.equal(changed(audio({ mid: 6 })), true);
+  assert.equal(changed(audio({ deess: 30 })), true);
+  assert.equal(changed(audio({ tape: 40 })), true);
+  assert.equal(changed(audio({ lp: 6000 })), true);
+});
+
 test('noise profiling attenuates background while retaining a foreground tone', async () => {
   const { vedit } = load(context(), 'mixrack', 'vedit');
   const sr = 16000, len = sr * 2;

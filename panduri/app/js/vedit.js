@@ -40,6 +40,13 @@ PD.i18n.add({
   've.dnError': ['ხმაურის დამუშავება ვერ დასრულდა.', 'Noise reduction could not finish.'],
   've.mutePart': ['არჩეული ნაწილის დადუმება', 'Mute selected part'], 've.unmutePart': ['ხმის დაბრუნება', 'Unmute selected part'],
   've.undo': ['გაუქმება', 'Undo'], 've.trimIn': ['დასაწყისი აქ', 'Set start here'], 've.trimOut': ['დასასრული აქ', 'Set end here'],
+  've.redo': ['ხელახლა შესრულება', 'Redo'],
+  've.fadeIn': ['თანდათან გამოჩენა', 'Fade in'], 've.fadeOut': ['თანდათან გაქრობა', 'Fade out'],
+  've.ramps': ['არჩეული მონაკვეთის გადასვლები', 'Selected clip fades'],
+  've.rampsHint': ['გადასვლა მოქმედებს არჩეული მონაკვეთის სურათსა და ხმაზე.', 'Fades apply to the picture and sound of the selected clip.'],
+  've.tint': ['შეფერილობა', 'Tint'], 've.vignette': ['კიდეების ჩამუქება', 'Vignette'], 've.grain': ['ფირის მარცვალი', 'Film grain'],
+  've.blackLift': ['შავი ტონების აწევა', 'Lift blacks'], 've.originalColor': ['ორიგინალი ფერები', 'Original colors'],
+  've.resetColor': ['ფერების აღდგენა', 'Reset color'],
   've.zoom': ['ტაიმლაინის მასშტაბი', 'Timeline zoom'], 've.crop': ['კადრის პროპორცია', 'Aspect ratio'],
   've.exposure': ['ექსპოზიცია', 'Exposure'], 've.contrast': ['კონტრასტი', 'Contrast'],
   've.saturation': ['გაჯერება', 'Saturation'], 've.temperature': ['ტემპერატურა', 'Temperature'],
@@ -281,7 +288,7 @@ precision highp float;
 precision mediump float;
 #endif
 varying vec2 uv;uniform sampler2D uV,uM,uB;uniform int uBgMode;uniform vec3 uBgCol,uSh,uHi;uniform vec4 uBgMap;
-uniform float uExp,uCon,uSat,uTemp,uTint,uFade,uVig,uGrain,uSplit,uLetter,uTime,uFlip;uniform vec2 uRes,uCrop,uKey;
+uniform float uExp,uCon,uSat,uTemp,uTint,uFade,uVig,uGrain,uSplit,uLetter,uTime,uFlip,uOpacity;uniform vec2 uRes,uCrop,uKey;
 float hash(vec2 q){return fract(sin(dot(q,vec2(12.9898,78.233)))*43758.5453);}
 void main(){
   vec2 vu=(uv-.5)*uCrop+.5;
@@ -306,7 +313,7 @@ void main(){
   c*=1.-uVig*smoothstep(.45,1.05,length(uv-.5)*1.4142);
   c+=(hash(uv*uRes+uTime)-.5)*uGrain;
   if(uv.y<uLetter||uv.y>1.-uLetter)c=vec3(0.);
-  gl_FragColor=vec4(clamp(c,0.,1.),1.);
+  gl_FragColor=vec4(clamp(c,0.,1.)*uOpacity,1.);
 }`;
   function renderer(cv) {
     let gl = null; try { gl = cv.getContext('webgl', { preserveDrawingBuffer: true, antialias: false, alpha: false }); } catch (_) {}
@@ -316,7 +323,7 @@ void main(){
     if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error('link'); gl.useProgram(pr);
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    const U = {}; 'uV uM uB uBgMode uBgCol uBgMap uExp uCon uSat uTemp uTint uFade uVig uGrain uSplit uSh uHi uLetter uTime uRes uFlip uCrop uKey'.split(' ').forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
+    const U = {}; 'uV uM uB uBgMode uBgCol uBgMap uExp uCon uSat uTemp uTint uFade uVig uGrain uSplit uSh uHi uLetter uTime uRes uFlip uCrop uKey uOpacity'.split(' ').forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     const T = [0, 1, 2].map(i => {
       gl.activeTexture(gl.TEXTURE0 + i); const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
@@ -331,9 +338,9 @@ void main(){
       gl: true, get lost() { return lost; },
       video: src => up(0, src), bg: src => up(2, src),
       mask(u8, w, hh) { gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, T[1]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, w, hh, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, u8); },
-      draw(P, mode, col, map, time, flip, crop = [1, 1], key = [0, 0]) {
+      draw(P, mode, col, map, time, flip, crop = [1, 1], key = [0, 0], opacity = 1) {
         if (lost) return;
-        gl.uniform1f(U.uFlip, flip ? 1 : 0);
+        gl.uniform1f(U.uFlip, flip ? 1 : 0); gl.uniform1f(U.uOpacity, opacity);
         gl.uniform2fv(U.uCrop, crop); gl.uniform2fv(U.uKey, key);
         gl.viewport(0, 0, cv.width, cv.height);
         gl.uniform1i(U.uBgMode, mode); gl.uniform3fv(U.uBgCol, col); gl.uniform4fv(U.uBgMap, map);
@@ -347,7 +354,16 @@ void main(){
   /** no WebGL: the frame is drawn as it is; cutting and the sound can still be edited */
   function renderer2d(cv) {
     const c = cv.getContext('2d'); let src = null;
-    return { gl: false, lost: false, video: s => { src = s; }, bg() {}, mask() {}, draw(P, m, col, map, time, flip) { if (!src) return; c.setTransform(flip ? -1 : 1, 0, 0, 1, flip ? cv.width : 0, 0); c.drawImage(src, 0, 0, cv.width, cv.height); c.setTransform(1, 0, 0, 1, 0, 0); } };
+    return {
+      gl: false, lost: false, video: s => { src = s; }, bg() {}, mask() {},
+      draw(P, m, col, map, time, flip, crop, key, opacity = 1) {
+        if (!src) return;
+        c.fillStyle = '#000'; c.fillRect(0, 0, cv.width, cv.height);
+        c.setTransform(flip ? -1 : 1, 0, 0, 1, flip ? cv.width : 0, 0);
+        c.globalAlpha = opacity; c.drawImage(src, 0, 0, cv.width, cv.height);
+        c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 1;
+      }
+    };
   }
   const ID = { exp: 1, con: 1, sat: 1, temp: 0, tint: 0, fade: 0, vig: 0, grain: 0, split: 0, sh: [.5, .5, .5], hi: [.5, .5, .5], letter: 0 };
   const PRE = {
@@ -390,15 +406,38 @@ void main(){
   });
   const meta = el => el.readyState >= 1 ? Promise.resolve() : new Promise((res, rej) => { el.addEventListener('loadedmetadata', () => res(), { once: true }); el.addEventListener('error', () => rej(fail('badFile')), { once: true }); });
   const MIX = PD.mixrack, AUD0 = MIX.defaults;
-  const adjustKeys = Object.keys(AUD0).filter(key => key !== 'dnAmt');
   const q720 = (w, h) => PD.musicCommunity.isHD(w, h);
+  const neutralGrade = { exp: 0, con: 0, sat: 0, temp: 0, tint: 0, fade: 0, vig: 0, grain: 0 };
+  const hasFade = clip => !!(clip?.fadeIn || clip?.fadeOut);
+  function fadeEdges(clip) {
+    const fadeIn = clip.fadeIn || 0, fadeOut = clip.fadeOut || 0, length = Math.max(0, clip.b - clip.a);
+    const sum = fadeIn + fadeOut, scale = sum > length ? length / sum : 1;
+    return [fadeIn * scale, fadeOut * scale];
+  }
+  function fadeLevel(clip, time) {
+    if (!hasFade(clip)) return 1;
+    const [fadeIn, fadeOut] = fadeEdges(clip);
+    return Math.max(0, Math.min(1, fadeIn ? (time - clip.a) / fadeIn : 1, fadeOut ? (clip.b - time) / fadeOut : 1));
+  }
+  function fadeGain(param, clip, when, from, to) {
+    param.setValueAtTime(fadeLevel(clip, from), when);
+    if (!hasFade(clip)) return;
+    const [fadeIn, fadeOut] = fadeEdges(clip);
+    const points = [clip.a + fadeIn, clip.b - fadeOut, to];
+    let previous = from;
+    for (const at of points) {
+      if (at <= previous || at > to) continue;
+      param.linearRampToValueAtTime(fadeLevel(clip, at), when + at - from);
+      previous = at;
+    }
+  }
 
   /* ---------------- the editor ---------------- */
   /** o: { file, meta: {w,h,dur}, roomMB, onBack, onNext } → { dirty, version, length, render, cancel, back, hide, show, destroy } */
   function mount(root, o) {
     const audioOnly = o.kind === 'audio', url = URL.createObjectURL(o.file), flip = !!o.mirror;   // a selfie is drawn — and made — the way it looked while filming
     let dur = o.meta.dur || 1;
-    const S = { segs: [{ a: 0, b: dur }], sel: 0, filter: 'none', fk: 1, crop: '', grade: { exp: 0, con: 0, sat: 0, temp: 0 }, bg: 'none', bgKey: 'person', bgEdge: 0, bgColor: '#000000', aud: Object.assign({}, AUD0) };
+    const S = { segs: [{ a: 0, b: dur }], sel: 0, filter: 'none', fk: 1, crop: '', grade: { ...neutralGrade }, bg: 'none', bgKey: 'person', bgEdge: 0, bgColor: '#000000', aud: Object.assign({}, AUD0) };
     let ver = 0, dead = false, hidden = false, playing = false, panel = null, raf = 0, needs = true, lastT = -1, exporting = null, pendingSeek = null, audioAfterSeek = false, driftAt = 0;
     const v = h(audioOnly ? 'audio' : 'video', { class: 've-src', playsinline: true, preload: 'auto' }); v.muted = true; v.playsInline = true; v.src = url;
     const cv = h('canvas', { class: 've-view' });
@@ -407,15 +446,22 @@ void main(){
 
     /* sound */
     const AC = window.AudioContext || window.webkitAudioContext;
-    let audWhy = '', ac = null, chain = null, spk = null, orig = null, clean = null, cleanKey = -1, elSrc = null, asrc = null, aStart = 0, aOff = 0, dnJob = 0, dnRun = null, waveCv = null, compare = false, noiseAt = null;
+    let gradeBypass = false;
+    let audWhy = '', ac = null, chain = null, spk = null, orig = null, clean = null, cleanKey = -1, elSrc = null, elementGain = null, asrc = null, takeGain = null, aStart = 0, aOff = 0, dnJob = 0, dnRun = null, waveCv = null, compare = false, noiseAt = null;
     try { ac = new AC(); chain = MIX.chain(ac); spk = ac.createGain(); chain.out.connect(spk); spk.connect(ac.destination); chain.set(S.aud); chain.compare(false); } catch (_) { ac = null; v.muted = false; }
-    const useElement = () => { if (!ac || elSrc) return; try { elSrc = ac.createMediaElementSource(v); elSrc.connect(chain.inp); v.muted = false; } catch (_) { v.muted = false; } };
+    const useElement = () => {
+      if (!ac || elSrc) return;
+      try {
+        elementGain = ac.createGain();
+        elSrc = ac.createMediaElementSource(v); elSrc.connect(elementGain).connect(chain.inp); v.muted = false;
+      } catch (_) { v.muted = false; }
+    };
     /* Until the sound is edited it plays straight from the video element — no Web Audio, which an iPhone silences with its
        ring/silent switch and keeps paused until a touch. Once effects are on it goes through Web Audio, told it is playback. */
     let native = true, decoded = false, clipStems = null, stemJob = null, stemProgress = 0;
-    let audioSegment = -1, rackTab = 'eq';
+    let audioSegment = -1, lastElementFade = 1, rackTab = 'eq';
     const stemSources = [];
-    const fxOn = () => !!clipStems?.tracks.some(track => track.amount > 0) || S.segs.some(s => s.muted) || adjustKeys.some(k => S.aud[k] !== AUD0[k]);
+    const fxOn = () => !!clipStems?.tracks.some(track => track.amount > 0) || S.segs.some(s => s.muted || hasFade(s)) || MIX.changed(S.aud);
     const cutSound = () => chain?.cut(!compare && S.segs[segIdx(v.currentTime)]?.muted ? 0 : 1);
     function route() {
       if (exporting) return;
@@ -454,8 +500,11 @@ void main(){
     const total = () => S.segs.reduce((n, s) => n + s.b - s.a, 0);
     const cropRatios = { '9:16': 9 / 16, '1:1': 1, '16:9': 16 / 9, '4:5': .8 };
     const grade = () => {
-      const p = params(S.filter, S.fk);
-      p.exp *= 2 ** S.grade.exp; p.con *= 1 + S.grade.con; p.sat *= 1 + S.grade.sat; p.temp += S.grade.temp;
+      if (gradeBypass && !exporting) return ID;
+      const p = params(S.filter, S.fk), g = S.grade;
+      p.exp *= 2 ** g.exp; p.con *= 1 + g.con; p.sat *= 1 + g.sat; p.temp += g.temp;
+      p.tint += g.tint; p.fade = Math.min(.45, p.fade + g.fade);
+      p.vig = Math.min(1, p.vig + g.vig); p.grain = Math.min(.3, p.grain + g.grain);
       return p;
     };
     const pictureChanged = () => S.filter !== 'none' && S.fk > 0 || Object.values(S.grade).some(Boolean);
@@ -468,20 +517,33 @@ void main(){
         try { asrc.stop(); } catch (_) {}
         asrc.disconnect(); asrc = null;
       }
+      if (takeGain) { takeGain.disconnect(); takeGain = null; }
       for (const { source, gain } of stemSources.splice(0)) {
         try { source.stop(); } catch (_) {}
         source.disconnect(); gain.disconnect();
       }
     }
+    const clipAt = time => S.segs.find(clip => time >= clip.a && time < clip.b);
+    function elementFade(clip, time = v.currentTime) {
+      if (!elementGain) return;
+      const level = fadeLevel(clip, time);
+      if (Math.abs(level - lastElementFade) < .003) return;
+      lastElementFade = level;
+      elementGain.gain.setTargetAtTime(level, ac.currentTime, .012);
+    }
     function startAudio(force) {
       cutSound();
       const t = v.currentTime, i = segIdx(t);
       audioSegment = i;
-      if ((native && !force) || elSrc) return;
+      if (elSrc) { elementFade(S.segs[i], t); return; }
+      if (native && !force) return;
       stopAudio(); const buffer = curBuf();
       if (!buffer || !ac || i < 0 || t >= buffer.duration) return;
-      const at = ac.currentTime + .008, end = Math.min(S.segs[i].b, buffer.duration);
-      asrc = ac.createBufferSource(); asrc.buffer = buffer; asrc.connect(chain.inp);
+      const clip = S.segs[i], at = ac.currentTime + .008, end = Math.min(clip.b, buffer.duration);
+      takeGain = ac.createGain();
+      fadeGain(takeGain.gain, clip, at, t, end);
+      takeGain.connect(chain.inp);
+      asrc = ac.createBufferSource(); asrc.buffer = buffer; asrc.connect(takeGain);
       aOff = t; aStart = at; asrc.start(at, t, Math.max(.001, end - t));
       if (!clipStems || compare) return;
       const from = Math.max(clipStems.from, t), to = Math.min(clipStems.to, end);
@@ -491,7 +553,7 @@ void main(){
       for (const track of clipStems.tracks) {
         if (!track.amount) continue;
         const source = ac.createBufferSource(), gain = ac.createGain(), level = -track.amount / 100;
-        source.buffer = track.buffer; source.connect(gain); gain.connect(chain.inp);
+        source.buffer = track.buffer; source.connect(gain); gain.connect(takeGain);
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(level, time + fade);
         gain.gain.setValueAtTime(level, time + to - from - fade);
@@ -540,7 +602,7 @@ void main(){
       } catch (_) {}
     }
     const coverMap = (bw, bh) => { const A = cv.width / cv.height, a = bw / bh; return a > A ? [A / a, 1, (1 - A / a) / 2, 0] : [1, a / A, 0, (1 - a / A) / 2]; };
-    function frame(force) {
+    function frame(force, clip = clipAt(v.currentTime)) {
       if (audioOnly || !v.videoWidth || R.lost) return;
       const t = v.currentTime, fresh = force || t !== lastT; lastT = t;
       if (fresh) R.video(v);
@@ -565,14 +627,15 @@ void main(){
       const crop = ratio < aspect ? [ratio / aspect, 1] : [1, aspect / ratio];
       const key = [S.bgKey === 'green' ? 1 : S.bgKey === 'blue' ? 2 : 0, S.bgEdge];
       const col = S.bg === 'color' ? [1, 3, 5].map(i => Number.parseInt(S.bgColor.slice(i, i + 2), 16) / 255) : [0, 0, 0];
-      R.draw(grade(), mode, col, map, performance.now() / 1000, flip, crop, key);
+      R.draw(grade(), mode, col, map, performance.now() / 1000, flip, crop, key, fadeLevel(clip, t));
     }
     const animated = () => S.bg !== 'none' && (S.bg === 'video' || (S.bg === 'image' && gif && gif.frames.length > 1));
     function loop() {
       if (dead) return; raf = requestAnimationFrame(loop);
       if (hidden || exporting) return;
       boundary();
-      if (!audioOnly && (needs || v.currentTime !== lastT || animated() || (playing && params(S.filter, S.fk).grain > 0))) { const f = needs; needs = false; frame(f); }
+      if (playing) elementFade(clipAt(v.currentTime));
+      if (!audioOnly && (needs || v.currentTime !== lastT || animated() || (playing && !gradeBypass && (S.grade.grain || S.fk * (PRE[S.filter].grain || 0))))) { const f = needs; needs = false; frame(f); }
       tls.forEach(x => x.head());
       if (audioOnly) audioSeek.value = v.currentTime;
       cur?.meter?.();
@@ -613,9 +676,15 @@ void main(){
     PD.i18n.apply(root);
     function layout() {
       if (audioOnly || !v.videoWidth) return;
-      const W = innerWidth, H = innerHeight, ph = panel ? panelEl.offsetHeight : 0, box = { x: 0, y: 0, w: W, h: H - ph };
-      place(cv, cv.width, cv.height, panel ? { x: 8, y: 8, w: W - 16, h: Math.max(60, box.h - 16) } : box, !panel && (cv.width > cv.height) === (W > H));
-      tap.style.height = box.h + 'px';
+      const W = innerWidth, H = innerHeight, side = panel && W >= 960 && H >= 560;
+      const box = {
+        x: 0, y: 0,
+        w: W - (side ? panelEl.offsetWidth + 20 : 0),
+        h: H - (panel && !side ? panelEl.offsetHeight : 0)
+      };
+      const area = panel ? { x: 8, y: 8, w: box.w - 16, h: Math.max(60, box.h - 16) } : box;
+      place(cv, cv.width, cv.height, area, !panel && (cv.width > cv.height) === (W > H));
+      tap.style.width = box.w + 'px'; tap.style.height = box.h + 'px';
     }
     function cropSize(crop = S.crop) {
       let w = v.videoWidth, h = v.videoHeight;
@@ -654,14 +723,16 @@ void main(){
     const changed = () => { ver++; needs = true; paintInfo(); tls.forEach(x => x.paint()); paintPanel(); };
 
     /* ---- the timeline: the clip's frames (or its waveform), the parts that stay, their edges, the playhead ---- */
-    const tls = [], cuts = [];
+    const tls = [], cuts = [], redos = [];
     let zoom = 1, zoomAt = 0;
+    const snapshot = () => ({ segs: S.segs.map(clip => ({ ...clip })), selected: S.sel });
     function rememberCut() {
-      cuts.push({ segs: S.segs.map(s => ({ ...s })), selected: S.sel });
-      if (cuts.length > 24) cuts.shift();
+      cuts.push(snapshot()); if (cuts.length > 24) cuts.shift();
+      redos.length = 0;
     }
-    function undoCut() {
-      const last = cuts.pop(); if (!last) return;
+    function recallCut(from, to) {
+      const last = from.pop(); if (!last) return;
+      pause(); to.push(snapshot());
       S.segs = last.segs; S.sel = last.selected;
       seekTo(S.segs[S.sel].a); changed(); route(); cutSound();
     }
@@ -723,6 +794,20 @@ void main(){
           if (end < 0 || start > 1) return;
           const d = h('div', { class: 've-seg' + (i === S.sel && kind === 'thumbs' ? ' on' : '') + (s.muted ? ' is-muted' : '') });
           d.style.left = Math.max(0, start) * 100 + '%'; d.style.width = (Math.min(1, end) - Math.max(0, start)) * 100 + '%';
+          if (kind === 'thumbs' && hasFade(s)) {
+            const [fadeIn, fadeOut] = fadeEdges(s);
+            const showFade = (left, right, direction) => {
+              const width = Math.min(1, right) - Math.max(0, left);
+              if (width <= 0) return;
+              const marker = h('span', { class: 've-fade-mark ' + direction, 'aria-hidden': true });
+              const span = Math.min(1, end) - Math.max(0, start);
+              marker.style.left = ((Math.max(0, left) - Math.max(0, start)) / span) * 100 + '%';
+              marker.style.width = width / span * 100 + '%';
+              d.append(marker);
+            };
+            if (fadeIn) showFade(start, frac(s.a + fadeIn), 'in');
+            if (fadeOut) showFade(frac(s.b - fadeOut), end, 'out');
+          }
           if (kind === 'thumbs' && i === S.sel) {
             if (start >= 0) d.append(h('span', { class: 've-h l', 'data-h': 'l' }));
             if (end <= 1) d.append(h('span', { class: 've-h r', 'data-h': 'r' }));
@@ -752,7 +837,7 @@ void main(){
         const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); if (hd) changed(); };
         el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
       });
-      el.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); pause(); seekTo(v.currentTime + (e.key === 'ArrowLeft' ? -.5 : .5)); } });
+      el.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); pause(); seekTo(v.currentTime + (e.shiftKey ? .5 : audioOnly ? .05 : 1 / 30) * (e.key === 'ArrowLeft' ? -1 : 1)); } });
       const x = { el, paint, head }; tls.push(x); return x;
     }
 
@@ -771,7 +856,7 @@ void main(){
     function split() {
       const t0 = v.currentTime, i = segIdx(t0); if (i < 0) return;
       const s = S.segs[i]; if (t0 - s.a < MIN || s.b - t0 < MIN) { PD.ui.toast(t('ve.tooShort')); return; }
-      rememberCut(); S.segs.splice(i, 1, { ...s, b: t0 }, { ...s, a: t0 }); S.sel = i + 1; changed();
+      rememberCut(); S.segs.splice(i, 1, { ...s, b: t0, fadeOut: 0 }, { ...s, a: t0, fadeIn: 0 }); S.sel = i + 1; changed();
     }
     function delSeg() {
       if (S.segs.length < 2) { PD.ui.toast(t('ve.oneLeft')); return; }
@@ -821,10 +906,32 @@ void main(){
       clip() {
         if (!audioOnly) makeThumbs();
         const tl = timeline('thumbs'), len = h('small', { class: 've-len mono' });
+        const playClip = actB(ic.play, 've.play', () => playing ? pause() : play());
         const muted = actB(IC.sound, 've.mutePart', () => {
           rememberCut(); S.segs[S.sel].muted = !S.segs[S.sel].muted; changed(); route(); cutSound();
         });
-        const undo = actB('', 've.undo', undoCut);
+        const undo = actB('', 've.undo', () => recallCut(cuts, redos)), redo = actB('', 've.redo', () => recallCut(redos, cuts));
+        function fadeControl(key, label) {
+          const title = h('span', { 'data-t': label }), time = h('output', { class: 've-val mono' });
+          const control = h('input', { type: 'range', min: 0, max: 3, step: .1, 'aria-label': t(label) });
+          let editing = false;
+          const paint = () => {
+            const clip = S.segs[S.sel], [start, end] = fadeEdges(clip);
+            control.value = clip[key] || 0;
+            time.textContent = (key === 'fadeIn' ? start : end).toFixed(1) + ' s';
+            control.setAttribute('aria-valuetext', time.textContent);
+          };
+          control.oninput = () => {
+            if (!editing) { editing = true; pause(); rememberCut(); }
+            const clip = S.segs[S.sel];
+            clip[key] = +control.value;
+            changed(); route();
+          };
+          control.onchange = control.onblur = () => { editing = false; };
+          paint();
+          return { el: h('label', { class: 've-row' }, [title, control, time]), paint };
+        }
+        const fades = [fadeControl('fadeIn', 've.fadeIn'), fadeControl('fadeOut', 've.fadeOut')];
         const crop = h('select', { class: 'input', 'aria-label': t('ve.crop') },
           [h('option', { value: '', text: t('ve.f.none') }), ...Object.keys(cropRatios).map(value => h('option', { value, text: value }))]);
         crop.value = S.crop;
@@ -834,16 +941,18 @@ void main(){
           S.crop = crop.value; previewSize(); layout(); changed();
         };
         const clipActions = [actB(IC.split, 've.split', split), actB(IC.trash, 've.del', delSeg),
-          actB('', 've.trimIn', () => setEdge('a')), actB('', 've.trimOut', () => setEdge('b')), muted, undo,
+          actB('', 've.trimIn', () => setEdge('a')), actB('', 've.trimOut', () => setEdge('b')), muted, undo, redo,
           actB(ic.restart, 've.reset', () => { rememberCut(); S.segs = [{ a: 0, b: dur }]; S.sel = 0; seekTo(0); changed(); route(); })];
-        return { el: [tl.el, len,
+        return { el: [tl.el, h('div', { class: 've-clip-row' }, [playClip, len]),
           slider('ve.zoom', 1, 12, 1, () => zoom, x => { if (zoom === 1) zoomAt = v.currentTime; zoom = x; tl.paint(); }, x => x + '×'),
-          h('div', { class: 've-acts' }, clipActions), R?.gl ? h('label', { class: 'mc-field' }, [h('span', { 'data-t': 've.crop' }), crop]) : null,
+          h('div', { class: 've-acts' }, clipActions),
+          h('fieldset', { class: 've-fade-controls' }, [h('legend', { 'data-t': 've.ramps' }), ...fades.map(fade => fade.el),
+            !audioOnly ? h('small', { class: 've-hint', 'data-t': 've.rampsHint' }) : null]), R?.gl ? h('label', { class: 'mc-field' }, [h('span', { 'data-t': 've.crop' }), crop]) : null,
           h('small', { class: 've-hint', 'data-t': 've.clipHint' })].filter(Boolean),
           paint() {
             len.textContent = t('ve.len', { t: PD.fmtTime(total()) });
             muted.querySelector('span').textContent = t(S.segs[S.sel]?.muted ? 've.unmutePart' : 've.mutePart');
-            undo.disabled = !cuts.length;
+            undo.disabled = !cuts.length; redo.disabled = !redos.length; fades.forEach(fade => fade.paint());
           } };
       },
       sound() {
@@ -921,10 +1030,18 @@ void main(){
           return slider(title, min, max, 1, () => Math.round(S.grade[key] * scale),
             value => { S.grade[key] = value / scale; needs = true; ver++; paintInfo(); }, x => (x > 0 ? '+' : '') + x);
         }
-        return { el: [chips, slider('ve.amount', 0, 100, 5, () => Math.round(S.fk * 100), x => { S.fk = x / 100; needs = true; ver++; paintInfo(); }, pct),
+        const original = actB('', 've.originalColor', () => { gradeBypass = !gradeBypass; needs = true; paintPanel(); });
+        const reset = actB(ic.restart, 've.resetColor', () => {
+          gradeBypass = false; S.filter = 'none'; S.fk = 1; S.grade = { ...neutralGrade };
+          changed(); open('filters');
+        });
+        return { el: [chips, h('div', { class: 've-acts ve-grade-actions' }, [actB(ic.play, 've.play', () => playing ? pause() : play()), original, reset]),
+          slider('ve.amount', 0, 100, 5, () => Math.round(S.fk * 100), x => { S.fk = x / 100; needs = true; ver++; paintInfo(); }, pct),
           adjust('exp', 've.exposure', -100, 100, 100), adjust('con', 've.contrast', -60, 60, 100),
-          adjust('sat', 've.saturation', -100, 80, 100), adjust('temp', 've.temperature', -25, 25, 100)],
-          paint() { chips.querySelectorAll('.ve-chip').forEach(b => { const on = b.dataset.k === S.filter; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }); } };
+          adjust('sat', 've.saturation', -100, 80, 100), adjust('temp', 've.temperature', -25, 25, 100),
+          adjust('tint', 've.tint', -25, 25, 100), adjust('vig', 've.vignette', 0, 100, 100),
+          adjust('grain', 've.grain', 0, 30, 100), adjust('fade', 've.blackLift', 0, 45, 100)],
+          paint() { original.setAttribute('aria-pressed', String(gradeBypass)); chips.querySelectorAll('.ve-chip').forEach(b => { const on = b.dataset.k === S.filter; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }); } };
       },
       bg() {
         const st = h('small', { class: 've-st', role: 'status' }), chips = h('div', { class: 've-chips', role: 'radiogroup' });
@@ -986,7 +1103,7 @@ void main(){
     }
     let cur = null;
     function open(k) {
-      if (panel !== k) pause();
+      if (panel !== k) { gradeBypass = false; pause(); needs = true; }
       const previousScroll = panel === k ? panelEl.scrollTop : 0;
       panel = k; dnState = null;
       const title = { clip: 've.clip', sound: 've.sound', filters: 've.filters', bg: 've.bg' }[k];
@@ -997,10 +1114,10 @@ void main(){
       panelEl.setAttribute('aria-label', t(title));
       panelEl.scrollTop = previousScroll;
       root.classList.add('panel'); PD.i18n.apply(panelEl);
-      route();
+      cur?.paint?.(); route();
       requestAnimationFrame(() => { layout(); tls.forEach(x => x.paint()); cur?.paint?.(); });
     }
-    function close() { compare = false; chain?.compare(false); panel = null; cur = null; tls.length = 0; dnState = null; panelEl.hidden = true; panelEl.innerHTML = ''; root.classList.remove('panel'); layout(); needs = true; route(); if (playing) startAudio(); }
+    function close() { gradeBypass = false; compare = false; chain?.compare(false); panel = null; cur = null; tls.length = 0; dnState = null; panelEl.hidden = true; panelEl.innerHTML = ''; root.classList.remove('panel'); layout(); needs = true; route(); if (playing) startAudio(); }
     function paintPanel() { cur?.paint?.(); }
 
     async function renderSound(onP, download) {
@@ -1011,18 +1128,18 @@ void main(){
       if (!OC) throw fail('noRender');
       const sr = signal.sampleRate, channels = signal.numberOfChannels, length = total();
       const tail = S.segs.at(-1)?.muted ? 0 : Math.min(MIX.tailSeconds(S.aud), Math.max(0, 900 - length));
-      const frames = Math.round((length + tail) * sr), skip = Math.round(.012 * sr);
+      const frames = Math.round((length + tail) * sr), skip = Math.round(MIX.latency * sr);
       const bytes = frames * channels * 3 + 44 + (frames * channels * 3 % 2);
       if (!download && bytes > o.roomMB * 1048576) throw Object.assign(fail('reelHeavy'), { s: Math.ceil(bytes / 1048576), n: o.roomMB });
       if (bytes > 320 * 1048576) throw fail('noRender');
       const ctx = new OC(channels, frames + skip, sr), mix = MIX.chain(ctx);
       mix.set(S.aud); mix.out.connect(ctx.destination);
       let at = 0;
-      function add(buf, start, end, offset, level, ramp) {
+      function add(bus, buf, start, end, offset, level, ramp) {
         if (end <= start || start >= buf.duration) return;
         const time = Math.min(end - start, buf.duration - start);
         const src = ctx.createBufferSource(), volume = ctx.createGain();
-        src.buffer = buf; src.connect(volume).connect(mix.inp);
+        src.buffer = buf; src.connect(volume).connect(bus);
         const fade = Math.min(ramp, time / 3);
         volume.gain.setValueAtTime(0, offset); volume.gain.linearRampToValueAtTime(level, offset + fade);
         volume.gain.setValueAtTime(level, offset + time - fade); volume.gain.linearRampToValueAtTime(0, offset + time);
@@ -1030,11 +1147,13 @@ void main(){
       }
       for (const s of S.segs) {
         if (!s.muted) {
-          add(signal, s.a, s.b, at, 1, .006);
+          const bus = ctx.createGain();
+          fadeGain(bus.gain, s, at, s.a, s.b); bus.connect(mix.inp);
+          add(bus, signal, s.a, s.b, at, 1, .006);
           if (clipStems) {
             const from = Math.max(s.a, clipStems.from), to = Math.min(s.b, clipStems.to);
             for (const track of clipStems.tracks) if (track.amount && to > from)
-              add(track.buffer, from - clipStems.from, to - clipStems.from, at + from - s.a, -track.amount / 100, .018);
+              add(bus, track.buffer, from - clipStems.from, to - clipStems.from, at + from - s.a, -track.amount / 100, .018);
           }
         }
         at += s.b - s.a;
@@ -1131,7 +1250,7 @@ void main(){
         const tick = (now, md) => {
           if (fin) return;
           if (exporting.cancel) { end(); return; }
-          frame(true);
+          frame(true, s); elementFade(s);
           const tt = md && md.mediaTime != null ? md.mediaTime : v.currentTime; onP(Math.max(0, tt - s.a));
           if (tt >= s.b - .5 / 30 || v.ended) { end(); return; }
           next();
@@ -1163,5 +1282,5 @@ void main(){
       }
     };
   }
-  return { mount, denoise, gifFrames, place, pickFormat: pick, rememberFormat: remember, forgetFormat: forget, rejectEncoder, hasSound };
+  return { mount, denoise, gifFrames, place, pickFormat: pick, rememberFormat: remember, forgetFormat: forget, rejectEncoder, hasSound, fadeEdges, fadeLevel };
 })();

@@ -5695,6 +5695,50 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
   .ve-audio .ve-rail { bottom: calc(var(--safe-b) + 182px); }
 }
 
+/* Per-clip fades, color comparison and tone rack. */
+.ve-clip-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin: 9px 0 2px; }
+.ve-clip-row .btn { min-height: 36px; }
+.ve-clip-row svg, .ve-grade-actions svg { width: 16px; height: 16px; }
+.ve-fade-controls {
+  margin: 12px 0;
+  padding: 6px 12px 10px;
+  min-width: 0;
+  border: 1px solid #f3ba9550;
+  border-radius: 13px;
+}
+.ve-fade-controls legend { padding: 0 5px; color: #ffdbc4; font-size: 12px; font-weight: 650; }
+.ve-fade-mark {
+  position: absolute; top: 2px; bottom: 2px; background: #dcac89a6;
+  pointer-events: none;
+}
+.ve-fade-mark.in { clip-path: polygon(0 100%, 100% 0, 100% 100%); }
+.ve-fade-mark.out { clip-path: polygon(0 0, 100% 100%, 0 100%); }
+.ve-grade-actions { margin-block: 8px; }
+.mx-level { grid-template-columns: minmax(48px, auto) minmax(0, 1fr) 46px; }
+.mx-level output { font-variant-numeric: tabular-nums; text-align: end; color: #ffe1cd; white-space: nowrap; }
+.mx-level .mx-clipping { color: #ff9c9c; font-weight: 750; }
+.mx-tab { min-height: 36px; }
+.mx-node.mx-band-off { border-style: dashed; opacity: .55; }
+.mx-character { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mx-effect-group { min-width: 0; padding: 10px; display: grid; gap: 8px; align-content: start; border: 1px solid #d9aee130; border-radius: 13px; }
+.mx-effect-group h4 { margin: 0; color: #ffd5be; font-size: 13px; }
+.mx-plot-character { height: clamp(68px, 15vw, 115px); }
+@container (max-width: 530px) {
+  .mx-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mx-tab { overflow-wrap: anywhere; }
+  .mx-level { grid-template-columns: minmax(34px, auto) minmax(0, 1fr) 39px; }
+  .mx-level output { font-size: 9px; }
+  .mx-character { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 960px) and (min-height: 560px) {
+  .ve:not(.ve-audio) .ve-panel {
+    inset: calc(16px + var(--safe-t)) 12px calc(16px + var(--safe-b)) auto;
+    width: min(47vw, 544px);
+    max-height: none;
+    border-radius: 18px;
+  }
+}
+
 /* Messenger styles follow the shell layer so a composer has one visual boundary. */
 @layer ds {
 .ms-chat{--chat-accent:#d8b38b;--chat-wash:#d8b38b12;--chat-out:#302a25;--chat-font:var(--f-ui);position:relative}

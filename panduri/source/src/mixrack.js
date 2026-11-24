@@ -2,6 +2,12 @@
 PD.i18n.add({
   'mx.title': ['მიქსი', 'Mix'], 'mx.eq': ['ეკვალაიზერი', 'Equalizer'], 'mx.comp': ['კომპრესორი', 'Compressor'],
   'mx.rev': ['რევერბი', 'Reverb'], 'mx.delay': ['დაყოვნება', 'Delay'], 'mx.master': ['გამომავალი', 'Output'],
+  'mx.character': ['ტემბრი', 'Tone tools'], 'mx.deess': ['დე-ესერი', 'De-esser'],
+  'mx.deFreq': ['დე-ესერის სიხშირე', 'Sibilance frequency'], 'mx.deThreshold': ['დე-ესერის ზღურბლი', 'De-esser threshold'],
+  'mx.tape': ['ფირის სატურაცია', 'Tape saturation'], 'mx.tapeDrive': ['სატურაციის გაძლიერება', 'Saturation drive'],
+  'mx.curve': ['სატურაციის გადაცემის მრუდი', 'Saturation transfer curve'],
+  'mx.lp': ['მაღალი სიხშირეების მოჭრა', 'Low-pass'], 'mx.bandOff': ['ზოლის გამორთვა', 'Bypass this band'],
+  'mx.inputPeak': ['შემავალი პიკი', 'Input peak'], 'mx.outputPeak': ['გამომავალი პიკი', 'Output peak'],
   'mx.clean': ['გასუფთავება', 'Cleanup'], 'mx.in': ['შემავალი', 'Input'], 'mx.out': ['გამომავალი', 'Output'],
   'mx.analyzer': ['შემავალი და გამომავალი სპექტრი, ეკვალაიზერის მრუდი', 'Input and output spectra and EQ curve'],
   'mx.transfer': ['კომპრესორის გადაცემის მრუდი', 'Compressor transfer curve'],
@@ -35,10 +41,11 @@ PD.mixrack = (() => {
   ];
   const defaults = Object.freeze({
     vol: 100, lo: 0, loFreq: 140, lm: 0, lmHz: 380, lmQ: 1,
-    mid: 0, midHz: 1100, midQ: .8, hm: 0, hmHz: 3300, hmQ: 1, hi: 0, hiFreq: 6500, hp: 0, hum: 0, eqOff: false,
-    comp: 0, threshold: -28, ratio: 4, attack: 10, release: 180, knee: 8, makeup: 0,
-    rev: 0, space: 'room', decay: 1.3, predelay: 20, damp: 7400,
-    del: 0, dtime: 320, feedback: 38, tone: 4800,
+    mid: 0, midHz: 1100, midQ: .8, hm: 0, hmHz: 3300, hmQ: 1, hi: 0, hiFreq: 6500, hp: 0, lp: 20000, hum: 0, eqOff: false, eqMask: 0,
+    comp: 0, compOff: false, threshold: -28, ratio: 4, attack: 10, release: 180, knee: 8, makeup: 0,
+    deess: 0, deFreq: 6100, deThreshold: -26, tape: 0, tapeDrive: 6,
+    rev: 0, revOff: false, space: 'room', decay: 1.3, predelay: 20, damp: 7400,
+    del: 0, delOff: false, dtime: 320, feedback: 38, tone: 4800,
     limiter: false, ceiling: -1, drive: 0, dn: false, dnAmt: 60
   });
   const presets = {
@@ -46,14 +53,21 @@ PD.mixrack = (() => {
     pop: { hp: 65, lm: -2, hi: 3, comp: 60, ratio: 3, attack: 8, limiter: true },
     jazz: { hp: 35, lo: 1, mid: 1, midHz: 790, comp: 30, ratio: 2, attack: 28 },
     folk: { hp: 60, lm: -2, lmHz: 270, hi: 2, comp: 34, ratio: 2.3 },
-    vocals: { hp: 80, mid: 2, midHz: 2300, hi: 2, comp: 62, ratio: 3, attack: 8, release: 120, rev: 12, space: 'plate' }
+    vocals: { hp: 80, mid: 2, midHz: 2300, hi: 2, comp: 62, ratio: 3, attack: 8, release: 120, deess: 35, rev: 12, space: 'plate' }
   };
   const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
   const gain = db => 10 ** (db / 20);
   const decibels = x => Math.max(-72, 20 * Math.log10(Math.max(1e-8, x)));
-  const compareDelay = .012; // The two Web Audio DynamicsCompressorNodes each delay by 6 ms.
-  const tailSeconds = a => Math.max(a.rev ? a.decay + a.predelay / 1000 : 0,
-    a.del ? Math.min(4, a.dtime / 1000 * (a.feedback ? 2 + Math.log(.01) / Math.log(a.feedback / 100) : 1)) : 0);
+  const compressorDelay = .006;
+  const latency = compressorDelay * 3;
+  const saturate = (sample, drive) => Math.tanh(sample * gain(drive)) / Math.tanh(gain(drive));
+  const wetMix = (a, plugin) => a[plugin + 'Off'] ? 0 : a[plugin] / 100;
+  const tailSeconds = a => Math.max(wetMix(a, 'rev') ? a.decay + a.predelay / 1000 : 0,
+    wetMix(a, 'del') ? Math.min(4, a.dtime / 1000 * (a.feedback ? 2 + Math.log(.01) / Math.log(a.feedback / 100) : 1)) : 0);
+  const changed = a => a.vol !== 100 || a.dn || a.limiter || a.deess > 0 || a.tape > 0 ||
+    wetMix(a, 'comp') > 0 || wetMix(a, 'rev') > 0 || wetMix(a, 'del') > 0 ||
+    (!a.eqOff && (a.hp > 0 || a.lp !== defaults.lp || a.hum > 0 ||
+      bands.some((b, i) => !(a.eqMask & (1 << i)) && a[b.g] !== 0)));
   function transfer(db, threshold, ratio, knee) {
     const x = db - threshold;
     if (!knee || Math.abs(x) >= knee / 2) return db - Math.max(0, x) * (1 - 1 / ratio);
@@ -79,17 +93,37 @@ PD.mixrack = (() => {
     const inp = ac.createGain(), out = ac.createGain(), pre = ac.createAnalyser(), meter = ac.createAnalyser();
     const eqWet = ac.createGain(), eqDry = ac.createGain(), eq = ac.createGain();
     const filter = type => { const node = ac.createBiquadFilter(); node.type = type; return node; };
-    const hp = filter('highpass'), notch = filter('peaking');
-    hp.Q.value = -3; notch.Q.value = 22;
-    const bandNodes = bands.map(b => filter(b.type)), filters = [hp, notch, ...bandNodes];
+    const hp = filter('highpass'), lp = filter('lowpass'), notch = filter('peaking');
+    hp.Q.value = lp.Q.value = -3; notch.Q.value = 22;
+    const bandNodes = bands.map(b => filter(b.type)), filters = [hp, notch, ...bandNodes, lp];
     inp.connect(pre).connect(filters[0]);
     filters.slice(1).reduce((last, node) => last.connect(node), filters[0]).connect(eqWet).connect(eq);
     pre.connect(eqDry).connect(eq);
 
+    // Matched fourth-order low/high crossovers keep the two bands in phase at the split.
+    const aligned = () => { const node = ac.createDelay(.03); node.delayTime.value = compressorDelay; return node; };
+    const crossover = type => [filter(type), filter(type)];
+    const deLow = crossover('lowpass'), deHigh = crossover('highpass');
+    const deFilters = [...deLow, ...deHigh];
+    for (const node of deFilters) node.Q.value = -3.0103;
+    const deComp = ac.createDynamicsCompressor(), deWide = ac.createGain(), deMixed = ac.createGain();
+    const deDry = ac.createGain(), deWet = ac.createGain(), deOut = ac.createGain();
+    deComp.ratio.value = 8; deComp.knee.value = 6; deComp.attack.value = .001; deComp.release.value = .065;
+    eq.connect(aligned()).connect(deWide).connect(deOut);
+    eq.connect(deLow[0]).connect(deLow[1]).connect(aligned()).connect(deMixed);
+    eq.connect(deHigh[0]).connect(deHigh[1]).connect(aligned()).connect(deDry).connect(deMixed);
+    deHigh[1].connect(deComp).connect(deWet).connect(deMixed);
+    deMixed.connect(deOut);
+
+    const tape = ac.createWaveShaper(), tapeDry = ac.createGain(), tapeWet = ac.createGain(), toneOut = ac.createGain();
+    tape.oversample = '4x';
+    deOut.connect(tapeDry).connect(toneOut);
+    deOut.connect(tape).connect(tapeWet).connect(toneOut);
+
     const comp = ac.createDynamicsCompressor(), makeup = ac.createGain(), compDry = ac.createGain(), compSum = ac.createGain();
-    const dryAlign = ac.createDelay(.03); dryAlign.delayTime.value = .006;
-    eq.connect(comp).connect(makeup).connect(compSum);
-    eq.connect(dryAlign).connect(compDry).connect(compSum);
+    const dryAlign = aligned();
+    toneOut.connect(comp).connect(makeup).connect(compSum);
+    toneOut.connect(dryAlign).connect(compDry).connect(compSum);
 
     const mix = ac.createGain(), dry = ac.createGain();
     compSum.connect(dry).connect(mix);
@@ -106,19 +140,19 @@ PD.mixrack = (() => {
     const hard = ac.createWaveShaper();
     hard.curve = Float32Array.of(-1, 0, 1);
     const toUnit = ac.createGain(), ceiling = ac.createGain(), capped = ac.createGain(), unlim = ac.createGain();
-    const masterDelay = ac.createDelay(.03); masterDelay.delayTime.value = .006;
+    const masterDelay = aligned();
     mix.connect(master).connect(drive).connect(lim).connect(toUnit).connect(hard).connect(ceiling).connect(capped);
     master.connect(masterDelay).connect(unlim);
 
     const processed = ac.createGain(), rendered = ac.createGain(), original = ac.createGain();
-    const abAlign = ac.createDelay(.03); abAlign.delayTime.value = compareDelay;
+    const abAlign = ac.createDelay(.03); abAlign.delayTime.value = latency;
     pre.connect(abAlign).connect(original).connect(meter);
     capped.connect(processed); unlim.connect(processed); processed.connect(rendered).connect(meter);
     meter.connect(out);
     pre.fftSize = meter.fftSize = 4096;
     pre.smoothingTimeConstant = meter.smoothingTimeConstant = .74;
     original.gain.value = 0;
-    let spaceKey = '', initial = true;
+    let spaceKey = '', tapeDrive = -1, initial = true;
     const set = (param, value) => {
       if (initial) param.value = value;
       else param.setTargetAtTime(value, ac.currentTime, .017);
@@ -126,29 +160,42 @@ PD.mixrack = (() => {
     function update(a, refreshSpace = true) {
       set(eqWet.gain, a.eqOff ? 0 : 1); set(eqDry.gain, a.eqOff ? 1 : 0);
       set(hp.frequency, a.hp); set(notch.frequency, a.hum || 50); set(notch.gain, a.hum ? -24 : 0);
+      const nyquist = ac.sampleRate / 2;
+      set(lp.frequency, a.lp === defaults.lp ? nyquist : Math.min(nyquist, a.lp));
       bands.forEach((b, i) => {
         set(bandNodes[i].frequency, Math.min(ac.sampleRate * .48, a[b.f]));
-        set(bandNodes[i].gain, a[b.g]);
+        set(bandNodes[i].gain, a.eqMask & (1 << i) ? 0 : a[b.g]);
         if (b.q) set(bandNodes[i].Q, a[b.q]);
       });
+      const deMix = a.deess / 100, saturation = a.tape / 100;
+      const compression = wetMix(a, 'comp'), reverb = wetMix(a, 'rev'), echo = wetMix(a, 'del');
+      for (const node of deFilters) set(node.frequency, Math.min(a.deFreq, nyquist * .96));
+      deComp.threshold.value = a.deThreshold;
+      set(deWide.gain, deMix ? 0 : 1); set(deMixed.gain, deMix ? 1 : 0);
+      set(deDry.gain, 1 - deMix); set(deWet.gain, deMix);
+      if (saturation && a.tapeDrive !== tapeDrive) {
+        tape.curve = Float32Array.from({ length: 4097 }, (_, i) => saturate(i / 2048 - 1, a.tapeDrive));
+        tapeDrive = a.tapeDrive;
+      }
+      set(tapeDry.gain, 1 - saturation); set(tapeWet.gain, saturation);
       comp.threshold.value = a.threshold; comp.ratio.value = a.ratio; comp.knee.value = a.knee;
       comp.attack.value = a.attack / 1000; comp.release.value = a.release / 1000;
-      set(compDry.gain, 1 - a.comp / 100); set(makeup.gain, a.comp / 100 * gain(a.makeup));
+      set(compDry.gain, 1 - compression); set(makeup.gain, compression * gain(a.makeup));
       const key = a.space + ':' + a.decay;
-      if (a.rev && key !== spaceKey && (refreshSpace || !spaceKey)) {
+      if (reverb && key !== spaceKey && (refreshSpace || !spaceKey)) {
         convolver.buffer = impulse(ac, a.decay, a.space); spaceKey = key;
       }
       set(revPre.delayTime, a.predelay / 1000); set(damp.frequency, Math.min(a.damp, ac.sampleRate * .48));
-      set(revWet.gain, a.rev / 100); set(dry.gain, 1 - a.rev / 100);
+      set(revWet.gain, reverb); set(dry.gain, 1 - reverb);
       set(delay.delayTime, a.dtime / 1000); set(tone.frequency, Math.min(a.tone, ac.sampleRate * .48));
-      set(delayWet.gain, a.del / 100); set(feedback.gain, a.feedback / 100);
+      set(delayWet.gain, echo); set(feedback.gain, a.feedback / 100);
       set(master.gain, a.vol / 100); set(drive.gain, gain(a.drive));
       lim.threshold.value = a.ceiling; set(toUnit.gain, 1 / gain(a.ceiling)); set(ceiling.gain, gain(a.ceiling));
       set(capped.gain, a.limiter ? 1 : 0); set(unlim.gain, a.limiter ? 0 : 1);
       initial = false;
     }
     return {
-      inp, out, pre, meter, comp, lim, filters, latency: compareDelay,
+      inp, out, pre, meter, comp, lim, deComp, filters,
       compare(on) { set(original.gain, on ? 1 : 0); set(rendered.gain, on ? 0 : 1); },
       cut(level) { set(out.gain, level); },
       set: update
@@ -161,7 +208,7 @@ PD.mixrack = (() => {
     const sliders = new Map();
     const work = h('div', { class: 'mx-work' });
     const nav = h('div', { class: 'mx-tabs', role: 'tablist', 'aria-label': t('mx.title') });
-    const keys = ['eq', 'comp', 'rev', 'delay', 'master', 'clean'];
+    const keys = ['eq', 'comp', 'character', 'rev', 'delay', 'master', 'clean'];
     const title = key => t('mx.' + key);
     const button = (text, action, cls = 'btn small') => h('button', { type: 'button', class: cls, text, onclick: action });
     const ref = (key, value, refresh = true) => { o.set(key, value, refresh); preset.value = 'custom'; };
@@ -184,9 +231,11 @@ PD.mixrack = (() => {
     const output = h('meter', { min: -72, max: 0, value: -72, 'aria-label': title('out') });
     const levelIn = graph ? new Float32Array(graph.pre.fftSize) : null;
     const levelOut = graph ? new Float32Array(graph.meter.fftSize) : null;
-    const meterLine = (label, meter) => h('div', { class: 'mx-level' }, [h('span', { text: label }), meter]);
+    const inputPeak = h('output', { 'aria-label': t('mx.inputPeak'), text: '—' });
+    const outputPeak = h('output', { 'aria-label': t('mx.outputPeak'), text: '—' });
+    const meterLine = (label, meter, value) => h('div', { class: 'mx-level' }, [h('span', { text: label }), meter, value]);
     const head = h('div', { class: 'mx-head' }, [h('div', { class: 'mx-actions' }, [transport, ab, preset]),
-      h('div', { class: 'mx-levels' }, [meterLine(title('in'), input), meterLine(title('out'), output)])]);
+      h('div', { class: 'mx-levels' }, [meterLine(title('in'), input, inputPeak), meterLine(title('out'), output, outputPeak)])]);
     const section = (...controls) => h('div', { class: 'mx-controls' }, controls);
     function control(key, label, min, max, step = 1, format = String, nonlinear = false, commit = false) {
       const read = value => nonlinear ? 20 * (max / 20) ** (value / 1000) : value;
@@ -230,10 +279,15 @@ PD.mixrack = (() => {
       const amounts = new Float32Array(freqs.length), magnitude = new Float32Array(freqs.length), phase = new Float32Array(freqs.length);
       const before = new Float32Array(graph.pre.frequencyBinCount), after = new Float32Array(graph.meter.frequencyBinCount);
       function bandControls() {
-        const b = bands.find(i => i.id === selected);
+        const i = bands.findIndex(band => band.id === selected), b = bands[i], flag = 1 << i;
+        const bypass = button(t('mx.bandOff'), () => {
+          ref('eqMask', o.get().eqMask ^ flag); bandControls(); draw();
+          controls.querySelector('button')?.focus();
+        });
+        bypass.setAttribute('aria-pressed', String(Boolean(o.get().eqMask & flag)));
         controls.replaceChildren(h('div', { class: 'mx-band-title', text: title(b.id) }),
           section(control(b.f, t('mx.freq'), 20, max, 1, fmt.hz, true), control(b.g, t('mx.gain'), -18, 18, .5, fmt.db),
-            ...(b.q ? [control(b.q, t('mx.q'), .25, 12, .05, n => n.toFixed(2))] : [])));
+            ...(b.q ? [control(b.q, t('mx.q'), .25, 12, .05, n => n.toFixed(2))] : [])), bypass);
         for (const [id, marker] of markers) marker.setAttribute('aria-pressed', String(id === selected));
       }
       for (const b of bands) {
@@ -289,10 +343,11 @@ PD.mixrack = (() => {
         }
         ctx.beginPath(); amounts.forEach((db, i) => ctx[i ? 'lineTo' : 'moveTo'](i / 209 * w, y(db) * h));
         ctx.strokeStyle = '#ffbb96'; ctx.lineWidth = 3; ctx.stroke();
-        for (const b of bands) {
+        bands.forEach((b, i) => {
           const marker = markers.get(b.id);
+          marker.classList.toggle('mx-band-off', Boolean(a.eqMask & (1 << i)));
           marker.style.left = clamp(x(a[b.f]) * 100, 2, 98) + '%'; marker.style.top = y(a[b.g]) * 100 + '%';
-        }
+        });
       }
       paint = draw;
       const hum = h('select', { class: 'input', 'aria-label': t('mx.hum') }, [0, 50, 60].map(value => h('option', { value, text: fmt.hz(value) })));
@@ -300,6 +355,7 @@ PD.mixrack = (() => {
       return [h('div', { class: 'mx-eq-chart' }, [cv, layer]), controls,
         h('div', { class: 'mx-quick' }, [control('hp', t('mx.hp'), 0, 240, 5, fmt.hz),
           h('label', { class: 'mx-field' }, [h('span', { text: t('mx.hum') }), hum]),
+          control('lp', t('mx.lp'), 200, 20000, 50, n => n === 20000 ? '—' : fmt.hz(n)),
           toggle('eqOff', t('mx.bypass'))])];
     }
     function compression() {
@@ -315,19 +371,47 @@ PD.mixrack = (() => {
         line(ctx, left, height, w - 20, 0, '#ffffff55');
         ctx.beginPath();
         for (let db = -60; db <= 0; db++) {
-          const wet = a.comp / 100;
+          const wet = o.compared() ? 0 : wetMix(a, 'comp');
           const result = wet ? decibels(gain(db) * (1 - wet) + gain(transfer(db, a.threshold, a.ratio, a.knee) + a.makeup) * wet) : db;
           ctx[db === -60 ? 'moveTo' : 'lineTo'](left + at(db) * width, (1 - clamp(at(result), 0, 1)) * height);
         }
         ctx.strokeStyle = '#78c9b6'; ctx.lineWidth = 3; ctx.stroke();
-        gr.value = a.comp ? Math.max(0, -graph.comp.reduction) : 0;
+        gr.value = !o.compared() && wetMix(a, 'comp') ? Math.max(0, -graph.comp.reduction) : 0;
         readout.textContent = fmt.db(-gr.value);
       };
-      return [cv, h('div', { class: 'mx-gr' }, [h('span', { text: t('mx.gr') }), gr, readout]),
+      return [cv, h('div', { class: 'mx-quick' }, [toggle('compOff', t('mx.bypass')),
+        h('div', { class: 'mx-gr' }, [h('span', { text: t('mx.gr') }), gr, readout])]),
         section(control('threshold', t('ve.thresh'), -60, 0, 1, fmt.db), control('ratio', t('ve.ratio'), 1, 20, .1, fmt.ratio),
           control('attack', t('ve.attack'), 1, 100, 1, fmt.ms), control('release', t('ve.release'), 30, 1000, 5, fmt.ms),
           control('knee', t('mx.knee'), 0, 40, 1, fmt.db), control('makeup', t('mx.makeup'), -12, 18, .5, fmt.db),
           control('comp', t('mx.wet'), 0, 100, 1, fmt.pct))];
+    }
+    function character() {
+      const cv = canvas(t('mx.curve'), 'character'), gr = h('meter', { min: 0, max: 24, value: 0, 'aria-label': t('mx.gr') }),
+        reduction = h('b');
+      paint = () => {
+        const { ctx, w, h } = surface(cv), a = o.get(), wet = o.compared() ? 0 : a.tape / 100;
+        line(ctx, 0, h / 2, w, h / 2); line(ctx, w / 2, 0, w / 2, h);
+        line(ctx, 0, h, w, 0, '#ffffff50');
+        ctx.beginPath();
+        for (let i = 0; i <= 128; i++) {
+          const x = i / 64 - 1, y = x * (1 - wet) + saturate(x, a.tapeDrive) * wet;
+          ctx[i ? 'lineTo' : 'moveTo'](w * i / 128, (1 - y) * h / 2);
+        }
+        ctx.strokeStyle = '#f1ad78'; ctx.lineWidth = 3; ctx.stroke();
+        gr.value = o.compared() ? 0 : Math.min(24, Math.max(0, -graph.deComp.reduction) * a.deess / 100);
+        reduction.textContent = fmt.db(-gr.value);
+      };
+      return [h('div', { class: 'mx-character' }, [
+        h('div', { class: 'mx-effect-group' }, [h('h4', { text: t('mx.deess') }),
+          h('div', { class: 'mx-gr' }, [h('span', { text: t('mx.gr') }), gr, reduction]),
+          section(control('deess', t('mx.wet'), 0, 100, 1, fmt.pct),
+            control('deFreq', t('mx.deFreq'), 2500, 12500, 50, fmt.hz),
+            control('deThreshold', t('mx.deThreshold'), -60, 0, 1, fmt.db))]),
+        h('div', { class: 'mx-effect-group' }, [h('h4', { text: t('mx.tape') }), cv,
+          section(control('tape', t('mx.wet'), 0, 100, 1, fmt.pct),
+            control('tapeDrive', t('mx.tapeDrive'), 0, 24, .5, fmt.db))])
+      ])];
     }
     function reverb() {
       const cv = canvas(t('mx.tail'), 'rev');
@@ -347,7 +431,7 @@ PD.mixrack = (() => {
         const b = button(title(key), () => { ref('space', key); drawTab(); });
         b.setAttribute('aria-pressed', String(o.get().space === key)); return b;
       });
-      return [cv, h('div', { class: 'mx-modes', 'aria-label': t('mx.space') }, modes),
+      return [cv, h('div', { class: 'mx-modes', 'aria-label': t('mx.space') }, [...modes, toggle('revOff', t('mx.bypass'))]),
         section(control('rev', t('mx.wet'), 0, 100, 1, fmt.pct), control('decay', t('mx.decay'), .3, 5, .1, n => n.toFixed(1) + ' s', false, true),
           control('predelay', t('mx.pre'), 0, 200, 1, fmt.ms), control('damp', t('mx.damp'), 20, 18000, 1, fmt.hz, true))];
     }
@@ -359,8 +443,8 @@ PD.mixrack = (() => {
         section(control('vol', t('ve.vol'), 0, 200, 1, fmt.pct), control('ceiling', t('mx.ceiling'), -12, 0, .1, fmt.db),
           control('drive', t('mx.drive'), -12, 18, .5, fmt.db))];
     }
-    const designs = { eq: equalizer, comp: compression, rev: reverb, master, clean: o.cleanup,
-      delay: () => [section(control('del', t('mx.wet'), 0, 100, 1, fmt.pct), control('dtime', t('ve.dtime'), 40, 1200, 5, fmt.ms),
+    const designs = { eq: equalizer, comp: compression, character, rev: reverb, master, clean: o.cleanup,
+      delay: () => [h('div', { class: 'mx-quick' }, [toggle('delOff', t('mx.bypass'))]), section(control('del', t('mx.wet'), 0, 100, 1, fmt.pct), control('dtime', t('ve.dtime'), 40, 1200, 5, fmt.ms),
         control('feedback', t('mx.feedback'), 0, 88, 1, fmt.pct), control('tone', t('mx.tone'), 20, 15000, 1, fmt.hz, true))] };
     const buttons = new Map(keys.map(key => [key, button(title(key), () => { tab = key; o.select(key); drawTab(); }, 'mx-tab')]));
     nav.append(...buttons.values());
@@ -380,9 +464,13 @@ PD.mixrack = (() => {
     return { el: h('div', { class: 'mx-rack' }, [head, nav, work]), meter() {
       if (performance.now() - last < 48) return;
       last = performance.now();
-      input.value = peak(graph.pre, levelIn); output.value = peak(graph.meter, levelOut);
-      input.title = fmt.db(input.value); output.title = fmt.db(output.value); paint();
+      const inDb = peak(graph.pre, levelIn), outDb = peak(graph.meter, levelOut);
+      input.value = inDb; output.value = outDb;
+      inputPeak.textContent = inDb <= -72 ? '—' : fmt.db(inDb);
+      outputPeak.textContent = outDb <= -72 ? '—' : fmt.db(outDb);
+      outputPeak.classList.toggle('mx-clipping', outDb >= 0);
+      paint();
     } };
   }
-  return { defaults, presets, chain, panel, transfer, tailSeconds };
+  return { defaults, presets, chain, panel, transfer, tailSeconds, latency, changed };
 })();
