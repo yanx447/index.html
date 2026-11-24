@@ -159,6 +159,7 @@ authorization of the copyright holder.
   const STICKERS=PD.stickers.STICKERS;
   const sticker=(id,small)=>PD.stickers.render(id,small);
   const stickerGrid=onPick=>PD.stickers.picker(onPick);
+  const stickerIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v8Zm0 0v-5a2 2 0 0 1 2-2h5M7 8h.01M14 8h.01M8 12q3 3 6 0"/></svg>';
 
   /* ---------------- GIFs (through the server) ---------------- */
   let gifOn = null;
@@ -209,8 +210,8 @@ authorization of the copyright holder.
 
     }
     function paintTabs(gif) {
-      const list = [['emoji','😊','ck.emoji']].concat(opts.onSticker ? [['stickers','🪕','ck.stickers']] : []).concat(opts.onGif ? [['gif','GIF','ck.gif']] : []);
-      tabs.replaceChildren(...list.map(([k,icon,key])=>h('button',{type:'button',role:'tab','aria-selected':String(cur===k),class:cur===k?'on':'','aria-label':t(key),text:t(key),tabindex:cur===k?'0':'-1',onclick:()=>show(k)})),closeButton);
+      const list = ['emoji', ...(opts.onSticker ? ['stickers'] : []), ...(opts.onGif ? ['gif'] : [])];
+      tabs.replaceChildren(...list.map(k=>h('button',{type:'button',role:'tab','aria-selected':String(cur===k),class:cur===k?'on':'','aria-label':t('ck.'+k),text:t('ck.'+k),tabindex:cur===k?'0':'-1',onclick:()=>show(k)})),closeButton);
     }
     function show(k) {
       cur=k;el.dataset.tab=k; const token=++revision;
@@ -253,5 +254,5 @@ authorization of the copyright holder.
       else if (part) el.append(document.createTextNode(part));
     });
   }
-  return { emojiGrid, appendEmoji, isEmojiMessage, panel, emojiButton, sticker, STICKERS, insert, gifsAvailable, get gifReady() { return gifOn === true; } };
+  return { emojiGrid, appendEmoji, isEmojiMessage, panel, emojiButton, sticker, stickerIcon, STICKERS, insert, gifsAvailable, get gifReady() { return gifOn === true; } };
 })();

@@ -4,8 +4,9 @@
    backend/social-sql.test.mjs, so this checks the screens, not the SQL.
    Run: python3 build.py && node qa/social.cjs   (needs dist/app; serves it itself; screenshots → qa/out/social-*.png) */
 const path = require('path'), fs = require('fs'), http = require('http');
+const assert = require('node:assert/strict');
 const { chromium } = require(path.join(__dirname, '..', 'node_modules', 'playwright'));
-const ROOT = path.join(__dirname, '..', 'dist', 'app'), OUT = path.join(__dirname, 'out'); fs.mkdirSync(OUT, { recursive: true });
+const ROOT = path.join(__dirname, '..', 'dist', 'app'), OUT = process.env.PANDURI_QA_OUT || path.join(__dirname, 'out'); fs.mkdirSync(OUT, { recursive: true });
 const SB = 'https://tecynfffgjgrcafmfqty.supabase.co', ME = '11111111-1111-1111-1111-111111111111', NINO = '22222222-2222-2222-2222-222222222222', GIO = '33333333-3333-3333-3333-333333333333';
 const now = Date.now(), iso = m => new Date(now - m * 60000).toISOString();
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webmanifest': 'application/manifest+json', '.mp3': 'audio/mpeg', '.woff2': 'font/woff2' };
@@ -34,6 +35,7 @@ const messages = [
   { id: 6, sender: NINO, body: '', created_at: iso(17), media_path: null, thumb_path: null, media_kind: null, media_meta: { w: 200, h: 150 }, post_ref: null, gif: 'https://media2.giphy.com/media/qa/200w.gif' }
 ];
 const sent = [];
+const postedComments = [];
 const notes = [{ id: 7, kind: 'friend_post', actor: NINO, params: { name: 'ნინო', what: 'video', s: 'მრავალჟამიერი', post: 41 }, title: 'სიმა · მეგობრის ახალი პოსტი', body: 'ნინო ახალ ვიდეოს აზიარებს: „მრავალჟამიერი“', go: 'community:p:41', tag: 'fp:41', created_at: iso(40), read_at: null }];
 let later = [];   // notifications the "server" adds during the run
 const calls = [];
@@ -70,7 +72,15 @@ async function fakeServer(route, media) {
   if (p === '/rest/v1/messages') { if (m === 'POST') { sent.push(body[0]); return json(body); } return json(u.searchParams.get('id') ? [] : messages.slice().reverse()); }
   if (p === '/functions/v1/gifs') return json(u.searchParams.get('probe') ? { on: true } : [1, 2, 3, 4].map(i => ({ id: 'g' + i, title: 'gif ' + i, url: 'https://media2.giphy.com/media/qa' + i + '/200w.gif', preview: 'https://media2.giphy.com/media/qa' + i + '/100w.gif', w: 200, h: 150 })));
   if (p === '/rest/v1/message_reactions') return json([{ message_id: 3, user_id: NINO, emoji: 'panduri' }, { message_id: 1, user_id: ME, emoji: 'heart' }]);
-  if (p === '/rest/v1/feed_comments') return json([{ id: 1, author: GIO, author_name: 'გიორგი', body: 'ძალიან კარგია! 👏', created_at: iso(20) }, { id: 2, author: ME, author_name: 'ნუკრი', body: 'შესანიშნავია', created_at: iso(10) }]);
+  if (p === '/rest/v1/feed_comments') {
+    if (m === 'POST') {
+      const row = { ...body[0], id: 3 + postedComments.length, author: ME, author_name: 'ნუკრი', created_at: iso(0) };
+      postedComments.push(row);
+      return json([row], 201);
+    }
+    const post = u.searchParams.get('post_id');
+    return json([{ id: 1, author: GIO, author_name: 'გიორგი', body: 'ძალიან კარგია! 👏', created_at: iso(20) }, { id: 2, author: ME, author_name: 'ნუკრი', body: 'შესანიშნავია', created_at: iso(10) }, ...postedComments.filter(row => post === 'eq.' + row.post_id)]);
+  }
   if (p === '/rest/v1/notifications') { const after = +(u.searchParams.get('id') || '').replace('gt.', '') || 0; if (u.searchParams.get('read_at')) return json([]); return json(notes.concat(later).filter(n => n.id > after).sort((a, b) => b.id - a.id)); }
   if (p === '/functions/v1/push') return json({ key: 'BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' });
   if (p.startsWith('/rest/v1/rpc/')) return json(p.endsWith('react_post') ? body.emoji : p.endsWith('react_message') ? body.emoji : null);
@@ -79,7 +89,7 @@ async function fakeServer(route, media) {
 
 (async () => {
   await new Promise(r => srv.listen(0, r)); const base = 'http://127.0.0.1:' + srv.address().port + '/';
-  const b = await chromium.launch({ args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] });   // a pretend camera, for filming on the computer
+  const b = await chromium.launch({ channel: 'chrome', args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] });   // a pretend camera, for filming on the computer
   // a short video, made in the browser (no ffmpeg needed), and a photo
   const mk = await b.newPage();
   const film = (w, hh, sec) => mk.evaluate(async ([w, hh, sec]) => {
@@ -127,6 +137,53 @@ async function fakeServer(route, media) {
     }
     await pg.evaluate(() => { document.querySelectorAll('.ob,.lf,.ag').forEach(x => x.remove()); PD.app.go('community'); }); await pg.waitForTimeout(1800);
     const shot = n => pg.screenshot({ path: path.join(OUT, `social-${label}-${n}.png`) });
+    if (process.env.STICKERS_ONLY) {
+      postedComments.length = 0;
+      await pg.click('.fd-card.act .fd-cm');
+      const sheet = pg.locator('.fd-comments-sheet');
+      await sheet.locator('.fd-cms .cm-reply').first().waitFor();
+      const pick = async (pack, id) => {
+        await sheet.locator('.fd-comment-stickers').click();
+        const back = sheet.locator('.sp-back');
+        if (await back.count()) await back.click();
+        assert.equal(await sheet.locator('.sp-pack-card').count(), 22);
+        await sheet.locator(`[data-pack="${pack}"]`).click();
+        await sheet.locator(`[data-sticker="${id}"] .sp-pick`).click();
+      };
+      await pick('folkstrings', 'folkstrings-panduri');
+      await sheet.locator('.fd-sticker-draft img').waitFor();
+      assert.equal(postedComments.length, 0);
+      const caption = 'სამი სიმი 🎶';
+      await sheet.locator('textarea').fill(caption);
+      await shot('comment-draft');
+      await sheet.locator('.fd-comment-bar .primary').click();
+      const sticker = sheet.locator('.fd-cms .ck-st--folkstrings-panduri img');
+      await sticker.waitFor();
+      assert.equal(await sticker.evaluate(async img => { await img.decode(); return getComputedStyle(img).animationName; }), 'sp-instrument-strum');
+      assert.equal(postedComments[0].body, ':sticker:folkstrings-panduri:\n' + caption);
+      assert.equal(await sheet.getByText(caption, { exact: true }).count(), 1);
+      await pick('folkwinds', 'folkwinds-doli');
+      await sheet.locator('.fd-sticker-draft button').click();
+      assert.equal(await sheet.locator('.fd-sticker-draft').isVisible(), false);
+      await pick('folkwinds', 'folkwinds-doli');
+      await sheet.locator('.fd-comment-bar .primary').click();
+      const doli = sheet.locator('.fd-cms .ck-st--folkwinds-doli img');
+      await doli.waitFor();
+      assert.equal(await doli.evaluate(img => getComputedStyle(img).animationName), 'sp-instrument-strike');
+      assert.equal(postedComments[1].body, ':sticker:folkwinds-doli:');
+      await pg.keyboard.press('Escape');
+      await sheet.waitFor({ state: 'hidden' });
+      await pg.click('.fd-card.act .fd-cm');
+      await sticker.waitFor();
+      await doli.waitFor();
+      await pg.emulateMedia({reducedMotion: 'reduce'});
+      assert.equal(await sticker.evaluate(img => getComputedStyle(img).animationName), 'none');
+      await shot('comment-stickers');
+      assert.deepEqual(errs, []);
+      report.push([label, 'comment stickers', 'sent with/without text, decoded and animated, persisted after reopening']);
+      await ctx.close();
+      continue;
+    }
     await shot('1-feed');
     const geo = () => pg.evaluate(() => { const st = document.querySelector('.fd-stage'), s = document.querySelector('.fd-scroll'), c = s && s.querySelector('.fd-card.act'), r = st && st.getBoundingClientRect(), nav = document.querySelector('.dock');
       const v = c && c.querySelector('video'), box = q => { const e = document.querySelector(q); if (!e) return null; const b = e.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.width)]; };

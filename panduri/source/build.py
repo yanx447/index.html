@@ -69,10 +69,24 @@ def _chord_keys():
 CHORD_KEYS = _chord_keys()
 STICKER_FILES = sorted(f for f in os.listdir('assets/stickers') if f.endswith('.webp')) if os.path.isdir('assets/stickers') else []
 STICKER_MOTION = {f[:-5]: {'motion': 'stickers/' + f, 'still': 'stickers/' + f[:-5] + '-still.webp'} for f in STICKER_FILES if not f.endswith('-still.webp')}
+STICKER_INSTRUMENTS = {f[len('instrument-'):-len('-still.webp')]: f for f in STICKER_FILES if f.startswith('instrument-') and f.endswith('-still.webp')}
 CHAT_FONT_DIGEST = hashlib.sha1(b''.join(open('assets/chat-fonts/'+f,'rb').read() for f in sorted(os.listdir('assets/chat-fonts')))).hexdigest() if os.path.isdir('assets/chat-fonts') else ''
 STICKER_DIGEST = hashlib.sha1(b''.join(open('assets/stickers/'+f,'rb').read() for f in STICKER_FILES)).hexdigest()
+def instrument_sticker_map(inline):
+    if not inline:
+        return {slug: 'stickers/' + file for slug, file in STICKER_INSTRUMENTS.items()}
+    # The single file keeps offline artwork with smaller copies of the same cutouts.
+    images = {}
+    for slug, file in STICKER_INSTRUMENTS.items():
+        with Image.open('assets/stickers/' + file) as image:
+            image.thumbnail((144, 144), Image.Resampling.LANCZOS)
+            webp = BytesIO()
+            image.save(webp, 'WEBP', quality=77, method=6)
+            images[slug] = 'data:image/webp;base64,' + base64.b64encode(webp.getvalue()).decode()
+    return images
+
 def assets_js(inline):
-    return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + (inline_hero if inline else hero) + '", photos: ' + json.dumps(PHOTOS_INLINE if inline else PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ', stickerMotion: ' + json.dumps({} if inline else STICKER_MOTION) + ' };'
+    return 'PD.CHORD_POSES = ' + json.dumps(CHORD_KEYS, separators=(',', ':')) + '; PD.CONFIG = ' + json.dumps(CONFIG) + '; PD.assets = { hero: "' + (inline_hero if inline else hero) + '", photos: ' + json.dumps(PHOTOS_INLINE if inline else PHOTOS) + ', media: ' + json.dumps(media_inline if inline else {m: 'media/' + m for m in MEDIA}) + ', fig: ' + json.dumps(fig_map(inline)) + ', stickerMotion: ' + json.dumps({} if inline else STICKER_MOTION) + ', stickerInstruments: ' + json.dumps(instrument_sticker_map(inline)) + ' };'
 # Compact standalone CSS, preserving strings and the spaces required by selectors and calc().
 css_single = re.sub(
     r"""("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|/\*[\s\S]*?\*/|;\s*(})|\s*([{},;])\s*|(:)\s+|[ \t\r\n]+""",

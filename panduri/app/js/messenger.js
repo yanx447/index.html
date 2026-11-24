@@ -42,7 +42,7 @@ PD.messenger = (() => {
   const icons={
     search:svg('<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>'),
     emoji:svg('<circle cx="12" cy="12" r="9"/><path d="M8 14s1 3 4 3 4-3 4-3M8 9h.01M16 9h.01"/>'),
-    sticker:svg('<path d="M14 21H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v8Zm0 0v-5a2 2 0 0 1 2-2h5M7 8h.01M14 8h.01M8 12q3 3 6 0"/>'),
+    sticker:PD.chatkit.stickerIcon,
     camera:svg('<path d="M8 5l2-2h4l2 2h4a2 2 0 0 1 2 2v12H2V7a2 2 0 0 1 2-2Z"/><circle cx="12" cy="12" r="4"/>'),
     file:svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Zm0 0v6h6M8 13h8M8 17h5"/>'),
     phone:svg('<path d="m8 3 3 5-3 3c2 3 3 4 6 5l3-3 4 3c0 4-2 5-4 5C10 20 4 14 3 7c0-2 1-4 5-4Z"/>'),

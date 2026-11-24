@@ -22,6 +22,7 @@ PD.i18n.add({
   'fd.tooBig': ['ფაილი ძალიან დიდია (მაქს. {n} MB).', 'The file is too large (max {n} MB).'], 'fd.tooLong': ['ძალიან გრძელია (მაქს. {n} წუთი).', 'Too long (max {n} minutes).'],
   'fd.badFile': ['ეს ფაილი ვერ წაიკითხა — სცადე სხვა ფორმატი.', 'This file could not be read — try another format.'],
   'fd.comments': ['კომენტარები', 'Comments'], 'fd.noComments': ['ჯერ კომენტარი არ არის — დაწერე პირველი.', 'No comments yet — write the first.'], 'fd.writeC': ['დაწერე კომენტარი…', 'Write a comment…'],
+  'fd.removeSticker': ['სტიკერის მოცილება', 'Remove sticker'], 'fd.longStickerComment': ['სტიკერის გასაგზავნად კომენტარი ოდნავ შეამოკლე.', 'Shorten the comment to leave room for the sticker.'],
   'fd.share': ['გაზიარება', 'Share'], 'fd.sendTo': ['გაუგზავნე მეგობარს ჩატში', 'Send to a friend in chat'], 'fd.sent': ['გაიგზავნა', 'Sent'], 'fd.noFriendsYet': ['გასაზიარებლად ჯერ მეგობარი დაამატე.', 'Add a friend first to share with them.'],
   'fd.shareOut': ['სხვაგან გაზიარება', 'Share elsewhere'], 'fd.copy': ['ბმულის კოპირება', 'Copy link'], 'fd.shareText': ['ნახე ფანდურის აპში: {s}', 'See it in the Fanduri app: {s}'],
   'fd.delete': ['ვიდეოს წაშლა', 'Delete video'], 'fd.deleteQ': ['წაიშალოს ეს ვიდეო?', 'Delete this video?'], 'fd.deleted': ['წაიშალა', 'Deleted'], 'fd.more': ['მეტი', 'more'],
@@ -604,24 +605,70 @@ PD.social = (() => {
   }
 
   /* ---------------- comments ---------------- */
+  // A sticker prefix keeps comments compatible with the existing moderated text API.
+  function readComment(body) {
+    const match = /^:sticker:([a-z0-9_-]{1,32}):(?:\n|$)/.exec(body);
+    return match && PD.stickers.resolve(match[1]) ? { sticker: match[1], text: body.slice(match[0].length) } : { text: body };
+  }
   function comments(p, onCount) {
     PD.ui.sheet((b, close) => {
-      const list = h('div', { class: 'cm-replies fd-cms' }), inp = h('textarea', { class: 'input', rows: '2', maxlength: '1000', placeholder: t('fd.writeC'), 'aria-label': t('fd.writeC'), style: 'min-height:60px;padding:10px 12px' });
-      const send = async () => { const v = inp.value.trim(); if (!v) return; inp.value = ''; try { await C.social.comment(p.id, v); load(); } catch (e) { inp.value = v; PD.ui.toast(U().err(e)); } };
-      inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-      b.append(h('h2', { 'data-t': 'fd.comments' }), list, h('div', { class: 'cm-bar' }, [PD.chatkit.emojiButton(inp), inp, h('button', { class: 'btn primary icon', 'aria-label': t('cm.send'), html: ic.send, onclick: send })]));
+      b.classList.add('fd-comments-sheet');
+      const list = h('div', { class: 'cm-replies fd-cms' });
+      const inp = h('textarea', { class: 'input', rows: '2', maxlength: '1000', placeholder: t('fd.writeC'), 'aria-label': t('fd.writeC') });
+      const draft = h('div', { class: 'fd-sticker-draft', hidden: true });
+      const tray = h('div', { class: 'fd-sticker-tray', hidden: true });
+      const open = h('button', { type: 'button', class: 'ck-eb fd-comment-stickers', 'aria-label': t('ck.stickers'), 'aria-expanded': 'false', html: PD.chatkit.stickerIcon, onclick: () => showTray(tray.hidden) });
+      const remove = h('button', { type: 'button', class: 'btn small', 'aria-label': t('fd.removeSticker'), text: '×', onclick: () => { pick(null); open.focus(); } });
+      const submit = h('button', { type: 'button', class: 'btn primary icon', 'aria-label': t('cm.send'), html: ic.send, onclick: send });
+      let selected = null, sending = false, alive = true;
+      function showTray(visible) {
+        tray.hidden = !visible;
+        list.hidden = visible;
+        open.setAttribute('aria-expanded', String(visible));
+        if (visible && !tray.firstChild) tray.append(PD.stickers.picker(id => { pick(id); showTray(false); submit.focus(); }));
+        if (visible) tray.querySelector('[role=tab][aria-selected=true]').focus({ preventScroll: true });
+      }
+      function pick(id) {
+        selected = id;
+        draft.hidden = !id;
+        draft.replaceChildren(...(id ? [PD.chatkit.sticker(id, true), remove] : []));
+      }
+      async function send() {
+        const text = inp.value.trim();
+        if (sending || (!text && !selected)) return;
+        const body = selected ? ':sticker:' + selected + ':' + (text ? '\n' + text : '') : text;
+        if ([...body].length > 1000) { PD.ui.toast(t('fd.longStickerComment')); inp.focus(); return; }
+        sending = true;
+        inp.disabled = open.disabled = submit.disabled = remove.disabled = true;
+        showTray(false);
+        try {
+          await C.social.comment(p.id, body);
+          if (alive) { inp.value = ''; pick(null); await load(); }
+        } catch (e) { if (alive) PD.ui.toast(U().err(e)); }
+        finally { sending = false; inp.disabled = open.disabled = submit.disabled = remove.disabled = false; }
+      }
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
+      b.append(h('h2', { 'data-t': 'fd.comments' }), list, tray, draft, h('div', { class: 'cm-bar fd-comment-bar' }, [PD.chatkit.emojiButton(inp), open, inp, submit]));
       async function load() {
         try {
-          const rows = await C.social.comments(p.id) || []; list.innerHTML = ''; onCount && onCount(rows.length);
+          const rows = await C.social.comments(p.id) || [];
+          if (!alive) return;
+          list.replaceChildren(); onCount && onCount(rows.length);
           if (!rows.length) { list.appendChild(h('p', { class: 'muted', 'data-t': 'fd.noComments' })); PD.i18n.apply(list); return; }
-          rows.forEach(r => list.appendChild(h('div', { class: 'cm-reply' }, [h('small', { text: (r.author_name || '—') + ' · ' + U().ago(r.created_at) }), h('p', { text: r.body }),
+          rows.forEach(r => {
+            const { sticker, text } = readComment(r.body);
+            const caption = text ? h('p') : null;
+            if (caption) PD.chatkit.appendEmoji(caption, text);
+            list.append(h('div', { class: 'cm-reply' }, [h('small', { text: (r.author_name || '—') + ' · ' + U().ago(r.created_at) }), sticker ? PD.chatkit.sticker(sticker) : null, caption,
             h('div', { class: 'row', style: 'gap:2px;justify-content:flex-end' }, [
               (r.author === C.uid || p.author === C.uid || C.isAdmin) ? h('button', { class: 'cm-flag', 'aria-label': t('cm.delete'), html: IC.trash, onclick: async () => { try { await C.social.uncomment(r.id); load(); } catch (e) { PD.ui.toast(U().err(e)); } } }) : null,
-              r.author !== C.uid ? h('button', { class: 'cm-flag', 'aria-label': t('md.report'), html: IC.flag, onclick: () => U().reportSheet('comment', r.id) }) : null].filter(Boolean))])));
+              r.author !== C.uid ? h('button', { class: 'cm-flag', 'aria-label': t('md.report'), html: IC.flag, onclick: () => U().reportSheet('comment', r.id) }) : null].filter(Boolean))].filter(Boolean)));
+          });
           list.scrollTop = list.scrollHeight;
-        } catch (e) { list.textContent = U().err(e); }
+        } catch (e) { if (alive) list.textContent = U().err(e); }
       }
       load();
+      return () => { alive = false; };
     });
   }
 

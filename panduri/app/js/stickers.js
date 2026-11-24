@@ -1,4 +1,4 @@
-/* Original animated 2D artwork and pre-rendered 3D sculptures.
+/* Original animated 2D artwork, instrument cutouts, and pre-rendered 3D sculptures.
    Wire IDs are text; old messages resolve through LEGACY instead of losing art. */
 PD.i18n.add({
   'sp.title':['სტიკერების პაკები','Sticker packs'], 'sp.all':['ყველა სტიკერი','All stickers'],
@@ -9,7 +9,7 @@ PD.i18n.add({
   'sp.empty':['ვერაფერი მოიძებნა','No stickers found'], 'sp.noRecent':['გაგზავნილი სტიკერები აქ გამოჩნდება','Stickers you send will appear here'],
   'sp.noFavorites':['ვარსკვლავით შეინახე სასურველი სტიკერები','Use the star to save stickers here'],
   'sp.back':['პაკებთან დაბრუნება','Back to packs'], 'sp.more':['კიდევ {n} სტიკერი','Show {n} more stickers'],
-  'sp.unavailable':['სტიკერი მიუწვდომელია','Sticker unavailable'], 'sp.preview':['ანიმაციის თავიდან ნახვა','Replay animation'], 'sp.motion':['ანიმაცია','Animation'], 'sp.motionOn':['მოძრაობის ჩართვა','Play animations'], 'sp.motionOff':['მოძრაობის შეჩერება','Pause animations'], 'sp.motion2d':['2D მოძრაობა','2D motion'], 'sp.motion3d':['3D კოლექცია','3D collection']
+  'sp.unavailable':['სტიკერი მიუწვდომელია','Sticker unavailable'], 'sp.preview':['ანიმაციის თავიდან ნახვა','Replay animation'], 'sp.motion':['ანიმაცია','Animation'], 'sp.motionOn':['მოძრაობის ჩართვა','Play animations'], 'sp.motionOff':['მოძრაობის შეჩერება','Pause animations'], 'sp.motion2d':['2D მოძრაობა','2D motion'], 'sp.motion3d':['3D კოლექცია','3D collection'], 'sp.realistic':['რეალისტური','Realistic']
 });
 PD.stickers=(()=>{
   const h=PD.h,esc=PD.esc||((s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
@@ -19,6 +19,22 @@ PD.stickers=(()=>{
     const p={id,key:'sp.pack.'+id,color,style,ids:[]};labels[p.key]=[ka,en];
     rows.forEach(([slug,k,e,symbol])=>{const item={id:id+'-'+slug,key:'sp.item.'+id+'.'+slug,pack:id,symbol,style,color,index:p.ids.length};labels[item.key]=[k,e];p.ids.push(item.id);catalog.push(item);byId.set(item.id,item);});packs.push(p);
   }
+  pack('folkstrings','ქართული სიმები','Georgian strings','#d9a676','instrument',[
+    ['panduri','ფანდური','Fanduri','panduri'], ['chonguri','ჩონგური','Chonguri','chonguri'],
+    ['changi','ჩანგი','Changi','harp'], ['chuniri','ჭუნირი','Chuniri','bowed']
+  ]);
+  pack('folkwinds','ჩასაბერი და დასარტყამი','Georgian winds & percussion','#caa27d','instrument',[
+    ['doli','დოლი','Doli','drum'], ['salamuri','სალამური','Salamuri','flute'],
+    ['daira','დაირა','Daira','tambourine'], ['larchemi','ლარჭემი','Larchemi','panpipes']
+  ]);
+  pack('acoustic','აკუსტიკური სიმები','Acoustic strings','#d0a38b','instrument',[
+    ['guitar','კლასიკური გიტარა','Classical guitar','guitar'], ['violin','ვიოლინო','Violin','violin'],
+    ['cello','ჩელო','Cello','cello'], ['mandolin','მანდოლინა','Mandolin','mandolin']
+  ]);
+  pack('jazz','ჯაზის საკრავები','Jazz instruments','#d8b366','instrument',[
+    ['trumpet','საყვირი','Trumpet','trumpet'], ['saxophone','საქსოფონი','Saxophone','saxophone'],
+    ['piano','როიალი','Grand piano','piano'], ['drumkit','დრამების ნაკრები','Drum kit','drum']
+  ]);
   pack('instruments','ქართული საკრავები','Georgian instruments','#c9a173','wood',[
     ['panduri','ფანდური','Fanduri','panduri'],['chonguri','ჩონგური','Chonguri','chonguri'],['doli','დოლი','Doli','drum'],['garmoni','გარმონი','Garmoni','accordion'],
     ['duduki','დუდუკი','Duduki','duduki'],['salamuri','სალამური','Salamuri','flute'],['chiboni','ჭიბონი','Chiboni','bagpipe'],['changi','ჩანგი','Changi','harp'],
@@ -105,10 +121,14 @@ PD.stickers=(()=>{
   const trees=(x,y,s=1,c=INK)=>`<g transform="translate(${x} ${y}) scale(${s})">${path('M0 80V8m0 5-17 26h11L-24 62h14l-23 22h66L10 62h14L6 39h11Z','#26352c',c,1.7)}</g>`;
   const drawing={};
   function define(names,fn){names.split(' ').forEach(name=>drawing[name]=fn);}
-  define('panduri', c => path('M74 10h12v50q2 10 12 14 18 8 18 24l-7 32q-29 5-58 0l-7-32q0-16 18-24 10-4 12-14z', c, '#76492f', 2)
-    + circle(80, 94, 12, '#302522', '#75492c', 2)
-    + path('M69 16h9m5 5h9m-23 7h9m-5 11h14m-14 9h14m-17 69h20', 'none', '#855534', 2.4)
-    + path('M77 18v99m3-99v99m3-99v99', 'none', '#fff3db', .8));
+  define('panduri', c => path('M74 71C71 79 52 80 52 96c0 11 9 21 11 40h34c2-19 11-29 11-40 0-16-19-17-22-25Z',c,'#76492f',2)
+    + rect(74,28,12,49,1,'#794831','#a07851') + rect(73,9,14,23,1,c,'#76492f') + rect(77,12,6,16,1,'#302522','none')
+    + Array.from({length:10},(_,i)=>path(`M74 ${32+i*4}h12`,'none',METAL,.9)).join('')
+    + circle(80,95,10,'#302522','#75492c',1.6)
+    + Array.from({length:16},(_,i)=>{const a=i*Math.PI/8;return circle(80+13.5*Math.cos(a),95+13.5*Math.sin(a),1.05,'#302522','none');}).join('')
+    + path('M70 119h20','none','#855534',3)
+    + [[17,1],[22,-1],[27,1]].map(([y,side])=>`<g class="sp-panduri-peg">${path(`M80 ${y}h${side*13}`,'none',METAL,1.2)}${ellipse(80+side*13,y,2.5,1.5,METAL,'none')}</g>`).join('')
+    + [77,80,83].map((x,i)=>`<g class="sp-panduri-string">${path(`M80 ${17+i*5}L${x} 32V119L${x} 134`,'none','#fff3db',.8)}</g>`).join(''));
   define('chonguri',(c,s)=>{const fourth=s==='chonguri';return path('M72 43V8h16v35c2 13 32 23 32 49 0 20-18 32-40 32S40 112 40 92c0-26 30-36 32-49Z','#65452f',c,2.2)+path('M76 43V13h8v30c1 12 27 25 27 48 0 16-13 24-31 24S49 107 49 91c0-23 26-36 27-48Z','#a77b50','none')+ellipse(80,77,9,11,'#242323',c)+path('M65 107h30M65 17h7m16 0h7M65 28h7','none',INK,3)+Array.from({length:fourth?4:3},(_,i)=>path(`M${76+i*(fourth?2.6:4)} 13v94`,'none','#eee0c7',.8)).join('');});
   define('drum',(c)=>ellipse(80,39,40,14,'#c8ad86',c)+path('M40 39v62c0 21 80 21 80 0V39','#67473d',c)+ellipse(80,39,40,14,'#ba9f7a',INK)+path('m44 50 18 53 18-50 18 50 18-53M43 91h74','none','#cfb894',1.5)+path('m31 14 33 16m64-16-33 16','none',c,4));
   define('accordion',(c)=>rect(26,34,28,76,5,'#31333a',c)+rect(106,34,28,76,5,'#31333a',c)+rect(55,39,50,66,0,'#583d3c',c)+Array.from({length:8},(_,i)=>path(`M${58+i*6} 41v62`,'none',c,1.1)).join('')+Array.from({length:9},(_,i)=>rect(31,40+i*7,18,6,0,'#e7decb','#686056')).join('')+Array.from({length:12},(_,i)=>circle(114+i%2*10,45+Math.floor(i/2)*10,1.8,c,'none')).join(''));
@@ -303,7 +323,6 @@ PD.stickers=(()=>{
     ['panduri','ცოცხალი ჰანგი','A living melody','panduri'],['headphones','ჩემს სამყაროში','In my world','headphones'],['mic','შენი ხმა','Your voice','mic'],['vinyl','ჩემი ჩანაწერი','My record','vinyl'],
     ['cassette','კარგი მოგონება','A good memory','cassette'],['piano','პატარა მელოდია','A little melody','piano'],['metronome','საკუთარი რიტმი','My own rhythm','metronome'],['equalizer','ვიბრაცია','Vibration','equalizer']
   ]);
-  PD.i18n.add(labels);
   pack('session','ერთად დავუკრათ','Play together','#d7a075','wood',[
     ['warmup','გავხურდეთ','Time to warm up','warmup'],
     ['take','კარგი ჩანაწერია','Nice take','goodtake'],
@@ -312,6 +331,7 @@ PD.stickers=(()=>{
     ['duet','ერთად დავუკრათ','Let’s play together','twopanduri'],
     ['ready','მზად ვარ დასაკრავად','Ready to play','readytoplay']
   ]);
+  PD.i18n.add(labels);
   define('warmup', c => drawing.panduri(c) + path('M29 66H19m13-13-9-5m107 18h10m-12-13 9-5','none',c,3));
   define('goodtake', c => drawing.record(c) + path('m61 76 13 13 27-31','none',INK,7));
   define('replaytake', c => `<g transform="translate(50 35) scale(.6)">${drawing.panduri(c)}</g>` + path('M45 47a47 47 0 1 0 37-15M45 47l1-18m-1 18 20-1','none',c,3.5));
@@ -334,7 +354,7 @@ PD.stickers=(()=>{
   }
   let serial=0,paused=PD.store?.get('sp.paused',false)===true;
   const reduced=()=>paused||document.documentElement.classList.contains('rm')||(typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const motionGroups={spin:'vinyl loop repeat encore',pendulum:'metronome',beat:'heart love pulse bass speaker stereo headphones drum kettledrums',wave:'wavehand palm claphands applause salute',sway:'wildflower flower leaf branch pine palm tree reed bouquet hammock',rain:'rain rainstreet storm',steam:'espresso coffee cup tea candle fire',signal:'wave rhythm quiet loud equalizer meters harmony treble strings tuningfork',float:'cloud moon sun sunrise star constellation balloons plane boat',type:'',tilt:'panduri chonguri practice accordion harp bowed instrumentcase guitar'};
+  const motionGroups={spin:'vinyl loop repeat encore',pendulum:'metronome',beat:'heart love pulse bass speaker stereo headphones drum kettledrums',wave:'wavehand palm claphands applause salute',sway:'wildflower flower leaf branch pine palm tree reed bouquet hammock',rain:'rain rainstreet storm',steam:'espresso coffee cup tea candle fire',signal:'wave rhythm quiet loud equalizer meters harmony treble strings tuningfork',float:'cloud moon sun sunrise star constellation balloons plane boat',type:'',tilt:'panduri chonguri practice accordion harp bowed instrumentcase guitar violin cello mandolin trumpet saxophone'};
   const motionFor=item=>!item.symbol?'type':Object.keys(motionGroups).find(k=>motionGroups[k].split(' ').includes(item.symbol))||'breathe';
   function tint(hex,toward,amount){const c=hex.replace('#',''),v=toward.replace('#','');if(c.length!==6)return hex;return '#'+[0,2,4].map(i=>Math.round(parseInt(c.slice(i,i+2),16)*(1-amount)+parseInt(v.slice(i,i+2),16)*amount).toString(16).padStart(2,'0')).join('');}
   function typographyMotion(item){
@@ -344,7 +364,7 @@ PD.stickers=(()=>{
   function svg(id){
     const item=resolve(id);if(!item)return '<svg viewBox="0 0 160 160" aria-hidden="true">'+path('M40 40h80v80H40Zm10 65 23-23 15 14 14-19 18 28','none',METAL,2)+'</svg>';
     const c=item.color,uid='sp'+(++serial),motion=motionFor(item);
-    let art=item.symbol?drawing[item.symbol](c,item.symbol):typographyMotion(item);
+    let art=item.symbol?(drawing[item.symbol]||drawing.instrumentcase)(c,item.symbol):typographyMotion(item);
     if(item.symbol==='metronome')art=path('M59 18h42l25 105H34Z','#4d4a40',c,2)+path('M66 29h28l17 76H49Z','#a49778',INK,1)+`<g class="sp-needle">${path('M80 109V33','none',INK,3)}${rect(75,46,10,16,2,c,INK)}</g>`+circle(80,109,4,c,'none');
     // Three tonal materials keep the original silhouettes legible at chat size.
     art=art.replace(/fill="(#[0-9a-fA-F]{6})"/g,(all,color)=>{if(color.toLowerCase()==='#fff7ed')return all;if(color.toLowerCase()===INK.toLowerCase())return 'fill="#fff3db"';if(color===c)return `fill="url(#${uid}color)"`;return `fill="${tint(c,'#18223a',.58)}"`;}).replace(/stroke-width="(1(?:\.[0-5])?)"/g,'stroke-width="1.8"');
@@ -360,7 +380,25 @@ PD.stickers=(()=>{
     if(item?.pack!=='sculpt')return null;
     return PD.assets?.stickerMotion?.[item.id.slice(7)]||null;
   }
-  function artMarkup(id){const item=resolve(id),asset=sculpture(item);return asset?`<picture class="sp-sculpture"><source media="(prefers-reduced-motion: reduce)" srcset="${esc(asset.still)}"><img alt="" src="${esc(reduced()?asset.still:asset.motion)}" data-motion="${esc(asset.motion)}" data-still="${esc(asset.still)}" width="256" height="256" loading="lazy" decoding="async"></picture>`:svg(id);}
+  const instrumentMotion = {
+    chord: 'panduri chonguri changi chuniri guitar violin cello mandolin',
+    strike: 'doli daira diplipito drumkit',
+    breath: 'salamuri duduki larchemi chiboni trumpet saxophone',
+    bellows: 'garmoni',
+    keys: 'piano'
+  };
+  function artMarkup(id){
+    const item=resolve(id);
+    if(item&&(item.style==='instrument'||item.pack==='instruments')){
+      const slug=item.id.slice(item.pack.length+1),instrument=PD.assets?.stickerInstruments?.[slug];
+      if(instrument){
+        const motion=Object.keys(instrumentMotion).find(kind=>instrumentMotion[kind].split(' ').includes(slug));
+        return `<img class="stk-instrument${motion?' sp-'+motion:''}" alt="" src="${esc(instrument)}" width="256" height="256" loading="lazy" decoding="async" draggable="false">`;
+      }
+    }
+    const asset=sculpture(item);
+    return asset?`<picture class="sp-sculpture"><source media="(prefers-reduced-motion: reduce)" srcset="${esc(asset.still)}"><img alt="" src="${esc(reduced()?asset.still:asset.motion)}" data-motion="${esc(asset.motion)}" data-still="${esc(asset.still)}" width="256" height="256" loading="lazy" decoding="async"></picture>`:svg(id);
+  }
   function applyMotion(){document.querySelectorAll('.sp-sticker,.sp-picker,.sp-pack-cover').forEach(e=>e.classList.toggle('sp-paused',paused));document.querySelectorAll('.sp-sculpture img').forEach(img=>img.src=reduced()?img.dataset.still:img.dataset.motion);}
   if(typeof document!=='undefined'){
     if(typeof MutationObserver==='function')new MutationObserver(applyMotion).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
@@ -369,7 +407,7 @@ PD.stickers=(()=>{
   function render(id,small){
     const item=resolve(id),name=item?PD.i18n.t(item.key):PD.i18n.t('sp.unavailable');
     const el=h('span',{class:'ck-st sp-sticker ck-st--'+(item?id:'unknown')+(small?' small':'')+(paused?' sp-paused':''),role:small?'img':'button','aria-label':name,...(small?{}:{tabindex:'0',title:PD.i18n.t('sp.preview')})},[h('span',{class:'ck-art',html:artMarkup(id)}),h('b',{text:name})]);
-    if(!small){const play=()=>{const image=el.querySelector('img[data-motion]');if(image){image.src=image.dataset.motion;}else el.querySelectorAll('.sp-moving,.sp-needle,.sp-letter-line,.sp-steam,.sp-drop,.sp-resonance,.sp-spark').forEach(node=>node.getAnimations().forEach(a=>{a.currentTime=0;}));};el.onclick=play;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();play();}};}
+    if(!small){const play=()=>{if(reduced())return;const image=el.querySelector('img[data-motion]');if(image){image.src=image.dataset.motion;}else el.querySelectorAll('.stk-instrument,.sp-moving,.sp-needle,.sp-letter-line,.sp-steam,.sp-drop,.sp-resonance,.sp-spark').forEach(node=>node.getAnimations().forEach(a=>{a.currentTime=0;}));};el.onclick=play;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();play();}};}
     return el;
   }
   function picker(onPick){
@@ -398,7 +436,10 @@ PD.stickers=(()=>{
       if(active==='packs'&&!q){
         heading.append(h('b',{text:PD.i18n.t('sp.title')}),h('small',{text:PD.i18n.t('sp.total',{p:packs.length,n:catalog.length})}));
         content.className='sp-content sp-pack-grid';
-        [packs[packs.length-1],...packs.slice(0,-1)].forEach(p=>content.append(h('button',{type:'button',class:'sp-pack-card','data-pack':p.id,'aria-label':PD.i18n.t(p.key)+' · '+PD.i18n.t('sp.count',{n:p.ids.length}),onclick:()=>choose(p.id)},[h('span',{class:'sp-pack-cover',html:artMarkup(p.ids[0])}),h('b',{text:PD.i18n.t(p.key)}),h('small',{text:PD.i18n.t(p.id==='sculpt'?'sp.motion3d':'sp.motion2d')+' · '+p.ids.length})])));
+        packs.forEach(p=>{
+          const theme=p.style==='instrument'?'sp.realistic':p.style==='sculpt'?'sp.motion3d':'sp.motion2d';
+          content.append(h('button',{type:'button',class:'sp-pack-card'+(p.style==='instrument'?' sp-pack-instrument':''),'data-pack':p.id,'aria-label':PD.i18n.t(p.key)+' · '+PD.i18n.t('sp.count',{n:p.ids.length}),onclick:()=>choose(p.id)},[h('span',{class:'sp-pack-cover',html:artMarkup(p.ids[0])}),h('b',{text:PD.i18n.t(p.key)}),h('small',{text:PD.i18n.t(theme)+' · '+p.ids.length})]));
+        });
         return;
       }
       const current=packs.find(p=>p.id===active),ids=active==='recent'?recent:active==='favorites'?favorites:current?.ids||STICKERS;
