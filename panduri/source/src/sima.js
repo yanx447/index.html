@@ -636,7 +636,14 @@ PD.sima = (() => {
     popTip(t('sm.nudge', { n: name() }), () => open(a.q));
   }
 
-  PD.bus.on('lang', () => { api._ix = null; });
+  PD.bus.on('lang', () => {
+    api._ix = null;
+    // her button was named once, when it was made: a new language renames it (and the dock fits its labels again)
+    const b = fab(); if (!b) return;
+    b.setAttribute('aria-label', name()); b.title = name();
+    const m = b.querySelector('.sm-fab-mark'), l = b.querySelector('.sm-fab-label'); if (m) m.textContent = name()[0]; if (l) l.textContent = name();
+    paintDot(); PD.bus.emit('sima-nav');
+  });
   PD.bus.on('route', stopPlay);
   // a new song from the AI studio, a teacher package, a lesson saved: she reads the list again
   ['lessons', 'curriculum', 'rhythms'].forEach(e => PD.bus.on(e, () => { api._ix = null; }));   // what she searches is the text in the chosen language

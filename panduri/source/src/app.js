@@ -1093,6 +1093,7 @@ PD.app = (() => {
       item(I('<path d="M4 5a2 2 0 0 1 2-2h4v18H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-4v18h4a2 2 0 0 1 2 2z"/><path d="M10 3v18M14 3v18"/>'), 'bk.profile', t('bk.profileD'), () => go('book'), 'accent'),
       PD.install && !PD.install.standalone() ? item(I('<path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>'), 'ins.title', t('ins.lead').split(':')[0], () => go('install')) : null,
       item(I('<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'), 'nav.progress', t('hm.streak', { n: sk.cur }), () => go('progress')),
+      item(pcGear, 'more.settings', t('more.settingsD'), () => go('settings')),   // the gear in the corner alone was easy to miss
       item(I('<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>'), PM.vip ? 'pm.vip' : 'pm.title', PM.active ? PM.status() : t('pm.lead'), () => PM.paywall()),
       PD.exam.graduated() ? item(I('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>'), 'ex.cert', t('ex.grad'), () => go('cert'), 'accent') : null,
       item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', C.session && C.profile?.nickname ? '@' + C.profile.nickname : null, () => go('community', 'me')),
