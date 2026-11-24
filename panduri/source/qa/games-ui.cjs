@@ -18,14 +18,14 @@ const step = async (name, fn) => { try { const r = await fn(); console.log('✓ 
 const ENGINE = process.env.BROWSER === 'webkit' ? pw.webkit : pw.chromium;
 const ARGS = process.env.BROWSER === 'webkit' ? [] : ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--use-file-for-fake-audio-capture=' + SILENT, '--autoplay-policy=no-user-gesture-required'];
 
-async function open(b, w, hgt, lang) {
+async function open(b, w, hgt, lang, fresh) {
   const ctx = await b.newContext(Object.assign({ viewport: { width: w, height: hgt }, serviceWorkers: 'block', deviceScaleFactor: 1 }, process.env.BROWSER === 'webkit' ? {} : { permissions: ['microphone'] }));
   const p = await ctx.newPage(), errs = [];
   p.on('pageerror', e => errs.push(e.message));
   p.on('console', m => { if (m.type() === 'error' && !/Failed to load|net::|404|ERR_|fonts|NotAllowedError/.test(m.text())) errs.push(m.text().slice(0, 200)); });
   await p.route(u => !u.href.startsWith(APP), r => r.abort());
   await p.goto(APP); await p.waitForFunction(() => window.PD && PD.app && PD.games, null, { timeout: 30000 }); await p.waitForTimeout(500);
-  await p.evaluate(l => { PD.i18n.set(l); PD.store.set('onboarded', true); PD.store.set('intro.done', true); PD.store.set('micExplained', true); PD.store.set('gm.calAsked', true); document.querySelectorAll('.ob,.ag,.intro,.cine,.cine-boot').forEach(o => o.remove()); }, lang || 'ka');
+  await p.evaluate(([l, fresh]) => { if (!fresh) PD.store.set('gm.intro', 1); PD.i18n.set(l); PD.store.set('onboarded', true); PD.store.set('intro.done', true); PD.store.set('micExplained', true); PD.store.set('gm.calAsked', true); document.querySelectorAll('.ob,.ag,.intro,.cine,.cine-boot').forEach(o => o.remove()); }, [lang || 'ka', !!fresh]);
   return { ctx, p, errs };
 }
 const settle = p => p.waitForFunction(() => document.querySelectorAll('#main > .page').length === 1, null, { timeout: 5000 }).catch(() => {});
@@ -50,6 +50,37 @@ const waitState = (p, s, ms) => p.waitForFunction(s => PD.games.current && PD.ga
       await ctx.close();
       assert.equal(errs.length, 0, errs.join(' | ')); assert.equal(bad.length, 0, bad.join(' | '));
       return { ok: true };
+    });
+    await step('first visit: three short steps, skippable at any step, never shown again', async () => {
+      const { ctx, p, errs } = await open(b, 390, 844, 'en', true);
+      await p.evaluate(() => PD.app.go('games')); await settle(p);
+      await p.waitForSelector('.gm-intro', { timeout: 4000 }); await shot(p, 'intro-1');
+      const s1 = await p.$eval('.gm-intro', e => e.innerText.replace(/\s+/g, ' '));
+      await p.click('.gm-intro .btn.primary'); await p.waitForTimeout(250);
+      const s2 = await p.$eval('.gm-intro', e => e.innerText.replace(/\s+/g, ' '));
+      await p.click('.gm-intro .btn.quiet'); await p.waitForTimeout(500);
+      const gone = await p.evaluate(() => !document.querySelector('.sheet-back:not(.out) .gm-intro') && !!PD.store.get('gm.intro', 0));
+      await p.evaluate(() => PD.app.go('home')); await settle(p); await p.evaluate(() => PD.app.go('games')); await settle(p); await p.waitForTimeout(800);
+      const again = await p.$$eval('.sheet-back:not(.out) .gm-intro', x => x.length);
+      await ctx.close();
+      assert.ok(/1 \/ 3/.test(s1) && /controller/i.test(s1), s1); assert.ok(/2 \/ 3/.test(s2) && /microphone/i.test(s2), s2);
+      assert.ok(gone, 'skipped and remembered'); assert.equal(again, 0, 'not shown a second time'); assert.equal(errs.length, 0, errs.join(' | '));
+      return { steps: 3 };
+    });
+    await step('the start page checks the listening: microphone, signal, last note, calibration, tuning', async () => {
+      const { ctx, p, errs } = await open(b, 390, 844, 'en');
+      await p.evaluate(() => PD.app.go('games', 'rush')); await settle(p);
+      const off = await p.$$eval('.gm-chk-r', x => x.map(e => e.innerText.replace(/\s+/g, ' ')));
+      await p.click('.gm-mic .btn.primary'); await p.waitForFunction(() => PD.detector.active, null, { timeout: 8000 }); await p.waitForTimeout(1500);
+      const on = await p.$$eval('.gm-chk-r', x => x.map(e => e.innerText.replace(/\s+/g, ' ')));
+      await shot(p, 'page-rush-check');
+      await p.evaluate(() => PD.app.go('home')); await p.waitForTimeout(400); const mic = await p.evaluate(() => PD.detector.active);
+      await ctx.close();
+      assert.equal(off.length, 5, off.join(' | ')); assert.ok(/Microphone.*Off/.test(off[0]), off[0]);
+      assert.ok(/On/.test(on[0]) && /Strike a string/.test(on[1]) && /Nothing yet/.test(on[2]), 'a silent microphone: on, but no signal and no note — ' + on.join(' | '));
+      assert.ok(/Needed/.test(on[3]) && /Not checked/.test(on[4]), on.join(' | ')); assert.equal(mic, false, 'leaving the games lets the microphone go');
+      assert.equal(errs.length, 0, errs.join(' | '));
+      return { rows: on };
     });
     await step('navigation: Games on the side bar (desktop), not an extra phone tab; the Practice hub lists it', async () => {
       const { ctx, p } = await open(b, 1440, 900, 'en');

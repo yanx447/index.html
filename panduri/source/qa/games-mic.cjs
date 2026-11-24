@@ -5,8 +5,9 @@
 // What is checked:
 //   1. Note Rush level 1: 24 notes, one left out and one played wrong → the missing one is a miss, the wrong one a miss
 //      with its reason, (almost) all others hits; the round is saved, with a practice session for the app's XP and streak.
-//   2. Rhythm Battle, kazbeguri at 60 BPM: 24 strokes with ±20 ms of human jitter, accents louder, one stroke left out and
-//      one extra stroke between two → one miss, the extra counted, accents mostly recognised.
+//   2. Rhythm Battle, mtiuluri at 60 BPM, on the stroke lengths measured from the teacher's recordings (kazbeguri and
+//      khorumi have none yet, so they are practice only): 30 strokes with ±20 ms of human jitter, accents louder, one
+//      stroke left out and one extra stroke between two → one miss, the extra counted, accents mostly recognised.
 //   3. Silence and 4. background noise: no note is ever heard as played, nothing counts as a wrong note.
 //   5. The tuning check reads the settled pitch of each open string, as a tuner does.
 //   6. Play-along timing: strokes placed 40 ms after the clicks are measured so (less the output latency).
@@ -66,8 +67,8 @@ async function makeWavs(b) {
       const s = n.s, f = n.i === wrong ? 1 : n.f;   // fret 1 instead of the open string: one semitone up, confidently
       rushEv.push({ at: S0 + n.t + jit(n.i) * .6, buf: await dec(note(s, f)), gain: .55, s });
     }
-    // Rhythm Battle, kazbeguri at 60 BPM: accents louder; stroke 7 left out; one extra stroke after stroke 10
-    const RH = PD.curriculum.rhythms().find(r => r.id === 'kazbeguri'), C = G.rhythmChart(RH, 60), chords = [await dec('chord-0-0-0-down-1.mp3'), await dec('chord-0-0-0-down-2.mp3'), await dec('chord-0-0-0-down-3.mp3')];
+    // Rhythm Battle, mtiuluri at 60 BPM (its measured stroke lengths): accents louder; stroke 7 left out; one extra stroke after stroke 10
+    const RH = PD.curriculum.rhythms().find(r => r.id === 'mtiuluri'), C = G.rhythmChart(RH, 60), chords = [await dec('chord-0-0-0-down-1.mp3'), await dec('chord-0-0-0-down-2.mp3'), await dec('chord-0-0-0-down-3.mp3')];
     const rhEv = [{ at: P0, buf: chords[0], gain: .5, s: 1 }];
     C.chart.forEach(x => { if (x.i === 7) return; rhEv.push({ at: S0 + x.t + jit(x.i), buf: chords[x.i % 3], gain: x.acc ? 1 : .32, s: 1 }); });
     rhEv.push({ at: S0 + C.chart[10].t + .5, buf: chords[1], gain: .32, s: 1 });
@@ -144,8 +145,8 @@ async function round(wavPath, g, l, d, maxSec) {
     const byString = [1, 2, 3].map(st => r.per.filter(x => x[3] === st && x[2] != null).map(x => x[2] + '¢/' + x[0]).join(' ')); console.log('    cents by string A | C♯ | E: ' + byString.join(' | '));
     return { hits, miss: r.miss, wrong: r.wrong, unsure: r.unsure, extra: r.extra, maxCombo: r.maxCombo, timingErrMs: { median: abs[abs.length >> 1], p90: abs[Math.floor(abs.length * .9)], max: abs[abs.length - 1] }, lagMs: r.lag, panel: r.panel && r.panel.slice(0, 90) };
   });
-  await step('Rhythm Battle kazbeguri 60 BPM: strokes, jitter, the missing stroke, the extra one, accents', async () => {
-    const r = await round(file('rhythm'), 'rhythm', 'kazbeguri', 'easy', M.rhythm.len + 8);
+  await step('Rhythm Battle mtiuluri 60 BPM (measured stroke lengths): strokes, jitter, the missing stroke, the extra one, accents', async () => {
+    const r = await round(file('rhythm'), 'rhythm', 'mtiuluri', 'easy', M.rhythm.len + 8);
     assert.equal(r.errs.length, 0, 'page errors: ' + r.errs.join(' | '));
     assert.ok(!r.error, r.error);
     const hits = r.perfect + r.great + r.good;

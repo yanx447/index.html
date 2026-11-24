@@ -10,7 +10,9 @@ const VERSION = '__VERSION__';
 const SHELL_CACHE = 'pd-shell-' + VERSION;
 const SHELL = __SHELL__;
 const SOUND_CACHE = 'pd-sound-__SOUND__';   // the build names it after the sound files, so new recordings replace the old ones
-self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL_CACHE).then(c => c.addAll(SHELL))); });
+// a new version's shell comes from the server, never from the browser's HTTP cache (GitHub Pages lets it keep a file for
+// 10 minutes): otherwise an update right after a deploy could pack yesterday's index.html or tuner beside today's scripts
+self.addEventListener('install', e => { e.waitUntil(caches.open(SHELL_CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' }))))); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => (k.startsWith('pd-shell-') && k !== SHELL_CACHE) || (k.startsWith('pd-sound-') && k !== SOUND_CACHE)).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });

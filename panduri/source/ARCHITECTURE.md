@@ -54,22 +54,39 @@ cloud.js reach them through `PD.games` / `PD.gameCore` guards. Route `games` (hu
   `detector.guard`, so the metronome itself is never a stroke.
 * **What is judged.** Notes: pitch decides right or wrong (tolerance per difficulty; *unsure* is never a mistake, a wrong
   note only with a confident reading, an octave only above 0.8), timing decides Perfect / Great / Good. A plucked string
-  reads sharpest in its first ~0.2 s (the teacher's open A: +26 ¢ there, +8 ¢ settled), so pitch only caps a note near the
-  edge of the tolerance at Great. Strokes: onset time; accent from relative strength; direction never (stated on screen);
+  reads sharpest in its first ~0.2 s (the teacher's open A: +26 ¢ there, +8 ¢ settled; his A string +23…+58 ¢ high on the
+  neck), so the sharp side of each tolerance is wider (`sharp`, 10–20 ¢) and pitch only caps a note near the edge at Great.
+  A confident wrong reading of the right note played a moment ago (its string still ringing) is *unsure*, not wrong. A
+  device whose play-along taps spread more than the listening's own ~8 ms gets its timing windows widened by the excess
+  (at most 15 ms, `gameCore.widen`). Strokes: onset time; accent from relative strength; direction never (stated on screen);
   the later strings of one strum (75–90 ms after the first) are the same stroke. Chords: note by note; the whole-chord
   Goertzel check is a beta and labelled so.
 * **Records.** `games.best · games.hist · games.ach · games.daily` (versioned `{ v: 1 }`), merged per key by
   `gameCore.merge` when the account syncs. Every finished round is one practice session (`game:<g>:<l>`), so the app's XP,
   streak and daily minutes count it; the touch test (`devTouch`) is never saved.
-* **Material.** Note Rush, Melody Memory, Fret Hunter: positions from the instrument profile, ordinary patterns (scales,
-  arpeggios of A, D, E). Rhythm Battle: the teacher's four rhythms (order and accents untouched; equal stroke lengths are
-  the default until he gives them, and the screen says so). Chord Master: the computed library, the teacher's fingering
-  rule. Song Quest: the app's own lessons with their marks (teacher / demo / the learner's own / AI estimate). Band Jam:
-  Bani-Acharuli with its recording (stems full · music · vocals) on its measured beat map; B♭ and C shapes are marked draft.
+* **Material.** Note Rush, Melody Memory, Fret Hunter: positions from the instrument profile, lines made of ordinary
+  practice phrases (scale steps, turns, repeated notes, arpeggios of A, D, E, sequences) that rest on A · C♯ · E
+  (`gameCore.phrases`; chart version `CHART_V`, carried by Arena codes). Rhythm Battle: the teacher's four rhythms (order
+  and accents untouched); stroke lengths are his own once set in the Studio, else measured from his slowest recordings
+  (`gameCore.measuredTiming`: acharuli ≈ 2 : 1 : 2.3, mtiuluri ≈ 1.8 : 1 : 1 : 0.8 : 1), else equal steps — which nobody
+  confirmed, so kazbeguri and khorumi are practice only (no stars, records or XP) until he does. Chord Master: the computed
+  library, the teacher's fingering rule, the app's chord box (`tools.chordDiagram`). Song Quest: only the teacher's own
+  material counts officially; demo / spec drafts, the learner's own and AI estimates are practice, and each is labelled.
+  Band Jam: Bani-Acharuli with its recording (stems full · music · vocals) on its measured beat map; B♭ and C shapes are
+  marked draft. Before a scored round with the recording on the speaker it plays 4 s while the learner is silent: 3 or more
+  strokes heard → the microphone hears the speaker, and the learner chooses headphones (check again), practice or the
+  metronome alone.
+* **Before a round** the start page shows what is measured about the listening: microphone, a sound above the room's
+  floor, the last note heard, calibration, the last tuning check. Without a microphone only a preview plays (the app plays,
+  nothing is scored or saved).
 * **Arena** is a code (base64url JSON + checksum against typing errors); the comparison runs on the device and says it is
   not a ranking. Live head-to-head play needs a server and does not exist.
 * QA: `qa/games-core.cjs` (Node, the rules), `qa/games-mic.cjs` (the teacher's recorded notes through Chromium's fake
-  microphone and the real detector), `qa/games-ui.cjs` (every screen and the session's life; `BROWSER=webkit`).
+  microphone and the real detector), `qa/games-ui.cjs` (every screen and the session's life; `BROWSER=webkit`),
+  `qa/games-audit.cjs` (the verification matrix: every game played by the virtual fanduri, `qa/vpanduri.cjs`),
+  `qa/games-audio.cjs` (how well the listening works: pitch across the neck, fast notes, soft and loud, ringing strings,
+  noise, claps), `qa/games-offline.cjs` (offline through the service worker, and an update after a deploy).
+  `docs/v2-review/games/real-device-tests.md`: the 12 checks still to make on a real fanduri.
 
 ## Needs backend / native work
 * Accounts, verification email, social sign-in, cloud sync, purchases: implement the adapter in `core.js` and call `PD.account.configure(adapter)`.

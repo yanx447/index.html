@@ -36,8 +36,13 @@ PD.gameAudio = (() => {
     return () => offs.splice(0).forEach(f => f());
   }
   const lag = () => Math.max(0, Math.min(.5, A.outLatency || 0));
-  const offset = () => (+PD.store.get(offKey(), 0) || 0) / 1000;
-  const setOffset = ms => PD.store.set(offKey(), Math.max(-250, Math.min(400, Math.round(ms))));
+  /* this device's play-along calibration: { ms, spread } (an older copy is only the number of ms) */
+  const cal = () => { const v = PD.store.get(offKey(), 0); return typeof v === 'number' ? { ms: v, spread: null } : Object.assign({ ms: 0, spread: null }, v); };
+  const offset = () => (+cal().ms || 0) / 1000;
+  const setOffset = (ms, spread) => PD.store.set(offKey(), { ms: Math.max(-250, Math.min(400, Math.round(ms))), spread: spread == null ? null : Math.round(spread), at: Date.now() });
+  /** how unsteady this device's timing measured (s), beyond what the listening itself adds (~8 ms, qa/games-mic.cjs): the
+      stage widens its windows by it (at most 15 ms), so a phone's own jitter never costs the player a grade */
+  const jitter = () => { const sp = cal().spread; return sp == null ? 0 : Math.max(0, Math.min(15, sp - 8)) / 1000; };
   /** a metronome click at audio time t — the learner's own click sound and volume — kept out of the judging */
   function click(t, accent, sub) { A.click(t, accent, sub); D.guard([t]); }
   const db = r => r > 0 ? 20 * Math.log10(r) : -120;
@@ -52,7 +57,7 @@ PD.gameAudio = (() => {
   }
   function info() {
     const c = D.calib || {};
-    return { on: D.active, calibrated: !!c.date, inMs: Math.round(c.latencyMs || 0), outMs: Math.round(lag() * 1000), procMs: D.procLatencyMs, offMs: Math.round(offset() * 1000), floorDb: Math.round(db(D.floor)), room: c.room || 'normal' };
+    return { on: D.active, calibrated: !!c.date, inMs: Math.round(c.latencyMs || 0), outMs: Math.round(lag() * 1000), procMs: D.procLatencyMs, offMs: Math.round(offset() * 1000), jitterMs: Math.round(jitter() * 1000), floorDb: Math.round(db(D.floor)), room: c.room || 'normal' };
   }
 
   /** play-along timing: a count-in of 4, then n clicks; the player strikes with each one. onHit(k, ms) per stroke.
@@ -83,5 +88,5 @@ PD.gameAudio = (() => {
     return p;
   }
 
-  return { acquire, release, listen, lag, offset, setOffset, click, db, devices, onDeviceChange, info, offsetTest, get mine() { return mine; } };
+  return { acquire, release, listen, lag, offset, setOffset, jitter, cal, click, db, devices, onDeviceChange, info, offsetTest, get mine() { return mine; } };
 })();

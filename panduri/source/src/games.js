@@ -41,7 +41,7 @@ PD.i18n.add({
   'gm.dd.notes': ['თითოეულ სიმს ცალკე უკრავ', 'You play each string on its own'], 'gm.dd.strum': ['ერთი დარტყმა — აპი სამივე ბგერას ეძებს', 'One stroke — the app looks for all three tones'],
   'gm.dd.practice': ['დაუკარი თავისუფლად — ქულა არ ითვლება', 'Play freely — nothing is scored'], 'gm.dd.perform': ['დარტყმები და აკორდები ფასდება', 'Strokes and chords are scored'],
   'gm.score': ['ქულა', 'Score'], 'gm.combo': ['კომბო', 'Combo'], 'gm.pause': ['პაუზა', 'Pause'], 'gm.resume': ['გაგრძელება', 'Resume'], 'gm.restart': ['თავიდან', 'Restart'], 'gm.exit': ['გასვლა', 'Exit'], 'gm.paused': ['პაუზა', 'Paused'],
-  'gm.j.perfect': ['ზუსტი', 'Perfect'], 'gm.j.great': ['ძალიან კარგი', 'Great'], 'gm.j.good': ['კარგი', 'Good'], 'gm.j.miss': ['აცდენა', 'Miss'], 'gm.j.unsure': ['ვერ გავიგე', 'Not heard'], 'gm.j.early': ['ადრე', 'Early'], 'gm.j.late': ['გვიან', 'Late'],
+  'gm.j.perfect': ['ზუსტი', 'Perfect'], 'gm.j.great': ['ძალიან კარგი', 'Great'], 'gm.j.good': ['კარგი', 'Good'], 'gm.j.miss': ['აცდენა', 'Miss'], 'gm.j.unsure': ['კარგად ვერ გავიგე', 'Not heard clearly'], 'gm.j.early': ['ძალიან ადრე', 'Too early'], 'gm.j.late': ['ძალიან გვიან', 'Too late'], 'gm.j.earlyS': ['ადრე', 'early'], 'gm.j.lateS': ['გვიან', 'late'],
   'gm.k.octave': ['სხვა ოქტავა', 'Other octave'], 'gm.k.sharp': ['მაღალია', 'Sharp'], 'gm.k.flat': ['დაბალია', 'Flat'], 'gm.k.semitone': ['ერთი ლადით აცდა', 'One fret off'], 'gm.k.wrong': ['სხვა ნოტი', 'Wrong note'],
   'gm.ready': ['მოემზადე', 'Get ready'], 'gm.go': ['დაუკარი!', 'Play!'], 'gm.prep': ['ვემზადებით…', 'Getting ready…'],
   'gm.mic': ['მიკროფონი', 'Microphone'], 'gm.micOn': ['ჩართულია — გისმენ', 'On — listening'], 'gm.micOff': ['გამორთულია', 'Off'], 'gm.micTurnOn': ['მიკროფონის ჩართვა', 'Turn on the microphone'],
@@ -94,7 +94,30 @@ PD.i18n.add({
   'gm.ar.honest': ['შედარება შენს მოწყობილობაზე ხდება. მეგობრის შედეგი კოდიდან მოდის და სერვერი მას არ ამოწმებს — ეს მეგობრული გამოწვევაა და არა რეიტინგი.', "The comparison happens on your device. Your friend's result comes from the code and no server checks it — it is a friendly challenge, not a ranking."],
   'gm.ar.share': ['გაზიარება', 'Share'], 'gm.ar.copy': ['კოდის კოპირება', 'Copy the code'], 'gm.ar.copied': ['დაკოპირდა', 'Copied'], 'gm.ar.shareT': ['ფანდურის გამოწვევა — {g}: {s} ქულა. შეძლებ მეტს?', 'Fanduri challenge — {g}: {s} points. Can you beat it?'],
   'gm.ar.live': ['ერთდროული, პირდაპირი თამაში ჯერ არ არის — მას სერვერი სჭირდება.', 'Live head-to-head play is not here yet — it needs a server.'], 'gm.ar.task': ['დავალება', 'Task'], 'gm.ar.pending': ['მეგობარმა გამოგიწვია — გახსენი არენაში', 'A friend challenged you — open it in the Arena'],
-  'gm.ar.codeT': ['გამოწვევის კოდი', 'Challenge code'], 'gm.ar.yourRes': ['შენი შედეგი', 'Your result'], 'gm.ar.result': ['შედარება', 'Comparison']
+  'gm.pb': ['პირადი რეკორდი: {s}', 'Personal best: {s}'], 'gm.pbNew': ['ახალი პირადი რეკორდი (იყო {s})', 'A new personal best (was {s})'], 'gm.practiceNo': ['ვარჯიში — შედეგი არ ინახება, XP არ ემატება.', 'Practice — nothing is saved, no XP.'],
+  'gm.tip.late': ['რიტმი სწორია, მაგრამ საშუალოდ {ms} ms-ით გვიან უკრავ — დაკვრა ცოტა ადრე დაიწყე.', 'The rhythm is right, but you play {ms} ms late on average — start each stroke a little earlier.'],
+  'gm.tip.early': ['საშუალოდ {ms} ms-ით ადრე უკრავ — ნოტს ხაზამდე დაელოდე.', 'You play {ms} ms early on average — wait for the note to reach the line.'],
+  'gm.tip.unsteady': ['ტემპი იცვლება (±{ms} ms) — ნელ ტემპზე მეტრონომთან ივარჯიშე.', 'Your tempo wanders (±{ms} ms) — practise at a slower tempo with the metronome.'],
+  'gm.tip.accents': ['აქცენტები მხოლოდ {p}-ში ისმის — წითელ ისრებზე უფრო ძლიერად დაარტყი.', 'Accents come through only {p} of the time — strike the red arrows harder.'],
+  'gm.tip.unsure': ['{n} ნოტი კარგად ვერ გავიგე — მიუახლოვდი მიკროფონს ან გაიმეორე კალიბრაცია.', '{n} notes were not heard clearly — move closer to the microphone or repeat the calibration.'],
+  'gm.tip.wrong': ['{n} ნოტი სხვა ბგერად გაისმა — შეამოწმე ლადი და სიმი, სანამ დაუკრავ.', '{n} notes sounded as a different pitch — check the fret and string before you play.'],
+  'gm.tip.octave': ['ბგერა სწორი იყო, ოქტავა — არა: იგივე ნოტი სხვა სიმზე ან ლადზე სცადე.', 'The note was right but in the wrong octave: try the same note on another string or fret.'],
+  'gm.tip.missed': ['{n} ნოტი გამოგრჩა — სირთულე „მარტივზე" სცადე ან დონე გაიმეორე.', '{n} notes were missed — try the Easy difficulty or repeat the level.'],
+  'gm.tip.great': ['ძალიან კარგი — დრო და ბგერა სწორია. სცადე უფრო რთული სირთულე.', 'Very good — timing and pitch are right. Try a harder difficulty.'],
+  'gm.ar.codeT': ['გამოწვევის კოდი', 'Challenge code'], 'gm.ar.yourRes': ['შენი შედეგი', 'Your result'], 'gm.ar.result': ['შედარება', 'Comparison'],
+  'gm.ar.old': ['ეს კოდი თამაშის ძველი ვერსიითაა შექმნილი: ნოტები ახლა სხვაა, ამიტომ შედეგები ვერ შედარდება. სთხოვე მეგობარს ახალი კოდი.', 'This code was made by an older version of the game: the notes are different now, so the results cannot be compared. Ask your friend for a new code.'],
+  'gm.ar.pbYou': ['შენი რეკორდი ამ დონეზე: {s}', 'Your best on this level: {s}'], 'gm.ar.pbNone': ['ამ დონეზე ჯერ არ გითამაშია.', 'You have not played this level yet.'],
+  'gm.ck.title': ['მიკროფონის შემოწმება', 'Microphone check'], 'gm.ck.sig': ['სიგნალი', 'Signal'], 'gm.ck.sigWait': ['დაუკარი ერთი სიმი…', 'Strike a string…'], 'gm.ck.sigOk': ['მოდის · {db} dBFS', 'Arriving · {db} dBFS'],
+  'gm.ck.note': ['ბოლო ნოტი', 'Last note heard'], 'gm.ck.noteWait': ['ჯერ არაფერი', 'Nothing yet'], 'gm.ck.noteUnsure': ['ხმა მოვიდა, ნოტი ვერ გავარჩიე', 'Sound came, no clear note'],
+  'gm.ck.cal': ['კალიბრაცია', 'Calibration'], 'gm.ck.calNeed': ['საჭიროა — ერთი წუთი', 'Needed — one minute'], 'gm.ck.tune': ['აწყობა', 'Tuning'], 'gm.ck.tuneNot': ['არ შემოწმებულა', 'Not checked'],
+  'gm.ck.tuneOk': ['სამივე სიმი ±15¢-ში · {d}', 'All three strings within ±15¢ · {d}'], 'gm.ck.tuneOff': ['{c}¢-მდე აცდენა — ააწყვე', 'Up to {c}¢ off — tune up'],
+  'gm.ck.ready': ['ყველაფერი მზადაა.', 'All set.'], 'gm.ck.offMic': ['მიკროფონი „დაწყებაზე“ ჩაირთვება. ჩართე უკვე ახლა, რომ ნახო, გესმის თუ არა.', 'The microphone turns on with Start. Turn it on now to see whether you are heard.'],
+  'gm.ck.preview': ['მიკროფონის გარეშე მხოლოდ გადახედვაა: აპი თვითონ უკრავს, არაფერი ფასდება და არ ინახება.', 'Without a microphone there is only a preview: the app plays by itself, nothing is scored or saved.'],
+  'gm.hm.cont': ['გაგრძელება', 'Continue'], 'gm.hm.daily': ['დღის გამოწვევა', 'Daily'], 'gm.hm.first': ['დაიწყე ღია სიმებით', 'Start with the open strings'],
+  'gm.in.t1': ['ფანდური შენი კონტროლერია', 'Your fanduri is the controller'], 'gm.in.d1': ['ყველა თამაში მიკროფონით გისმენს. ნოტი მხოლოდ მაშინ ითვლება, როცა აპი მას გაიგებს — ეკრანზე შეხება ნოტს არ ასრულებს.', 'Every game listens through the microphone. A note counts only when the app hears it — touching the screen does not complete a note.'],
+  'gm.in.t2': ['ჯერ მიკროფონი შეამოწმე', 'Check the microphone first'], 'gm.in.d2': ['თამაშის წინ ჩართე მიკროფონი, დაუკარი სიმი და ნახე შემოწმება. კალიბრაცია (ერთხელ თითო მოწყობილობაზე) ნოტებს და დროს უფრო ზუსტად ზომავს.', 'Before a game, turn the microphone on, strike a string and watch the check. Calibration (once per device) makes notes and timing more accurate.'],
+  'gm.in.t3': ['ვარჯიში თუ ოფიციალური', 'Practice or official'], 'gm.in.d3': ['ოფიციალური რაუნდი ვარსკვლავს, რეკორდს და XP-ს იძლევა. მასალა, რომელიც მასწავლებელს ჯერ არ შეუმოწმებია, და ვარჯიშის რეჟიმები მხოლოდ ვარჯიშისთვისაა — ქულა არ ინახება.', 'Official rounds earn stars, records and XP. Material the teacher has not checked yet, and the practice modes, are for practice only — nothing is saved.'],
+  'gm.in.skip': ['გამოტოვება', 'Skip'], 'gm.in.next': ['შემდეგი', 'Next'], 'gm.in.go': ['დავიწყოთ', "Let's play"], 'gm.in.step': ['{a} / {b}', '{a} / {b}']
 });
 
 PD.games = (() => {
@@ -232,6 +255,18 @@ PD.games = (() => {
 .gm-micdot.err{background:rgba(237,100,100,.16);color:var(--gm-err)}
 .gm-meter{height:6px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:6px}.gm-meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3fbf7a,#F1B674 80%,#ED6464);transition:width 70ms linear}
 .gm-acts{display:flex;flex-wrap:wrap;gap:8px}
+.gm-chk{display:grid;gap:2px;margin:2px 0 4px}
+.gm-chk-r{display:grid;grid-template-columns:22px minmax(0,auto) minmax(0,1fr) auto;gap:8px;align-items:center;min-height:36px;padding:2px 0;border-top:1px solid rgba(255,255,255,.05);font-size:var(--t-foot)}
+.gm-chk-r:first-child{border-top:0}.gm-chk-r i{font-style:normal;font-weight:800;width:22px;height:22px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.06);color:var(--gm-tx2);font-size:12px}
+.gm-chk-r.ok i{background:rgba(85,214,151,.16);color:var(--gm-ok)}.gm-chk-r.no i{background:rgba(241,182,116,.16);color:var(--gm-cu2)}
+.gm-chk-r span{color:var(--gm-tx2)}.gm-chk-r b{font-weight:600;text-align:right;color:var(--gm-tx);min-width:0}.gm-chk-r .btn{min-height:32px}
+.gm-hm{display:grid;gap:10px;padding:10px}.gm-hm .gm-hm-main{border:0;background:none;padding:4px}
+.gm-hm-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gm-hm-b{display:grid;gap:2px;text-align:left;padding:10px 12px;border-radius:var(--r-m);border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);color:inherit;font:inherit;cursor:pointer;min-height:56px;min-width:0}
+.gm-hm-b b{font-size:var(--t-foot);font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.gm-hm-b.done b{color:var(--gm-ok)}.gm-hm-b:hover{border-color:var(--gm-line2)}
+.gm-cdia{width:min(64vw,250px)}.gm-cdia svg{display:block;width:100%;height:auto}@media (max-height:700px){.gm-cdia{display:none}}
+.gm-intro .gm-art{height:140px;border-radius:14px;overflow:hidden;margin-bottom:12px}.gm-intro h2{margin:4px 0 8px}
+.gm-in-dots{display:flex;gap:6px;justify-content:center;margin:14px 0}.gm-in-dots i{width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.18)}.gm-in-dots i.on{background:var(--gm-cu2);width:20px}
 .gm-go{position:sticky;bottom:calc(var(--nav-h,64px) + env(safe-area-inset-bottom) + 14px);z-index:4;display:flex;justify-content:center}
 .gm-go .btn{min-width:min(100%,320px);min-height:56px;font-size:var(--t-headline);font-weight:700;border-radius:28px;background:linear-gradient(180deg,#F1B674,#C58A52);color:#1A0F07;box-shadow:0 14px 40px -12px rgba(241,182,116,.55)}
 @media (min-width:768px){.gm-go{bottom:20px}}
@@ -367,6 +402,7 @@ html.gm-on .sm-fab{display:none!important}
       h('span', { style: 'text-align:right' }, [h('span', { class: 'gm-n', text: String(x.score || 0) }), h('span', { style: 'display:flex;gap:1px;justify-content:flex-end', html: stars(x.stars) })])])));
     w.append(h('section', {}, [h('div', { class: 'gm-sh' }, [h('h2', { 'data-t': 'gm.recent' })]), list]));
     w.append(micCard());
+    if (!STORE.get('gm.intro', 0)) setTimeout(() => { if (PD.app.route === 'games' && w.isConnected && !STORE.get('gm.intro', 0)) intro(); }, 350);
   }
   function goalText(g) { return g.kind === 'acc' ? t('gm.goal.acc', { v: Math.round(g.v * 100) }) : t('gm.goal.' + g.kind, { v: g.v }); }
 
@@ -389,10 +425,34 @@ html.gm-on .sm-fab{display:none!important}
       h('button', { class: 'btn small', type: 'button', 'data-t': 'gm.cal', onclick: () => PD.calib.open(() => { draw(); }, { keep: true }) }),
       h('button', { class: 'btn small', type: 'button', 'data-t': 'gm.off', onclick: () => offsetSheet() }));
     let lv = 0;
-    const offL = PD.detector.on('level', m => { lv = Math.max(lv * .7, m.rms); const w2 = Math.min(100, Math.sqrt(lv) * 260); meter.firstChild.style.width = w2 + '%'; dot.style.setProperty('--lv', (1 + Math.min(.35, lv * 6)).toFixed(3)); });
-    const offS = PD.detector.on('state', draw);
-    const un = PD.bus.on('route', r => { offL(); offS(); un(); if (r !== 'games' && !cur) GA.release(); });
-    draw();
+    /* the pre-game check (opt.check): every line reads something measured — the microphone's state, a sound above the
+       room's own noise floor in the last 2.5 s, the last note the detector heard, the calibration, the tuning check */
+    const ck = { sig: -1e9, peak: 0, note: null, unsure: -1e9 }, list = opt.check ? h('div', { class: 'gm-chk', 'aria-live': 'polite' }) : null;
+    const row = (ok, label, value, act) => h('div', { class: 'gm-chk-r' + (ok === true ? ' ok' : ok === false ? ' no' : '') }, [h('i', { 'aria-hidden': 'true', text: ok === true ? '✓' : ok === false ? '!' : '·' }), h('span', { text: label }), h('b', { text: value || '' }), act || null]);
+    const drawChk = () => {
+      if (!list) return;
+      const on = PD.detector.active, inf = GA.info(), tn = STORE.get('gm.tuned', null), now = performance.now(), sig = on && now - ck.sig < 2500, fresh = tn && Date.now() - tn.at < 3 * 3600e3;
+      const kids = [row(on, t('gm.mic'), t(on ? 'gm.micOn' : 'gm.micOff')),
+        row(on ? (sig || null) : null, t('gm.ck.sig'), !on ? '—' : sig ? t('gm.ck.sigOk', { db: Math.round(GA.db(ck.peak) / 5) * 5 }) : t('gm.ck.sigWait')),
+        row(ck.note ? true : null, t('gm.ck.note'), ck.note ? TH.name(ck.note.midi) + ' · ' + (ck.note.cents > 0 ? '+' : '') + Math.round(ck.note.cents || 0) + '¢' : ck.unsure && now - ck.unsure < 4000 ? t('gm.ck.noteUnsure') : on ? t('gm.ck.noteWait') : '—'),
+        row(inf.calibrated ? true : false, t('gm.ck.cal'), inf.calibrated ? PD.ui.daysAgo(PD.detector.calib.date) : t('gm.ck.calNeed'), inf.calibrated ? null : h('button', { class: 'btn small', type: 'button', 'data-t': 'gm.calNow', onclick: () => PD.calib.open(() => { draw(); }, { keep: true }) })),
+        row(fresh ? !!tn.ok : null, t('gm.ck.tune'), fresh ? (tn.ok ? t('gm.ck.tuneOk', { d: PD.ui.daysAgo(tn.at) }) : t('gm.ck.tuneOff', { c: tn.worst })) : t('gm.ck.tuneNot'), fresh && tn.ok ? null : h('button', { class: 'btn small', type: 'button', 'data-t': 'ob.tune', onclick: () => tuneCheck() }))];
+      const tail = !on ? h('p', { class: 'gm-note', text: t('gm.ck.offMic') }) : sig && ck.note && inf.calibrated && fresh && tn.ok ? h('p', { class: 'gm-note', style: 'color:var(--gm-ok)', text: '✓ ' + t('gm.ck.ready') }) : null;
+      // redrawn only when something changed, so a button is never replaced under the finger
+      const sigKey = kids.map(k => k.className + k.textContent).join('|') + (tail ? tail.textContent : '');
+      if (sigKey === list.dataset.k) return; list.dataset.k = sigKey;
+      list.innerHTML = ''; kids.forEach(k => list.append(k)); if (tail) list.append(tail); PD.i18n.apply(list);
+    };
+    const offL = PD.detector.on('level', m => {
+      lv = Math.max(lv * .7, m.rms); const w2 = Math.min(100, Math.sqrt(lv) * 260); meter.firstChild.style.width = w2 + '%'; dot.style.setProperty('--lv', (1 + Math.min(.35, lv * 6)).toFixed(3));
+      if (list && m.rms > Math.max(.0018, (PD.detector.floor || 0) * 3)) { const was = performance.now() - ck.sig < 2500; ck.sig = performance.now(); ck.peak = Math.max(m.rms, was ? ck.peak * .97 : 0); if (!was) drawChk(); }
+    });
+    const offN = list ? PD.detector.on('note', m => { if (m.unsure || !(m.conf >= .55)) ck.unsure = performance.now(); else ck.note = m; drawChk(); }) : () => {};
+    const tick = list ? setInterval(() => { if (!card.isConnected) return; drawChk(); }, 1200) : 0;
+    const offS = PD.detector.on('state', () => { draw(); drawChk(); });
+    const un = PD.bus.on('route', r => { offL(); offS(); offN(); clearInterval(tick); un(); if (r !== 'games' && !cur) GA.release(); });
+    if (list) card.insertBefore(h('div', {}, [h('h3', { class: 'gm-k', 'data-t': 'gm.ck.title' }), list]), acts);
+    draw(); drawChk();
     return card;
   }
 
@@ -417,6 +477,7 @@ html.gm-on .sm-fab{display:none!important}
         const fs = c.f.sort((a, b) => a - b), med = fs[fs.length >> 1];
         res[c.s] = Math.round((TH.midiOf(med) - TH.open(c.s)) * 100); out.textContent = ''; draw();
         if ([1, 2, 3].every(k => res[k] != null && Math.abs(res[k]) <= 15)) out.textContent = '✓ ' + t('ob.tuneOk');
+        if ([1, 2, 3].every(k => res[k] != null)) STORE.set('gm.tuned', { at: Date.now(), ok: [1, 2, 3].every(k => Math.abs(res[k]) <= 15), worst: Math.max(...[1, 2, 3].map(k => Math.abs(res[k]))) });
       };
       const offN = PD.detector.on('note', m => {
         if (m.unsure || m.conf < .7) return;
@@ -449,7 +510,7 @@ html.gm-on .sm-fab{display:none!important}
         requestAnimationFrame(pulse);
         const r = await test; test = null; go.disabled = false; beat.style.transform = ''; beat.className = 'gm-micdot';
         if (!r.ok) { out.textContent = t('gm.offFail', { n: r.hits }); return; }
-        GA.setOffset(r.ms);
+        GA.setOffset(r.ms, r.spread);
         out.textContent = (Math.abs(r.ms) < 8 ? t('gm.offNow', { ms: r.ms }) : t('gm.offRes', { ms: Math.abs(r.ms), dir: t(r.ms < 0 ? 'gm.offEarly' : 'gm.offLate') })) + ' · ' + t('gm.offSpread', { ms: r.spread });
       } });
       box.append(h('h2', { 'data-t': 'gm.off' }), h('p', { class: 'fg2', 'data-t': 'gm.offD' }), beat, out, h('p', { class: 'muted', 'data-t': 'gm.offBt' }),
@@ -500,10 +561,10 @@ html.gm-on .sm-fab{display:none!important}
     const ctx = { st, w, P, h, G, gName, lvName, dName, stars, STAR, pct, micCard, start: () => begin(), refresh: () => upd(), btn: startBtn };
     const upd = M.page(ctx) || (() => {});
     const noMic = !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia;
-    if (noMic && !STORE.get('devTouch', false)) w.append(h('p', { class: 'notice', 'data-t': 'gm.noMic' }));
-    if (M.timeline !== false || M.mic !== false) w.append(micCard({ onChange: () => upd() }));
+    if (noMic && !STORE.get('devTouch', false)) w.append(h('p', { class: 'notice' }, [h('span', { 'data-t': 'gm.noMic' }), M.preview ? h('span', { text: ' ' + t('gm.ck.preview') }) : null]));
+    if (M.timeline !== false || M.mic !== false) w.append(micCard({ onChange: () => upd(), check: true }));
     function begin() {
-      if (noMic && !STORE.get('devTouch', false)) { PD.ui.toast(t('gm.noMic'), 5000); return; }
+      if (noMic && !STORE.get('devTouch', false) && !st.opts.listen) { PD.ui.toast(t('gm.noMic') + (M.preview ? ' ' + t('gm.ck.preview') : ''), 5000); return; }   // a preview needs no microphone
       PD.audio.ensure();   // inside the tap: the audio clock may start only from a gesture (iOS)
       play(gid, Object.assign({}, st, { opts: Object.assign({}, st.opts) }));
     }
@@ -519,7 +580,7 @@ html.gm-on .sm-fab{display:none!important}
     const M = PD.gameModes && PD.gameModes[gid]; if (!M) return null;
     style();
     const S = {
-      g: gid, l: o.l, d: o.d, o, opts: o.opts || {}, D: G.diff(o.d), dev: !!STORE.get('devTouch', false), names: STORE.get('gm.names', true) !== false, fx: STORE.get('gm.fx', true) !== false && motionOK() && !PD.device.low,
+      g: gid, l: o.l, d: o.d, o, opts: o.opts || {}, D: G.widen(G.diff(o.d), GA.jitter()), dev: !!STORE.get('devTouch', false), names: STORE.get('gm.names', true) !== false, fx: STORE.get('gm.fx', true) !== false && motionOK() && !PD.device.low,
       sc: null, clock: null, mode: null, playMs: 0, runAt: 0, raf: 0, timers: new Set(), ivs: new Set(), offs: [], lid: 0, reason: '', alive: true
     };
     const root = h('div', { class: 'gm gm-stage', role: 'dialog', 'aria-modal': 'true', 'aria-label': gName(gid) });
@@ -565,7 +626,12 @@ html.gm-on .sm-fab{display:none!important}
     };
     S.debug = obj => { if (dbg.hidden) return; dbg.textContent = Object.keys(obj).map(k => (t('gm.dbg.' + k) !== 'gm.dbg.' + k ? t('gm.dbg.' + k) : k) + ': ' + obj[k]).join('\n'); };
     S.finish = () => finish();
+    /** practice: the next block at once (nothing is saved) */
+    S.again = () => { if (!S.alive) return; if (m.state === 'playing') { S.clock.stop(S.now()); S.playMs += performance.now() - S.runAt; m.go('completed'); } restart(); };
     S.say = (k, v, cls, ms) => S.hud.say(t(k, v), cls, ms);
+    /** a game's own question before it starts (Band Jam's echo check): a panel of nodes on the overlay */
+    S.panel = kids => showPanel(kids);
+    S.exit = () => exit();
 
     // the microphone indicator follows the input level
     let lv = 0;
@@ -602,7 +668,8 @@ html.gm-on .sm-fab{display:none!important}
       if (!m.go('preparing')) return;
       const prepT = h('small', { text: t('gm.prep') });
       S.status = txt => { prepT.textContent = txt; };
-      showOver(h('div', { class: 'gm-cdw' }, [h('div', { class: 'gm-micdot on', style: 'width:64px;height:64px;border-radius:32px', html: MIC }), prepT]));
+      S.showPrep = () => showOver(h('div', { class: 'gm-cdw' }, [h('div', { class: 'gm-micdot on', style: 'width:64px;height:64px;border-radius:32px', html: MIC }), prepT]));
+      S.showPrep();
       S.sc = G.scorer(); S.clock = G.clock(); S.playMs = 0;
       if (S.mode && S.mode.destroy) try { S.mode.destroy(); } catch (e) { console.error(e); }
       field.querySelectorAll('canvas, .gm-mode').forEach(x => x.remove());
@@ -632,7 +699,9 @@ html.gm-on .sm-fab{display:none!important}
     }
     function micFail(err) {
       showPanel([h('h2', { 'data-t': 'gm.mic' }), h('p', { text: micErr(err) }), h('p', { 'data-t': 'gm.micNeed' }),
-        h('div', { class: 'gm-btns' }, [h('button', { class: 'btn primary', type: 'button', 'data-t': 'gm.retry', onclick: () => { m.go('idle'); prepare(); } }), h('button', { class: 'btn', type: 'button', 'data-t': 'gm.exit', onclick: () => exit() })])]);
+        h('div', { class: 'gm-btns' }, [h('button', { class: 'btn primary', type: 'button', 'data-t': 'gm.retry', onclick: () => { m.go('idle'); prepare(); } }), h('button', { class: 'btn', type: 'button', 'data-t': 'gm.exit', onclick: () => exit() })]),
+        // without a microphone only a preview is possible: the app plays, nothing is scored or saved
+        M.preview ? h('button', { class: 'btn quiet wide', type: 'button', html: ic.play + '<span>' + PD.esc(t('gm.preview')) + '</span>', onclick: () => { const o2 = Object.assign({}, o, { opts: Object.assign({}, o.opts, { listen: true }) }); exit({ norender: true }); play(gid, o2); } }) : null]);
       m.go('idle');
     }
     /** 3 · 2 · 1, then the song runs from song time `from` (a game with its own count-in starts at once) */
@@ -678,6 +747,7 @@ html.gm-on .sm-fab{display:none!important}
       showPanel([h('h2', { 'data-t': 'gm.paused' }), reason ? h('p', { text: t(reason) }) : null,
         h('button', { class: 'btn primary', type: 'button', 'data-t': 'gm.resume', onclick: () => resume() }),
         h('div', { class: 'gm-btns' }, [h('button', { class: 'btn', type: 'button', 'data-t': 'gm.restart', onclick: () => restart() }), h('button', { class: 'btn', type: 'button', 'data-t': 'gm.setShort', onclick: () => settings() })]),
+        S.mode && S.mode.endless ? h('button', { class: 'btn', type: 'button', 'data-t': 'gm.rb.finish', onclick: () => finish() }) : null,
         h('button', { class: 'btn quiet', type: 'button', 'data-t': 'gm.exit', onclick: () => exit() })]);
     }
     async function resume() {
@@ -695,8 +765,8 @@ html.gm-on .sm-fab{display:none!important}
       S.mode = null;
     }
     function finish() {
-      if (m.state !== 'playing') return;
-      S.clock.stop(S.now()); S.playMs += performance.now() - S.runAt;
+      if (m.state !== 'playing' && m.state !== 'paused') return;
+      if (m.state === 'playing') { S.clock.stop(S.now()); S.playMs += performance.now() - S.runAt; }
       const extra = S.mode.result ? S.mode.result() : {};
       const r = Object.assign(G.result(S.sc.s, extra.total != null ? extra.total : (S.mode.total || 0), S.D), extra);
       if (extra.acc !== undefined) r.acc = extra.acc;
@@ -705,14 +775,29 @@ html.gm-on .sm-fab{display:none!important}
       m.go(r.passed || r.lowHeard || S.mode.practice ? 'completed' : 'failed');
       if (S.raf) cancelAnimationFrame(S.raf); S.raf = 0; S.clear(); S.sched = 0;
       if (S.mode.pause) S.mode.pause();
+      const prev = P.rec(S.g, S.l, S.d);   // before this round was saved
       const saved = S.dev || S.mode.practice ? null : save(S, r);
-      results(r, saved);
+      results(r, saved, prev);
     }
-    function results(r, sv) {
+    /** one sentence of advice from what this round measured (never made up: each rule reads a number) */
+    function advice(r) {
+      if (S.mode.practice && r.grid === false && !r.total) return null;
+      const late = r.meanOff, sd = r.sdOff, judged = r.judged || 0;
+      if (r.unsure >= 3 && r.unsure >= (r.total || 1) * .2) return t('gm.tip.unsure', { n: r.unsure });
+      if (S.g !== 'rhythm' && S.g !== 'band' && r.wrong >= 2) return t('gm.tip.wrong', { n: r.wrong });
+      if (late != null && late > .035) return t('gm.tip.late', { ms: Math.round(late * 1000) });
+      if (late != null && late < -.035) return t('gm.tip.early', { ms: Math.round(-late * 1000) });
+      if (r.accentAcc != null && r.accentN >= 6 && r.accentAcc < .7) return t('gm.tip.accents', { p: Math.round(r.accentAcc * 100) + '%' });
+      if (sd != null && sd > .045 && (S.g === 'rhythm' || S.g === 'band')) return t('gm.tip.unsteady', { ms: Math.round(sd * 1000) });
+      if (r.miss >= 3 && judged && r.miss / judged > .25) return t('gm.tip.missed', { n: r.miss });
+      if (r.acc != null && r.acc >= .9 && G.DIFFS.indexOf(S.d) >= 0 && S.d !== 'expert') return t('gm.tip.great');
+      return null;
+    }
+    function results(r, sv, prev) {
       const lowT = r.lowHeard;
       const head = S.mode.practice ? t('gm.res.end') : lowT ? t('gm.res.end') : r.passed ? t('gm.res.done') : t('gm.res.fail');
       const score = h('div', { class: 'gm-rscore gm-n', text: String(r.score || 0) });
-      const kids = [h('div', { class: 'gm-rstars', html: stars(r.stars || 0) }), h('h2', { text: head })];
+      const kids = [S.mode.practice || S.dev ? null : h('div', { class: 'gm-rstars', html: stars(r.stars || 0) }), h('h2', { text: head })];
       if (sv && sv.record && !lowT) kids.push(h('div', { class: 'gm-chips' }, [h('span', { class: 'gm-tag', text: '🏆 ' + t('gm.record') })]));
       kids.push(score);
       if (lowT) kids.push(h('p', { text: t('gm.res.low') }), h('p', { class: 'gm-rnote', text: t('gm.res.lowD') }));
@@ -732,6 +817,9 @@ html.gm-on .sm-fab{display:none!important}
       if (r.extra && (S.g === 'rhythm' || S.g === 'band')) notes.push(t('gm.extraN', { n: r.extra }));
       if (notes.length) kids.push(h('p', { class: 'gm-rnote', text: notes.join(' · ') }));
       if (S.dev) kids.push(h('p', { class: 'gm-rnote', text: t('gm.testMode') }));
+      else if (S.mode.practice) kids.push(h('p', { class: 'gm-rnote', text: t('gm.practiceNo') }));
+      if (!S.dev && !S.mode.practice && prev && prev.best) kids.push(h('p', { class: 'gm-rnote', text: sv && sv.record ? t('gm.pbNew', { s: prev.best }) : t('gm.pb', { s: prev.best }) }));
+      const tip = lowT ? null : advice(r); if (tip) kids.push(h('p', { class: 'gm-rnote', style: 'color:var(--gm-tx);border-left:3px solid var(--gm-cu);padding-left:10px', text: tip }));
       if (sv) {
         kids.push(h('div', { class: 'gm-chips' }, [h('span', { class: 'gm-tag', title: t('gm.xpD', { a: sv.xpParts[0], b: sv.xpParts[1], c: sv.xpParts[2] }), text: t('gm.xp', { n: sv.xp }) }),
           sv.daily ? h('span', { class: 'gm-tag', text: '✓ ' + t('gm.dailyMet') }) : null, ...sv.ach.map(a => h('span', { class: 'gm-tag', text: '★ ' + t('gm.a.' + a) }))]));
@@ -800,11 +888,12 @@ html.gm-on .sm-fab{display:none!important}
     const ch = code ? G.decodeChallenge(code) : null;
     if (ch) {
       STORE.del('gm.pending');
-      const nm = ch.name || t('gm.ar.anon'), task = gName(ch.g) + ' · ' + lvName(ch.g, ch.l) + ' · ' + dName(ch.g, ch.d);
+      const nm = ch.name || t('gm.ar.anon'), task = gName(ch.g) + ' · ' + lvName(ch.g, ch.l) + ' · ' + dName(ch.g, ch.d), old = ch.g === 'rush' && (ch.cv || 1) !== G.CHART_V, mine = P.rec(ch.g, ch.l, ch.d);
       w.append(h('section', { class: 'gm-card gm-sec' }, [h('span', { class: 'gm-k', text: t('gm.ar.from', { n: nm }) }), h('h2', { text: task }),
         h('div', { class: 'gm-rrows' }, [[t('gm.score'), String(ch.score)], [t('gm.acc'), pct(ch.acc)], [t('gm.pitchAcc'), pct(ch.pitchAcc)], [t('gm.timingAcc'), pct(ch.timing)], [t('gm.mistakes'), String(ch.mistakes)], [t('gm.maxCombo'), String(ch.maxCombo)]].map(([a, b]) => h('div', {}, [h('span', { text: a }), h('b', { class: 'gm-n', text: b })]))),
+        h('p', { class: 'gm-note', text: mine ? t('gm.ar.pbYou', { s: mine.best }) + ' · ' + pct(mine.acc) : t('gm.ar.pbNone') }),
         h('p', { class: 'gm-note', 'data-t': 'gm.ar.honest' }),
-        h('button', { class: 'btn primary big', type: 'button', html: ic.play + '<span>' + PD.esc(t('gm.ar.play')) + '</span>', onclick: () => { PD.audio.ensure(); play(ch.g, { l: ch.l, d: ch.d, opts: { seed: ch.seed }, arena: ch }); } })]));
+        old ? h('p', { class: 'notice', 'data-t': 'gm.ar.old' }) : h('button', { class: 'btn primary big', type: 'button', html: ic.play + '<span>' + PD.esc(t('gm.ar.play')) + '</span>', onclick: () => { PD.audio.ensure(); play(ch.g, { l: ch.l, d: ch.d, opts: { seed: ch.seed }, arena: ch }); } })]));
     } else if (code) w.append(h('p', { class: 'notice', 'data-t': 'gm.ar.bad' }));
     const inp = h('textarea', { class: 'input', rows: 3, style: 'width:100%;font-family:var(--f-mono);font-size:12px', placeholder: t('gm.ar.paste'), 'aria-label': t('gm.ar.paste') });
     w.append(h('section', { class: 'gm-card gm-sec' }, [h('h2', { 'data-t': 'gm.ar.accept' }), inp, h('button', { class: 'btn', type: 'button', 'data-t': 'gm.ar.open', onclick: () => { const c = G.decodeChallenge(inp.value); if (!c) { PD.ui.toast(t('gm.ar.bad'), 3500); return; } PD.app.go('games', 'arena:' + String(inp.value).trim().replace(/^.*[#?&]gmc=/, '').replace(/^.*arena%3A|^.*arena:/, '')); } })]),
@@ -833,13 +922,38 @@ html.gm-on .sm-fab{display:none!important}
   /** the Home banner (app.js places it under the quick tools) */
   function homeCard() {
     style();
-    const pend = STORE.get('gm.pending', null), st = P.stats();
-    return h('button', { class: 'gm gm-card gm-cont', type: 'button', style: 'margin:0', onclick: () => PD.app.go('games', pend && G.decodeChallenge(pend) ? 'arena:' + pend : null) }, [h('span', { class: 'gm-art', html: ART.rush() }),
-      h('span', {}, [h('span', { class: 'gm-k', 'data-t': 'gm.title' }), h('b', { 'data-t': pend ? 'gm.ar.pending' : 'gm.homeT' }), h('small', { text: t('gm.homeD') + (st.stars ? ' · ★ ' + st.stars : '') })])]);
+    const pend = STORE.get('gm.pending', null), st = P.stats(), last = P.hist().list.slice(-1)[0], ch = P.dailyCh(), done = P.dailyDone();
+    const lp = PD.levels ? PD.levels.progress : null, lastOk = last && PD.gameModes && PD.gameModes[last.g];
+    const main = h('button', { class: 'gm-cont gm-hm-main', type: 'button', onclick: () => PD.app.go('games', pend && G.decodeChallenge(pend) ? 'arena:' + pend : null) }, [h('span', { class: 'gm-art', html: ART[lastOk ? last.g : 'rush']() }),
+      h('span', {}, [h('span', { class: 'gm-k', 'data-t': 'gm.title' }), h('b', { text: pend ? t('gm.ar.pending') : t('gm.homeT') }),
+        h('small', { text: lp ? t('gm.lvl', { n: lp.level }) + ' · ' + t('gm.xpOf', { a: lp.into, b: lp.need }) + (st.stars ? ' · ★ ' + st.stars : '') : t('gm.homeD') })])]);
+    // two ways straight into a round: the last level played (or the first one) and today's challenge
+    const cont = lastOk ? h('button', { class: 'gm-hm-b', type: 'button', onclick: () => PD.app.go('games', last.g + ':' + last.l + ':' + last.d) }, [h('span', { class: 'gm-k', 'data-t': 'gm.hm.cont' }), h('b', { text: gName(last.g) + ' · ' + lvName(last.g, last.l) })])
+      : h('button', { class: 'gm-hm-b', type: 'button', onclick: () => PD.app.go('games', 'rush:1:easy') }, [h('span', { class: 'gm-k', 'data-t': 'gm.hm.cont' }), h('b', { 'data-t': 'gm.hm.first' })]);
+    const daily = h('button', { class: 'gm-hm-b' + (done ? ' done' : ''), type: 'button', onclick: () => PD.app.go('games', ch.g + ':' + ch.l + ':' + ch.d) }, [h('span', { class: 'gm-k', 'data-t': 'gm.hm.daily' }), h('b', { text: (done ? '✓ ' : '') + gName(ch.g) + ' · ' + goalText(ch.goal) })]);
+    return h('section', { class: 'gm gm-card gm-hm', style: 'margin:0', 'aria-label': t('gm.homeT') }, [main, h('div', { class: 'gm-hm-row' }, [cont, daily])]);
+  }
+  /* ---------- the first visit: three short steps, any of them skippable ---------- */
+  function intro(onDone) {
+    PD.ui.sheet((box, close) => {
+      style(); box.classList.add('gm', 'gm-intro');
+      let k = 0; const N = 3, body = h('div'), dots = h('div', { class: 'gm-in-dots', 'aria-hidden': 'true' });
+      const end = () => { STORE.set('gm.intro', Date.now()); close(); };
+      const next = h('button', { class: 'btn primary', type: 'button' }), skip = h('button', { class: 'btn quiet', type: 'button', 'data-t': 'gm.in.skip', onclick: end });
+      const draw = () => {
+        body.innerHTML = ''; body.append(h('div', { class: 'gm-art', html: ART[['rush', 'hunt', 'arena'][k]]() }), h('span', { class: 'gm-k', text: t('gm.in.step', { a: k + 1, b: N }) }), h('h2', { 'data-t': 'gm.in.t' + (k + 1) }), h('p', { class: 'fg2', 'data-t': 'gm.in.d' + (k + 1) }));
+        dots.innerHTML = ''; for (let i = 0; i < N; i++) dots.append(h('i', { class: i === k ? 'on' : '' }));
+        next.textContent = t(k < N - 1 ? 'gm.in.next' : 'gm.in.go'); PD.i18n.apply(body);
+      };
+      next.onclick = () => { if (k < N - 1) { k++; draw(); } else end(); };
+      box.append(body, dots, h('div', { class: 'row' }, [skip, h('span', { class: 'spacer' }), next]));
+      draw();
+      return () => { if (!STORE.get('gm.intro', 0)) STORE.set('gm.intro', Date.now()); if (onDone) onDone(); };
+    });
   }
 
   return {
-    route, hub, play, homeCard, sessionName, settings, tuneCheck, offsetSheet, P, ART, style,
+    route, hub, play, homeCard, intro, sessionName, settings, tuneCheck, offsetSheet, P, ART, style,
     nav: NI => ['games', 'gm.title', NI(NAV_O, NAV_F), 'wide'],
     top: { games: 'games' }, dock: { games: 'home' },
     hubItem: ['games', ICON, 'gm.title', 'gm.hubD'],

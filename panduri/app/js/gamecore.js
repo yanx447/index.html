@@ -21,15 +21,21 @@ PD.gameCore = (() => {
   }
   const pickOf = (r, a) => a[Math.floor(r() * a.length) % a.length];
 
-  /* ---------- difficulty: timing windows (s), pitch tolerance (cents), fall time (s) ---------- */
+  /* ---------- difficulty: timing windows (s), pitch tolerance (cents), fall time (s) ----------
+     `sharp`: extra room on the sharp side only. Measured on the teacher's own recorded notes through the detector
+     (qa/games-audio.cjs): a plucked string reads sharp in its first ~0.2 s, and fretted notes go sharper still under the
+     finger — up to +58 ¢ on his A string above fret 12, never more than −16 ¢ flat. A right note must not be called
+     wrong for the instrument's physics; Expert still asks for a well-set-up instrument. */
   const DIFF = {
-    easy: { id: 'easy', perfect: .07, great: .12, good: .19, win: .26, cents: 45, lead: 2.4 },
-    normal: { id: 'normal', perfect: .05, great: .095, good: .15, win: .22, cents: 38, lead: 2.0 },
-    hard: { id: 'hard', perfect: .035, great: .07, good: .115, win: .18, cents: 32, lead: 1.7 },
-    expert: { id: 'expert', perfect: .025, great: .05, good: .085, win: .14, cents: 26, lead: 1.45 }
+    easy: { id: 'easy', perfect: .07, great: .12, good: .19, win: .26, cents: 45, sharp: 20, lead: 2.4 },
+    normal: { id: 'normal', perfect: .05, great: .095, good: .15, win: .22, cents: 38, sharp: 18, lead: 2.0 },
+    hard: { id: 'hard', perfect: .035, great: .07, good: .115, win: .18, cents: 32, sharp: 14, lead: 1.7 },
+    expert: { id: 'expert', perfect: .025, great: .05, good: .085, win: .14, cents: 26, sharp: 10, lead: 1.45 }
   };
   const DIFFS = ['easy', 'normal', 'hard', 'expert'];
   const diff = id => DIFF[id] || DIFF.normal;
+  /** the timing windows widened by a device's own measured jitter (s, from the play-along calibration; at most 15 ms) */
+  const widen = (D, j) => { j = Math.max(0, Math.min(.015, j || 0)); return j ? Object.assign({}, D, { perfect: D.perfect + j, great: D.great + j, good: D.good + j, win: D.win + j, jitter: j }) : D; };
 
   /* ---------- grades ---------- */
   const GRADES = ['perfect', 'great', 'good'];
@@ -43,15 +49,22 @@ PD.gameCore = (() => {
      sharpest in its first ~0.2 s, which is when the detector reads it: the teacher's recorded open A string, about
      8 cents sharp when it settles, reads 26 cents sharp there (qa/games-mic.cjs). Grading pitch finely would cost the
      bass string its Perfects for its own physics. */
-  const gradeOf = (tg, cents, tol) => tg === 'perfect' && Math.abs(cents) > tol * .8 ? 'great' : tg;
+  const gradeOf = (tg, cents, tol, sharp) => tg === 'perfect' && (cents < -tol * .8 || cents > (tol + (sharp || 0)) * .8) ? 'great' : tg;
   /** combo multiplier: ×1, ×2 from 10, ×3 from 25, ×4 from 50 */
   const mult = c => c >= 50 ? 4 : c >= 25 ? 3 : c >= 10 ? 2 : 1;
 
-  /** a heard note against the expected pitch. ok, or why not: unsure · octave · sharp · flat · semitone · wrong */
-  function judgePitch(exp, ev, tol) {
+  /* A fretted note sounds sharper the higher it is on the neck (the string is pushed further down to the fret). In the
+     teacher's own recordings, over each open string: up to +34 ¢ on the A string, +48 ¢ on the E string (fret 14). So the
+     sharp side grows by 1.5 ¢ a fret above the 4th (at most 16 ¢), and all of it never passes 62 ¢ — a semitone (100 ¢)
+     stays a wrong note. Use: judgePitch(midi, ev, D.cents, sharpAt(D, fret)) */
+  const fretSharp = f => f > 4 ? Math.min(16, (f - 4) * 1.5) : 0;
+  const sharpAt = (D, f, tol) => Math.max(0, Math.min(62 - (tol != null ? tol : D.cents), (D.sharp || 0) + fretSharp(f || 0)));
+  /** a heard note against the expected pitch (tol cents, plus `sharp` more on the sharp side).
+      ok, or why not: unsure · octave · sharp · flat · semitone · wrong */
+  function judgePitch(exp, ev, tol, sharp) {
     if (!ev || ev.unsure || !(ev.conf >= .55) || !isFinite(ev.midi)) return { ok: false, kind: 'unsure' };
     const d = ev.midi - exp, c = d * 100;
-    if (Math.abs(c) <= tol + 1e-6) return { ok: true, cents: c };
+    if (c >= -tol - 1e-6 && c <= tol + (sharp || 0) + 1e-6) return { ok: true, cents: c };
     if (Math.abs(Math.abs(d) - 12) < .35) return ev.conf < .8 ? { ok: false, kind: 'unsure' } : { ok: false, kind: 'octave', dir: Math.sign(d), cents: c };
     if (ev.conf < .72) return { ok: false, kind: 'unsure' };
     if (Math.abs(c) <= 70) return { ok: false, kind: c > 0 ? 'sharp' : 'flat', cents: c };
@@ -98,7 +111,10 @@ PD.gameCore = (() => {
   const GRACE = .32;
   function noteMatcher(chart, D, sc) {
     const st = chart.map(() => ({ res: null, uns: false }));
-    let first = 0, pend = [];   // strokes heard whose pitch is still on its way
+    let first = 0, pend = [], rung = [];   // strokes heard whose pitch is still on its way; right notes still ringing
+    /* a confident reading of a note played right a moment ago is most likely that string still ringing under a softer new
+       one (three notes 180 ms apart on three strings: the detector hears the chord they make) — not heard clearly, not wrong */
+    const ringing = (midi, t) => rung.some(x => t - x.t < 1.5 && t >= x.t && Math.abs(midi - x.midi) < .4);
     const live = t => { const out = []; for (let i = first; i < chart.length; i++) { const dt = t - chart[i].t; if (dt < -D.win) break; if (!st[i].res && dt <= D.win) out.push(i); } return out; };
     return {
       st,
@@ -111,16 +127,16 @@ PD.gameCore = (() => {
         if (!cand.length) { sc.extra(); return { extra: true }; }
         const near = cand.slice().sort((a, b) => Math.abs(chart[a].t - ev.t) - Math.abs(chart[b].t - ev.t));
         for (const i of near) {
-          const p = judgePitch(chart[i].midi, ev, D.cents);
+          const sh = sharpAt(D, chart[i].f), p = judgePitch(chart[i].midi, ev, D.cents, sh);
           if (!p.ok) continue;
           const off = ev.t - chart[i].t, tg = timingGrade(off, D);
           if (!tg) { st[i].res = 'miss'; sc.miss(false); return { i, miss: true, kind: off < 0 ? 'early' : 'late', off }; }
-          const g = gradeOf(tg, p.cents, D.cents);
-          st[i].res = g; st[i].off = off; st[i].cents = p.cents;
+          const g = gradeOf(tg, p.cents, D.cents, sh);
+          st[i].res = g; st[i].off = off; st[i].cents = p.cents; rung.push({ midi: chart[i].midi, t: ev.t }); if (rung.length > 6) rung.shift();
           return { i, grade: g, off, cents: p.cents, pts: sc.hit(g, off, p.cents) };
         }
-        const i = near[0], p = judgePitch(chart[i].midi, ev, D.cents);
-        if (p.kind === 'unsure') { st[i].uns = true; return { unsure: true, i }; }
+        const i = near[0], p = judgePitch(chart[i].midi, ev, D.cents, sharpAt(D, chart[i].f));
+        if (p.kind === 'unsure' || ringing(ev.midi, ev.t)) { st[i].uns = true; return { unsure: true, i, ring: p.kind !== 'unsure' }; }
         st[i].res = 'miss'; st[i].kind = p.kind; st[i].heard = ev.midi; sc.miss(true);
         return { i, miss: true, kind: p.kind, cents: p.cents, heard: ev.midi };
       },
@@ -221,44 +237,62 @@ PD.gameCore = (() => {
     { id: 9, key: 'expert', bpm: 104, frets: [0, 17], n: 48, pat: 'mix', rhythm: true }
   ];
   const TRIADS = [[9, 1, 4], [2, 6, 9], [4, 8, 11]];   // pitch classes of A · D · E, the I, IV and V of A
-  /** a melodic line of n pitches (indices into a pool sorted low → high) */
-  function line(P, n, pat, r) {
-    const out = []; let i = Math.floor(r() * P.length);
-    const clampI = k => Math.max(0, Math.min(P.length - 1, k));
+  /* Musical lines: phrases of ordinary practice patterns — scale steps, a turn around a note, a repeated note, an
+     arpeggio of A, D or E, a motif moved a step. Every phrase rests on a home tone of A major (A · C♯ · E), the open
+     strings' own chord; with o.tonic the line ends on A. A line that sounds like music, not a random walk. These are
+     general practice patterns, not the teacher's curriculum. Indices into the pool (sorted low → high). */
+  const HOME = [9, 1, 4];   // pitch classes of A · C♯ · E
+  const CHART_V = 2;        // charts made this way (Arena codes carry it: an older code would not replay the same notes)
+  function phrases(P, n, r, kinds, o) {
+    o = o || {};
+    const pc = k => ((P[k].midi % 12) + 12) % 12, isHome = k => HOME.includes(pc(k)), cl = k => Math.max(0, Math.min(P.length - 1, k));
+    const homes = P.map((p, k) => k).filter(isHome);
+    const nearestHome = (k, dir) => { if (!homes.length) return k; let best = homes[0], bd = 1e9; homes.forEach(h => { const d = Math.abs(h - k) + (dir && h !== k && Math.sign(h - k) !== dir ? .5 : 0); if (d < bd) { bd = d; best = h; } }); return best; };
+    const out = [], ends = [], push = k => { if (out.length < n) out.push(cl(k)); }, last = () => out[out.length - 1], side = i => i >= P.length - 1 ? -1 : i <= 0 ? 1 : (r() < .5 ? -1 : 1);
+    const inner = P.length > 4 ? homes.filter(k => k > 0 && k < P.length - 1) : homes;   // a line starts on a home tone, away from the edge where it can move both ways
+    push(inner.length ? pickOf(r, inner) : homes.length ? pickOf(r, homes) : Math.floor(r() * P.length));
     while (out.length < n) {
-      const kind = pat === 'mix' ? pickOf(r, ['runs', 'runs', 'arps', 'free']) : pat;
-      if (kind === 'free' || P.length < 3) {   // a small step or the same note — never three of one note in a row
-        let j = clampI(i + Math.round((r() - .5) * 4));
-        if (out.length >= 2 && out[out.length - 1] === j && out[out.length - 2] === j) j = j > 0 ? j - 1 : j + 1;
-        i = clampI(j); out.push(i);
-      } else if (kind === 'scale' || kind === 'runs') {   // steps of the scale, up or down
-        const len = kind === 'scale' ? 4 + Math.floor(r() * 4) : 3 + Math.floor(r() * 3), dir = i > P.length * .6 ? -1 : i < P.length * .4 ? 1 : (r() < .5 ? -1 : 1);
-        for (let k = 0; k < len && out.length < n; k++) { out.push(i); if (i + dir < 0 || i + dir >= P.length) break; i += dir; }
-        i = clampI(i + (r() < .5 ? -2 : 2));
-      } else {   // an arpeggio: three or four notes of one triad, rising or falling
-        const pcs = pickOf(r, TRIADS), idx = [];
-        P.forEach((p, k) => { if (pcs.includes(((p.midi % 12) + 12) % 12)) idx.push(k); });
-        if (idx.length < 3) { out.push(i); i = clampI(i + 1); continue; }
-        const len = Math.min(idx.length, 3 + Math.floor(r() * 2)); let s0 = idx.findIndex(k => k >= i); if (s0 < 0) s0 = idx.length - 1;
-        const a = Math.max(0, Math.min(idx.length - len, s0 - 1)), seg = idx.slice(a, a + len);
-        (r() < .5 ? seg : seg.reverse()).forEach(k => { if (out.length < n) out.push(k); });
-        i = out[out.length - 1];
+      const i = last(), len0 = out.length, kind = P.length < 4 ? pickOf(r, ['arp', 'turn', 'repeat']) : pickOf(r, kinds);
+      if (kind === 'arp') {             // an arpeggio of one triad: A · D · E (only A's on the smallest levels), away from the edge
+        const pcs = P.length < 5 ? HOME : pickOf(r, [HOME, HOME, TRIADS[1], TRIADS[2]]), idx = P.map((p, k) => k).filter(k => pcs.includes(pc(k)));
+        const up = i < P.length / 2 ? r() < .75 : r() < .25, len = 2 + Math.floor(r() * 3);
+        let seg = up ? idx.filter(k => k > i).slice(0, len) : idx.filter(k => k < i).reverse().slice(0, len);
+        if (seg.length < 2) seg = (up ? idx.filter(k => k < i).reverse() : idx.filter(k => k > i)).slice(0, len);
+        seg.forEach(push);
+      } else if (kind === 'run') {      // scale steps up or down, landing on a home tone
+        const dir = i > P.length * .6 ? -1 : i < P.length * .4 ? 1 : (r() < .5 ? -1 : 1), target = nearestHome(cl(i + dir * (2 + Math.floor(r() * 3))), dir);
+        let k = i, g = 0; while (k !== target && g++ < 8) { k += Math.sign(target - k); push(k); }
+      } else if (kind === 'turn') {     // around the note and back: x±1 · x · x∓1 · x
+        const d = side(i); push(i + d); push(i); if (i - d >= 0 && i - d < P.length) { push(i - d); push(i); }
+      } else if (kind === 'repeat') {   // a step, the same note again, then home
+        const y = cl(i + side(i)); push(y); push(y);
+      } else {                          // a sequence: a three-note motif, then the same a step further
+        const d = i < P.length * .5 ? 1 : -1; [i + d, i + 2 * d, i + d, i + 2 * d, i + 3 * d].forEach(push);
       }
+      if (out.length === len0) push(cl(i + side(i)));                                   // nothing came of it: one step
+      if (!isHome(last()) && homes.length) push(nearestHome(last()));                    // the phrase rests on a home tone
+      ends.push(out.length - 1);
     }
-    return out.slice(0, n);
+    // the last phrase may have been cut short by the length: its last note still rests on a home tone — with o.tonic on
+    // A (from a home tone that is C♯ → A or E → A, the cadence of the key)
+    const aIdx = P.map((p, k) => k).filter(k => pc(k) === 9), nearestOf = (list, l) => list.reduce((a, b) => Math.abs(b - l) < Math.abs(a - l) ? b : a);
+    if (o.tonic && aIdx.length && pc(last()) !== 9) out[out.length - 1] = nearestOf(aIdx, out.length > 1 ? out[out.length - 2] : last());
+    else if (homes.length && !isHome(last())) out[out.length - 1] = nearestHome(last());
+    return { idx: out, ends: [...new Set(ends.filter(e => e < n - 1).concat([n - 1]))] };
   }
+  const KINDS = { free: ['arp', 'turn', 'repeat'], scale: ['run', 'run', 'turn'], runs: ['run', 'turn', 'seq', 'repeat'], arps: ['arp', 'arp', 'run'], mix: ['run', 'arp', 'turn', 'seq', 'repeat'] };
   /** rhythm cells in beats: eighths always come in pairs on the beat */
   const CELLS = [[1], [1], [.5, .5], [2], [1.5, .5]];
   /** a level's chart: [{ i, b (beat), t (s), d (beats), midi, s, f }]. t = 0 is the end of the countdown */
   function rushChart(levelId, diffId, seed) {
     const L = RUSH.find(x => x.id === levelId) || RUSH[0], D = diff(diffId), r = rng(seed != null ? seed : 'rush:' + L.id);
     const P = pool(L.frets, L.scale ? A_ROOT : null);
-    const idx = line(P, L.n, L.pat, r), spb = 60 / L.bpm, start = D.lead + .6, out = [];
+    const ph = phrases(P, L.n, r, KINDS[L.pat] || KINDS.mix, { tonic: true }), idx = ph.idx, ends = new Set(ph.ends), spb = 60 / L.bpm, start = D.lead + .6, out = [];
     let b = 0, j = 0;
     while (j < idx.length) {
-      const cell = L.rhythm ? pickOf(r, CELLS) : (r() < .18 ? [2] : [1]);
-      for (const d of cell) { if (j >= idx.length) break; const p = P[idx[j]]; out.push({ i: j, b, t: +(start + b * spb).toFixed(4), d, midi: p.midi, s: p.s, f: p.f }); b += d; j++; }
-      if (!L.rhythm && r() < .12) b += 1;   // a breath now and then
+      // a phrase's last note is held for two beats: the breath between phrases. A cell never splits a phrase's end
+      const cell = ends.has(j) ? [2] : !L.rhythm || ends.has(j + 1) ? [1] : pickOf(r, CELLS);
+      for (const d of cell) { if (j >= idx.length) break; const p = P[idx[j]]; out.push({ i: j, b, t: +(start + b * spb).toFixed(4), d, midi: p.midi, s: p.s, f: p.f, end: ends.has(j) }); b += d; j++; }
     }
     return { level: L, chart: out, bpm: L.bpm, spb, start, len: start + b * spb, pool: P };
   }
@@ -266,9 +300,31 @@ PD.gameCore = (() => {
   /* ---------- Rhythm Battle ---------- */
   const RB_BPM = { easy: 60, normal: 85, hard: 110, expert: 130 };
   const RB_CYCLES = { kazbeguri: 8, mtiuluri: 6, khorumi: 4, acharuli: 8 };
-  /** r: a rhythm with strokes [{direction, accent}] and timing.durations (beats). Count-in: 4 beats; strokes after it */
-  function rhythmChart(r, bpm, cycles) {
-    const spb = 60 / bpm, d = (r.timing && r.timing.durations && r.timing.durations.length === r.strokes.length) ? r.timing.durations : r.strokes.map(() => 1);
+  /* How long each stroke lasts. PD.SOUNDS.rhythms holds the time of every stroke of every cycle in the teacher's own
+     recordings (the rhythm page plays along them). His two slowest takes are the steadiest; each stroke's share of a cycle
+     is the median over all their cycles. Acharuli comes out near 2 : 1 : 2.3 and mtiuluri near 1.8 : 1 : 0.95 : 0.8 : 1 —
+     not the equal steps the app used to assume. */
+  function measuredTiming(rid) {
+    const R = PD.SOUNDS && PD.SOUNDS.rhythms && PD.SOUNDS.rhythms[rid]; if (!R || !R.length) return null;
+    const recs = R.filter(x => x.cycles && x.cycles.length && x.loop).map(x => ({ x, per: (x.loop[1] - x.loop[0]) / x.cycles.length })).sort((a, b) => b.per - a.per).slice(0, 2), shares = [];
+    recs.forEach(({ x }) => x.cycles.forEach((cy, c) => {
+      const next = c + 1 < x.cycles.length ? x.cycles[c + 1][0] : x.cycles[0][0] + (x.loop[1] - x.loop[0]), len = next - cy[0]; if (!(len > 0)) return;
+      cy.forEach((t, i) => { (shares[i] = shares[i] || []).push(((i + 1 < cy.length ? cy[i + 1] : next) - t) / len); });
+    }));
+    if (!shares.length) return null;
+    const med = a => a.slice().sort((x, y) => x - y)[a.length >> 1], sh = shares.map(med), tot = sh.reduce((a, b) => a + b, 0);
+    return { durations: sh.map(v => +(v / tot * sh.length).toFixed(3)), src: 'recording', from: recs.map(r => r.x.file) };
+  }
+  /** the timing a rhythm is scored on: the teacher's own (set in the Studio), else measured from his recordings, else equal
+      steps — which nobody has confirmed, so such a rhythm is practice only (no stars, records or XP) */
+  function rhythmTiming(r) {
+    if (r.timing && r.timing.src === 'teacher' && r.timing.durations && r.timing.durations.length === r.strokes.length) return { durations: r.timing.durations.slice(), src: 'teacher', official: true };
+    const m = measuredTiming(r.id); if (m && m.durations.length === r.strokes.length) return Object.assign(m, { official: true });
+    return { durations: r.strokes.map(() => 1), src: 'default', official: false };
+  }
+  /** r: a rhythm with strokes [{direction, accent}]; durations in beats (default: rhythmTiming). Count-in: 4 beats */
+  function rhythmChart(r, bpm, cycles, durations) {
+    const spb = 60 / bpm, d = durations && durations.length === r.strokes.length ? durations : rhythmTiming(r).durations;
     const out = [], n = cycles || RB_CYCLES[r.id] || 6; let b = 4;
     for (let c = 0; c < n; c++) r.strokes.forEach((s, k) => { out.push({ i: out.length, c, k, b, t: +(b * spb).toFixed(4), acc: !!s.accent, dir: s.direction }); b += d[k]; });
     return { chart: out, spb, countIn: 4, len: b * spb, beats: b };
@@ -285,7 +341,7 @@ PD.gameCore = (() => {
   function melody(levelId, round, seed) {
     const L = MEMORY.find(x => x.id === levelId) || MEMORY[0], r = rng(seed != null ? seed : 'mem:' + L.id + ':' + round);
     const P = pool(L.frets, L.scale ? A_ROOT : null), n = L.n2 ? L.n + Math.floor(r() * (L.n2 - L.n + 1)) : L.n;
-    const idx = line(P, n, P.length < 4 ? 'free' : 'runs', r);
+    const idx = phrases(P, n, r, P.length < 4 ? KINDS.free : KINDS.runs).idx;
     return idx.map((k, j) => ({ midi: P[k].midi, s: P[k].s, f: P[k].f, d: L.rhythm ? pickOf(r, [1, 1, .5, 2]) : 1, rest: L.rests && j < n - 1 && r() < .25 ? 1 : 0 }));
   }
   /** compare the played rhythm with the target's, tempo-free: inter-onset intervals as shares of the whole */
@@ -416,7 +472,7 @@ PD.gameCore = (() => {
     dec(s) { const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)); return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))); } };
   const sum4 = s => (hash('pd-arena:' + s) % 1679616).toString(36).padStart(4, '0');
   function encodeChallenge(o) {
-    const body = { v: 1, g: o.g, l: o.l, d: o.d, seed: o.seed >>> 0, sc: Math.round(o.score || 0), acc: Math.round((o.acc || 0) * 1000), pa: Math.round((o.pitchAcc || 0) * 1000), ta: Math.round((o.timing || 0) * 1000), ms: o.mistakes || 0, cb: o.maxCombo || 0, nm: String(o.name || '').slice(0, 24), at: o.date || 0 };
+    const body = { v: 1, cv: CHART_V, g: o.g, l: o.l, d: o.d, seed: o.seed >>> 0, sc: Math.round(o.score || 0), acc: Math.round((o.acc || 0) * 1000), pa: Math.round((o.pitchAcc || 0) * 1000), ta: Math.round((o.timing || 0) * 1000), ms: o.mistakes || 0, cb: o.maxCombo || 0, nm: String(o.name || '').slice(0, 24), at: o.date || 0 };
     const j = b64.enc(JSON.stringify(body)); return j + '.' + sum4(j);
   }
   function decodeChallenge(code) {
@@ -424,7 +480,7 @@ PD.gameCore = (() => {
       const s = String(code || '').trim().replace(/^.*[#?&]gmc=/, '').replace(/[^A-Za-z0-9_.-]/g, ''), dot = s.lastIndexOf('.');
       if (dot < 8) return null; const j = s.slice(0, dot); if (sum4(j) !== s.slice(dot + 1)) return null;
       const o = JSON.parse(b64.dec(j)); if (!o || o.v !== 1 || !['rush', 'rhythm'].includes(o.g)) return null;
-      return { g: o.g, l: o.l, d: o.d, seed: o.seed >>> 0, score: o.sc, acc: o.acc / 1000, pitchAcc: o.pa / 1000, timing: o.ta / 1000, mistakes: o.ms, maxCombo: o.cb, name: o.nm, date: o.at };
+      return { cv: o.cv || 1, g: o.g, l: o.l, d: o.d, seed: o.seed >>> 0, score: o.sc, acc: o.acc / 1000, pitchAcc: o.pa / 1000, timing: o.ta / 1000, mistakes: o.ms, maxCombo: o.cb, name: o.nm, date: o.at };
     } catch (_) { return null; }
   }
   /** who did better, measure by measure */
@@ -438,7 +494,7 @@ PD.gameCore = (() => {
   /* ---------- the session's states ---------- */
   const FLOW = {
     idle: ['preparing', 'exiting'], preparing: ['calibrating', 'countdown', 'idle', 'exiting'], calibrating: ['preparing', 'countdown', 'exiting'],
-    countdown: ['playing', 'paused', 'exiting'], playing: ['paused', 'completed', 'failed', 'exiting'], paused: ['countdown', 'preparing', 'exiting'],
+    countdown: ['playing', 'paused', 'exiting'], playing: ['paused', 'completed', 'failed', 'exiting'], paused: ['countdown', 'preparing', 'completed', 'exiting'],
     completed: ['preparing', 'exiting'], failed: ['preparing', 'exiting'], exiting: []
   };
   function machine(onChange) {
@@ -472,8 +528,8 @@ PD.gameCore = (() => {
   const bonusXP = imp => (imp.first ? 20 : 0) + 10 * (imp.stars || 0);
 
   return {
-    hash, rng, DIFF, DIFFS, diff, GRADES, WEIGHT, POINTS, timingGrade, pitchGrade, worse, gradeOf, mult, judgePitch, scorer, result,
-    noteMatcher, rhythmMatcher, accentOf, GRACE, pool, A_ROOT, RUSH, rushChart, RB_BPM, RB_CYCLES, rhythmChart,
+    hash, rng, DIFF, DIFFS, diff, widen, GRADES, WEIGHT, POINTS, timingGrade, pitchGrade, worse, gradeOf, mult, judgePitch, scorer, result,
+    noteMatcher, rhythmMatcher, accentOf, GRACE, fretSharp, sharpAt, pool, A_ROOT, HOME, CHART_V, phrases, RUSH, rushChart, RB_BPM, RB_CYCLES, measuredTiming, rhythmTiming, rhythmChart,
     MEMORY, MEM_ROUNDS, melody, rhythmMatch, HUNT, HUNT_MODE, huntTargets, CHORD_SETS, chordSet, GAMES,
     KEYS, lkey, empty, norm, record, merge, ACH, stats, newAchievements, dayNum, daily, dailyMet,
     encodeChallenge, decodeChallenge, compare, FLOW, machine, clock, sessionXP, bonusXP

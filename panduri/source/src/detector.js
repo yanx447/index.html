@@ -108,6 +108,10 @@ class PDCore {
       if (d[k] < 0.13) { need(k + 2); while (k + 1 < tm && d[k + 1] < d[k]) { k++; need(k + 2); } tau = k; break; }
     }
     if (tau < 0) { need(tm); let mn = 9; for (let k = this.tauMin; k < tm; k++) if (d[k] < mn) { mn = d[k]; tau = k; } if (mn > 0.4) return { f: 0, c: 0 }; }
+    // a dip at half the period, nearly as deep, is the note: the deeper one was period doubling (C♯ string frets 7–9 and
+    // E string frets 6–9 of the teacher's recordings read an octave low without this); capped so a low note never jumps up
+    { const hc = Math.round(tau / 2); if (hc - 2 > this.tauMin) { let hk = -1, hv = 9; for (let k = hc - 2; k <= hc + 2; k++) if (d[k] < hv) { hv = d[k]; hk = k; }
+      if (d[hk] <= d[hk - 1] && d[hk] <= d[hk + 1] && hv < Math.min(0.3, d[tau] + 0.08)) tau = hk; } }
     need(tau + 1);
     const a = d[tau - 1], b = d[tau], c = d[tau + 1], den = a - 2 * b + c, sh = den ? 0.5 * (a - c) / den : 0;
     return { f: this.fs / (tau + sh), c: Math.max(0, Math.min(1, 1 - b)) };
@@ -186,7 +190,7 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
       emit('pitch', m);
       st.recent.push(m); while (st.recent.length && st.recent[0].t < m.t - .4) st.recent.shift();
       if (st.win && m.t >= st.win.t0 + 0.022 && m.t <= st.win.t0 + 0.2 && m.f > 0) st.win.frames.push(m);
-      if (st.win && m.t >= st.win.t0 + 0.13) finish(); return;
+      if (st.win && m.t >= st.win.t0 + 0.13 && (m.t >= st.win.t0 + 0.2 || !split(st.win.frames))) finish(); return;
     }
     if (m.type === 'release') { if (st.win) finish();   // a short note has ended: report it now, not at the next pluck
       if (st.lastOnsetT > 0) emit('release', { t: m.t - calib.latencyMs / 1000, dur: m.t - st.lastOnsetT }); return; }
@@ -202,12 +206,21 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
       st.peaks.push(m.rms); if (st.peaks.length > 8) st.peaks.shift();
       if (st.peaks.length >= 4 && Math.max(...st.peaks.slice(-4)) < gateFor().gate * 3.2) emit('input', { kind: 'quiet' });
       if (!guarded && !self) emit('onset', { t: m.t - calib.latencyMs / 1000, rms: m.rms, strength: m.strength || m.rms });
-      if (st.win.frames.length && st.win.frames[st.win.frames.length - 1].t >= m.t + 0.13) finish();
+      const lastF = st.win.frames.length ? st.win.frames[st.win.frames.length - 1].t : 0;
+      if (lastF >= m.t + 0.2 || (lastF >= m.t + 0.13 && !split(st.win.frames))) finish();
       else { const w0 = st.win; clearTimeout(st.winT); st.winT = setTimeout(() => { if (st.win === w0) finish(); }, 280); }   // soft notes: no later pitch frame may come
       return;
     }
     // the chord check runs ~90 ms after the stroke; report the stroke's own time
     if (m.type === 'chord') { const t0 = m.t0 != null ? m.t0 : m.t - .06; if (ours(t0)) return; emit('chord', { t: t0 - calib.latencyMs / 1000, db: m.db, present: m.present, exp: m.exp }); }
+  }
+  /* confident frames two or three times above (or below) the others' median: the reading may be a sub-harmonic — a lower
+     string ringing along (the open A under the C♯ string's 8th fret, A4) or YIN taking a double period. Such a note waits
+     for more frames, up to 200 ms after the stroke, instead of being decided at 130 ms */
+  function split(fr) {
+    const g = fr.filter(f => f.conf >= 0.62); if (g.length < 3) return false;
+    const m0 = g.map(f => f.f).sort((a, b) => a - b)[g.length >> 1], near = (f, q) => Math.abs(1200 * Math.log2(f / q)) < 50;
+    return g.some(f => near(f.f, m0 * 2) || near(f.f, m0 * 3) || near(f.f, m0 / 2) || near(f.f, m0 / 3));
   }
   function finish() {
     const w = st.win; st.win = null; if (!w) return;
@@ -217,8 +230,16 @@ registerProcessor('pd-analyzer', PDAnalyzer);`;
       if (pitched < 2) return;
       emit('onset', { t: w.t0 - calib.latencyMs / 1000, rms: w.rms, strength: w.strength || w.rms });
     }
-    const good = w.frames.filter(f => f.conf >= 0.62);
+    const good = w.frames.filter(f => f.conf >= 0.62).map(f => ({ f: f.f, conf: f.conf }));   // copies: the frames were also emitted
     if (!good.length) { emit('note', { t: w.t0 - calib.latencyMs / 1000, conf: 0, unsure: true, rms: w.rms }); return; }
+    /* frames split between a pitch and its octave. YIN errs low far more often than high (a double period; a string an
+       octave below ringing along), so the upper octave is the note once its frames carry 40 % of the confidence of the
+       two — weighed, not counted: a few octave-high slips of a clear note (G4 on the C♯ string: 390 Hz at .99, 780 Hz at
+       .87 — 29 %) must not move it, while A4 over the ringing open A (52 %) moves. Frames an octave below are folded up. */
+    { const m0 = good.map(f => f.f).sort((a, b) => a - b)[good.length >> 1], oct = (f, q) => Math.abs(1200 * Math.log2(f / q)) < 50, W = a => a.reduce((x, f) => x + f.conf, 0);
+      const up = good.filter(f => oct(f.f, m0 * 2)), at = good.filter(f => oct(f.f, m0)), lo = good.filter(f => oct(f.f, m0 / 2)).length;
+      if (up.length >= 2 && W(up) >= 0.4 * (W(up) + W(at))) at.forEach(f => { f.f *= 2; });
+      else if (lo >= Math.max(2, good.length * 0.3)) good.forEach(f => { if (oct(f.f, m0 / 2)) f.f *= 2; }); }
     const fs = good.map(f => f.f).sort((a, b) => a - b), med = fs[Math.floor(fs.length / 2)];
     const agree = good.filter(f => Math.abs(1200 * Math.log2(f.f / med)) < 40).length / good.length;
     const yc = good.reduce((a, f) => a + f.conf, 0) / good.length;

@@ -49,6 +49,31 @@ ok('timing grades; pitch decides right or wrong and caps a note near the edge at
   assert.equal(G.gradeOf('good', 2, 38), 'good', 'timing decides the grade of a right note');
   for (const d of G.DIFFS) { const x = G.diff(d); assert.ok(x.perfect < x.great && x.great < x.good && x.good < x.win, d + ' windows nest'); }
 });
+ok('the sharp side allows more than the flat (a plucked string reads sharp; the A string up to +58 ¢), never a semitone', () => {
+  for (const d of G.DIFFS) {
+    const D = G.diff(d), up = D.cents + D.sharp;
+    assert.equal(G.judgePitch(57, { midi: 57 + up / 100, conf: .9 }, D.cents, D.sharp).ok, true, d + ' sharp edge');
+    assert.equal(G.judgePitch(57, { midi: 57 + (up + 2) / 100, conf: .9 }, D.cents, D.sharp).kind, 'sharp', d + ' past it');
+    assert.equal(G.judgePitch(57, { midi: 57 - (D.cents + 2) / 100, conf: .9 }, D.cents, D.sharp).kind, 'flat', d + ' flat side unchanged');
+    assert.ok(up <= 65, d + ': a note a semitone away (100 ¢) is never right');
+    assert.ok(D.sharp > 0 && D.sharp <= 20);
+  }
+  assert.equal(G.gradeOf('perfect', 40, 38, 18), 'perfect', 'normal: 40 ¢ sharp keeps its Perfect');
+  assert.equal(G.gradeOf('perfect', 46, 38, 18), 'great', 'past 80 % of the sharp side: Great');
+  assert.equal(G.gradeOf('perfect', -31, 38, 18), 'great', 'the flat side has no allowance');
+  // higher on the neck a fretted note is sharper: the sharp side grows with the fret, never past 62 ¢ in all
+  same([0, 4, 5, 8, 12, 14, 17].map(G.fretSharp), [0, 0, 1.5, 6, 12, 15, 16]);
+  for (const d of G.DIFFS) { const D = G.diff(d); assert.ok(D.cents + G.sharpAt(D, 17) <= 62, d + ' cap'); assert.equal(G.sharpAt(D, 0), Math.min(D.sharp, 62 - D.cents)); }
+  const E = G.diff('expert'); assert.equal(G.judgePitch(76 + 14, { midi: 76 + 14 + .48, conf: .9 }, E.cents, G.sharpAt(E, 14)).ok, true, 'expert: the E string\'s 14th fret 48 ¢ sharp (as recorded) is right');
+  assert.equal(G.judgePitch(64 + 1, { midi: 64 + 1 + .48, conf: .9 }, E.cents, G.sharpAt(E, 1)).kind, 'sharp', 'but not at the 1st fret');
+  const c = [{ t: 1, midi: 64 + 14, s: 3, f: 14 }], m = G.noteMatcher(c, E, G.scorer()); assert.ok(m.input({ t: 1, midi: 64 + 14 + .45, conf: .9 }).grade, 'the matcher uses the fret');
+});
+ok('an unsteady device (the spread of its calibration taps) widens the timing windows, at most by 15 ms', () => {
+  const D = G.diff('normal'), W = G.widen(D, .01);
+  ['perfect', 'great', 'good', 'win'].forEach(k => assert.ok(near(W[k], D[k] + .01), k));
+  assert.equal(W.cents, D.cents); assert.ok(near(G.widen(D, .05).perfect, D.perfect + .015), 'capped');
+  assert.equal(G.widen(D, 0), D); assert.equal(G.widen(D, null), D);
+});
 
 console.log('Note Rush matching');
 const chart = [{ t: 2, midi: 57 }, { t: 3, midi: 61 }, { t: 4, midi: 64 }, { t: 4.5, midi: 57 }];
@@ -100,6 +125,16 @@ ok('the same pitch on another string counts (the microphone hears pitch, not the
   const D = G.diff('normal'), sc = G.scorer(), m = G.noteMatcher([{ t: 1, midi: TH.midi(2, 0), s: 2, f: 0 }], D, sc);
   assert.equal(TH.midi(1, 4), TH.midi(2, 0));
   assert.equal(m.input({ t: 1, midi: TH.midi(1, 4), conf: .9 }).grade, 'perfect');
+});
+ok('a right note still ringing under the next one is "not heard clearly", not a wrong note', () => {
+  const c = [{ t: 1, midi: 57 }, { t: 1.18, midi: 61 }], D = G.diff('normal'), sc = G.scorer(), m = G.noteMatcher(c, D, sc);
+  assert.equal(m.input({ t: 1.0, midi: 57, conf: .9 }).grade, 'perfect');
+  const r = m.input({ t: 1.18, midi: 57, conf: .9 }); assert.equal(r.unsure, true); assert.equal(r.ring, true); assert.equal(sc.s.wrong, 0); assert.equal(sc.s.miss, 0);
+  assert.equal(m.input({ t: 1.2, midi: 61, conf: .9 }).grade, 'perfect', 'its own pitch, when it comes, is a hit');
+  const sc2 = G.scorer(), m2 = G.noteMatcher(c, D, sc2); m2.input({ t: 1, midi: 57, conf: .9 });
+  assert.equal(m2.input({ t: 1.18, midi: 59, conf: .9 }).miss, true, 'a wrong note that is not the ringing one is still wrong');
+  const sc3 = G.scorer(), m3 = G.noteMatcher([{ t: 1, midi: 57 }, { t: 3, midi: 61 }], D, sc3); m3.input({ t: 1, midi: 57, conf: .9 });
+  assert.equal(m3.input({ t: 3, midi: 57, conf: .9 }).miss, true, '2 s later the A has stopped counting as ringing');
 });
 ok('combo multiplier ×1 ×2 ×3 ×4 at 10, 25, 50', () => {
   same([1, 9, 10, 24, 25, 49, 50, 200].map(G.mult), [1, 1, 2, 2, 3, 3, 4, 4]);
@@ -179,15 +214,44 @@ ok('Rhythm Battle keeps the teacher\'s order and accents exactly; count-in 4 bea
     c.chart.forEach((x, i) => { const s = r.strokes[i % per]; assert.equal(x.dir, s.direction); assert.equal(x.acc, !!s.accent); });
   });
 });
+ok('Note Rush lines are phrases: each one rests, held, on A · C♯ · E; the line ends on A; mostly steps, not leaps', () => {
+  const pc = x => ((x.midi % 12) + 12) % 12;
+  for (const L of G.RUSH) for (const seed of [undefined, 7, 99, 2026]) {
+    const c = G.rushChart(L.id, 'normal', seed), ch = c.chart, ends = ch.filter(x => x.end);
+    assert.ok(ends.length >= Math.floor(L.n / 10), 'L' + L.id + ' has phrases (' + ends.length + ')');
+    ends.forEach(x => { assert.ok([9, 1, 4].includes(pc(x)), 'L' + L.id + ' a phrase rests on a home tone'); assert.equal(x.d, 2, 'and is held'); });
+    assert.equal(ch[ch.length - 1].end, true); assert.equal(pc(ch[ch.length - 1]), 9, 'L' + L.id + ' the line ends on A');
+    const at = ch.map(x => c.pool.findIndex(p => p.midi === x.midi)), moves = at.slice(1).map((k, i) => Math.abs(k - at[i]));
+    assert.ok(moves.filter(v => v <= 2).length / moves.length >= .7, 'L' + L.id + ' mostly steps: ' + moves.join(','));
+    let run = 1; for (let i = 1; i < ch.length; i++) { run = ch[i].midi === ch[i - 1].midi ? run + 1 : 1; assert.ok(run <= 3, 'L' + L.id + ' never four of one note'); }
+  }
+  assert.equal(G.CHART_V, 2);
+});
 ok('Melody Memory lengths 3 · 4 · 5 · 6–8, notes from the pool', () => {
   const want = { 1: [3, 3], 2: [4, 4], 3: [5, 5], 4: [6, 8] };
   for (const L of G.MEMORY) for (let r = 0; r < 5; r++) {
     const m = G.melody(L.id, r);
     if (want[L.id]) assert.ok(m.length >= want[L.id][0] && m.length <= want[L.id][1], 'L' + L.id);
     m.forEach(x => { assert.ok(x.f >= L.frets[0] && x.f <= L.frets[1]); assert.ok(near(TH.midi(x.s, x.f), x.midi)); });
+    assert.ok([9, 1, 4].includes(((m[m.length - 1].midi % 12) + 12) % 12), 'a melody ends on a home tone');
   }
+  const last = new Set(); for (let r = 0; r < 12; r++) last.add(G.melody(1, r).slice(-1)[0].midi);
+  assert.ok(last.size >= 2, 'the last note is not always the same one (it would give the melody away)');
   assert.equal(G.rhythmMatch([1, 1, 2], [.5, .5, 1]), 1, 'the same rhythm, twice as fast, is the same rhythm');
   assert.ok(G.rhythmMatch([1, 1, 2], [1, 2, 1]) < .7);
+});
+ok('rhythm timing: measured from the teacher\'s recordings where they exist; equal steps nobody confirmed are practice only', () => {
+  const R = PD.curriculum.rhythms(), by = id => R.find(r => r.id === id);
+  const a = G.rhythmTiming(by('acharuli')), m = G.rhythmTiming(by('mtiuluri')), k = G.rhythmTiming(by('kazbeguri')), h = G.rhythmTiming(by('khorumi'));
+  assert.equal(a.official, true); assert.equal(a.src, 'recording'); assert.equal(a.durations.length, 3);
+  assert.ok(a.durations[0] > a.durations[1] * 1.6 && a.durations[2] > a.durations[1] * 1.6, 'acharuli: long · short · long ' + a.durations);
+  assert.equal(m.official, true); assert.equal(m.durations.length, 5); assert.ok(m.durations[0] > m.durations[1] * 1.5, 'mtiuluri: the accented first stroke is long ' + m.durations);
+  [a, m].forEach(t => assert.ok(near(t.durations.reduce((x, y) => x + y, 0), t.durations.length, .01), 'a cycle as long as equal steps would make it'));
+  assert.equal(k.official, false); assert.equal(k.src, 'default'); same(k.durations, [1, 1, 1]);
+  assert.equal(h.official, false, 'khorumi (5/8 = 3/8 + 2/8) has no measured timing yet');
+  const c = G.rhythmChart(by('acharuli'), 60, 2, a.durations); assert.ok(near(c.chart[1].t - c.chart[0].t, a.durations[0], .001)); assert.ok(near(c.len, (4 + 2 * 3) * 1, .02), 'two cycles after the count-in');
+  const t = G.rhythmTiming(Object.assign({}, by('kazbeguri'), { timing: { src: 'teacher', durations: [2, 1, 1] } })); assert.equal(t.official, true); same(t.durations, [2, 1, 1], 'the teacher\'s own timing from the Studio wins');
+  assert.equal(G.rhythmTiming(Object.assign({}, by('kazbeguri'), { timing: { src: 'teacher', durations: [2, 1] } })).official, false, 'a timing that does not fit the strokes is ignored');
 });
 ok('Fret Hunter: targets inside the level\'s frets, never the same note twice in a row', () => {
   for (const L of G.HUNT) { const T = G.huntTargets(L.id); assert.equal(T.length, L.n); T.forEach((x, i) => { assert.ok(TH.positions(x.midi).some(p => p.f >= L.frets[0] && p.f <= L.frets[1])); if (i) assert.notEqual(x.midi, T[i - 1].midi); }); }
@@ -237,8 +301,8 @@ ok('the daily challenge is the same all day and is met only by a matching round'
 ok('a challenge code round-trips; a mistyped one is refused', () => {
   const o = { g: 'rush', l: 3, d: 'normal', seed: 123456, score: 12345, acc: .923, pitchAcc: .95, timing: .81, mistakes: 3, maxCombo: 27, name: 'ნიკა', date: 5 };
   const c = G.encodeChallenge(o), back = G.decodeChallenge(c);
-  same(back, o);
-  same(G.decodeChallenge('https://x/app/#gmc=' + c), o, 'from a link');
+  same(back, Object.assign({ cv: G.CHART_V }, o), 'it carries the chart version');
+  same(G.decodeChallenge('https://x/app/#gmc=' + c), Object.assign({ cv: G.CHART_V }, o), 'from a link');
   const bad = c.slice(0, 10) + (c[10] === 'A' ? 'B' : 'A') + c.slice(11); assert.equal(G.decodeChallenge(bad), null);
   assert.equal(G.decodeChallenge('nonsense'), null);
   const cmp = G.compare({ score: 10, acc: .9, mistakes: 1 }, { score: 8, acc: .95, mistakes: 0 }); assert.equal(cmp.win, 1); assert.equal(cmp.rows.find(r => r.k === 'mistakes').win, -1);
@@ -249,6 +313,7 @@ ok('the session state machine refuses impossible steps', () => {
   ['preparing', 'countdown', 'playing', 'paused', 'countdown', 'playing', 'completed', 'preparing', 'countdown', 'playing', 'failed', 'exiting'].forEach(s => assert.equal(m.go(s), true, s));
   assert.equal(m.go('preparing'), false, 'nothing after exiting');
   assert.equal(log.length, 12);
+  const m2 = G.machine(); ['preparing', 'countdown', 'playing', 'paused', 'completed'].forEach(s => assert.equal(m2.go(s), true, 'endless practice is finished from the pause: ' + s));
 });
 ok('the clock across pauses: song time stops, audio time goes on; a moment inside a pause has no song time', () => {
   const c = G.clock();

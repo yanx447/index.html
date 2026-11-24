@@ -8,7 +8,7 @@
 PD.i18n.add({
   'gm.nr.h1': ['ზოლები სიმებია: A · C♯ · E. ნოტზე წერია ლადი (0 = ღია სიმი) და ნოტის სახელი.', 'The lanes are the strings: A · C♯ · E. A note shows its fret (0 = open string) and its name.'],
   'gm.nr.h2': ['დაუკარი, როცა ნოტი ნათელ ხაზს მიაღწევს.', 'Play as the note reaches the glowing line.'], 'gm.nr.h3': ['ზედიზედ სწორი ნოტები ზრდის კომბოს: ×2 10-დან, ×3 25-დან, ×4 50-დან.', 'Right notes in a row build the combo: ×2 from 10, ×3 from 25, ×4 from 50.'],
-  'gm.nr.dd': ['ზუსტი ±{p} ms · ბგერა ±{c}¢', 'Perfect ±{p} ms · pitch ±{c}¢'], 'gm.nr.bpm': ['{n} BPM · {k} ნოტი', '{n} BPM · {k} notes'],
+  'gm.nr.dd': ['ზუსტი ±{p} ms · ბგერა ±{c}¢', 'Perfect ±{p} ms · pitch ±{c}¢'], 'gm.preview': ['გადახედვა', 'Preview'], 'gm.previewD': ['აპი თვითონ დაუკრავს ნოტებს, როცა ხაზს მიაღწევს — მიკროფონი არ სჭირდება და არაფერი ფასდება.', 'The app plays the notes itself as they reach the line — no microphone, nothing scored.'], 'gm.nr.bpm': ['{n} BPM · {k} ნოტი', '{n} BPM · {k} notes'],
   'gm.rb.pick': ['რიტმი', 'Rhythm'], 'gm.rb.tempo': ['ტემპი', 'Tempo'],
   'gm.rb.h1': ['ჯერ 4 ათვლა, შემდეგ რიტმი წრეზე. მეტრონომი ყოველ დარტყმაზე წკაპუნებს, აქცენტზე — უფრო ხმამაღლა.', 'First a count of 4, then the rhythm round and round. The metronome clicks on every stroke, louder on an accent.'],
   'gm.rb.h2': ['წითელი ისარი — აქცენტი (ძლიერად), სპილენძისფერი — ჩვეულებრივი.', 'A red arrow is an accent (strong), copper is a normal stroke.'], 'gm.rb.h3': ['დაარტყი, როცა ისარი ვერტიკალურ ხაზს მიაღწევს.', 'Strike as the arrow reaches the vertical line.'],
@@ -39,7 +39,23 @@ PD.i18n.add({
   'gm.bj.h1': ['რიტმი აჭარულია: ↓ · ↓> · ↑>. აკორდები: Dm Dm · B♭ · C — მთელ სიმღერაში.', 'The rhythm is Acharuli: ↓ · ↓> · ↑>. The chords: Dm Dm · B♭ · C — through the whole song.'],
   'gm.bj.h2': ['ფასდება დარტყმის დრო ჩანაწერის საკუთარ დარტყმებთან და აკორდის ბგერები.', "Each stroke's timing against the recording's own beats, and the chord's tones, are scored."],
   'gm.bj.chordDraft': ['B♭ და C-ს ფორმა აპმა გამოითვალა — მასწავლებელს ჯერ არ დაუდასტურებია.', 'The B♭ and C shapes were worked out by the app — the teacher has not confirmed them yet.'], 'gm.bj.chordOk': ['აკორდის ბგერები', 'Chord tones'],
-  'gm.bj.practiceNote': ['ვარჯიშის რეჟიმში შედეგი არ ინახება.', 'In practice mode the result is not saved.']
+  'gm.bj.practiceNote': ['ვარჯიშის რეჟიმში შედეგი არ ინახება.', 'In practice mode the result is not saved.'],
+  'gm.bj.leakRun': ['ნუ უკრავ — ვამოწმებ, ესმის თუ არა მიკროფონს დინამიკი… 4 წმ', 'Do not play — checking whether the microphone hears the speaker… 4 s'], 'gm.bj.leakOk': ['ექოს შემოწმება: სუფთაა', 'Echo check: clean'],
+  'gm.bj.leakT': ['მიკროფონს ჩანაწერი ესმის', 'The microphone hears the recording'],
+  'gm.bj.leakD': ['სანამ არ უკრავდი, მიკროფონმა დინამიკიდან 4 წამში {n} დარტყმა გაიგო. ისინი შენს დაკვრად ჩაითვლებოდა. გაიკეთე ყურსასმენი ან დაუწიე ჩანაწერს და შეამოწმე თავიდან.', 'While you were silent, the microphone picked up {n} strokes from the speaker in 4 seconds. They would have been counted as your playing. Put on headphones or turn the recording down, and check again.'],
+  'gm.bj.leakAgain': ['თავიდან შემოწმება', 'Check again'], 'gm.bj.leakPractice': ['ვარჯიში ჩანაწერით', 'Practise with the recording'], 'gm.bj.leakMetro': ['მხოლოდ მეტრონომით', 'Metronome only'],
+  'gm.bj.leakRow': ['ექოს შემოწმება', 'Echo check'], 'gm.bj.leakRowN': ['{n} დარტყმა დინამიკიდან', '{n} strokes from the speaker'],
+  'gm.sq.stT': ['მასწავლებლის დამოწმებული', 'Teacher verified'], 'gm.sq.stU': ['შენი შექმნილი', 'Made by you'], 'gm.sq.stD': ['მონახაზი', 'Draft'], 'gm.sq.stA': ['AI-ს შეფასება', 'AI estimate'],
+  'gm.sq.offT': ['ოფიციალური: ვარსკვლავი, რეკორდი და XP ინახება.', 'Official: stars, records and XP are kept.'],
+  'gm.sq.offD': ['მასწავლებელს ეს მასალა ჯერ არ შეუმოწმებია — ივარჯიშე თავისუფლად, მაგრამ შედეგი ოფიციალური არ არის: ვარსკვლავი, რეკორდი და XP არ ემატება.', 'The teacher has not checked this material yet — practise it freely, but the result is not official: no stars, records or XP.'],
+  'gm.sq.offU': ['შენი მასალა ვარჯიშისთვისაა: ოფიციალური შედეგი მხოლოდ მასწავლებლის შემოწმებულ მასალაზეა.', 'Your own material is for practice: official results are only for material the teacher has checked.'],
+  'gm.sq.offA': ['AI-ს შეფასება: აკორდები და დრო ჩანაწერიდან გაიზომა — ვარჯიშისთვის, ოფიციალური შედეგის გარეშე.', 'An AI estimate: the chords and timing were measured from a recording — for practice, without an official result.'],
+  'gm.mm.remember': ['დაიმახსოვრე…', 'Remember it…'], 'gm.mm.hi': ['უფრო მაღალია', 'is higher'], 'gm.mm.lo': ['უფრო დაბალია', 'is lower'],
+  'gm.mm.wrongD': ['გავიგე {p} — {i}-ე ნოტი {d}', 'Heard {p} — note {i} {d}'], 'gm.mm.is': ['{i}-ე ნოტი: {n} · {p}', 'Note {i} is {n} · {p}'],
+  'gm.mm.roundN': ['მელოდია {a}', 'Melody {a}'], 'gm.mm.firstOf': ['{a} / {b} პირველივე ცდით', '{a} / {b} on the first try'],
+  'gm.fh.show': ['პოზიციის ჩვენება', 'Show the position'], 'gm.fh.hide': ['პოზიციის დამალვა', 'Hide the position'], 'gm.fh.hear': ['ნოტის მოსმენა', 'Hear the note'],
+  'gm.fh.up1': ['იმავე სიმზე ერთი ლადით მაღლა', 'one fret higher on the same string'], 'gm.fh.down1': ['იმავე სიმზე ერთი ლადით დაბლა', 'one fret lower on the same string'],
+  'gm.fh.upN': ['იმავე სიმზე {n} ლადით მაღლა', '{n} frets higher on the same string'], 'gm.fh.downN': ['იმავე სიმზე {n} ლადით დაბლა', '{n} frets lower on the same string']
 });
 
 PD.gameModes = (() => {
@@ -122,6 +138,8 @@ PD.gameModes = (() => {
   const posText = p => p.f ? t('gm.fh.pos', { s: TH.stringName(p.s), f: p.f }) : t('gm.fh.open', { s: TH.stringName(p.s) });
   /** a note's name as the learner reads it: C♯4 · დო♯ */
   const noteName = m => TH.name(m) + (PD.i18n.lang === 'ka' ? ' · ' + TH.nameKa(m) : '');
+  /** " · early" / " · late" after a grade, when the stroke was off by more than 25 ms */
+  const offSide = off => off == null || Math.abs(off) <= .025 ? '' : ' · ' + t(off < 0 ? 'gm.j.earlyS' : 'gm.j.lateS');
 
   /* =================================================================
      NOTE RUSH — notes fall down three lanes (the strings) to the line
@@ -135,14 +153,18 @@ PD.gameModes = (() => {
       const sub = h('p', { class: 'gm-note', text: t('gm.nr.dd', { p: Math.round(D(st.d).perfect * 1000), c: D(st.d).cents }) }); dsec.append(sub);
       const drawL = () => { lsec.querySelector('.gm-levels') && lsec.querySelector('.gm-levels').remove(); lsec.insertBefore(levels(G.RUSH.map(L => ({ id: L.id, n: t('gm.lvl', { n: L.id }), name: t('gm.rush.l.' + L.key), desc: t('gm.rush.ld.' + L.key) + ' · ' + t('gm.nr.bpm', { n: L.bpm, k: L.n }), open: c.P.open('rush', L.id), stars: (c.P.rec('rush', L.id, st.d) || {}).stars || 0 })), st.l, l => { st.l = l; best.upd(); }), best.el); };
       lsec.append(best.el); drawL();
+      const prev = h('button', { class: 'btn small', type: 'button', html: PD.ic.play + '<span>' + PD.esc(t('gm.preview')) + '</span>', onclick: () => { st.opts.listen = true; c.start(); st.opts.listen = false; } });
+      lsec.append(h('div', { class: 'gm-acts' }, [prev]), h('p', { class: 'gm-note', 'data-t': 'gm.previewD' }));
       w.append(dsec, lsec);
       return () => best.upd();
     },
+    preview: true,
     nextOf(S) { return +S.l < G.RUSH.length ? { l: +S.l + 1, d: S.d } : null; },
     create(S) {
       const L = G.RUSH.find(x => x.id === +S.l) || G.RUSH[0], seed = S.opts.seed != null ? S.opts.seed >>> 0 : G.hash('rush:' + L.id);
       const C = G.rushChart(L.id, S.d, seed), chart = C.chart, D = S.D, M = G.noteMatcher(chart, D, S.sc);
-      const lefty = !!PD.store.get('lefty', false), metro = PD.store.get('gm.metro', true) !== false, order = lefty ? [3, 2, 1] : [1, 2, 3];
+      const lefty = !!PD.store.get('lefty', false), metro = PD.store.get('gm.metro', true) !== false, order = lefty ? [3, 2, 1] : [1, 2, 3], listen = !!S.opts.listen;
+      let pi = 0;
       const res = chart.map(() => null), fx = sparks(S.fx);
       let g = null, geo = {}, bg = null, flash = 0, lastT = performance.now(), last = null, lastOff = null, nextBeat = -Math.floor(C.start / C.spb);
       function layout(g0) {
@@ -229,27 +251,29 @@ PD.gameModes = (() => {
           S.root.append(sideL, sideR);
         },
         schedule(hz) {
+          if (listen) while (pi < chart.length) { const n = chart[pi], a = S.clock.audio(n.t); if (!(a < hz)) break; if (a > S.now() - .005) PD.audio.note(n.s, n.f, { when: a, vel: .7, dur: Math.max(.3, n.d * C.spb) }); pi++; }
           if (!metro) return;
           for (;;) { const ts = C.start + nextBeat * C.spb; if (ts > C.len + C.spb) return; const a = S.clock.audio(ts); if (!(a < hz)) return; if (a > S.now() - .005) GA.click(a, ((nextBeat % 4) + 4) % 4 === 0); nextBeat++; }
         },
-        pause() { nextBeat = Math.ceil((S.clock.at(S.now()) - C.start) / C.spb); },
+        pause() { const at = S.clock.at(S.now()); nextBeat = Math.ceil((at - C.start) / C.spb); pi = chart.findIndex(n => n.t >= at - 1e-6); if (pi < 0) pi = chart.length; },
         frame(st, state) {
-          if (state === 'playing') {
+          if (state === 'playing' && listen) chart.forEach((n, i) => { if (!res[i] && n.t <= st) { res[i] = 'demo'; hitFx(n, 'great'); } });
+          else if (state === 'playing') {
             M.advance(st).forEach(r => { const n = chart[r.i]; res[r.i] = r.unsure ? 'unsure' : 'miss'; S.pop(r.unsure ? 'unsure' : 'miss', t(r.unsure ? 'gm.j.unsure' : 'gm.j.miss'), geo.lx(n.s), geo.hitY - 52); S.hud.combo(S.sc.s.combo); });
             S.hud.progress(st / C.len);
           }
           draw(st);
           const now = performance.now(); if (sideL && now - sideT > 200 && sideL.offsetParent) { sideT = now; side(st); }
         },
-        onOnset(ev) { const tt = S.toSong(ev.t); if (tt == null) return; M.onset(tt); flash = 1; },
+        onOnset(ev) { if (listen) return; const tt = S.toSong(ev.t); if (tt == null) return; M.onset(tt); flash = 1; },
         onNote(ev) {
-          last = ev; const tt = S.toSong(ev.t); if (tt == null) return;
+          if (listen) return; last = ev; const tt = S.toSong(ev.t); if (tt == null) return;
           const r = M.input({ t: tt, midi: ev.midi, conf: ev.conf, unsure: ev.unsure });
           if (r.extra || r.unsure) return;
           const n = chart[r.i], x = geo.lx(n.s);
           if (r.grade) {
             res[r.i] = r.grade; lastOff = r.off; hitFx(n, r.grade);
-            S.pop(r.grade, t('gm.j.' + r.grade), x, geo.hitY - 52); S.hud.score(S.sc.s.score); S.hud.combo(S.sc.s.combo);
+            S.pop(r.grade, t('gm.j.' + r.grade) + offSide(r.off), x, geo.hitY - 52); S.hud.score(S.sc.s.score); S.hud.combo(S.sc.s.combo);
             if (Math.abs(r.cents) > D.cents * .6) S.say(r.cents > 0 ? 'gm.k.sharp' : 'gm.k.flat', null, 'cu', 1100);
           } else if (r.miss) {
             res[r.i] = 'miss'; lastOff = r.off != null ? r.off : lastOff;
@@ -257,9 +281,11 @@ PD.gameModes = (() => {
             if (r.kind && t('gm.k.' + r.kind) !== 'gm.k.' + r.kind) S.hud.say(t('gm.k.' + r.kind) + (r.heard != null ? ' · ' + TH.name(r.heard) : ''), 'bad', 1500);
           }
         },
-        done: st => M.done(st) && st > C.len,
-        result: () => ({ total: chart.length }),
+        done: st => listen ? st > C.len : M.done(st) && st > C.len,
+        practice: listen,
+        result: () => listen ? { total: 0, grid: false, stars: 0, acc: null, lowHeard: false, rows: [] } : { total: chart.length },
         test: () => M.st.map((x, i) => [x.res, x.off == null ? null : Math.round(x.off * 1000), x.cents == null ? null : Math.round(x.cents), chart[i].s]),
+        qa: () => ({ chart, st: M.st }),
         dbgNote(ev) { last = ev; },
         dbg() { const nx = chart.find((n, i) => !res[i]); return { pitch: last && last.f ? Math.round(last.f) + ' Hz · ' + TH.name(last.midi) + ' ' + (last.cents > 0 ? '+' : '') + Math.round(last.cents || 0) + '¢' : '—', conf: last ? (last.conf || 0).toFixed(2) + (last.unsure ? ' ?' : '') : '—', off: lastOff != null ? Math.round(lastOff * 1000) + ' ms' : '—', level: Math.round(GA.db(S.level || 0)) + ' dBFS', exp: nx ? TH.name(nx.midi) + ' (' + TH.stringName(nx.s) + ' ' + nx.f + ')' : '—', got: last && last.midi ? TH.name(last.midi) : '—' }; },
         destroy() { S.field.removeEventListener('pointerdown', tap); if (g) g.destroy(); if (sideL) { sideL.remove(); sideR.remove(); } S.root.style.removeProperty('--gm-fw'); }
@@ -271,32 +297,64 @@ PD.gameModes = (() => {
   /* =================================================================
      RHYTHM BATTLE — the teacher's rhythms against the metronome
      ================================================================= */
+  PD.i18n.add({
+    'gm.rb.srcT': ['დარტყმების ხანგრძლივობა: მასწავლებლის', 'Stroke lengths: the teacher\'s'], 'gm.rb.srcR': ['დარტყმების ხანგრძლივობა: გაზომილია მასწავლებლის ჩანაწერიდან', 'Stroke lengths: measured from the teacher\'s recording'],
+    'gm.rb.srcD': ['მონახაზი · ხანგრძლივობა ჯერ უცნობია — მხოლოდ ვარჯიში', 'Draft · stroke lengths not known yet — practice only'],
+    'gm.rb.measured': ['დარტყმები თანაბარი არ არის: თითოეულის ხანგრძლივობა აპმა მასწავლებლის ნელი ჩანაწერებიდან გაზომა.', 'The strokes are not equal: the app measured each one\'s length from the teacher\'s slow recordings.'],
+    'gm.rb.draftNote': ['ეს რიტმი ქულებს არ იძლევა, სანამ მასწავლებელი დარტყმების ხანგრძლივობას არ მიუთითებს ან არ ჩაწერს — ვარჯიში თავისუფლად შეიძლება.', 'This rhythm gives no scores until the teacher gives or records the stroke lengths — you can practise it freely.'],
+    'gm.d.practice2': ['ვარჯიში', 'Practice'], 'gm.rb.ptempo': ['ტემპი: {n} BPM', 'Tempo: {n} BPM'], 'gm.rb.adapt': ['ტემპი თავად მოერგოს', 'Adapt the tempo'],
+    'gm.rb.adaptD': ['ყოველ 4 წრეზე: 90%-ზე მეტი — +4 BPM, 60%-ზე ნაკლები — −4 BPM.', 'Every 4 rounds: above 90% — +4 BPM, below 60% — −4 BPM.'],
+    'gm.rb.listen': ['რიტმის მოსმენა', 'Hear the rhythm'], 'gm.rb.round': ['წრე {a} · {b} BPM · {p}', 'Block {a} · {b} BPM · {p}'], 'gm.rb.up': ['კარგია — ტემპი {n} BPM', 'Good — tempo {n} BPM'], 'gm.rb.down': ['ცოტა შევანელოთ — {n} BPM', 'A little slower — {n} BPM'],
+    'gm.rb.finish': ['დასრულება', 'Finish'], 'gm.rb.log': ['ვარჯიში: {n} წრე, {a} → {b} BPM, საშუალო სიზუსტე {p}', 'Practice: {n} blocks, {a} → {b} BPM, average accuracy {p}']
+  });
   const rhythm = {
     page(c) {
       const { st, w } = c, R = PD.curriculum.rhythms();
-      if (!R.some(r => r.id === st.l)) st.l = R[0].id; if (!G.DIFFS.includes(st.d)) st.d = 'easy';
+      if (!R.some(r => r.id === st.l)) st.l = R[0].id; if (!G.DIFFS.includes(st.d) && st.d !== 'practice') st.d = 'easy';
+      st.opts.bpm = st.opts.bpm || 60; if (st.opts.adaptive == null) st.opts.adaptive = true;
       w.append(sec(t('gm.how'), [bullets(['gm.rb.h1', 'gm.rb.h2', 'gm.rb.h3'])]), sec(t('gm.listens'), [bullets(['gm.n.dir'])]));
-      const best = bestLine(c, () => c.P.tempoOpen(st.l, st.d)), list = h('div', { class: 'gm-songs', role: 'list' }), tsec = sec(t('gm.rb.tempo'), []), note = h('p', { class: 'gm-note' });
-      const drawT = () => { const old = tsec.querySelector('.gm-seg'); if (old) old.remove(); tsec.prepend(seg(G.DIFFS.map(d => ({ id: d, label: t('gm.rb.d.' + d) + ' · ' + G.RB_BPM[d], lock: !c.P.tempoOpen(st.l, d), lockMsg: t('gm.rb.lockT') })), st.d, d => { st.d = d; best.upd(); }, t('gm.rb.tempo'))); };
+      const timingOf = id => G.rhythmTiming(R.find(x => x.id === id)), best = bestLine(c, () => st.d === 'practice' || (timingOf(st.l).official && c.P.tempoOpen(st.l, st.d)));
+      const list = h('div', { class: 'gm-songs', role: 'list' }), tsec = sec(t('gm.rb.tempo'), []), note = h('p', { class: 'gm-note' }), prac = h('div', { class: 'gm-field2' });
+      const srcLine = tm => t(tm.src === 'teacher' ? 'gm.rb.srcT' : tm.src === 'recording' ? 'gm.rb.srcR' : 'gm.rb.srcD');
+      const drawT = () => {
+        const old = tsec.querySelector('.gm-seg'); if (old) old.remove(); const official = timingOf(st.l).official;
+        if (!official) st.d = 'practice';
+        tsec.prepend(seg(G.DIFFS.map(d => ({ id: d, label: t('gm.rb.d.' + d) + ' · ' + G.RB_BPM[d], lock: !official || !c.P.tempoOpen(st.l, d), lockMsg: t(official ? 'gm.rb.lockT' : 'gm.rb.draftNote') })).concat([{ id: 'practice', label: t('gm.d.practice2') }]), st.d, d => { st.d = d; drawP(); best.upd(); }, t('gm.rb.tempo')));
+        drawP();
+      };
+      const drawP = () => {
+        prac.innerHTML = ''; prac.hidden = st.d !== 'practice'; if (prac.hidden) return;
+        const lab = h('label', { text: t('gm.rb.ptempo', { n: st.opts.bpm }) }), sl = h('input', { type: 'range', class: 'gm-range', min: '40', max: '160', step: '2', value: String(st.opts.bpm), 'aria-label': t('gm.rb.tempo'), oninput: e => { st.opts.bpm = +e.target.value; lab.textContent = t('gm.rb.ptempo', { n: st.opts.bpm }); } });
+        const ad = h('input', { type: 'checkbox' }); ad.checked = st.opts.adaptive !== false; ad.onchange = () => { st.opts.adaptive = ad.checked; };
+        prac.append(lab, sl, h('label', { class: 'gm-li', style: 'cursor:pointer' }, [h('span', {}, [h('b', { text: t('gm.rb.adapt') }), h('small', { text: t('gm.rb.adaptD') })]), ad]), h('p', { class: 'gm-note', 'data-t': 'gm.dd.practice' }));
+      };
       R.forEach(r => {
-        const b = h('button', { type: 'button', role: 'listitem', class: 'gm-song', 'aria-pressed': String(r.id === st.l) }, [h('span', {}, [h('b', { text: PD.i18n.pick(r.name) }), h('small', { text: r.strokes.map(s => (s.direction === 'down' ? '↓' : '↑') + (s.accent ? '>' : '')).join(' ') + ' · ' + t('gm.rb.cycles', { n: G.RB_CYCLES[r.id] || 6, s: (G.RB_CYCLES[r.id] || 6) * r.strokes.length }) })]),
+        const tm = G.rhythmTiming(r);
+        const b = h('button', { type: 'button', role: 'listitem', class: 'gm-song', 'aria-pressed': String(r.id === st.l) }, [h('span', {}, [h('b', { text: PD.i18n.pick(r.name) }), h('small', { text: r.strokes.map(s2 => (s2.direction === 'down' ? '↓' : '↑') + (s2.accent ? '>' : '')).join(' ') + ' · ' + t('gm.rb.cycles', { n: G.RB_CYCLES[r.id] || 6, s: (G.RB_CYCLES[r.id] || 6) * r.strokes.length }) }), h('small', { style: 'color:' + (tm.official ? 'var(--gm-tx2)' : '#e0b072'), text: srcLine(tm) })]),
           h('span', { class: 'gm-st', style: 'display:flex;gap:2px', html: starsHTML(Math.max(0, ...G.DIFFS.map(d => (c.P.rec('rhythm', r.id, d) || {}).stars || 0))) })]);
-        b.onclick = () => { st.l = r.id; list.querySelectorAll('.gm-song').forEach(x => x.setAttribute('aria-pressed', String(x === b))); if (!c.P.tempoOpen(st.l, st.d)) st.d = 'easy'; drawT(); drawN(); best.upd(); };
+        b.onclick = () => { st.l = r.id; list.querySelectorAll('.gm-song').forEach(x => x.setAttribute('aria-pressed', String(x === b))); if (st.d !== 'practice' && !c.P.tempoOpen(st.l, st.d)) st.d = 'easy'; drawT(); drawN(); best.upd(); };
         list.append(b);
       });
-      const drawN = () => { const r = R.find(x => x.id === st.l); note.textContent = (r && r.timing && r.timing.src === 'default' ? t('gm.n.timing') : '') + (st.l === 'khorumi' ? ' ' + t('gm.n.khorumi') : ''); };
+      const drawN = () => { const tm = timingOf(st.l); note.textContent = (tm.official ? (tm.src === 'recording' ? t('gm.rb.measured') : '') : t('gm.n.timing') + ' ' + t('gm.rb.draftNote')) + (st.l === 'khorumi' ? ' ' + t('gm.n.khorumi') : ''); };
+      // hear it first: the app strums two cycles at the chosen tempo, with the lengths the game will use
+      const listen = h('button', { class: 'btn small', type: 'button', html: PD.ic.play + '<span>' + PD.esc(t('gm.rb.listen')) + '</span>', onclick: () => {
+        const r = R.find(x => x.id === st.l), tm = timingOf(st.l), bpm = st.d === 'practice' ? st.opts.bpm : G.RB_BPM[st.d], spb = 60 / bpm; PD.audio.ensure(); let at = PD.audio.now() + .15;
+        for (let k = 0; k < 2; k++) r.strokes.forEach((x, i) => { PD.audio.strum([0, 0, 0], x.direction, { when: at, vel: x.accent ? .95 : .55 }); at += tm.durations[i] * spb; });
+      } });
       w.append(sec(t('gm.rb.pick'), [h('span', { class: 'tp-src teacher', style: 'justify-self:start', text: PD.ui.srcLabel('tp.src.teacher') }), list, note]), tsec);
-      tsec.append(best.el); drawT(); drawN();
+      tsec.append(prac, h('div', { class: 'gm-acts' }, [listen]), best.el); drawT(); drawN();
       return () => best.upd();
     },
-    nextOf(S) { const i = G.DIFFS.indexOf(S.d); return i < G.DIFFS.length - 1 ? { l: S.l, d: G.DIFFS[i + 1] } : null; },
+    nextOf(S) { if (S.d === 'practice') return null; const i = G.DIFFS.indexOf(S.d); return i < G.DIFFS.length - 1 ? { l: S.l, d: G.DIFFS[i + 1] } : null; },
     create(S) {
-      const R = PD.curriculum.rhythms(), r = R.find(x => x.id === S.l) || R[0], bpm = G.RB_BPM[S.d] || 60;
-      const C = G.rhythmChart(r, bpm), chart = C.chart, D = S.D, M = G.rhythmMatcher(chart, D, S.sc), res = chart.map(() => null);
+      const R = PD.curriculum.rhythms(), r = R.find(x => x.id === S.l) || R[0], timing = G.rhythmTiming(r), practice = S.d === 'practice' || !timing.official;
+      const bpm = practice ? Math.max(40, Math.min(160, S.opts.bpm || 60)) : G.RB_BPM[S.d] || 60;
+      // practice: blocks of 4 cycles, one after another; the tempo may adapt between them (nothing is saved)
+      const C = G.rhythmChart(r, bpm, practice ? 4 : undefined, timing.durations), chart = C.chart, D = S.D, M = G.rhythmMatcher(chart, D, S.sc), res = chart.map(() => null);
       const clicks = [0, 1, 2, 3].map(k => ({ t: k * C.spb, acc: k === 0 })).concat(chart.map(x => ({ t: x.t, acc: x.acc })));
-      const fx = sparks(S.fx), recent = [];
+      const fx = sparks(S.fx), recent = [], log = S.opts.log = S.opts.log || [];
       let g = null, geo = {}, bg = null, ci = 0, lastT = performance.now(), lastOff = null, strk = 0;
-      S.hud.sub(PD.i18n.pick(r.name) + ' · ' + bpm + ' BPM');
+      S.hud.sub(PD.i18n.pick(r.name) + ' · ' + bpm + ' BPM' + (practice ? ' · ' + t('gm.d.practice2') : ''));
       function layout(g0) {
         const W = g0.W, H = g0.H, cx = Math.round(W * .26), cy = Math.round(H * .5), gap = C.spb, pps = (W - cx) / ((W < 600 ? 4.2 : 6) * gap);
         const sz = clamp(Math.min(H * .12, pps * gap * .62), 26, 74);
@@ -320,31 +378,32 @@ PD.gameModes = (() => {
         if (!g || !bg) return;
         const c = g.ctx, { W, H, cx, cy, sz, pps } = geo, now = performance.now(), dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
         c.clearRect(0, 0, W, H); c.drawImage(bg, 0, 0, W, H);
-        // the pendulum: at an end on every click
+        // the pendulum: at an end on every beat
         const px = W / 2, py = Math.round(H * .13), ln = Math.min(70, H * .1), ph = st / C.spb, ang = .42 * Math.cos(Math.PI * ph), k = 1 - Math.min(1, Math.abs(ph - Math.round(ph)) * 4);
         c.strokeStyle = 'rgba(241,182,116,.5)'; c.lineWidth = 2; c.beginPath(); c.moveTo(px, py - 8); c.lineTo(px + Math.sin(ang) * ln, py - 8 + Math.cos(ang) * ln); c.stroke();
         c.fillStyle = st >= -.1 ? 'rgba(241,182,116,' + (.5 + .5 * k).toFixed(3) + ')' : 'rgba(241,182,116,.4)'; c.beginPath(); c.arc(px + Math.sin(ang) * ln, py - 8 + Math.cos(ang) * ln, 6 + k * 3, 0, Math.PI * 2); c.fill();
         // the count-in: 1 2 3 4
         if (st < C.countIn * C.spb && st > -.2) { const n = Math.floor(st / C.spb) + 1; c.fillStyle = 'rgba(248,245,241,' + (.35 + .65 * k).toFixed(3) + ')'; c.font = '800 ' + Math.round(sz * 1.25) + 'px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(clamp(n, 1, 4)), cx, cy - sz * 2.1); }
         for (let i = 0; i < chart.length; i++) {
-          const s = chart[i], x = cx + (s.t - st) * pps; if (x > W + sz) break; if (x < -sz * 2) continue;
-          if (s.k === 0) { c.strokeStyle = 'rgba(241,182,116,.18)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x - sz * .7, cy - sz * 1.25); c.lineTo(x - sz * .7, cy + sz * 1.25); c.stroke(); c.fillStyle = 'rgba(182,170,160,.7)'; c.font = '600 11px ' + FONT; c.textAlign = 'left'; c.fillText(String(s.c + 1), x - sz * .7 + 4, cy - sz * 1.12); }
-          const rr = res[i], big = s.acc ? 1 : .72, col = rr === 'miss' ? 'rgba(237,100,100,.35)' : rr ? COL[rr] : s.acc ? COL.err : '#D9A06B';
+          const s2 = chart[i], x = cx + (s2.t - st) * pps; if (x > W + sz) break; if (x < -sz * 2) continue;
+          if (s2.k === 0) { c.strokeStyle = 'rgba(241,182,116,.18)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x - sz * .7, cy - sz * 1.25); c.lineTo(x - sz * .7, cy + sz * 1.25); c.stroke(); c.fillStyle = 'rgba(182,170,160,.7)'; c.font = '600 11px ' + FONT; c.textAlign = 'left'; c.fillText(String(s2.c + 1), x - sz * .7 + 4, cy - sz * 1.12); }
+          const rr = res[i], big = s2.acc ? 1 : .72, col = rr === 'miss' ? 'rgba(237,100,100,.35)' : rr ? COL[rr] : s2.acc ? COL.err : '#D9A06B';
           let a = 1; if (x < cx - 4) a = clamp(1 - (cx - x) / (sz * 2.4), .15, 1);
           c.globalAlpha = a;
           if (rr && rr !== 'miss' && S.fx) { c.fillStyle = 'rgba(241,182,116,.16)'; c.beginPath(); c.arc(x, cy, sz * .62, 0, Math.PI * 2); c.fill(); }
-          arrow(c, x, cy, s.dir === 'down', sz * big * 1.15, col, s.acc ? 7 : 4);
-          if (s.acc && !rr) { c.fillStyle = COL.err; c.font = '800 ' + Math.round(sz * .3) + 'px ' + FONT; c.textAlign = 'center'; c.fillText('>', x + sz * .45, cy - sz * .62); }
+          arrow(c, x, cy, s2.dir === 'down', sz * big * 1.15, col, s2.acc ? 7 : 4);
+          if (s2.acc && !rr) { c.fillStyle = COL.err; c.font = '800 ' + Math.round(sz * .3) + 'px ' + FONT; c.textAlign = 'center'; c.fillText('>', x + sz * .45, cy - sz * .62); }
           c.globalAlpha = 1;
         }
-        // the last strokes on the meter
         const mt = geo.meter;
         recent.forEach((o, j) => { const x = W / 2 + clamp(o / D.win, -1, 1) * mt.mw / 2, al = (j + 1) / recent.length; c.fillStyle = Math.abs(o) <= D.perfect ? 'rgba(85,214,151,' + al + ')' : 'rgba(241,182,116,' + al + ')'; c.fillRect(x - 1.5, mt.my - 9, 3, 18); });
         fx.draw(c, dt);
       }
+      const accOf = s0 => { const n = s0.perfect + s0.great + s0.good + s0.miss; return n ? (s0.perfect + s0.great * .8 + s0.good * .5) / n : null; };
       function tap() { if (!S.dev || S.state !== 'playing') return; api.onOnset({ t: S.now() + S.off, strength: .2 + (strk++ % 3 === 0 ? .2 : 0), src: 'touch' }); }
+      let blockDone = false;
       const api = {
-        seed: 0, total: chart.length, countIn: true,
+        seed: 0, total: chart.length, countIn: true, practice, endless: practice,
         mount() { g = canvasIn(S, layout); S.field.addEventListener('pointerdown', tap); },
         schedule(hz) { while (ci < clicks.length) { const a = S.clock.audio(clicks[ci].t); if (!(a < hz)) return; if (a > S.now() - .005) GA.click(a, clicks[ci].acc); ci++; } },
         pause() { const at = S.clock.at(S.now()); ci = clicks.findIndex(x => x.t >= at - 1e-6); if (ci < 0) ci = clicks.length; },
@@ -352,9 +411,17 @@ PD.gameModes = (() => {
           if (state === 'playing') {
             M.advance(st).forEach(x => { res[x.i] = 'miss'; S.pop('miss', t('gm.j.miss'), geo.cx, geo.cy - geo.sz * 1.35); S.hud.combo(0); });
             S.hud.progress(st / C.len);
-            // the accuracy so far, beside the tempo, a few times a second
-            const s0 = S.sc.s, n = s0.perfect + s0.great + s0.good + s0.miss, now = performance.now();
-            if (n && now - (api._accT || 0) > 250) { api._accT = now; S.hud.sub(PD.i18n.pick(r.name) + ' · ' + bpm + ' BPM · ' + Math.round((s0.perfect + s0.great * .8 + s0.good * .5) / n * 100) + '%'); }
+            const a0 = accOf(S.sc.s), now = performance.now();
+            if (a0 != null && now - (api._accT || 0) > 250) { api._accT = now; S.hud.sub(PD.i18n.pick(r.name) + ' · ' + bpm + ' BPM · ' + Math.round(a0 * 100) + '%' + (practice ? ' · ' + t('gm.d.practice2') : '')); }
+            // practice: the block is over — note it, adapt the tempo, and go on at once
+            if (practice && !blockDone && M.done(st)) {
+              blockDone = true; const acc = accOf(S.sc.s) || 0; let next = bpm;
+              if (S.opts.adaptive !== false) { if (acc >= .9) next = Math.min(160, bpm + 4); else if (acc < .6) next = Math.max(40, bpm - 4); }
+              log.push({ bpm, acc, hits: S.sc.s.perfect + S.sc.s.great + S.sc.s.good, n: chart.length, sd: S.sc.s.offs.length > 1 ? G.result(S.sc.s, chart.length, D).sdOff : null });
+              S.opts.bpm = next;
+              if (next !== bpm) S.hud.say(t(next > bpm ? 'gm.rb.up' : 'gm.rb.down', { n: next }), next > bpm ? 'ok' : 'cu', 2200);
+              S.after(600, () => S.again());
+            }
           }
           draw(st);
         },
@@ -366,15 +433,21 @@ PD.gameModes = (() => {
           lastOff = x.off; recent.push(x.off); if (recent.length > 8) recent.shift();
           if (x.grade) {
             res[x.i] = x.grade; fx.burst(geo.cx, geo.cy, x.grade === 'perfect' ? 14 : 8, COL[x.grade]);
-            S.pop(x.grade, t('gm.j.' + x.grade), geo.cx, geo.cy - geo.sz * 1.35); S.hud.score(S.sc.s.score); S.hud.combo(S.sc.s.combo);
+            S.pop(x.grade, t('gm.j.' + x.grade) + offSide(x.off), geo.cx, geo.cy - geo.sz * 1.35); S.hud.score(S.sc.s.score); S.hud.combo(S.sc.s.combo);
             if (x.accOk === false) S.say(chart[x.i].acc ? 'h.accWeak' : 'h.accExtra', null, 'cu', 1500);
             else if (x.accOk && chart[x.i].acc) S.say('gm.rb.accOk', null, 'ok', 900);
           } else { res[x.i] = 'miss'; S.pop('miss', t(x.kind === 'early' ? 'gm.j.early' : 'gm.j.late'), geo.cx, geo.cy - geo.sz * 1.35); S.hud.combo(0); }
         },
-        done: st => M.done(st),
-        result: () => ({ total: chart.length }),
+        done: st => !practice && M.done(st),
+        result() {
+          if (!practice) return { total: chart.length, save: { timing: timing.src } };
+          // practice ends from the pause menu: what the blocks showed, nothing saved
+          const L = log.concat(S.sc.s.perfect + S.sc.s.great + S.sc.s.good + S.sc.s.miss ? [{ bpm, acc: accOf(S.sc.s) || 0 }] : []), avg = L.length ? L.reduce((a, x) => a + x.acc, 0) / L.length : null;
+          return { total: chart.length, grid: false, stars: 0, acc: avg, lowHeard: false, rows: L.length ? [[t('gm.rb.log', { n: L.length, a: L[0].bpm, b: L[L.length - 1].bpm, p: avg == null ? '—' : Math.round(avg * 100) + '%' }), '']] : [] };
+        },
         test: () => M.st.map(x => [x.res, x.off == null ? null : Math.round(x.off * 1000), x.accOk == null ? null : x.accOk]),
-        dbg() { return { off: lastOff != null ? Math.round(lastOff * 1000) + ' ms' : '—', level: Math.round(GA.db(S.level || 0)) + ' dBFS', exp: 'BPM ' + bpm }; },
+        qa: () => ({ chart, st: M.st, timing, practice, bpm }),
+        dbg() { return { off: lastOff != null ? Math.round(lastOff * 1000) + ' ms' : '—', level: Math.round(GA.db(S.level || 0)) + ' dBFS', exp: 'BPM ' + bpm + ' · ' + timing.src }; },
         destroy() { S.field.removeEventListener('pointerdown', tap); if (g) g.destroy(); }
       };
       return api;
@@ -404,7 +477,9 @@ PD.gameModes = (() => {
       const bAgain = h('button', { class: 'btn small', type: 'button', 'data-t': 'gm.mm.again' }), bHint = h('button', { class: 'btn small', type: 'button', 'data-t': 'gm.mm.hint' }), bSkip = h('button', { class: 'btn small quiet', type: 'button', 'data-t': 'gm.mm.skip' });
       wrap.append(label, ring, pads, cmp, h('div', { class: 'gm-acts', style: 'justify-content:center' }, [bAgain, bHint, bSkip]));
       // a note counts 1 on the first try, ½ after a mistake, ¼ after a hint, 0 when skipped
-      let ri = -1, mel = [], idx = 0, phase = 'idle', srcs = [], playedT = [], noteW = [], hinted = false, mistakes = 0, replays = 0, clean6 = false, rhy = [], firstTry = 0, total = 0, weighted = 0, lv = 0, gen = 0;
+      let lastOk = null; const rang = ev => lastOk && ev.t - lastOk.t < 1.5 && ev.t >= lastOk.t && Math.abs(ev.midi - lastOk.midi) < .4;
+      let ri = -1, mel = [], idx = 0, phase = 'idle', srcs = [], playedT = [], noteW = [], hinted = false, mistakes = 0, replays = 0, clean6 = false, rhy = [], firstTry = 0, total = 0, weighted = 0, lv = 0, gen = 0, wrongAt = [];
+      const per = [];   // each melody as it went: its notes, how many came right on the first try
       const setPad = (k, v) => { const p = pads.children[k]; if (!p) return; p.dataset.st = v || ''; p.style.background = v === 'on' ? 'linear-gradient(180deg,#F1B674,#C58A52)' : v === 'ok' ? 'rgba(85,214,151,.85)' : v === 'bad' ? 'rgba(237,100,100,.82)' : '#201A15'; p.style.color = v ? '#1A0F07' : 'var(--gm-tx2)'; p.style.transform = v === 'on' ? 'scale(1.14)' : ''; };
       function drawPads() { pads.innerHTML = ''; mel.forEach((n, k) => pads.append(h('span', { style: 'width:42px;height:42px;border-radius:21px;display:grid;place-items:center;font-weight:800;background:#201A15;border:1px solid var(--gm-line);color:var(--gm-tx2);transition:background-color .15s,transform .18s var(--spring)', text: String(k + 1) }))); }
       function stopSound() { srcs.forEach(s => { try { if (s) s.stop(); } catch (_) {} }); srcs = []; }
@@ -417,16 +492,19 @@ PD.gameModes = (() => {
           S.after((at - now + GA.lag()) * 1000, () => { if (gen !== g0) return; for (let j = 0; j < mel.length; j++) if (pads.children[j] && pads.children[j].dataset.st === 'on') setPad(j, j < idx ? 'ok' : ''); setPad(k, 'on'); });
           at += dur + n.rest * spb;
         });
-        S.after((at - now + GA.lag()) * 1000 + 200, () => { if (gen !== g0) return; for (let j = 0; j < mel.length; j++) setPad(j, j < idx ? 'ok' : ''); phase = 'play'; ringT.textContent = t('gm.mm.your'); });
+        // a short moment to hold the melody in mind before playing it back (a right first note may begin at once)
+        S.after((at - now + GA.lag()) * 1000 + 200, () => { if (gen !== g0) return; for (let j = 0; j < mel.length; j++) setPad(j, j < idx ? 'ok' : ''); phase = 'remember'; ringT.textContent = t('gm.mm.remember');
+          S.after(900, () => { if (gen !== g0 || phase !== 'remember') return; phase = 'play'; ringT.textContent = t('gm.mm.your'); }); });
       }
       function next() {
         ri++; if (ri >= N) { phase = 'done'; S.finish(); return; }
-        mel = G.melody(L.id, ri, S.opts.seed != null ? (S.opts.seed >>> 0) + ri : undefined); idx = 0; playedT = []; hinted = false; mistakes = 0; noteW = mel.map(() => 1);
+        mel = G.melody(L.id, ri, S.opts.seed != null ? (S.opts.seed >>> 0) + ri : undefined); idx = 0; playedT = []; hinted = false; mistakes = 0; noteW = mel.map(() => 1); wrongAt = mel.map(() => 0);
         total += mel.length; drawPads(); listen(false);
       }
       function roundDone() {
         phase = 'between'; weighted += noteW.reduce((a, b) => a + b, 0);
         const clean = !mistakes && !hinted && noteW.every(x => x === 1); if (clean && mel.length >= 6) clean6 = true;
+        per.push({ names: mel.map(n => TH.pcName(n.midi)).join(' '), n: mel.length, first: noteW.filter(x => x === 1).length, clean });
         let rr = null;
         if (L.rhythm && playedT.length === mel.length && mel.length >= 3) { rr = G.rhythmMatch(mel.slice(0, -1).map(n => n.d + n.rest), playedT.slice(1).map((x, k) => x - playedT[k])); if (rr != null) rhy.push(rr); }
         ringT.textContent = t(clean ? 'gm.mm.clean' : 'gm.mm.ok');
@@ -435,20 +513,23 @@ PD.gameModes = (() => {
         if (PD.fx) PD.fx.feedback('success');
         S.after(1500, next);
       }
-      bAgain.onclick = () => { if (phase === 'play' || phase === 'listen') listen(true); };
-      bHint.onclick = () => { if (phase !== 'play' || idx >= mel.length) return; hinted = true; noteW[idx] = Math.min(noteW[idx], .25); const n = mel[idx]; S.hud.say(t('gm.mm.hintN', { n: noteName(n.midi), p: posText(n) }), 'cu', 4000); };
-      bSkip.onclick = () => { if (phase !== 'play' && phase !== 'listen') return; stopSound(); gen++; for (let k = idx; k < mel.length; k++) { noteW[k] = 0; S.sc.miss(false); } idx = mel.length; roundDone(); };
+      bAgain.onclick = () => { if (phase === 'play' || phase === 'listen' || phase === 'remember') listen(true); };
+      bHint.onclick = () => { if ((phase !== 'play' && phase !== 'remember') || idx >= mel.length) return; hinted = true; noteW[idx] = Math.min(noteW[idx], .25); const n = mel[idx]; S.hud.say(t('gm.mm.hintN', { n: noteName(n.midi), p: posText(n) }), 'cu', 4000); };
+      bSkip.onclick = () => { if (phase !== 'play' && phase !== 'listen' && phase !== 'remember') return; stopSound(); gen++; for (let k = idx; k < mel.length; k++) { noteW[k] = 0; S.sc.miss(false); } idx = mel.length; roundDone(); };
       return {
         seed: null, total: 0,
         mount() { S.field.append(wrap); PD.i18n.apply(wrap); },
         start() { next(); },
         pause() { stopSound(); gen++; },
-        resume() { if (phase === 'listen' || phase === 'idle') listen(false); else if (phase === 'between') next(); },
+        resume() { if (phase === 'listen' || phase === 'idle' || phase === 'remember') listen(false); else if (phase === 'between') next(); },
         frame() { lv = Math.max(lv * .8, S.level || 0); ring.style.transform = phase === 'play' ? 'scale(' + (1 + Math.min(.18, lv * 3)).toFixed(3) + ')' : ''; S.hud.progress((Math.max(0, ri) + idx / Math.max(1, mel.length)) / N); },
         onNote(ev) {
+          if (phase === 'remember') { const p0 = G.judgePitch(mel[idx].midi, ev, tol, G.sharpAt(S.D, mel[idx].f, tol)); if (!p0.ok) return; phase = 'play'; ringT.textContent = t('gm.mm.your'); }   // only a right note starts early
           if (phase !== 'play' || idx >= mel.length) return;
-          const n = mel[idx], p = G.judgePitch(n.midi, ev, tol);
+          const n = mel[idx], p = G.judgePitch(n.midi, ev, tol, G.sharpAt(S.D, n.f, tol));
+          if (!p.ok && p.kind !== 'unsure' && rang(ev)) return;   // the last right note still ringing, not a new wrong one
           if (p.ok) {
+            lastOk = { midi: n.midi, t: ev.t };
             playedT.push(ev.t); setPad(idx, 'ok');
             if (noteW[idx] === 1) { firstTry++; S.sc.hit('perfect'); } else S.sc.hit('good');
             idx++; S.hud.score(S.sc.s.score); S.hud.combo(S.sc.s.combo);
@@ -458,15 +539,20 @@ PD.gameModes = (() => {
           if (p.kind === 'unsure') { S.say('h.unsure', null, '', 1600); return; }
           mistakes++; noteW[idx] = Math.min(noteW[idx], .5); S.sc.miss(true); S.hud.combo(0);
           const k = idx; setPad(k, 'bad'); S.after(600, () => { if (pads.children[k] && pads.children[k].dataset.st === 'bad') setPad(k, ''); });
-          S.hud.say(t('gm.mm.wrong', { p: TH.name(ev.midi), i: idx + 1 }), 'bad', 1800);
+          // the first mistake on a note: which way to go; the second: the note itself and where it is (as a hint, worth less)
+          wrongAt[idx]++;
+          if (wrongAt[idx] >= 2) { noteW[idx] = Math.min(noteW[idx], .25); S.hud.say(t('gm.mm.is', { i: idx + 1, n: noteName(n.midi), p: posText(n) }), 'cu', 3600); }
+          else S.hud.say(t('gm.mm.wrongD', { p: TH.name(ev.midi), i: idx + 1, d: t(n.midi > ev.midi ? 'gm.mm.hi' : 'gm.mm.lo') }), 'bad', 2200);
         },
         result() {
           const acc = total ? weighted / total : 0, r = rhy.length ? rhy.reduce((a, b) => a + b, 0) / rhy.length : null;
           const rows = [[t('gm.mm.first'), firstTry + ' / ' + total], [t('gm.mistakes'), String(S.sc.s.wrong)], [t('gm.mm.replays'), String(replays)]];
           if (r != null) rows.push([t('gm.mm.rhythm', { p: Math.round(r * 100) + '%' }), '']);
+          per.forEach((x, k) => rows.push([t('gm.mm.roundN', { a: k + 1 }) + ' · ' + x.names, t('gm.mm.firstOf', { a: x.first, b: x.n }) + (x.clean ? ' ✓' : '')]));
           return { total, acc, stars: acc >= .9 ? 3 : acc >= .75 ? 2 : acc >= .5 ? 1 : 0, grid: false, lowHeard: false, hits: S.sc.s.perfect + S.sc.s.good, rows, save: { clean6, firstTry } };
         },
         dbg() { return { exp: mel[idx] ? TH.name(mel[idx].midi) : '—', level: Math.round(GA.db(S.level || 0)) + ' dBFS' }; },
+        qa: () => ({ phase, mel, idx, round: ri }),
         destroy() { stopSound(); gen++; wrap.remove(); }
       };
     }
@@ -500,22 +586,28 @@ PD.gameModes = (() => {
       const wrap = h('div', { class: 'gm-mode', style: 'position:absolute;inset:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:10px;padding:8px 0 4px' });
       const kick = h('div', { class: 'gm-k' }), big = h('div', { style: 'font:800 clamp(54px,14vw,96px)/1 var(--f-display);letter-spacing:-.02em;color:var(--gm-tx);text-shadow:0 0 40px rgba(241,182,116,.35)' }), sm = h('div', { style: 'color:var(--gm-tx2);font-size:var(--t-headline)' });
       const bar = h('div', { class: 'gm-xpbar', style: 'width:min(70%,320px);margin:6px auto 0', hidden: !MODE.limit }, [h('i', { style: 'transition:none;width:100%' })]), hintL = h('small', { style: 'color:var(--gm-tx2);min-height:18px' });
-      const card = h('div', { style: 'display:grid;align-content:center;justify-items:center;gap:6px;text-align:center;padding:0 16px' }, [kick, big, sm, bar, hintL]);
+      const bShow = h('button', { class: 'btn small', type: 'button', hidden: MODE.limit > 0 }), bHear = h('button', { class: 'btn small', type: 'button', html: PD.ic.play + '<span>' + PD.esc(t('gm.fh.hear')) + '</span>' });
+      const card = h('div', { style: 'display:grid;align-content:center;justify-items:center;gap:6px;text-align:center;padding:0 16px' }, [kick, big, sm, bar, hintL, h('div', { class: 'gm-acts', style: 'justify-content:center' }, [bShow, bHear])]);
       wrap.append(card);
-      let nk = null, i = -1, target = null, pos = [], t0 = 0, el0 = 0, running = false, wrongN = 0, found = 0, firstTry = 0, mistakes = 0, times = [], busy = false, hinted = false;
+      let lastOk = null, nk = null, i = -1, target = null, pos = [], t0 = 0, el0 = 0, running = false, wrongN = 0, found = 0, firstTry = 0, mistakes = 0, times = [], busy = false, hinted = false, shown = false, asked = false, muteTo = 0, src = null;
       const elapsed = () => el0 + (running ? (performance.now() - t0) / 1000 : 0);
-      const showPos = () => nk.view.setTarget(pos.map(p => ({ s: p.s, f: p.f, fi: 0 })), []);
+      // the places shown are the instrument's own (theory.positions), never a fingering
+      const showPos = () => { shown = true; nk.view.setTarget(pos.map(p => ({ s: p.s, f: p.f, fi: 0 })), []); bShow.textContent = t('gm.fh.hide'); };
+      const hidePos = () => { shown = false; nk.view.setTarget([], []); bShow.textContent = t('gm.fh.show'); };
+      bShow.onclick = () => { if (!target || busy) return; if (shown) hidePos(); else { if (MODE.hint !== 0) { asked = true; hinted = true; } showPos(); } };
+      // the note in the sound of a fanduri; while it sounds the microphone's reports are not the player's
+      bHear.onclick = () => { if (!target) return; const p0 = pos.find(p => p.f >= L.frets[0] && p.f <= L.frets[1]) || pos[0]; PD.audio.ensure(); try { if (src) src.stop(); } catch (_) {} const at = PD.audio.now() + .05; src = PD.audio.note(p0.s, p0.f, { when: at, vel: .75, dur: 1.1 }); muteTo = at + 1.5 + GA.lag(); };
       function next() {
         i++; if (i >= T.length) { S.finish(); return; }
         target = T[i]; pos = TH.positions(target.midi); wrongN = 0; busy = false; hinted = false; el0 = 0; t0 = performance.now(); running = true;
         kick.textContent = t('gm.fh.find') + ' · ' + t('gm.fh.n', { a: i + 1, b: T.length });
         big.textContent = TH.name(target.midi); sm.textContent = PD.i18n.lang === 'ka' ? TH.nameKa(target.midi) : TH.pcName(target.midi);
-        nk.view.setTarget([], []); if (MODE.hint === 0) { showPos(); hinted = true; }
+        hidePos(); asked = false; if (MODE.hint === 0) { showPos(); hinted = true; }
         S.hud.say('');
       }
       function solved(dt) {
         running = false; busy = true; found++; times.push(dt); if (!wrongN) firstTry++;
-        const g = wrongN ? 'good' : dt <= 3 ? 'perfect' : 'great';
+        const g = wrongN || asked ? 'good' : dt <= 3 ? 'perfect' : 'great';   // asked to see the place: a hint
         S.sc.hit(g, null, null, Math.round(60 * Math.max(0, 1 - dt / 8))); S.hud.score(S.sc.s.score); S.hud.combo(S.sc.s.combo);
         showPos(); nk.view.confirm(); S.pop(g, t('gm.fh.ok', { s: fmtS(dt) }), null, 70);
         S.hud.say(pos.map(posText).join(' · '), 'ok', 1400);
@@ -540,13 +632,14 @@ PD.gameModes = (() => {
           S.hud.progress((i + (busy ? 1 : 0)) / T.length);
         },
         onNote(ev) {
-          if (!target || busy || S.state !== 'playing') return;
-          const p = G.judgePitch(target.midi, ev, tol);
-          if (p.ok) { solved(elapsed()); return; }
+          if (!target || busy || S.state !== 'playing' || ev.t < muteTo) return;
+          const p = G.judgePitch(target.midi, ev, tol, G.sharpAt(G.DIFF.normal, Math.max(...pos.filter(q => q.f >= L.frets[0] && q.f <= L.frets[1]).map(q => q.f), 0), tol));   // the highest place in reach
+          if (p.ok) { lastOk = { midi: target.midi, t: ev.t }; solved(elapsed()); return; }
+          if (p.kind !== 'unsure' && lastOk && ev.t - lastOk.t < 1.5 && ev.t >= lastOk.t && Math.abs(ev.midi - lastOk.midi) < .4) return;   // the last note still ringing
           if (p.kind === 'unsure') { S.say('h.unsure', null, '', 1400); return; }
           wrongN++; mistakes++; nk.view.wrong(); if (MODE.limit || MODE.hint > 0) { S.sc.miss(true); S.hud.combo(0); }
           if (p.kind === 'octave') S.hud.say(t('gm.fh.octave', { d: t(p.dir > 0 ? 'gm.fh.lower' : 'gm.fh.higher') }), 'cu', 2200);
-          else S.hud.say(t('gm.fh.heard', { p: TH.name(ev.midi) }), 'bad', 1600);
+          else { const d = Math.round(target.midi - ev.midi), a = Math.abs(d); S.hud.say(t('gm.fh.heard', { p: TH.name(ev.midi) }) + ' — ' + (a === 1 ? t(d > 0 ? 'gm.fh.up1' : 'gm.fh.down1') : a <= 7 ? t(d > 0 ? 'gm.fh.upN' : 'gm.fh.downN', { n: a }) : t(d > 0 ? 'gm.fh.higher' : 'gm.fh.lower')), 'bad', 2400); }
         },
         result() {
           const acc = T.length ? (firstTry + .5 * (found - firstTry)) / T.length : 0, avg = times.length ? times.reduce((a, b) => a + b, 0) / times.length : null;
@@ -554,7 +647,8 @@ PD.gameModes = (() => {
             rows: [[t('gm.fh.found'), found + ' / ' + T.length], [t('gm.fh.avg'), avg == null ? '—' : t('gm.fh.sec', { s: fmtS(avg) })], [t('gm.mistakes'), String(mistakes)]], save: { avgFind: avg, found } };
         },
         dbg() { return { exp: target ? TH.name(target.midi) : '—', level: Math.round(GA.db(S.level || 0)) + ' dBFS' }; },
-        destroy() { if (nk) nk.destroy(); wrap.remove(); }
+        qa: () => ({ target, busy, pos, i, shown }),
+        destroy() { try { if (src) src.stop(); } catch (_) {} if (nk) nk.destroy(); wrap.remove(); }
       };
     }
   };
@@ -578,8 +672,9 @@ PD.gameModes = (() => {
       const wrap = h('div', { class: 'gm-mode', style: 'position:absolute;inset:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:8px;padding:6px 0 4px' });
       const kick = h('div', { class: 'gm-k' }), name = h('div', { style: 'font:800 clamp(46px,12vw,84px)/1 var(--f-display);color:var(--gm-tx);text-shadow:0 0 40px rgba(241,182,116,.35)' }), long = h('div', { style: 'color:var(--gm-tx2)' });
       const rows = h('div', { style: 'display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:min(100%,460px)' }), skip = h('button', { class: 'btn small quiet', type: 'button', 'data-t': 'gm.cm.skip' });
-      wrap.append(h('div', { style: 'display:grid;align-content:center;justify-items:center;gap:8px;text-align:center;padding:0 16px' }, [kick, name, long, rows, skip]));
-      let nk = null, ci = -1, cur = null, step = 0, wrongStep = 0, busy = false, firstNotes = 0, notesOk = 0, mistakes = 0, chordMist = 0, attempts = 0, okList = [], strumW = 0;
+      const dia = h('div', { class: 'gm-cdia', 'aria-hidden': 'true' });
+      wrap.append(h('div', { style: 'display:grid;align-content:center;justify-items:center;gap:8px;text-align:center;padding:0 16px' }, [kick, name, long, dia, rows, skip]));
+      let lastOk = null, nk = null, ci = -1, cur = null, step = 0, wrongStep = 0, busy = false, firstNotes = 0, notesOk = 0, mistakes = 0, chordMist = 0, attempts = 0, okList = [], strumW = 0;
       function drawRows() {
         rows.innerHTML = '';
         cur.midis.forEach((m, k) => {
@@ -593,6 +688,7 @@ PD.gameModes = (() => {
         cur = set[ci]; step = 0; wrongStep = 0; chordMist = 0; busy = false; attempts = 0;
         kick.textContent = t('gm.cm.chordN', { a: ci + 1, b: set.length }); name.textContent = cur.name;
         const lib = TH.chordLibrary().find(x => x.name === cur.name); long.textContent = lib ? TH.chordLong(lib) : '';
+        dia.innerHTML = PD.tools && PD.tools.chordDiagram ? PD.tools.chordDiagram({ name: cur.name, frets: cur.frets, fingers: cur.fingers }) : '';
         nk.view.setTarget(cur.frets.map((f, k) => ({ s: k + 1, f, fi: f > 0 ? cur.fingers[k] : 0 })), []);
         if (strum) { PD.detector.expect(cur.midis.map(m => TH.freq(m))); S.say('gm.cm.strumNow', null, 'cu', 0); } else S.hud.say('');
         drawRows();
@@ -609,8 +705,9 @@ PD.gameModes = (() => {
         frame() { if (nk) nk.view.draw(); S.hud.progress((ci + (busy ? 1 : strum ? 0 : step / 3)) / set.length); },
         onNote(ev) {
           if (strum || busy || !cur || S.state !== 'playing') return;
-          const p = G.judgePitch(cur.midis[step], ev, tol);
-          if (p.ok) { notesOk++; if (!wrongStep) firstNotes++; nk.view.pluck(step + 1, cur.frets[step]); step++; wrongStep = 0; if (step >= 3) chordOk(chordMist ? 'great' : 'perfect'); else { drawRows(); S.hud.say(''); } return; }
+          const p = G.judgePitch(cur.midis[step], ev, tol, G.sharpAt(S.D, cur.frets[step], tol));
+          if (!p.ok && p.kind !== 'unsure' && lastOk && ev.t - lastOk.t < 1.5 && ev.t >= lastOk.t && Math.abs(ev.midi - lastOk.midi) < .4) return;   // the last tone still ringing
+          if (p.ok) { lastOk = { midi: cur.midis[step], t: ev.t }; notesOk++; if (!wrongStep) firstNotes++; nk.view.pluck(step + 1, cur.frets[step]); step++; wrongStep = 0; if (step >= 3) chordOk(chordMist ? 'great' : 'perfect'); else { drawRows(); S.hud.say(''); } return; }
           if (p.kind === 'unsure') { S.say('h.unsure', null, '', 1400); return; }
           wrongStep++; mistakes++; chordMist++; nk.view.wrong(); S.hud.say(t('gm.fh.heard', { p: TH.name(ev.midi) }) + ' · ' + TH.stringName(step + 1) + ': ' + TH.name(cur.midis[step]), 'bad', 1800);
         },
@@ -631,6 +728,7 @@ PD.gameModes = (() => {
           return { total: set.length, acc, stars: acc >= .9 ? 3 : acc >= .75 ? 2 : acc >= .5 ? 1 : 0, grid: false, lowHeard: false, hits: strum ? okList.length * 3 : notesOk, rows, save: { chordsOk: okList.slice() } };
         },
         dbg() { return { exp: cur ? (strum ? cur.name : TH.name(cur.midis[step] || 0)) : '—', level: Math.round(GA.db(S.level || 0)) + ' dBFS' }; },
+        qa: () => ({ cur, step, strum, busy, ci }),
         destroy() { PD.detector.expect(null); if (nk) nk.destroy(); wrap.remove(); }
       };
     }
@@ -650,7 +748,10 @@ PD.gameModes = (() => {
     });
   }
   const songs = () => PD.lessons.all.filter(l => l.events && l.events.length && !l.song && !l.beatMap && !l.stems && l.id !== 'bani-acharuli');
-  const srcOf = l => l.ai ? 'ai' : l.user ? 'mine' : /teacher/.test(l.source || '') ? 'teacher' : l.demo ? 'demo' : '';
+  /** what a piece is: the teacher's own (or his checked chart), made by this user, an AI estimate, or a draft (the demo and
+      spec material nobody has confirmed). Only the teacher's counts officially — stars, records, achievements, XP */
+  const srcOf = l => l.ai || l.chartSrc === 'ai' ? 'ai' : l.user ? 'mine' : /teacher/.test(l.source || '') || l.chartSrc === 'teacher' ? 'teacher' : 'draft';
+  const officialSong = l => !!l && srcOf(l) === 'teacher';
   const TEMPO = { easy: .7, normal: .85, hard: 1 };
 
   /* =================================================================
@@ -663,13 +764,14 @@ PD.gameModes = (() => {
       if (!list.some(l => l.id === st.l)) st.l = list[0].id; if (!TEMPO[st.d]) st.d = 'normal';
       st.opts.sec = st.opts.sec == null ? -1 : st.opts.sec;
       w.append(sec(t('gm.how'), [bullets(['gm.sq.h1', 'gm.sq.h2'])]), sec(t('gm.listens'), [bullets(['gm.n.pitch', 'gm.n.unsure'])]));
-      const best = bestLine(c), box = h('div', { class: 'gm-songs', role: 'list' }), secSel = h('select', { class: 'input', 'aria-label': t('gm.sq.section') }), loop = h('input', { type: 'checkbox', 'aria-label': t('gm.sq.loop') });
-      const badge = k => k === 'teacher' ? h('span', { class: 'tp-src teacher', text: PD.ui.srcLabel('tp.src.teacher') }) : k === 'demo' ? h('span', { class: 'gm-tag', text: t('demo.badge') }) : k === 'mine' ? h('span', { class: 'gm-tag', text: t('gm.sq.mine') }) : k === 'ai' ? h('span', { class: 'gm-tag beta', text: t('gm.sq.ai') }) : null;
+      const best = bestLine(c), offN = h('p', { class: 'gm-note' }), box = h('div', { class: 'gm-songs', role: 'list' }), secSel = h('select', { class: 'input', 'aria-label': t('gm.sq.section') }), loop = h('input', { type: 'checkbox', 'aria-label': t('gm.sq.loop') });
+      const badge = l => { const k = srcOf(l); return k === 'teacher' ? h('span', { class: 'tp-src teacher', text: PD.ui.srcLabel('gm.sq.stT') }) : k === 'mine' ? h('span', { class: 'gm-tag', text: t('gm.sq.stU') }) : k === 'ai' ? h('span', { class: 'gm-tag beta', text: t('gm.sq.stA') }) : h('span', { class: 'tp-src draft', title: l.demo ? t('demo.badgeD') : '', text: l.demo ? t('demo.badge') + ' · ' + t('gm.sq.stD') : PD.ui.srcLabel('gm.sq.stD') }); };
+      const drawOff = () => { const l = PD.lessons.get(st.l), k = l ? srcOf(l) : ''; offN.textContent = k === 'teacher' ? t('gm.sq.offT') : k === 'mine' ? t('gm.sq.offU') : k === 'ai' ? t('gm.sq.offA') : t('gm.sq.offD'); offN.style.color = k === 'teacher' ? '' : '#e0b072'; };
       list.forEach(l => {
         const steps = stepsOf(l, 0, 1e9), nN = steps.filter(x => x.kind === 'note').length, nS = steps.length - nN, r = c.P.rec('song', l.id, st.d);
         const b = h('button', { type: 'button', role: 'listitem', class: 'gm-song', 'aria-pressed': String(l.id === st.l) }, [h('span', {}, [h('b', { text: PD.i18n.pick(l.title) }), h('small', { text: [nN ? t('gm.sq.notes', { n: nN }) : '', nS ? t('gm.sq.strokes', { n: nS }) : '', l.bpm + ' BPM'].filter(Boolean).join(' · ') })]),
-          h('span', { style: 'display:grid;gap:4px;justify-items:end' }, [badge(srcOf(l)), h('span', { style: 'display:flex;gap:1px', html: starsHTML(r ? r.stars : 0) })])]);
-        b.onclick = () => { st.l = l.id; st.opts.sec = -1; box.querySelectorAll('.gm-song').forEach(x => x.setAttribute('aria-pressed', String(x === b))); fillSec(); best.upd(); };
+          h('span', { style: 'display:grid;gap:4px;justify-items:end' }, [badge(l), officialSong(l) ? h('span', { style: 'display:flex;gap:1px', html: starsHTML(r ? r.stars : 0) }) : null])]);
+        b.onclick = () => { st.l = l.id; st.opts.sec = -1; box.querySelectorAll('.gm-song').forEach(x => x.setAttribute('aria-pressed', String(x === b))); fillSec(); drawOff(); best.upd(); };
         box.append(b);
       });
       const fillSec = () => { const l = PD.lessons.get(st.l); secSel.innerHTML = ''; secSel.append(h('option', { value: '-1', text: t('gm.sq.whole') })); (l.sections || []).forEach((s, i) => secSel.append(h('option', { value: String(i), text: PD.i18n.pick(s.name) || t('gm.sq.section') + ' ' + (i + 1) }))); secSel.value = String(st.opts.sec); loop.disabled = st.opts.sec < 0; };
@@ -678,12 +780,13 @@ PD.gameModes = (() => {
       const listen = h('button', { class: 'btn small', type: 'button', html: PD.ic.play + '<span>' + PD.esc(t('gm.sq.listen')) + '</span>', onclick: () => { st.opts.listen = true; c.start(); st.opts.listen = false; } });
       w.append(sec(t('gm.sq.pick'), [box]), sec(t('gm.sq.tempo'), [seg(['easy', 'normal', 'hard'].map(d => ({ id: d, label: Math.round(TEMPO[d] * 100) + '%' })), st.d, d => { st.d = d; best.upd(); }, t('gm.sq.tempo')),
         h('div', { class: 'gm-field2' }, [h('label', { 'data-t': 'gm.sq.section' }), secSel]), h('label', { class: 'gm-li', style: 'cursor:pointer' }, [h('span', { 'data-t': 'gm.sq.loop' }), loop]),
-        h('div', { class: 'gm-acts' }, [listen]), h('p', { class: 'gm-note', 'data-t': 'gm.sq.listenD' }), best.el]));
-      fillSec();
+        h('div', { class: 'gm-acts' }, [listen]), h('p', { class: 'gm-note', 'data-t': 'gm.sq.listenD' }), offN, best.el]));
+      fillSec(); drawOff();
       return () => best.upd();
     },
+    preview: true,
     create(S) {
-      const l = PD.lessons.get(S.l) || songs()[0], listen = !!S.opts.listen, tf = TEMPO[S.d] || .85, bpm = l.bpm * tf, spb = 60 / bpm, D = S.D;
+      const l = PD.lessons.get(S.l) || songs()[0], listen = !!S.opts.listen, official = officialSong(l), tf = TEMPO[S.d] || .85, bpm = l.bpm * tf, spb = 60 / bpm, D = S.D;
       const sc0 = (l.sections || [])[S.opts.sec], from = sc0 ? sc0.from : 0, to = sc0 ? sc0.to : Math.max(...l.events.map(e => e.t + e.d)) + .001;
       const passes = sc0 && S.opts.loop ? 3 : 1, len = to - from, bpb = (l.meter && l.meter[0]) || 4, ci = bpb;   // a bar of count-in
       const base = stepsOf(l, from, to), steps = [];
@@ -729,7 +832,7 @@ PD.gameModes = (() => {
       }
       function mark(x0, grade) { res.set(x0, grade); if (grade !== 'miss') { const y = x0.kind === 'note' ? geo.y(x0.s) : geo.y(2); fx.burst(geo.px, y, grade === 'perfect' ? 12 : 7, COL[grade]); } }
       return {
-        seed: null, total: listen ? 0 : steps.length, countIn: true, practice: listen,
+        seed: null, total: listen ? 0 : steps.length, countIn: true, practice: listen || !official,
         mount() { g = canvasIn(S, layout); },
         schedule(hz) {
           if (metro) while (bi < beats.length) { const a = S.clock.audio(beats[bi].t); if (!(a < hz)) break; if (a > S.now() - .005) GA.click(a, beats[bi].acc); bi++; }
@@ -769,9 +872,10 @@ PD.gameModes = (() => {
         result() {
           if (listen) return { total: 0, grid: false, stars: 0, acc: null, lowHeard: false, rows: [] };
           const n = [...chk.values()], full = [...chk.entries()].filter(([x0, k]) => k >= x0.notes.length).length;
-          return { total: steps.length, rows: n.length ? [[t('gm.sq.chordCk'), Math.round(full / n.length * 100) + '%']] : [] };
+          return { total: steps.length, rows: (n.length ? [[t('gm.sq.chordCk'), Math.round(full / n.length * 100) + '%']] : []).concat([[t({ teacher: 'gm.sq.stT', mine: 'gm.sq.stU', ai: 'gm.sq.stA' }[srcOf(l)] || 'gm.sq.stD'), official ? '✓' : t('gm.d.practice')]]) };
         },
         dbg() { return { exp: steps[first] ? (steps[first].kind === 'note' ? TH.name(steps[first].midi) : steps[first].name) : '—', level: Math.round(GA.db(S.level || 0)) + ' dBFS' }; },
+        qa: () => ({ steps, notes, strums, nst: MN.st, sst: MR.st }),
         destroy() { PD.detector.expect(null); if (g) g.destroy(); }
       };
     }
@@ -813,7 +917,8 @@ PD.gameModes = (() => {
       const x0 = Math.max(0, B[from] - 2 * per(from)), passes = sc0 && o.loop ? 3 : 1, passRec = B[to] - x0 + .4, passLen = passRec / rate;
       const chart = [];
       for (let p = 0; p < passes; p++) for (let k = from; k < to; k++) R.strokes.forEach((s, j) => chart.push({ t: p * passLen + (B[k] + j / R.strokes.length * per(k) - x0) / rate, acc: !!s.accent, dir: s.direction, k, j, chord: S0.cycle[k % S0.cycle.length] }));
-      const D = S.D, M = G.rhythmMatcher(chart, D, S.sc), res = chart.map(() => null), tones = chart.map(() => null), practice = S.d === 'practice';
+      const D = S.D, M = G.rhythmMatcher(chart, D, S.sc), res = chart.map(() => null), tones = chart.map(() => null);
+      let practice = S.d === 'practice', leakN = null;
       const shapes = S0.chords, endT = passes * passLen, fx = sparks(S.fx);
       let g = null, geo = {}, bg = null, ci = 0, first = 0, lastT = performance.now(), expKey = '', live = o.mix !== 'off', toneOk = 0, toneN = 0;
       const xOf = tau => x0 + (tau - Math.floor(tau / passLen) * passLen) * rate;
@@ -852,13 +957,30 @@ PD.gameModes = (() => {
         }
         fx.draw(c, dt);
       }
+      /* the echo check: the recording plays 4 s while the player is silent. Whatever the microphone then takes for a stroke
+         came from the speaker — and would have been counted as playing. 3 or more → ask for headphones */
+      function leakCheck() {
+        return new Promise(res => {
+          let n = 0; const t0 = PD.audio.now() + .15, dur = 4;
+          S.status(t('gm.bj.leakRun'));
+          const off = PD.detector.on('onset', e => { if (e.t >= t0 && e.t <= t0 + dur + .4) n++; });
+          try { ref.sync(xOf(0), t0, rate, true); } catch (_) {}
+          setTimeout(() => { off(); try { ref.sync(0, 0, rate, false); } catch (_) {} res(n); }, (dur + .6) * 1000);
+        });
+      }
+      function askLeak(n) {
+        return new Promise(res => S.panel([h('h2', { 'data-t': 'gm.bj.leakT' }), h('p', { text: t('gm.bj.leakD', { n }) }),
+          h('button', { class: 'btn primary', type: 'button', 'data-t': 'gm.bj.leakAgain', onclick: () => res('again') }),
+          h('div', { class: 'gm-btns' }, [h('button', { class: 'btn', type: 'button', 'data-t': 'gm.bj.leakPractice', onclick: () => res('practice') }), h('button', { class: 'btn', type: 'button', 'data-t': 'gm.bj.leakMetro', onclick: () => res('metro') })]),
+          h('button', { class: 'btn quiet', type: 'button', 'data-t': 'gm.exit', onclick: () => { res('exit'); S.exit(); } })]));
+      }
       function setExp(st) {   // the chord check listens for the chord of the next stroke
         const nx = chart.find((s, i) => i >= first && !res[i] && s.t > st - .05);
         const key = nx && nx.t - st < .4 ? nx.chord : '';
         if (key !== expKey) { expKey = key; const sh = key && shapes[key]; PD.detector.expect(sh ? sh.frets.map((f, i) => TH.freq(TH.midi(i + 1, f))) : null); }
       }
       return {
-        seed: null, total: practice ? 0 : chart.length, practice,
+        seed: null, get total() { return practice ? 0 : chart.length; }, get practice() { return practice; },
         async prepare() {
           if (live) {
             S.status(t('gm.bj.loading'));
@@ -867,6 +989,18 @@ PD.gameModes = (() => {
             off();
             if (live && PD.detector.active) await PD.detector.setAEC(true);
           }
+          // a scored round with the recording on the speaker: first make sure the microphone does not hear it (once per stage;
+          // what the learner chose after a failed check holds for the next rounds on this stage too)
+          if (live && !practice && S.leakChoice) { leakN = S.leakN; if (S.leakChoice === 'practice') practice = true; else { live = false; o.metro = true; } }
+          while (live && !practice && !S.dev && PD.detector.active && !S.leakOk) {
+            leakN = S.leakN = await leakCheck(); if (!S.alive) return false;
+            if (leakN < 3) { S.leakOk = true; S.status('✓ ' + t('gm.bj.leakOk')); break; }
+            const ch = await askLeak(leakN); if (!S.alive || ch === 'exit') return false;
+            S.status(t('gm.prep')); S.showPrep && S.showPrep();
+            if (ch === 'practice') { practice = true; S.leakChoice = ch; break; }
+            if (ch === 'metro') { live = false; o.metro = true; S.leakChoice = ch; try { ref.sync(0, 0, rate, false); } catch (_) {} break; }
+          }
+          if (S.leakOk && leakN == null) leakN = S.leakN;
           return true;
         },
         mount() { g = canvasIn(S, layout); },
@@ -885,7 +1019,7 @@ PD.gameModes = (() => {
           const tt = S.toSong(ev.t); if (tt == null) return;
           const x = M.input({ t: tt, strength: ev.strength }); if (x.extra || x.same) return;
           res[x.i] = x.grade || 'miss';
-          if (x.grade) { fx.burst(geo.cx, geo.cy, x.grade === 'perfect' ? 12 : 7, COL[x.grade]); S.pop(x.grade, t('gm.j.' + x.grade), geo.cx, geo.cy - geo.sz * 1.3); }
+          if (x.grade) { fx.burst(geo.cx, geo.cy, x.grade === 'perfect' ? 12 : 7, COL[x.grade]); S.pop(x.grade, t('gm.j.' + x.grade) + offSide(x.off), geo.cx, geo.cy - geo.sz * 1.3); }
           else S.pop('miss', t(x.kind === 'early' ? 'gm.j.early' : 'gm.j.late'), geo.cx, geo.cy - geo.sz * 1.3);
           S.hud.score(S.sc.s.score); S.hud.combo(S.sc.s.combo);
         },
@@ -898,8 +1032,13 @@ PD.gameModes = (() => {
           const n = (ev.present || []).filter(Boolean).length; tones[bi] = n; toneN++; if (n >= 3) { toneOk++; S.sc.s.score += 10 * G.mult(S.sc.s.combo); S.hud.score(S.sc.s.score); }
         },
         done: st => st > endT + .3,
-        result() { const r = { total: practice ? 0 : chart.length, rows: toneN ? [[t('gm.bj.chordOk'), Math.round(toneOk / toneN * 100) + '%']] : [] }; if (practice) r.grid = false; return r; },
+        result() {
+          const r = { total: practice ? 0 : chart.length, rows: toneN ? [[t('gm.bj.chordOk'), Math.round(toneOk / toneN * 100) + '%']] : [] }; if (practice) r.grid = false;
+          if (leakN != null) r.rows.push([t('gm.bj.leakRow'), leakN < 3 ? '✓ ' + t('gm.bj.leakRowN', { n: leakN }) : t('gm.bj.leakRowN', { n: leakN })]);
+          return r;
+        },
         dbg() { return { exp: chart[first] ? chart[first].chord : '—', level: Math.round(GA.db(S.level || 0)) + ' dBFS', state: 'ref ' + ref.state }; },
+        qa: () => ({ chart, st: M.st, shapes, tones, leakN, practice, live }),
         destroy() { try { ref.unload(); } catch (_) {} PD.detector.expect(null); if (PD.detector.aec) PD.detector.setAEC(false); if (g) g.destroy(); }
       };
     }

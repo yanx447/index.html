@@ -37,7 +37,7 @@ python3 build.py
 | `pwa/` | manifest, service worker, ხატულები, მაღაზიის სურათები. |
 | `media_inline/` | ჩანაწერების მსუბუქი ასლები ერთფაილიანი აწყობისთვის. |
 | `assets/`, `ext/` | სურათები; ჩაშენებული ტიუნერი („სამი სიმი"). |
-| `qa/` | შემოწმების სკრიპტები. Studio 3.0: `studio3-core.cjs` (Node), `studio3-ui.cjs` (Chromium; `BROWSER=webkit`), `studio3-baseline.cjs`. თამაშები: `games-core.cjs` (Node, წესები), `games-mic.cjs` (მასწავლებლის ჩანაწერები ვირტუალური მიკროფონით), `games-ui.cjs` (ეკრანები და სესიის სიცოცხლე). |
+| `qa/` | შემოწმების სკრიპტები. Studio 3.0: `studio3-core.cjs` (Node), `studio3-ui.cjs` (Chromium; `BROWSER=webkit`), `studio3-baseline.cjs`. თამაშები: `games-core.cjs` (Node, წესები), `games-mic.cjs` (მასწავლებლის ჩანაწერები ვირტუალური მიკროფონით), `games-ui.cjs` (ეკრანები და სესიის სიცოცხლე), `games-audit.cjs` (შემოწმების ცხრილი: ყველა თამაში ვირტუალური ფანდურით, `vpanduri.cjs`), `games-audio.cjs` (მოსმენის სიზუსტე), `games-offline.cjs` (offline და განახლება service worker-ით). ნამდვილ ფანდურზე დარჩენილი 12 შემოწმება: `../../docs/v2-review/games/real-device-tests.md`. |
 | `supabase/` | სერვერის SQL. |
 
 ## რა არ დევს აქ და რატომ
