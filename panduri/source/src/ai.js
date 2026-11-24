@@ -500,6 +500,44 @@ PD.ai = (() => {
   }
   const hasGPU = () => !!navigator.gpu && !PD.store.get('ai.noGpu', false);   // a GPU that once computed the stems wrongly is not asked again
 
+  /** A bounded clip for other app screens, with a worker dedicated to that request. */
+  async function separateExcerpt(buffer, from, to, signal, onProgress) {
+    const rate = 44100, clip = await resample(buffer, rate, 2, from, to);
+    signal.throwIfAborted();
+    return new Promise((resolve, reject) => {
+      const text = '(' + AISPL.toString() + ')()';
+      const url = URL.createObjectURL(new Blob([text], { type: 'text/javascript' }));
+      let w;
+      try { w = new Worker(url); } finally { URL.revokeObjectURL(url); }
+      let timeout;
+      function finish(error, value) {
+        clearTimeout(timeout); signal.removeEventListener('abort', stop); w.terminate();
+        if (error) reject(error); else resolve(value);
+      }
+      function stop() { finish(signal.reason); }
+      function watch() {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => finish(new Error('Separation timed out')), 150000);
+      }
+      signal.addEventListener('abort', stop, { once: true });
+      w.onerror = e => finish(new Error(e.message || 'Separation worker failed'));
+      w.onmessage = ({ data: m }) => {
+        watch();
+        if (m.type === 'ready') {
+          const L = clip.getChannelData(0).slice(), R = clip.getChannelData(1).slice();
+          w.postMessage({ cmd: 'separate', L, R }, [L.buffer, R.buffer]);
+        } else if (m.type === 'error') finish(new Error(m.msg));
+        else if (m.type === 'done') finish(null, { rate, sources: m.sources, stems: m.stems });
+        else if (m.type === 'progress' || m.type === 'dl') {
+          const fraction = Math.max(0, Math.min(1, (m.done || m.got || 0) / Math.max(1, m.total)));
+          onProgress(Math.min(99, Math.round((m.i + (m.type === 'dl' ? fraction * .5 : .5 + fraction * .5)) / m.n * 100)));
+        }
+      };
+      watch();
+      w.postMessage({ cmd: 'load', base: BASE });
+    });
+  }
+
   /* ======================= WAV export ======================= */
   function wav(L, R, sr) {
     const n = L.length, b = new ArrayBuffer(44 + n * 4), v = new DataView(b), w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
@@ -1658,5 +1696,5 @@ PD.ai = (() => {
       else studio?.sync().then(() => { const synced = find(); if (active(0) && synced) reopen(synced); });
     }
   }
-  return { page, deleteSong, analyse, allowed, BASE, _analyse: analyse, _beatsOf: beatsOf, cname, shapeOf, get current() { return CUR; } };
+  return { page, deleteSong, analyse, allowed, separateExcerpt, BASE, _analyse: analyse, _beatsOf: beatsOf, cname, shapeOf, get current() { return CUR; } };
 })();

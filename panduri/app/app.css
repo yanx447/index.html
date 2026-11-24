@@ -5547,6 +5547,54 @@ input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px va
 .nt-row.cm.k-repost .nt-ic { background: rgba(60,190,130,.14); color: #3cbe82; }
 .cp-act .nt-empty { text-align: center; padding: 28px 12px; line-height: 1.55; }
 
+/* Community creation and listening */
+.cam-kind { align-self:center; margin-inline:auto; }
+.cam[data-stage=cam] .cam-bot { max-width:min(100%, 560px); margin-inline:auto; }
+.cam-audio-screen { display:none; }
+.cam.audio-mode .cam-view, .cam.audio-mode .cam-rail { display:none; }
+.cam.audio-mode .cam-audio-screen { position:absolute; inset:22% 0 34%; display:grid; place-content:center; justify-items:center; gap:16px; color:var(--brass2); pointer-events:none; }
+.cam-audio-screen svg, .mc-audio-icon svg { width:55px; height:55px; }
+.mc-audio-review { min-height:100%; padding:20px max(20px, env(safe-area-inset-left)); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; text-align:center; overflow:auto; }
+.mc-audio-review > .cam-ic { position:absolute; top:max(12px, env(safe-area-inset-top)); left:12px; }
+.mc-audio-review h2 { max-width:100%; overflow-wrap:anywhere; }
+.mc-audio-review audio { width:min(100%, 440px); }
+.mc-audio-review .row { justify-content:center; flex-wrap:wrap; }
+.mc-audio-icon { display:grid; place-items:center; width:110px; aspect-ratio:1; border-radius:26px; background:#241a16; color:var(--brass2); }
+.mc-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.mc-field { display:grid; gap:5px; min-width:0; color:var(--muted); font-size:13px; }
+.mc-field[hidden], .mc-mentions[hidden], .mc-discover [hidden] { display:none; }
+.mc-field .input { width:100%; min-width:0; }
+.mc-mentions { display:flex; align-items:flex-start; flex-wrap:wrap; gap:6px; }
+.mc-discover .cp-tagrow + .cp-tagrow { margin-top:10px; }
+.mc-discover .cp-tagchip[aria-pressed=true] { border-color:var(--brass); color:var(--brass2); }
+.cam-thumb > span { color:var(--brass2); }
+.cam-thumb > span svg { width:27px; height:27px; }
+.fd-audio .fd-media { background:radial-gradient(ellipse at 40% 30%, #3e291e, #0b0908 72%); }
+.fd-audio .fd-media .md-vid { width:1px; height:1px; opacity:0; pointer-events:none; }
+.fd-audio .fd-poster { position:absolute; inset:14% 0 auto; width:min(66%,350px); height:auto; aspect-ratio:1; border-radius:24px; margin-inline:auto; object-fit:cover; opacity:1; }
+.fd-audio-play { position:absolute; z-index:2; top:39%; left:50%; transform:translate(-50%,-50%); background:#211713df; color:#f6d6ba; border-radius:50%; padding:18px; display:grid; place-items:center; }
+.fd-audio-play svg { width:32px; height:32px; }
+.fd-audio.playing .fd-audio-play { opacity:0; }
+.fd-genres { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+.fd-genres > * { display:inline-block; padding:4px 8px; border:1px solid #e8b68550; border-radius:16px; background:#17100edb; color:#ffdcbd; font-size:11px; }
+
+.ve-spectrum { display:block; width:100%; height:122px; border:1px solid #3e3026; border-radius:14px; background:#171310; }
+.ve-reduction { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:12px; margin:9px 0 12px; font-size:12px; }
+.ve-reduction meter { width:100%; }
+.ve-plugin { background:#1c1917; border:1px solid #403329; border-radius:12px; padding:10px 12px; margin:7px 0; }
+.ve-plugin summary { cursor:pointer; font-weight:650; padding:5px 0; }
+.ve-acts .btn[aria-pressed=true] { border-color:var(--brass); color:var(--brass2); }
+.ve-acts .input { flex:1 1 130px; min-width:0; }
+.ve-panel .ve-row { grid-template-columns:minmax(105px, 1fr) minmax(60px, 2fr) minmax(50px, auto); }
+.ve-seg.is-muted { border-style:dashed; background:#ae44394a; }
+.ve-color { display:flex; justify-content:space-between; align-items:center; margin:8px 0; }
+.ve-color[hidden] { display:none; }
+.cam.recording .cam-kind { opacity:0; pointer-events:none; }
+@media (max-width:430px) { .ve-reduction { gap:6px; } .cam-modes { gap:3px; } .cam-modes button { min-width:0; padding-inline:10px; } }
+.mc-discover-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; align-items:end; }
+.fd-discover { position:absolute; z-index:4; top:calc(var(--safe-t) + 67px); left:50%; transform:translateX(-50%); padding:6px 12px; font-size:12px; line-height:1.25; color:#ffe0c4; background:#211911df; border:1px solid #edb68050; border-radius:20px; }
+.fd-discover[hidden] { display:none; }
+
 /* Messenger styles follow the shell layer so a composer has one visual boundary. */
 @layer ds {
 .ms-chat{--chat-accent:#d8b38b;--chat-wash:#d8b38b12;--chat-out:#302a25;--chat-font:var(--f-ui);position:relative}

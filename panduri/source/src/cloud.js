@@ -361,6 +361,7 @@ PD.cloud = (() => {
     feed: (tab, o) => { o = o || {}; return db.rpc('feed', { tab, lim: o.lim || 8, before_id: o.before || null, target: o.target || null, skip_ids: o.skip && o.skip.length ? o.skip.slice(-300) : null }); },
     /** a server that has not learned the song's name yet still takes the video */
     post: async row => { try { return (await db.insert('feed_posts', [row]))[0]; } catch (e) { if (!('song' in row) || !old(e)) throw e; const r = Object.assign({}, row); delete r.song; return (await db.insert('feed_posts', [r]))[0]; } },
+    byMedia: async path => (await db.select('feed_posts', { media_path: 'eq.' + path, author: 'eq.' + uid(), limit: 1 }))[0],
     save: (post, keep) => db.rpc('save_post', { post, keep: !!keep }),
     remove: id => db.remove('feed_posts', { id: 'eq.' + id }),
     react: (post, emoji) => db.rpc('react_post', { post, emoji: emoji || null }),
@@ -381,6 +382,7 @@ PD.cloud = (() => {
     /** tab: 'user' · 'reposts' · 'saved' · 'liked' · 'history' · 'tag' · 'search' */
     list: (tab, o) => { o = o || {}; return db.rpc('feed_list', { tab, target: o.target || null, term: o.term || null, lim: o.lim || 12, off: o.off || 0 }); },
     users: term => db.rpc('search_users', { term, lim: 20 }),
+    musicConnections: term => db.rpc('music_connections', { term }),
     tags: term => db.rpc('tag_search', { term: term || '', lim: 20 }),
     setBio: bio => db.rpc('set_bio', { new_bio: bio }),
     setAvatar: url => db.rpc('set_avatar', { url: url || null })
@@ -404,6 +406,59 @@ PD.cloud = (() => {
         x.onerror = x.ontimeout = () => rej(err('offline'));
         x.send(blob);
       });
+    },
+    async uploadResumable(path, blob, onProgress) {
+      const chunk = 6 * 1024 * 1024;
+      const c = conf(), owner = uid();
+      if (!S || !owner || !c.url) throw err('no-session');
+      const host = new URL(c.url);
+      if (/^[a-z0-9]+\.supabase\.co$/.test(host.hostname)) host.hostname = host.hostname.replace('.supabase.co', '.storage.supabase.co');
+      const endpoint = new URL('/storage/v1/upload/resumable', host);
+      async function send(url, method, headers = {}, body) {
+        if (!S || uid() !== owner) throw err('no-session');
+        if (S.expires_at && S.expires_at - 120 < Date.now() / 1000) await refresh();
+        if (!S || uid() !== owner) throw err('no-session');
+        const res = await tfetch(url.href, { method, headers: {
+          apikey: c.key, Authorization: 'Bearer ' + S.access_token, 'Tus-Resumable': '1.0.0', ...headers
+        }, body }, 90000);
+        if (!res.ok) throw err(res.status === 413 ? 'too-large' : 'http-' + res.status);
+        return res;
+      }
+      const metadata = { bucketName: BUCKET, objectName: path, contentType: (blob.type || 'application/octet-stream').split(';')[0], cacheControl: '10800' };
+      const created = await send(endpoint, 'POST', {
+        'Upload-Length': String(blob.size), 'Upload-Metadata': Object.entries(metadata).map(([key, value]) => key + ' ' + btoa(value)).join(','),
+        'x-upsert': 'false'
+      });
+      const location = created.headers.get('Location');
+      if (!location) throw err('upload-location');
+      const resource = new URL(location, endpoint);
+      if (resource.origin !== endpoint.origin) throw err('upload-location');
+      function offset(res) {
+        const value = res.headers.get('Upload-Offset');
+        if (!value || !/^\d+$/.test(value) || Number(value) > blob.size) throw err('upload-offset');
+        return Number(value);
+      }
+      let sent = 0, failures = 0;
+      while (sent < blob.size) {
+        const from = sent, end = Math.min(from + chunk, blob.size);
+        try {
+          const res = await send(resource, 'PATCH', {
+            'Upload-Offset': String(from), 'Content-Type': 'application/offset+octet-stream'
+          }, blob.slice(from, end));
+          sent = offset(res);
+          if (sent !== end) throw err('upload-offset');
+          failures = 0;
+        } catch (e) {
+          if (['no-session', 'too-large', 'http-400', 'http-401', 'http-403'].includes(e.code) || ++failures > 3) throw e;
+          await new Promise(resolve => setTimeout(resolve, 750 * failures));
+          try { sent = offset(await send(resource, 'HEAD')); }
+          catch (headError) { if (headError.code === 'no-session') throw headError; sent = from; }
+          if (sent < from || sent > end) throw err('upload-offset');
+          if (sent > from) failures = 0;
+        }
+        onProgress?.(sent / blob.size);
+      }
+      return path;
     },
     /** short-lived addresses for files the server lets this account read (cached until shortly before they expire) */
     async urls(paths, bucket) {

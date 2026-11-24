@@ -16,19 +16,45 @@ PD.i18n.add({
   've.vol': ['ხმის სიმაღლე', 'Volume'], 've.low': ['დაბლები', 'Low'], 've.mid': ['შუა', 'Mid'], 've.high': ['მაღლები', 'High'], 've.comp': ['კომპრესორი', 'Compressor'],
   've.rev': ['რევერბი', 'Reverb'], 've.delay': ['დილეი', 'Delay'], 've.dtime': ['დილეის დრო', 'Delay time'], 've.eq': ['ეკვალაიზერი (EQ)', 'Equaliser (EQ)'], 've.fx': ['ეფექტები', 'Effects'],
   've.dn': ['ხმაურის მოშლა', 'Noise removal'], 've.dnAmt': ['სიძლიერე', 'Strength'],
-  've.dnHint': ['ასუფთავებს მუდმივ ხმაურს — შიშინს, ქარის გუგუნს, მანქანების ხმაურს, ზუზუნს — და ძალიან დაბალ ხმებს ჭრის. მოკლე ხმებს (მაგალითად სიმზე თითის გასრიალებას) ბოლომდე ვერ შლის.', 'Cleans steady noise — hiss, wind rumble, traffic, hum — and cuts the very lowest sounds. Short sounds (a finger squeaking on a string, say) are not fully removed.'],
   've.dnWork': ['მუშავდება… {p}%', 'Working… {p}%'],
-  've.longAudio': ['ხმაურის მოშლა და ტალღის ფორმა 3 წუთამდე ვიდეოზე მუშაობს (უფრო გრძელი ტელეფონის მეხსიერებას ვერ ეტევა). EQ და ეფექტები მუშაობს.', 'Noise removal and the waveform work on videos up to 3 minutes (longer ones do not fit in a phone’s memory). EQ and effects work.'],
+  've.dnHint': ['ხმაურის ნიმუშისთვის გადადი მონაკვეთზე, სადაც მხოლოდ ფონია. ხმა და ინსტრუმენტი ერთდროულად თუ ისმის, მათი გამოყოფა ნიმუშით შეზღუდულია.', 'For a noise profile, seek to a section with background sound alone. Overlapping voices and instruments may remain.'],
+  've.longAudio': ['ამ დიდ ფაილზე ხელმისაწვდომია EQ და ეფექტები. ტალღისა და ხმაურის ნიმუშისთვის გახსენი მოკლე კლიპი.', 'EQ and effects are available for this large file. Open a shorter clip for waveform and noise profiling.'],
   've.noAudio': ['ამ ვიდეოს ხმა ამ მოწყობილობამ ვერ წაიკითხა: EQ და ეფექტები მუშაობს, ხმაურის მოშლა და ტალღის ფორმა — არა.', 'This device could not read the video’s sound: EQ and effects work, noise removal and the waveform do not.'],
   've.f.none': ['ორიგინალი', 'Original'], 've.f.cine': ['სინემატიკური', 'Cinematic'], 've.f.noir': ['შავ-თეთრი', 'Black & white'], 've.f.warm': ['თბილი', 'Warm'], 've.f.cool': ['ცივი', 'Cool'],
   've.f.vint': ['ვინტაჟი', 'Vintage'], 've.f.vivid': ['მკვეთრი', 'Vivid'], 've.f.moody': ['ბნელი', 'Moody'], 've.amount': ['სიძლიერე', 'Strength'],
-  've.b.none': ['არ შეიცვალოს', 'Keep'], 've.b.black': ['შავი ფონი', 'Black'], 've.b.blur': ['ბუნდოვანი', 'Blurred'], 've.b.image': ['სურათი ან GIF', 'Picture or GIF'], 've.b.video': ['ვიდეო · 5 წმ loop', 'Video · 5 s loop'],
+  've.b.none': ['არ შეიცვალოს', 'Keep'], 've.b.black': ['შავი ფონი', 'Black'], 've.b.blur': ['ბუნდოვანი', 'Blurred'], 've.b.image': ['სურათი ან GIF', 'Picture or GIF'], 've.b.video': ['ვიდეო', 'Video'],
   've.bgLoad': ['ფონის ამომჭრელი იტვირთება… (მხოლოდ პირველად, ~20 MB)', 'Loading the background cutter… (first time only, ~20 MB)'],
   've.bgFail': ['ფონის ამომჭრელი ვერ ჩაიტვირთა — შეამოწმე ინტერნეტი და სცადე თავიდან.', 'The background cutter could not be loaded — check the connection and try again.'],
   've.bgHint': ['ამოიჭრება ადამიანი, დანარჩენი ყველაფერი ფონად ითვლება. ინსტრუმენტის ის ნაწილი, რომელიც სხეულს შორდება, შეიძლება ფონს გაჰყვეს. ყველაფერი ამ მოწყობილობაზე ხდება.', 'The person is cut out; everything else counts as background. Parts of the instrument held away from the body may go with the background. It all happens on this device.'],
   've.gifBad': ['ეს ფაილი ვერ წაიკითხა.', 'This file could not be read.'],
-  've.rendering': ['ვიდეო მზადდება… {p}%', 'Making the video… {p}%'], 've.edited': ['დამუშავდება იმავე გარჩევადობით', 'will be made again at the same resolution'],
+  've.rendering': ['ვიდეო მზადდება… {p}%', 'Making the video… {p}%'], 've.edited': ['მომზადდება რედაქტირებული კლიპი', 'Edited export'],
   've.renderFail': ['ვიდეო ამ მოწყობილობაზე ვერ დამუშავდა.', 'The video could not be made on this device.'],
+  've.mixPreset': ['ხმის პრესეტი', 'Audio preset'], 've.eqBand': ['შუა სიხშირე', 'Mid frequency'],
+  've.eqWidth': ['შუა ზოლის Q', 'Mid-band Q'], 've.hp': ['დაბლების მოჭრა', 'High-pass'],
+  've.hum': ['ზუზუნის მოშლა', 'Hum notch'], 've.thresh': ['კომპრესორის ზღურბლი', 'Compressor threshold'],
+  've.ratio': ['შეკუმშვის თანაფარდობა', 'Ratio'], 've.attack': ['შეტევა', 'Attack'], 've.release': ['აღდგენა', 'Release'],
+  've.gainReduction': ['კომპრესორის შემცირება', 'Gain reduction'], 've.ab': ['ორიგინალი / დამუშავებული', 'Original / processed'],
+  've.spectrum': ['სპექტრი და EQ მრუდი', 'Spectrum and EQ curve'],
+  've.dnProfile': ['ხმაურის ნიმუში აქედან', 'Sample noise here'], 've.dnAuto': ['ავტომატური ნიმუში', 'Automatic noise profile'],
+  've.dnProfileAt': ['ხმაურის ნიმუში · {time}', 'Noise sample · {time}'],
+  've.dnError': ['ხმაურის დამუშავება ვერ დასრულდა.', 'Noise reduction could not finish.'],
+  've.mutePart': ['არჩეული ნაწილის დადუმება', 'Mute selected part'], 've.unmutePart': ['ხმის დაბრუნება', 'Unmute selected part'],
+  've.undo': ['გაუქმება', 'Undo'], 've.trimIn': ['დასაწყისი აქ', 'Set start here'], 've.trimOut': ['დასასრული აქ', 'Set end here'],
+  've.zoom': ['ტაიმლაინის მასშტაბი', 'Timeline zoom'], 've.crop': ['კადრის პროპორცია', 'Aspect ratio'],
+  've.exposure': ['ექსპოზიცია', 'Exposure'], 've.contrast': ['კონტრასტი', 'Contrast'],
+  've.saturation': ['გაჯერება', 'Saturation'], 've.temperature': ['ტემპერატურა', 'Temperature'],
+  've.f.stage': ['სცენა', 'Stage'], 've.f.soft': ['რბილი', 'Soft light'], 've.f.gold': ['ოქროსფერი', 'Golden hour'],
+  've.f.analog': ['ნეგატივი 35 მმ', '35 mm film'], 've.f.blue': ['ლურჯი საათი', 'Blue hour'],
+  've.key': ['ფონის ამოჭრის მეთოდი', 'Cutout method'], 've.key.person': ['ადამიანის ამოჭრა', 'Person cutout'],
+  've.key.green': ['მწვანე ეკრანი', 'Green screen'], 've.key.blue': ['ლურჯი ეკრანი', 'Blue screen'],
+  've.keyEdge': ['კიდის გამართვა', 'Edge adjustment'], 've.b.color': ['ფერი', 'Solid color'],
+  've.stems': ['ვოკალი და ინსტრუმენტები', 'Vocals and instrument layers'],
+  've.separate': ['გაყავი ხმა აქედან', 'Separate audio from playhead'],
+  've.sepHint': ['სიმა ყოფს ვოკალს, დრამს, ბასსა და დანარჩენ ხმას 30-წამიან მონაკვეთზე. პირველად იტვირთება მოდელები (დაახლოებით 150 MB).', 'Separate vocals, drums, bass and other audio in a 30-second section. The first run downloads about 150 MB of models.'],
+  've.sepReady': ['გამოყოფილი ხმა · {from}–{to}', 'Separated section · {from}–{to}'],
+  've.sepError': ['ხმის დაყოფა ვერ დასრულდა. შეგიძლია ხელახლა სცადო.', 'Audio separation failed. You can retry.'],
+  've.sep.vocals': ['ვოკალის მოშორება', 'Reduce vocals'], 've.sep.bass': ['ბასის მოშორება', 'Reduce bass'],
+  've.sep.drums': ['დრამის მოშორება', 'Reduce drums'], 've.sep.other': ['დანარჩენის მოშორება', 'Reduce other audio'],
   've.play': ['დაკვრა / პაუზა', 'Play / pause']
 });
 
@@ -108,33 +134,61 @@ PD.vedit = (() => {
   /** Spectral noise gate. Each band's steady floor is the level it stays above 80% of the time; whatever does not
    *  rise clearly above that floor is turned down (not cut to silence, which would leave "musical" artefacts), and
    *  everything under ~45 Hz (wind, traffic rumble, handling) goes. amt 0…1. */
-  async function denoise(ac, buf, amt, onP, stop) {
+  async function denoise(ac, buf, amt, onP, stop, profileAt = null) {
     const N = 2048, HOP = 512, NB = N / 2 + 1, T = tables(N);
     const len = buf.length, sr = buf.sampleRate, two = buf.numberOfChannels > 1;
     const L = buf.getChannelData(0), R = two ? buf.getChannelData(1) : L;
     const win = new Float32Array(N); for (let i = 0; i < N; i++) win[i] = .5 - .5 * Math.cos(2 * Math.PI * i / N);
     const F = Math.ceil((len + N) / HOP), start = f => (f + 1) * HOP - N;
-    const db = new Uint8Array(F * NB), hist = new Uint32Array(NB * 256), re = new Float32Array(N), im = new Float32Array(N);
-    const breathe = async (f, base, span) => { if (f % 128) return; if (stop()) throw fail('cancel'); onP(Math.round((base + span * f / F) * 100)); await new Promise(r => setTimeout(r, 0)); };
-    for (let f = 0; f < F; f++) {   // 1 — how loud every band is in every frame (left and right together)
-      const s0 = start(f);
-      for (let i = 0; i < N; i++) { const n = s0 + i; re[i] = n >= 0 && n < len ? (L[n] + R[n]) * .5 * win[i] : 0; im[i] = 0; }
-      fft(re, im, T, false);
-      for (let k = 0, o = f * NB; k < NB; k++) { const d = 10 * Math.log10(re[k] * re[k] + im[k] * im[k] + 1e-18), q = Math.max(0, Math.min(255, Math.round((d + 60) * 2))); db[o + k] = q; hist[k * 256 + q]++; }
-      await breathe(f, 0, .3);
+    const hist = new Uint32Array(NB * 256), re = new Float32Array(N), im = new Float32Array(N);
+    const breathe = async (f, count, base, span) => {
+      if (stop()) throw fail('cancel');
+      onP(Math.round((base + span * f / count) * 100));
+      await new Promise(resolve => setTimeout(resolve, 0));
+    };
+    function bandLevel(k) {
+      if (!two) return 10 * Math.log10(re[k] ** 2 + im[k] ** 2 + 1e-18);
+      const mirror = (N - k) % N;
+      const lr = (re[k] + re[mirror]) * .5, li = (im[k] - im[mirror]) * .5;
+      const rr = (im[k] + im[mirror]) * .5, ri = (re[mirror] - re[k]) * .5;
+      return 10 * Math.log10((lr * lr + li * li + rr * rr + ri * ri) * .5 + 1e-18);
     }
-    const floor = new Float32Array(NB), fl = new Float32Array(NB);   // 2 — the steady floor, smoothed across neighbouring bands
-    for (let k = 0; k < NB; k++) { let c = 0, q = 0; const need = F * .2; for (; q < 255; q++) { c += hist[k * 256 + q]; if (c >= need) break; } floor[k] = q / 2 - 60; }
-    for (let k = 0; k < NB; k++) { let s = 0, n = 0; for (let j = -3; j <= 3; j++) { const kk = k + j; if (kk >= 0 && kk < NB) { s += floor[kk]; n++; } } fl[k] = s / n; }
+    const from = profileAt == null ? 0 : Math.max(0, Math.min(F - 1, Math.floor(profileAt * sr / HOP) + 3));
+    const until = profileAt == null ? F : Math.min(F, from + Math.ceil(.75 * sr / HOP));
+    const stride = Math.max(1, Math.floor((until - from) / 2000));
+    let observed = 0;
+    for (let f = from; f < until; f += stride) {
+      const s0 = start(f);
+      for (let i = 0; i < N; i++) {
+        const n = s0 + i, inside = n >= 0 && n < len;
+        re[i] = inside ? L[n] * win[i] : 0; im[i] = inside && two ? R[n] * win[i] : 0;
+      }
+      fft(re, im, T, false);
+      for (let k = 0; k < NB; k++) {
+        const d = bandLevel(k);
+        hist[k * 256 + Math.max(0, Math.min(255, Math.round((d + 60) * 2)))]++;
+      }
+      if (++observed % 128 === 0) await breathe(f - from, until - from, 0, .2);
+    }
+    const floor = new Float32Array(NB), fl = new Float32Array(NB);
+    for (let k = 0; k < NB; k++) {
+      let c = 0, q = 0;
+      const samples = observed * (profileAt == null ? .2 : .7);
+      for (; q < 255; q++) { c += hist[k * 256 + q]; if (c >= samples) break; }
+      floor[k] = q / 2 - 60;
+    }
+    for (let k = 0; k < NB; k++) { let s = 0, n = 0; for (let j = -3; j <= 3; j++) { const kk = k + j; if (kk >= 0 && kk < NB) { s += floor[kk]; n++; } } fl[k] = Math.max(floor[k] - 2, s / n); }
     const margin = 4 + 8 * amt, depth = Math.pow(10, -(10 + 22 * amt) / 20), hz = sr / N, hp = new Float32Array(NB);
     for (let k = 0; k < NB; k++) { const f = k * hz; hp[k] = f < 45 ? 0 : f < 80 ? (f - 45) / 35 : 1; }
-    const oL = new Float32Array(len), oR = two ? new Float32Array(len) : null, g = new Float32Array(NB), gp = new Float32Array(NB).fill(1);
+    const out = ac.createBuffer(two ? 2 : 1, len, sr);
+    const oL = out.getChannelData(0), oR = two ? out.getChannelData(1) : null, g = new Float32Array(NB), gp = new Float32Array(NB).fill(1);
     for (let f = 0; f < F; f++) {   // 3 — left in the real part, right in the imaginary: one transform turns both down by the same gains
       const s0 = start(f);
       for (let i = 0; i < N; i++) { const n = s0 + i, ok = n >= 0 && n < len; re[i] = ok ? L[n] * win[i] : 0; im[i] = ok && two ? R[n] * win[i] : 0; }
       fft(re, im, T, false);
-      for (let k = 0, o = f * NB; k < NB; k++) {
-        const x = (db[o + k] / 2 - 60 - fl[k] - margin) / 6 + .5, m = x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+      for (let k = 0; k < NB; k++) {
+        const level = bandLevel(k);
+        const x = (level - fl[k] - margin) / 6 + .5, m = x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
         let gg = depth + (1 - depth) * m; gg = gg > gp[k] ? gg : gp[k] + (gg - gp[k]) * .45; gp[k] = gg; g[k] = gg;   // opens at once, closes over ~25 ms
       }
       for (let k = 0; k < NB; k++) {
@@ -142,12 +196,9 @@ PD.vedit = (() => {
         re[k] *= w; im[k] *= w; if (k && k < N / 2) { re[N - k] *= w; im[N - k] *= w; }
       }
       fft(re, im, T, true);
-      for (let i = 0; i < N; i++) { const n = s0 + i; if (n >= 0 && n < len) { oL[n] += re[i] * win[i]; if (two) oR[n] += im[i] * win[i]; } }
-      await breathe(f, .3, .7);
+      for (let i = 0; i < N; i++) { const n = s0 + i; if (n >= 0 && n < len) { oL[n] += re[i] * win[i] / 1.5; if (two) oR[n] += im[i] * win[i] / 1.5; } }
+      if (f % 128 === 0) await breathe(f, F, .2, .8);
     }
-    const out = ac.createBuffer(two ? 2 : 1, len, sr);
-    for (let n = 0; n < len; n++) { oL[n] /= 1.5; if (two) oR[n] /= 1.5; }   // Hann² at 75% overlap adds up to 1.5
-    out.getChannelData(0).set(oL); if (two) out.getChannelData(1).set(oR);
     onP(100);
     return out;
   }
@@ -160,20 +211,31 @@ PD.vedit = (() => {
   function makeChain(ac) {
     const inp = ac.createGain(), lo = ac.createBiquadFilter(), mid = ac.createBiquadFilter(), hi = ac.createBiquadFilter();
     lo.type = 'lowshelf'; lo.frequency.value = 140; mid.type = 'peaking'; mid.frequency.value = 1100; mid.Q.value = .8; hi.type = 'highshelf'; hi.frequency.value = 6500;
+    const hp = ac.createBiquadFilter(), notch = ac.createBiquadFilter();
+    hp.type = 'highpass'; hp.Q.value = .71; notch.type = 'peaking'; notch.Q.value = 22;
     const comp = ac.createDynamicsCompressor(), make = ac.createGain(), dry = ac.createGain(), out = ac.createGain();
     const dl = ac.createDelay(2), fb = ac.createGain(), dWet = ac.createGain(), conv = ac.createConvolver(), rWet = ac.createGain();
     conv.buffer = impulse(ac, 2.4);
-    inp.connect(lo); lo.connect(mid); mid.connect(hi); hi.connect(comp); comp.connect(make);
+    const wet = ac.createGain(), bypass = ac.createGain(), volume = ac.createGain(), meter = ac.createAnalyser();
+    const filters = [hp, notch, lo, mid, hi];
+    inp.connect(hp); hp.connect(notch); notch.connect(lo); lo.connect(mid); mid.connect(hi); hi.connect(comp); comp.connect(make);
+    inp.connect(bypass); bypass.connect(meter); out.connect(wet); wet.connect(meter); meter.connect(volume);
+    meter.fftSize = 2048; meter.smoothingTimeConstant = .8;
     make.connect(dry); dry.connect(out);
     make.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(dWet); dWet.connect(out);
     make.connect(conv); conv.connect(rWet); rWet.connect(out);
     return {
-      inp, out,
+      inp, out: volume, meter, comp, filters,
+      compare(on) { wet.gain.value = on ? 0 : 1; bypass.gain.value = on ? 1 : 0; },
+      cut(gain) { volume.gain.setTargetAtTime(gain, ac.currentTime, .005); },
       set(a) {
         const t = ac.currentTime, s = (p, v) => p.setTargetAtTime(v, t, .03), k = a.comp / 100;
         s(out.gain, a.vol / 100); s(lo.gain, a.lo); s(mid.gain, a.mid); s(hi.gain, a.hi);
-        comp.threshold.value = -1 - 33 * k; comp.ratio.value = 1 + 7 * k; comp.knee.value = 8; comp.attack.value = .004; comp.release.value = .18;
-        s(make.gain, k ? Math.pow(10, 33 * k * (1 - 1 / (1 + 7 * k)) * .5 / 20) : 1);
+        s(hp.frequency, a.hp || 0); s(notch.frequency, a.hum || 50); s(notch.gain, a.hum ? -24 : 0);
+        s(mid.frequency, a.midHz); s(mid.Q, a.midQ);
+        comp.threshold.value = a.threshold * k; comp.ratio.value = 1 + (a.ratio - 1) * k;
+        comp.knee.value = 8; comp.attack.value = a.attack / 1000; comp.release.value = a.release / 1000;
+        s(make.gain, k ? Math.pow(10, -a.threshold * k * (1 - 1 / comp.ratio.value) * .25 / 20) : 1);
         s(rWet.gain, a.rev / 100 * .85); s(dry.gain, 1 - a.rev / 100 * .25);
         dl.delayTime.setTargetAtTime(a.dtime / 1000, t, .05); s(dWet.gain, a.del / 100 * .6); fb.gain.value = .38;
       }
@@ -252,11 +314,25 @@ precision highp float;
 precision mediump float;
 #endif
 varying vec2 uv;uniform sampler2D uV,uM,uB;uniform int uBgMode;uniform vec3 uBgCol,uSh,uHi;uniform vec4 uBgMap;
-uniform float uExp,uCon,uSat,uTemp,uTint,uFade,uVig,uGrain,uSplit,uLetter,uTime,uFlip;uniform vec2 uRes;
+uniform float uExp,uCon,uSat,uTemp,uTint,uFade,uVig,uGrain,uSplit,uLetter,uTime,uFlip;uniform vec2 uRes,uCrop,uKey;
 float hash(vec2 q){return fract(sin(dot(q,vec2(12.9898,78.233)))*43758.5453);}
 void main(){
-  vec2 vu=uFlip>.5?vec2(1.-uv.x,uv.y):uv;vec3 c=texture2D(uV,vu).rgb;
-  if(uBgMode>0){float a=smoothstep(.32,.68,texture2D(uM,vu).r);vec3 b=uBgMode==1?uBgCol:texture2D(uB,uBgMap.zw+uv*uBgMap.xy).rgb;c=mix(b,c,a);}
+  vec2 vu=(uv-.5)*uCrop+.5;
+  if(uFlip>.5) vu.x=1.-vu.x;
+  vec3 c=texture2D(uV,vu).rgb;
+  if(uBgMode>0){
+    float edge=uKey.y;
+    float a=smoothstep(.32+edge,.68+edge,texture2D(uM,vu).r);
+    if(uKey.x>.5){
+      bool green=uKey.x<1.5;
+      float chroma=green?c.g-max(c.r,c.b):c.b-max(c.r,c.g);
+      a=1.-smoothstep(.035+edge*.34,.17+edge*.34,chroma);
+      if(green)c.g=mix(min(c.g,max(c.r,c.b)+.06),c.g,a);
+      else c.b=mix(min(c.b,max(c.r,c.g)+.06),c.b,a);
+    }
+    vec3 b=uBgMode==1?uBgCol:texture2D(uB,uBgMap.zw+uv*uBgMap.xy).rgb;
+    c=mix(b,c,a);
+  }
   c*=uExp;c*=vec3(1.+uTemp,1.+uTint,1.-uTemp);c=(c-.5)*uCon+.5;
   float l=dot(clamp(c,0.,1.),vec3(.2126,.7152,.0722));c=mix(vec3(l),c,uSat);
   c+=uSplit*((1.-l)*(uSh-.5)+l*(uHi-.5))*.35;c=uFade+c*(1.-uFade);
@@ -273,7 +349,7 @@ void main(){
     if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error('link'); gl.useProgram(pr);
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
     const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-    const U = {}; 'uV uM uB uBgMode uBgCol uBgMap uExp uCon uSat uTemp uTint uFade uVig uGrain uSplit uSh uHi uLetter uTime uRes uFlip'.split(' ').forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
+    const U = {}; 'uV uM uB uBgMode uBgCol uBgMap uExp uCon uSat uTemp uTint uFade uVig uGrain uSplit uSh uHi uLetter uTime uRes uFlip uCrop uKey'.split(' ').forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     const T = [0, 1, 2].map(i => {
       gl.activeTexture(gl.TEXTURE0 + i); const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
@@ -288,9 +364,10 @@ void main(){
       gl: true, get lost() { return lost; },
       video: src => up(0, src), bg: src => up(2, src),
       mask(u8, w, hh) { gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, T[1]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, w, hh, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, u8); },
-      draw(P, mode, col, map, time, flip) {
+      draw(P, mode, col, map, time, flip, crop = [1, 1], key = [0, 0]) {
         if (lost) return;
         gl.uniform1f(U.uFlip, flip ? 1 : 0);
+        gl.uniform2fv(U.uCrop, crop); gl.uniform2fv(U.uKey, key);
         gl.viewport(0, 0, cv.width, cv.height);
         gl.uniform1i(U.uBgMode, mode); gl.uniform3fv(U.uBgCol, col); gl.uniform4fv(U.uBgMap, map);
         gl.uniform1f(U.uExp, P.exp); gl.uniform1f(U.uCon, P.con); gl.uniform1f(U.uSat, P.sat); gl.uniform1f(U.uTemp, P.temp); gl.uniform1f(U.uTint, P.tint);
@@ -314,7 +391,12 @@ void main(){
     cool: { temp: -.1, tint: .015, sat: .94, con: 1.03 },
     vint: { fade: .14, sat: .68, temp: .07, vig: .32, grain: .09, con: .9 },
     vivid: { sat: 1.38, con: 1.13, exp: 1.03 },
-    moody: { exp: .86, con: 1.22, sat: .78, vig: .55, split: .7, sh: [.3, .4, .62], hi: [.6, .55, .5] }
+    moody: { exp: .86, con: 1.22, sat: .78, vig: .55, split: .7, sh: [.3, .4, .62], hi: [.6, .55, .5] },
+    stage: { exp: 1.04, con: 1.17, sat: 1.16, split: .6, sh: [.35, .31, .58], hi: [.72, .47, .56] },
+    soft: { exp: 1.05, con: .86, sat: .88, fade: .06 },
+    gold: { temp: .16, tint: -.025, exp: 1.04, split: .8, hi: [.8, .63, .4], vig: .18 },
+    analog: { con: 1.12, sat: .82, grain: .12, fade: .07, split: 1, sh: [.25, .58, .44], hi: [.66, .56, .48] },
+    blue: { exp: .9, con: 1.08, temp: -.13, sat: .86, split: .63, sh: [.26, .40, .66], hi: [.48, .63, .76] }
   };
   function params(name, k) {
     const p = PRE[name] || {}, o = {};
@@ -339,14 +421,23 @@ void main(){
     el.addEventListener('seeked', ok); el.currentTime = t;
   });
   const meta = el => el.readyState >= 1 ? Promise.resolve() : new Promise((res, rej) => { el.addEventListener('loadedmetadata', () => res(), { once: true }); el.addEventListener('error', () => rej(fail('badFile')), { once: true }); });
-  const AUD0 = { vol: 100, lo: 0, mid: 0, hi: 0, comp: 0, rev: 0, del: 0, dtime: 320, dn: false, dnAmt: 60 };
+  const AUD0 = { vol: 100, lo: 0, mid: 0, hi: 0, midHz: 1100, midQ: .8, hp: 0, hum: 0,
+    comp: 0, threshold: -28, ratio: 4, attack: 10, release: 180, rev: 0, del: 0, dtime: 320, dn: false, dnAmt: 60 };
+  const SOUND_PRESETS = {
+    rock: { hp: 45, lo: 2, mid: 2, midHz: 1800, hi: 2, comp: 68, ratio: 4, attack: 12 },
+    pop: { hp: 65, lo: 1, mid: -2, midHz: 400, hi: 3, comp: 60, ratio: 3, attack: 8 },
+    jazz: { hp: 35, lo: 1, mid: 1, midHz: 790, comp: 30, ratio: 2, attack: 28 },
+    folk: { hp: 60, mid: -2, midHz: 270, hi: 2, comp: 34, ratio: 2.3 },
+    vocals: { hp: 80, mid: 2, midHz: 2300, hi: 2, comp: 62, ratio: 3, attack: 8, release: 120 }
+  };
+  const adjustKeys = Object.keys(AUD0).filter(key => key !== 'dnAmt');
 
   /* ---------------- the editor ---------------- */
   /** o: { file, meta: {w,h,dur}, roomMB, onBack, onNext } → { dirty, version, length, render, cancel, back, hide, show, destroy } */
   function mount(root, o) {
     const url = URL.createObjectURL(o.file), flip = !!o.mirror;   // a selfie is drawn — and made — the way it looked while filming
     let dur = o.meta.dur || 1;
-    const S = { segs: [{ a: 0, b: dur }], sel: 0, filter: 'none', fk: 1, bg: 'none', aud: Object.assign({}, AUD0) };
+    const S = { segs: [{ a: 0, b: dur }], sel: 0, filter: 'none', fk: 1, crop: '', grade: { exp: 0, con: 0, sat: 0, temp: 0 }, bg: 'none', bgKey: 'person', bgEdge: 0, bgColor: '#000000', aud: Object.assign({}, AUD0) };
     let ver = 0, dead = false, hidden = false, playing = false, panel = null, raf = 0, needs = true, lastT = -1, exporting = null, pendingSeek = null, audioAfterSeek = false, driftAt = 0;
     const v = h('video', { class: 've-src', playsinline: true, preload: 'auto' }); v.muted = true; v.playsInline = true; v.src = url;
     const cv = h('canvas', { class: 've-view' });
@@ -355,50 +446,93 @@ void main(){
 
     /* sound */
     const AC = window.AudioContext || window.webkitAudioContext;
-    let audWhy = '', ac = null, chain = null, spk = null, orig = null, clean = null, cleanKey = -1, elSrc = null, asrc = null, aStart = 0, aOff = 0, dnJob = 0, dnRun = null, waveCv = null;
-    try { ac = new AC(); chain = makeChain(ac); spk = ac.createGain(); chain.out.connect(spk); spk.connect(ac.destination); chain.set(S.aud); } catch (_) { ac = null; v.muted = false; }
+    let audWhy = '', ac = null, chain = null, spk = null, orig = null, clean = null, cleanKey = -1, elSrc = null, asrc = null, aStart = 0, aOff = 0, dnJob = 0, dnRun = null, waveCv = null, compare = false, noiseAt = null;
+    try { ac = new AC(); chain = makeChain(ac); spk = ac.createGain(); chain.out.connect(spk); spk.connect(ac.destination); chain.set(S.aud); chain.compare(false); } catch (_) { ac = null; v.muted = false; }
     const useElement = () => { if (!ac || elSrc) return; try { elSrc = ac.createMediaElementSource(v); elSrc.connect(chain.inp); v.muted = false; } catch (_) { v.muted = false; } };
     /* Until the sound is edited it plays straight from the video element — no Web Audio, which an iPhone silences with its
        ring/silent switch and keeps paused until a touch. Once effects are on it goes through Web Audio, told it is playback. */
-    let native = true, decoded = false;
-    const fxOn = () => S.aud.dn || ['vol', 'lo', 'mid', 'hi', 'comp', 'rev', 'del'].some(k => S.aud[k] !== AUD0[k]);
+    let native = true, decoded = false, clipStems = null, stemJob = null, stemProgress = 0;
+    let audioSegment = -1;
+    const stemSources = [];
+    const fxOn = () => !!clipStems?.tracks.some(track => track.amount > 0) || S.segs.some(s => s.muted) || adjustKeys.some(k => S.aud[k] !== AUD0[k]);
+    const cutSound = () => chain?.cut(!compare && S.segs[segIdx(v.currentTime)]?.muted ? 0 : 1);
     function route() {
       if (exporting) return;
-      native = !fxOn() && !elSrc;   // an element routed through Web Audio cannot be taken back out of it
+      const wasNative = native;
+      native = !fxOn() && panel !== 'sound' && !elSrc;   // an element routed through Web Audio cannot be taken back out of it
       if (native) { stopAudio(); v.muted = false; return; }
       if (!orig) { if (decoded) useElement(); return; }
-      v.muted = true; if (playing) startAudio();
+      v.muted = true; if (playing && (wasNative || !asrc)) startAudio();
     }
     const AS = navigator.audioSession, asPrev = AS && AS.type;
     try { if (AS) AS.type = 'playback'; } catch (_) {}
     v.muted = false;
     (async () => {
       if (!ac) return;
-      if (dur > 180 || o.file.size > 200 * 1048576) audWhy = 've.longAudio';   // ~70 MB of sound a minute once decoded, more again for the noise gate
-      else try { const ab = await o.file.arrayBuffer(); orig = await new Promise((res, rej) => { const q = ac.decodeAudioData(ab, res, rej); if (q && q.then) q.then(res, rej); }); } catch (_) { orig = null; audWhy = 've.noAudio'; }
+      if ((o.file.size > 256 * 1048576 && !o.rawAudio) || dur > (PD.isTouch() ? 340 : 601)) audWhy = 've.longAudio';
+      else try {
+        const data = await (o.rawAudio || o.file).arrayBuffer();
+        orig = await ac.decodeAudioData(data);
+      } catch (_) { orig = null; audWhy = 've.noAudio'; }
       if (dead) return;
       decoded = true;
       if (orig) makeWave();
-      route(); paintPanel();
+      if (panel === 'sound') open('sound'); else route();
     })();
-    const curBuf = () => (S.aud.dn && clean) || orig;
+    const curBuf = () => (!compare && S.aud.dn && clean) || orig;
     const wake = () => { if (ac && ac.state === 'suspended' && !exporting) ac.resume().catch(() => {}); };
     root.addEventListener('pointerdown', wake);
 
     /* segments */
     const segIdx = t => S.segs.findIndex(s => t >= s.a - 1e-3 && t < s.b - .02);
     const total = () => S.segs.reduce((n, s) => n + s.b - s.a, 0);
-    const dirty = () => !!o.mustRender || S.segs.length !== 1 || S.segs[0].a > .05 || S.segs[0].b < dur - .05 || (S.filter !== 'none' && S.fk > 0) || S.bg !== 'none' ||
-      ['vol', 'lo', 'mid', 'hi', 'comp', 'rev', 'del', 'dn'].some(k => S.aud[k] !== AUD0[k]);
+    const cropRatios = { '9:16': 9 / 16, '1:1': 1, '16:9': 16 / 9, '4:5': .8 };
+    const grade = () => {
+      const p = params(S.filter, S.fk);
+      p.exp *= 2 ** S.grade.exp; p.con *= 1 + S.grade.con; p.sat *= 1 + S.grade.sat; p.temp += S.grade.temp;
+      return p;
+    };
+    const pictureChanged = () => S.filter !== 'none' && S.fk > 0 || Object.values(S.grade).some(Boolean);
+    const dirty = () => !!o.mustRender || S.segs.length !== 1 || S.segs[0].a > .05 || S.segs[0].b < dur - .05 || pictureChanged() || !!S.crop || S.bg !== 'none' ||
+      fxOn();
 
     /* playback */
-    function stopAudio() { if (!asrc) return; try { asrc.stop(); } catch (_) {} try { asrc.disconnect(); } catch (_) {} asrc = null; }
+    function stopAudio() {
+      if (asrc) {
+        try { asrc.stop(); } catch (_) {}
+        asrc.disconnect(); asrc = null;
+      }
+      for (const { source, gain } of stemSources.splice(0)) {
+        try { source.stop(); } catch (_) {}
+        source.disconnect(); gain.disconnect();
+      }
+    }
     function startAudio(force) {
+      cutSound();
+      const t = v.currentTime, i = segIdx(t);
+      audioSegment = i;
       if ((native && !force) || elSrc) return;
-      stopAudio(); const B = curBuf(); if (!B || !ac) return;
-      const t = v.currentTime, i = segIdx(t); if (i < 0) return;
-      asrc = ac.createBufferSource(); asrc.buffer = B; asrc.connect(chain.inp);
-      aOff = t; aStart = ac.currentTime; asrc.start(0, Math.min(t, B.duration), Math.max(.01, S.segs[i].b - t));
+      stopAudio(); const buffer = curBuf();
+      if (!buffer || !ac || i < 0 || t >= buffer.duration) return;
+      const at = ac.currentTime + .008, end = Math.min(S.segs[i].b, buffer.duration);
+      asrc = ac.createBufferSource(); asrc.buffer = buffer; asrc.connect(chain.inp);
+      aOff = t; aStart = at; asrc.start(at, t, Math.max(.001, end - t));
+      if (!clipStems || compare) return;
+      const from = Math.max(clipStems.from, t), to = Math.min(clipStems.to, end);
+      if (to <= from) return;
+      const offset = from - clipStems.from, time = at + from - t;
+      const fade = Math.min(.018, (to - from) / 3);
+      for (const track of clipStems.tracks) {
+        if (!track.amount) continue;
+        const source = ac.createBufferSource(), gain = ac.createGain(), level = -track.amount / 100;
+        source.buffer = track.buffer; source.connect(gain); gain.connect(chain.inp);
+        gain.gain.setValueAtTime(0, time);
+        gain.gain.linearRampToValueAtTime(level, time + fade);
+        gain.gain.setValueAtTime(level, time + to - from - fade);
+        gain.gain.linearRampToValueAtTime(0, time + to - from);
+        source.start(time, offset, to - from);
+        stemSources.push({ source, gain });
+      }
     }
     function seekTo(t) { t = Math.max(0, Math.min(dur - .02, t)); if (v.seeking) { pendingSeek = t; return; } v.currentTime = t; needs = true; }
     v.addEventListener('seeked', () => { needs = true; if (pendingSeek != null) { const t = pendingSeek; pendingSeek = null; v.currentTime = t; return; } if (audioAfterSeek && playing) { audioAfterSeek = false; startAudio(); } });
@@ -412,6 +546,7 @@ void main(){
       if (!playing || v.seeking) return;
       const t = v.currentTime, i = segIdx(t);
       if (i >= 0 && !v.ended) {
+        if (audioSegment !== i) startAudio();
         if (asrc && ac && performance.now() > driftAt) { driftAt = performance.now() + 1500; if (Math.abs(aOff + ac.currentTime - aStart - t) > .12) startAudio(); }
         return;
       }
@@ -444,10 +579,10 @@ void main(){
       const t = v.currentTime, fresh = force || t !== lastT; lastT = t;
       if (fresh) R.video(v);
       let mode = 0, map = [1, 1, 0, 0];
-      if (R.gl && S.bg !== 'none' && seg) {
-        if (fresh || !maskU8) runSeg();
-        if (maskU8) {
-          if (S.bg === 'black') mode = 1;
+      if (R.gl && S.bg !== 'none' && (seg || S.bgKey !== 'person')) {
+        if (S.bgKey === 'person' && (fresh || !maskU8)) runSeg();
+        if (maskU8 || S.bgKey !== 'person') {
+          if (S.bg === 'black' || S.bg === 'color') mode = 1;
           else if (S.bg === 'blur') {
             if (!tiny) { const k = 36 / Math.max(v.videoWidth, v.videoHeight); tiny = document.createElement('canvas'); tiny.width = Math.max(2, Math.round(v.videoWidth * k)); tiny.height = Math.max(2, Math.round(v.videoHeight * k)); tctx = tiny.getContext('2d'); }
             if (fresh) { tctx.drawImage(v, 0, 0, tiny.width, tiny.height); R.bg(tiny); } mode = 2;
@@ -457,10 +592,14 @@ void main(){
             if (i !== gifIdx) { gifIdx = i; R.bg(gif.frames[i].img); }
             mode = 2; map = coverMap(gif.w, gif.h);
           } else if (S.bg === 'image' && still) { if (!stillUp) { R.bg(still); stillUp = true; } mode = 2; map = coverMap(still.width, still.height); }
-          else if (S.bg === 'video' && bgV && bgV.readyState >= 2) { if (bgV.currentTime >= 5) bgV.currentTime = 0; R.bg(bgV); mode = 2; map = coverMap(bgV.videoWidth, bgV.videoHeight); }
+          else if (S.bg === 'video' && bgV && bgV.readyState >= 2) { R.bg(bgV); mode = 2; map = coverMap(bgV.videoWidth, bgV.videoHeight); }
         }
       }
-      R.draw(params(S.filter, S.fk), mode, [0, 0, 0], map, performance.now() / 1000, flip);
+      const aspect = v.videoWidth / v.videoHeight, ratio = cropRatios[S.crop] || aspect;
+      const crop = ratio < aspect ? [ratio / aspect, 1] : [1, aspect / ratio];
+      const key = [S.bgKey === 'green' ? 1 : S.bgKey === 'blue' ? 2 : 0, S.bgEdge];
+      const col = S.bg === 'color' ? [1, 3, 5].map(i => Number.parseInt(S.bgColor.slice(i, i + 2), 16) / 255) : [0, 0, 0];
+      R.draw(grade(), mode, col, map, performance.now() / 1000, flip, crop, key);
     }
     const animated = () => S.bg !== 'none' && (S.bg === 'video' || (S.bg === 'image' && gif && gif.frames.length > 1));
     function loop() {
@@ -469,6 +608,7 @@ void main(){
       boundary();
       if (needs || v.currentTime !== lastT || animated() || (playing && params(S.filter, S.fk).grain > 0)) { const f = needs; needs = false; frame(f); }
       tls.forEach(x => x.head());
+      cur?.meter?.();
       paintTime();
     }
 
@@ -485,7 +625,9 @@ void main(){
     root.append(v, cv, tap, playI, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' }),
       h('div', { class: 'cam-top' }, [h('button', { class: 'cam-ic', type: 'button', 'aria-label': t('fd.retake'), html: ic.back, onclick: () => o.onBack() })]),
       rail,
-      h('div', { class: 'cam-bot ve-bot' }, [timeEl, infoEl, h('div', { class: 'cam-acts' }, [
+      h('div', { class: 'cam-bot ve-bot' }, [timeEl, infoEl,
+        o.onOriginal ? h('button', { class: 'btn small', type: 'button', text: t('mc.original'), onclick: o.onOriginal }) : null,
+        h('div', { class: 'cam-acts' }, [
         h('button', { class: 'btn cam-ghost', type: 'button', html: ic.restart + '<span data-t="fd.retake"></span>', onclick: () => o.onBack() }),
         h('button', { class: 'btn primary', type: 'button', 'data-t': 'fd.next', onclick: () => o.onNext() })])]),
       panelEl);
@@ -493,13 +635,21 @@ void main(){
     function layout() {
       if (!v.videoWidth) return;
       const W = innerWidth, H = innerHeight, ph = panel ? panelEl.offsetHeight : 0, box = { x: 0, y: 0, w: W, h: H - ph };
-      place(cv, v.videoWidth, v.videoHeight, panel ? { x: 8, y: 8, w: W - 16, h: Math.max(60, box.h - 16) } : box, !panel && (v.videoWidth > v.videoHeight) === (W > H));
+      place(cv, cv.width, cv.height, panel ? { x: 8, y: 8, w: W - 16, h: Math.max(60, box.h - 16) } : box, !panel && (cv.width > cv.height) === (W > H));
       tap.style.height = box.h + 'px';
     }
-    function sizeCanvas(max, short) { const k = Math.min(1, max / Math.max(v.videoWidth, v.videoHeight), (short || 1e9) / Math.min(v.videoWidth, v.videoHeight)); cv.width = Math.max(2, Math.round(v.videoWidth * k / 2) * 2); cv.height = Math.max(2, Math.round(v.videoHeight * k / 2) * 2); }
+    function sizeCanvas(max, short) {
+      let w = v.videoWidth, h = v.videoHeight;
+      if (!w || !h) return;
+      const ratio = cropRatios[S.crop];
+      if (ratio) { if (w / h > ratio) w = h * ratio; else h = w / ratio; }
+      const k = Math.min(1, max / Math.max(w, h), (short || 1e9) / Math.min(w, h));
+      cv.width = Math.max(2, Math.round(w * k / 2) * 2); cv.height = Math.max(2, Math.round(h * k / 2) * 2);
+    }
+    const previewSize = () => sizeCanvas(Math.min(1440, Math.max(innerWidth, innerHeight) * Math.min(2, devicePixelRatio || 1)));
     v.addEventListener('loadedmetadata', () => {
       if (isFinite(v.duration) && v.duration > 0 && Math.abs(v.duration - dur) > .05) { const full = S.segs.length === 1 && S.segs[0].a === 0; dur = v.duration; S.segs.forEach(s => { s.b = Math.min(s.b, dur); }); if (full) S.segs[0].b = dur; }
-      sizeCanvas(Math.min(1440, Math.max(innerWidth, innerHeight) * Math.min(2, devicePixelRatio || 1)));
+      previewSize();
       layout(); needs = true;
     });
     v.addEventListener('loadeddata', () => { needs = true; });
@@ -511,13 +661,28 @@ void main(){
       else infoEl.textContent = o.meta.w + '×' + o.meta.h + ' · ' + PD.fmtTime(total()) + (d ? ' · ' + t('ve.edited') : ' · ' + (o.file.size / 1048576).toFixed(1) + ' MB · ' + t('fd.asIs'));
       toolB.clip && toolB.clip.classList.toggle('set', S.segs.length > 1 || S.segs[0].a > .05 || S.segs[0].b < dur - .05);
       toolB.sound && toolB.sound.classList.toggle('set', ['vol', 'lo', 'mid', 'hi', 'comp', 'rev', 'del', 'dn'].some(k => S.aud[k] !== AUD0[k]));
-      toolB.filters && toolB.filters.classList.toggle('set', S.filter !== 'none');
+      toolB.filters && toolB.filters.classList.toggle('set', pictureChanged());
       toolB.bg && toolB.bg.classList.toggle('set', S.bg !== 'none');
     }
     const changed = () => { ver++; needs = true; paintInfo(); tls.forEach(x => x.paint()); paintPanel(); };
 
     /* ---- the timeline: the clip's frames (or its waveform), the parts that stay, their edges, the playhead ---- */
-    const tls = [];
+    const tls = [], cuts = [];
+    let zoom = 1, zoomAt = 0;
+    function rememberCut() {
+      cuts.push({ segs: S.segs.map(s => ({ ...s })), selected: S.sel });
+      if (cuts.length > 24) cuts.shift();
+    }
+    function undoCut() {
+      const last = cuts.pop(); if (!last) return;
+      S.segs = last.segs; S.sel = last.selected;
+      seekTo(S.segs[S.sel].a); changed(); route(); cutSound();
+    }
+    function setEdge(which) {
+      const clip = S.segs[S.sel], at = v.currentTime;
+      if (at <= clip.a + MIN || at >= clip.b - MIN) { PD.ui.toast(t('ve.tooShort')); return; }
+      rememberCut(); clip[which] = at; changed();
+    }
     let thumbs = null, thumbN = 10;
     function makeThumbs() {
       if (thumbs || !v.videoWidth) return;
@@ -533,33 +698,52 @@ void main(){
       const W = 1200, H = 120; waveCv = waveCv || document.createElement('canvas'); waveCv.width = W; waveCv.height = H;
       const c = waveCv.getContext('2d'), L = B.getChannelData(0), Rr = B.numberOfChannels > 1 ? B.getChannelData(1) : L, step = Math.max(1, Math.floor(B.length / W));
       c.clearRect(0, 0, W, H); c.fillStyle = '#e2ae84';
-      for (let x = 0; x < W; x++) { let mx = 0; const s0 = x * step, s1 = Math.min(B.length, s0 + step); for (let i = s0; i < s1; i += 4) { const a = Math.abs(L[i] + Rr[i]) * .5; if (a > mx) mx = a; } const y = Math.max(1, Math.min(1, mx * 1.6) * H / 2); c.fillRect(x, H / 2 - y, 1, y * 2); }
+      for (let x = 0; x < W; x++) { let mx = 0; const s0 = x * step, s1 = Math.min(B.length, s0 + step); for (let i = s0; i < s1; i += 4) { const a = Math.max(Math.abs(L[i]), Math.abs(Rr[i])); if (a > mx) mx = a; } const y = Math.max(1, Math.min(1, mx * 1.6) * H / 2); c.fillRect(x, H / 2 - y, 1, y * 2); }
       tls.forEach(x => x.paint());
     }
     function timeline(kind) {
       const cvs = h('canvas', { class: 've-tl-c' }), segBox = h('div', { class: 've-tl-segs' }), ph = h('i', { class: 've-ph' });
+      const view = () => {
+        const length = dur / (kind === 'thumbs' ? zoom : 1);
+        return { length, from: kind === 'thumbs' ? Math.max(0, Math.min(dur - length, zoomAt - length / 2)) : 0 };
+      };
+      const frac = at => { const { from, length } = view(); return (at - from) / length; };
       const el = h('div', { class: 've-tl' + (kind === 'wave' ? ' wave' : ''), role: 'slider', 'aria-label': t('fd.seek'), tabindex: '0' }, [cvs, segBox, ph]);
       function paint() {
         const w = el.clientWidth, hh = el.clientHeight, dpr = Math.min(2, devicePixelRatio || 1); if (!w) return;
         if (cvs.width !== Math.round(w * dpr)) { cvs.width = Math.round(w * dpr); cvs.height = Math.round(hh * dpr); }
         const c = cvs.getContext('2d'), W = cvs.width, H = cvs.height; c.clearRect(0, 0, W, H);
-        if (kind === 'thumbs' && thumbs) { const tw = thumbs.width / thumbN, th = thumbs.height, sw = W / thumbN, k = Math.min(tw / sw, th / H); for (let i = 0; i < thumbN; i++) c.drawImage(thumbs, i * tw + (tw - sw * k) / 2, (th - H * k) / 2, sw * k, H * k, i * sw, 0, Math.ceil(sw), H); }
+        if (kind === 'thumbs' && thumbs) {
+          const tw = thumbs.width / thumbN, th = thumbs.height, sw = W * zoom / thumbN, k = Math.min(tw / sw, th / H);
+          for (let i = 0; i < thumbN; i++) {
+            const x = frac(dur * i / thumbN) * W;
+            if (x + sw < 0 || x >= W) continue;
+            c.drawImage(thumbs, i * tw + (tw - sw * k) / 2, (th - H * k) / 2, sw * k, H * k, x, 0, Math.ceil(sw), H);
+          }
+        }
         if (kind === 'wave' && waveCv) c.drawImage(waveCv, 0, 0, W, H);
         c.fillStyle = 'rgba(0,0,0,.66)'; let prev = 0;
-        S.segs.forEach(s => { if (s.a > prev) c.fillRect(prev / dur * W, 0, (s.a - prev) / dur * W, H); prev = s.b; });
-        if (prev < dur) c.fillRect(prev / dur * W, 0, W - prev / dur * W, H);
+        S.segs.forEach(s => { if (s.a > prev) c.fillRect(frac(prev) * W, 0, (frac(s.a) - frac(prev)) * W, H); prev = s.b; });
+        if (prev < dur) c.fillRect(frac(prev) * W, 0, W - frac(prev) * W, H);
         segBox.innerHTML = '';
         S.segs.forEach((s, i) => {
-          const d = h('div', { class: 've-seg' + (i === S.sel && kind === 'thumbs' ? ' on' : '') }); d.style.left = (s.a / dur * 100) + '%'; d.style.width = ((s.b - s.a) / dur * 100) + '%';
-          if (kind === 'thumbs' && i === S.sel) d.append(h('span', { class: 've-h l', 'data-h': 'l' }), h('span', { class: 've-h r', 'data-h': 'r' }));
+          const start = frac(s.a), end = frac(s.b);
+          if (end < 0 || start > 1) return;
+          const d = h('div', { class: 've-seg' + (i === S.sel && kind === 'thumbs' ? ' on' : '') + (s.muted ? ' is-muted' : '') });
+          d.style.left = Math.max(0, start) * 100 + '%'; d.style.width = (Math.min(1, end) - Math.max(0, start)) * 100 + '%';
+          if (kind === 'thumbs' && i === S.sel) {
+            if (start >= 0) d.append(h('span', { class: 've-h l', 'data-h': 'l' }));
+            if (end <= 1) d.append(h('span', { class: 've-h r', 'data-h': 'r' }));
+          }
           segBox.appendChild(d);
         });
         head();
       }
-      function head() { ph.style.left = (v.currentTime / dur * 100) + '%'; }
+      function head() { const x = frac(v.currentTime); ph.hidden = x < 0 || x > 1; ph.style.left = x * 100 + '%'; el.setAttribute('aria-valuenow', String(Math.round(v.currentTime))); el.setAttribute('aria-valuemax', String(Math.round(dur))); }
       el.addEventListener('pointerdown', e => {
-        const r = el.getBoundingClientRect(), at = x => Math.max(0, Math.min(dur, (x - r.left) / r.width * dur)), hd = kind === 'thumbs' && e.target.dataset ? e.target.dataset.h : null;
-        pause(); try { el.setPointerCapture(e.pointerId); } catch (_) {}
+        const r = el.getBoundingClientRect(), { from, length } = view();
+        const at = x => Math.max(0, Math.min(dur, from + (x - r.left) / r.width * length)), hd = kind === 'thumbs' && e.target.dataset ? e.target.dataset.h : null;
+        pause(); if (hd) rememberCut(); try { el.setPointerCapture(e.pointerId); } catch (_) {}
         const mv = ev => {
           const x = at(ev.clientX);
           if (hd) {
@@ -567,8 +751,8 @@ void main(){
             if (hd === 'l') { s.a = Math.max(lo, Math.min(x, s.b - MIN)); seekTo(s.a); } else { s.b = Math.min(hi, Math.max(x, s.a + MIN)); seekTo(s.b - .04); }
             tls.forEach(q => q.paint());
           } else {
-            const i = S.segs.findIndex(s => x >= s.a && x <= s.b);
-            if (i >= 0 && i !== S.sel && kind === 'thumbs') { S.sel = i; tls.forEach(q => q.paint()); }
+            const i = segIdx(x);
+            if (i >= 0 && i !== S.sel && kind === 'thumbs') { S.sel = i; tls.forEach(q => q.paint()); paintPanel(); }
             seekTo(x);
           }
         };
@@ -596,49 +780,178 @@ void main(){
     function split() {
       const t0 = v.currentTime, i = segIdx(t0); if (i < 0) return;
       const s = S.segs[i]; if (t0 - s.a < MIN || s.b - t0 < MIN) { PD.ui.toast(t('ve.tooShort')); return; }
-      S.segs.splice(i, 1, { a: s.a, b: t0 }, { a: t0, b: s.b }); S.sel = i + 1; changed();
+      rememberCut(); S.segs.splice(i, 1, { ...s, b: t0 }, { ...s, a: t0 }); S.sel = i + 1; changed();
     }
     function delSeg() {
       if (S.segs.length < 2) { PD.ui.toast(t('ve.oneLeft')); return; }
-      S.segs.splice(S.sel, 1); S.sel = Math.min(S.sel, S.segs.length - 1); seekTo(S.segs[S.sel].a); changed();
+      rememberCut(); S.segs.splice(S.sel, 1); S.sel = Math.min(S.sel, S.segs.length - 1); seekTo(S.segs[S.sel].a); changed();
     }
     let dnState = null;
     function runDenoise() {
       if (!orig || !ac) return;
-      const job = ++dnJob, amt = S.aud.dnAmt;
-      if (clean && cleanKey === amt) { makeWave(); if (playing) startAudio(); return; }
+      const job = ++dnJob, amt = S.aud.dnAmt, profile = noiseAt;
+      const key = [amt, profile].join(':');
+      if (clean && cleanKey === key) { makeWave(); if (playing) startAudio(); return; }
       const show = p => { if (dnState) dnState.textContent = p == null ? '' : t('ve.dnWork', { p }); };
       show(0);
-      dnRun = denoise(ac, orig, amt / 100, p => { if (job === dnJob) show(p); }, () => job !== dnJob || dead).then(out => {
+      dnRun = denoise(ac, orig, amt / 100, p => { if (job === dnJob) show(p); }, () => job !== dnJob || dead, profile).then(out => {
         if (job !== dnJob || dead) return;
-        clean = out; cleanKey = amt; show(null); makeWave(); if (playing) startAudio();
-      }, () => { if (job === dnJob) show(null); }).then(() => { if (job === dnJob) dnRun = null; });
+        clean = out; cleanKey = key; show(null); makeWave(); if (playing) startAudio();
+      }, e => { if (job === dnJob && e?.code !== 'cancel') { if (dnState) dnState.textContent = t('ve.dnError'); S.aud.dn = false; ver++; paintInfo(); } }).then(() => { if (job === dnJob) dnRun = null; });
+    }
+
+    async function separateSection(status, button) {
+      if (stemJob || !orig || !PD.ai?.separateExcerpt) return;
+      const from = Math.min(v.currentTime, Math.max(0, orig.duration - 1)), to = Math.min(from + 30, orig.duration);
+      const job = stemJob = new AbortController();
+      pause(); button.disabled = true; stemProgress = 0;
+      try {
+        status.textContent = t('ve.dnWork', { p: 0 });
+        const separated = await PD.ai.separateExcerpt(orig, from, to, job.signal, p => {
+          stemProgress = p; status.textContent = t('ve.dnWork', { p });
+        });
+        if (dead) return;
+        clipStems = { from, to, tracks: separated.sources.map((id, index) => {
+          const samples = separated.stems[index], buffer = ac.createBuffer(samples.length, samples[0].length, separated.rate);
+          samples.forEach((channel, c) => buffer.copyToChannel(channel, c));
+          return { id, buffer, amount: 0 };
+        }) };
+        ver++;
+        if (panel === 'sound') open('sound'); else paintInfo();
+      } catch (_) {
+        if (!job.signal.aborted && !dead) {
+          status.textContent = t('ve.sepError');
+          if (!status.isConnected) PD.ui.toast(t('ve.sepError'));
+        }
+      } finally { stemJob = null; button.disabled = false; }
     }
 
     const PANELS = {
       clip() {
         makeThumbs();
         const tl = timeline('thumbs'), len = h('small', { class: 've-len mono' });
-        return { el: [tl.el, len, h('div', { class: 've-acts' }, [actB(IC.split, 've.split', split), actB(IC.trash, 've.del', delSeg), actB(ic.restart, 've.reset', () => { S.segs = [{ a: 0, b: dur }]; S.sel = 0; changed(); })]), h('small', { class: 've-hint', 'data-t': 've.clipHint' })],
-          paint() { len.textContent = t('ve.len', { t: PD.fmtTime(total()) }); } };
+        const muted = actB(IC.sound, 've.mutePart', () => {
+          rememberCut(); S.segs[S.sel].muted = !S.segs[S.sel].muted; changed(); route(); cutSound();
+        });
+        const undo = actB('', 've.undo', undoCut);
+        const crop = h('select', { class: 'input', 'aria-label': t('ve.crop') },
+          [h('option', { value: '', text: t('ve.f.none') }), ...Object.keys(cropRatios).map(value => h('option', { value, text: value }))]);
+        crop.value = S.crop;
+        crop.onchange = () => { S.crop = crop.value; previewSize(); layout(); changed(); };
+        const clipActions = [actB(IC.split, 've.split', split), actB(IC.trash, 've.del', delSeg),
+          actB('', 've.trimIn', () => setEdge('a')), actB('', 've.trimOut', () => setEdge('b')), muted, undo,
+          actB(ic.restart, 've.reset', () => { rememberCut(); S.segs = [{ a: 0, b: dur }]; S.sel = 0; seekTo(0); changed(); route(); })];
+        return { el: [tl.el, len,
+          slider('ve.zoom', 1, 12, 1, () => zoom, x => { if (zoom === 1) zoomAt = v.currentTime; zoom = x; tl.paint(); }, x => x + '×'),
+          h('div', { class: 've-acts' }, clipActions), R.gl ? h('label', { class: 'mc-field' }, [h('span', { 'data-t': 've.crop' }), crop]) : null,
+          h('small', { class: 've-hint', 'data-t': 've.clipHint' })].filter(Boolean),
+          paint() {
+            len.textContent = t('ve.len', { t: PD.fmtTime(total()) });
+            muted.querySelector('span').textContent = t(S.segs[S.sel]?.muted ? 've.unmutePart' : 've.mutePart');
+            undo.disabled = !cuts.length;
+          } };
       },
       sound() {
-        const kids = [];
+        const graph = h('canvas', { class: 've-spectrum', width: 520, height: 144, role: 'img', 'aria-label': t('ve.spectrum') });
+        const red = h('meter', { min: 0, max: 24, value: 0, 'aria-label': t('ve.gainReduction') }), reduction = h('b', { class: 'mono' });
+        const meterData = new Float32Array(chain.meter.frequencyBinCount);
+        const frequencies = Float32Array.from({ length: 128 }, (_, i) => 25 * Math.pow(750, i / 127));
+        const mag = new Float32Array(128), phase = new Float32Array(128), dbs = new Float32Array(128);
+        let nextPaint = 0;
+        function meter() {
+          if (performance.now() < nextPaint) return;
+          nextPaint = performance.now() + 50;
+          const c = graph.getContext('2d'), w = graph.width, height = graph.height;
+          chain.meter.getFloatFrequencyData(meterData);
+          const db = Math.round(-chain.comp.reduction * 10) / 10;
+          red.value = db; reduction.textContent = '−' + Math.max(0, db).toFixed(1) + ' dB';
+          c.clearRect(0, 0, w, height);
+          c.fillStyle = '#251f1b'; c.fillRect(0, height / 2, w, 1);
+          c.beginPath(); c.moveTo(0, height);
+          for (let i = 0; i < frequencies.length; i++) {
+            const data = meterData[Math.min(meterData.length - 1, Math.floor(frequencies[i] * chain.meter.fftSize / ac.sampleRate))];
+            c.lineTo(i / 127 * w, height * (1 - Math.min(1, Math.max(0, (data + 100) / 80))));
+          }
+          c.lineTo(w, height); c.fillStyle = '#bc866447'; c.fill();
+          dbs.fill(0);
+          for (const filter of chain.filters) {
+            filter.getFrequencyResponse(frequencies, mag, phase);
+            for (let i = 0; i < mag.length; i++) dbs[i] += 20 * Math.log10(Math.max(1e-6, mag[i]));
+          }
+          c.beginPath();
+          for (let i = 0; i < dbs.length; i++) c.lineTo(i / 127 * w, height * (.5 - Math.max(-25, Math.min(25, compare ? 0 : dbs[i])) / 53));
+          c.lineWidth = 2; c.strokeStyle = '#f0bc8d'; c.stroke();
+        }
+        const preset = h('select', { class: 'input', 'aria-label': t('ve.mixPreset') }, [
+          h('option', { value: 'custom', text: '—' }), h('option', { value: 'neutral', text: t('ve.f.none') }),
+          ...Object.keys(SOUND_PRESETS).map(id => h('option', { value: id,
+            text: t(id === 'vocals' ? 'mc.instrument.vocals' : 'mc.genre.' + id) }))]);
+        preset.value = S.preset || 'custom';
+        preset.onchange = () => {
+          if (preset.value === 'custom') return;
+          S.preset = preset.value;
+          const { dn, dnAmt } = S.aud;
+          S.aud = { ...AUD0, ...SOUND_PRESETS[S.preset], dn, dnAmt };
+          chain.set(S.aud); ver++; paintInfo(); open('sound'); route();
+        };
+        const compareB = h('button', { class: 'btn small', type: 'button', text: t('ve.ab'), 'aria-pressed': String(compare), onclick: () => {
+          compare = !compare; chain.compare(compare); cutSound();
+          compareB.setAttribute('aria-pressed', String(compare)); makeWave();
+          if (playing) startAudio();
+        } });
+        const kids = [graph, h('div', { class: 've-reduction' }, [h('small', { 'data-t': 've.gainReduction' }), red, reduction]),
+          h('div', { class: 've-acts' }, [preset, compareB, actB(ic.play, 've.play', () => playing ? pause() : play())])];
         if (orig) {
           const tl = timeline('wave'); kids.push(tl.el);
           const sw = h('button', { class: 've-sw' + (S.aud.dn ? ' on' : ''), type: 'button', role: 'switch', 'aria-checked': String(S.aud.dn), 'aria-label': t('ve.dn') });
           dnState = h('small', { class: 've-st', role: 'status' });
-          sw.onclick = () => { S.aud.dn = !S.aud.dn; sw.classList.toggle('on', S.aud.dn); sw.setAttribute('aria-checked', String(S.aud.dn)); ver++; paintInfo(); route(); if (S.aud.dn) runDenoise(); else { dnJob++; dnRun = null; dnState.textContent = ''; makeWave(); if (playing) startAudio(); } };
+          sw.onclick = () => {
+            S.aud.dn = !S.aud.dn; sw.classList.toggle('on', S.aud.dn); sw.setAttribute('aria-checked', String(S.aud.dn));
+            ver++; paintInfo(); route();
+            if (S.aud.dn) runDenoise();
+            else { dnJob++; dnRun = null; dnState.textContent = ''; makeWave(); if (playing) startAudio(); }
+          };
+          const profile = h('small', { class: 've-hint', text: profileLabel() });
+          function profileLabel() { return noiseAt == null ? t('ve.dnAuto') : t('ve.dnProfileAt', { time: PD.fmtTime(noiseAt) }); }
+          function setProfile(at) {
+            noiseAt = at;
+            profile.textContent = profileLabel();
+            if (!S.aud.dn) sw.click(); else { ver++; runDenoise(); }
+          }
           kids.push(h('div', { class: 've-swrow' }, [h('b', { 'data-t': 've.dn' }), dnState, sw]),
             slider('ve.dnAmt', 10, 100, 5, () => S.aud.dnAmt, x => { S.aud.dnAmt = x; ver++; }, pct, () => { if (S.aud.dn) runDenoise(); }),
-            h('small', { class: 've-hint', 'data-t': 've.dnHint' }));
+            h('div', { class: 've-acts' }, [
+              actB('', 've.dnProfile', () => { pause(); setProfile(Math.min(v.currentTime, Math.max(0, orig.duration - .8))); }),
+              actB('', 've.dnAuto', () => setProfile(null))
+            ]), profile, h('small', { class: 've-hint', 'data-t': 've.dnHint' }));
           if (dnRun) dnState.textContent = t('ve.dnWork', { p: 0 });
-        } else kids.push(h('small', { class: 've-hint', 'data-t': audWhy || 've.noAudio' }));
-        kids.push(slider('ve.vol', 0, 200, 5, () => S.aud.vol, audioSet('vol'), pct),
-          section('ve.eq'), slider('ve.low', -12, 12, 1, () => S.aud.lo, audioSet('lo'), dB), slider('ve.mid', -12, 12, 1, () => S.aud.mid, audioSet('mid'), dB), slider('ve.high', -12, 12, 1, () => S.aud.hi, audioSet('hi'), dB),
-          section('ve.fx'), slider('ve.comp', 0, 100, 5, () => S.aud.comp, audioSet('comp'), pct), slider('ve.rev', 0, 100, 5, () => S.aud.rev, audioSet('rev'), pct),
-          slider('ve.delay', 0, 100, 5, () => S.aud.del, audioSet('del'), pct), slider('ve.dtime', 60, 900, 20, () => S.aud.dtime, audioSet('dtime'), x => x + ' ms'));
-        return { el: kids };
+        } else if (decoded) kids.push(h('small', { class: 've-hint', 'data-t': audWhy || 've.noAudio' }));
+        const control = (k, l, min, max, step, unit) => slider('ve.' + l, min, max, step, () => S.aud[k], x => {
+          audioSet(k)(x); S.preset = 'custom'; preset.value = 'custom';
+        }, unit);
+        const ms = x => x + ' ms', hz = x => x ? x + ' Hz' : '—';
+        const group = (key, ...children) => h('details', { class: 've-plugin', open: key === 've.eq' }, [h('summary', { 'data-t': key }), ...children]);
+        kids.push(control('vol', 'vol', 0, 200, 1, pct),
+          group('ve.eq', control('hp', 'hp', 0, 200, 5, hz), control('hum', 'hum', 0, 60, 10, hz),
+            control('lo', 'low', -15, 15, .5, dB), control('mid', 'mid', -15, 15, .5, dB),
+            control('midHz', 'eqBand', 150, 8500, 10, hz), control('midQ', 'eqWidth', .3, 8, .1, x => x.toFixed(1)),
+            control('hi', 'high', -15, 15, .5, dB)),
+          group('ve.comp', control('comp', 'comp', 0, 100, 1, pct),
+            control('threshold', 'thresh', -60, 0, 1, dB), control('ratio', 'ratio', 1, 12, .1, x => x.toFixed(1) + ':1'),
+            control('attack', 'attack', 1, 100, 1, ms), control('release', 'release', 30, 800, 5, ms)),
+          group('ve.fx', control('rev', 'rev', 0, 100, 5, pct),
+            control('del', 'delay', 0, 100, 5, pct), control('dtime', 'dtime', 60, 900, 20, ms)));
+        if (orig && PD.ai?.separateExcerpt && !elSrc) {
+          const status = h('small', { class: 've-hint', role: 'status',
+            text: stemJob ? t('ve.dnWork', { p: stemProgress }) : clipStems ? t('ve.sepReady', { from: PD.fmtTime(clipStems.from), to: PD.fmtTime(clipStems.to) }) : '' });
+          const start = h('button', { class: 'btn', type: 'button', text: t('ve.separate'), disabled: !!stemJob || !!clipStems,
+            onclick: () => separateSection(status, start) });
+          const controls = (clipStems?.tracks || []).map(track => slider('ve.sep.' + track.id, 0, 100, 1,
+            () => track.amount, amount => { track.amount = amount; ver++; paintInfo(); route(); if (playing) startAudio(); }, pct));
+          kids.push(group('ve.stems', h('small', { class: 've-hint', 'data-t': 've.sepHint' }), start, status, ...controls,
+            clipStems ? actB(ic.restart, 've.reset', () => { clipStems = null; ver++; paintInfo(); open('sound'); }) : null));
+        }
+        return { el: kids, meter };
       },
       filters() {
         const chips = h('div', { class: 've-chips', role: 'radiogroup' }), cans = {};
@@ -652,25 +965,51 @@ void main(){
           frame(true);
         };
         requestAnimationFrame(() => { R.video(v); paintChips(); });
-        return { el: [chips, slider('ve.amount', 0, 100, 5, () => Math.round(S.fk * 100), x => { S.fk = x / 100; needs = true; ver++; paintInfo(); }, pct)],
+        function adjust(key, title, min, max, scale) {
+          return slider(title, min, max, 1, () => Math.round(S.grade[key] * scale),
+            value => { S.grade[key] = value / scale; needs = true; ver++; paintInfo(); }, x => (x > 0 ? '+' : '') + x);
+        }
+        return { el: [chips, slider('ve.amount', 0, 100, 5, () => Math.round(S.fk * 100), x => { S.fk = x / 100; needs = true; ver++; paintInfo(); }, pct),
+          adjust('exp', 've.exposure', -100, 100, 100), adjust('con', 've.contrast', -60, 60, 100),
+          adjust('sat', 've.saturation', -100, 80, 100), adjust('temp', 've.temperature', -25, 25, 100)],
           paint() { chips.querySelectorAll('.ve-chip').forEach(b => { const on = b.dataset.k === S.filter; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }); } };
       },
       bg() {
         const st = h('small', { class: 've-st', role: 'status' }), chips = h('div', { class: 've-chips', role: 'radiogroup' });
+        let seq = 0;
         const choose = async k => {
-          if (k === 'none') { S.bg = 'none'; changed(); return; }
-          if (k === 'image' || k === 'video') { if (!(await pickBg(k))) return; }
+          const token = ++seq;
+          if (k === 'image' || k === 'video') { if (!(await pickBg(k)) || seq !== token) return; }
           S.bg = k; changed();
-          if (!seg) {
+          st.textContent = '';
+          if (k !== 'none' && S.bgKey === 'person' && !seg) {
             st.textContent = t('ve.bgLoad');
-            try { seg = await segmenter(); if (dead) return; st.textContent = ''; maskF = null; needs = true; }
+            try { seg = await segmenter(); if (dead || token !== seq) return; st.textContent = ''; maskF = null; needs = true; }
+            catch (_) { if (token === seq) { st.textContent = t('ve.bgFail'); S.bg = 'none'; changed(); } }
+          }
+        };
+        const method = h('select', { class: 'input', 'aria-label': t('ve.key') },
+          ['person', 'green', 'blue'].map(id => h('option', { value: id, text: t('ve.key.' + id) })));
+        method.value = S.bgKey;
+        method.onchange = async () => {
+          S.bgKey = method.value; changed();
+          if (S.bgKey === 'person' && S.bg !== 'none' && !seg) {
+            try { st.textContent = t('ve.bgLoad'); seg = await segmenter(); st.textContent = ''; needs = true; }
             catch (_) { st.textContent = t('ve.bgFail'); S.bg = 'none'; changed(); }
           }
         };
-        [['none', IC.none], ['black', IC.black], ['blur', IC.blur], ['image', IC.image], ['video', IC.video]].forEach(([k, icon]) =>
+        const color = h('input', { type: 'color', value: S.bgColor, 'aria-label': t('ve.b.color'),
+          oninput: event => { S.bgColor = event.target.value; changed(); } });
+        const colorField = h('label', { class: 've-color' }, [h('span', { 'data-t': 've.b.color' }), color]);
+        [['none', IC.none], ['black', IC.black], ['color', IC.black], ['blur', IC.blur], ['image', IC.image], ['video', IC.video]].forEach(([k, icon]) =>
           chips.appendChild(h('button', { class: 've-chip', type: 'button', role: 'radio', 'data-k': k, onclick: () => choose(k) }, [h('span', { class: 've-ico', html: icon }), h('span', { 'data-t': 've.b.' + k })])));
-        return { el: [chips, st, h('small', { class: 've-hint', 'data-t': 've.bgHint' })],
-          paint() { chips.querySelectorAll('.ve-chip').forEach(b => { const on = b.dataset.k === S.bg; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }); } };
+        return { el: [h('label', { class: 'mc-field' }, [h('span', { 'data-t': 've.key' }), method]), chips, colorField,
+          slider('ve.keyEdge', -25, 25, 1, () => Math.round(S.bgEdge * 100), x => { S.bgEdge = x / 100; changed(); }, x => String(x)),
+          st, h('small', { class: 've-hint', 'data-t': 've.bgHint' })],
+          paint() {
+            colorField.hidden = S.bg !== 'color';
+            chips.querySelectorAll('.ve-chip').forEach(b => { const on = b.dataset.k === S.bg; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
+          } };
       }
     };
     async function pickBg(kind) {
@@ -701,31 +1040,36 @@ void main(){
       panelEl.innerHTML = '';
       panelEl.append(h('div', { class: 've-ph-head' }, [h('h3', { 'data-t': title }), h('button', { class: 'btn small primary', type: 'button', 'data-t': 've.done', onclick: close })]), ...cur.el);
       panelEl.hidden = false; root.classList.add('panel'); PD.i18n.apply(panelEl);
-      requestAnimationFrame(() => { layout(); tls.forEach(x => x.paint()); cur.paint && cur.paint(); });
+      route();
+      requestAnimationFrame(() => { layout(); tls.forEach(x => x.paint()); cur?.paint?.(); });
     }
-    function close() { panel = null; cur = null; tls.length = 0; dnState = null; panelEl.hidden = true; panelEl.innerHTML = ''; root.classList.remove('panel'); layout(); needs = true; }
-    function paintPanel() { if (!panel) return; if (panel === 'sound' && !panelEl.querySelector('.ve-tl') && orig) { open('sound'); return; } cur && cur.paint && cur.paint(); }
+    function close() { compare = false; chain?.compare(false); panel = null; cur = null; tls.length = 0; dnState = null; panelEl.hidden = true; panelEl.innerHTML = ''; root.classList.remove('panel'); layout(); needs = true; route(); }
+    function paintPanel() { cur?.paint?.(); }
 
     /* ---- the result: drawn again frame by frame and recorded, with the sound through the same effects ---- */
     async function render(onP) {
       if (exporting) throw fail('busy');
-      pause(); if (dnRun) await dnRun;
+      pause(); compare = false; chain?.compare(false); if (dnRun) await dnRun;
       const kf = pick(), mime = kf ? kf.m : window.MediaRecorder && RECM.find(m => MediaRecorder.isTypeSupported(m));
       if (!mime || !cv.captureStream) throw fail('noRender');
-      if (S.bg !== 'none' && !seg) { try { seg = await segmenter(); } catch (_) { throw fail('bgFail'); } }
+      if (R.lost) throw fail('noRender');
+      if (S.bg !== 'none' && S.bgKey === 'person' && !seg) { try { seg = await segmenter(); } catch (_) { throw fail('bgFail'); } }
       const useBuf = !elSrc && !!curBuf();
       if (!useBuf) useElement();
+      if (!ac || (!useBuf && !elSrc)) throw fail('noRender');
       const wasMuted = v.muted; if (useBuf) v.muted = true;   // the buffer feeds the file; the element stays quiet
       exporting = { cancel: false };
       const tot = total(), A = kf && !kf.a ? 0 : Math.min(kf ? kf.a : AUDIO, tot >= 240 ? 128000 : AUDIO), room = o.roomMB * 1048576 * 8 * .88 / Math.max(1, tot) - A;
-      const pw = cv.width, phh = cv.height; sizeCanvas(3840, room < 2.5e6 ? 720 : room < 8e6 ? 1080 : 0);   // few bits: fewer, sharper pixels (never under 720p)
+      const pw = cv.width, phh = cv.height; sizeCanvas(3840, room < 0.85e6 ? 480 : room < 2.5e6 ? 720 : room < 8e6 ? 1080 : 0);   // few bits: fewer, sharper pixels (never under 720p)
       const fps = 30, vs = cv.captureStream(fps), tracks = vs.getVideoTracks().slice();
       let dest = null;
       if (ac) { dest = ac.createMediaStreamDestination(); chain.out.connect(dest); spk.gain.value = 0; tracks.push(...dest.stream.getAudioTracks()); }
-      const vbr = Math.round(Math.max(2e5, Math.min(room, cv.width * cv.height * fps * .3, 60e6)));
+      const vbr = Math.round(Math.max(1e5, Math.min(room, cv.width * cv.height * fps * .3, 60e6)));
       const ro = { mimeType: mime, videoBitsPerSecond: vbr, videoKeyFrameIntervalDuration: 2000 }; if (A) ro.audioBitsPerSecond = A;
       let rec; try { rec = new MediaRecorder(new MediaStream(tracks), ro); } catch (_) { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime }); }
       const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      let recordingError;
+      rec.onerror = error => { recordingError = error; if (exporting) exporting.cancel = true; };
       const stopped = new Promise(res => { rec.onstop = res; });
       let doneT = 0;
       try {
@@ -738,9 +1082,13 @@ void main(){
           if (ac) await ac.resume();
           await playRange(s, p => onP(Math.min(99, Math.round((doneT + p) / tot * 100))));
           doneT += s.b - s.a;
+          if (recordingError) throw fail('noRender');
           if (exporting.cancel) throw fail('cancel');
         }
-        rec.stop(); await stopped;
+        rec.stop();
+        let stopTimer;
+        const timeout = new Promise((_, reject) => { stopTimer = setTimeout(() => reject(fail('noRender')), 15000); });
+        try { await Promise.race([stopped, timeout]); } finally { clearTimeout(stopTimer); }
       } catch (e) { try { if (rec.state !== 'inactive') rec.stop(); } catch (_) {} throw e; }
       finally {
         stopAudio(); try { v.pause(); } catch (_) {}
@@ -750,12 +1098,13 @@ void main(){
       }
       const type = (rec.mimeType || mime).split(';')[0];
       onP(100);
+      if (!chunks.length) throw fail('noRender');
       return new File(chunks, 'panduri-edit.' + (/mp4/.test(type) ? 'mp4' : 'webm'), { type });
     }
     function playRange(s, onP) {
       return new Promise((res, rej) => {
         let fin = false, guard = 0;
-        const end = () => { if (fin) return; fin = true; clearInterval(guard); v.removeEventListener('timeupdate', tu); try { v.pause(); } catch (_) {} stopAudio(); res(); };
+        const end = error => { if (fin) return; fin = true; clearInterval(guard); v.removeEventListener('timeupdate', tu); try { v.pause(); } catch (_) {} stopAudio(); if (error) rej(error); else res(); };
         const tu = () => { if (v.currentTime >= s.b - .02 || v.ended) end(); };
         const tick = (now, md) => {
           if (fin) return;
@@ -767,9 +1116,9 @@ void main(){
         };
         const next = () => { if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(tick); else requestAnimationFrame(() => tick()); };
         let last = -1, still = 0;
-        guard = setInterval(() => { if (v.currentTime === last) { if (++still > 16) end(); } else { still = 0; last = v.currentTime; } }, 500);   // a stall of 8 s ends the part rather than hanging
+        guard = setInterval(() => { if (v.currentTime === last) { if (++still > 16) end(fail('noRender')); } else { still = 0; last = v.currentTime; } }, 500);   // a stall of 8 s ends the part rather than hanging
         v.addEventListener('timeupdate', tu);
-        v.play().then(() => { startAudio(true); next(); }, e => { fin = true; clearInterval(guard); rej(e); });
+        v.play().then(() => { startAudio(true); next(); }, end);
       });
     }
 
@@ -783,7 +1132,7 @@ void main(){
       hide() { pause(); hidden = true; root.hidden = true; },
       show() { hidden = false; root.hidden = false; needs = true; layout(); },
       destroy() {
-        dead = true; cancelAnimationFrame(raf); pause(); dnJob++; removeEventListener('resize', layout);
+        dead = true; stemJob?.abort(); if (exporting) exporting.cancel = true; cancelAnimationFrame(raf); pause(); dnJob++; removeEventListener('resize', layout);
         try { ac && ac.close(); } catch (_) {}
         try { if (AS) AS.type = asPrev || 'auto'; } catch (_) {}   // the camera needs the microphone back
         v.removeAttribute('src'); try { v.load(); } catch (_) {}

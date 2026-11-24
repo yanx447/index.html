@@ -1,20 +1,6 @@
-/* =====================================================================
-   PD.guard — სიმა უსმენს ვიდეოს, სანამ საზოგადოებაში აიტვირთება.
-   Sima listens to a clip before it goes to the community, on this device,
-   and lets it through only when:
-     · it sounds like plucked strings in the panduri's range — steady,
-       tuned notes between A3 and the 17th fret of E4 — not talk, not
-       silence, not a band with drums and a bass guitar;
-     · the sound is good: not clipped, not too quiet, not drowned in
-       noise, not squeezed into a phone-call band by a weak encoder;
-     · the picture is good: HD at least, enough bits for its size, sharp,
-       not dark.
-   It is a measurement, not a recognition of „the panduri" itself: a
-   guitar or a chonguri in the same range can pass, and the app says so.
-   Every number comes out of the file; nothing is uploaded to be judged.
-   The calibration (qa/guard-calibrate.cjs) runs the teacher's own
-   recordings, a piano, speech and noise through the same code.
-   ===================================================================== */
+/* Local audio and picture measurements. The community uses advisory quality
+   notes and instrument suggestions. The panduri thresholds remain available
+   for the calibration fixtures. */
 'use strict';
 PD.i18n.add({
   'sq.title': ['სიმამ მოუსმინა', 'Sima listened'], 'sq.busy': ['სიმა უსმენს ვიდეოს…', 'Sima is listening to the video…'],
@@ -31,9 +17,9 @@ PD.i18n.add({
   'sq.r.band': ['ძლიერი ბასი და დასარტყამები ისმის — ეს ბენდის ან ჩანაწერის მუსიკაა და არა ფანდური.', 'Strong bass and drums are heard — this is band or recorded music, not a fanduri.'],
   'sq.r.clip': ['ხმა ძალიან ხმამაღლა ჩაიწერა და ჭრის (clipping) — მიკროფონი ოდნავ მოაშორე.', 'The sound was recorded too loud and clips — move the microphone a little further away.'],
   'sq.r.quiet': ['ხმა ძალიან ჩუმია — მიკროფონთან ახლოს დაუკარი.', 'The sound is too quiet — play closer to the microphone.'],
-  'sq.r.noise': ['ხმაური ძალიან ბევრია — ფანდური ფონურ ხმაურს ძლივს სცდება ({n} dB).', 'There is too much noise — the fanduri is barely above the background ({n} dB).'],
+  'sq.r.noise': ['ხმაური ძალიან ბევრია — შესრულება ფონურ ხმაურს ძლივს სცდება ({n} dB).', 'There is too much noise — the performance is barely above the background ({n} dB).'],
   'sq.r.narrow': ['ხმა დაბალი ხარისხისაა: მაღალი სიხშირეები {n} kHz-ზე წყდება (ტელეფონის ზარის ან ძლიერ შეკუმშული ფაილის ხმა).', 'The sound is low quality: it stops at {n} kHz (like a phone call, or a heavily compressed file).'],
-  'sq.r.small': ['სურათი {n}p-ია — საჭიროა მინიმუმ 720p.', 'The picture is {n}p — at least 720p is needed.'],
+  'sq.r.small': ['სურათი {n}p-ია — უფრო მკაფიო სურათისთვის 720p ან მეტი სცადე.', 'The picture is {n}p — try 720p or higher for a clearer picture.'],
   'sq.r.bits': ['ვიდეო ძალიან შეკუმშულია ({n} Mb/s) — სურათი დაბალი ხარისხის იქნება. გადაიღე უფრო მოკლე ვიდეო.', 'The video is compressed too hard ({n} Mb/s) — the picture would be low quality. Film a shorter video.'],
   'sq.r.blur': ['სურათი ბუნდოვანია — კამერა გაწმინდე ან ფოკუსი შეასწორე.', 'The picture is blurred — clean the lens or let it focus.'],
   'sq.r.dark': ['სურათი ძალიან ბნელია — მეტი შუქი საჭიროა.', 'The picture is too dark — more light is needed.'],
@@ -302,5 +288,106 @@ PD.guard = (() => {
     };
   }
 
-  return { Q, measure, judgeSound, judgePicture, check, stamp, wav, tap, decode };
+  let classifier;
+  const labels = {
+    Singing: 'vocals', 'Choir': 'vocals', 'Yodeling': 'vocals', 'Rapping': 'vocals',
+    Guitar: 'guitar', 'Electric guitar': 'guitar', 'Acoustic guitar': 'guitar', 'Bass guitar': 'bass',
+    Piano: 'piano', 'Electric piano': 'piano', Keyboard: 'piano', Synthesizer: 'piano',
+    Drum: 'drums', 'Drum kit': 'drums', 'Percussion': 'drums', 'Bass drum': 'drums', 'Snare drum': 'drums',
+    'Violin, fiddle': 'violin', Cello: 'cello', Flute: 'winds', Clarinet: 'winds',
+    Saxophone: 'winds', Trumpet: 'brass', Trombone: 'brass', 'French horn': 'brass',
+    Accordion: 'accordion', Mandolin: 'mandolin', Banjo: 'banjo', Harp: 'harp',
+    'Plucked string instrument': 'strings', 'String section': 'strings', Orchestra: 'ensemble'
+  };
+
+  function matchInstrument(results) {
+    const best = new Map();
+    for (const frame of results) {
+      for (const classification of frame.classifications || []) {
+        for (const category of classification.categories || []) {
+          const key = labels[category.categoryName] || labels[category.displayName];
+          if (key && category.score >= .32) best.set(key, Math.max(best.get(key) || 0, category.score));
+        }
+      }
+    }
+    return [...best.keys()].sort((a, b) => best.get(b) - best.get(a)).slice(0, 2);
+  }
+
+  async function identify(chunks, sr) {
+    if (!classifier) {
+      const cdn = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-audio@1.2.3';
+      classifier = import(cdn + '/+esm').then(async ({ AudioClassifier, FilesetResolver }) => {
+        const wasm = await FilesetResolver.forAudioTasks(cdn + '/wasm');
+        return AudioClassifier.createFromModelPath(wasm, 'https://storage.googleapis.com/mediapipe-models/audio_classifier/yamnet/float32/1/yamnet.tflite');
+      }).catch(error => { classifier = null; throw error; });
+    }
+    const model = await classifier, results = [];
+    for (const chunk of chunks) {
+      results.push(...model.classify(chunk, sr));
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    return matchInstrument(results);
+  }
+
+  async function sampleWav(w) {
+    const { blob, sr, channels, dur } = w;
+    const frames = Math.round(dur * sr), count = Math.min(frames, 3 * sr), chunks = [];
+    for (const position of [.13, .5, .87]) {
+      const start = Math.floor((frames - count) * position), stride = channels * 3;
+      const data = new Uint8Array(await blob.slice(44 + start * stride, 44 + (start + count) * stride).arrayBuffer());
+      const mono = new Float32Array(count);
+      for (let i = 0; i < count; i++) {
+        for (let channel = 0; channel < channels; channel++) {
+          const at = i * stride + channel * 3;
+          mono[i] += ((data[at] | data[at + 1] << 8 | data[at + 2] << 16) << 8 >> 8) / (8388608 * channels);
+        }
+      }
+      chunks.push(mono);
+      if (count === frames) break;
+    }
+    return { chunks, sr };
+  }
+
+  async function musicReview(prep, raw) {
+    const reasons = [];
+    let sample;
+    try {
+      if (raw) sample = await sampleWav(raw);
+      else if (prep.meta.dur <= 240 && prep.blob.size <= 160 * 1048576) {
+        const decoded = await decode(prep.blob);
+        if (decoded) {
+          const { chs, sr } = decoded, size = Math.min(3 * sr, chs[0].length), chunks = [];
+          for (const at of [.13, .5, .87]) {
+            const start = Math.floor((chs[0].length - size) * at), mono = new Float32Array(size);
+            for (const ch of chs) for (let i = 0; i < size; i++) mono[i] += ch[start + i] / chs.length;
+            chunks.push(mono);
+            if (size === chs[0].length) break;
+          }
+          sample = { chunks, sr };
+        }
+      }
+      if (sample?.chunks[0]?.length >= 2048) {
+        const combined = new Float32Array(sample.chunks.reduce((n, part) => n + part.length, 0));
+        let at = 0;
+        for (const part of sample.chunks) { combined.set(part, at); at += part.length; }
+        const m = measure([combined], sample.sr);
+        reasons.push(...judgeSound(m).filter(([k]) => ['sq.r.silent', 'sq.r.clip', 'sq.r.quiet', 'sq.r.noise'].includes(k)));
+      }
+    } catch (_) {}
+    if (!sample) reasons.push(['sq.r.noAudio']);
+    if (prep.kind === 'video') {
+      try { reasons.push(...judgePicture(await picture(prep.blob, prep.meta))); } catch (_) {}
+    }
+    let guesses = [];
+    if (sample && !reasons.some(([key]) => key === 'sq.r.silent')) {
+      // A slow or unavailable model never delays the publish action.
+      let timer;
+      try {
+        guesses = await Promise.race([identify(sample.chunks, sample.sr), new Promise(resolve => { timer = setTimeout(() => resolve([]), 12000); })]);
+      } catch (_) {} finally { clearTimeout(timer); }
+    }
+    return { reasons, guesses };
+  }
+
+  return { Q, measure, judgeSound, judgePicture, check, stamp, wav, tap, decode, musicReview, matchInstrument };
 })();

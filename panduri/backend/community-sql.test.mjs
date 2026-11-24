@@ -28,7 +28,7 @@ test('profiles, following, reposts, history, hashtags and search', async () => {
     insert into auth.users(id, email, email_confirmed_at) values ('${A}', 'a@x', now()), ('${B}', 'b@x', now()), ('${C}', 'c@x', now()), ('${D}', 'd@x', now()), ('${OWNER}', 'OWNER_EMAIL', now()), ('${ADMIN}', 'admin@x', now());`);
   await db.exec(`create schema storage;
     create table storage.buckets(id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
-    create table storage.objects(id uuid primary key default gen_random_uuid(), bucket_id text, name text, owner uuid, created_at timestamptz default now());
+    create table storage.objects(id uuid primary key default gen_random_uuid(), bucket_id text, name text, owner uuid, metadata jsonb, created_at timestamptz default now());
     alter table storage.objects enable row level security;
     create function storage.foldername(name text) returns text[] language sql immutable as $$ select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1] $$;
     grant usage on schema storage to authenticated; grant select, insert, delete on storage.objects to authenticated; grant execute on function storage.foldername(text) to authenticated;`);
@@ -160,4 +160,39 @@ test('profiles, following, reposts, history, hashtags and search', async () => {
   // unfollow
   assert.equal((await as(B, `select public.follow('${A}', false) as f`))[0].f, false);
   assert.equal((await as(B, `select * from public.profile_card('${A}')`))[0].followers, 1);
+
+  await db.exec(await mig('202611190001_sima_check.sql'));
+  const music = await mig('202611240001_music_community.sql');
+  await db.exec(music);
+  await db.exec(music);
+  await as(A, `select public.follow('${B}')`);
+  assert.deepEqual((await as(A, `select * from public.music_connections('b')`)).map(r => r.nickname), ['beka']);
+  assert.deepEqual((await as(A, `select * from public.music_connections('c')`)).map(r => r.nickname), ['cira']);
+  assert.deepEqual(await as(A, `select * from public.music_connections('d')`), []);
+  await db.exec(`insert into storage.objects(bucket_id, name, owner, metadata) values
+   ('social','${A}/p/music.wav','${A}','{"mimetype":"audio/wav"}'),
+   ('social','${A}/p/video.mp4','${A}','{"mimetype":"video/mp4"}'),
+   ('social','${A}/p/friends.mp4','${A}','{"mimetype":"video/mp4"}');`);
+  const media = (kind, file, dur, visibility = 'public', category = '{}') => `insert into public.feed_posts
+     (kind, caption, media_path, media_meta, visibility) values
+     ('${kind}', '@beka @beka @dato #ცოცხალი', '${A}/p/${file}', jsonb_build_object('dur', ${dur}) || '${category}'::jsonb, '${visibility}') returning id`;
+  const [audio] = await as(A, media('audio', 'music.wav', 900, 'public', '{"genre":"jazz","form":"song","instrument":"vocals"}'));
+  const [video] = await as(A, media('video', 'video.mp4', 600, 'public', '{"genre":"georgian-folk","region":"adjara","form":"melody"}'));
+  const [privatePost] = await as(A, media('video', 'friends.mp4', 10, 'friends'));
+  await refused(A, media('video', 'video.mp4', 601), /media-too-long/);
+  await refused(A, media('audio', 'music.wav', 901), /media-too-long/);
+  await refused(A, media('video', 'music.wav', 30), /media-type/);
+  await refused(A, media('audio', 'missing.wav', 30), /media-type/);
+  await refused(A, media('video', 'video.mp4', 30, 'public', '{"genre":"pop","region":"adjara"}'), /music-region/);
+  assert.equal((await as(B, `select * from public.feed('one', 1, ${audio.id})`))[0].kind, 'audio');
+  assert.deepEqual(await as(B, `select * from public.feed('one', 1, ${privatePost.id})`), []);
+  assert.ok((await as(A, `select * from public.feed('foryou', 10)`)).some(post => post.id === audio.id));
+  assert.deepEqual((await as(B, `select id from public.feed_list('discover', null, 'georgian-folk.adjara.melody')`)).map(r => r.id), [video.id]);
+  assert.deepEqual((await as(B, `select id from public.feed_list('discover', null, 'jazz..song')`)).map(r => r.id), [audio.id]);
+  assert.equal((await as(B, "select * from public.tag_search('ცოცხალი')"))[0].videos, 2);
+  assert.ok((await one("select public.music_hashtags('#Jazz #ქართული #日本語') as t")).t.includes('日本語'));
+  assert.ok((await as(B, `select * from public.feed('one', 1, ${old})`)).length, 'legacy video still visible');
+  const mentions = (await db.query(`select user_id, go from public.notifications where kind = 'mention' order by id`)).rows;
+  assert.deepEqual(mentions, [audio, video].map(post => ({ user_id: B, go: 'community:p:' + post.id })));
+
 });

@@ -1,0 +1,133 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const { test } = require('node:test');
+
+function context(extra = {}, pd = {}) {
+  return vm.createContext({ PD: { i18n: { add() {} }, ...pd }, window: { addEventListener() {} }, location: { pathname: '/panduri/app/', href: 'https://test.example/panduri/app/', protocol: 'https:' }, setTimeout, clearTimeout,
+    Blob, URL, AbortController, btoa, ...extra });
+}
+function load(ctx, ...names) {
+  for (const name of names) {
+    const file = path.join(__dirname, '..', 'src', name + '.js');
+    vm.runInContext(fs.readFileSync(file, 'utf8'), ctx, { filename: file });
+  }
+  return ctx.PD;
+}
+
+test('PCM AudioWorklet yields a 24-bit stereo WAV at the actual capture rate', async () => {
+  let Processor;
+  class Worklet {
+    constructor() { this.port = { postMessage() {} }; }
+  }
+  class Node {
+    constructor() {
+      this.processor = new Processor();
+      this.port = {
+        postMessage: data => this.processor.port.onmessage({ data }),
+        close() {}
+      };
+      this.processor.port.postMessage = data => this.port.onmessage({ data });
+    }
+    disconnect() {}
+  }
+  let node;
+  const AudioWorkletNode = class extends Node { constructor() { super(); node = this; } };
+  const ctx = context({
+    window: { AudioWorkletNode }, AudioWorkletNode, AudioWorkletProcessor: Worklet,
+    registerProcessor: (name, cls) => { assert.equal(name, 'pd-community-pcm'); Processor = cls; },
+    MediaStream: class {}
+  });
+  const music = load(ctx, 'music-community').musicCommunity;
+  const audio = {
+    sampleRate: 48000,
+    audioWorklet: { addModule: async url => vm.runInContext(await (await fetch(url)).text(), ctx) },
+    createMediaStreamSource: () => ({ connect() {}, disconnect() {} })
+  };
+  const input = await music.pcm(audio, {}, 600);
+  node.processor.process([[Float32Array.of(1), Float32Array.of(-1)]]);
+  input.start();
+  node.processor.process([[Float32Array.of(.5, 0), Float32Array.of(-.5, 0)]]);
+  const result = await input.stop();
+  const wav = Buffer.from(await result.blob.arrayBuffer());
+  assert.equal(result.blob.type, 'audio/wav');
+  assert.equal(wav.toString('ascii', 0, 4), 'RIFF');
+  assert.equal(wav.readUInt16LE(22), 2);
+  assert.equal(wav.readUInt32LE(24), 48000);
+  assert.equal(wav.readUInt16LE(34), 24);
+  assert.equal(wav.readUInt32LE(40), 12);
+  assert.deepEqual([...wav.subarray(44, 50)], [0, 0, 64, 1, 0, 192]);
+  assert.equal(result.dur, 2 / 48000);
+});
+
+test('noise profiling attenuates background while retaining a foreground tone', async () => {
+  const { vedit } = load(context(), 'vedit');
+  const sr = 16000, len = sr * 2;
+  const output = channels => {
+    const data = Array.from({ length: channels }, () => new Float32Array(len));
+    return { length: len, sampleRate: sr, numberOfChannels: channels, getChannelData: c => data[c] };
+  };
+  const source = output(2), ac = { createBuffer: output };
+  for (let i = 0; i < len; i++) {
+    const noise = .035 * Math.sin(2 * Math.PI * 600 * i / sr);
+    const playing = i > sr ? .3 * Math.sin(2 * Math.PI * 2100 * i / sr) : 0;
+    source.getChannelData(0)[i] = noise + playing;
+    source.getChannelData(1)[i] = noise + playing * .7;
+  }
+  const after = await vedit.denoise(ac, source, .85, () => {}, () => false, .1);
+  const amplitude = (buf, frequency, c) => {
+    const ch = buf.getChannelData(c);
+    let acc = 0;
+    for (let i = 20000; i < 28000; i++) acc += ch[i] * Math.sin(2 * Math.PI * frequency * i / sr);
+    return Math.abs(acc / 4000);
+  };
+  for (let c = 0; c < 2; c++) {
+    assert.ok(amplitude(after, 600, c) < amplitude(source, 600, c) * .35);
+    assert.ok(amplitude(after, 2100, c) > amplitude(source, 2100, c) * .85);
+  }
+});
+
+test('instrument suggestions use model confidence and song posts keep international tags', () => {
+  const { guard, musicCommunity } = load(context(), 'music-community', 'guard');
+  const frame = (...categories) => ({ classifications: [{ categories }] });
+  const result = guard.matchInstrument([
+    frame({ categoryName: 'Piano', score: .92 }, { categoryName: 'Acoustic guitar', score: .42 }),
+    frame({ categoryName: 'Singing', score: .84 }, { categoryName: 'Drum kit', score: .28 })
+  ]);
+  assert.deepEqual(Array.from(result), ['piano', 'vocals']);
+  assert.deepEqual(Array.from(musicCommunity.tags('#ფოლკი #Jazz #JAZZ #日本語')), ['ფოლკი', 'jazz', '日本語']);
+});
+
+test('resumable upload continues from the server offset after a network interruption', async () => {
+  const CHUNK = 6 * 1024 * 1024, responses = [];
+  let lost = false, offset = 0;
+  const request = async (url, opt) => {
+    const headers = opt.headers;
+    responses.push({ url, method: opt.method, offset: headers['Upload-Offset'], bytes: opt.body?.size });
+    assert.equal(headers.Authorization, 'Bearer test-token');
+    if (opt.method === 'POST') {
+      assert.equal(headers['Upload-Length'], String(CHUNK + 17));
+      return new Response(null, { status: 201, headers: { Location: '/storage/v1/upload/resumable/abc' } });
+    }
+    if (opt.method === 'HEAD') return new Response(null, { headers: { 'Upload-Offset': String(offset) } });
+    assert.equal(Number(headers['Upload-Offset']), offset);
+    offset += opt.body.size;
+    if (!lost) { lost = true; throw new Error('network disappeared after the write'); }
+    return new Response(null, { status: 204, headers: { 'Upload-Offset': String(offset) } });
+  };
+  const config = { url: 'https://project.supabase.co', key: 'test-key' };
+  const session = { user: { id: 'member' }, access_token: 'test-token', expires_at: 9999999999 };
+  const app = load(context({ fetch: request }, {
+    store: { get: key => key === 'cloud.session' ? session : config, set() {}, del() {} },
+    account: { configure() {} }, bus: { on() {} }
+  }), 'cloud');
+  const progress = [];
+  const result = await app.cloud.storage.uploadResumable('member/p/video.mp4',
+    new Blob([new Uint8Array(CHUNK + 17)], { type: 'video/mp4' }), fraction => progress.push(fraction));
+  assert.equal(result, 'member/p/video.mp4');
+  assert.match(responses[0].url, /^https:\/\/project\.storage\.supabase\.co/);
+  assert.deepEqual(responses.map(({ method, offset, bytes }) => [method, offset, bytes]),
+    [['POST', undefined, undefined], ['PATCH', '0', CHUNK], ['HEAD', undefined, undefined], ['PATCH', String(CHUNK), 17]]);
+  assert.equal(progress.at(-1), 1);
+});

@@ -285,14 +285,16 @@ PD.cmp = (() => {
     }
   }
   const setNum = (el, txt) => { if (!el || el.textContent === txt) return; el.textContent = txt; if (moves()) el.animate([{ transform: 'translateY(40%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: OUTQ }); };
-  /** text with its #hashtags as links to their pages */
   function richText(s) {
-    const out = [], re = /#([0-9A-Za-z_Ⴀ-ჿᲐ-Ჿ]{1,50})/g; let m, at = 0;
-    while ((m = re.exec(s))) {
-      if (m.index > at) out.push(document.createTextNode(s.slice(at, m.index)));
-      const tag = m[1].toLowerCase();
-      out.push(h('button', { class: 'cp-tag', type: 'button', text: '#' + m[1], onclick: e => { e.stopPropagation(); PD.app.go('community', 't:' + tag); } }));
-      at = m.index + m[0].length;
+    const out = [], links = /#([\p{L}\p{N}_]{1,50})|(?<![\p{L}\p{N}_.@])@([a-zA-Z0-9][a-zA-Z0-9_.]{1,22}[a-zA-Z0-9])(?![a-zA-Z0-9_]|\.[a-zA-Z0-9])/gu;
+    let at = 0;
+    for (const match of s.matchAll(links)) {
+      if (match.index > at) out.push(document.createTextNode(s.slice(at, match.index)));
+      const target = match[1] ? 't:' + match[1].toLowerCase() : '@' + match[2].toLowerCase();
+      out.push(h('button', { class: 'cp-tag', type: 'button', text: match[0], onclick: event => {
+        event.stopPropagation(); PD.app.go('community', target);
+      } }));
+      at = match.index + match[0].length;
     }
     if (at < s.length) out.push(document.createTextNode(s.slice(at)));
     return out;
@@ -331,7 +333,7 @@ PD.cmp = (() => {
         let rows;
         if (legacy) rows = (await C.social.feed(tab === 'saved' ? 'saved' : 'user', { target: card.id, lim: 30, skip: [] })) || [];
         else rows = (await C.social.list(tab, { target: card.id, off, lim: 18 })) || [];
-        rows = rows.filter(r => r.kind === 'video');
+        rows = rows.filter(PD.musicCommunity.mediums);
         sk.forEach(x => x.remove());
         await S().urls(rows);
         rows.forEach((p, i) => g.append(tile(p, off + i)));
@@ -481,20 +483,48 @@ PD.cmp = (() => {
       if (my !== gen) return;
       const bad = [u, g, v].find(x => x.status === 'rejected');
       if (bad && [u, g, v].every(x => x.status === 'rejected' || !(x.value || []).length)) { body.innerHTML = ''; body.append(h('div', { class: 'cp-empty' }, [h('p', { text: err(bad.reason) })])); return; }
-      const U2 = (u.value || []), G = (g.value || []), V = (v.value || []).filter(r => r.kind === 'video');
+      const U2 = (u.value || []), G = (g.value || []), V = (v.value || []).filter(PD.musicCommunity.mediums);
       if (!U2.length && !G.length && !V.length) { body.innerHTML = ''; body.append(h('div', { class: 'cp-empty' }, [h('span', { class: 'cp-eic', html: IC.search }), h('p', { text: t('cp.noResults', { q }) })])); return; }
       if (U2.length) { people.append(h('h3', { 'data-t': 'cp.people' })); U2.slice(0, 6).forEach((r, i) => people.append(personRow(r, i))); } else people.remove();
       if (G.length) { tags.append(h('h3', { 'data-t': 'cp.tags' }), h('div', { class: 'cp-tagrow' }, G.slice(0, 10).map(x => tagChip(x)))); } else tags.remove();
       if (V.length) {
         await S().urls(V); if (my !== gen) return;
-        vids.append(h('h3', { 'data-t': 'cp.videos' }), h('div', { class: 'cp-grid' }, V.map((p, i) => { const th = p.thumb_path && C.storage.url(p.thumb_path);
+        vids.append(h('h3', { 'data-t': 'mc.posts' }), h('div', { class: 'cp-grid' }, V.map((p, i) => { const th = p.thumb_path && C.storage.url(p.thumb_path);
           const el = h('button', { class: 'cp-tile', type: 'button', onclick: () => { remember(q); PD.app.go('community', 'l:' + (isTag ? 'tag' : 'search') + ':-:' + i + ':' + (isTag ? term : q)); } }, [th ? h('img', { alt: '', src: th, loading: 'lazy' }) : h('span', { class: 'cp-tnone', html: IC.play }), p.author_nick ? h('small', { class: 'cp-tby', text: '@' + p.author_nick }) : null, h('small', { class: 'cp-tn', html: IC.play + '<span>' + nf(p.views) + '</span>' })].filter(Boolean));
           if (moves()) el.animate([{ opacity: 0, transform: 'scale(.94)' }, { opacity: 1, transform: 'none' }], { duration: 280, delay: Math.min(i, 12) * 25, easing: OUTQ, fill: 'backwards' });
           return el; })));
       } else vids.remove();
       PD.i18n.apply(body);
     }
+    function discover() {
+      const M = PD.musicCommunity;
+      const picker = (group, label) => h('select', { class: 'input', 'aria-label': t(label) }, [
+        h('option', { value: '', text: t('fd.global') }),
+        ...Object.keys(M.types[group]).map(id => h('option', { value: id, text: t(M.key(group, id)) }))]);
+      const genre = picker('genre', 'mc.genre'), region = picker('region', 'mc.region'), form = picker('form', 'mc.type');
+      const field = (label, select) => h('label', { class: 'mc-field' }, [h('span', { text: t(label) }), select]);
+      const regionField = field('mc.region', region); regionField.hidden = true;
+      const go = h('button', { class: 'btn primary', type: 'submit', 'data-t': 'mc.browse', disabled: true });
+      function update() {
+        regionField.hidden = genre.value !== 'georgian-folk';
+        if (regionField.hidden) region.value = '';
+        go.disabled = !(genre.value || form.value);
+      }
+      const options = h('form', { class: 'mc-discover-filters', onsubmit: e => {
+        e.preventDefault();
+        if (!go.disabled) PD.app.go('community', 'l:discover:-:0:' + [genre.value, region.value, form.value].join('.'));
+      } }, [field('mc.genre', genre), regionField, field('mc.type', form), go]);
+      options.addEventListener('change', update);
+      const quick = h('div', { class: 'cp-tagrow' }, ['rock','pop','jazz','folk','georgian-folk'].map(id =>
+        h('button', { class: 'cp-tagchip', type: 'button', text: t(M.key('genre', id)), onclick: () => {
+          genre.value = id; update();
+          if (id !== 'georgian-folk') options.requestSubmit();
+          else region.focus();
+        } })));
+      return h('section', { class: 'cp-ssec mc-discover' }, [h('h3', { 'data-t': 'mc.discover' }), quick, options]);
+    }
     async function idle() {
+      body.append(discover());
       const r = recent();
       if (r.length) {
         const sec = h('section', { class: 'cp-ssec' }, [h('div', { class: 'cp-shead' }, [h('h3', { 'data-t': 'cp.recent' }), h('button', { class: 'cp-link', 'data-t': 'cp.clear', onclick: () => { PD.store.set(RK, []); run(); } })])]);
@@ -509,7 +539,7 @@ PD.cmp = (() => {
     }
     PD.i18n.apply(w);
     if (q0) run(); else idle();
-    if (!PD.isTouch() || !q0) setTimeout(() => inp.focus(), 120);
+    if (q0 && !PD.isTouch()) setTimeout(() => inp.focus(), 120);
   }
   const tagChip = x => h('button', { class: 'cp-tagchip', onclick: () => { remember('#' + x.tag); PD.app.go('community', 't:' + x.tag); } }, [h('span', { class: 'cp-hash', html: IC.hash }), h('b', { text: x.tag }), h('small', { text: nf(x.videos) })]);
   async function tagPage(w, tag, own) {
@@ -523,7 +553,7 @@ PD.cmp = (() => {
     try { const x = ((await C.social.tags(tag)) || []).find(r => r.tag === tag); stats.textContent = t('cp.tagStats', { v: nf(x ? x.videos : 0), n: nf(x ? x.views : 0) }); } catch (_) { stats.textContent = ''; }
     const g = h('div', { class: 'cp-grid' }); body.append(g);
     try {
-      const rows = ((await C.social.list('tag', { term: tag, lim: 30 })) || []).filter(r => r.kind === 'video');
+      const rows = ((await C.social.list('tag', { term: tag, lim: 30 })) || []).filter(PD.musicCommunity.mediums);
       if (!rows.length) { body.append(h('div', { class: 'cp-empty' }, [h('span', { class: 'cp-eic', html: IC.hash }), h('p', { 'data-t': 'cp.tagEmpty' })])); PD.i18n.apply(body); return; }
       await S().urls(rows);
       rows.forEach((p, i) => { const th = p.thumb_path && C.storage.url(p.thumb_path);
