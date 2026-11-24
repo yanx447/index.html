@@ -1,6 +1,12 @@
 'use strict';
 
 PD.i18n.add({
+  'mc.pauseTake': ['ჩაწერის პაუზა', 'Pause recording'], 'mc.resumeTake': ['ჩაწერის გაგრძელება', 'Resume recording'],
+  'mc.reviewTake': ['რედაქტირება', 'Edit recording'], 'mc.paused': ['პაუზაზეა', 'Paused'],
+  'mc.losslessOnly': ['აუდიოსთვის აირჩიე PCM WAV ან FLAC ფაილი.', 'Choose a PCM WAV or FLAC file for audio.'],
+  'mc.minVideo': ['ვიდეოს მოკლე მხარე მინიმუმ 720 პიქსელი უნდა იყოს.', 'The shorter side of the video must be at least 720 pixels.'],
+  'mc.cropQuality': ['ამ პროპორციით 720p აღარ რჩება. აირჩიე სხვა პროპორცია ან უფრო მაღალი გარჩევადობის ვიდეო.', 'This crop leaves less than 720p. Choose another aspect ratio or a higher-resolution source.'],
+  'mc.sizeEdit': ['ფაილი უნდა ჩაეტიოს {n} MB-ში. შეამოკლე მონაკვეთი ან შეინახე ორიგინალი.', 'Your file must fit within {n} MB. Trim the clip or save the original.'],
   'mc.recordSong': ['აუდიოს ჩაწერა', 'Record audio'], 'mc.import': ['ვიდეო ან სიმღერა', 'Video or song'],
   'mc.camera': ['ვიდეოს გადაღება', 'Record video'], 'mc.song': ['სიმღერა', 'Song'],
   'mc.next': ['შემდეგი', 'Next'], 'mc.saveWav': ['WAV · 24 ბიტი', 'WAV · 24 bit'],
@@ -92,6 +98,7 @@ PD.musicCommunity = (() => {
       super(); this.active = false; this.size = 0; this.buffer = null;
       this.port.onmessage = ({data}) => {
         if (data === 'start') this.active = true;
+        else if (data === 'pause') this.active = false;
         else { this.active = false; this.flush(); this.port.postMessage({ done: true }); }
       };
     }
@@ -146,6 +153,8 @@ PD.musicCommunity = (() => {
     source.connect(node);
     return {
       start() { if (!started && !ended) { started = true; node.port.postMessage('start'); } },
+      pause() { if (started && !ended) node.port.postMessage('pause'); },
+      resume() { if (started && !ended) node.port.postMessage('start'); },
       stop() {
         if (!started) end(false);
         else if (!ended) { node.port.postMessage('stop'); const timer = setTimeout(() => end(true), 1200); result.then(() => clearTimeout(timer)); }
@@ -155,5 +164,80 @@ PD.musicCommunity = (() => {
     };
   }
 
-  return { types, key, tags, mediums, save, audio, pcm, wavHeader };
+  const MIN_VIDEO = 720;
+  const isHD = (w, h) => Number.isInteger(w) && Number.isInteger(h) && Math.min(w, h) >= MIN_VIDEO;
+
+  function captureClock(now = () => performance.now()) {
+    let elapsed = 0, since = null;
+    const seconds = () => (elapsed + (since == null ? 0 : Math.max(0, now() - since))) / 1000;
+    return {
+      seconds,
+      start() { elapsed = 0; since = now(); },
+      pause() { elapsed = seconds() * 1000; since = null; return elapsed / 1000; },
+      resume() { if (since == null) since = now(); }
+    };
+  }
+
+  /** Read metadata from the audio container. A filename or a MIME label can be misleading. */
+  async function losslessInfo(file) {
+    const header = new DataView(await file.slice(0, 42).arrayBuffer());
+    const ascii = (at, n) => Array.from({ length: n }, (_, i) => String.fromCharCode(header.getUint8(at + i))).join('');
+    if (header.byteLength < 12) return null;
+    if (ascii(0, 4) === 'fLaC' && header.byteLength >= 42 && (header.getUint8(4) & 127) === 0 && header.getUint8(5) === 0 && header.getUint16(6) === 34) {
+      const rate = header.getUint32(18) >>> 12;
+      const channels = ((header.getUint8(20) >> 1) & 7) + 1;
+      const bits = (((header.getUint8(20) & 1) << 4) | (header.getUint8(21) >> 4)) + 1;
+      const frames = (header.getUint8(21) & 15) * 2 ** 32 + header.getUint32(22);
+      return rate > 0 && file.size > 42 ? { codec: 'flac', rate, channels, bits, seconds: frames / rate } : null;
+    }
+    if (ascii(0, 4) !== 'RIFF' || ascii(8, 4) !== 'WAVE') return null;
+    const end = Math.min(file.size, header.getUint32(4, true) + 8);
+    let fmt = null, bytes = 0;
+    // Metadata chunks can precede or follow PCM data. Skip them through Blob slices.
+    for (let at = 12, count = 0; at + 8 <= end && count < 256; count++) {
+      const part = new DataView(await file.slice(at, Math.min(end, at + 48)).arrayBuffer());
+      const tag = part.getUint32(0), size = part.getUint32(4, true);
+      if (size > end - at - 8) return null;
+      if (tag === 0x666d7420 && size >= 16) {
+        let code = part.getUint16(8, true);
+        if (code === 65534 && size >= 40) {
+          const id = Array.from({ length: 16 }, (_, i) => part.getUint8(32 + i));
+          const suffix = [0, 0, 0, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113];
+          code = suffix.every((x, i) => id[i + 1] === x) ? id[0] : -1;
+        }
+        const channels = part.getUint16(10, true), rate = part.getUint32(12, true);
+        const align = part.getUint16(20, true), bits = part.getUint16(22, true);
+        const supported = code === 1 ? [16, 24, 32].includes(bits) : code === 3 && [32, 64].includes(bits);
+        if (!supported || !rate || !channels || align !== channels * bits / 8) return null;
+        fmt = { codec: 'wav', rate, channels, bits, align };
+      } else if (tag === 0x64617461) bytes = size;
+      if (fmt && bytes) return bytes % fmt.align ? null : { ...fmt, seconds: bytes / fmt.align / fmt.rate };
+      at += 8 + size + (size % 2);
+    }
+    return null;
+  }
+
+  async function encodeWav(buffer, skip, cancelling, progress) {
+    const channels = buffer.numberOfChannels, frames = buffer.length - skip, size = frames * channels * 3;
+    const parts = [wavHeader(size, channels, buffer.sampleRate)], samples = Array.from({ length: channels }, (_, i) => buffer.getChannelData(i));
+    for (let a = skip; a < buffer.length; a += 32768) {
+      if (cancelling()) throw Object.assign(new Error('cancel'), { code: 'cancel' });
+      const b = Math.min(a + 32768, buffer.length), part = new Uint8Array((b - a) * channels * 3);
+      let offset = 0;
+      for (let i = a; i < b; i++) {
+        for (const channel of samples) {
+          const x = Math.max(-1, Math.min(1, channel[i]));
+          const n = Math.round(x * (x < 0 ? 8388608 : 8388607));
+          part[offset++] = n; part[offset++] = n >> 8; part[offset++] = n >> 16;
+        }
+      }
+      parts.push(part);
+      progress((b - skip) / frames);
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    if (size % 2) parts.push(new Uint8Array(1));
+    return new File(parts, 'fanduri-master.wav', { type: 'audio/wav' });
+  }
+
+  return { types, key, tags, mediums, save, audio, pcm, wavHeader, captureClock, losslessInfo, encodeWav, isHD };
 })();

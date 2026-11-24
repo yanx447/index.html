@@ -195,4 +195,22 @@ test('profiles, following, reposts, history, hashtags and search', async () => {
   const mentions = (await db.query(`select user_id, go from public.notifications where kind = 'mention' order by id`)).rows;
   assert.deepEqual(mentions, [audio, video].map(post => ({ user_id: B, go: 'community:p:' + post.id })));
 
+  const quality = await mig('202611240002_community_media_quality.sql');
+  await db.exec(quality);
+  await db.exec(quality);
+  await refused(A, media('video', 'video.mp4', 20), /video-resolution/);
+  await refused(A, media('video', 'video.mp4', 20, 'public', '{"w":1280,"h":719}'), /video-resolution/);
+  await refused(A, media('video', 'video.mp4', 20, 'public', '{"w":1280,"h":"720"}'), /video-resolution/);
+  await as(A, media('video', 'video.mp4', 20, 'public', '{"w":1280,"h":720}'));
+  await as(A, media('video', 'video.mp4', 20, 'public', '{"w":720,"h":1280}'));
+  await db.exec(`insert into storage.objects(bucket_id, name, owner, metadata) values
+   ('social','${A}/p/master.flac','${A}','{"mimetype":"audio/flac"}'),
+   ('social','${A}/p/lossy.wav','${A}','{"mimetype":"audio/mpeg"}'),
+   ('social','${A}/p/wrong.mp3','${A}','{"mimetype":"audio/wav"}');`);
+  await as(A, media('audio', 'music.wav', 20));
+  await as(A, media('audio', 'master.flac', 20));
+  await refused(A, media('audio', 'lossy.wav', 20), /audio-format/);
+  await refused(A, media('audio', 'wrong.mp3', 20), /audio-format/);
+  assert.ok((await as(B, `select * from public.feed('one', 1, ${old})`)).length, 'older posts remain readable');
+
 });

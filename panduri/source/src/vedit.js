@@ -202,46 +202,6 @@ PD.vedit = (() => {
     onP(100);
     return out;
   }
-  function impulse(ac, sec) {
-    const sr = ac.sampleRate, n = Math.round(sr * sec), b = ac.createBuffer(2, n, sr), pre = sr * .012;
-    for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3.6) * (i < pre ? i / pre : 1) * .6; }
-    return b;
-  }
-  /** EQ → compressor → dry + delay + reverb. Neutral settings pass the sound unchanged. */
-  function makeChain(ac) {
-    const inp = ac.createGain(), lo = ac.createBiquadFilter(), mid = ac.createBiquadFilter(), hi = ac.createBiquadFilter();
-    lo.type = 'lowshelf'; lo.frequency.value = 140; mid.type = 'peaking'; mid.frequency.value = 1100; mid.Q.value = .8; hi.type = 'highshelf'; hi.frequency.value = 6500;
-    const hp = ac.createBiquadFilter(), notch = ac.createBiquadFilter();
-    hp.type = 'highpass'; hp.Q.value = .71; notch.type = 'peaking'; notch.Q.value = 22;
-    const comp = ac.createDynamicsCompressor(), make = ac.createGain(), dry = ac.createGain(), out = ac.createGain();
-    const dl = ac.createDelay(2), fb = ac.createGain(), dWet = ac.createGain(), conv = ac.createConvolver(), rWet = ac.createGain();
-    conv.buffer = impulse(ac, 2.4);
-    const wet = ac.createGain(), bypass = ac.createGain(), volume = ac.createGain(), meter = ac.createAnalyser();
-    const filters = [hp, notch, lo, mid, hi];
-    inp.connect(hp); hp.connect(notch); notch.connect(lo); lo.connect(mid); mid.connect(hi); hi.connect(comp); comp.connect(make);
-    inp.connect(bypass); bypass.connect(meter); out.connect(wet); wet.connect(meter); meter.connect(volume);
-    meter.fftSize = 2048; meter.smoothingTimeConstant = .8;
-    make.connect(dry); dry.connect(out);
-    make.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(dWet); dWet.connect(out);
-    make.connect(conv); conv.connect(rWet); rWet.connect(out);
-    return {
-      inp, out: volume, meter, comp, filters,
-      compare(on) { wet.gain.value = on ? 0 : 1; bypass.gain.value = on ? 1 : 0; },
-      cut(gain) { volume.gain.setTargetAtTime(gain, ac.currentTime, .005); },
-      set(a) {
-        const t = ac.currentTime, s = (p, v) => p.setTargetAtTime(v, t, .03), k = a.comp / 100;
-        s(out.gain, a.vol / 100); s(lo.gain, a.lo); s(mid.gain, a.mid); s(hi.gain, a.hi);
-        s(hp.frequency, a.hp || 0); s(notch.frequency, a.hum || 50); s(notch.gain, a.hum ? -24 : 0);
-        s(mid.frequency, a.midHz); s(mid.Q, a.midQ);
-        comp.threshold.value = a.threshold * k; comp.ratio.value = 1 + (a.ratio - 1) * k;
-        comp.knee.value = 8; comp.attack.value = a.attack / 1000; comp.release.value = a.release / 1000;
-        s(make.gain, k ? Math.pow(10, -a.threshold * k * (1 - 1 / comp.ratio.value) * .25 / 20) : 1);
-        s(rWet.gain, a.rev / 100 * .85); s(dry.gain, 1 - a.rev / 100 * .25);
-        dl.delayTime.setTargetAtTime(a.dtime / 1000, t, .05); s(dWet.gain, a.del / 100 * .6); fb.gain.value = .38;
-      }
-    };
-  }
-
   /* ---------------- GIF: every frame, for an animated background ---------------- */
   function lzw(data, minSize, npix) {
     const out = new Uint8Array(npix), clear = 1 << minSize, eoi = clear + 1;
@@ -416,43 +376,37 @@ void main(){
     document.body.appendChild(i); i.click();
   });
   const seekEl = (el, t) => new Promise((res, rej) => {
+    if (el.readyState >= 2 && !el.seeking && Math.abs(el.currentTime - t) < .002) { res(); return; }
     const to = setTimeout(() => { el.removeEventListener('seeked', ok); rej(fail('seek')); }, 6000);
     const ok = () => { clearTimeout(to); el.removeEventListener('seeked', ok); res(); };
     el.addEventListener('seeked', ok); el.currentTime = t;
   });
   const meta = el => el.readyState >= 1 ? Promise.resolve() : new Promise((res, rej) => { el.addEventListener('loadedmetadata', () => res(), { once: true }); el.addEventListener('error', () => rej(fail('badFile')), { once: true }); });
-  const AUD0 = { vol: 100, lo: 0, mid: 0, hi: 0, midHz: 1100, midQ: .8, hp: 0, hum: 0,
-    comp: 0, threshold: -28, ratio: 4, attack: 10, release: 180, rev: 0, del: 0, dtime: 320, dn: false, dnAmt: 60 };
-  const SOUND_PRESETS = {
-    rock: { hp: 45, lo: 2, mid: 2, midHz: 1800, hi: 2, comp: 68, ratio: 4, attack: 12 },
-    pop: { hp: 65, lo: 1, mid: -2, midHz: 400, hi: 3, comp: 60, ratio: 3, attack: 8 },
-    jazz: { hp: 35, lo: 1, mid: 1, midHz: 790, comp: 30, ratio: 2, attack: 28 },
-    folk: { hp: 60, mid: -2, midHz: 270, hi: 2, comp: 34, ratio: 2.3 },
-    vocals: { hp: 80, mid: 2, midHz: 2300, hi: 2, comp: 62, ratio: 3, attack: 8, release: 120 }
-  };
+  const MIX = PD.mixrack, AUD0 = MIX.defaults;
   const adjustKeys = Object.keys(AUD0).filter(key => key !== 'dnAmt');
+  const q720 = (w, h) => PD.musicCommunity.isHD(w, h);
 
   /* ---------------- the editor ---------------- */
   /** o: { file, meta: {w,h,dur}, roomMB, onBack, onNext } → { dirty, version, length, render, cancel, back, hide, show, destroy } */
   function mount(root, o) {
-    const url = URL.createObjectURL(o.file), flip = !!o.mirror;   // a selfie is drawn — and made — the way it looked while filming
+    const audioOnly = o.kind === 'audio', url = URL.createObjectURL(o.file), flip = !!o.mirror;   // a selfie is drawn — and made — the way it looked while filming
     let dur = o.meta.dur || 1;
     const S = { segs: [{ a: 0, b: dur }], sel: 0, filter: 'none', fk: 1, crop: '', grade: { exp: 0, con: 0, sat: 0, temp: 0 }, bg: 'none', bgKey: 'person', bgEdge: 0, bgColor: '#000000', aud: Object.assign({}, AUD0) };
     let ver = 0, dead = false, hidden = false, playing = false, panel = null, raf = 0, needs = true, lastT = -1, exporting = null, pendingSeek = null, audioAfterSeek = false, driftAt = 0;
-    const v = h('video', { class: 've-src', playsinline: true, preload: 'auto' }); v.muted = true; v.playsInline = true; v.src = url;
+    const v = h(audioOnly ? 'audio' : 'video', { class: 've-src', playsinline: true, preload: 'auto' }); v.muted = true; v.playsInline = true; v.src = url;
     const cv = h('canvas', { class: 've-view' });
-    let R = null; try { R = renderer(cv); } catch (_) { R = null; }
-    if (!R) R = renderer2d(cv);
+    let R = null;
+    if (!audioOnly) { try { R = renderer(cv); } catch (_) {} if (!R) R = renderer2d(cv); }
 
     /* sound */
     const AC = window.AudioContext || window.webkitAudioContext;
     let audWhy = '', ac = null, chain = null, spk = null, orig = null, clean = null, cleanKey = -1, elSrc = null, asrc = null, aStart = 0, aOff = 0, dnJob = 0, dnRun = null, waveCv = null, compare = false, noiseAt = null;
-    try { ac = new AC(); chain = makeChain(ac); spk = ac.createGain(); chain.out.connect(spk); spk.connect(ac.destination); chain.set(S.aud); chain.compare(false); } catch (_) { ac = null; v.muted = false; }
+    try { ac = new AC(); chain = MIX.chain(ac); spk = ac.createGain(); chain.out.connect(spk); spk.connect(ac.destination); chain.set(S.aud); chain.compare(false); } catch (_) { ac = null; v.muted = false; }
     const useElement = () => { if (!ac || elSrc) return; try { elSrc = ac.createMediaElementSource(v); elSrc.connect(chain.inp); v.muted = false; } catch (_) { v.muted = false; } };
     /* Until the sound is edited it plays straight from the video element — no Web Audio, which an iPhone silences with its
        ring/silent switch and keeps paused until a touch. Once effects are on it goes through Web Audio, told it is playback. */
     let native = true, decoded = false, clipStems = null, stemJob = null, stemProgress = 0;
-    let audioSegment = -1;
+    let audioSegment = -1, rackTab = 'eq';
     const stemSources = [];
     const fxOn = () => !!clipStems?.tracks.some(track => track.amount > 0) || S.segs.some(s => s.muted) || adjustKeys.some(k => S.aud[k] !== AUD0[k]);
     const cutSound = () => chain?.cut(!compare && S.segs[segIdx(v.currentTime)]?.muted ? 0 : 1);
@@ -467,17 +421,22 @@ void main(){
     const AS = navigator.audioSession, asPrev = AS && AS.type;
     try { if (AS) AS.type = 'playback'; } catch (_) {}
     v.muted = false;
-    (async () => {
+    const audioReady = (async () => {
       if (!ac) return;
-      if ((o.file.size > 256 * 1048576 && !o.rawAudio) || dur > (PD.isTouch() ? 340 : 601)) audWhy = 've.longAudio';
+      if ((o.file.size > 256 * 1048576 && !o.rawAudio) || (!audioOnly && dur > (PD.isTouch() ? 340 : 601))) audWhy = 've.longAudio';
       else try {
         const data = await (o.rawAudio || o.file).arrayBuffer();
-        orig = await ac.decodeAudioData(data);
+        const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        const rate = o.audioInfo?.rate;
+        if (audioOnly && OC && rate >= 8000 && rate <= 192000) orig = await new OC(1, 1, rate).decodeAudioData(data);
+        else orig = await ac.decodeAudioData(data);
       } catch (_) { orig = null; audWhy = 've.noAudio'; }
       if (dead) return;
       decoded = true;
       if (orig) makeWave();
-      if (panel === 'sound') open('sound'); else route();
+      if (panel === 'sound' && !exporting) open('sound');
+      else if (panel === 'clip' && audioOnly) tls.forEach(x => x.paint());
+      route();
     })();
     const curBuf = () => (!compare && S.aud.dn && clean) || orig;
     const wake = () => { if (ac && ac.state === 'suspended' && !exporting) ac.resume().catch(() => {}); };
@@ -575,7 +534,7 @@ void main(){
     }
     const coverMap = (bw, bh) => { const A = cv.width / cv.height, a = bw / bh; return a > A ? [A / a, 1, (1 - A / a) / 2, 0] : [1, a / A, 0, (1 - a / A) / 2]; };
     function frame(force) {
-      if (!v.videoWidth || R.lost) return;
+      if (audioOnly || !v.videoWidth || R.lost) return;
       const t = v.currentTime, fresh = force || t !== lastT; lastT = t;
       if (fresh) R.video(v);
       let mode = 0, map = [1, 1, 0, 0];
@@ -606,8 +565,9 @@ void main(){
       if (dead) return; raf = requestAnimationFrame(loop);
       if (hidden || exporting) return;
       boundary();
-      if (needs || v.currentTime !== lastT || animated() || (playing && params(S.filter, S.fk).grain > 0)) { const f = needs; needs = false; frame(f); }
+      if (!audioOnly && (needs || v.currentTime !== lastT || animated() || (playing && params(S.filter, S.fk).grain > 0))) { const f = needs; needs = false; frame(f); }
       tls.forEach(x => x.head());
+      if (audioOnly) audioSeek.value = v.currentTime;
       cur?.meter?.();
       paintTime();
     }
@@ -616,40 +576,56 @@ void main(){
     const playI = h('div', { class: 've-playi', html: ic.play, 'aria-hidden': 'true' });
     const tap = h('button', { class: 've-tap', type: 'button', 'aria-label': t('ve.play'), onclick: () => { if (playing) pause(); else play(); } });
     const timeEl = h('b', { class: 've-time mono' }), infoEl = h('small', { class: 'cam-info' });
-    const panelEl = h('div', { class: 've-panel', hidden: true, role: 'dialog' });
+    const panelEl = h('div', { class: 've-panel', hidden: true, role: 'region' });
+    const wavePreview = h('canvas', { class: 've-audio-wave', width: 900, height: 120, 'aria-hidden': 'true' });
+    const audioSeek = h('input', { class: 've-audio-seek', type: 'range', min: 0, max: dur, step: .01, value: 0, 'aria-label': t('fd.seek') });
+    audioSeek.oninput = () => { pause(); seekTo(+audioSeek.value); };
+    const audioStage = audioOnly ? h('section', { class: 've-audio-stage' }, [
+      h('span', { class: 've-audio-tag', text: (o.audioInfo?.codec || 'WAV').toUpperCase() + (o.audioInfo?.rate ? ' · ' + o.audioInfo.rate / 1000 + ' kHz' : '') }),
+      h('h2', { text: o.file.name }), wavePreview, audioSeek
+    ]) : null;
     const tools = [['clip', 've.clip', IC.clip], ['sound', 've.sound', IC.sound], ['filters', 've.filters', IC.filter], ['bg', 've.bg', IC.bg]]
-      .filter(([k]) => R.gl || (k !== 'filters' && k !== 'bg')).filter(([k]) => ac || k !== 'sound');
+      .filter(([k]) => R?.gl || (k !== 'filters' && k !== 'bg')).filter(([k]) => ac || k !== 'sound');
     const toolB = {};
     const rail = h('div', { class: 've-rail' }, tools.map(([k, key, icon]) => toolB[k] = h('button', { class: 've-tool', type: 'button', onclick: () => open(k) }, [h('span', { html: icon }), h('small', { 'data-t': key })])));
-    root.innerHTML = ''; root.classList.add('ve');
-    root.append(v, cv, tap, playI, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' }),
+    root.innerHTML = ''; root.classList.add('ve'); root.classList.toggle('ve-audio', audioOnly);
+    root.append(v, ...(audioOnly ? [audioStage] : [cv, tap, playI, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' })]),
       h('div', { class: 'cam-top' }, [h('button', { class: 'cam-ic', type: 'button', 'aria-label': t('fd.retake'), html: ic.back, onclick: () => o.onBack() })]),
       rail,
       h('div', { class: 'cam-bot ve-bot' }, [timeEl, infoEl,
-        o.onOriginal ? h('button', { class: 'btn small', type: 'button', text: t('mc.original'), onclick: o.onOriginal }) : null,
+        h('div', { class: 'mx-editor-actions' }, [
+          audioOnly ? h('button', { class: 'btn small', type: 'button', text: t('ve.play'), onclick: () => playing ? pause() : play() }) : null,
+          o.onOriginal ? h('button', { class: 'btn small', type: 'button', text: t('mc.original'), onclick: o.onOriginal }) : null,
+          o.onCover ? h('button', { class: 'btn small', type: 'button', text: t('ve.b.image'), onclick: o.onCover }) : null,
+          o.onSaveMix ? h('button', { class: 'btn small', type: 'button', text: t('mx.saveAudio'), onclick: o.onSaveMix }) : null
+        ]),
         h('div', { class: 'cam-acts' }, [
         h('button', { class: 'btn cam-ghost', type: 'button', html: ic.restart + '<span data-t="fd.retake"></span>', onclick: () => o.onBack() }),
         h('button', { class: 'btn primary', type: 'button', 'data-t': 'fd.next', onclick: () => o.onNext() })])]),
       panelEl);
     PD.i18n.apply(root);
     function layout() {
-      if (!v.videoWidth) return;
+      if (audioOnly || !v.videoWidth) return;
       const W = innerWidth, H = innerHeight, ph = panel ? panelEl.offsetHeight : 0, box = { x: 0, y: 0, w: W, h: H - ph };
       place(cv, cv.width, cv.height, panel ? { x: 8, y: 8, w: W - 16, h: Math.max(60, box.h - 16) } : box, !panel && (cv.width > cv.height) === (W > H));
       tap.style.height = box.h + 'px';
     }
-    function sizeCanvas(max, short) {
+    function cropSize(crop = S.crop) {
       let w = v.videoWidth, h = v.videoHeight;
+      const ratio = cropRatios[crop];
+      if (ratio && w && h) { if (w / h > ratio) w = h * ratio; else h = w / ratio; }
+      return [w, h];
+    }
+    function sizeCanvas(max, short) {
+      const [w, h] = cropSize();
       if (!w || !h) return;
-      const ratio = cropRatios[S.crop];
-      if (ratio) { if (w / h > ratio) w = h * ratio; else h = w / ratio; }
       const k = Math.min(1, max / Math.max(w, h), (short || 1e9) / Math.min(w, h));
       cv.width = Math.max(2, Math.round(w * k / 2) * 2); cv.height = Math.max(2, Math.round(h * k / 2) * 2);
     }
     const previewSize = () => sizeCanvas(Math.min(1440, Math.max(innerWidth, innerHeight) * Math.min(2, devicePixelRatio || 1)));
     v.addEventListener('loadedmetadata', () => {
       if (isFinite(v.duration) && v.duration > 0 && Math.abs(v.duration - dur) > .05) { const full = S.segs.length === 1 && S.segs[0].a === 0; dur = v.duration; S.segs.forEach(s => { s.b = Math.min(s.b, dur); }); if (full) S.segs[0].b = dur; }
-      previewSize();
+      if (audioOnly) audioSeek.max = dur; else previewSize();
       layout(); needs = true;
     });
     v.addEventListener('loadeddata', () => { needs = true; });
@@ -657,10 +633,14 @@ void main(){
     function paintTime() { const t = v.currentTime, i = segIdx(t); let done = 0; for (let k = 0; k < S.segs.length && k < (i < 0 ? S.segs.length : i); k++) done += S.segs[k].b - S.segs[k].a; if (i >= 0) done += t - S.segs[i].a; timeEl.textContent = PD.fmtTime(done) + ' / ' + PD.fmtTime(total()); }
     function paintInfo() {
       const d = dirty();
-      if (o.mustRender) { infoEl.textContent = t('fd.squeeze', { s: Math.ceil(o.file.size / 1048576), n: o.roomMB }); }
+      if (audioOnly) {
+        const size = (orig ? total() * orig.sampleRate * orig.numberOfChannels * 3 : o.file.size) / 1048576;
+        infoEl.textContent = (d ? t('mx.audioExport') + ' · ' : '') + (d && orig ? size : o.file.size / 1048576).toFixed(1) + ' MB'
+          + ((d && size > o.roomMB) || (!d && o.file.size > o.roomMB * 1048576) ? ' · ' + t('mx.trimToFit', { n: o.roomMB }) : '');
+      } else if (o.mustRender) { infoEl.textContent = t('fd.squeeze', { s: Math.ceil(o.file.size / 1048576), n: o.roomMB }); }
       else infoEl.textContent = o.meta.w + '×' + o.meta.h + ' · ' + PD.fmtTime(total()) + (d ? ' · ' + t('ve.edited') : ' · ' + (o.file.size / 1048576).toFixed(1) + ' MB · ' + t('fd.asIs'));
       toolB.clip && toolB.clip.classList.toggle('set', S.segs.length > 1 || S.segs[0].a > .05 || S.segs[0].b < dur - .05);
-      toolB.sound && toolB.sound.classList.toggle('set', ['vol', 'lo', 'mid', 'hi', 'comp', 'rev', 'del', 'dn'].some(k => S.aud[k] !== AUD0[k]));
+      toolB.sound && toolB.sound.classList.toggle('set', fxOn());
       toolB.filters && toolB.filters.classList.toggle('set', pictureChanged());
       toolB.bg && toolB.bg.classList.toggle('set', S.bg !== 'none');
     }
@@ -699,6 +679,11 @@ void main(){
       const c = waveCv.getContext('2d'), L = B.getChannelData(0), Rr = B.numberOfChannels > 1 ? B.getChannelData(1) : L, step = Math.max(1, Math.floor(B.length / W));
       c.clearRect(0, 0, W, H); c.fillStyle = '#e2ae84';
       for (let x = 0; x < W; x++) { let mx = 0; const s0 = x * step, s1 = Math.min(B.length, s0 + step); for (let i = s0; i < s1; i += 4) { const a = Math.max(Math.abs(L[i]), Math.abs(Rr[i])); if (a > mx) mx = a; } const y = Math.max(1, Math.min(1, mx * 1.6) * H / 2); c.fillRect(x, H / 2 - y, 1, y * 2); }
+      if (audioOnly) {
+        const ctx = wavePreview.getContext('2d'); ctx.clearRect(0, 0, wavePreview.width, wavePreview.height);
+        ctx.drawImage(waveCv, 0, 0, wavePreview.width, wavePreview.height);
+        paintInfo();
+      }
       tls.forEach(x => x.paint());
     }
     function timeline(kind) {
@@ -721,7 +706,7 @@ void main(){
             c.drawImage(thumbs, i * tw + (tw - sw * k) / 2, (th - H * k) / 2, sw * k, H * k, x, 0, Math.ceil(sw), H);
           }
         }
-        if (kind === 'wave' && waveCv) c.drawImage(waveCv, 0, 0, W, H);
+        if ((kind === 'wave' || audioOnly) && waveCv) c.drawImage(waveCv, 0, 0, W, H);
         c.fillStyle = 'rgba(0,0,0,.66)'; let prev = 0;
         S.segs.forEach(s => { if (s.a > prev) c.fillRect(frac(prev) * W, 0, (frac(s.a) - frac(prev)) * W, H); prev = s.b; });
         if (prev < dur) c.fillRect(frac(prev) * W, 0, W - frac(prev) * W, H);
@@ -773,7 +758,6 @@ void main(){
       return h('label', { class: 've-row' }, [h('span', { 'data-t': label }), inp, val]);
     }
     const dB = x => (x > 0 ? '+' : '') + x + ' dB', pct = x => Math.round(x) + '%';
-    const audioSet = k => x => { S.aud[k] = x; chain && chain.set(S.aud); ver++; paintInfo(); route(); };
     const section = key => h('div', { class: 've-sec', 'data-t': key });
     const actB = (icon, key, fn) => h('button', { class: 'btn', type: 'button', html: icon + '<span data-t="' + key + '"></span>', onclick: fn });
 
@@ -828,7 +812,7 @@ void main(){
 
     const PANELS = {
       clip() {
-        makeThumbs();
+        if (!audioOnly) makeThumbs();
         const tl = timeline('thumbs'), len = h('small', { class: 've-len mono' });
         const muted = actB(IC.sound, 've.mutePart', () => {
           rememberCut(); S.segs[S.sel].muted = !S.segs[S.sel].muted; changed(); route(); cutSound();
@@ -837,13 +821,17 @@ void main(){
         const crop = h('select', { class: 'input', 'aria-label': t('ve.crop') },
           [h('option', { value: '', text: t('ve.f.none') }), ...Object.keys(cropRatios).map(value => h('option', { value, text: value }))]);
         crop.value = S.crop;
-        crop.onchange = () => { S.crop = crop.value; previewSize(); layout(); changed(); };
+        crop.onchange = () => {
+          const [w, h] = cropSize(crop.value);
+          if (!q720(Math.floor(w), Math.floor(h))) { crop.value = S.crop; PD.ui.toast(t('mc.cropQuality')); return; }
+          S.crop = crop.value; previewSize(); layout(); changed();
+        };
         const clipActions = [actB(IC.split, 've.split', split), actB(IC.trash, 've.del', delSeg),
           actB('', 've.trimIn', () => setEdge('a')), actB('', 've.trimOut', () => setEdge('b')), muted, undo,
           actB(ic.restart, 've.reset', () => { rememberCut(); S.segs = [{ a: 0, b: dur }]; S.sel = 0; seekTo(0); changed(); route(); })];
         return { el: [tl.el, len,
           slider('ve.zoom', 1, 12, 1, () => zoom, x => { if (zoom === 1) zoomAt = v.currentTime; zoom = x; tl.paint(); }, x => x + '×'),
-          h('div', { class: 've-acts' }, clipActions), R.gl ? h('label', { class: 'mc-field' }, [h('span', { 'data-t': 've.crop' }), crop]) : null,
+          h('div', { class: 've-acts' }, clipActions), R?.gl ? h('label', { class: 'mc-field' }, [h('span', { 'data-t': 've.crop' }), crop]) : null,
           h('small', { class: 've-hint', 'data-t': 've.clipHint' })].filter(Boolean),
           paint() {
             len.textContent = t('ve.len', { t: PD.fmtTime(total()) });
@@ -852,57 +840,25 @@ void main(){
           } };
       },
       sound() {
-        const graph = h('canvas', { class: 've-spectrum', width: 520, height: 144, role: 'img', 'aria-label': t('ve.spectrum') });
-        const red = h('meter', { min: 0, max: 24, value: 0, 'aria-label': t('ve.gainReduction') }), reduction = h('b', { class: 'mono' });
-        const meterData = new Float32Array(chain.meter.frequencyBinCount);
-        const frequencies = Float32Array.from({ length: 128 }, (_, i) => 25 * Math.pow(750, i / 127));
-        const mag = new Float32Array(128), phase = new Float32Array(128), dbs = new Float32Array(128);
-        let nextPaint = 0;
-        function meter() {
-          if (performance.now() < nextPaint) return;
-          nextPaint = performance.now() + 50;
-          const c = graph.getContext('2d'), w = graph.width, height = graph.height;
-          chain.meter.getFloatFrequencyData(meterData);
-          const db = Math.round(-chain.comp.reduction * 10) / 10;
-          red.value = db; reduction.textContent = '−' + Math.max(0, db).toFixed(1) + ' dB';
-          c.clearRect(0, 0, w, height);
-          c.fillStyle = '#251f1b'; c.fillRect(0, height / 2, w, 1);
-          c.beginPath(); c.moveTo(0, height);
-          for (let i = 0; i < frequencies.length; i++) {
-            const data = meterData[Math.min(meterData.length - 1, Math.floor(frequencies[i] * chain.meter.fftSize / ac.sampleRate))];
-            c.lineTo(i / 127 * w, height * (1 - Math.min(1, Math.max(0, (data + 100) / 80))));
-          }
-          c.lineTo(w, height); c.fillStyle = '#bc866447'; c.fill();
-          dbs.fill(0);
-          for (const filter of chain.filters) {
-            filter.getFrequencyResponse(frequencies, mag, phase);
-            for (let i = 0; i < mag.length; i++) dbs[i] += 20 * Math.log10(Math.max(1e-6, mag[i]));
-          }
-          c.beginPath();
-          for (let i = 0; i < dbs.length; i++) c.lineTo(i / 127 * w, height * (.5 - Math.max(-25, Math.min(25, compare ? 0 : dbs[i])) / 53));
-          c.lineWidth = 2; c.strokeStyle = '#f0bc8d'; c.stroke();
-        }
-        const preset = h('select', { class: 'input', 'aria-label': t('ve.mixPreset') }, [
-          h('option', { value: 'custom', text: '—' }), h('option', { value: 'neutral', text: t('ve.f.none') }),
-          ...Object.keys(SOUND_PRESETS).map(id => h('option', { value: id,
-            text: t(id === 'vocals' ? 'mc.instrument.vocals' : 'mc.genre.' + id) }))]);
-        preset.value = S.preset || 'custom';
-        preset.onchange = () => {
-          if (preset.value === 'custom') return;
-          S.preset = preset.value;
-          const { dn, dnAmt } = S.aud;
-          S.aud = { ...AUD0, ...SOUND_PRESETS[S.preset], dn, dnAmt };
-          chain.set(S.aud); ver++; paintInfo(); open('sound'); route();
-        };
-        const compareB = h('button', { class: 'btn small', type: 'button', text: t('ve.ab'), 'aria-pressed': String(compare), onclick: () => {
-          compare = !compare; chain.compare(compare); cutSound();
-          compareB.setAttribute('aria-pressed', String(compare)); makeWave();
-          if (playing) startAudio();
-        } });
-        const kids = [graph, h('div', { class: 've-reduction' }, [h('small', { 'data-t': 've.gainReduction' }), red, reduction]),
-          h('div', { class: 've-acts' }, [preset, compareB, actB(ic.play, 've.play', () => playing ? pause() : play())])];
+        const transport = orig ? timeline('wave').el : null;
+        const rack = MIX.panel({
+          t, chain, tab: rackTab, preset: S.preset, get: () => S.aud,
+          set(key, value, refresh) {
+            S.preset = 'custom'; S.aud[key] = value;
+            chain.set(S.aud, refresh); ver++; paintInfo(); route();
+          },
+          choosePreset(id) {
+            S.preset = id;
+            S.aud = { ...AUD0, ...MIX.presets[id], dn: S.aud.dn, dnAmt: S.aud.dnAmt };
+            chain.set(S.aud); ver++; paintInfo(); route();
+          },
+          select(key) { rackTab = key; dnState = null; },
+          compared: () => compare,
+          compare() { compare = !compare; chain.compare(compare); cutSound(); makeWave(); if (playing) startAudio(); },
+          play: () => playing ? pause() : play(),
+          cleanup() {
+            const kids = [];
         if (orig) {
-          const tl = timeline('wave'); kids.push(tl.el);
           const sw = h('button', { class: 've-sw' + (S.aud.dn ? ' on' : ''), type: 'button', role: 'switch', 'aria-checked': String(S.aud.dn), 'aria-label': t('ve.dn') });
           dnState = h('small', { class: 've-st', role: 'status' });
           sw.onclick = () => {
@@ -926,21 +882,6 @@ void main(){
             ]), profile, h('small', { class: 've-hint', 'data-t': 've.dnHint' }));
           if (dnRun) dnState.textContent = t('ve.dnWork', { p: 0 });
         } else if (decoded) kids.push(h('small', { class: 've-hint', 'data-t': audWhy || 've.noAudio' }));
-        const control = (k, l, min, max, step, unit) => slider('ve.' + l, min, max, step, () => S.aud[k], x => {
-          audioSet(k)(x); S.preset = 'custom'; preset.value = 'custom';
-        }, unit);
-        const ms = x => x + ' ms', hz = x => x ? x + ' Hz' : '—';
-        const group = (key, ...children) => h('details', { class: 've-plugin', open: key === 've.eq' }, [h('summary', { 'data-t': key }), ...children]);
-        kids.push(control('vol', 'vol', 0, 200, 1, pct),
-          group('ve.eq', control('hp', 'hp', 0, 200, 5, hz), control('hum', 'hum', 0, 60, 10, hz),
-            control('lo', 'low', -15, 15, .5, dB), control('mid', 'mid', -15, 15, .5, dB),
-            control('midHz', 'eqBand', 150, 8500, 10, hz), control('midQ', 'eqWidth', .3, 8, .1, x => x.toFixed(1)),
-            control('hi', 'high', -15, 15, .5, dB)),
-          group('ve.comp', control('comp', 'comp', 0, 100, 1, pct),
-            control('threshold', 'thresh', -60, 0, 1, dB), control('ratio', 'ratio', 1, 12, .1, x => x.toFixed(1) + ':1'),
-            control('attack', 'attack', 1, 100, 1, ms), control('release', 'release', 30, 800, 5, ms)),
-          group('ve.fx', control('rev', 'rev', 0, 100, 5, pct),
-            control('del', 'delay', 0, 100, 5, pct), control('dtime', 'dtime', 60, 900, 20, ms)));
         if (orig && PD.ai?.separateExcerpt && !elSrc) {
           const status = h('small', { class: 've-hint', role: 'status',
             text: stemJob ? t('ve.dnWork', { p: stemProgress }) : clipStems ? t('ve.sepReady', { from: PD.fmtTime(clipStems.from), to: PD.fmtTime(clipStems.to) }) : '' });
@@ -948,10 +889,14 @@ void main(){
             onclick: () => separateSection(status, start) });
           const controls = (clipStems?.tracks || []).map(track => slider('ve.sep.' + track.id, 0, 100, 1,
             () => track.amount, amount => { track.amount = amount; ver++; paintInfo(); route(); if (playing) startAudio(); }, pct));
-          kids.push(group('ve.stems', h('small', { class: 've-hint', 'data-t': 've.sepHint' }), start, status, ...controls,
-            clipStems ? actB(ic.restart, 've.reset', () => { clipStems = null; ver++; paintInfo(); open('sound'); }) : null));
+          kids.push(h('details', { class: 've-plugin' }, [h('summary', { text: t('ve.stems') }), h('small', { class: 've-hint', 'data-t': 've.sepHint' }), start, status, ...controls,
+            clipStems ? actB(ic.restart, 've.reset', () => { clipStems = null; ver++; paintInfo(); open('sound'); }) : null]));
         }
-        return { el: kids, meter };
+            if (!orig && !kids.length) kids.push(h('p', { class: 've-hint', text: t('mx.empty') }));
+            return kids;
+          }
+        });
+        return { el: [transport, rack.el].filter(Boolean), meter: rack.meter };
       },
       filters() {
         const chips = h('div', { class: 've-chips', role: 'radiogroup' }), cans = {};
@@ -1034,22 +979,80 @@ void main(){
     }
     let cur = null;
     function open(k) {
-      pause(); panel = k; dnState = null;
+      if (panel !== k) pause();
+      const previousScroll = panel === k ? panelEl.scrollTop : 0;
+      panel = k; dnState = null;
       const title = { clip: 've.clip', sound: 've.sound', filters: 've.filters', bg: 've.bg' }[k];
       tls.length = 0; cur = PANELS[k]();
       panelEl.innerHTML = '';
       panelEl.append(h('div', { class: 've-ph-head' }, [h('h3', { 'data-t': title }), h('button', { class: 'btn small primary', type: 'button', 'data-t': 've.done', onclick: close })]), ...cur.el);
-      panelEl.hidden = false; root.classList.add('panel'); PD.i18n.apply(panelEl);
+      panelEl.hidden = false; panelEl.classList.toggle('ve-mixing', k === 'sound');
+      panelEl.setAttribute('aria-label', t(title));
+      panelEl.scrollTop = previousScroll;
+      root.classList.add('panel'); PD.i18n.apply(panelEl);
       route();
       requestAnimationFrame(() => { layout(); tls.forEach(x => x.paint()); cur?.paint?.(); });
     }
-    function close() { compare = false; chain?.compare(false); panel = null; cur = null; tls.length = 0; dnState = null; panelEl.hidden = true; panelEl.innerHTML = ''; root.classList.remove('panel'); layout(); needs = true; route(); }
+    function close() { compare = false; chain?.compare(false); panel = null; cur = null; tls.length = 0; dnState = null; panelEl.hidden = true; panelEl.innerHTML = ''; root.classList.remove('panel'); layout(); needs = true; route(); if (playing) startAudio(); }
     function paintPanel() { cur?.paint?.(); }
 
+    async function renderSound(onP, download) {
+      await audioReady;
+      if (dead) throw fail('cancel');
+      if (!orig) throw fail('noRender');
+      const signal = curBuf(), OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (!OC) throw fail('noRender');
+      const sr = signal.sampleRate, channels = signal.numberOfChannels, length = total();
+      const tail = S.segs.at(-1)?.muted ? 0 : Math.min(MIX.tailSeconds(S.aud), Math.max(0, 900 - length));
+      const frames = Math.round((length + tail) * sr), skip = Math.round(.012 * sr);
+      const bytes = frames * channels * 3 + 44 + (frames * channels * 3 % 2);
+      if (!download && bytes > o.roomMB * 1048576) throw Object.assign(fail('reelHeavy'), { s: Math.ceil(bytes / 1048576), n: o.roomMB });
+      if (bytes > 320 * 1048576) throw fail('noRender');
+      const ctx = new OC(channels, frames + skip, sr), mix = MIX.chain(ctx);
+      mix.set(S.aud); mix.out.connect(ctx.destination);
+      let at = 0;
+      function add(buf, start, end, offset, level, ramp) {
+        if (end <= start || start >= buf.duration) return;
+        const time = Math.min(end - start, buf.duration - start);
+        const src = ctx.createBufferSource(), volume = ctx.createGain();
+        src.buffer = buf; src.connect(volume).connect(mix.inp);
+        const fade = Math.min(ramp, time / 3);
+        volume.gain.setValueAtTime(0, offset); volume.gain.linearRampToValueAtTime(level, offset + fade);
+        volume.gain.setValueAtTime(level, offset + time - fade); volume.gain.linearRampToValueAtTime(0, offset + time);
+        src.start(offset, start, time);
+      }
+      for (const s of S.segs) {
+        if (!s.muted) {
+          add(signal, s.a, s.b, at, 1, .006);
+          if (clipStems) {
+            const from = Math.max(s.a, clipStems.from), to = Math.min(s.b, clipStems.to);
+            for (const track of clipStems.tracks) if (track.amount && to > from)
+              add(track.buffer, from - clipStems.from, to - clipStems.from, at + from - s.a, -track.amount / 100, .018);
+          }
+        }
+        at += s.b - s.a;
+      }
+      onP(4);
+      const output = await ctx.startRendering();
+      if (exporting.cancel) throw fail('cancel');
+      onP(75);
+      return PD.musicCommunity.encodeWav(output, skip, () => exporting.cancel, p => onP(Math.round(75 + p * 25)));
+    }
+
     /* ---- the result: drawn again frame by frame and recorded, with the sound through the same effects ---- */
-    async function render(onP) {
+    async function render(onP, download = false) {
       if (exporting) throw fail('busy');
-      pause(); compare = false; chain?.compare(false); if (dnRun) await dnRun;
+      pause(); compare = false; chain?.compare(false);
+      exporting = { cancel: false };
+      try {
+        if (dnRun) await dnRun;
+        if (exporting.cancel) throw fail('cancel');
+        if (audioOnly) return await renderSound(onP, download);
+        return await renderVideo(onP);
+      } finally { exporting = null; route(); needs = true; layout(); }
+    }
+    async function renderVideo(onP) {
+      if (!q720(v.videoWidth, v.videoHeight)) throw fail('reelSmall');
       const kf = pick(), mime = kf ? kf.m : window.MediaRecorder && RECM.find(m => MediaRecorder.isTypeSupported(m));
       if (!mime || !cv.captureStream) throw fail('noRender');
       if (R.lost) throw fail('noRender');
@@ -1057,22 +1060,33 @@ void main(){
       const useBuf = !elSrc && !!curBuf();
       if (!useBuf) useElement();
       if (!ac || (!useBuf && !elSrc)) throw fail('noRender');
-      const wasMuted = v.muted; if (useBuf) v.muted = true;   // the buffer feeds the file; the element stays quiet
-      exporting = { cancel: false };
+      const wasMuted = v.muted;
       const tot = total(), A = kf && !kf.a ? 0 : Math.min(kf ? kf.a : AUDIO, tot >= 240 ? 128000 : AUDIO), room = o.roomMB * 1048576 * 8 * .88 / Math.max(1, tot) - A;
-      const pw = cv.width, phh = cv.height; sizeCanvas(3840, room < 0.85e6 ? 480 : room < 2.5e6 ? 720 : room < 8e6 ? 1080 : 0);   // few bits: fewer, sharper pixels (never under 720p)
-      const fps = 30, vs = cv.captureStream(fps), tracks = vs.getVideoTracks().slice();
-      let dest = null;
-      if (ac) { dest = ac.createMediaStreamDestination(); chain.out.connect(dest); spk.gain.value = 0; tracks.push(...dest.stream.getAudioTracks()); }
-      const vbr = Math.round(Math.max(1e5, Math.min(room, cv.width * cv.height * fps * .3, 60e6)));
-      const ro = { mimeType: mime, videoBitsPerSecond: vbr, videoKeyFrameIntervalDuration: 2000 }; if (A) ro.audioBitsPerSecond = A;
-      let rec; try { rec = new MediaRecorder(new MediaStream(tracks), ro); } catch (_) { rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime }); }
-      const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
-      let recordingError;
-      rec.onerror = error => { recordingError = error; if (exporting) exporting.cancel = true; };
-      const stopped = new Promise(res => { rec.onstop = res; });
-      let doneT = 0;
+      const pw = cv.width, phh = cv.height;
+      const [cw, ch] = cropSize();
+      if (!q720(Math.floor(cw), Math.floor(ch))) throw fail('cropQuality');
+      const chunks = [];
+      let vs, dest, rec;
       try {
+        if (useBuf) v.muted = true;
+        sizeCanvas(Math.max(3840, 720 * Math.max(cw, ch) / Math.min(cw, ch)), room < 2.5e6 ? 720 : room < 8e6 ? 1080 : 0);
+        if (!q720(cv.width, cv.height)) throw fail('cropQuality');
+        const fps = 30;
+        vs = cv.captureStream(fps);
+        const tracks = vs.getVideoTracks().slice();
+        dest = ac.createMediaStreamDestination();
+        chain.out.connect(dest);
+        spk.gain.value = 0;
+        tracks.push(...dest.stream.getAudioTracks());
+        const vbr = Math.round(Math.max(1e5, Math.min(room, cv.width * cv.height * fps * .3, 60e6)));
+        const ro = { mimeType: mime, videoBitsPerSecond: vbr, videoKeyFrameIntervalDuration: 2000 };
+        if (A) ro.audioBitsPerSecond = A;
+        const output = new MediaStream(tracks);
+        try { rec = new MediaRecorder(output, ro); } catch (_) { rec = new MediaRecorder(output, { mimeType: mime }); }
+        rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+        let recordingError, doneT = 0;
+        rec.onerror = error => { recordingError = error; if (exporting) exporting.cancel = true; };
+        const stopped = new Promise(resolve => { rec.onstop = resolve; });
         if (ac) await ac.resume();
         for (let i = 0; i < S.segs.length; i++) {
           const s = S.segs[i];
@@ -1089,12 +1103,13 @@ void main(){
         let stopTimer;
         const timeout = new Promise((_, reject) => { stopTimer = setTimeout(() => reject(fail('noRender')), 15000); });
         try { await Promise.race([stopped, timeout]); } finally { clearTimeout(stopTimer); }
-      } catch (e) { try { if (rec.state !== 'inactive') rec.stop(); } catch (_) {} throw e; }
+      } catch (e) { try { if (rec && rec.state !== 'inactive') rec.stop(); } catch (_) {} throw e; }
       finally {
         stopAudio(); try { v.pause(); } catch (_) {}
         if (dest) { try { chain.out.disconnect(dest); } catch (_) {} spk.gain.value = 1; }
-        vs.getTracks().forEach(x => x.stop());
-        cv.width = pw; cv.height = phh; exporting = null; v.muted = wasMuted; route(); if (ac) ac.resume().catch(() => {}); needs = true; layout();
+        vs?.getTracks().forEach(track => track.stop());
+        dest?.stream.getTracks().forEach(track => track.stop());
+        cv.width = pw; cv.height = phh; v.muted = wasMuted; if (ac) ac.resume().catch(() => {});
       }
       const type = (rec.mimeType || mime).split(';')[0];
       onP(100);
@@ -1137,7 +1152,7 @@ void main(){
         try { if (AS) AS.type = asPrev || 'auto'; } catch (_) {}   // the camera needs the microphone back
         v.removeAttribute('src'); try { v.load(); } catch (_) {}
         if (bgV) { bgV.pause(); bgV.removeAttribute('src'); } if (bgUrl) URL.revokeObjectURL(bgUrl);
-        URL.revokeObjectURL(url); root.innerHTML = ''; root.classList.remove('ve', 'panel', 'playing');
+        URL.revokeObjectURL(url); root.innerHTML = ''; root.classList.remove('ve', 've-audio', 'panel', 'playing');
       }
     };
   }

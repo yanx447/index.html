@@ -146,6 +146,13 @@ PD.social = (() => {
     if (!kind || (want && want !== 'any' && kindOf(file) && kindOf(file) !== want)) throw fail('badFile');
     const most = kind === 'video' || (kind === 'audio' && opts?.post) ? ROOM() : LIMIT[kind];   // a video may be as large as the server takes
     if (!(opts && opts.big) && file.size > most * 1048576 && !(kind === 'photo' && file.type !== 'image/gif')) throw Object.assign(fail('tooBig'), { n: most, s: Math.ceil(file.size / 1048576) });
+    const audioInfo = kind === 'audio' && opts?.post ? await M.losslessInfo(file) : null;
+    if (kind === 'audio' && opts?.post && !audioInfo) throw fail('losslessOnly');
+    if (audioInfo?.seconds > 0) {
+      if (audioInfo.seconds > LONG.audio * 60) throw Object.assign(fail('tooLong'), { n: LONG.audio });
+      return { kind, blob: file, ext: audioInfo.codec, audioInfo,
+        meta: { dur: audioInfo.seconds, codec: audioInfo.codec, rate: audioInfo.rate, bits: audioInfo.bits } };
+    }
     const url = URL.createObjectURL(file);
     try {
       if (kind === 'photo') {
@@ -158,7 +165,7 @@ PD.social = (() => {
         const k = Math.min(1, 4096 / Math.max(img.naturalWidth, img.naturalHeight));
         return { kind, blob, ext: 'jpg', meta: { w: Math.round(img.naturalWidth * k), h: Math.round(img.naturalHeight * k) } };
       }
-      const ext = (file.name.match(/\.([a-z0-9]{2,5})$/i) || [, kind === 'video' ? 'mp4' : 'm4a'])[1].toLowerCase();
+      const ext = audioInfo?.codec || (file.name.match(/\.([a-z0-9]{2,5})$/i) || [, kind === 'video' ? 'mp4' : 'm4a'])[1].toLowerCase();
       let m = null;
       try { m = await loadMedia(kind === 'video' ? 'video' : 'audio', url); } catch (e) { if (e.code !== 'badFile') throw e; }
       // this browser cannot open it (HEVC, a camera's own MOV, some audio codecs): it is still uploaded untouched, with what its header says
@@ -169,7 +176,7 @@ PD.social = (() => {
         if (dur > LONG[kind] * 60 + 1.5) throw Object.assign(fail('tooLong'), { n: LONG[kind] });
         const meta = { dur: Math.round(dur * 10) / 10 };
         if (kind === 'video') { meta.w = hd.w; meta.h = hd.h; }
-        return { kind, blob: file, ext, meta };
+        return { kind, blob: file, ext, meta, audioInfo };
       }
       if (!isFinite(m.duration)) {   // a clip recorded by a browser carries no length: the player finds it by going to the end
         await new Promise(res => { const ok = () => { if (isFinite(m.duration)) { m.removeEventListener('durationchange', ok); res(); } }; m.addEventListener('durationchange', ok); setTimeout(res, 3000); try { m.currentTime = 1e101; } catch (_) { res(); } });
@@ -177,7 +184,7 @@ PD.social = (() => {
       }
       const dur = isFinite(m.duration) && m.duration > 0 ? m.duration : (opts && opts.dur) || 0;   // a clip filmed in the browser does not always know its own length
       if (dur > LONG[kind] * 60 + 1.5) throw Object.assign(fail('tooLong'), { n: LONG[kind] });
-      const out = { kind, blob: file, ext, meta: { dur: Math.round(dur * 10) / 10 } };
+      const out = { kind, blob: file, ext, audioInfo, meta: { dur: Math.round(dur * 10) / 10 } };
       if (kind === 'video') {
         out.meta.w = m.videoWidth; out.meta.h = m.videoHeight;
         try {   // the still: a frame a little way in (some codecs cannot be drawn by this browser; then the post has none)
@@ -730,15 +737,17 @@ PD.social = (() => {
   function checkReel(prep, file) {
     const max = prep.kind === 'audio' ? 900 : MAXSEC, actual = prep.meta?.dur;
     if (!actual || (prep.kind === 'video' && !Math.min(prep.meta.w || 0, prep.meta.h || 0))) throw fail('badFile');
+    if (prep.kind === 'video' && !M.isHD(prep.meta.w, prep.meta.h)) throw fail('reelSmall');
+    if (prep.kind === 'audio' && !prep.audioInfo) throw fail('losslessOnly');
     if (actual > max) throw Object.assign(fail('reelLong'), { n: Math.round(actual), m: max / 60 });
     if (file.size > ROOM() * 1048576) throw Object.assign(fail('reelHeavy'), { s: Math.ceil(file.size / 1048576), n: ROOM() });
   }
-  const reelErr = e => { const c = e && e.code; return c === 'tooBig' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'reelLong' || c === 'tooLong' ? t('fd.reelLong', { n: e.n, m: e.m || (c === 'tooLong' ? e.n : MAXSEC / 60) }) : c === 'reelSmall' ? t('fd.reelSmall', { n: e.n }) : c === 'reelHuge' ? t('fd.reelHuge') : c === 'reelHeavy' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'too-large' ? t('fd.reelHeavy', { s: '>' + ROOM(), n: ROOM() }) : fileErr(e); };
+  const reelErr = e => { const c = e && e.code; return c === 'tooBig' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'reelLong' || c === 'tooLong' ? t('fd.reelLong', { n: e.n, m: e.m || (c === 'tooLong' ? e.n : MAXSEC / 60) }) : c === 'reelSmall' || c === 'video-resolution' ? t('mc.minVideo') : c === 'losslessOnly' || c === 'audio-format' ? t('mc.losslessOnly') : c === 'cropQuality' ? t('mc.cropQuality') : c === 'reelHuge' ? t('fd.reelHuge') : c === 'reelHeavy' ? t('fd.reelHeavy', { s: e.s, n: e.n }) : c === 'too-large' ? t('fd.reelHeavy', { s: '>' + ROOM(), n: ROOM() }) : fileErr(e); };
   /** the camera picture, sized in pixels (not by object-fit, which some phones ignore for a live camera): it covers the
    *  screen when it has the screen's orientation; otherwise all of it shows, so nothing that is filmed is hidden */
   const fitCam = v => { if (v.videoWidth) PD.vedit.place(v, v.videoWidth, v.videoHeight, { x: 0, y: 0, w: innerWidth, h: innerHeight }, (v.videoWidth > v.videoHeight) === (innerWidth > innerHeight)); };
   const RESS = ['auto', 720, 1080, 2160];
-  const resLabel = n => n >= 2000 ? '4K' : n >= 1400 ? '1440p' : n >= 1000 ? '1080p' : n >= 700 ? '720p' : n + 'p';
+  const resLabel = n => n === 2160 ? '4K' : n + 'p';
 
   /** three steps on one full screen: the camera → the clip played back → caption and post. Back steps back one. */
   function studio(done, onClose) {
@@ -751,11 +760,14 @@ PD.social = (() => {
     try { mac = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 }); }
     catch (_) { try { mac = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {} }
     let face = PD.store.get('fd.face', 'user'), limit = MODES.indexOf(PD.store.get('fd.mode', 60)) >= 0 ? PD.store.get('fd.mode', 60) : 60, delay = 0;
-    let pcm = null, audioMode = false, audioRecording = false, startedAudio = 0, finishingAudio = false, audioSeq = 0, pendingMedia = null, stream = null, rec = null, t0 = 0, tick = 0, cd = 0, gen = 0, closed = false, stage = 'cam', prep = null, final = null, finalVer = -1, fsrc = null, ed = null, busy = false, posting = false, torch = false, lid = 0;
+    const takeClock = M.captureClock();
+    let pcm = null, audioMode = false, audioRecording = false, recordingPaused = false, finishingAudio = false, audioSeq = 0, pendingMedia = null, stream = null, rec = null, tick = 0, cd = 0, gen = 0, closed = false, stage = 'cam', prep = null, final = null, finalVer = -1, fsrc = null, ed = null, busy = false, posting = false, torch = false, lid = 0;
 
     /* the camera */
     const view = h('video', { class: 'cam-view', playsinline: true, autoplay: true }); view.muted = true; view.playsInline = true;
-    const prog = h('div', { class: 'cam-prog' }, [h('i')]), clock = h('b', { class: 'cam-clock mono' });
+    const takeMarks = h('div', { class: 'cam-marks', 'aria-hidden': 'true' });
+    const prog = h('div', { class: 'cam-prog' }, [h('i'), takeMarks]), clock = h('b', { class: 'cam-clock mono' });
+    const pauseBadge = h('div', { class: 'cam-paused-label', role: 'status', hidden: true, text: t('mc.paused') });
     const count = h('div', { class: 'cam-count', 'aria-live': 'assertive' }), msg = h('div', { class: 'cam-msg', hidden: true });
     const flipB = h('button', { class: 'cam-ic', type: 'button', hidden: true, 'aria-label': t('fd.flip'), html: ic.flip, onclick: () => { if (rec || audioRecording || finishingAudio || cd || busy) return; face = face === 'user' ? 'environment' : 'user'; PD.store.set('fd.face', face); buzz('select'); open(); } });
     const torchB = h('button', { class: 'cam-ic', type: 'button', hidden: true, 'aria-label': t('fd.torch'), 'aria-pressed': 'false', html: CI.torch, onclick: async () => {
@@ -772,7 +784,7 @@ PD.social = (() => {
       const tick = () => {
         mRaf = requestAnimationFrame(tick);
         mAn.getFloatTimeDomainData(mBuf); let pk = 0; for (let i = 0; i < mBuf.length; i++) { const a = Math.abs(mBuf[i]); if (a > pk) pk = a; }
-        if (rec) mPeak = Math.max(mPeak, pk);
+        if (rec && !recordingPaused) mPeak = Math.max(mPeak, pk);
         micFill.style.height = Math.min(100, Math.sqrt(pk) * 120) + '%';
       };
       tick();
@@ -789,7 +801,8 @@ PD.social = (() => {
     const modes = h('div', { class: 'cam-modes', role: 'radiogroup', 'aria-label': t('fd.maxLen') });
     const qnote = h('small', { class: 'cam-qnote', role: 'status' });
     const paintModes = () => {
-      qnote.textContent = t('mc.storage', { n: ROOM() });
+      qnote.textContent = audioMode ? t('mc.storage', { n: ROOM() }) + ' · WAV 24 bit' :
+        '720p+ · ' + t('mc.storage', { n: ROOM() });
       modes.replaceChildren(...MODES.map(n => h('button', { type: 'button', role: 'radio', 'aria-checked': String(n === limit),
         class: n === limit ? 'on' : '', text: n >= 60 ? t('fd.min', { n: n / 60 }) : t('fd.sec', { n }), onclick: () => {
           if (rec || audioRecording || finishingAudio || cd || busy) return;
@@ -797,18 +810,51 @@ PD.social = (() => {
         } })));
     };
     const go = h('button', { class: 'cam-go', type: 'button', 'aria-label': t('fd.recStart'), html: '<svg viewBox="0 0 88 88" aria-hidden="true"><circle class="bg" cx="44" cy="44" r="40"/><circle class="fg" cx="44" cy="44" r="40" pathLength="100"/></svg><i></i>', onclick: press });
-    const ringFg = go.querySelector('.fg');
+    const ringFg = go.querySelector('.fg'), recordShape = go.querySelector('i');
+    const pauseIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+    const resumeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 4.5v15l12-7.5z"/></svg>';
+    const continueIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const finishB = h('button', { class: 'cam-finish', type: 'button', hidden: true, 'aria-label': t('mc.reviewTake'), onclick: () => {
+      if (audioRecording) finishAudio(); else if (rec) stopRec(true);
+    } }, [h('span', { html: continueIcon }), h('small', { text: t('mc.reviewTake') })]);
+    function paintTake(active) {
+      root.classList.toggle('recording', active); root.classList.toggle('take-paused', active && recordingPaused);
+      pauseBadge.hidden = !active || !recordingPaused;
+      finishB.hidden = !active; micB.hidden = active;
+      go.setAttribute('aria-label', t(active ? recordingPaused ? 'mc.resumeTake' : 'mc.pauseTake' : 'fd.recStart'));
+      recordShape.innerHTML = active ? recordingPaused ? resumeIcon : pauseIcon : '';
+      if (!active) { prog.firstChild.style.width = '0'; ringFg.style.strokeDashoffset = ''; takeMarks.replaceChildren(); }
+    }
+    function paintClock(seconds, max) {
+      const value = Math.min(seconds, max), progress = value / max;
+      clock.textContent = PD.fmtTime(value) + ' / ' + PD.fmtTime(max);
+      prog.firstChild.style.width = progress * 100 + '%';
+      ringFg.style.strokeDashoffset = String(100 - progress * 100);
+    }
+    function toggleTake() {
+      if (rec?.state === 'inactive') return;
+      try {
+        if (rec) recordingPaused ? rec.resume() : rec.pause();
+        if (recordingPaused) { pcm?.resume(); takeClock.resume(); }
+        else {
+          pcm?.pause(); const elapsed = takeClock.pause();
+          if (elapsed > .12) { const mark = h('span'); mark.style.left = Math.min(100, elapsed / limit * 100) + '%'; takeMarks.append(mark); }
+          paintClock(elapsed, limit);
+        }
+        recordingPaused = !recordingPaused; paintTake(true); buzz('select');
+      } catch (_) { PD.ui.toast(t('mc.recordError')); }
+    }
     const gal = h('button', { class: 'cam-gal', type: 'button', onclick: gallery }, [h('span', { html: IC.photo }), h('small', { 'data-t': 'mc.import' })]);
     const mode = h('button', { class: 'btn small cam-kind', type: 'button', text: t('mc.recordSong'), onclick: () => {
       if (rec || audioRecording || finishingAudio || cd || busy) return;
       audioMode = !audioMode; root.classList.toggle('audio-mode', audioMode);
-      mode.textContent = t(audioMode ? 'mc.camera' : 'mc.recordSong'); open();
+      mode.textContent = t(audioMode ? 'mc.camera' : 'mc.recordSong'); paintModes(); open();
     } });
     const shot = h('section', { class: 'cam-shot' }, [view, h('div', { class: 'cam-shade t' }), h('div', { class: 'cam-shade b' }),
       h('div', { class: 'cam-top' }, [h('button', { class: 'cam-ic cam-x', type: 'button', 'aria-label': t('close'), html: ic.close, onclick: () => close() }), prog]),
-      clock, h('div', { class: 'cam-rail' }, [flipB, resB, torchB, timerB]), count, msg,
+      clock, pauseBadge, h('div', { class: 'cam-rail' }, [flipB, resB, torchB, timerB]), count, msg,
       h('div', { class: 'cam-audio-screen' }, [h('span', { html: IC.music }), h('strong', { 'data-t': 'mc.saveWav' })]),
-      h('div', { class: 'cam-bot' }, [mode, qnote, modes, h('div', { class: 'cam-row' }, [gal, go, micB])])]);
+      h('div', { class: 'cam-bot' }, [mode, qnote, modes, h('div', { class: 'cam-row' }, [gal, go, micB, finishB])])]);
 
     /* the clip, edited (PD.vedit) */
     const review = h('section', { class: 'cam-rev' });
@@ -985,8 +1031,8 @@ PD.social = (() => {
 
     function press() {
       if (busy || finishingAudio || stage !== 'cam') return;
-      if (audioMode) { if (audioRecording) finishAudio(); else startAudio(); return; }
-      if (rec) { stopRec(true); return; }
+      if (audioRecording || rec) { toggleTake(); return; }
+      if (audioMode) { startAudio(); return; }
       if (cd) { clearInterval(cd); cd = 0; count.textContent = ''; root.classList.remove('counting'); return; }   // a second tap during the countdown cancels it
       if (!stream) return;
       if (!delay) { startRec(); return; }
@@ -1002,13 +1048,10 @@ PD.social = (() => {
         const input = await M.pcm(mac, stream.getAudioTracks()[0], max);
         if (seq !== audioSeq || closed) { input?.discard(); return; }
         if (!input) throw fail('badFile');
-        pcm = input; pcm.start(); startedAudio = performance.now(); audioRecording = true;
-        root.classList.add('recording'); go.setAttribute('aria-label', t('fd.recStop'));
-        clock.textContent = '0:00 / ' + PD.fmtTime(max);
+        pcm = input; pcm.start(); takeClock.start(); audioRecording = true; recordingPaused = false;
+        paintTake(true); paintClock(0, max);
         tick = setInterval(() => {
-          const elapsed = (performance.now() - startedAudio) / 1000, progress = Math.min(1, elapsed / max);
-          prog.firstChild.style.width = (progress * 100) + '%';
-          clock.textContent = PD.fmtTime(Math.min(max, elapsed)) + ' / ' + PD.fmtTime(max);
+          const elapsed = takeClock.seconds(); paintClock(elapsed, max);
           if (elapsed >= max) finishAudio();
         }, 100);
       } catch (_) { if (!closed && seq === audioSeq) PD.ui.toast(t('mc.recordError')); }
@@ -1017,7 +1060,7 @@ PD.social = (() => {
     async function finishAudio() {
       if (!audioRecording) return;
       audioRecording = false; finishingAudio = true; clearInterval(tick);
-      root.classList.remove('recording'); go.setAttribute('aria-label', t('fd.recStart')); prog.firstChild.style.width = '0';
+      takeClock.pause(); recordingPaused = false; paintTake(false);
       const raw = await pcm?.stop(); pcm = null; finishingAudio = false;
       if (closed) return;
       if (!raw || raw.dur < .1) { PD.ui.toast(t('mc.recordError')); return; }
@@ -1029,6 +1072,8 @@ PD.social = (() => {
       if (mac && mac.state !== 'running') mac.resume().catch(() => {});
       mPeak = 0;
       if (!stream || !window.MediaRecorder) { PD.ui.toast(t('fd.camNone'), 5000); return; }
+      if (!view.videoWidth || !view.videoHeight) return PD.ui.toast(t('fd.preparing'));
+      if (!M.isHD(view.videoWidth, view.videoHeight)) return PD.ui.toast(t('mc.minVideo'));
       let fmt = PD.vedit.pickFormat();   // no test before filming: the take itself shows whether the sound was kept
       const mime = fmt ? fmt.m : RECM.find(m => MediaRecorder.isTypeSupported(m));
       if (!mime) { PD.ui.toast(t('fd.camNone'), 5000); return; }
@@ -1045,10 +1090,10 @@ PD.social = (() => {
       r.ondataavailable = e => { if (e.data?.size) chunks.push(e.data); };
       r.onerror = () => { r._keep = false; if (!closed) PD.ui.toast(t('mc.recordError')); };
       r.onstop = async () => {
-        const dur = Math.min(lim, ((r._ended || performance.now()) - t0) / 1000), keep = r._keep;
+        const dur = Math.min(lim, r._elapsed ?? takeClock.seconds()), keep = r._keep;
         const raw = pcm; pcm = null;
         const wv = keep && !closed ? await raw?.stop() : (raw?.discard(), null);
-        rec = null; clearInterval(tick); root.classList.remove('recording'); go.setAttribute('aria-label', t('fd.recStart')); ringFg.style.strokeDashoffset = ''; prog.firstChild.style.width = '0';
+        rec = null; clearInterval(tick); recordingPaused = false; paintTake(false);
         if (!keep || closed) return;
         const heard = mac && mac.state === 'running' && mSrc;   // the meter can only judge when it is running
         if (!stream || !stream.getAudioTracks().length) PD.ui.toast(t('fd.noMic'), 6000);
@@ -1069,19 +1114,22 @@ PD.social = (() => {
         pcm?.discard(); pcm = null; PD.ui.toast(t('mc.recordError')); return;
       }
       pcm?.start();
-      rec = r; t0 = performance.now(); buzz('select');
-      root.classList.add('recording'); go.setAttribute('aria-label', t('fd.recStop')); clock.textContent = '0:00 / ' + PD.fmtTime(lim);
+      rec = r; takeClock.start(); recordingPaused = false; buzz('select');
+      paintTake(true); paintClock(0, lim);
       tick = setInterval(() => {
-        const s = (performance.now() - t0) / 1000, f = Math.min(1, s / lim);
-        ringFg.style.strokeDashoffset = String(100 - f * 100); prog.firstChild.style.width = (f * 100) + '%';
-        clock.textContent = PD.fmtTime(s) + ' / ' + PD.fmtTime(lim);
+        const s = takeClock.seconds(); paintClock(s, lim);
         if (s >= lim - .12) stopRec(true);
       }, 100);
     }
-    function stopRec(keep) { if (!rec) return; rec._keep = keep; rec._ended ||= performance.now(); try { if (rec.state !== 'inactive') rec.stop(); } catch (_) {} }
+    function stopRec(keep) {
+      if (!rec || rec.state === 'inactive') return;
+      rec._keep = keep; rec._elapsed = takeClock.pause(); pcm?.pause();
+      clearInterval(tick);
+      try { rec.stop(); } catch (_) { if (!closed) PD.ui.toast(t('mc.recordError')); }
+    }
     function gallery() {
       if (rec || audioRecording || cd || busy || finishingAudio) return;
-      pickFile('video/*,' + ACCEPT.audio).then(f => { if (f && !closed && stage === 'cam') take(f); });
+      pickFile('video/*,.wav,.flac,audio/wav,audio/flac').then(f => { if (f && !closed && stage === 'cam') take(f); });
     }
 
     async function take(file, dur, mir, wv, abr) {
@@ -1114,31 +1162,23 @@ PD.social = (() => {
       if (s === 'cam') { open(); return; }
       off();
       if (s === 'rev') {
-        if (!ed && prep.kind === 'video') {
-          ed = PD.vedit.mount(review, { file: prep.blob, meta: prep.meta, roomMB: ROOM(), mirror: !!prep.meta.mirror,
-            mustRender: !!prep.squeeze, rawAudio: prep.wav?.blob, onOriginal: prep.squeeze ? () => M.save(prep.blob, prep.blob.name) : null, onBack: retake, onNext: next });
-          if (prep.squeeze) PD.ui.toast(t('mc.fit', { n: ROOM() }), 7000);
-        } else if (!ed) {
-          const u = URL.createObjectURL(prep.blob);
-          const player = h('audio', { src: u, controls: true, preload: 'metadata' }), p = prep;
-          const goNext = h('button', { class: 'btn primary big', type: 'button', text: t('mc.next'), disabled: !!p.oversize,
-            onclick: () => { useFinal(p); show('post'); } });
-          const cover = h('button', { class: 'btn', type: 'button', text: t('ve.b.image'), onclick: async () => {
-            const file = await pickFile('image/*');
-            if (!file || prep !== p) return;
+        if (!ed) {
+          const p = prep, audio = p.kind === 'audio';
+          async function selectCover() {
+            const chosen = await pickFile('image/*');
+            if (!chosen || prep !== p) return;
             try {
-              const img = await prepare(file, 'photo');
-              if (img.ext === 'jpg' && prep === p) { p.thumb = img.blob; pendingMedia = null; cover.textContent = file.name; }
+              const img = await prepare(chosen, 'photo');
+              if (img.ext === 'jpg' && prep === p) {
+                p.thumb = img.blob; if (final) final.thumb = img.blob;
+                pendingMedia = null; PD.ui.toast(chosen.name);
+              }
             } catch (_) { PD.ui.toast(t('fd.badFile')); }
-          } });
-          review.append(h('section', { class: 'mc-audio-review' }, [
-            h('button', { class: 'cam-ic', type: 'button', html: ic.back, 'aria-label': t('back'), onclick: retake }),
-            h('span', { class: 'mc-audio-icon', html: IC.music }), h('h2', { text: p.blob.name }),
-            h('small', { text: PD.fmtTime(p.meta.dur) + ' · ' + (p.blob.size / 1048576).toFixed(1) + ' MB' }),
-            player, p.oversize ? h('p', { class: 'muted', text: reelErr(p.oversize) }) : null,
-            h('div', { class: 'row' }, [cover, h('button', { class: 'btn', type: 'button', text: t('mc.original'), onclick: () => M.save(p.blob, p.blob.name) })]), goNext]));
-          ed = { show() { review.hidden = false; }, hide() { player.pause(); review.hidden = true; }, back() { return false; },
-            destroy() { player.pause(); player.removeAttribute('src'); player.load(); URL.revokeObjectURL(u); review.replaceChildren(); review.hidden = false; } };
+          }
+          ed = PD.vedit.mount(review, { kind: p.kind, file: p.blob, meta: p.meta, audioInfo: p.audioInfo, roomMB: ROOM(), mirror: !!p.meta.mirror,
+            mustRender: !!p.squeeze, rawAudio: p.wav?.blob, onOriginal: audio || p.squeeze ? () => M.save(p.blob, p.blob.name) : null,
+            onCover: audio ? selectCover : null, onSaveMix: audio ? () => next(true) : null, onBack: retake, onNext: () => next() });
+          if (p.squeeze || p.oversize) PD.ui.toast(t('mc.sizeEdit', { n: ROOM() }), 7000);
         } else ed.show();
       } else if (ed) ed.hide();
       if (s === 'post') { sima(); paintWav(); }
@@ -1189,18 +1229,25 @@ PD.social = (() => {
       thumb.classList.toggle('flipx', !!p.meta?.mirror);
     }
     /** not edited: the file as filmed. Edited: made again (once per version of the edit) and checked like any other clip. */
-    async function next() {
+    async function next(download = false) {
       if (busy || !ed) return;
       ed.prime();
-      if (!ed.dirty()) { if (!final || final !== prep) useFinal(prep); finalVer = -1; show('post'); return; }
-      if (final && finalVer === ed.version()) { show('post'); return; }
-      busy = true; root.classList.add('busy'); busyX.hidden = false; busyT.textContent = t('ve.rendering', { p: 0 });
+      if (!download && !ed.dirty()) {
+        if (prep.oversize) { PD.ui.toast(t('mc.sizeEdit', { n: ROOM() }), 6000); return; }
+        if (!final || final !== prep) useFinal(prep); finalVer = -1; show('post'); return;
+      }
+      if (!download && final && finalVer === ed.version()) { show('post'); return; }
+      const kind = prep.kind, format = kind === 'video' ? 've.rendering' : 'mx.renderSound';
+      busy = true; root.classList.add('busy'); busyX.hidden = false; busyT.textContent = t(format, { p: 0 });
       try {
-        const f = await ed.render(p => { busyT.textContent = t('ve.rendering', { p }); });
+        const f = await ed.render(p => { busyT.textContent = t(format, { p }); }, download);
+        if (closed) return;
+        if (download) { M.save(f, f.name); return; }
         busyX.hidden = true; busyT.textContent = t('fd.preparing');
-        const length = ed.length(), p = await prepare(f, 'video', { dur: length });
-        if (length <= MAXSEC && p.meta.dur > MAXSEC && p.meta.dur - MAXSEC < .8) p.meta.dur = MAXSEC;
+        const length = ed.length(), p = await prepare(f, kind, { dur: length, post: true });
+        if (kind === 'video' && length <= MAXSEC && p.meta.dur > MAXSEC && p.meta.dur - MAXSEC < .8) p.meta.dur = MAXSEC;
         checkReel(p, f);
+        if (kind === 'audio') p.thumb = prep.thumb;
         if (closed) return;
         useFinal(p); finalVer = ed.version(); show('post');
       } catch (e) {
@@ -1234,7 +1281,9 @@ PD.social = (() => {
       } catch (e) {
         posting = false; postB.disabled = false; upbar.hidden = true;
         state.textContent = /sima-check|video-only|video-too-long/.test(e?.message) ? t('mc.backend') :
-          /slow-down/.test(e?.message) ? t('fd.slow') : reelErr(e);
+          /slow-down/.test(e?.message) ? t('fd.slow') :
+          /video-resolution/.test(e?.message) ? t('mc.minVideo') :
+          /audio-format/.test(e?.message) ? t('mc.losslessOnly') : reelErr(e);
       }
     }
     function close(fromBack) {

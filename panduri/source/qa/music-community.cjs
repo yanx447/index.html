@@ -6,7 +6,7 @@ const { test } = require('node:test');
 
 function context(extra = {}, pd = {}) {
   return vm.createContext({ PD: { i18n: { add() {} }, ...pd }, window: { addEventListener() {} }, location: { pathname: '/panduri/app/', href: 'https://test.example/panduri/app/', protocol: 'https:' }, setTimeout, clearTimeout,
-    Blob, URL, AbortController, btoa, ...extra });
+    Blob, File, URL, AbortController, btoa, ...extra });
 }
 function load(ctx, ...names) {
   for (const name of names) {
@@ -49,6 +49,10 @@ test('PCM AudioWorklet yields a 24-bit stereo WAV at the actual capture rate', a
   node.processor.process([[Float32Array.of(1), Float32Array.of(-1)]]);
   input.start();
   node.processor.process([[Float32Array.of(.5, 0), Float32Array.of(-.5, 0)]]);
+  input.pause();
+  node.processor.process([[Float32Array.of(.9), Float32Array.of(.9)]]);
+  input.resume();
+  node.processor.process([[Float32Array.of(.25), Float32Array.of(-.25)]]);
   const result = await input.stop();
   const wav = Buffer.from(await result.blob.arrayBuffer());
   assert.equal(result.blob.type, 'audio/wav');
@@ -56,13 +60,66 @@ test('PCM AudioWorklet yields a 24-bit stereo WAV at the actual capture rate', a
   assert.equal(wav.readUInt16LE(22), 2);
   assert.equal(wav.readUInt32LE(24), 48000);
   assert.equal(wav.readUInt16LE(34), 24);
-  assert.equal(wav.readUInt32LE(40), 12);
+  assert.equal(wav.readUInt32LE(40), 18);
   assert.deepEqual([...wav.subarray(44, 50)], [0, 0, 64, 1, 0, 192]);
-  assert.equal(result.dur, 2 / 48000);
+  assert.deepEqual([...wav.subarray(56, 62)], [0, 0, 32, 0, 0, 224]);
+  assert.equal(result.dur, 3 / 48000);
+});
+
+test('the take clock counts only active sections and keeps 720p in either orientation', () => {
+  const music = load(context(), 'music-community').musicCommunity;
+  let now = 0;
+  const clock = music.captureClock(() => now);
+  clock.start();
+  now = 3500;
+  assert.equal(clock.pause(), 3.5);
+  now = 18000;
+  assert.equal(clock.seconds(), 3.5);
+  clock.resume();
+  now = 22500;
+  assert.equal(clock.pause(), 8);
+  clock.start();
+  assert.equal(clock.seconds(), 0);
+  assert.ok(music.isHD(720, 1280) && music.isHD(1280, 720) && music.isHD(3840, 2160));
+  assert.ok(!music.isHD(719, 1280) && !music.isHD(1920, 480) && !music.isHD(NaN, 720));
+});
+
+test('edited PCM round-trips through a WAV header and FLAC requires STREAMINFO', async () => {
+  const music = load(context(), 'music-community').musicCommunity;
+  const wave = await music.encodeWav({
+    numberOfChannels: 1, length: 4, sampleRate: 48000,
+    getChannelData: () => Float32Array.of(0, -.5, 1, -1)
+  }, 1, () => false, () => {});
+  assert.equal(wave.type, 'audio/wav');
+  assert.equal(wave.size, 54);
+  const info = await music.losslessInfo(wave);
+  assert.equal(info.codec, 'wav');
+  assert.equal(info.bits, 24);
+  assert.equal(info.seconds, 3 / 48000);
+  const samples = new DataView(await wave.arrayBuffer());
+  assert.equal(samples.getUint32(40, true), 9);
+  assert.equal(samples.getUint8(53), 0);
+
+  const flac = Buffer.alloc(46);
+  flac.write('fLaC');
+  flac[4] = 128;
+  flac[7] = 34;
+  flac.writeBigUInt64BE((96000n << 44n) | (1n << 41n) | (23n << 36n) | 192000n, 18);
+  const lossless = await music.losslessInfo(new Blob([flac]));
+  assert.equal(lossless.codec, 'flac');
+  assert.equal(lossless.bits, 24);
+  assert.equal(lossless.channels, 2);
+  assert.equal(lossless.seconds, 2);
+  assert.equal(await music.losslessInfo(new Blob(['ID3compressed'], { type: 'audio/wav' })), null);
+  assert.equal(await music.losslessInfo(new Blob([flac.subarray(0, 42)])), null);
+
+  const badWav = Buffer.from(await wave.arrayBuffer());
+  badWav.writeUInt16LE(85, 20);
+  assert.equal(await music.losslessInfo(new Blob([badWav])), null);
 });
 
 test('noise profiling attenuates background while retaining a foreground tone', async () => {
-  const { vedit } = load(context(), 'vedit');
+  const { vedit } = load(context(), 'mixrack', 'vedit');
   const sr = 16000, len = sr * 2;
   const output = channels => {
     const data = Array.from({ length: channels }, () => new Float32Array(len));
