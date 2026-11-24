@@ -9,6 +9,7 @@
    ===================================================================== */
 'use strict';
 PD.i18n.add({
+  've.tools': ['რედაქტირების ხელსაწყოები', 'Editing tools'],
   've.clip': ['კლიპი', 'Clip'], 've.sound': ['ხმა', 'Sound'], 've.filters': ['ფილტრები', 'Filters'], 've.bg': ['ფონი', 'Background'], 've.done': ['მზადაა', 'Done'],
   've.split': ['გაჭრა', 'Split'], 've.del': ['ნაწილის წაშლა', 'Delete part'], 've.reset': ['თავიდან', 'Reset'], 've.len': ['ხანგრძლივობა: {t}', 'Length: {t}'],
   've.clipHint': ['კიდეები შიგნით გადაწიე — ჩაიჭრება, გარეთ გამოწიე — დაბრუნდება. „გაჭრა" ყოფს კლიპს იქ, სადაც თეთრი ხაზია; შემდეგ ზედმეტ ნაწილს წაშლი.', 'Drag an edge in to trim it, or back out to bring it back. “Split” cuts the clip at the white line; then delete the part you do not want.'],
@@ -676,7 +677,7 @@ void main(){
     PD.i18n.apply(root);
     function layout() {
       if (audioOnly || !v.videoWidth) return;
-      const W = innerWidth, H = innerHeight, side = panel && W >= 960 && H >= 560;
+      const W = innerWidth, H = innerHeight, side = panel && W >= 820 && H >= 560;
       const box = {
         x: 0, y: 0,
         w: W - (side ? panelEl.offsetWidth + 20 : 0),
@@ -706,6 +707,10 @@ void main(){
     });
     v.addEventListener('loadeddata', () => { needs = true; });
     addEventListener('resize', layout);
+    const panelSize = typeof ResizeObserver === 'function' ? new ResizeObserver(() => {
+      if (!dead && !exporting && !hidden && panel) layout();
+    }) : null;
+    if (!audioOnly) panelSize?.observe(panelEl);
     function paintTime() { const t = v.currentTime, i = segIdx(t); let done = 0; for (let k = 0; k < S.segs.length && k < (i < 0 ? S.segs.length : i); k++) done += S.segs[k].b - S.segs[k].a; if (i >= 0) done += t - S.segs[i].a; timeEl.textContent = PD.fmtTime(done) + ' / ' + PD.fmtTime(total()); }
     function paintInfo() {
       const d = dirty();
@@ -958,7 +963,8 @@ void main(){
       sound() {
         const transport = orig ? timeline('wave').el : null;
         const rack = MIX.panel({
-          t, chain, tab: rackTab, preset: S.preset, get: () => S.aud,
+          t, chain, timeline: transport, tab: rackTab, preset: S.preset, get: () => S.aud,
+          playing: () => playing, time: () => PD.fmtTime(v.currentTime) + ' / ' + PD.fmtTime(dur),
           set(key, value, refresh) {
             S.preset = 'custom'; S.aud[key] = value;
             chain.set(S.aud, refresh); ver++; paintInfo(); route();
@@ -1012,7 +1018,7 @@ void main(){
             return kids;
           }
         });
-        return { el: [transport, rack.el].filter(Boolean), meter: rack.meter };
+        return { el: [rack.el], meter: rack.meter };
       },
       filters() {
         const chips = h('div', { class: 've-chips', role: 'radiogroup' }), cans = {};
@@ -1102,22 +1108,39 @@ void main(){
       } catch (_) { PD.ui.toast(t('ve.gifBad')); return false; }
     }
     let cur = null;
-    function open(k) {
-      if (panel !== k) { gradeBypass = false; pause(); needs = true; }
+    function open(k, viaToolbar = false) {
+      if (panel !== k) {
+        gradeBypass = false; pause(); needs = true;
+        if (compare) { compare = false; chain?.compare(false); makeWave(); }
+      }
       const previousScroll = panel === k ? panelEl.scrollTop : 0;
       panel = k; dnState = null;
       const title = { clip: 've.clip', sound: 've.sound', filters: 've.filters', bg: 've.bg' }[k];
       tls.length = 0; cur = PANELS[k]();
-      panelEl.innerHTML = '';
-      panelEl.append(h('div', { class: 've-ph-head' }, [h('h3', { 'data-t': title }), h('button', { class: 'btn small primary', type: 'button', 'data-t': 've.done', onclick: close })]), ...cur.el);
+      const toolbar = h('nav', { class: 've-workspaces', 'aria-label': t('ve.tools') }, tools.map(([key, label, icon]) =>
+        h('button', { class: 've-workspace', type: 'button', 'aria-current': key === k ? 'true' : null,
+          'data-tool': key, onclick: () => { if (key !== panel) open(key, true); } },
+        [h('i', { html: icon, 'aria-hidden': 'true' }), h('span', { 'data-t': label })])
+      ));
+      const done = h('button', { class: 'btn small primary ve-finish-panel', type: 'button', 'data-t': 've.done', onclick: () => close(true) });
+      panelEl.replaceChildren(h('div', { class: 've-ph-head' }, [toolbar, done]), ...cur.el);
       panelEl.hidden = false; panelEl.classList.toggle('ve-mixing', k === 'sound');
       panelEl.setAttribute('aria-label', t(title));
       panelEl.scrollTop = previousScroll;
       root.classList.add('panel'); PD.i18n.apply(panelEl);
-      cur?.paint?.(); route();
-      requestAnimationFrame(() => { layout(); tls.forEach(x => x.paint()); cur?.paint?.(); });
+      layout(); cur?.paint?.(); route();
+      if (viaToolbar) toolbar.querySelector('[aria-current="true"]')?.focus({ preventScroll: true });
+      requestAnimationFrame(() => { if (dead) return; layout(); tls.forEach(x => x.paint()); cur?.paint?.(); });
     }
-    function close() { gradeBypass = false; compare = false; chain?.compare(false); panel = null; cur = null; tls.length = 0; dnState = null; panelEl.hidden = true; panelEl.innerHTML = ''; root.classList.remove('panel'); layout(); needs = true; route(); if (playing) startAudio(); }
+    function close(focus = false) {
+      const previous = panel;
+      gradeBypass = false;
+      if (compare) { compare = false; chain?.compare(false); makeWave(); }
+      panel = null; cur = null; tls.length = 0; dnState = null;
+      panelEl.hidden = true; panelEl.replaceChildren();
+      root.classList.remove('panel'); layout(); needs = true; route(); if (playing) startAudio();
+      if (focus) toolB[previous]?.focus({ preventScroll: true });
+    }
     function paintPanel() { cur?.paint?.(); }
 
     async function renderSound(onP, download) {
@@ -1273,7 +1296,7 @@ void main(){
       hide() { pause(); hidden = true; root.hidden = true; },
       show() { hidden = false; root.hidden = false; needs = true; layout(); },
       destroy() {
-        dead = true; stemJob?.abort(); if (exporting) exporting.cancel = true; cancelAnimationFrame(raf); pause(); dnJob++; removeEventListener('resize', layout);
+        dead = true; stemJob?.abort(); if (exporting) exporting.cancel = true; cancelAnimationFrame(raf); pause(); dnJob++; panelSize?.disconnect(); removeEventListener('resize', layout);
         try { ac && ac.close(); } catch (_) {}
         try { if (AS) AS.type = asPrev || 'auto'; } catch (_) {}   // the camera needs the microphone back
         v.removeAttribute('src'); try { v.load(); } catch (_) {}

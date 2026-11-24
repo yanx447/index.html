@@ -1,5 +1,8 @@
 'use strict';
 PD.i18n.add({
+  'mx.plugins': ['პლაგინები', 'Plugins'], 'mx.original': ['ორიგინალი', 'Original'],
+  'mx.processed': ['მიქსი', 'Mix'], 'mx.play': ['დაკვრა', 'Play'], 'mx.pause': ['პაუზა', 'Pause'],
+  'mx.on': ['ჩართულია', 'On'], 'mx.off': ['გამორთულია', 'Off'],
   'mx.title': ['მიქსი', 'Mix'], 'mx.eq': ['ეკვალაიზერი', 'Equalizer'], 'mx.comp': ['კომპრესორი', 'Compressor'],
   'mx.rev': ['რევერბი', 'Reverb'], 'mx.delay': ['დაყოვნება', 'Delay'], 'mx.master': ['გამომავალი', 'Output'],
   'mx.character': ['ტემბრი', 'Tone tools'], 'mx.deess': ['დე-ესერი', 'De-esser'],
@@ -202,12 +205,15 @@ PD.mixrack = (() => {
     };
   }
 
+  const pauseIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14m6-14v14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>';
+  let nextPanel = 0;
   function panel(o) {
     const { h, ic } = PD, t = o.t, graph = o.chain;
     let tab = o.tab || 'eq', selected = 'mid', last = 0, paint = () => {};
     const sliders = new Map();
-    const work = h('div', { class: 'mx-work' });
-    const nav = h('div', { class: 'mx-tabs', role: 'tablist', 'aria-label': t('mx.title') });
+    const id = 'mx-panel-' + ++nextPanel;
+    const work = h('div', { class: 'mx-work', role: 'tabpanel', id });
+    const nav = h('div', { class: 'mx-tabs', role: 'tablist', 'aria-label': t('mx.plugins') });
     const keys = ['eq', 'comp', 'character', 'rev', 'delay', 'master', 'clean'];
     const title = key => t('mx.' + key);
     const button = (text, action, cls = 'btn small') => h('button', { type: 'button', class: cls, text, onclick: action });
@@ -223,19 +229,47 @@ PD.mixrack = (() => {
     ]);
     preset.value = o.preset || 'custom';
     preset.onchange = () => { if (preset.value !== 'custom') { o.choosePreset(preset.value); drawTab(); } };
-    const ab = button(t('ve.ab'), () => { o.compare(); ab.setAttribute('aria-pressed', String(o.compared())); });
-    ab.setAttribute('aria-pressed', String(o.compared()));
-    const transport = h('button', { class: 'btn small mx-transport', type: 'button', onclick: o.play,
-      'aria-label': t('ve.play'), html: ic.play + '<span>' + PD.esc(t('ve.play')) + '</span>' });
+    function chooseSignal(original) {
+      if (o.compared() !== original) o.compare();
+      paintComparison(); paint();
+    }
+    const dry = button(t('mx.original'), () => chooseSignal(true), 'mx-compare-option');
+    const processed = button(t('mx.processed'), () => chooseSignal(false), 'mx-compare-option');
+    function paintComparison() {
+      dry.setAttribute('aria-pressed', String(o.compared()));
+      processed.setAttribute('aria-pressed', String(!o.compared()));
+    }
+    const ab = h('div', { class: 'mx-compare', role: 'group', 'aria-label': t('ve.ab') }, [dry, processed]);
+    paintComparison();
+    const transport = h('button', { class: 'mx-transport', type: 'button', onclick: o.play });
+    const position = h('span', { class: 'mx-position' });
+    let wasPlaying;
+    function paintTransport() {
+      const playing = o.playing(), time = o.time();
+      if (playing !== wasPlaying) {
+        const label = t(playing ? 'mx.pause' : 'mx.play');
+        transport.innerHTML = playing ? pauseIcon : ic.play;
+        transport.setAttribute('aria-label', label); transport.title = label; wasPlaying = playing;
+      }
+      if (position.textContent !== time) position.textContent = time;
+    }
     const input = h('meter', { min: -72, max: 0, value: -72, 'aria-label': title('in') });
     const output = h('meter', { min: -72, max: 0, value: -72, 'aria-label': title('out') });
     const levelIn = graph ? new Float32Array(graph.pre.fftSize) : null;
     const levelOut = graph ? new Float32Array(graph.meter.fftSize) : null;
     const inputPeak = h('output', { 'aria-label': t('mx.inputPeak'), text: '—' });
     const outputPeak = h('output', { 'aria-label': t('mx.outputPeak'), text: '—' });
-    const meterLine = (label, meter, value) => h('div', { class: 'mx-level' }, [h('span', { text: label }), meter, value]);
-    const head = h('div', { class: 'mx-head' }, [h('div', { class: 'mx-actions' }, [transport, ab, preset]),
-      h('div', { class: 'mx-levels' }, [meterLine(title('in'), input, inputPeak), meterLine(title('out'), output, outputPeak)])]);
+    function meterLine(label, meter, value) {
+      const fill = h('i');
+      const track = h('div', { class: 'mx-meter-track', 'aria-hidden': 'true' }, [fill]);
+      return { fill, el: h('div', { class: 'mx-level' }, [h('span', { text: label }), value, meter, track]) };
+    }
+    const inputLine = meterLine(title('in'), input, inputPeak), outputLine = meterLine(title('out'), output, outputPeak);
+    const head = h('div', { class: 'mx-head' }, [
+      h('div', { class: 'mx-transport-row' }, [transport, position, ab, preset]),
+      o.timeline,
+      h('div', { class: 'mx-levels' }, [inputLine.el, outputLine.el])
+    ].filter(Boolean));
     const section = (...controls) => h('div', { class: 'mx-controls' }, controls);
     function control(key, label, min, max, step = 1, format = String, nonlinear = false, commit = false) {
       const read = value => nonlinear ? 20 * (max / 20) ** (value / 1000) : value;
@@ -248,11 +282,35 @@ PD.mixrack = (() => {
         const value = format(v); face.style.setProperty('--turn', (angle - 135) + 'deg');
         face.style.setProperty('--arc', angle + 'deg'); val.textContent = value; dial.setAttribute('aria-valuetext', value);
       };
-      dial.oninput = () => { ref(key, nonlinear ? Math.round(read(+dial.value)) : +dial.value, !commit); update(); };
-      if (commit) dial.onchange = () => ref(key, +dial.value, true);
-      dial.addEventListener('dblclick', () => { ref(key, defaults[key]); update(); });
+      const apply = refresh => { ref(key, nonlinear ? Math.round(read(+dial.value)) : +dial.value, refresh); update(); };
+      dial.oninput = () => apply(!commit);
+      if (commit) dial.onchange = () => apply(true);
+      const knob = h('span', { class: 'mx-knob' }, [face, dial]);
+      let drag;
+      knob.onpointerdown = event => {
+        if (event.button !== 0) return;
+        event.preventDefault(); dial.focus({ preventScroll: true });
+        knob.setPointerCapture(event.pointerId);
+        drag = { id: event.pointerId, x: event.clientX, y: event.clientY, start: +dial.value, moved: false };
+      };
+      knob.onpointermove = event => {
+        if (!drag || drag.id !== event.pointerId) return;
+        const min = +dial.min, max = +dial.max, step = +dial.step;
+        const delta = event.clientX - drag.x + drag.y - event.clientY;
+        if (Math.abs(delta) < 3 && !drag.moved) return;
+        drag.moved = true;
+        const raw = drag.start + delta / (event.shiftKey ? 560 : 200) * (max - min);
+        const next = clamp(min + Math.round((raw - min) / step) * step, min, max);
+        dial.value = next.toFixed(6);
+        apply(!commit);
+      };
+      knob.onlostpointercapture = () => {
+        if (drag?.moved && commit) apply(true);
+        drag = null;
+      };
+      knob.ondblclick = () => { ref(key, defaults[key]); update(); };
       update(); sliders.set(key, update);
-      return h('label', { class: 'mx-control' }, [h('span', { class: 'mx-knob' }, [face, dial]), h('span', { text: label }), val]);
+      return h('label', { class: 'mx-control' }, [knob, val, h('span', { text: label })]);
     }
     function toggle(key, label, invert = false) {
       const b = button(label, () => { ref(key, !o.get()[key]); b.setAttribute('aria-pressed', String(invert ? !o.get()[key] : !!o.get()[key])); });
@@ -263,7 +321,7 @@ PD.mixrack = (() => {
     function surface(cv) {
       const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
       ctx.clearRect(0, 0, w, h);
-      ctx.font = '12px system-ui'; ctx.fillStyle = '#a495a6'; ctx.lineWidth = 1;
+      ctx.font = '13px system-ui'; ctx.fillStyle = '#a2a3a1'; ctx.lineWidth = 1;
       return { ctx, w, h };
     }
     function line(ctx, x, y, X, Y, color = '#ffffff18') {
@@ -437,20 +495,48 @@ PD.mixrack = (() => {
     }
     function master() {
       const gr = h('meter', { min: 0, max: 24, value: 0, 'aria-label': t('mx.gr') }), reduction = h('b');
-      paint = () => { gr.value = o.get().limiter ? Math.max(0, -graph.lim.reduction) : 0; reduction.textContent = fmt.db(-gr.value); };
-      return [h('div', { class: 'mx-quick' }, [toggle('limiter', t('mx.limiter')),
-        h('div', { class: 'mx-gr' }, [h('span', { text: t('mx.gr') }), gr, reduction])]),
-        section(control('vol', t('ve.vol'), 0, 200, 1, fmt.pct), control('ceiling', t('mx.ceiling'), -12, 0, .1, fmt.db),
-          control('drive', t('mx.drive'), -12, 18, .5, fmt.db))];
+      const lamp = h('i', { 'aria-hidden': 'true' });
+      const powerLabel = h('span');
+      const power = h('button', { type: 'button', class: 'mx-power', 'aria-label': t('mx.limiter'),
+        onclick: () => { ref('limiter', !o.get().limiter); paint(); } }, [lamp, powerLabel]);
+      const status = h('div', { class: 'mx-module-head' }, [h('h4', { text: t('mx.limiter') }), power]);
+      paint = () => {
+        const enabled = o.get().limiter;
+        power.setAttribute('aria-pressed', String(enabled));
+        powerLabel.textContent = t(enabled ? 'mx.on' : 'mx.off');
+        gr.value = enabled && !o.compared() ? Math.max(0, -graph.lim.reduction) : 0;
+        reduction.textContent = fmt.db(-gr.value);
+      };
+      const display = h('div', { class: 'mx-gr mx-master-gr' }, [h('span', { text: t('mx.gr') }), reduction, gr]);
+      return [status, h('div', { class: 'mx-master-body' }, [display,
+        section(control('vol', t('ve.vol'), 0, 200, 1, fmt.pct),
+          control('ceiling', t('mx.ceiling'), -12, 0, .1, fmt.db), control('drive', t('mx.drive'), -12, 18, .5, fmt.db))])];
     }
     const designs = { eq: equalizer, comp: compression, character, rev: reverb, master, clean: o.cleanup,
       delay: () => [h('div', { class: 'mx-quick' }, [toggle('delOff', t('mx.bypass'))]), section(control('del', t('mx.wet'), 0, 100, 1, fmt.pct), control('dtime', t('ve.dtime'), 40, 1200, 5, fmt.ms),
         control('feedback', t('mx.feedback'), 0, 88, 1, fmt.pct), control('tone', t('mx.tone'), 20, 15000, 1, fmt.hz, true))] };
-    const buttons = new Map(keys.map(key => [key, button(title(key), () => { tab = key; o.select(key); drawTab(); }, 'mx-tab')]));
+    function select(key) {
+      if (tab === key) return;
+      tab = key; o.select(key); drawTab();
+    }
+    const buttons = new Map(keys.map(key => [key, h('button', {
+      type: 'button', class: 'mx-tab', id: id + '-' + key, role: 'tab', 'aria-controls': id, onclick: () => select(key)
+    }, [h('span', { text: title(key) })])]));
     nav.append(...buttons.values());
+    nav.onkeydown = event => {
+      const direction = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+      let key;
+      if (direction) key = keys[(keys.indexOf(tab) + direction + keys.length) % keys.length];
+      else if (event.key === 'Home') key = keys[0];
+      else if (event.key === 'End') key = keys.at(-1);
+      else return;
+      event.preventDefault(); select(key); buttons.get(key).focus();
+    };
     function drawTab() {
       sliders.clear(); paint = () => {};
-      for (const [key, b] of buttons) { b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(key === tab)); }
+      for (const [key, b] of buttons) { b.tabIndex = key === tab ? 0 : -1; b.setAttribute('aria-selected', String(key === tab)); }
+      work.setAttribute('aria-labelledby', id + '-' + tab);
+      work.dataset.plugin = tab;
       work.replaceChildren(...designs[tab]());
       PD.i18n.apply(work);
       paint();
@@ -460,7 +546,7 @@ PD.mixrack = (() => {
       let max = 0; for (const v of data) max = Math.max(max, Math.abs(v));
       return decibels(max);
     }
-    drawTab();
+    drawTab(); paintTransport();
     return { el: h('div', { class: 'mx-rack' }, [head, nav, work]), meter() {
       if (performance.now() - last < 48) return;
       last = performance.now();
@@ -469,7 +555,10 @@ PD.mixrack = (() => {
       inputPeak.textContent = inDb <= -72 ? '—' : fmt.db(inDb);
       outputPeak.textContent = outDb <= -72 ? '—' : fmt.db(outDb);
       outputPeak.classList.toggle('mx-clipping', outDb >= 0);
-      paint();
+      const meterMask = db => 'inset(0 ' + (100 * (1 - clamp((db + 60) / 60, 0, 1))) + '% 0 0)';
+      inputLine.fill.style.clipPath = meterMask(inDb);
+      outputLine.fill.style.clipPath = meterMask(outDb);
+      paintTransport(); paint();
     } };
   }
   return { defaults, presets, chain, panel, transfer, tailSeconds, latency, changed };
