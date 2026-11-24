@@ -73,7 +73,6 @@ PD.vedit = (() => {
   };
   /* the AI files live next to the app (panduri/ai/), as the other models do */
   const BASE = (() => { const p = location.pathname; return location.protocol.startsWith('http') && /\/panduri\/source\/dist\/app\//.test(p) ? new URL('../../../ai/', location.href).href : location.protocol.startsWith('http') && /\/panduri\/app\//.test(p) ? new URL('../ai/', location.href).href : 'https://yanx447.github.io/index.html/panduri/ai/'; })();
-  const RECM = ['video/mp4;codecs=avc1.640033,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
   const AUDIO = 192000, MIN = .3;
   const fail = k => Object.assign(new Error(k), { code: k });
 
@@ -83,6 +82,7 @@ PD.vedit = (() => {
      wait up to ten seconds. Instead the best untried format records at once, and the real recording is checked
      afterwards: one that kept the sound is remembered, one that lost it is marked bad and the next take uses another. */
   const FMT = 'fd.recfmt', BAD = 'fd.recbad';
+  const rejectedEncoders = new Set();
   const CANDS = [['video/mp4;codecs=avc1.640033,mp4a.40.2', 192000], ['video/mp4;codecs=avc1.640033,mp4a.40.2', 128000], ['video/mp4;codecs=avc1,mp4a.40.2', 128000],
     ['video/webm;codecs=vp9,opus', 192000], ['video/webm;codecs=vp8,opus', 128000], ['video/mp4', 0], ['video/webm', 0]];
   /** true: the file has sound · false: none · null: could not tell in time (judged neither way) */
@@ -98,13 +98,20 @@ PD.vedit = (() => {
     return Promise.race([judge, new Promise(z => setTimeout(() => z(null), ms))]);
   }
   const ok = m => window.MediaRecorder && MediaRecorder.isTypeSupported(m);
-  const known = () => { const f = PD.store.get(FMT, null); return f && ok(f.m) ? f : null; };
-  /** the format to record with now: the one that kept the sound before, else the best one not yet found bad */
-  function pick() {
-    const k = known(); if (k) return k;
-    const bad = PD.store.get(BAD, []), c = CANDS.find(([m, a]) => ok(m) && !bad.some(b => b.m === m && b.a === a)) || CANDS.find(([m]) => ok(m));
+  const allowed = m => ok(m) && !rejectedEncoders.has(m);
+  const known = () => { const f = PD.store.get(FMT, null); return f && allowed(f.m) ? f : null; };
+  /** Prefer a tested encoder, then a codec for the source container if supplied. */
+  function pick(container) {
+    const k = known();
+    if (k) return k;
+    const bad = PD.store.get(BAD, []);
+    const eligible = CANDS.filter(([m]) => allowed(m));
+    const working = eligible.filter(([m, a]) => !bad.some(b => b.m === m && b.a === a));
+    const options = working.length ? working : eligible;
+    const c = options.find(([m]) => m.split(';')[0] === container) || options[0];
     return c ? { m: c[0], a: c[1] } : null;
   }
+  const rejectEncoder = mime => rejectedEncoders.add(mime);
   const remember = f => { if (f && f.m) PD.store.set(FMT, { m: f.m, a: f.a || 0 }); };
   function forget(f) {
     PD.store.del(FMT); if (!f) return;
@@ -1053,7 +1060,7 @@ void main(){
     }
     async function renderVideo(onP) {
       if (!q720(v.videoWidth, v.videoHeight)) throw fail('reelSmall');
-      const kf = pick(), mime = kf ? kf.m : window.MediaRecorder && RECM.find(m => MediaRecorder.isTypeSupported(m));
+      const kf = pick(o.file.type), mime = kf?.m;
       if (!mime || !cv.captureStream) throw fail('noRender');
       if (R.lost) throw fail('noRender');
       if (S.bg !== 'none' && S.bgKey === 'person' && !seg) { try { seg = await segmenter(); } catch (_) { throw fail('bgFail'); } }
@@ -1156,5 +1163,5 @@ void main(){
       }
     };
   }
-  return { mount, denoise, gifFrames, place, pickFormat: pick, rememberFormat: remember, forgetFormat: forget, hasSound };
+  return { mount, denoise, gifFrames, place, pickFormat: pick, rememberFormat: remember, forgetFormat: forget, rejectEncoder, hasSound };
 })();

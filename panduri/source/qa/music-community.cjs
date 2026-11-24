@@ -118,6 +118,23 @@ test('edited PCM round-trips through a WAV header and FLAC requires STREAMINFO',
   assert.equal(await music.losslessInfo(new Blob([badWav])), null);
 });
 
+test('video capture skips encoders that report support but fail to start', () => {
+  const cache = new Map();
+  const MediaRecorder = { isTypeSupported: () => true };
+  const ctx = context({ window: { MediaRecorder }, MediaRecorder }, {
+    store: { get: (k, fallback) => cache.get(k) ?? fallback, set: (k, v) => cache.set(k, v), del: k => cache.delete(k) }
+  });
+  const { vedit } = load(ctx, 'mixrack', 'vedit');
+  const initial = vedit.pickFormat();
+  assert.match(initial.m, /^video\/mp4/);
+  vedit.rememberFormat(initial);
+  vedit.rejectEncoder(initial.m);
+  const alternate = vedit.pickFormat('video/webm');
+  assert.match(alternate.m, /^video\/webm/);
+  vedit.rememberFormat(alternate);
+  assert.equal(vedit.pickFormat().m, alternate.m);
+});
+
 test('noise profiling attenuates background while retaining a foreground tone', async () => {
   const { vedit } = load(context(), 'mixrack', 'vedit');
   const sr = 16000, len = sr * 2;

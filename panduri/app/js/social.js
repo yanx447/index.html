@@ -721,7 +721,6 @@ PD.social = (() => {
 
   /* ---------------- a new video: the camera opens at once, like a phone camera — filmed in the app, or a file from the gallery ---------------- */
   const MAXSEC = 600, MODES = [30, 60, 300, 600], TIMERS = [0, 3, 10];
-  const RECM = ['video/mp4;codecs=avc1.640033,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
   const CI = {
     torch: I('<path d="M13.5 2.5L5.5 13.5h6l-1 8 8-11h-6z"/>'),
     timer: I('<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.6 2M9.5 2.8h5M18.6 6.6l1.4-1.4"/>')
@@ -1075,7 +1074,7 @@ PD.social = (() => {
       if (!view.videoWidth || !view.videoHeight) return PD.ui.toast(t('fd.preparing'));
       if (!M.isHD(view.videoWidth, view.videoHeight)) return PD.ui.toast(t('mc.minVideo'));
       let fmt = PD.vedit.pickFormat();   // no test before filming: the take itself shows whether the sound was kept
-      const mime = fmt ? fmt.m : RECM.find(m => MediaRecorder.isTypeSupported(m));
+      const mime = fmt?.m;
       if (!mime) { PD.ui.toast(t('fd.camNone'), 5000); return; }
       const hiBad = PD.store.get('fd.hiBad', []), base = fmt ? fmt.a : 192000;
       // the best the codec gives; a format that kept the sound only without a bitrate stays without one, and one that lost
@@ -1085,15 +1084,23 @@ PD.social = (() => {
       const ro = { mimeType: mime, videoBitsPerSecond: Math.round(Math.max(3e5, Math.min(targetRate(Math.min(set.width || 1920, set.height || 1080)), px * .3, 60e6))), videoKeyFrameIntervalDuration: 2000 }; if (A) ro.audioBitsPerSecond = A;
       let r = null;
       try { r = new MediaRecorder(stream, ro); }
-      catch (_) { try { r = new MediaRecorder(stream, { mimeType: mime }); fmt = { m: mime, a: 0 }; } catch (e) { PD.ui.toast(t('fd.camNone'), 5000); return; } }
+      catch (_) {
+        try { r = new MediaRecorder(stream, { mimeType: mime }); fmt = { m: mime, a: 0 }; }
+        catch (_) { PD.vedit.rejectEncoder(mime); return startRec(); }
+      }
       const lim = limit, chunks = [], mir = view.classList.contains('mirror');
       r.ondataavailable = e => { if (e.data?.size) chunks.push(e.data); };
-      r.onerror = () => { r._keep = false; if (!closed) PD.ui.toast(t('mc.recordError')); };
+      let encoderFailed = false;
+      r.onerror = () => { encoderFailed = true; PD.vedit.rejectEncoder(mime); };
       r.onstop = async () => {
-        const dur = Math.min(lim, r._elapsed ?? takeClock.seconds()), keep = r._keep;
+        const dur = Math.min(lim, r._elapsed ?? takeClock.seconds()), keep = r._keep && !encoderFailed;
         const raw = pcm; pcm = null;
         const wv = keep && !closed ? await raw?.stop() : (raw?.discard(), null);
         rec = null; clearInterval(tick); recordingPaused = false; paintTake(false);
+        if (encoderFailed && !closed) {
+          if (r._keep === undefined && !chunks.length && dur < 1) return startRec();
+          PD.ui.toast(t('mc.recordError'), 5000);
+        }
         if (!keep || closed) return;
         const heard = mac && mac.state === 'running' && mSrc;   // the meter can only judge when it is running
         if (!stream || !stream.getAudioTracks().length) PD.ui.toast(t('fd.noMic'), 6000);
@@ -1111,7 +1118,7 @@ PD.social = (() => {
       busy = false;
       if (closed || owner !== gen) { pcm?.discard(); pcm = null; return; }
       try { r.start(1000); } catch (_) {
-        pcm?.discard(); pcm = null; PD.ui.toast(t('mc.recordError')); return;
+        pcm?.discard(); pcm = null; PD.vedit.rejectEncoder(mime); return startRec();
       }
       pcm?.start();
       rec = r; takeClock.start(); recordingPaused = false; buzz('select');

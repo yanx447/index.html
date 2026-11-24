@@ -392,13 +392,17 @@
   position: absolute; top: calc(var(--safe-t) + 66px); inset-inline: max(16px, calc((100% - 710px) / 2));
   padding: 18px clamp(12px, 4vw, 26px); color: #ffdfcd; background: #201828; border: 1px solid #bfa3d13f; border-radius: 18px;
 }
-.ve-audio.panel .ve-audio-stage { visibility: hidden; }
+.ve-audio.panel .ve-audio-stage { padding-block: 10px; }
+.ve-audio.panel .ve-audio-wave { height: 46px; }
+.ve-audio.panel .ve-audio-seek { display: none; }
 .ve-audio-stage h2 { margin: 6px 0 10px; font-size: clamp(15px, 4vw, 23px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ve-audio-tag { color: #e2afed; font-size: 11px; letter-spacing: .04em; }
 .ve-audio-wave { display: block; width: 100%; height: min(17vh, 112px); background: #120e19; border-radius: 9px; }
 .ve-audio-seek { width: 100%; accent-color: #f2ad80; margin: 10px 0 0; }
 .ve-audio .ve-rail { top: auto; bottom: calc(var(--safe-b) + 200px); inset-inline: 0; flex-direction: row; justify-content: center; }
 @container (max-width: 530px) {
+  .mx-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mx-tab { padding-inline: 4px; }
   .mx-head { grid-template-columns: 1fr; }
   .mx-levels { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
   .mx-level { grid-template-columns: minmax(28px, 50%) minmax(0,1fr); }
