@@ -125,3 +125,18 @@ test('A PayPal card order is refused while the owner has not enabled it', async 
   const x = setup({ env: { TBC_API_KEY: '' } });
   await assert.rejects(x.billing.start(uid, 'monthly', 'paypal-card'), /billing-not-configured/); assert.equal(x.calls.length, 0);
 });
+test('An order the provider no longer knows is order-not-found (the app forgets it), not a 502 asked again on every focus', async () => {
+  for (const [provider, plan, path] of [['paypal', 'monthly', '/v2/checkout/orders/'], ['tbc', 'yearly', '/tpay/payments/']]) {
+    const x = setup(), real = x.deps.fetcher;
+    const fetcher = async (url, options) => url.includes(path) ? new Response('{"name":"RESOURCE_NOT_FOUND"}', { status: 404 }) : real(url, options);
+    const handler = billingHandler({ ...x.deps, fetcher });
+    const started = await (await handler(req({ action: 'start', plan, provider }))).json();
+    const r = await handler(req({ action: 'verify', provider, order: started.order }));
+    assert.equal(r.status, 404); assert.deepEqual(await r.json(), { error: 'order-not-found' }); assert.equal(x.grants.length, 0);
+  }
+  // the provider itself failing stays a 502: the order is kept and asked about again later
+  const x = setup(), real = x.deps.fetcher;
+  const handler = billingHandler({ ...x.deps, fetcher: async (url, o) => url.includes('/v2/checkout/orders/') ? new Response('{}', { status: 500 }) : real(url, o) });
+  const started = await (await handler(req({ action: 'start', plan: 'monthly', provider: 'paypal' }))).json();
+  assert.equal((await handler(req({ action: 'verify', provider: 'paypal', order: started.order }))).status, 502);
+});

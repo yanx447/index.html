@@ -7,10 +7,10 @@ const strings = {};
 const PD = {
   h() { return {}; }, store: { get: (_, fallback) => fallback },
   i18n: { lang: 'ka', pick: value => value.ka, add: entries => Object.assign(strings, entries) },
-  bus: { on() {} }, tips: { all: () => [] },
+  bus: { on() {}, emit() {} }, tips: { all: () => [] },
   curriculum: { rhythms: () => [], chords: () => [] }
 };
-const context = { PD, window: {}, setTimeout() {}, clearTimeout() {}, setInterval() {}, clearInterval() {}, addEventListener() {}, getComputedStyle: () => ({ display: "none" }), document: { querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, body: { appendChild() {} } },
+const context = { PD, window: {}, setTimeout() {}, clearTimeout() {}, setInterval() {}, clearInterval() {}, addEventListener() {}, getComputedStyle: () => ({ display: "none" }), matchMedia: () => ({ matches: false, addEventListener() {} }), document: { querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, body: { appendChild() {} } },
   t: (key, args = {}) => Object.entries(args).reduce((text, [name, value]) => text.replaceAll('{' + name + '}', value), strings[key]?.[0] || key)
 };
 vm.createContext(context);

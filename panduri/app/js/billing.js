@@ -50,7 +50,11 @@ PD.billing = (() => {
     if (!pending || !C.session) return false;
     let result;
     try { result = await C.billing({ action: 'verify', provider: pending.provider, order: pending.order }); }
-    catch (e) { if (e.code === 'order-not-found') { PD.store.del(pendingKey(uid)); return false; } throw e; }
+    catch (e) {
+      // gone at the provider, or still unreadable three days on (an approved order is captured by the webhook anyway): forget it
+      if (e.code === 'order-not-found' || !(Date.now() - (pending.at || 0) < 3 * 864e5) && e.code !== 'offline') { PD.store.del(pendingKey(uid)); return false; }
+      throw e;
+    }
     if (C.uid !== uid) return false;
     if (result.paid) { PD.store.del(pendingKey(uid)); await C.loadProfile(); }
     return !!result.paid;
@@ -129,16 +133,17 @@ PD.billing = (() => {
     else { await verifyPending(); await C.loadProfile(); }
     return PD.premium.active;
   }
-  let checking = false;
-  async function refresh() {
-    if (checking || !C.session || !C.configured) return;
-    checking = true;
+  let checking = false, lastCheck = 0;
+  // focus and visibilitychange fire together: at most one check a minute (a return from checkout passes `now`)
+  async function refresh(now) {
+    if (checking || !C.session || !C.configured || now !== true && Date.now() - lastCheck < 60000) return;
+    checking = true; lastCheck = Date.now();
     try {
       if (native()) await syncStore(); else await verifyPending();
       await C.loadProfile();
     } catch (_) {} finally { checking = false; }
   }
-  window.addEventListener('focus', refresh);
+  window.addEventListener('focus', () => refresh());
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   // Restore the app's own return URL; a successful redirect is not a payment receipt.
   const params = new URLSearchParams(location.search), returned = params.get('payment');
@@ -146,11 +151,11 @@ PD.billing = (() => {
     const url = new URL(location.href);
     ['payment', 'token', 'PayerID'].forEach(k => url.searchParams.delete(k));
     history.replaceState(history.state, '', url.pathname + url.search + url.hash);
-    setTimeout(refresh, 1200);
+    setTimeout(() => refresh(true), 1200);
   }
-  setTimeout(refresh, 1500);
+  setTimeout(() => refresh(true), 1500);
   let lastUser = C.uid;
-  PD.bus.on('cloud', () => { if (lastUser !== C.uid) { lastUser = C.uid; catalogPromise = null; setTimeout(refresh, 0); } });
+  PD.bus.on('cloud', () => { if (lastUser !== C.uid) { lastUser = C.uid; catalogPromise = null; setTimeout(() => refresh(true), 0); } });
   const pending = () => { const uid = C.uid; return uid && PD.store.get(pendingKey(uid), null); };
   // `returned`: the buyer came back from a hosted checkout ('tbc' | 'paypal' | 'cancelled'). It is a hint for the screen, not a receipt.
   return { options, purchase, restore, refresh, verifyPending, pending, consumable, consumablePrices, sale, compare, returned: ['tbc', 'paypal', 'success', 'cancelled'].includes(returned) ? returned : null, get native() { return native(); } };

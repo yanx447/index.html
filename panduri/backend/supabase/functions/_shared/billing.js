@@ -15,9 +15,12 @@ export function appURL(env, query) {
 export async function api(fetcher, url, options = {}) {
   const r = await fetcher(url, { ...options, signal: AbortSignal.timeout(15000) });
   const body = await r.json().catch(() => ({}));
-  if (!r.ok) throw new BillingError('payment-provider-unavailable', 502);
+  if (!r.ok) { const e = new BillingError('payment-provider-unavailable', 502); e.providerStatus = r.status; throw e; }
   return body;
 }
+// The provider no longer knows the order (PayPal drops an unapproved one after 3 hours): the buyer's saved order is over.
+// Without this the app asked about it again on every focus, for ever, and every answer was a 502.
+const gone = e => { throw e instanceof BillingError && e.providerStatus === 404 ? new BillingError('order-not-found', 404) : e; };
 export function paypalPrice(env, plan) {
   const currency = required(env, 'PAYPAL_CURRENCY');
   const value = required(env, plan === 'monthly' ? 'PAYPAL_MONTHLY_PRICE' : 'PAYPAL_YEARLY_PRICE');
@@ -131,14 +134,14 @@ export function createBilling({ db, env, fetcher = fetch }) {
     throw new BillingError('invalid-provider');
   }
   async function verifyTBC(id, uid) {
-    const row = await order('tbc', id, uid), result = await tbc('payments/' + encodeURIComponent(id));
+    const row = await order('tbc', id, uid), result = await tbc('payments/' + encodeURIComponent(id)).catch(gone);
     if (result.payId !== id || result.currency !== row.currency || Math.round(Number(result.amount) * 100) !== Math.round(Number(row.amount) * 100) || result.merchantPaymentId !== row.id) throw new BillingError('payment-mismatch');
     if (result.status === 'Succeeded') { await fulfill(row); return { paid: true }; }
     return { paid: false };
   }
   async function verifyPayPal(id, uid, capture = false) {
     const row = await order('paypal', id, uid);
-    let result = await paypal('/v2/checkout/orders/' + encodeURIComponent(id));
+    let result = await paypal('/v2/checkout/orders/' + encodeURIComponent(id)).catch(gone);
     // Capture only a saved order approved through PayPal. Signed ORDER.APPROVED also supports buyers who close the return page.
     if (capture && result.status === 'APPROVED') {
       await paypal('/v2/checkout/orders/' + encodeURIComponent(id) + '/capture', {}, row.id + '-capture');

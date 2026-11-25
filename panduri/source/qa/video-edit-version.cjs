@@ -24,6 +24,8 @@ const assert = require('node:assert/strict');
       window.editor = PD.vedit.mount(root, { file: new File([ab], 'tone.wav', { type: 'audio/wav' }), meta: { w: 320, h: 240, dur: 1 }, roomMB: 20, onBack() {}, onNext() {} });
     });
     await page.locator('.ve-tool').filter({ has: page.locator('[data-t="ve.sound"]') }).click();
+    // noise removal sits in the mixer's last tab ("clean") since the editing console's redesign
+    await page.locator('.mx-tab[id$="-clean"]').click();
     await page.locator('.ve-sw').waitFor();
     await page.locator('.ve-sw').click();
     await page.waitForFunction(() => document.querySelector('.ve-st').textContent === '');
