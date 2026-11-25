@@ -20,7 +20,7 @@ PD.i18n.add({
   'gm.none': ['ჯერ არ გითამაშია. აირჩიე თამაში და დაიწყე.', 'No rounds played yet. Pick a game and start.'], 'gm.locked': ['ჩაკეტილია', 'Locked'], 'gm.unlockHint': ['ჯერ წინა დონე გაიარე ერთი ★-ით', 'First clear the previous level with one ★'],
   'gm.start': ['დაწყება', 'Start'], 'gm.settings': ['თამაშის პარამეტრები', 'Game settings'], 'gm.beta': ['ბეტა', 'Beta'], 'gm.levels': ['დონეები', 'Levels'], 'gm.diff': ['სირთულე', 'Difficulty'], 'gm.best': ['რეკორდი: {s} · {a}%', 'Best: {s} · {a}%'], 'gm.noBest': ['ამ დონეზე ჯერ არ გითამაშია', 'Not played at this level yet'],
   'gm.how': ['როგორ თამაშობ', 'How to play'], 'gm.listens': ['რას ისმენს აპი', 'What the app hears'],
-  'gm.g.rush': ['ნოტების ნაკადი', 'Note Rush'], 'gm.g.rhythm': ['რიტმის ბრძოლა', 'Rhythm Battle'], 'gm.g.memory': ['მელოდიის მეხსიერება', 'Melody Memory'], 'gm.g.hunt': ['ლადების მონადირე', 'Fret Hunter'],
+  'gm.g.rush': ['ნოტების ნაკადი', 'Note Rush'], 'gm.g.rhythm': ['რიტმის ბრძოლა', 'Rhythm Battle'], 'gm.g.memory': ['მელოდიური მეხსიერება', 'Melody Memory'], 'gm.g.hunt': ['ლადების მონადირე', 'Fret Hunter'],
   'gm.g.chord': ['აკორდების ოსტატი', 'Chord Master'], 'gm.g.song': ['სიმღერის მოგზაურობა', 'Song Quest'], 'gm.g.band': ['ბენდთან ერთად', 'Band Jam'], 'gm.g.arena': ['ფანდურის არენა', 'Fanduri Arena'],
   'gm.gd.rush': ['ნოტები ზემოდან ჩამოდის. დაუკარი თითოეული ზუსტად მაშინ, როცა ხაზს მიაღწევს — აპი ამოწმებს ბგერასაც და დროსაც.', 'Notes fall from the top. Play each one just as it reaches the line — the app checks the pitch and the timing.'],
   'gm.gd.rhythm': ['მასწავლებლის რიტმები მეტრონომთან. ფასდება დრო, აქცენტები და სტაბილურობა.', "The teacher's rhythms with the metronome. Timing, accents and steadiness are scored."],
