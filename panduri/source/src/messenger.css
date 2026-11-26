@@ -432,3 +432,12 @@ button.ms-avatar{padding:0;font:inherit;cursor:pointer}
 .ms-members{display:flex;flex-direction:column}
 .ms-member{display:flex;align-items:center;gap:12px;min-height:50px;padding:6px 12px;border:0;background:none;color:var(--fg);font:inherit;text-align:left;cursor:pointer}
 .ms-member .ms-fromav{width:34px;height:34px;font-size:14px}.ms-member small{color:var(--muted)}
+
+/* swipe to reply: the bubble follows the finger sideways (translate, so it never fights the arrival animation's transform); the arrow shows in the gap it leaves */
+.ms-messages .cm-msg{touch-action:pan-y pinch-zoom;transition:translate .24s cubic-bezier(.2,.9,.3,1.25)}
+.ms-messages .cm-msg.ms-swiping{transition:none;user-select:none;-webkit-user-select:none}
+.ms-swipe-ic{position:absolute;top:50%;left:-40px;width:30px;height:30px;margin-top:-15px;display:grid;place-items:center;border-radius:50%;background:var(--surface2);color:var(--fg2);opacity:0;pointer-events:none;transition:background .15s,color .15s}
+.cm-msg.me .ms-swipe-ic{left:auto;right:-40px}
+.ms-swipe-ic svg{width:16px;height:16px}
+.ms-swipe-ic.on{background:var(--chat-accent,var(--brass2));color:#1a1410}
+.cm-msg.me .ms-swipe-ic svg{transform:scaleX(-1)}

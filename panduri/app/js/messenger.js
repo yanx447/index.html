@@ -277,6 +277,21 @@ PD.messenger = (() => {
         if(same){lastTap=null;react(n,n.reaction===prefs.quick_reaction?null:prefs.quick_reaction);}
         else lastTap={at:now,x:e.clientX,y:e.clientY};
       });
+      // swipe to reply: someone else's message to the right, mine to the left; past 64 px it answers when let go
+      const dir=mine?-1:1,arrow=h('span',{class:'ms-swipe-ic','aria-hidden':'true',html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>'});el.append(arrow);
+      let sw=null;
+      el.addEventListener('pointerdown',e=>{if(e.button||e.target.closest('button,a,video,audio,input,[role=button],.vw-seek')||(e.pointerType==='touch'&&e.clientX<=24))return;sw={x:e.clientX,y:e.clientY,id:e.pointerId,on:false,armed:false};});
+      el.addEventListener('pointermove',e=>{if(!sw||e.pointerId!==sw.id)return;const dx=e.clientX-sw.x,dy=e.clientY-sw.y;
+        if(!sw.on){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){sw=null;return;}
+          if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy)*1.3||Math.sign(dx)!==dir)return;
+          sw.on=true;clearTimeout(hold);try{el.setPointerCapture(e.pointerId);}catch(_){}el.classList.add('ms-swiping');window.getSelection?.()?.removeAllRanges();}
+        e.preventDefault();const d=Math.max(0,dx*dir),pull=Math.min(110,d<64?d:64+(d-64)*.35);
+        el.style.translate=dir*pull+'px 0';arrow.style.opacity=Math.min(1,d/64);arrow.style.scale=.6+.4*Math.min(1,d/64);
+        if(d>=64&&!sw.armed){sw.armed=true;arrow.classList.add('on');navigator.vibrate?.(8);}else if(d<64&&sw.armed){sw.armed=false;arrow.classList.remove('on');}});
+      const letGo=e=>{if(!sw||e.pointerId!==sw.id)return;const go=sw.on&&sw.armed&&e.type==='pointerup';
+        if(sw.on){el.classList.remove('ms-swiping');el.style.translate='';arrow.style.opacity='';arrow.style.scale='';arrow.classList.remove('on');held=true;}
+        sw=null;if(go)setReply(m);};
+      el.addEventListener('pointerup',letGo);el.addEventListener('pointercancel',letGo);
       el.addEventListener('dblclick',e=>{if(e.sourceCapabilities?.firesTouchEvents)return;if(e.target.closest('button,a,video,audio,[role=button]'))return;clearTimeout(hold);react(n,n.reaction===prefs.quick_reaction?null:prefs.quick_reaction);});
       return el;
     }
