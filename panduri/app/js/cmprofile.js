@@ -231,10 +231,10 @@ PD.cmp = (() => {
         : [h('button', { class: 'cp-ib', 'aria-label': t('cp.shareP'), html: IC.share, onclick: () => shareProfile(card) }), h('button', { class: 'cp-ib', 'aria-label': t('md.more'), html: IC.dots, onclick: () => U().userActions(card.id, nameOf(card)) })]) : [])]);
   }
   function render(wrap, card, self, own, legacy) {
-    const head = h('header', { class: 'cp-head' + (card.banner_url || self ? ' has-bn' : '') });
-    // the banner: anyone's, as they chose it; mine has a button to change it (an empty one invites me to add one)
-    const bn = card.banner_url || self ? h('div', { class: 'cp-banner' + (card.banner_url ? '' : ' empty') }, [card.banner_url ? bannerMedia(card.banner_url) : null,
-      self && !legacy ? h('button', { class: 'cp-bncam', 'aria-label': t(card.banner_url ? 'cp.bannerChange' : 'cp.bannerAdd'), title: t(card.banner_url ? 'cp.bannerChange' : 'cp.bannerAdd'), html: IC.cam + (card.banner_url ? '' : '<span data-t="cp.bannerAdd"></span>'), onclick: () => pickBanner(url => { card.banner_url = url; refresh(); }) }) : null].filter(Boolean)) : null;
+    const head = h('header', { class: 'cp-head' + (card.banner_url ? ' has-bn' : '') });
+    // the banner only when there is one (mine is added from Edit profile or ☰); on mine, a small camera changes it
+    const bn = card.banner_url ? h('div', { class: 'cp-banner' }, [bannerMedia(card.banner_url),
+      self && !legacy ? h('button', { class: 'cp-bncam', 'aria-label': t('cp.bannerChange'), title: t('cp.bannerChange'), html: IC.cam, onclick: () => pickBanner(url => { card.banner_url = url; refresh(); }) }) : null].filter(Boolean)) : null;
     // the photo, in a ring of the app's brass; mine has a camera to change it
     const av = h('div', { class: 'cp-avw' }, [h('div', { class: 'cp-ring' }, [avatar(card.avatar_url, nameOf(card), 'cp-av')]),
       self ? h('button', { class: 'cp-avcam', 'aria-label': t('cp.photoChange'), html: IC.cam, onclick: () => pickPhoto(url => { card.avatar_url = url; refresh(); }) }) : null].filter(Boolean));
@@ -263,7 +263,9 @@ PD.cmp = (() => {
       PD.i18n.apply(acts);
     }
     paintActs();
-    head.append(...[bn, av, h('h1', { class: 'cp-name', text: nameOf(card) }), card.nickname ? h('small', { class: 'cp-nick', text: '@' + card.nickname }) : null, chips, stats, bio, acts].filter(Boolean));
+    // photo beside the words on a wide screen, above them on a phone
+    const info = h('div', { class: 'cp-hinfo' }, [h('div', { class: 'cp-nrow' }, [h('h1', { class: 'cp-name', text: nameOf(card) }), chips]), card.nickname ? h('small', { class: 'cp-nick', text: '@' + card.nickname }) : null, stats, bio, acts].filter(Boolean));
+    head.append(...[bn, h('div', { class: 'cp-hrow' }, [av, info])].filter(Boolean));
     // the tabs: videos and reposts for everyone; saved, liked and history are mine alone
     const tabs = TABS.filter(x => self || !x[3]);
     let cur = self ? PD.store.get('cp.tab', 'user') : 'user'; if (!tabs.some(x => x[0] === cur)) cur = 'user';   // someone else's page always opens on their videos
@@ -290,15 +292,16 @@ PD.cmp = (() => {
     }
     function refresh() { PD.app.render(true); }
     // my profile is the app's one profile: what I learn sits under the header (app.js profileExtras)
-    const learn = self && PD.app.profileExtras ? h('div', { class: 'cp-learn' }, PD.app.profileExtras(true)) : null;
-    wrap.append(...[topBar(card, self), head, learn, bar, body].filter(Boolean));
+    // what I learn: one slim line (the rest of the app's menu is behind ☰)
+    const mine = self && PD.app.profileExtras ? PD.app.profileExtras(true) : null;
+    wrap.append(...[topBar(card, self), head, mine && mine.strip, mine && mine.favs, bar, body].filter(Boolean));
     PD.i18n.apply(wrap);
     requestAnimationFrame(() => placeInd(true));
     show(0);
     // the header arrives in order: the photo grows in, the numbers count up
     if (moves()) {
       av.animate([{ transform: 'scale(.82)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: 'cubic-bezier(.34,1.56,.64,1)' });
-      [...head.children].filter(x => x !== av && x !== bn).forEach((x, i) => x.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, delay: 80 + i * 45, easing: OUTQ, fill: 'backwards' }));
+      [...info.children].forEach((x, i) => x.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, delay: 80 + i * 45, easing: OUTQ, fill: 'backwards' }));
       stats.querySelectorAll('.cp-stat b').forEach((b, i) => { if ([card.following, card.followers, card.likes][i] > 0 && PD.ui.countUp) PD.ui.countUp(b, 700); });
     }
   }
@@ -481,12 +484,15 @@ PD.cmp = (() => {
   function meMenu(card) {
     PD.ui.sheet((b, close) => {
       const row = (icon, key, fn) => h('button', { class: 'cp-mrow', onclick: () => { close(); fn(); } }, [h('span', { html: icon }), h('span', { class: 'grow', 'data-t': key }), h('span', { class: 'cp-chev', html: ic.chevron })]);
-      b.append(h('h2', { text: '@' + (card.nickname || '') }), h('div', { class: 'cp-menu' }, [
+      const app = PD.app.profileExtras ? PD.app.profileExtras(true).menu : null;   // library, progress, settings, VIP, sign out …
+      if (app) app.addEventListener('click', e => { if (e.target.closest('.pf2-i')) close(); });
+      b.append(...[h('h2', { text: '@' + (card.nickname || '') }), h('div', { class: 'cp-menu' }, [
         row(IC.edit, 'cp.edit', () => editSheet(card, () => PD.app.render(true))),
+        row(IC.cam, card.banner_url ? 'cp.bannerChange' : 'cp.bannerAdd', () => pickBanner(() => PD.app.render(true))),
         row(IC.share, 'cp.shareP', () => shareProfile(card)),
         row(IC.friends[0], 'cn.friends', () => PD.app.go('community', 'friends')),
         row(IC.shield, 'md.blockedList', () => U().blockedSheet()),
-        row(IC.gear, 'nav.settings', () => PD.app.go('settings'))]));
+        app ? null : row(IC.gear, 'nav.settings', () => PD.app.go('settings'))].filter(Boolean)), app ? h('div', { class: 'cp-mapp' }, [app]) : null].filter(Boolean));
     });
   }
   /** followers / following, each with a follow button */

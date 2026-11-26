@@ -135,7 +135,7 @@ PD.i18n.add({
   'set.uiSounds': ['ღილაკების ხმა', 'Button sounds'], 'set.uiSoundsD': ['მსუბუქი ხმა დაჭერისას; სიმძლავრე — „უკუკავშირის ხმა“', 'A soft sound on tap; level = “feedback volume”'],
   'au.signoutQ': ['ანგარიშიდან გასვლა? პროგრესი ანგარიშში რჩება — შესვლისას დაბრუნდება.', 'Sign out? Your progress stays in the account and comes back when you sign in.'], 'au.signedOut': ['გამოხვედი ანგარიშიდან', 'Signed out'],
   'pf.owner': ['მფლობელი · პრემიუმი სამუდამოდ', 'Owner · lifetime Premium'],
-  'pf.student': ['მოსწავლე', 'Student'], 'pf.level': ['ლეველი', 'Level'], 'pf.lessons': ['ნასწავლი', 'Learned'], 'pf.progress': ['პროგრესი', 'Progress'], 'set.data': ['მონაცემები', 'Your data'],
+  'pf.student': ['მოსწავლე', 'Student'], 'pf.level': ['ლეველი', 'Level'], 'pf.streakL': ['დღე ზედიზედ', 'day streak'], 'pf.lessons': ['ნასწავლი', 'Learned'], 'pf.progress': ['პროგრესი', 'Progress'], 'set.data': ['მონაცემები', 'Your data'],
   'lnx.songsD': ['სიმღერები, მელოდიები და სოლოები — დონეების მიხედვით', 'Songs, melodies and solos — by level'],
   'hxq.cam': ['კამერით', 'Camera'], 'hxq.camD': ['დაუკარი აპთან ერთად', 'Play along with the app'], 'hxq.ai': ['AI სტუდია', 'AI studio'], 'hxq.aiD': ['შენი სიმღერის აკორდები', 'Chords of your song'],
   'hx.hello': ['გამარჯობა, {n}', 'Hello, {n}'], 'hx.goal': ['დღევანდელი მიზანი', "Today's goal"], 'hx.goalV': ['{a} / {b} წუთი', '{a} / {b} min'],
@@ -1087,13 +1087,19 @@ PD.app = (() => {
       h('button', { class: 'btn small pf-quick-settings', 'aria-label': t('more.settings'), title: t('more.settings'), html: pcGear, onclick: () => go('settings') })]));
     w.append(...profileExtras(false));
   }
-  /** what I learn, on my profile: three numbers, one menu, the saved lessons (merged = on the community profile) */
+  /** what I learn, on my profile: three numbers, one menu, the saved lessons.
+      merged (the community profile): { strip, menu, favs } — one slim line of numbers on the page, the menu behind ☰ */
   function profileExtras(merged) {
     const sk = streaks(), C = PD.cloud, PM = PD.premium, lp = PD.levels.progress, out = [];
     // three numbers
     const done = LS.all.filter(l => visible(l) && LS.progress.lesson(l.id).mastery >= .9).length;
     const pp = (() => { let n = 0, d = 0; LS.PATHS.forEach(p2 => p2.steps.forEach(st2 => { n++; if (stepDone(st2)) d++; })); return n ? Math.round(d / n * 100) : 0; })();
-    out.push(h('section', { class: 'pf2-stats' }, [
+    const strip = merged ? h('button', { class: 'cp-learn', type: 'button', 'aria-label': t('nav.progress'), onclick: () => go('progress') }, [
+      h('span', { class: 'cp-lx' }, [h('b', { text: String(sk.cur) }), h('small', { 'data-t': 'pf.streakL' })]),
+      h('span', { class: 'cp-lx' }, [h('b', { text: String(done) }), h('small', { 'data-t': 'pf.lessons' })]),
+      h('span', { class: 'cp-lx grow' }, [h('span', { class: 'cp-lxp' }, [h('small', { 'data-t': 'pf.progress' }), h('b', { text: pp + '%' })]), h('span', { class: 'cp-lbar' }, [h('i', { style: 'width:' + pp + '%' })])]),
+      h('span', { class: 'cp-lchev', html: ic.chevron })]) : null;
+    if (!merged) out.push(h('section', { class: 'pf2-stats' }, [
       h('div', {}, [h('small', { 'data-t': 'pf.level' }), h('b', { text: String(lp.level) })]),
       h('div', {}, [h('small', { 'data-t': 'pf.lessons' }), h('b', { text: String(done) })]),
       h('div', {}, [h('small', { 'data-t': 'pf.progress' }), h('b', { text: pp + '%' }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + pp + '%' })])])]));
@@ -1116,7 +1122,9 @@ PD.app = (() => {
       C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => signOut())
         : item(I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'), 'pf.signin', t('au.guestD'), () => PD.auth.open(), 'accent')].filter(Boolean)));
     const favs = LS.progress.favorites().map(id => LS.get(id)).filter(Boolean);
-    if (favs.length) out.push(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.saved' }), h('div', { class: 'list' }, favs.map(lessonRow))]));
+    const favSec = favs.length ? h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.saved' }), h('div', { class: 'list' }, favs.map(lessonRow))]) : null;
+    if (merged) return { strip, menu: out[0], favs: favSec };
+    if (favSec) out.push(favSec);
     return out;
   }
   function shrink(file) { return new Promise(res => { const img = new Image(), r = new FileReader(); r.onload = () => { img.onload = () => { const c = document.createElement('canvas'), k = 160 / Math.max(img.width, img.height); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', .85)); }; img.src = r.result; }; r.readAsDataURL(file); }); }

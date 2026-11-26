@@ -5403,43 +5403,64 @@ button.xp-tile:active { background: var(--surface2); }
 .cp-ib svg { width: 23px; height: 23px; }
 .cp-ib.sm { width: 32px; height: 32px; } .cp-ib.sm svg { width: 16px; height: 16px; }
 .cp-ib:active { background: var(--surface2); }
-.cp-head { position: relative; overflow-x: clip; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; margin-block: 6px 12px; padding: 22px 14px; }
-.cp-head::before { content: ''; position: absolute; z-index: -1; left: 50%; top: -30px; width: 520px; max-width: 140%; height: 300px; transform: translateX(-50%);
-  background: radial-gradient(closest-side, rgba(213,167,120,.22), rgba(213,167,120,.06) 55%, transparent); pointer-events: none; }
-.cp-avw { position: relative; margin-bottom: 6px; }
-.cp-ring { padding: 3px; border-radius: 50%; background: conic-gradient(from 200deg, #f0c9a4, #a9724a, #e2ae84, #7a4e2f, #f0c9a4); box-shadow: 0 14px 40px -14px rgba(213,167,120,.6); }
+/* The header: flat on the page, like the profiles people know — no card, no glow.
+   Phone: photo, then the words, centred. Wide screen: photo on the left, words beside it. */
+.cp-head { position: relative; display: flex; flex-direction: column; gap: 0; margin: 4px 0 14px; padding: 0; border: 0; background: none; }
+.cp-hrow { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.cp-hinfo { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; width: 100%; }
+.cp-nrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px; max-width: 100%; }
+.cp-avw { position: relative; flex: none; }
+.cp-ring { padding: 2.5px; border-radius: 50%; background: conic-gradient(from 210deg, #f0c9a4, #a9724a, #e2ae84, #7a4e2f, #f0c9a4); }
 .cp-ring .avatar { display: grid; place-items: center; overflow: hidden; border-radius: 50%; border: 3px solid var(--bg); background: var(--surface2); color: var(--fg); font-weight: 700; }
-.cp-av { width: 104px; height: 104px; font-size: 38px; }
+.cp-av { width: 96px; height: 96px; font-size: 36px; }
 .cp-ring .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.cp-avcam { position: absolute; right: -2px; bottom: 2px; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 3px solid var(--bg); border-radius: 50%; background: #f0c9a4; color: #160c05; cursor: pointer; }
-.cp-avcam svg { width: 17px; height: 17px; }
-.cp-name { margin: 0; font-size: 22px; font-weight: 750; letter-spacing: -.01em; }
-.cp-nick { color: var(--muted); font-size: 14px; }
+.cp-avcam { position: absolute; right: 0; bottom: 2px; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 3px solid var(--bg); border-radius: 50%; background: var(--fg); color: var(--bg); cursor: pointer; }
+.cp-avcam svg { width: 15px; height: 15px; }
+.cp-name { margin: 0; max-width: 100%; overflow-wrap: anywhere; font-size: 21px; font-weight: 750; letter-spacing: -.015em; line-height: 1.2; }
+.cp-nick { margin-top: -4px; color: var(--muted); font-size: 14.5px; }
 .cp-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .cp-chips:empty { display: none; }
-.cp-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: var(--surface2); color: var(--fg2); font-size: 12px; font-weight: 600; }
+.cp-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; background: var(--surface2); color: var(--fg2); font-size: 12px; font-weight: 650; line-height: 18px; }
 .cp-chip svg { width: 13px; height: 13px; }
-.cp-chip.lv { background: rgba(213,167,120,.14); color: #f0c9a4; }
-.cp-chip.vip { background: linear-gradient(120deg, #f0c9a4, #a9724a); color: #160c05; }
+.cp-chip.lv { background: rgba(213,167,120,.13); color: #f0c9a4; }
+.cp-chip.vip { background: linear-gradient(120deg, #f0c9a4, #b98257); color: #1a0f07; }
 .cp-chip.fr { color: #8fd3a7; background: rgba(143,211,167,.12); }
-.cp-stats { display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 8px; }
-.cp-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 88px; padding: 6px 10px; border: 0; border-radius: 14px; background: none; color: var(--fg); font: inherit; cursor: pointer; }
+.cp-stats { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; }
+.cp-stat { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; padding: 4px 14px; border: 0; border-radius: 10px; background: none; color: var(--fg); font: inherit; cursor: pointer; }
 .cp-stat:disabled { cursor: default; }
-.cp-stat:not(:disabled):active { background: var(--surface2); }
-.cp-stat b { font-size: 19px; font-weight: 750; font-variant-numeric: tabular-nums; }
-.cp-stat small { color: var(--muted); font-size: 12.5px; }
-.cp-sep { width: 1px; height: 18px; background: var(--line2); }
-.cp-bio { max-width: 34em; margin: 6px 16px 0; color: var(--fg2); font-size: 14.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cp-stat:not(:disabled):hover small { color: var(--fg); }
+.cp-stat b { font-size: 17px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.cp-stat small { color: var(--muted); font-size: 13px; transition: color .15s; }
+.cp-sep { display: none; }
+.cp-bio { max-width: 34em; margin: 0; color: var(--fg2); font-size: 14.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
 .cp-tag { display: inline; padding: 0; border: 0; background: none; color: #f0c9a4; font: inherit; font-weight: 650; cursor: pointer; }
-.cp-addbio { margin-top: 4px; padding: 6px 12px; border: 1px dashed var(--line3); border-radius: 999px; background: none; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }
-.cp-acts { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; width: 100%; }
-.cp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; height: 44px; padding: 0 18px; flex: 1 1 0; max-width: 220px; border: 0; border-radius: 12px; background: var(--surface2); color: var(--fg); font: inherit; font-size: 14.5px; font-weight: 650; cursor: pointer; transition: transform .14s ease, background-color .2s; }
-.cp-btn svg { width: 18px; height: 18px; }
+.cp-addbio { padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; }
+.cp-addbio:hover { color: var(--fg); }
+.cp-acts { display: flex; gap: 8px; justify-content: center; width: 100%; margin-top: 4px; }
+.cp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; height: 40px; padding: 0 18px; flex: 1 1 0; max-width: 240px; border: 0; border-radius: 10px;
+  background: rgba(255,255,255,.09); color: var(--fg); font: inherit; font-size: 14.5px; font-weight: 650; white-space: nowrap; cursor: pointer; transition: transform .14s ease, background-color .2s; }
+.cp-btn:hover { background: rgba(255,255,255,.14); }
+.cp-btn svg { width: 17px; height: 17px; }
 .cp-btn.primary { background: linear-gradient(180deg, #ef3a5d, #d81f47); color: #fff; box-shadow: 0 10px 26px -12px rgba(239,58,93,.7); }
-.cp-btn.sq { flex: 0 0 44px; padding: 0; }
+.cp-btn.sq { flex: 0 0 40px; padding: 0; }
 .cp-btn.quiet { color: var(--muted); }
 .cp-btn:active { transform: scale(.96); }
 .cp-btn:disabled { opacity: .55; }
+@media (min-width: 720px) {
+  .cp-head { margin: 12px 0 22px; }
+  .cp-hrow { flex-direction: row; align-items: flex-start; gap: clamp(28px, 5vw, 56px); padding: 0 clamp(4px, 2vw, 24px); text-align: left; }
+  .cp-hinfo { align-items: flex-start; gap: 10px; padding-top: 6px; }
+  .cp-nrow { justify-content: flex-start; }
+  .cp-av { width: 150px; height: 150px; font-size: 54px; }
+  .cp-avcam { width: 36px; height: 36px; right: 6px; bottom: 6px; } .cp-avcam svg { width: 17px; height: 17px; }
+  .cp-name { font-size: 26px; }
+  .cp-nick { margin-top: -6px; font-size: 15px; }
+  .cp-stats { justify-content: flex-start; gap: 22px; margin-top: 0; }
+  .cp-stat { flex-direction: row; align-items: baseline; gap: 6px; padding: 2px 0; }
+  .cp-stat b { font-size: 17px; } .cp-stat small { font-size: 15px; }
+  .cp-acts { justify-content: flex-start; width: auto; }
+  .cp-btn { flex: 0 0 auto; padding: 0 22px; }
+}
 /* tabs: icons, a lock on the private ones, a line that slides */
 .cp-tabs { position: sticky; top: 52px; z-index: 2; display: flex; margin: 0; border-radius: 12px 12px 0 0; border-bottom: 1px solid var(--line2); background: rgba(0,0,0,.92); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .cp-tabs button { position: relative; flex: 1; display: grid; place-items: center; height: 46px; padding: 0; border: 0; background: none; color: var(--muted); cursor: pointer; transition: color .2s; }
@@ -5502,6 +5523,7 @@ button.xp-tile:active { background: var(--surface2); }
 .cp-mrow { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 0 4px; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--fg); font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
 .cp-mrow svg { width: 22px; height: 22px; }
 .cp-chev { color: var(--faint); }
+.cp-mrow .grow { flex: 1; min-width: 0; }
 .cp-fseg { width: 100%; margin: 6px 0 10px; }
 .cp-fseg button { flex: 1; }
 .cp-flist { display: flex; flex-direction: column; min-height: 200px; }
@@ -5925,48 +5947,39 @@ button.xp-tile:active { background: var(--surface2); }
   }
 }
 
-/* ---- the banner above the photo (a picture, a GIF or a silent looping video) ----
-   One height whether it is empty or not, so the page never jumps; pictures are cut 5 : 2 on upload. */
-.cp-head.has-bn { padding-top: 0; overflow: hidden; }
-.cp-banner { position: relative; align-self: stretch; margin: 0 -14px; height: clamp(156px, 30vw, 300px); overflow: hidden; background: #120d0a; }
+/* ---- the banner: only when one is set (a picture, a GIF or a silent looping video) ---- */
+.cp-banner { position: relative; height: clamp(120px, 26vw, 240px); overflow: hidden; border-radius: 16px; background: var(--surface); }
 .cp-banner .cp-bnm { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
-/* the empty one: warm copper light and the three strings of the instrument, faint */
-.cp-banner.empty { background:
-  linear-gradient(transparent calc(42% - 1px), rgba(240,201,164,.16) calc(42% - 1px), rgba(240,201,164,.16) 42%, transparent 42%,
-    transparent calc(54% - 1px), rgba(240,201,164,.12) calc(54% - 1px), rgba(240,201,164,.12) 54%, transparent 54%,
-    transparent calc(66% - 1.5px), rgba(240,201,164,.09) calc(66% - 1.5px), rgba(240,201,164,.09) 66%, transparent 66%),
-  radial-gradient(120% 140% at 85% -10%, rgba(226,174,132,.30), transparent 60%),
-  radial-gradient(90% 120% at 0% 110%, rgba(122,78,47,.35), transparent 60%),
-  linear-gradient(135deg, #2a1d14, #15100c); }
-/* the picture melts into the card under it, whatever the card's own light is */
-.cp-banner { -webkit-mask-image: linear-gradient(#000 58%, rgba(0,0,0,.55) 80%, transparent); mask-image: linear-gradient(#000 58%, rgba(0,0,0,.55) 80%, transparent); }
-.cp-banner .cp-bncam { -webkit-mask-image: none; }
-.cp-bncam { position: absolute; top: 12px; right: 12px; z-index: 1; display: inline-flex; align-items: center; gap: 7px; min-width: 38px; min-height: 38px; padding: 0 12px; border: 1px solid rgba(255,255,255,.14); border-radius: 999px;
-  background: rgba(10,8,6,.55); color: #fff; font: inherit; font-size: 13.5px; font-weight: 650; cursor: pointer; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: background-color .2s, transform .14s; }
-.cp-bncam:hover { background: rgba(10,8,6,.72); }
-.cp-bncam:active { transform: scale(.96); }
-.cp-bncam svg { width: 17px; height: 17px; flex: none; }
-.cp-banner:not(.empty) .cp-bncam { padding: 0; width: 38px; justify-content: center; }
-.cp-head.has-bn .cp-avw { z-index: 1; margin-top: clamp(-70px, -12vw, -56px); }
-.cp-head.has-bn .cp-ring { box-shadow: 0 0 0 5px color-mix(in srgb, var(--surface-warm, #16110d) 92%, transparent), 0 18px 44px -16px rgba(213,167,120,.65); }
+.cp-bncam { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%;
+  background: rgba(0,0,0,.5); color: #fff; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: background-color .2s; }
+.cp-bncam:hover { background: rgba(0,0,0,.7); }
+.cp-bncam svg { width: 17px; height: 17px; }
+.cp-head.has-bn .cp-avw { margin-top: -52px; }
 @media (min-width: 720px) {
-  .cp-av { width: 120px; height: 120px; font-size: 44px; }
-  .cp-name { font-size: 26px; }
-  .cp-head { gap: 8px; padding-bottom: 26px; }
+  .cp-head.has-bn .cp-avw { margin-top: -64px; }
+  .cp-head.has-bn .cp-hinfo { padding-top: 14px; }
 }
-/* the two buttons under the numbers: visible on the warm card, copper on hover */
-.cp-head .cp-btn:not(.primary) { border: 1px solid var(--line2); background: rgba(255,255,255,.045); }
-.cp-head .cp-btn:not(.primary):not(:disabled):hover { border-color: color-mix(in srgb, var(--acc2) 45%, transparent); background: color-mix(in srgb, var(--acc2) 9%, transparent); }
-.cp-head .cp-btn:not(.primary) svg { color: var(--acc2); }
-.cp-head .cp-addbio:hover { border-color: var(--acc2); color: var(--fg); }
-.cp-head .cp-stats { margin-top: 4px; }
 .cp-ebnrow { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 6px; }
-.cp-ebn { position: relative; aspect-ratio: 5 / 2; overflow: hidden; border-radius: 12px; background: linear-gradient(135deg, #2a1d14, #15100c); border: 1px solid var(--line); }
+.cp-ebn { position: relative; aspect-ratio: 5 / 2; overflow: hidden; border-radius: 12px; background: var(--surface2); border: 1px dashed var(--line2); }
+.cp-ebn:not(.empty) { border-style: solid; border-color: var(--line); }
 .cp-ebn .cp-bnm { display: block; width: 100%; height: 100%; object-fit: cover; }
 .cp-ebtns.row { flex-direction: row; flex-wrap: wrap; }
 .cp-ephd { display: block; margin: -6px 0 12px; }
-/* what I learn, on my own profile */
-.cp-learn { display: flex; flex-direction: column; gap: 12px; margin: 0 0 16px; }
+/* what I learn, on my own profile: one slim line that opens the progress page */
+.cp-learn { display: flex; align-items: center; gap: clamp(14px, 3vw, 28px); width: 100%; margin: 0 0 18px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--fg); font: inherit; text-align: left; cursor: pointer; transition: border-color .2s, background-color .2s; }
+.cp-learn:hover { border-color: var(--line2); background: var(--surface2); }
+.cp-lx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cp-lx b { font-size: 17px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.cp-lx small { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.cp-lx.grow { flex: 1; gap: 7px; }
+.cp-lxp { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.cp-lxp b { font-size: 14px; }
+.cp-lbar { display: block; height: 4px; border-radius: 4px; background: var(--surface3, rgba(255,255,255,.1)); overflow: hidden; }
+.cp-lbar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #a9724a, #f0c9a4); }
+.cp-lchev { flex: none; color: var(--faint); display: grid; }
+.cp-lchev svg { width: 18px; height: 18px; }
+.cp-mapp { margin-top: 14px; }
+.cp-mapp .pf2-menu { border: 0; background: none; padding: 0; }
 
 /* Messenger styles follow the shell layer so a composer has one visual boundary. */
 @layer ds {
@@ -6422,7 +6435,7 @@ button.xp-tile:active { background: var(--surface2); }
 .ps-marks .reached, .ps-marks [aria-current] { color: var(--series); border-color: color-mix(in srgb, var(--series) 34%, transparent); }
 .ps-marks [aria-current] { background: color-mix(in srgb, var(--series) 12%, var(--surface)); }
 
-.hm-hero, .pf2-head, .cp-head, .s3-hero {
+.hm-hero, .pf2-head, .s3-hero {
   border: 1px solid var(--line);
   background: radial-gradient(ellipse at 92% 0%, var(--copper-light), transparent 62%), var(--surface-warm);
 }
@@ -6437,8 +6450,6 @@ button.xp-tile:active { background: var(--surface2); }
 .pf2-stats small { overflow-wrap: anywhere; }
 .pf2-i small { white-space: normal; }
 
-.cp-head { isolation: isolate; border-radius: var(--r-l); }
-.cp-head::before { opacity: .65; }
 .cp-name { max-width: 100%; overflow-wrap: anywhere; }
 .cp-stat { min-width: 0; }
 .cnav-b.on .cnav-ic .f { color: var(--acc2); }

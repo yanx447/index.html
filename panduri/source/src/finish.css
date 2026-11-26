@@ -31,7 +31,7 @@
 .ps-marks .reached, .ps-marks [aria-current] { color: var(--series); border-color: color-mix(in srgb, var(--series) 34%, transparent); }
 .ps-marks [aria-current] { background: color-mix(in srgb, var(--series) 12%, var(--surface)); }
 
-.hm-hero, .pf2-head, .cp-head, .s3-hero {
+.hm-hero, .pf2-head, .s3-hero {
   border: 1px solid var(--line);
   background: radial-gradient(ellipse at 92% 0%, var(--copper-light), transparent 62%), var(--surface-warm);
 }
@@ -46,8 +46,6 @@
 .pf2-stats small { overflow-wrap: anywhere; }
 .pf2-i small { white-space: normal; }
 
-.cp-head { isolation: isolate; border-radius: var(--r-l); }
-.cp-head::before { opacity: .65; }
 .cp-name { max-width: 100%; overflow-wrap: anywhere; }
 .cp-stat { min-width: 0; }
 .cnav-b.on .cnav-ic .f { color: var(--acc2); }
