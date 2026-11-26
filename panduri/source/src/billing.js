@@ -1,4 +1,5 @@
-/* Payments: stores on native devices, hosted checkout on web/desktop.
+/* Payments: stores on native devices, hosted checkout (and, once the server has them on, Apple Pay and Google Pay
+   on the page itself: paywallet.js) on web/desktop.
    Receipts and redirect parameters never unlock features; only the server profile does. */
 PD.billing = (() => {
   const C = PD.cloud;
@@ -8,7 +9,7 @@ PD.billing = (() => {
   const pendingKey = uid => 'billing.pending.' + uid;
   async function catalog() {
     if (!C.session) throw new Error('sign-in-required');
-    if (!catalogPromise) catalogPromise = C.billing({ action: 'catalog', v: 2 }).catch(e => { catalogPromise = null; throw e; });
+    if (!catalogPromise) catalogPromise = C.billing({ action: 'catalog', v: 2, express: true }).catch(e => { catalogPromise = null; throw e; });
     return catalogPromise;
   }
   async function store() {

@@ -35,6 +35,21 @@ const hasPayPal = env => ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WE
 // A card through PayPal without a PayPal account (PayPal guest checkout). Only while TBC is absent, and only when the
 // owner has turned on "PayPal account optional" and confirmed the card form appears for this merchant.
 const hasPayPalCard = env => !hasTBC(env) && hasPayPal(env) && env('PAYPAL_GUEST_CARD') === 'true';
+// Apple Pay and Google Pay on the checkout page itself (not on the bank's page). The wallet hands the page an encrypted
+// card token; a payment processor has to charge it, and none is written yet. Until one is added to WALLET_PROCESSORS,
+// with its charge in the 'wallet-pay' action, no client is shown a direct wallet: the buttons would do nothing.
+// Merchant IDs and the gateway's merchant ID are public identifiers (they are in every buyer's browser); the Apple
+// merchant identity certificate and key stay in the server's secrets. Steps: backend/supabase/WALLETS.md.
+const WALLET_PROCESSORS = [];
+export function expressWallets(env) {
+  if (!WALLET_PROCESSORS.includes(env('WALLET_PROCESSOR'))) return [];
+  const out = [], merchantName = env('WALLET_MERCHANT_NAME') || 'Panduri';
+  if (['APPLE_PAY_MERCHANT_ID', 'APPLE_PAY_MERCHANT_CERT', 'APPLE_PAY_MERCHANT_KEY', 'APPLE_PAY_DOMAIN'].every(k => env(k)))
+    out.push({ id: 'apple_pay', merchantId: env('APPLE_PAY_MERCHANT_ID'), merchantName, country: 'GE', networks: ['visa', 'masterCard'], capabilities: ['supports3DS'] });
+  if (['GOOGLE_PAY_MERCHANT_ID', 'GOOGLE_PAY_GATEWAY', 'GOOGLE_PAY_GATEWAY_MERCHANT_ID'].every(k => env(k)))
+    out.push({ id: 'google_pay', merchantId: env('GOOGLE_PAY_MERCHANT_ID'), merchantName, country: 'GE', environment: env('GOOGLE_PAY_ENV') === 'PRODUCTION' ? 'PRODUCTION' : 'TEST', gateway: env('GOOGLE_PAY_GATEWAY'), gatewayMerchantId: env('GOOGLE_PAY_GATEWAY_MERCHANT_ID'), networks: ['VISA', 'MASTERCARD'] });
+  return out;
+}
 /** the Premium sales running now (public.premium_sales, switched on by the owner). No table, no row, or an end in the past: none. */
 export async function premiumSales(db, now = Date.now()) {
   try {
@@ -45,7 +60,8 @@ export async function premiumSales(db, now = Date.now()) {
 }
 // version 1 is what clients built before the checkout page understand: never send them a provider they cannot show.
 // sales: premiumSales(). On sale, a price is { value: the sale price (charged), regular: the price after the sale, until }.
-export function catalog(env, version = 1, sales = {}) {
+// express: the client can show direct wallets (an older server ignores the flag, so the client asks for v2 and express).
+export function catalog(env, version = 1, sales = {}, express = false) {
   const providers = [];
   const policies = { terms: env('TERMS_URL') || null, privacy: env('PRIVACY_URL') || null };
   const validPolicies = Object.values(policies).every(v => { try { return new URL(v).protocol === 'https:'; } catch (_) { return false; } });
@@ -59,7 +75,8 @@ export function catalog(env, version = 1, sales = {}) {
   }
   if (version >= 2 && hasPayPalCard(env)) providers.push({ id: 'paypal-card', kind: 'card', wallets: [], prices: ppPrices() });
   if (hasPayPal(env)) providers.push({ id: 'paypal', kind: 'paypal', prices: ppPrices() });
-  return { providers, policies, stores: { ios: validPolicies && env('REVENUECAT_SECRET_KEY') ? env('REVENUECAT_IOS_KEY') || null : null, android: validPolicies && env('REVENUECAT_SECRET_KEY') ? env('REVENUECAT_ANDROID_KEY') || null : null }, entitlement: 'premium' };
+  const direct = version >= 2 && express ? expressWallets(env).map(w => ({ ...w, prices: { monthly: gel('monthly'), yearly: gel('yearly') } })) : null;
+  return { providers, ...(direct ? { express: direct } : {}), policies, stores: { ios: validPolicies && env('REVENUECAT_SECRET_KEY') ? env('REVENUECAT_IOS_KEY') || null : null, android: validPolicies && env('REVENUECAT_SECRET_KEY') ? env('REVENUECAT_ANDROID_KEY') || null : null }, entitlement: 'premium' };
 }
 export function createBilling({ db, env, fetcher = fetch }) {
   const call = (url, options) => api(fetcher, url, options);
@@ -183,7 +200,9 @@ export function billingHandler(deps) {
     if (req.method !== 'POST') return json({ error: 'method' }, 405);
     try {
       const u = await billing.user(req), input = await req.json();
-      if (input.action === 'catalog') return json(catalog(deps.env, input.v === 2 ? 2 : 1, input.v === 2 ? await premiumSales(deps.db) : {}));
+      if (input.action === 'catalog') return json(catalog(deps.env, input.v === 2 ? 2 : 1, input.v === 2 ? await premiumSales(deps.db) : {}, input.express === true));
+      // Apple's merchant validation and the token's charge belong to the processor that is not chosen yet (see expressWallets).
+      if (input.action === 'wallet-session' || input.action === 'wallet-pay') throw new BillingError('billing-not-configured', 503);
       if (input.action === 'start') return json(await billing.start(u.id, input.plan, input.provider));
       if (input.action === 'sync-store') return json(await billing.syncStore(u.id));
       if (input.action === 'verify' && typeof input.order === 'string' && input.order.length < 150) {

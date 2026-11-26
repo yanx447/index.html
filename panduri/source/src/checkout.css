@@ -1,5 +1,5 @@
 /* Checkout (checkout.js). The build puts this file in the `ds` layer after design.css.
-   One column, at most 560 px: a payment page reads top to bottom — plan, method, total, pay. */
+   One column, at most 560 px: a payment page reads top to bottom — what it is, plan, total, how to pay, why it is safe. */
 .wrap.pay { max-width: 560px; gap: var(--s4, 16px); }
 .pay .pay-lead { margin: -4px 0 0; }
 .pay .pay-h { font-size: var(--t-foot); font-weight: 600; letter-spacing: .02em; color: var(--muted); margin: 10px 0 -4px; text-align: start; }
@@ -51,9 +51,78 @@
 .pay-go svg { flex: none; }
 .pay-safe { display: flex; gap: 8px; align-items: flex-start; margin: 0; font-size: var(--t-caption); line-height: 1.45; color: var(--muted); }
 .pay-safe svg { flex: none; color: var(--ok); margin-top: 1px; }
-.pay-how { font-size: var(--t-foot); color: var(--fg2); }
-.pay-how > summary { cursor: pointer; font-weight: 600; color: var(--muted); padding: 6px 0; }
-.pay-how ol { margin: 4px 0 0; padding-inline-start: 20px; display: flex; flex-direction: column; gap: 6px; line-height: 1.45; }
+.pay-foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+
+/* what Premium is — the one warm block on the page */
+.pay-hero { display: flex; flex-direction: column; gap: 14px; padding: 20px 18px 16px; border-radius: var(--r-l); background: radial-gradient(130% 100% at 100% 0%, rgba(199,139,94,.2), transparent 62%), var(--surface); box-shadow: inset 0 0 0 1px var(--acc-line); }
+.pay-hero-top { display: flex; align-items: center; gap: 14px; }
+.pay-hero-ic { flex: none; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--acc); color: var(--acc-ink); }
+.pay-hero-ic svg { fill: currentColor; }
+.pay-hero h2 { margin: 0; font-size: var(--t-title2); font-weight: 700; text-align: start; letter-spacing: -.01em; }
+.pay-hero-top p { margin: 3px 0 0; font-size: var(--t-callout); color: var(--fg2); line-height: 1.4; }
+.pay-feats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.pay-feats li { display: flex; align-items: flex-start; gap: 10px; font-size: var(--t-callout); line-height: 1.4; color: var(--fg); }
+.pay-ck { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; background: var(--acc-wash); color: var(--acc2); }
+.pay-ck svg { stroke-width: 2.4; }
+.pay-more > summary { cursor: pointer; list-style: none; width: max-content; font-size: var(--t-foot); font-weight: 600; color: var(--acc2); padding: 2px 0; }
+.pay-more > summary::-webkit-details-marker { display: none; }
+.pay-more > summary::after { content: ' ▾'; font-size: .85em; }
+.pay-more[open] > summary { margin-bottom: 9px; }
+.pay-more[open] > summary::after { content: ' ▴'; }
+
+/* payment: the wallets first, then "or", then card and PayPal, then the button */
+.pay-pay { display: flex; flex-direction: column; gap: 12px; }
+.pay-sub { margin: 0; font-size: var(--t-caption); font-weight: 600; color: var(--muted); text-align: start; }
+.pay-xp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pay-xp:empty { display: none; }
+.xp-cell { min-width: 0; }
+/* Apple's own button: Safari draws it, words and logo included (no brand file is shipped) */
+.xp-apple { display: block; width: 100%; height: 52px; padding: 0; border: 0; border-radius: 12px; cursor: pointer; -webkit-appearance: -apple-pay-button; -apple-pay-button-type: buy; -apple-pay-button-style: white; }
+.xp-google { height: 52px; }
+.xp-google > div, .xp-google button { width: 100% !important; height: 100% !important; min-height: 52px; }
+.xp-tile { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 64px; width: 100%; padding: 10px 12px; border: 0; border-radius: var(--r-m); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--fg); text-align: start; font: inherit; cursor: pointer; transition: background var(--d-micro) var(--ease-out), box-shadow var(--d-micro) var(--ease-out); }
+.xp-ic { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; background: var(--surface2); color: var(--fg2); }
+.xp-ic svg { width: 18px; height: 18px; }
+.xp-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.xp-tx b { font-size: var(--t-body); font-weight: 650; letter-spacing: -.01em; }
+.xp-tx small { font-size: var(--t-caption); color: var(--muted); line-height: 1.3; }
+.xp-go { color: var(--acc2); display: grid; }
+button.xp-tile:active { background: var(--surface2); }
+@media (hover: hover) and (pointer: fine) { button.xp-tile:hover { background: var(--surface2); box-shadow: inset 0 0 0 1px var(--acc-line); } }
+.xp-tile.off { cursor: default; box-shadow: none; }
+.xp-tile.off .xp-tx b, .xp-tile.off .xp-ic { color: var(--disabled); }
+.xp-tile.soon .xp-tx small { display: inline-block; width: max-content; padding: 1px 8px; border-radius: var(--r-pill); background: var(--surface2); font-size: var(--t-over); font-weight: 600; }
+.xp-tile.wait { cursor: progress; background: linear-gradient(100deg, var(--surface) 30%, var(--surface2) 50%, var(--surface) 70%) 0 0 / 300% 100%; animation: xp-shim 1.4s linear infinite; }
+@keyframes xp-shim { to { background-position: -150% 0; } }
+.pay-xhint { margin: -2px 0 0; font-size: var(--t-caption); color: var(--muted); line-height: 1.45; }
+.pay-or { display: flex; align-items: center; gap: 12px; margin: 0; font-size: var(--t-caption); color: var(--muted); }
+.pay-or::before, .pay-or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.pay-or[hidden] { display: none; }
+
+/* why it is safe, three short facts */
+.pay-trust { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pay-trust li { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--r-m); background: var(--surface); }
+.pay-trust-ic { color: var(--acc2); display: grid; }
+.pay-trust li > span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.pay-trust b { font-size: var(--t-foot); font-weight: 600; line-height: 1.3; }
+.pay-trust small { font-size: var(--t-caption); color: var(--muted); line-height: 1.35; }
+
+.pay-block { display: flex; flex-direction: column; gap: 12px; }
+.pay-block .pay-h { margin-bottom: 0; }
+.pay-steps { list-style: none; counter-reset: pst; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.pay-steps li { counter-increment: pst; position: relative; min-height: 28px; padding-block: 3px 16px; padding-inline-start: 42px; font-size: var(--t-callout); line-height: 1.45; color: var(--fg2); }
+.pay-steps li:last-child { padding-bottom: 0; }
+.pay-steps li::before { content: counter(pst); position: absolute; top: 0; inset-inline-start: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--acc-wash); color: var(--acc2); font-size: var(--t-foot); font-weight: 700; }
+.pay-steps li:not(:last-child)::after { content: ''; position: absolute; top: 32px; bottom: 4px; inset-inline-start: 13.5px; width: 1px; background: var(--line2); }
+
+.pay-faq { display: flex; flex-direction: column; border-radius: var(--r-m); background: var(--surface); overflow: hidden; }
+.pay-faq details + details { box-shadow: inset 0 1px 0 var(--line); }
+.pay-faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; font-size: var(--t-callout); font-weight: 600; color: var(--fg); }
+.pay-faq summary::-webkit-details-marker { display: none; }
+.pay-faq summary::after { content: '+'; flex: none; font-size: 1.25em; font-weight: 400; line-height: 1; color: var(--muted); }
+.pay-faq details[open] > summary::after { content: '−'; }
+.pay-faq p { margin: -4px 16px 14px; font-size: var(--t-foot); line-height: 1.5; color: var(--fg2); }
+@media (hover: hover) and (pointer: fine) { .pay-faq summary:hover { background: var(--surface2); } }
 
 /* back from the hosted page */
 .pay-ret { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 36px 20px; border-radius: var(--r-l); background: var(--surface); text-align: center; }
@@ -63,8 +132,9 @@
 .pay-ret-ic.wait::before { content: ''; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--acc2); }
 .pay-ret-t { margin: 0; max-width: 380px; font-size: var(--t-body); line-height: 1.5; color: var(--fg2); }
 .pay-ret-a { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-@media (max-width: 380px) { .pay-plans { grid-template-columns: 1fr; } .pay-plan { min-height: 0; } .pay-marks { display: none; } }
-@media (prefers-reduced-motion: reduce) { .pay-ret-ic.spin { animation-duration: 2.4s; } }
+@media (max-width: 520px) { .pay-trust { grid-template-columns: 1fr; } .pay-trust li { flex-direction: row; align-items: flex-start; gap: 12px; } }
+@media (max-width: 380px) { .pay-plans, .pay-xp { grid-template-columns: 1fr; } .pay-plan { min-height: 0; } .pay-marks { display: none; } }
+@media (prefers-reduced-motion: reduce) { .pay-ret-ic.spin { animation-duration: 2.4s; } .xp-tile.wait { animation: none; } }
 
 /* a running sale: the regular price struck out, the discount in copper (billing.sale(): only while the sale runs) */
 .price-was { display: block; font-size: .62em; font-weight: 500; color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1.5px; text-decoration-color: var(--fix); line-height: 1.1; }

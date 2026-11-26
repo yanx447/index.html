@@ -113,6 +113,19 @@ test('TBC wallets are only the ones the owner lists as activated', () => {
   assert.deepEqual(catalog(e({ TBC_WALLETS: 'apple_pay, bitcoin,google_pay' }), 2).providers[0].wallets, ['apple_pay', 'google_pay']);
   assert.equal('wallets' in catalog(e({ TBC_WALLETS: 'apple_pay' }), 1).providers[0], false);
 });
+test('Direct Apple Pay and Google Pay stay hidden until a processor can charge their token', async () => {
+  const wallets = { WALLET_PROCESSOR: 'anything', APPLE_PAY_MERCHANT_ID: 'merchant.com.yanx.panduri', APPLE_PAY_MERCHANT_CERT: 'pem', APPLE_PAY_MERCHANT_KEY: 'pem', APPLE_PAY_DOMAIN: 'example.ge', GOOGLE_PAY_MERCHANT_ID: 'BCR2', GOOGLE_PAY_GATEWAY: 'gw', GOOGLE_PAY_GATEWAY_MERCHANT_ID: 'gm' };
+  const e = k => ({ ...secrets, ...wallets })[k];
+  assert.deepEqual(catalog(e, 2, {}, true).express, [], 'every merchant setting present, but no processor is written');
+  assert.equal('express' in catalog(e, 2), false, 'a client that did not ask gets the catalog it knows');
+  assert.equal('express' in catalog(e, 1, {}, true), false);
+  const x = setup({ env: wallets });
+  for (const action of ['wallet-session', 'wallet-pay']) {
+    const r = await x.handler(req({ action, wallet: 'apple_pay', plan: 'yearly', token: {} }));
+    assert.equal(r.status, 503); assert.equal((await r.json()).error, 'billing-not-configured');
+  }
+  assert.equal(x.grants.length, 0);
+});
 test('A PayPal card order opens the card form and is saved and verified as an ordinary PayPal order', async () => {
   const x = setup({ env: { TBC_API_KEY: '', PAYPAL_GUEST_CARD: 'true' } });
   const r = await (await x.handler(req({ action: 'start', plan: 'monthly', provider: 'paypal-card' }))).json();
