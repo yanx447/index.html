@@ -163,7 +163,7 @@ PD.app = (() => {
   // on the phone, screens whose tab is not in the dock light the tab they are reached from
   const DOCK_OF = { chords: 'learn', ai: 'home', mtheory: 'learn', chats: 'community' };
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'mtheory', mtheory: 'mtheory', adv: 'mtheory', pstudio: 'learn', tips: 'learn', solfege: 'mtheory', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
-    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', songadmin: 'profile', checkout: 'profile', market: 'community' };
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', songadmin: 'profile', creator: 'profile', checkout: 'profile', market: 'community' };
   if (PD.studio3) { Object.assign(TOP, PD.studio3.top); Object.assign(DOCK_OF, PD.studio3.dock); }
   if (PD.games) { Object.assign(TOP, PD.games.top); Object.assign(DOCK_OF, PD.games.dock); }
   let route = 'home', param = null;
@@ -366,7 +366,7 @@ PD.app = (() => {
     PD.bus.emit('route', route);
     // the helper rides along on every screen, and keeps out of the way inside a lesson
     try { if (PD.sima) { PD.sima.close(); if (route === 'practice' || PD.practice.active) { const f = document.querySelector('button.sm-fab'); if (f) { f.remove(); PD.bus.emit('sima-nav'); } } else { PD.sima.mount(); setTimeout(() => PD.sima.nudge(), 1800); } } } catch (_) {}
-    (PD.games && PD.games.route(route, wrap, param)) || (PD.musicLib && PD.musicLib.route(route, wrap, param)) || (PD.studio3 && PD.studio3.route(route, wrap, param)) || ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
+    (PD.games && PD.games.route(route, wrap, param)) || (PD.creator && PD.creator.route(route, wrap, param)) || (PD.musicLib && PD.musicLib.route(route, wrap, param)) || (PD.studio3 && PD.studio3.route(route, wrap, param)) || ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
       community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), circle: () => PD.circle.page(wrap, param), mtheory: () => PD.mtheory.page(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), book: () => PD.book.page(wrap, param), install: () => PD.install.page(wrap), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), checkout: () => PD.checkout.page(wrap, param), market: () => PD.market ? PD.market.page(wrap, param) : home(wrap), adv: () => PD.advTheory ? PD.advTheory.page(wrap, param) : PD.mtheory.page(wrap), pstudio: () => PD.pstudio ? PD.pstudio.page(wrap, param) : practiceHub(wrap), progress, settings, profile }[route] || home)(wrap);
@@ -519,6 +519,7 @@ PD.app = (() => {
       p.plays ? h('div', { class: 'acard-p' }, [h('i', { style: 'width:' + m + '%' })]) : null]);
   }
   const visible = l => !l.derived;
+  const inCat = (l, c) => l.cats ? l.cats.includes(c) : catOf(l) === c;
   function stat(v, k, cls) { return h('div', { class: 'stat' + (cls ? ' ' + cls : '') }, [h('b', { text: v }), h('span', { text: k })]); }
   function streaks() { return PD.practiceStreak.status(); }
   const streak = () => streaks().cur;
@@ -601,7 +602,7 @@ PD.app = (() => {
           PD.rhythmsUI.preview(r.id)])))])); }
     // the library on three shelves
     [['song', 'cat.song'], ['melody', 'cat.melody'], ['solo', 'cat.solo']].forEach(([cat, k]) => {
-      const ls = LS.all.filter(l => visible(l) && catOf(l) === cat).sort((a, b) => (a.level || 1) - (b.level || 1));
+      const ls = LS.all.filter(l => visible(l) && inCat(l, cat)).sort((a, b) => (a.level || 1) - (b.level || 1));
       const sec = h('section', { class: 'hm-shelf', 'data-cat': cat }, [h('div', { class: 'hm-sh' }, [h('h2', { 'data-t': k }), ls.length ? h('span', { class: 'n', text: String(ls.length) }) : null, h('button', { class: 'linkbtn', 'data-t': 'hx.all', onclick: () => { st.cat = cat; PD.store.set('home.cat', cat); go('songs'); } })])]);
       if (!ls.length) sec.append(h('p', { class: 'empty', text: cat === 'solo' ? t('lib.noSolos') : t('lib.none') }));
       else sec.append(h('div', { class: 'hm-shelf-row', role: 'list' }, ls.slice(0, 12).map(shelfCard)));
@@ -721,7 +722,7 @@ PD.app = (() => {
 
   /* ---------- Songs: music-app browsing — songs · melodies · solos, by difficulty ---------- */
   function songs(w) {
-    const cats = ['song', 'melody', 'solo']; if (!cats.includes(st.cat)) st.cat = 'song';
+    const cats = ['song', 'melody', 'solo'].concat(LS.all.some(l => l.cats && l.cats.includes('teach')) ? ['teach'] : []); if (!cats.includes(st.cat)) st.cat = 'song';
     const tabs = h('div', { class: 'sx-tabs', role: 'tablist' }, cats.map(k => h('button', { role: 'tab', 'aria-pressed': String(st.cat === k), 'data-t': 'cat.' + k, onclick: () => { st.cat = k; PD.store.set('home.cat', k); render(); } })));
     const lv = h('div', { class: 'sx-chips' }, [[0, 'f.all'], [1, 'lvl.1'], [2, 'lvl.2'], [3, 'lvl.3']].map(([v, k]) => h('button', { class: 'chip', 'aria-pressed': String(st.level === v), 'data-t': k, onclick: () => { st.level = v; render(); } })));
     const search = h('label', { class: 'search' }, [h('span', { html: ic.search }), h('input', { type: 'search', value: st.q, 'data-t-ph': 'home.search', 'aria-label': t('home.search'), oninput: e => { st.q = e.target.value; list(); } })]);
@@ -730,7 +731,7 @@ PD.app = (() => {
     function list() {
       box.innerHTML = '';
       const q = st.q.trim().toLowerCase();
-      let ls = LS.all.filter(visible).filter(l => q ? (l.title.ka + ' ' + l.title.en).toLowerCase().includes(q) : catOf(l) === st.cat);
+      let ls = LS.all.filter(visible).filter(l => q ? (l.title.ka + ' ' + l.title.en).toLowerCase().includes(q) : inCat(l, st.cat));
       if (st.level) ls = ls.filter(l => (l.level || 1) === st.level);
       ls.sort((a, b) => (a.level || 1) - (b.level || 1));
       ls.forEach(l => box.appendChild(songRow(l)));
@@ -924,8 +925,8 @@ PD.app = (() => {
     const SD = PD.SONGS[l.song] || { chords: l.shapes || {} }, stages = LS.stagesOf(l), ORIG = ['full', 'music', 'vocals'].filter(k => !l.stems || l.stems[k]);
     const mixNow = () => PD.store.get('songMix', 'full');
     PD.audio.ref.preload(l.stems, ORIG.includes(mixNow()) ? mixNow() : 'music');   // decode now, so the first play starts at once
-    const DESC = { demo: 'std.songDemo', chords: 'std.chords', technique: 'std.songRhythm', slow: 'std.songSlow', perform: 'std.songFull' };
-    const NAME = { demo: 'st.listen', chords: 'st.chords', technique: 'st.songRhythm', slow: 'st.songSlow', perform: 'st.songFull' };
+    const DESC = Object.assign({ demo: 'std.songDemo', chords: 'std.chords', technique: 'std.songRhythm', slow: 'std.songSlow', perform: 'std.songFull' }, l.stageDesc || {});
+    const NAME = Object.assign({ demo: 'st.listen', chords: 'st.chords', technique: 'st.songRhythm', slow: 'st.songSlow', perform: 'st.songFull' }, l.stageNames || {});
     const next = stages.find(s2 => !(stagePct(p, s2) >= 80)) || 'perform';
     w.append(h('div', { class: 'ls-actions lx-actions' }, [
       h('button', { class: 'btn primary big', text: t(p.plays ? 'hx.go' : 'home.start') + ' · ' + t(NAME[next]), onclick: () => startStage(l, next) }),
@@ -1013,6 +1014,7 @@ PD.app = (() => {
   function startStage(l, s, resumeBeat) {
     const p = LS.progress.lesson(l.id); p.lastStage = s; LS.progress.saveLesson(l.id, p);
     if (s === 'intro') return introSheet(l);
+    if (l.musiclib && PD.musicLib && PD.musicLib.stage && PD.musicLib.stage(l, s, resumeBeat)) return;   // a Creator lesson: each stage in the part of the data it teaches
     const waitDef = PD.store.get('waitDefault', true);
     const o = { demo: { autoplay: true, tempo: 1, wait: false, mode: 'learn' }, guided: { stepMode: true, wait: true, tempo: .6, mode: 'learn', autoDemo: true }, wait: { wait: waitDef, tempo: .7, mode: waitDef ? 'learn' : 'practice' },
       slow: { wait: false, tempo: .6, mode: 'practice' }, perform: { wait: false, tempo: 1, mode: 'perform' }, technique: { wait: true, tempo: .7, mode: 'learn' },
@@ -1100,6 +1102,7 @@ PD.app = (() => {
       item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', C.session && C.profile?.nickname ? '@' + C.profile.nickname : null, () => go('community', 'me')),
       PD.market ? item(I('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.4"/>'), 'mk.title', t('mk.lead'), () => go('market'), 'accent') : null,
       C.isOwner ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'pa.title', null, () => go('pmadmin')) : null,
+      C.isOwner && PD.creator ? item(I('<path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="3" y="15" width="18" height="6" rx="2"/>'), 'cr.title', null, () => go('creator')) : null,
       C.isOwner && PD.musicLib ? item(I('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'), 'ml.dash', null, () => go('songadmin')) : null,
       C.isOwner && PD.market ? item(I('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>'), 'mk.sl.title', t('mk.sl.premium') + ' · ' + t('mk.title'), () => go('market', 'sales'), 'accent') : null,
       C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => signOut())

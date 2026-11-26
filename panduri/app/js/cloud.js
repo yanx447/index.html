@@ -472,6 +472,10 @@ PD.cloud = (() => {
       const o = {}; (paths || []).forEach(p => { const v = p && signed.get(key(p)); if (v) o[p] = v.url; }); return o;
     },
     url: p => { const v = signed.get(p); return v ? v.url : null; },
+    /** delete files of a bucket the server lets this account write (the Creator's own uploads) */
+    remove: (paths, bucket) => http('/storage/v1/object/' + (bucket || BUCKET), { method: 'DELETE', body: { prefixes: paths } }),
+    /** copy a file inside one bucket, server-side (Duplicate Project) */
+    copy: (from, to, bucket) => http('/storage/v1/object/copy', { method: 'POST', body: { bucketId: bucket || BUCKET, sourceKey: from, destinationKey: to } }),
     async read(path, bucket) {
       const c = conf(), owner = uid();
       if (!S) throw err('no-session');
