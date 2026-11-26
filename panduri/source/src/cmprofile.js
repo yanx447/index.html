@@ -445,7 +445,7 @@ PD.cmp = (() => {
     cv.getContext('2d').drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, N, N);
     return new Promise(r => cv.toBlob(r, 'image/jpeg', .88));
   }
-  /** the banner: a photo is cut to 3 : 1 and made at most 1500 px wide; a GIF or a short silent video goes up as it is */
+  /** the banner: a photo is cut to 5 : 2 and made at most 1500 px wide; a GIF or a short silent video goes up as it is */
   function pickBanner(done) {
     const inp = h('input', { type: 'file', accept: 'image/*,video/mp4,video/webm', hidden: true });
     inp.onchange = async () => {
@@ -462,8 +462,8 @@ PD.cmp = (() => {
         let blob = f;
         if (!moving) {
           const bmp = window.createImageBitmap ? await createImageBitmap(f) : await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(f); });
-          const sw = Math.min(bmp.width, bmp.height * 3), sh = sw / 3, W = Math.min(1500, Math.round(sw)), cv = document.createElement('canvas');
-          cv.width = W; cv.height = Math.round(W / 3);
+          const sw = Math.min(bmp.width, bmp.height * 2.5), sh = sw / 2.5, W = Math.min(1500, Math.round(sw)), cv = document.createElement('canvas');
+          cv.width = W; cv.height = Math.round(W / 2.5);
           cv.getContext('2d').drawImage(bmp, (bmp.width - sw) / 2, (bmp.height - sh) / 2, sw, sh, 0, 0, cv.width, cv.height);
           blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', .86));
         }
