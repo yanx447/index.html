@@ -170,6 +170,7 @@ PD.community = (() => {
           r.other ? h('span', { class: 'cm-toprof', title: t('ms.viewProfile'), onclick: e => { e.stopPropagation(); PD.app.go('community', 'u:' + r.other); } }, [face(r.other_avatar, r.other_name || r.other_nick, online(seen.get(r.other)))]) : face(r.other_avatar, r.other_name || r.other_nick, online(seen.get(r.other))),   // the photo opens the profile, the row the chat
           h('span', { class: 'grow' }, [h('b', { text: r.other_name || (r.other_nick ? '@' + r.other_nick : '—') }), h('small', {}, [h('span', { class: 'cm-last', text: (r.last_sender === C.uid ? t('cm.you') + ': ' : '') + what.replace(/:(panduri|doli|salamuri):/g, (_, name) => t('ck.' + name)) }), h('span', { class: 'cm-ago', text: ' · ' + ago(r.last_at) })])]),
           r.unread ? h('i', { class: 'cm-udot', 'aria-label': t('cm.unread', { n: r.unread }) }) : h('span', { class: 'cm-cam', 'aria-hidden': 'true', html: ic.chevron })]));
+        holdToPeek(list.lastChild, () => peekRow(r));
       });
       PD.i18n.apply(list); PD.motion && PD.motion.reveal(list, 0);
     }
@@ -180,6 +181,7 @@ PD.community = (() => {
       fr.slice().sort((a, b) => (online(b.last_seen) - online(a.last_seen))).slice(0, 20).forEach(x => {
         const nm = x.display_name || '@' + x.nickname;
         strip.appendChild(h('button', { class: 'cm-pal', role: 'listitem', onclick: () => openChat(x.id, nm) }, [face(x.avatar_url, nm, online(x.last_seen), 'cm-ringed'), h('small', { text: (x.display_name || x.nickname || '').split(' ')[0] })]));
+        holdToPeek(strip.lastChild, async () => { try { const c = await C.chat.open(x.id), r = rows.find(y => y.id === c); PD.messenger.peek(c, { name: nm, avatar: x.avatar_url, other: x.id, unread: r && r.unread, group: false }, reload); } catch (e) { PD.ui.toast(err(e)); } });
       });
       PD.motion && PD.motion.reveal(strip, 0);
     }
@@ -192,6 +194,19 @@ PD.community = (() => {
       });
     }
     q.addEventListener('input', paint);
+    /** a held chat (or a right click): the mini chat over the list; a plain tap still opens the chat */
+    function holdToPeek(el, peek) {
+      let tm = 0, at = null, fired = false;
+      const stop = () => { clearTimeout(tm); el.classList.remove('cm-pressing'); };
+      el.addEventListener('pointerdown', e => { if (e.button) return; fired = false; at = { x: e.clientX, y: e.clientY }; stop(); el.classList.add('cm-pressing');
+        tm = setTimeout(() => { fired = true; el.classList.remove('cm-pressing'); peek(); }, 500); });
+      el.addEventListener('pointermove', e => { if (at && Math.hypot(e.clientX - at.x, e.clientY - at.y) > 10) stop(); });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach(k => el.addEventListener(k, stop));
+      el.addEventListener('click', e => { if (fired) { fired = false; e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+      el.addEventListener('contextmenu', e => { e.preventDefault(); stop(); fired = false; peek(); });
+    }
+    const peekRow = r => PD.messenger.peek(r.id, { name: r.other_name || (r.other_nick ? '@' + r.other_nick : '—'), avatar: r.other_avatar, other: r.other || null, unread: r.unread, group: !r.other }, reload);
+    async function reload() { try { const all = await C.chat.list(); const hidden = await blockedIds(); rows = (all || []).filter(r => !hidden.has(r.other)); PD.store.set('cm.unread', rows.reduce((a, r) => a + (r.unread || 0), 0)); paint(); } catch (_) {} }
     (async () => {
       try {
         const [all, hidden, fr, settings] = await Promise.all([C.chat.list(), blockedIds(), C.social.friends().catch(() => []), C.chat.preferences().catch(() => [])]);

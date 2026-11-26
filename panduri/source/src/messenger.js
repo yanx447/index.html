@@ -26,7 +26,7 @@ PD.i18n.add({
   'ms.camera':['კამერის გახსნა','Open camera'], 'ms.photo':['ფოტოს გადაღება','Take photo'], 'ms.video':['ვიდეოს ჩაწერა','Record video'], 'ms.use':['გამოყენება','Use'],
   'ms.file':['ფაილის გაგზავნა','Send file'], 'ms.fileLimit':['აირჩიე PDF, დოკუმენტი, ტექსტი ან ZIP, მაქსიმუმ 50 MB.','Choose a PDF, document, text or ZIP up to 50 MB.'],
   'ms.loading':['იტვირთება…','Loading…'], 'ms.retry':['ხელახლა ცდა','Try again'], 'ms.older':['ძველი შეტყობინებები','Older messages'], 'ms.empty':['აქ დაიწყება თქვენი საუბარი','Your conversation starts here'],
-  'ms.viewProfile':['პროფილის ნახვა','View profile'], 'ms.membersT':['წევრები','Members'], 'ms.sent':['გაგზავნილია','Sent'], 'ms.read':['წაკითხულია','Read'], 'ms.today':['დღეს','Today'], 'ms.members':['{n} მონაწილე','{n} members'], 'ms.conversation':['პირადი მიმოწერა','Direct conversation'],
+  'ms.viewProfile':['პროფილის ნახვა','View profile'], 'ms.peekOpen':['ჩატის გახსნა','Open chat'], 'ms.markRead':['წაკითხულად მონიშვნა','Mark as read'], 'ms.muteOn':['დადუმება','Mute'], 'ms.muteOff':['ხმის ჩართვა','Unmute'], 'ms.mutedT':['ჩატი დადუმდა','Chat muted'], 'ms.unmutedT':['ჩატს ხმა ჩაერთო','Chat unmuted'], 'ms.peekEmpty':['ჯერ მესიჯი არ არის.','No messages yet.'], 'ms.quickReply':['სწრაფი პასუხი…','Quick reply…'], 'ms.membersT':['წევრები','Members'], 'ms.sent':['გაგზავნილია','Sent'], 'ms.read':['წაკითხულია','Read'], 'ms.today':['დღეს','Today'], 'ms.members':['{n} მონაწილე','{n} members'], 'ms.conversation':['პირადი მიმოწერა','Direct conversation'],
   'ms.noItems':['ჯერ არაფერია','Nothing here yet'], 'ms.saved':['შენახულია','Saved'], 'ms.copy':['კოპირება','Copy'], 'ms.copied':['დაკოპირებულია','Copied'],
   'ms.cameraError':['კამერის გახსნა ვერ მოხერხდა. შეამოწმე კამერის ნებართვა.','Could not open the camera. Check camera permission.'],
   'ms.voiceShort':['ჩაწერე მინიმუმ ერთი წამი.','Record at least one second.'], 'ms.uploading':['იგზავნება…','Sending…'],
@@ -482,5 +482,58 @@ PD.messenger = (() => {
       return()=>{disposed=true;};
     });
   }
-  return {view,createGroup,recorder,icons};
+  /** a chat held in the inbox: a mini chat over the list, as in Telegram, WhatsApp and Messenger — the newest messages
+      (reading them here marks nothing as read), a quick reply, and the chat's actions. info: { name, avatar, other, unread, group } */
+  function peek(conv,info,onChange){
+    info=info||{};const name=info.name||'—';let closed=false,lid=0,muted=null,members=null;
+    const back=h('div',{class:'ms-peek-back',role:'presentation'}),card=h('div',{class:'ms-peek',role:'dialog','aria-modal':'true','aria-label':name});
+    const face=h('span',{class:'ms-avatar ms-peek-av',html:info.avatar?'<img alt="" src="'+PD.esc(info.avatar)+'">':PD.esc([...name.replace(/^@/,'')][0]||'?')});
+    const sub=h('small',{text:t(info.group?'ms.members':'ms.conversation',{n:'…'})});
+    const list=h('div',{class:'ms-peek-msgs'},[h('p',{class:'ms-peek-note',text:t('ms.loading')})]);
+    const inp=h('input',{class:'ms-peek-inp',type:'text',maxlength:'2000',enterkeyhint:'send',placeholder:t('ms.quickReply'),'aria-label':t('ms.quickReply')});
+    const sendB=h('button',{type:'button',class:'ms-peek-send','aria-label':t('cm.send'),html:ic.send||'➤',onclick:send});
+    card.append(h('div',{class:'ms-peek-head'},[face,h('div',{class:'grow'},[h('b',{text:name}),sub])]),list,h('div',{class:'ms-peek-reply'},[inp,sendB]));
+    const acts=h('div',{class:'ms-peek-acts'});back.append(card,acts);
+    const act=(key,icon,fn,cls)=>h('button',{type:'button',class:'ms-peek-act'+(cls?' '+cls:''),onclick:fn},[h('span',{text:t(key)}),h('span',{class:'ms-peek-aic',html:icon})]);
+    function paintActs(){acts.replaceChildren(
+      act('ms.peekOpen',ic.chat||icons.more,open),
+      ...(info.other?[act('ms.viewProfile',ic.user||icons.more,()=>{close();PD.app.go('community','u:'+info.other);})]:[]),
+      ...(info.unread?[act('ms.markRead',svg('<path d="m4 12 5 5L20 6"/>'),async()=>{try{await C.chat.read(conv);PD.notify.readTag?.(['c:'+conv,'cr:'+conv]);info.unread=0;onChange?.();close();}catch(e){PD.ui.toast(PD.community.util.err(e));}})]:[]),
+      ...(muted==null?[]:[act(muted?'ms.muteOff':'ms.muteOn',icons.bell,async()=>{try{await C.chat.settings(conv,{muted:!muted});muted=!muted;paintActs();PD.ui.toast(t(muted?'ms.mutedT':'ms.unmutedT'),1600);onChange?.();}catch(e){PD.ui.toast(PD.community.util.err(e));}})]));}
+    function open(){close();PD.app.go('community','c:'+conv+':'+name);}
+    function close(fromBack){if(closed)return;closed=true;if(fromBack!==true)PD.layers.done(lid);document.removeEventListener('keydown',key,true);back.classList.add('out');setTimeout(()=>back.remove(),PD.motion?.ok()?200:0);}
+    function key(e){if(e.key==='Escape'){e.stopPropagation();close();}}
+    back.addEventListener('click',e=>{if(e.target===back)close();});
+    const who=m=>m.sender===C.uid?null:(members?.find(x=>x.id===m.sender)?.name||null);
+    function bubble(m){
+      const mine=m.sender===C.uid,b=h('div',{class:'ms-peek-b'+(mine?' me':'')});
+      if(info.group&&!mine&&who(m))b.append(h('small',{class:'ms-peek-from',text:who(m)}));
+      if(m.sticker)b.append(PD.chatkit.sticker(m.sticker,true));
+      else if(m.gif)b.append(h('img',{class:'ms-peek-gif',src:m.gif,alt:'GIF',loading:'lazy'}));
+      else if(m.media_path||m.post_ref){b.append(h('i',{class:'ms-peek-kind',text:t(m.post_ref?'cm.mPost':m.media_meta?.voice?'cm.mAudio':({photo:'cm.mPhoto',video:'cm.mVideo',audio:'cm.mAudio',file:'ms.file'}[m.media_kind]||'cm.mPost'))}));}
+      if(m.body){const p=h('p');PD.chatkit.appendEmoji(p,m.body);b.append(p);}
+      b.append(h('time',{text:new Date(m.created_at).toLocaleTimeString(PD.i18n.locale,{hour:'2-digit',minute:'2-digit'})}));
+      return b;
+    }
+    async function load(){
+      try{
+        const [rows,st]=await Promise.all([C.chat.messages(conv),C.chat.state(conv).catch(()=>null)]);if(closed)return;
+        if(st){members=st.members||null;muted=!!st.preferences?.muted;if(info.group)sub.textContent=t('ms.members',{n:members?.length||0});paintActs();}
+        const last=(rows||[]).slice(-30);
+        list.replaceChildren(...(last.length?last.map(bubble):[h('p',{class:'ms-peek-note',text:t('ms.peekEmpty')})]));
+        list.scrollTop=list.scrollHeight;
+      }catch(e){if(!closed)list.replaceChildren(h('p',{class:'ms-peek-note',text:PD.community.util.err(e)}));}
+    }
+    async function send(){
+      const body=inp.value.trim();if(!body||sendB.disabled)return;sendB.disabled=true;
+      try{await C.chat.send(conv,body);inp.value='';list.querySelector('.ms-peek-note')?.remove();list.append(bubble({sender:C.uid,body,created_at:new Date().toISOString()}));list.scrollTop=list.scrollHeight;navigator.vibrate?.(6);onChange?.();}
+      catch(e){PD.ui.toast(PD.community.util.err(e));}finally{sendB.disabled=false;}
+    }
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();send();}});
+    document.body.append(back);lid=PD.layers.push(close);document.addEventListener('keydown',key,true);
+    paintActs();load();navigator.vibrate?.(10);
+    setTimeout(()=>acts.querySelector('button')?.focus({preventScroll:true}),60);
+    return {close};
+  }
+  return {view,createGroup,recorder,icons,peek};
 })();
