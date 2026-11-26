@@ -45,7 +45,7 @@ PD.i18n.add({
   'le.loadAnalysis': ['ანალიზის ჩატვირთვა', 'Load the analysis'], 'le.upload': ['ჩანაწერის გამოქვეყნება', 'Publish the recording'],
   'le.uploadQ': ['ჩანაწერი საჯარო გახდება — ყველა მომხმარებელი მოისმენს. ადასტურებ, რომ მისი გამოქვეყნების უფლება გაქვს?', 'The recording becomes public — every learner can play it. Do you confirm you have the right to publish it?'],
   'le.uploaded': ['ჩანაწერი გამოქვეყნდა', 'Recording published'], 'le.uploading': ['იტვირთება… {p}%', 'Uploading… {p}%'], 'le.attach': ['ჩანაწერის მიმაგრება', 'Attach the recording'],
-  'le.noAudio': ['ჩანაწერი არ არის მიმაგრებული: მიამაგრე ფაილი MUSIC საქაღალდიდან (ის ჯერ მხოლოდ ამ მოწყობილობაზე იქნება).', 'No recording attached: attach the file from the MUSIC folder (it stays on this device until you publish it).'],
+  'le.noAudio': ['ჩანაწერი ამ მოწყობილობაზე არ არის — დააჭირე აქ და მიამაგრე ფაილი MUSIC საქაღალდიდან. მანამდე ▶ აკორდებს, დარტყმებს და ნოტებს ფანდურის ხმით უკრავს (♪).', 'The recording is not on this device — tap here and attach the file from the MUSIC folder. Until then ▶ plays the chords, strokes and notes on the panduri (♪).'],
   'le.chordpro': ['ტექსტი აკორდებით', 'Lyrics with chords'], 'le.chordproD': ['[Am] შენამ ვინ გკითხავს… — ყოველი სტრიქონი ერთი ხაზია, აკორდი იქ იცვლება, სადაც ფრჩხილია. „გამოყენება“ სტრიქონებს ადგილზე ტოვებს და აკორდებს მარცვლის დროზე სვამს.', '[Am] Shenam vin… — one line per row; the chord changes where the bracket is. Apply keeps the lines where they are and puts the chords on the syllables\' times.'],
   'le.apply': ['გამოყენება', 'Apply'], 'le.cancel': ['გაუქმება', 'Cancel'], 'le.delete': ['წაშლა', 'Delete'], 'le.split': ['გაყოფა', 'Split'], 'le.dup': ['გამეორება შემდეგ', 'Repeat after'],
   'le.insert': ['ჩასმა აქ', 'Insert here'], 'le.hear': ['მოსმენა', 'Listen'], 'le.start': ['დასაწყისი', 'Start'], 'le.end': ['დასასრული', 'End'], 'le.dur': ['ხანგრძლივობა', 'Duration'],
@@ -92,6 +92,12 @@ PD.i18n.add({
   'le.metro': ['მეტრონომი', 'Metronome'], 'le.vol': ['ხმა', 'Volume'], 'le.sound': ['ხმის ტიპი', 'Click sound'], 'le.accent': ['ტაქტის პირველი დარტყმა ძლიერად', 'Accent the downbeat'], 'le.subd': ['დაყოფა', 'Subdivision'], 'le.countIn': ['წინასწარი თვლა (დარტყმა)', 'Count-in (beats)'],
   'le.snd.wood': ['ხე', 'Wood'], 'le.snd.click': ['კლიკი', 'Click'], 'le.snd.beep': ['ბიპი', 'Beep'], 'le.snd.rim': ['რიმი', 'Rim'], 'le.snd.cowbell': ['ზარი', 'Cowbell'],
   'le.autosaved': ['ავტომატურად შეინახა {t}', 'Autosaved {t}'], 'le.speedC': ['სიჩქარე %', 'Speed %'], 'le.hard': ['რთული მონაკვეთი', 'Hard passage'], 'le.inv': ['მობრუნებები', 'Inversions'], 'le.voicing': ['პოზიცია ფანდურზე', 'Position on the panduri'], 'le.missing': ['აკლია: {n}', 'Leaves out: {n}'],
+  'le.mon': ['მოსმენა', 'Listen'], 'le.monD': ['♪ ხაზის სათაურთან: აკორდები, დარტყმები ან ნოტები ფანდურის ხმით ჟღერს, ჩანაწერთან ერთად — ასე ისმის, სად არ ემთხვევა.', '♪ by a track\'s name: its chords, strokes or notes sound on the panduri together with the recording — so you hear where they do not match.'],
+  'le.audioStuck': ['ამ მოწყობილობის საცავმა ჩანაწერი დროულად ვერ მისცა — დააჭირე აქ და მიამაგრე ფაილი თავიდან. დაკვრა ჩანაწერის გარეშეც მუშაობს (♪).', 'This device\'s storage did not hand over the recording in time — tap here and attach the file again. Playback works without it too (♪).'],
+  'le.audioBad': ['ეს ჩანაწერი ამ ბრაუზერში არ იკვრება — დააჭირე აქ და მიამაგრე MP3, M4A ან WAV.', 'This browser cannot play this recording — tap here and attach an MP3, M4A or WAV.'],
+  'le.noWave': ['ტალღის ფორმა ვერ დაიხაზა, მაგრამ ჩანაწერი ჟღერს.', 'The waveform could not be drawn, but the recording plays.'],
+  'le.attached': ['ჩანაწერი მიმაგრდა და ამ მოწყობილობაზე შეინახა', 'Recording attached and kept on this device'], 'le.attachedSession': ['ჩანაწერი ჟღერს, მაგრამ ამ მოწყობილობის საცავში ვერ შეინახა — შემდეგ ჯერზე თავიდან მიამაგრე.', 'The recording plays, but this device\'s storage could not keep it — attach it again next time.'],
+  'le.durWarn': ['ეს ფაილი {a} წმ-ია, გაკვეთილი — {b} წმ. თუ სხვა ჩანაწერია, დარტყმები არ დაემთხვევა.', 'This file is {a} s, the lesson {b} s. If it is another recording, the beats will not match.'],
   'le.u.move': ['გადაადგილება', 'Move'], 'le.u.resize': ['ზომის შეცვლა', 'Resize'], 'le.u.add': ['დამატება', 'Add'], 'le.u.del': ['წაშლა', 'Delete'], 'le.u.edit': ['შეცვლა', 'Edit'], 'le.u.split': ['გაყოფა', 'Split'], 'le.u.paste': ['ჩასმა', 'Paste']
 });
 
@@ -106,6 +112,18 @@ PD.lessonEditor = (() => {
 
   /* ---------------- helpers ---------------- */
   const clone = o => JSON.parse(JSON.stringify(o));
+  /** a playhead that runs on its own when there is no recording to follow (same face as an <audio> element) */
+  function virtualClock(len) {
+    let base = 0, t0 = 0, on = false, rate = 1, stopT = 0;
+    const o = { onplay: null, onpause: null, muted: false, src: '', load() {}, preservesPitch: true,
+      get currentTime() { return on ? base + (performance.now() - t0) / 1000 * rate : base; }, set currentTime(x) { base = Math.max(0, +x || 0); t0 = performance.now(); },
+      get paused() { return !on; }, get duration() { return len(); },
+      get playbackRate() { return rate; }, set playbackRate(r) { base = o.currentTime; t0 = performance.now(); rate = r; },
+      play() { if (!on) { t0 = performance.now(); on = true; clearInterval(stopT); stopT = setInterval(() => { if (o.currentTime >= len()) { o.pause(); base = len(); } }, 100); o.onplay && o.onplay(); } return Promise.resolve(); },
+      pause() { if (on) { base = o.currentTime; on = false; clearInterval(stopT); o.onpause && o.onpause(); } } };
+    return o;
+  }
+  const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   /** a note heard: on the panduri's own sound at its string and fret, else as a plain tone of that pitch */
   const hear = (m, s, f) => { try { if (!PD.audio.ensure()) return; if (s && f != null && Math.round(PD.theory.midi(s, f)) === m) PD.audio.note(s, f, { vel: .7 }); else PD.audio.tone(m, .6); } catch (_) {} };
   const strip = D => { const o = clone(D); delete o._from; delete o._verified; return o; };
@@ -149,7 +167,7 @@ PD.lessonEditor = (() => {
     S.redo = []; fn(S.D); norm(); if (!auto) { markEdited(before); S.nextStatus = null; } touched();
   }
   function touched() {
-    S.dirty = true; clearTimeout(S.keepT);
+    S.dirty = true; S.ver = (S.ver || 0) + 1; clearTimeout(S.keepT);
     S.keepT = setTimeout(() => { PD.store.set('le.wip.' + S.id, { d: strip(S.D), at: Date.now(), rev: S.rev }); paintHead(); }, 400);
     draw(); inspector(); paintHead();
   }
@@ -203,7 +221,7 @@ PD.lessonEditor = (() => {
       PD.store.del('le.wip.' + S.id); S.dirty = false; paintHead();
     });
   }
-  function setData(d) { S.D = clone(d); delete S.D._from; delete S.D._verified; norm(); S.sel = null; draw(); inspector(); paintHead(); }
+  function setData(d) { S.ver = (S.ver || 0) + 1; S.D = clone(d); delete S.D._from; delete S.D._verified; norm(); S.sel = null; draw(); inspector(); paintHead(); }
   function history() {
     PD.ui.sheet(async (box, close) => {
       box.append(h('h2', { 'data-t': 'le.history' }));
@@ -233,7 +251,13 @@ PD.lessonEditor = (() => {
       } catch (e) { err(e); }
     });
   }
-  async function attach() { if (await ML().loadOwn(S.id, S.D)) loadAudio(); }
+  async function attach() {
+    const f = await PD.ui.pickFile('audio/*,video/*'); if (!f || !S) return;
+    await setSource(URL.createObjectURL(f), () => f.arrayBuffer());
+    if (S && S.audioDur && S.D.duration && Math.abs(S.audioDur - S.D.duration) > 2.5) PD.ui.toast(t('le.durWarn', { a: Math.round(S.audioDur), b: Math.round(S.D.duration) }), 6000);
+    try { await withTimeout(PD.blobs.put('ml.own.' + S.id, f), 15000); const m = PD.store.get('ml.hasOwn', {}); m[S.id] = true; PD.store.set('ml.hasOwn', m); PD.ui.toast(t('le.attached')); }
+    catch (_) { PD.ui.toast(t('le.attachedSession'), 6000); }
+  }
 
   /* ---------------- audio ---------------- */
   async function loadExtra() {
@@ -250,22 +274,35 @@ PD.lessonEditor = (() => {
   function applyMix() { if (!S) return; S.audio.muted = mixOff('wave'); (S.extra || []).forEach(p => { p.el.muted = mixOff('a:' + p.id); }); }
   function syncExtra(force) { const x = S.audio.currentTime; (S.extra || []).forEach(p => { p.el.playbackRate = S.audio.playbackRate; if (S.audio.paused) { if (!p.el.paused) p.el.pause(); } else if (p.el.paused) p.el.play().catch(() => {}); if (force || Math.abs(p.el.currentTime - x) > .06) { try { p.el.currentTime = x; } catch (_) {} } }); }
   async function loadAudio() {
-    if (PD.creator && /^cr-/.test(S.id)) await PD.creator.ensureLocal(S.id, S.D).catch(() => {});
+    S.audioState = 'loading'; draw();
+    if (PD.creator && /^cr-/.test(S.id)) await withTimeout(PD.creator.ensureLocal(S.id, S.D), 20000).catch(() => {});
     loadExtra();
-    const a = await ML().audioOf(S.id);
-    if (!a) { S.noAudio = true; paintHead(); return; }
-    S.noAudio = false; S.audio.src = a.url; S.audio.load();
+    let a = null; try { a = await withTimeout(ML().audioOf(S.id), 8000); } catch (_) { S.audioState = 'stuck'; }   // a storage that never answers must not leave the editor silent
+    if (!S) return;
+    if (!a) return useVirtual(S.audioState === 'stuck' ? 'stuck' : 'none');
+    setSource(a.url, () => fetch(a.url).then(r => r.arrayBuffer()));
+  }
+  /** no recording: the playhead runs on its own clock, and the tracks are heard on the panduri instead */
+  function useVirtual(state) {
+    const was = S.audio.currentTime; S.real.pause(); S.useVirt = true; S.noAudio = true; S.audioState = state || 'none'; S.virt.currentTime = was;
+    S.mon.rhythm = true; S.mon.notes = true; paintHead(); draw();
+  }
+  async function setSource(url, getBuf) {
+    const at = S.audio.currentTime, rate = S.audio.playbackRate; S.audio.pause();
+    S.useVirt = false; S.noAudio = false; S.audioState = 'ok'; S.peaks = null;
+    S.real.onerror = () => { if (S && S.real.src === url) useVirtual('bad'); };
+    S.real.src = url; S.real.load(); S.real.playbackRate = rate; try { S.real.currentTime = at; } catch (_) {}
+    applyMix(); paintHead(); draw();
     try {
-      const buf = await (await fetch(a.url)).arrayBuffer(), ac = new (window.AudioContext || window.webkitAudioContext)();
+      const buf = await getBuf(), ac = new (window.AudioContext || window.webkitAudioContext)();
       const ab = await new Promise((res, rej) => { const p = ac.decodeAudioData(buf, res, rej); if (p && p.then) p.then(res, rej); }); try { ac.close(); } catch (_) {}
       const x = ab.getChannelData(0), R = 200, n = Math.ceil(ab.duration * R), step = ab.sampleRate / R, pk = new Float32Array(n * 2);
       for (let i = 0; i < n; i++) { let lo = 0, hi = 0; for (let j = Math.floor(i * step), e = Math.min(x.length, Math.floor((i + 1) * step)); j < e; j += 2) { const v = x[j]; if (v < lo) lo = v; if (v > hi) hi = v; } pk[2 * i] = lo; pk[2 * i + 1] = hi; }
-      S.peaks = { pk, R };
-    } catch (_) { S.peaks = null; }
-    paintHead(); draw();
+      if (!S) return; S.peaks = { pk, R }; S.audioDur = ab.duration;
+    } catch (_) { if (S && S.audioState === 'ok') S.audioState = 'nowave'; }
+    if (S) { paintHead(); draw(); }
   }
   async function playPause() {
-    if (S.noAudio) return;
     if (S.audio.paused) {
       if (S.range && S.loop && (S.audio.currentTime < S.range[0] || S.audio.currentTime > S.range[1])) S.audio.currentTime = S.range[0];
       const ci = (S.D.metronome || {}).countIn || 0; if (S.met.on && ci > 0) await S.met.countIn(S.audio.currentTime, ci);
@@ -298,6 +335,34 @@ PD.lessonEditor = (() => {
   const rhEnd = k => S.D.rhythm[k + 1] ? S.D.rhythm[k + 1].from : S.D.beats.length - 1;
   const chEnd = k => S.D.chords[k + 1] ? S.D.chords[k + 1].t : dur();
 
+  /* ---------------- listening: the tracks themselves on the panduri ---------------- */
+  const MON = ['chords', 'rhythm', 'notes'];
+  function monEvents() {
+    if (S.monCache && S.monCache.v === S.ver) return S.monCache;
+    const D = S.D, TB = ML().tab(D);
+    const strokes = (D.strokes || patternStrokes(D)).filter(x => x.k !== 'r').slice().sort((a, b) => a.t - b.t);
+    const changes = D.chords.filter(c => c.chord || c.play).map(c => ({ t: c.t, c }));
+    const notes = D.notes.map((n, i) => ({ t: n[0], d: n[1], tb: TB.notes[i] })).filter(x => x.tb && x.tb.ok && x.tb.s).sort((a, b) => a.t - b.t);
+    return (S.monCache = { v: S.ver, rhythm: strokes, chords: changes, notes });
+  }
+  function strumAt(t0, dir, when, vel, mute, str) {
+    const c = ML().chordAt(S.D, t0 + .015), sh = c && ML().chordShape(c); if (!sh || !sh.frets) return;
+    if (str) PD.audio.note(str, sh.frets[str - 1], { when, vel }); else PD.audio.strum(sh.frets, dir, { when, vel, mute, gap: .012 });
+  }
+  function monPump() {
+    if (!S || S.audio.paused || !MON.some(k => S.mon[k])) { if (S) S.monAt = null; return; }
+    if (!PD.audio.ensure()) return;
+    const ac = PD.audio.ctx, t = S.audio.currentTime, r = S.audio.playbackRate || 1, E = monEvents();
+    if (S.monAt == null || t < S.monAt - .05 || t > S.monAt + .6 || S.monV !== E.v) { S.monIdx = {}; MON.forEach(k => { let i = 0; while (i < E[k].length && E[k][i].t < t - .005) i++; S.monIdx[k] = i; }); S.monV = E.v; }
+    S.monAt = t; const until = t + .12 * r;
+    MON.forEach(k => { let i = S.monIdx[k]; const L = E[k];
+      while (i < L.length && L[i].t <= until) { const e = L[i++], w = ac.currentTime + (e.t - t) / r; if (w < ac.currentTime - .01 || !S.mon[k] || mixOff(k)) continue;
+        if (k === 'rhythm') strumAt(e.t, /[uU]/.test(e.k) ? 'up' : 'down', w, /[DU]/.test(e.k) || e.a ? .85 : .55, e.k === 'm', e.k === 's' ? (e.s || 1) : null);
+        else if (k === 'chords') strumAt(e.t, 'down', w, .7);
+        else PD.audio.note(e.tb.s, e.tb.f, { when: w, vel: .75, dur: Math.max(.08, e.d / r) }); }
+      S.monIdx[k] = i; });
+  }
+
   /* ---------------- drawing ---------------- */
   function draw() {
     if (!S) return;
@@ -329,7 +394,7 @@ PD.lessonEditor = (() => {
     const wave = (L2, P, col) => { const m2 = L2.y + L2.h / 2, { pk, R } = P; g.fillStyle = col; for (let px = S.head; px < W; px++) { const a = Math.floor(xt(px) * R), b = Math.max(a + 1, Math.floor(xt(px + 1) * R)); let lo = 0, hi = 0; for (let j = a; j < b && j < pk.length / 2; j++) { if (j < 0) continue; lo = Math.min(lo, pk[2 * j]); hi = Math.max(hi, pk[2 * j + 1]); } g.fillRect(px, m2 - hi * L2.h * .48, 1, Math.max(1, (hi - lo) * L2.h * .48)); } };
     let L = laneOf('wave'), mid = L.y + L.h / 2;
     if (S.peaks) wave(L, S.peaks, mixOff('wave') ? 'rgba(138,138,144,.35)' : 'rgba(208,138,92,.75)');
-    else { g.fillStyle = C.dim; g.fillText(t(S.noAudio ? 'le.noAudio' : 'p.recLoad').slice(0, 120), S.head + 8, mid); }
+    else { g.fillStyle = S.audioState === 'nowave' ? C.dim : S.audioState === 'loading' ? C.dim : C.cuL; g.fillText(t({ none: 'le.noAudio', stuck: 'le.audioStuck', bad: 'le.audioBad', nowave: 'le.noWave' }[S.audioState] || 'p.recLoad').slice(0, 170), S.head + 8, mid); }
     (S.extra || []).forEach(p => { const L2 = laneOf('a:' + p.id); if (L2 && p.peaks) wave(L2, p.peaks, mixOff('a:' + p.id) ? 'rgba(138,138,144,.3)' : 'rgba(91,155,213,.7)'); });
     // 2 chords
     L = laneOf('chords');
@@ -409,6 +474,7 @@ PD.lessonEditor = (() => {
     g.fillStyle = '#060607'; g.fillRect(0, 0, S.head, H);
     lanes().forEach(L2 => { const ex = /^a:/.test(L2.k) ? (S.extra || []).find(p => 'a:' + p.id === L2.k) : null, name = ex ? (t('cr.role.' + ex.role) || ex.name) : t('le.t.' + L2.k);
       g.fillStyle = S.focus === L2.k ? C.cuL : C.dim; g.font = '700 11px system-ui'; g.fillText(S.head > 60 ? name.slice(0, 12) : name.slice(0, 4), 8, L2.y + 12); g.fillStyle = C.line; g.fillRect(0, L2.y + L2.h - 1, S.head, 1);
+      if (MON.includes(L2.k)) { const on = S.mon[L2.k], x = S.head - 21, y = L2.y + L2.h - 18; g.fillStyle = on ? C.cu : 'rgba(255,255,255,.1)'; g.fillRect(x, y, 16, 13); g.fillStyle = on ? '#140b06' : C.txt; g.font = '800 10px system-ui'; g.fillText('♪', x + 4.5, y + 7); }
       if (L2.k === 'wave' || ex) [['m', 'M'], ['s', 'S']].forEach(([f, lab], j) => { const m = S.mix[L2.k] || {}, x = S.head - 40 + j * 19, y = L2.y + L2.h - 18; g.fillStyle = m[f] ? (f === 's' ? '#e7c36a' : C.bad) : 'rgba(255,255,255,.1)'; g.fillRect(x, y, 16, 13); g.fillStyle = m[f] ? '#111' : C.txt; g.font = '800 9px system-ui'; g.fillText(lab, x + 4.5, y + 7); }); });
     g.fillStyle = C.line; g.fillRect(S.head - 1, 0, 1, H);
     // playhead
@@ -445,12 +511,14 @@ PD.lessonEditor = (() => {
     S.pointers.set(e.pointerId, { x: px, y: py });
     if (S.pointers.size === 2) { const [a, b] = [...S.pointers.values()]; S.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), z: S.zoom, x: xt((a.x + b.x) / 2) }; S.drag = null; return; }
     if (px < S.head) { const L = lanes().find(l => py >= l.y && py < l.y + l.h); if (L) {
+      if (MON.includes(L.k) && py >= L.y + L.h - 19 && px >= S.head - 22) { S.mon[L.k] = !S.mon[L.k]; PD.store.set('le.mon', S.mon); S.monAt = null; if (S.mon[L.k]) PD.audio.ensure(); draw(); return; }
       if ((L.k === 'wave' || /^a:/.test(L.k)) && py >= L.y + L.h - 19 && px >= S.head - 41) { const f = px < S.head - 21 ? 'm' : 's', m = S.mix[L.k] = S.mix[L.k] || {}; m[f] = !m[f]; applyMix(); draw(); return; }
       S.focus = L.k; draw(); inspector(); } return; }
     S.cv.setPointerCapture(e.pointerId);
     const H2 = hit(px, py), D = S.D, free = e.altKey;
     S.focus = H2.lane && H2.lane !== 'ruler' ? H2.lane : S.focus;
     S.drag = { H: H2, px, py, moved: false, free, before: JSON.stringify(D) };
+    if (H2.lane === 'wave' && S.noAudio && !S.peaks) { S.drag = null; attach(); return; }
     if (H2.lane === 'ruler' || H2.lane === 'wave' || /^a:/.test(H2.lane || '')) { S.drag.kind = 'range'; return; }
     if (H2.k == null) {
       if (H2.lane === 'notes') { S.drag.kind = 'marquee'; S.marquee = { x0: px, y0: py, x1: px, y1: py }; if (!e.shiftKey) S.sel = null; }
@@ -463,6 +531,8 @@ PD.lessonEditor = (() => {
     S.drag.kind = 'item';
     S.drag.orig = clone({ chords: D.chords, notes: D.notes, lyrics: D.lyrics || [], sections: D.sections, rhythm: D.rhythm, beats: D.beats, strokes: D.strokes || [], tempoPts: D.tempoPts || [], markers: D.markers || [] });
     if (k === 'notes') { const n = D.notes[H2.k]; if (n) hear(n[2] + ML().octaveFor(D), n[3], n[4]); }
+    if (PD.audio.ensure()) { if (k === 'chords' && H2.part === 'body' && D.chords[H2.k]) strumAt(D.chords[H2.k].t, 'down', 0, .7);
+      if (k === 'strokes' && D.strokes[H2.k]) { const st = D.strokes[H2.k]; if (st.k !== 'r') strumAt(st.t, /[uU]/.test(st.k) ? 'up' : 'down', 0, /[DU]/.test(st.k) ? .85 : .6, st.k === 'm', st.k === 's' ? (st.s || 1) : null); } }
     draw(); inspector();
   }
   function onMove(e) {
@@ -980,11 +1050,11 @@ PD.lessonEditor = (() => {
     headEls.dirty.hidden = !S.dirty; headEls.dirty.textContent = t('le.dirty');
     headEls.verify.textContent = t(ver ? 'le.unverify' : 'le.verify');
     headEls.undo.disabled = !S.undo.length; headEls.redo.disabled = !S.redo.length;
-    headEls.pp.textContent = S.audio.paused ? '▶' : '❚❚';
+    headEls.pp.textContent = S.audio.paused ? '▶' : '❚❚'; headEls.pp.title = S.noAudio ? t('le.monD') : '';
     headEls.loop.setAttribute('aria-pressed', String(!!S.loop)); headEls.follow.setAttribute('aria-pressed', String(!!S.follow));
     headEls.mode.textContent = t('le.mode.' + S.mode); headEls.snap.value = S.snap;
     S.timeEl.textContent = fmtPos(S.audio.currentTime || 0);
-    headEls.attach.hidden = !S.noAudio;
+    headEls.attach.hidden = /^cr-/.test(S.id) && !S.noAudio;   // a MUSIC song's recording can always be attached (again)
     headEls.met.setAttribute('aria-pressed', String(!!S.met.on)); headEls.recC.setAttribute('aria-pressed', String(S.rec === 'chords')); headEls.recR.setAttribute('aria-pressed', String(S.rec === 'rhythm')); headEls.fbB.setAttribute('aria-pressed', String(!S.fbEl.hidden));
     headEls.auto.hidden = !S.autoAt || S.dirty; if (S.autoAt) headEls.auto.textContent = t('le.autosaved', { t: new Date(S.autoAt).toLocaleTimeString().slice(0, 5) });
     paintRec();
@@ -1078,9 +1148,11 @@ PD.lessonEditor = (() => {
     const root = h('div', { class: 'le', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('le.title') });
     const audio = new Audio(); audio.preservesPitch = true; audio.mozPreservesPitch = true; audio.webkitPreservesPitch = true; audio.preload = 'auto';
     S = { id, D: clone(base), rev: 0, status: null, verifiedRev: null, dirty: false, undo: [], redo: [], sel: null, range: null, loop: false, follow: true, mode: 'time', snap: 'beat',
-      zoom: 60, x0: 0, head: window.innerWidth < 700 ? 46 : 96, audio, peaks: null, root, focus: track && ['chords', 'notes', 'rhythm', 'lyrics', 'tab', 'tempo', 'beats', 'markers'].includes(track) ? track : 'chords', pointers: new Map(), editedChord: {}, review: [], conf: null,
-      extra: [], mix: {}, vz: 1, lat: PD.store.get('le.lat', 0), rec: null };
-    S.met = ML().metronome({ t: () => audio.currentTime, rate: () => audio.playbackRate, playing: () => !audio.paused }, () => S ? S.D : base);
+      zoom: 60, x0: 0, head: window.innerWidth < 700 ? 46 : 96, peaks: null, root, focus: track && ['chords', 'notes', 'rhythm', 'lyrics', 'tab', 'tempo', 'beats', 'markers'].includes(track) ? track : 'chords', pointers: new Map(), editedChord: {}, review: [], conf: null,
+      extra: [], mix: {}, vz: 1, lat: PD.store.get('le.lat', 0), rec: null, ver: 1, audioState: 'loading', mon: Object.assign({ chords: false, rhythm: false, notes: false }, PD.store.get('le.mon', {})) };
+    S.real = audio; S.virt = virtualClock(() => (S && (S.D.duration || (S.D.beats[S.D.beats.length - 1] + 2))) || 1);
+    Object.defineProperty(S, 'audio', { get: () => (S && S.useVirt ? S.virt : audio), configurable: true });
+    S.met = ML().metronome({ t: () => S.audio.currentTime, rate: () => S.audio.playbackRate, playing: () => !S.audio.paused }, () => S ? S.D : base);
     delete S.D._from; delete S.D._verified; norm();
     // the top bar
     const btn = (k, fn, cls) => h('button', { class: 'btn small' + (cls ? ' ' + cls : ''), 'data-t': k, onclick: fn });
@@ -1088,7 +1160,7 @@ PD.lessonEditor = (() => {
     const menuBtn = h('button', { class: 'le-ib', 'aria-label': t('le.more'), text: '⋯' });
     menuBtn.onclick = () => {
       const old = root.querySelector('.le-menu'); if (old) { old.remove(); return; }
-      const cr = PD.creator && /^cr-/.test(id), api = { get data() { return S && S.D; }, apply: (label, fn) => change(label, fn, true), audio, id, retab, buffer: () => S && S.buffer };
+      const cr = PD.creator && /^cr-/.test(id), api = { get data() { return S && S.D; }, apply: (label, fn) => change(label, fn, true), get audio() { return S && S.audio; }, id, retab, buffer: () => S && S.buffer };
       const m = h('div', { class: 'le-menu', role: 'menu' }, (cr ? [['cr.analyze', () => PD.creator.analysisSheet(id, api)], ['cr.builder', () => PD.creator.builderSheet(id, api)]] : []).concat([['le.metro', metroSettings], ['le.recSet', recSettings], ['le.transpose', transposeSheet],
         ['le.retab', () => PD.ui.sheet((box, close) => { box.append(h('h2', { 'data-t': 'le.retab' }), ...['auto', 'open', 'low', 'one'].map(pf => h('button', { class: 'btn', style: 'width:100%', 'data-t': 'le.pref.' + pf, onclick: () => { retab(null, pf); close(); } }))); PD.i18n.apply(box); })],
         ['le.revert', revert], ['le.history', history], ['le.chordpro', chordPro]], cr ? [['cr.dup', () => PD.creator.duplicate(id)], ['cr.unpub', () => PD.creator.unpublish(id)], ['cr.delete', () => PD.creator.remove(id, close)]] : [['le.attach', attach], ['le.upload', uploadAudio], ['le.loadAnalysis', () => PD.ui.confirm(t('le.analysisQ'), () => { const sh = ML().shipped(id); if (sh) { change(t('le.loadAnalysis'), () => {}); setData(sh); touched(); } })]])
@@ -1104,7 +1176,7 @@ PD.lessonEditor = (() => {
     headEls.follow = h('button', { class: 'le-ib', title: t('le.follow'), 'aria-label': t('le.follow'), text: '⇥', onclick: () => { S.follow = !S.follow; paintHead(); } });
     headEls.mode = h('button', { class: 'btn small', onclick: () => { S.mode = S.mode === 'time' ? 'bars' : 'time'; paintHead(); draw(); } });
     headEls.snap = h('select', { class: 'input', 'aria-label': t('le.snap'), onchange: e => { S.snap = e.target.value; } }, [['beat', t('le.snap.beat')], ['bar', t('le.snap.bar')], ['1/2', '½'], ['1/3', '⅓'], ['1/4', '¼'], ['off', t('le.snap.off')]].map(([v, l]) => h('option', { value: v, text: t('le.snap') + ': ' + l })));
-    const speed = h('select', { class: 'input', 'aria-label': t('ml.speed'), onchange: e => { if (e.target.value === 'c') { const v = parseFloat(prompt(t('le.speedC'), '85')); if (v >= 10 && v <= 200) { audio.playbackRate = v / 100; const o = h('option', { value: String(v / 100), text: v + '%' }); e.target.add(o, 0); e.target.value = String(v / 100); } return; } audio.playbackRate = +e.target.value; syncExtra(true); } },
+    const speed = h('select', { class: 'input', 'aria-label': t('ml.speed'), onchange: e => { if (e.target.value === 'c') { const v = parseFloat(prompt(t('le.speedC'), '85')); if (v >= 10 && v <= 200) { S.audio.playbackRate = v / 100; const o = h('option', { value: String(v / 100), text: v + '%' }); e.target.add(o, 0); e.target.value = String(v / 100); } return; } S.audio.playbackRate = +e.target.value; syncExtra(true); } },
       [1.5, 1.25, 1, .9, .75, .5, .25].map(v => h('option', { value: String(v), text: Math.round(v * 100) + '%', selected: v === 1 })).concat([h('option', { value: 'c', text: t('mlx.custom') + '…' })]));
     headEls.attach = btn('le.attach', attach);
     const ib = (txt2, title, fn, cls) => h('button', { class: 'le-ib' + (cls ? ' ' + cls : ''), title, 'aria-label': title, text: txt2, onclick: fn });
@@ -1113,7 +1185,7 @@ PD.lessonEditor = (() => {
     headEls.recC = ib('●C', t('le.recC'), () => setRec('chords'), 'rec'); headEls.recR = ib('●R', t('le.recR'), () => setRec('rhythm'), 'rec');
     headEls.fbB = ib('⋕', t('le.fb'), () => { S.fbEl.hidden = !S.fbEl.hidden; S.fb.paint(); paintHead(); });
     root.append(h('div', { class: 'le-tr' }, [h('button', { class: 'le-ib', title: t('le.stop'), 'aria-label': t('le.stop'), text: '■', onclick: stop }), headEls.pp, S.timeEl,
-      h('button', { class: 'le-ib', 'aria-label': t('le.zoomOut'), text: '−', onclick: () => setZoom(S.zoom / 1.4, audio.currentTime, tx(audio.currentTime)) }), h('button', { class: 'le-ib', 'aria-label': t('le.zoomIn'), text: '+', onclick: () => setZoom(S.zoom * 1.4, audio.currentTime, tx(audio.currentTime)) }),
+      h('button', { class: 'le-ib', 'aria-label': t('le.zoomOut'), text: '−', onclick: () => setZoom(S.zoom / 1.4, S.audio.currentTime, tx(S.audio.currentTime)) }), h('button', { class: 'le-ib', 'aria-label': t('le.zoomIn'), text: '+', onclick: () => setZoom(S.zoom * 1.4, S.audio.currentTime, tx(S.audio.currentTime)) }),
       h('button', { class: 'btn small', 'data-t': 'le.fit', onclick: () => { S.x0 = 0; setZoom(0); } }), ib('↕−', t('le.vzOut'), () => { S.vz = Math.max(.5, S.vz / 1.3); draw(); }, 'opt'), ib('↕+', t('le.vzIn'), () => { S.vz = Math.min(4, S.vz * 1.3); draw(); }, 'opt'),
       headEls.snap, headEls.loop, headEls.follow, headEls.mode, speed, headEls.met, ib('T', t('le.tap') + ' (T)', tap), headEls.recC, headEls.recR, headEls.fbB, headEls.attach]));
     S.recEl = h('div', { class: 'le-rec', hidden: true }); root.append(S.recEl);
@@ -1126,9 +1198,9 @@ PD.lessonEditor = (() => {
     S.cv.addEventListener('pointerdown', onDown); S.cv.addEventListener('pointermove', onMove); S.cv.addEventListener('pointerup', onUp); S.cv.addEventListener('pointercancel', onUp);
     S.cv.addEventListener('dblclick', onDbl); S.cv.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('keydown', onKey); S.onResize = () => draw(); window.addEventListener('resize', S.onResize);
-    audio.onplay = () => { syncExtra(true); paintHead(); };
-    audio.onpause = () => { syncExtra(true); if (S && S.rec === 'rhythm') commitRec(); if (S && S.taps) commitTaps(); paintHead(); };
-    S.autoI = setInterval(autosave, 30000);
+    audio.onplay = S.virt.onplay = () => { syncExtra(true); paintHead(); };
+    audio.onpause = S.virt.onpause = () => { syncExtra(true); if (S && S.rec === 'rhythm') commitRec(); if (S && S.taps) commitTaps(); paintHead(); };
+    S.autoI = setInterval(autosave, 30000); S.monI = setInterval(monPump, 25);
     S.zoom = Math.max(20, (S.cv.clientWidth - S.head) / 24);
     // the server's draft, the review notes, the recording
     const R = await ML().reviewData(), rv = R[id] || {}; S.review = (S.D.review || []).concat(rv.review || []); S.conf = rv.chordConfidence || null; S.status = rv.status || base.status || 'analysis-completed';
@@ -1146,7 +1218,7 @@ PD.lessonEditor = (() => {
     if (s.dirty) PD.store.set('le.wip.' + s.id, { d: strip(s.D), at: Date.now(), rev: s.rev });
     if (s.rec === 'rhythm') commitRec();
     if (s.dirty) autosave();
-    s.audio.pause(); s.audio.src = ''; cancelAnimationFrame(s.raf); clearInterval(s.autoI); s.met.close(); (s.extra || []).forEach(p => { p.el.pause(); p.el.src = ''; });
+    s.virt.pause(); s.real.pause(); s.real.src = ''; cancelAnimationFrame(s.raf); clearInterval(s.autoI); clearInterval(s.monI); s.met.close(); (s.extra || []).forEach(p => { p.el.pause(); p.el.src = ''; });
     window.removeEventListener('keydown', onKey); window.removeEventListener('resize', s.onResize);
     if (fromBack !== true) PD.layers.done(s.lid);
     s.root.remove(); S = null; headEls = null;
