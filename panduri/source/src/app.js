@@ -1076,13 +1076,13 @@ PD.app = (() => {
   function profile(w) {
     if (oneProfile()) return PD.cmp.profile(w, 'me', PD.pageScope());
     const prof = PD.account.profile, C = PD.cloud, PM = PD.premium;
-    const avatar = prof.avatar || C.profile?.avatar_url;
+    const avatar = C.session ? C.profile?.avatar_url || prof.avatar : prof.avatar;   // signed in: the one everyone sees
     const photo = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async e => { const f = e.target.files[0]; if (!f) return; const url = await shrink(f); PD.account.setProfile({ avatar: url }); render(); } });
     const name = h('input', { class: 'pf-name', value: prof.name || C.profile?.display_name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { const v = e.target.value.trim(); PD.account.setProfile({ name: v }); if (v && C.session) C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }).then(() => C.loadProfile()).catch(() => {}); } });
     const role = (PD.exam.graduated() ? '🎓 ' + t('ex.grad') + ' · ' : '') + (C.isOwner ? t('pf.owner') : C.isAdmin ? t('ad.admin') : PM.active ? t('pm.title') : t('pf.student'));
     w.classList.add('pf-page');
     w.append(h('h1', { class: 'sr', 'data-t': 'nav.profile' }));
-    w.append(h('div', { class: 'pf2-head' }, [h('button', { class: 'pf2-av', 'aria-label': t('pf.photo'), onclick: () => photo.click(), html: avatar ? '<img alt="" src="' + PD.esc(avatar) + '">' : ic.user }), photo,
+    w.append(h('div', { class: 'pf2-head' }, [h('button', { class: 'pf2-av', 'aria-label': t('pf.photo'), onclick: () => C.session && PD.cmp?.pickPhoto ? PD.cmp.pickPhoto(() => render()) : photo.click(), html: avatar ? '<img alt="" src="' + PD.esc(avatar) + '">' : ic.user }), photo,
       h('div', { class: 'grow' }, [name, h('small', { text: role })]),
       h('button', { class: 'btn small pf-quick-settings', 'aria-label': t('more.settings'), title: t('more.settings'), html: pcGear, onclick: () => go('settings') })]));
     w.append(...profileExtras(false));

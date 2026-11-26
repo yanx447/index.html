@@ -418,3 +418,11 @@
 .ps-card{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:15px 17px;margin:12px 0 16px;border-radius:17px;border:1px solid #dfae7440;background:linear-gradient(120deg,#c5833524,#a6855220)}
 .ps-icon{font-size:23px}.ps-card strong{display:block;font-size:15px}.ps-card small{display:block;color:var(--muted);margin-top:3px}.ps-card .grow{min-width:min(155px,100%)}.ps-card .btn{white-space:nowrap}
 }
+
+/* the chat's photo opens the person's profile; in a group, who wrote it (current photo and name) */
+button.ms-avatar{padding:0;font:inherit;cursor:pointer}
+.ms-from{display:flex;align-items:center;gap:6px;margin:0 0 5px;padding:0;border:0;background:none;color:var(--chat-accent,var(--brass2));font:inherit;font-size:12px;cursor:pointer;max-width:100%}
+.ms-from b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-fromav{display:grid;place-items:center;flex:none;width:20px;height:20px;border-radius:50%;overflow:hidden;background:var(--surface2);font-size:10px;font-weight:700}
+.ms-fromav img{width:100%;height:100%;object-fit:cover}
+.call .call-avatar{overflow:hidden}.call .call-avatar img{width:100%;height:100%;object-fit:cover}

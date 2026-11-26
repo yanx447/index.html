@@ -172,6 +172,7 @@ PD.cloud = (() => {
 
   /* ---------- profile, progress, entitlements ---------- */
   const uid = () => S && S.user && S.user.id;
+  let photoMoved = false;
   async function loadProfile() {
     if (!S) return null;
     if (!S.user) { S.user = await http('/auth/v1/user'); PD.store.set(KEY, S); }
@@ -179,6 +180,14 @@ PD.cloud = (() => {
     profile = rows && rows[0] || null;
     if (profile) { try { profile.owner = !!(await db.rpc('is_owner', {})); } catch (_) { profile.owner = false; } }   // the server decides who the owner is
     if (profile && profile.display_name && profile.display_name !== PD.account.profile.name) PD.account.setProfile({ name: profile.display_name });
+    if (profile) {   // signed in, the photo is the server's (what everyone sees); one kept only on this device goes up once
+      const mine = PD.account.profile.avatar || '';
+      if (!profile.avatar_url && /^data:image\//.test(mine) && !photoMoved) {
+        photoMoved = true;
+        try { const url = await storage.avatar(await (await fetch(mine)).blob()); await db.rpc('set_avatar', { url }); profile.avatar_url = url; } catch (_) {}
+      }
+      if ((profile.avatar_url || '') !== mine) PD.account.setProfile({ avatar: profile.avatar_url || '' });
+    }
     PD.store.set('cloud.profile', profile); emit();
     return profile;
   }
@@ -386,7 +395,9 @@ PD.cloud = (() => {
     tags: term => db.rpc('tag_search', { term: term || '', lim: 20 }),
     setBio: bio => db.rpc('set_bio', { new_bio: bio }),
     setAvatar: url => db.rpc('set_avatar', { url: url || null }),
-    setBanner: url => db.rpc('set_banner', { url: url || null })
+    setBanner: url => db.rpc('set_banner', { url: url || null }),
+    /** current names and photos of these members (202611260002_faces.sql) */
+    faces: ids => db.rpc('faces', { ids })
   };
   /* ---------- the members' photos, videos and audio (the private 'social' bucket; the server decides who may read each file) ---------- */
   const BUCKET = 'social', signed = new Map();   // path → { url, until }

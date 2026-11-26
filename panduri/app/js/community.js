@@ -220,7 +220,7 @@ PD.call = (() => {
   function session(conv,name,role,after,video,callId){
     const root=h('div',{class:'call',role:'dialog','aria-modal':'true','aria-label':t(video?'cl.video':'cl.audio')});
     const remote=h('video',{class:'call-r',autoplay:true,playsinline:true}),local=h('video',{class:'call-l',autoplay:true,playsinline:true,muted:true});local.muted=true;
-    const avatar=h('span',{class:'call-avatar',text:[...(name||'?')][0]}),status=h('small',{text:t(role==='caller'?'cl.calling':'cl.connecting')}),clock=h('time',{class:'call-clock'});
+    const avatar=h('span',{class:'call-avatar',text:[...(name||'?')][0]});C.chat.state(conv).then(s=>{const o=s?.members?.find(m=>m.id===s.other);if(o?.avatar)avatar.replaceChildren(h('img',{src:o.avatar,alt:''}));}).catch(()=>{});const status=h('small',{text:t(role==='caller'?'cl.calling':'cl.connecting')}),clock=h('time',{class:'call-clock'});
     const play=h('button',{class:'btn call-play',text:t('cl.play'),hidden:true});
     const bMic=h('button',{class:'call-b',html:ic.mic}),bCam=h('button',{class:'call-b',html:ic.video}),bFlip=h('button',{class:'call-b',html:PD.messenger.icons.flip}),bFull=h('button',{class:'call-b',html:PD.messenger.icons.full}),bEnd=h('button',{class:'call-b end',html:ic.hangup});
     const bShare=h('button',{class:'call-b',html:PD.messenger.icons.full}),bDevices=h('button',{class:'call-b',html:PD.messenger.icons.more}),bPip=h('button',{class:'call-b',html:PD.messenger.icons.video||ic.video});

@@ -80,7 +80,7 @@ PD.messenger = (() => {
     const msgs=h('div',{class:'cm-msgs ms-messages',role:'log','aria-label':t('cm.chats'),'aria-live':'polite'});
     const info=h('small',{class:'ms-presence',text:t('ms.conversation')});
     const title=h('button',{class:'ms-title',onclick:details},[h('b',{text:name||'—'}),info]);
-    const avatar=h('span',{class:'ms-avatar',text:[...(name||'?')][0]});
+    const avatar=h('button',{type:'button',class:'ms-avatar','aria-label':t('nav.profile'),text:[...(name||'?')][0],onclick:()=>state?.other?PD.app.go('community','u:'+state.other):details()});
     const audioCall=button('cl.audio',icons.phone,()=>call(false)),videoCall=button('cl.video',ic.video,()=>call(true));
     const head=h('div',{class:'cm-head ms-head'},[button('back',ic.back,()=>PD.app.back('community')),avatar,title,audioCall,videoCall,button('ms.details',icons.more,details)]);
     const older=h('button',{class:'ms-older',text:t('ms.older'),hidden:true,onclick:loadOlder});
@@ -261,7 +261,7 @@ PD.messenger = (() => {
       }
       const rx=h('div',{class:'cm-rx',hidden:true}),receipt=h('span',{class:'ms-receipt','aria-label':t('ms.sent'),text:'✓'});
       const meta=h('div',{class:'ms-meta'},[h('time',{datetime:m.created_at,text:new Date(m.created_at).toLocaleTimeString(PD.i18n.locale,{hour:'2-digit',minute:'2-digit'})}),...(mine?[receipt]:[])]);
-      const el=h('div',{class:'cm-msg'+(mine?' me':'')+(m.sticker?' is-sticker':'')+(m.media_meta?.voice?' is-voice':'')+(PD.chatkit.isEmojiMessage(m.body)?' is-emoji':'')+(m.media_path||m.gif||m.post_ref?' has-media':''),'data-id':m.id},[...kids,rx,meta]);
+      const el=h('div',{class:'cm-msg'+(mine?' me':'')+(m.sticker?' is-sticker':'')+(m.media_meta?.voice?' is-voice':'')+(PD.chatkit.isEmojiMessage(m.body)?' is-emoji':'')+(m.media_path||m.gif||m.post_ref?' has-media':''),'data-id':m.id,'data-sender':m.sender||''},[...kids,rx,meta]);
       const n={m,el,rx,receipt,reaction:null};nodes.set(m.id,n);paintQuote(m.id);
       const menu=button('md.more',icons.more,()=>messageMenu(n),'ms-message-more');
       menu.title=t('ms.reactTo');el.append(menu);
@@ -354,14 +354,22 @@ PD.messenger = (() => {
       if(wasReady&&rows.some(m=>m.sender!==C.uid))sound();
       if(!document.hidden&&msgs.scrollHeight-msgs.scrollTop-msgs.clientHeight<100){await C.chat.read(id).catch(()=>{});PD.notify.readTag?.(['c:'+id,'cr:'+id]);}await refreshState();
     }catch(e){if(alive&&!ready){empty.textContent=err(e);showError(e,poll);}}finally{polling=false;}}
-    async function loadOlder(){older.disabled=true;try{const rows=await C.chat.history(id,first);if(!alive)return;await PD.social.urls(rows);if(!alive)return;const height=msgs.scrollHeight,frag=document.createDocumentFragment();for(const m of [...rows].reverse()){if(nodes.has(m.id))continue;frag.append(bubble(m));first=Math.min(first,Number(m.id));}older.after(frag);msgs.scrollTop+=msgs.scrollHeight-height;older.hidden=rows.length<100;paintRx();hydrateQuotes();}catch(e){showError(e,loadOlder);}finally{older.disabled=false;}}
+    async function loadOlder(){older.disabled=true;try{const rows=await C.chat.history(id,first);if(!alive)return;await PD.social.urls(rows);if(!alive)return;const height=msgs.scrollHeight,frag=document.createDocumentFragment();for(const m of [...rows].reverse()){if(nodes.has(m.id))continue;frag.append(bubble(m));first=Math.min(first,Number(m.id));}older.after(frag);msgs.scrollTop+=msgs.scrollHeight-height;older.hidden=rows.length<100;paintRx();hydrateQuotes();paintFaces();}catch(e){showError(e,loadOlder);}finally{older.disabled=false;}}
     async function refreshState(){if(stateBusy||!alive)return;stateBusy=true;try{const s=await C.chat.state(id);if(!alive)return;state=s;prefs={...defaults,...s.preferences};appearance();
       audioCall.hidden=videoCall.hidden=!!s.group_name;audioCall.disabled=videoCall.disabled=!!prefs.restricted;
       info.textContent=s.typing?.length?t('ms.typingNow'):s.group_name?t('ms.members',{n:s.members?.length||0}):t('ms.conversation');info.classList.toggle('is-typing',!!s.typing?.length);
-      const other=s.members?.find(m=>m.id===s.other);if(other?.avatar){avatar.replaceChildren(h('img',{src:other.avatar,alt:''}));}
+      const other=s.members?.find(m=>m.id===s.other);if(other){const nm=other.name||(other.nickname?'@'+other.nickname:name);if(other.avatar){if(avatar.firstChild?.src!==other.avatar)avatar.replaceChildren(h('img',{src:other.avatar,alt:''}));}else avatar.textContent=[...(nm||'?').replace(/^@/,'')][0];if(nm)title.firstChild.textContent=nm;}paintFaces();
       for(const n of nodes.values()){const read=prefs.read_receipts&&n.m.id<=s.read;n.receipt.textContent=read?'✓✓':'✓';n.receipt.classList.toggle('is-read',read);n.receipt.setAttribute('aria-label',t(read?'ms.read':'ms.sent'));}
       pinbar.hidden=!s.pins?.length;pinbar.innerHTML=icons.pin+'<span>'+PD.esc(t('ms.pins'))+' · '+(s.pins?.length||0)+'</span>';
     }catch(_){}finally{stateBusy=false;}}
+    /** a group: the sender's current photo and name over the first of their messages in a row; a tap opens the profile */
+    function paintFaces(){if(!state?.group_name)return;const by=new Map((state.members||[]).map(x=>[x.id,x]));let prev=null;
+      for(const el of msgs.querySelectorAll('.cm-msg[data-sender]')){const sid=el.dataset.sender,first=prev!==sid;prev=sid;let f=el.querySelector(':scope>.ms-from');
+        if(!sid||sid===C.uid||!first){f?.remove();continue;}
+        const mem=by.get(sid),nm=mem?.name||(mem?.nickname?'@'+mem.nickname:'—'),key=(mem?.avatar||'')+'|'+nm;
+        if(!f){f=h('button',{type:'button',class:'ms-from',onclick:e=>{e.stopPropagation();PD.app.go('community','u:'+sid);}});el.prepend(f);}
+        if(f.dataset.k===key)continue;f.dataset.k=key;
+        f.replaceChildren(h('span',{class:'ms-fromav',html:mem?.avatar?'<img alt="" src="'+PD.esc(mem.avatar)+'">':PD.esc([...nm.replace(/^@/,'')][0]||'?')}),h('b',{text:nm}));}}
     function call(video){if(voice.active)return;PD.premium.require('call',()=>PD.call.start(id,name,video));}
     async function update(patch){try{const saved=await C.chat.settings(id,patch);if(!alive)return false;prefs={...defaults,...saved};appearance();await refreshState();return true;}catch(e){PD.ui.toast(err(e));return false;}}
     function action(key,icon,fn,cls=''){return h('button',{class:'ms-setting '+cls,type:'button',onclick:fn},[h('span',{class:'ms-setting-icon','aria-hidden':'true',html:icon}),h('span',{text:t(key)}),h('span',{class:'ms-chevron',text:'›','aria-hidden':'true'})]);}

@@ -758,5 +758,5 @@ PD.cmp = (() => {
     PD.i18n.apply(w);
   }
 
-  return { profile, search, tagPage, share, shareProfile, richText, activity, inboxSeg, syncNav, newVideo, IC, nf, avatar, personRow };
+  return { profile, search, tagPage, share, shareProfile, richText, activity, inboxSeg, syncNav, newVideo, IC, nf, avatar, personRow, pickPhoto, pickBanner };
 })();

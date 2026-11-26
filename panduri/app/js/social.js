@@ -94,6 +94,19 @@ PD.social = (() => {
   const t0 = (k, p) => t(k, p);
   const nf = n => { n = +n || 0; return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, '') + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e4 ? 0 : 1).replace(/\.0$/, '') + 'K' : String(n); };
   const avatar = (url, name, cls) => h('span', { class: 'avatar' + (cls ? ' ' + cls : ''), html: url ? '<img alt="" src="' + PD.esc(url) + '">' : U().initial(name) });
+  /** everyone's current name and photo, read from the server (kept a minute): a new photo shows everywhere.
+      A server without faces() answers through profile_card, one person at a time (at most 24). → Map id → { name, nick, avatar } */
+  const faceCache = new Map(); let facesRpc = true;
+  async function faces(ids) {
+    const now = Date.now(), want = [...new Set((ids || []).filter(Boolean))].filter(id => !(faceCache.get(id)?.at > now - 60e3));
+    const keep = r => r && r.id && faceCache.set(r.id, { name: r.display_name || '', nick: r.nickname || '', avatar: r.avatar_url || null, at: now });
+    if (want.length && C.session) {
+      if (facesRpc) try { for (let i = 0; i < want.length; i += 100) ((await C.social.faces(want.slice(i, i + 100))) || []).forEach(keep); }
+        catch (e) { if (/PGRST202|could not find the function|404/i.test((e && (e.code || e.message)) || '')) facesRpc = false; }
+      if (!facesRpc) await Promise.all(want.slice(0, 24).map(id => C.social.card(id).then(keep, () => {})));
+    }
+    const out = new Map(); (ids || []).forEach(id => { const f = faceCache.get(id); if (f) out.set(id, f); }); return out;
+  }
   const label = p => p.author_name || (p.author_nick ? '@' + p.author_nick : '—');
 
   /* ---------------- files: prepare, upload, show ---------------- */
@@ -688,11 +701,15 @@ PD.social = (() => {
           if (!alive) return;
           list.replaceChildren(); onCount && onCount(rows.length);
           if (!rows.length) { list.appendChild(h('p', { class: 'muted', 'data-t': 'fd.noComments' })); PD.i18n.apply(list); return; }
+          const who = await faces(rows.map(r => r.author)); if (!alive) return;
           rows.forEach(r => {
+            const f = who.get(r.author), nm = (f && (f.name || (f.nick && '@' + f.nick))) || r.author_name || '—';
             const { sticker, text } = readComment(r.body);
             const caption = text ? h('p') : null;
             if (caption) PD.chatkit.appendEmoji(caption, text);
-            list.append(h('div', { class: 'cm-reply' }, [h('small', { text: (r.author_name || '—') + ' · ' + U().ago(r.created_at) }), sticker ? PD.chatkit.sticker(sticker) : null, caption,
+            const go = () => { close(); PD.app.go('community', 'u:' + r.author); };
+            list.append(h('div', { class: 'cm-reply fd-cmt' }, [h('button', { type: 'button', class: 'fd-cmtface', 'aria-label': nm, onclick: go }, [avatar(f && f.avatar, nm)]),
+            h('small', {}, [h('button', { type: 'button', class: 'fd-cmtname', text: nm, onclick: go }), document.createTextNode(' · ' + U().ago(r.created_at))]), sticker ? PD.chatkit.sticker(sticker) : null, caption,
             h('div', { class: 'row', style: 'gap:2px;justify-content:flex-end' }, [
               (r.author === C.uid || p.author === C.uid || C.isAdmin) ? h('button', { class: 'cm-flag', 'aria-label': t('cm.delete'), html: IC.trash, onclick: async () => { try { await C.social.uncomment(r.id); load(); } catch (e) { PD.ui.toast(U().err(e)); } } }) : null,
               r.author !== C.uid ? h('button', { class: 'cm-flag', 'aria-label': t('md.report'), html: IC.flag, onclick: () => U().reportSheet('comment', r.id) }) : null].filter(Boolean))].filter(Boolean)));
@@ -1424,5 +1441,5 @@ PD.social = (() => {
     return box;
   }
 
-  return { feed, friends, nickCard, profile, studio, comments, picker, holdable, glyph, glyphText, prepare, upload, urls, mediaEl, fileErr, postCard, REACTS, PANDURI, ACCEPT, IC };
+  return { feed, friends, nickCard, profile, studio, comments, faces, avatar, picker, holdable, glyph, glyphText, prepare, upload, urls, mediaEl, fileErr, postCard, REACTS, PANDURI, ACCEPT, IC };
 })();

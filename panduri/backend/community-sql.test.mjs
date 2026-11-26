@@ -235,4 +235,13 @@ test('profiles, following, reposts, history, hashtags and search', async () => {
   assert.equal((await as(A, `select public.set_banner(null) as u`))[0].u, null);
   assert.equal((await as(A, `select * from public.profile_card()`))[0].banner_url, null);
 
+  // faces: everyone's current name and photo, live; no photo across a block; members only
+  const faces = await mig('202611260002_faces.sql');
+  await db.exec(faces); await db.exec(faces);
+  const fs = await as(B, `select * from public.faces(array['${A}', '${C}']::uuid[]) order by nickname`);
+  assert.deepEqual(fs.map(r => r.nickname), ['ana', 'cira']);
+  assert.equal(fs[0].avatar_url.endsWith('a.gif'), true);
+  assert.equal((await as(D, `select * from public.faces(array['${A}']::uuid[])`))[0].avatar_url, null);
+  assert.equal((await as('', `select count(*)::int as n from public.faces(array['${A}']::uuid[])`))[0].n, 0);   // not signed in: nobody
+  assert.equal((await as(B, `select count(*)::int as n from public.faces((select array_agg(gen_random_uuid()) from generate_series(1, 300)) || array['${A}']::uuid[])`))[0].n, 0);
 });

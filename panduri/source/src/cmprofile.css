@@ -631,3 +631,12 @@
 
 /* the GIPHY row in the photo / banner chooser */
 .cp-gific { display: inline-grid; place-items: center; width: 22px; height: 22px; font-size: 8.5px; font-weight: 800; letter-spacing: .02em; border: 1.6px solid currentColor; border-radius: 5px; }
+
+/* a comment: the writer's current photo on the left, the name taps through to the profile */
+.fd-cmt { display: grid; grid-template-columns: 34px minmax(0, 1fr); column-gap: 10px; }
+.fd-cmt > * { grid-column: 2; }
+.fd-cmt > .fd-cmtface { grid-column: 1; grid-row: 1 / span 6; align-self: start; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; }
+.fd-cmtface .avatar { width: 34px; height: 34px; font-size: 14px; }
+.fd-cmtface .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.fd-cmtname { padding: 0; border: 0; background: none; color: var(--fg); font: inherit; font-weight: 700; cursor: pointer; }
+.fd-cmtname:hover { text-decoration: underline; }
