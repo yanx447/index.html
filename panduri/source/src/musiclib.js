@@ -212,7 +212,7 @@ PD.musicLib = (() => {
   /** the panduri shape of a chord entry: the owner's own position (c.v) when he chose one, else the library's */
   function chordShape(c) {
     const nm = playName(c); if (!nm) return null;
-    if (c.v && c.v.length === 3) { const tf = PD.theory.teacherFingers(c.v); return { name: nm, frets: c.v, fingers: tf ? tf.fingers : [0, 0, 0], own: true }; }
+    if (c.v && c.v.length === 3) { const mine = PD.curriculum.teacherShapeFingers && PD.curriculum.teacherShapeFingers(c.v), tf = mine ? null : PD.theory.teacherFingers(c.v); return { name: nm, frets: c.v, fingers: mine || (tf ? tf.fingers : [0, 0, 0]), own: true }; }
     return shape(nm);
   }
   const KD = { d: ['down', 0], D: ['down', 1], u: ['up', 0], U: ['up', 1], m: ['mute', 0], s: ['down', 0], c: ['down', 0] };

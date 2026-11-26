@@ -129,7 +129,7 @@ PD.curriculum = (() => {
       { kind: 'trainer', title: { ka: 'ნოტები და ლადები', en: 'Notes and frets' } }, { kind: 'lesson', id: 'lh-fingers' }, { kind: 'lesson', id: 'm1' }, { kind: 'lesson', id: 'rh-alt' },
       { kind: 'rhythm', id: 'kazbeguri' }, { kind: 'rhythm', id: 'acharuli' }, { kind: 'rhythm', id: 'g-waltz' }, { kind: 'rhythm', id: 'g-folk' }, NEED('მარტივი სიმღერები', 'Simple songs')] },
     { id: 'intermediate', level: 'intermediate', title: { ka: 'პრაქტიკა: საშუალო', en: 'Practice: intermediate' }, steps: [
-      { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, { kind: 'lesson', id: 'bass-move' }, { kind: 'lesson', id: 'prog-geo' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }, { kind: 'rhythm', id: 'g-pop' }, { kind: 'rhythm', id: 'g-backbeat' }, { kind: 'rhythm', id: 'g-68' }] },
+      { kind: 'lesson', id: 'pos-shift' }, { kind: 'lesson', id: 'r1' }, { kind: 'rhythm', id: 'mtiuluri' }, { kind: 'lesson', id: 'bass-move' }, { kind: 'lesson', id: 'am-a' }, { kind: 'lesson', id: 'prog-geo' }, NEED('ტეხილები', 'Tekhili'), { kind: 'lesson', id: 'm2' }, { kind: 'lesson', id: 'c1' }, { kind: 'rhythm', id: 'g-pop' }, { kind: 'rhythm', id: 'g-backbeat' }, { kind: 'rhythm', id: 'g-68' }] },
     { id: 'advanced', level: 'advanced', title: { ka: 'პრაქტიკა: რთული', en: 'Practice: advanced' }, steps: [
       { kind: 'rhythm', id: 'khorumi' }, NEED('სოლო', 'Solo'), NEED('სწრაფი ტექნიკა', 'Fast technique'), NEED('ტრადიციული სტილები', 'Traditional styles'), { kind: 'lesson', id: 'bani-acharuli' }, { kind: 'rhythm', id: 'g-shuffle' }, { kind: 'rhythm', id: 'g-gallop' }, { kind: 'rhythm', id: 'g-16' }, EX('ex-final')] }
   ];
@@ -141,7 +141,7 @@ PD.curriculum = (() => {
       { kind: 'lesson', id: 'gs-open-a' }, { kind: 'lesson', id: 'gs-open-c' }, { kind: 'lesson', id: 'gs-open-e' }, { kind: 'lesson', id: 'gs-three' }] },
     { id: 'right', title: { ka: 'მარჯვენა ხელი', en: 'Right hand' }, steps: [{ kind: 'lesson', id: 'rh-down' }, { kind: 'lesson', id: 'rh-up' }, { kind: 'lesson', id: 'rh-alt' }, { kind: 'lesson', id: 'r1' }] },
     { id: 'left', title: { ka: 'მარცხენა ხელი', en: 'Left hand' }, steps: [{ kind: 'lesson', id: 'lh-fingers' }, { kind: 'lesson', id: 'lh-strings' }, { kind: 'lesson', id: 'pos-shift' }] },
-    { id: 'chords', title: { ka: 'აკორდები', en: 'Chords' }, steps: [{ kind: 'chords', title: { ka: 'აკორდების მკვლევარი', en: 'Chord explorer' } }, { kind: 'lesson', id: 'c-majors' }, { kind: 'lesson', id: 'c1' }] },
+    { id: 'chords', title: { ka: 'აკორდები', en: 'Chords' }, steps: [{ kind: 'chords', title: { ka: 'აკორდების მკვლევარი', en: 'Chord explorer' } }, { kind: 'lesson', id: 'c-majors' }, { kind: 'lesson', id: 'am-a' }, { kind: 'lesson', id: 'c1' }] },
     { id: 'melody', title: { ka: 'მელოდიები', en: 'Melodies' }, steps: [{ kind: 'fretboard', title: { ka: 'ტარის რუკა', en: 'Fretboard map' } }, { kind: 'lesson', id: 'm1' }, { kind: 'lesson', id: 'm2' }] },
     { id: 'songs', title: { ka: 'სიმღერები', en: 'Songs' }, steps: [{ kind: 'lesson', id: 'bani-acharuli' }] }
   ];
@@ -160,12 +160,40 @@ PD.curriculum = (() => {
       events: ev, skills: ['chords', 'strumming'], stages: ['demo', 'slow', 'perform'] }));
   })();
 
+  /* ---- The teacher's Am and A: from Am (3·3·5) only the thumb moves down to fret 4 for A (4·3·5); then his
+     three ways of taking Am. Four down-strokes per chord only to practise the change: no rhythm is his here. ---- */
+  (() => {
+    const AM = [3, 3, 5], AM_F = ['T', 1, 3], A = [4, 3, 5], A_F = ['T', 1, 3];
+    const ev = [], secs = [], four = (t0, nm, fr, fi) => { for (let k = 0; k < 4; k++) ev.push(...chord(t0 + k, nm, fr, fi, 'down', 1, k === 0, 'strum')); };
+    for (let r = 0; r < 4; r++) { four(r * 8, 'Am', AM, AM_F); four(r * 8 + 4, 'A', A, A_F); }
+    secs.push(sec('Am ↔ A: ცერა მე-3 ↔ მე-4 ლადი', 'Am ↔ A: thumb fret 3 ↔ fret 4', 0, 32));
+    const FORMS = [[AM, AM_F], [[0, 3, 0], [0, 3, 0]], [[0, 3, 5], [0, 1, 3]]];
+    for (let r = 0; r < 2; r++) FORMS.forEach(([fr, fi], i) => four(32 + (r * FORMS.length + i) * 4, 'Am', fr, fi));
+    secs.push(sec('Am-ის სამი ფორმა', 'Three ways to take Am', 32, 56));
+    B.push(L({ id: 'am-a', type: 'exercise', demo: false, source: 'teacher', level: 2, bpm: 66, path: 'chords',
+      title: { ka: 'Am → A: მხოლოდ ცერა მოძრაობს', en: 'Am → A: only the thumb moves' },
+      desc: { ka: 'მასწავლებლის Am: მე-3 ლადში საჩვენებელი თითი ორივე სიმს კეტავს, ბანიც მე-3 ლადშია, მე-5 ლადში მე-3 თითი. A მაჟორისთვის უბრალოდ ცერა ჩამოიტანე მე-4 ლადში. შემდეგ Am-ის სამი ფორმა: სრული, მხოლოდ მე-3 თითი მე-2 სიმზე, და ღია ბანით. ყოველ აკორდზე ოთხი ჩაკვრა მხოლოდ გადასვლის სავარჯიშოდაა — ეს რითმი მასწავლებლისა არ არის.', en: 'The teacher’s Am: at fret 3 the index stops both strings, the bass is at fret 3 too, the 3rd finger on fret 5. For A major just bring the thumb down to fret 4. Then his three ways of taking Am: the full shape, only the 3rd finger on the 2nd string, and with an open bass. Four down-strokes per chord are only there to practise the change — the rhythm is not the teacher’s.' },
+      events: ev, sections: secs, skills: ['chords', 'strumming'], stages: ['demo', 'slow', 'perform'] }));
+  })();
+
   /* ---- CHORD SHAPES the teacher gave by hand (teaching data, not computed).
      Everything else in the library is worked out from the tuning; these are his own. ---- */
+  /* primary: true = his main form of the chord, the one songs and lessons play */
   const TEACHER_CHORDS = {
     'C♯': [{ frets: [4, 0, 4], fingers: ['T', 0, 2], src: 'teacher',
-      note: { ka: 'გამარტივებული: საჩვენებელი აწეული — მხოლოდ ცერა და შუა თითი. შუა სიმი ღიაა და ისედაც დო♯-ს იძლევა.', en: 'Simplified: the index lifted — only the thumb and the middle finger. The middle string is open and already sounds C♯.' } }]
+      note: { ka: 'გამარტივებული: საჩვენებელი აწეული — მხოლოდ ცერა და შუა თითი. შუა სიმი ღიაა და ისედაც დო♯-ს იძლევა.', en: 'Simplified: the index lifted — only the thumb and the middle finger. The middle string is open and already sounds C♯.' } }],
+    'Am': [
+      { frets: [3, 3, 5], fingers: ['T', 1, 3], primary: true,
+        note: { ka: 'მასწავლებლის Am: მე-3 ლადში საჩვენებელი თითით კეტავ ორივე სიმს, ბანიც მე-3 ლადშია (ცერა), მე-5 ლადში კი მე-3 თითს დებ.', en: 'The teacher’s Am: at fret 3 the index stops both upper strings, the bass is at fret 3 too (thumb), and the 3rd finger goes on fret 5.' } },
+      { frets: [0, 3, 0], fingers: [0, 3, 0],
+        note: { ka: 'მასწავლებლის გამარტივებული Am: უბრალოდ მე-3 ლადში, მე-2 სიმზე, მე-3 თითით. დანარჩენი ორი სიმი ღიაა.', en: 'The teacher’s simple Am: just fret 3 on the 2nd string with the 3rd finger. The other two strings are open.' } },
+      { frets: [0, 3, 5], fingers: [0, 1, 3],
+        note: { ka: 'მასწავლებლის Am, ღია ბანით: მე-3 ლადში საჩვენებელი თითით კეტავ ორივე სიმს, მე-5 ლადში მე-3 თითს დებ.', en: 'The teacher’s Am with an open bass: at fret 3 the index stops both upper strings, and the 3rd finger goes on fret 5.' } }],
+    'A': [{ frets: [4, 3, 5], fingers: ['T', 1, 3],
+      note: { ka: 'მასწავლებლის A მაჟორი: Am-ის ფორმიდან (3 · 3 · 5) უბრალოდ ცერა (T) ჩამოიტანე მე-4 ლადში. დანარჩენი თითები ადგილზე რჩება.', en: 'The teacher’s A major: from the Am shape (3 · 3 · 5) just bring the thumb (T) down to fret 4. The other fingers stay where they are.' } }]
   };
+  /** the teacher's own fingers for a position he gave by hand (null when he gave none) */
+  const teacherShapeFingers = fr => { for (const adds of Object.values(TEACHER_CHORDS)) { const a = adds.find(x => x.frets.join() === (fr || []).join()); if (a) return a.fingers.slice(); } return null; };
 
   /* chord library: every root × chord type computed from the tuning (PD.theory); shapes the teacher gave win */
   function library() {
@@ -178,15 +206,16 @@ PD.curriculum = (() => {
       c.voicings = [v0].concat(c.voicings.filter(v => !same(v))).slice(0, 3);
       Object.assign(c, { frets: v0.frets, fingers: v0.fingers, barre: v0.barre, fsrc: v0.fsrc || c.fsrc, src: sh.src === 'teacher' ? 'teacher' : 'song' });
     }));
-    // the teacher's own extra positions, kept after the computed ones
+    // the teacher's own positions: his main form first, the rest right after the chord's first form.
+    // A form he gave is kept even without a solved 3D hand — the chord page then says so and shows it in 2D.
     Object.entries(TEACHER_CHORDS).forEach(([n, adds]) => {
       const c2 = lib.find(x => x.name === n || x.alias === n); if (!c2 || c2.none) return;
-      adds.forEach(a => {
-        if (!PD.theory.hasHandPose(a)) return;
-        if ((c2.voicings || []).some(v => v.frets.join() === a.frets.join())) return;
-        const fretted = a.frets.filter(f => f > 0);
-        c2.voicings = (c2.voicings || []).concat([{ frets: a.frets, fingers: a.fingers, barre: false, pos: fretted.length ? Math.min(...fretted) : 0, fsrc: 'teacher', note: a.note }]);
-      });
+      const mine = adds.map(a => { const fretted = a.frets.filter(f => f > 0);
+        return { frets: a.frets.slice(), fingers: a.fingers.slice(), barre: false, pos: fretted.length ? Math.min(...fretted) : 0, fsrc: 'teacher', note: a.note, primary: !!a.primary }; });
+      const rest = (c2.voicings || []).filter(v => !mine.some(m => m.frets.join() === v.frets.join()));
+      const main = mine.filter(m => m.primary), others = mine.filter(m => !m.primary);
+      c2.voicings = main.length ? main.concat(others, rest) : rest.slice(0, 1).concat(others, rest.slice(1));
+      if (main.length) Object.assign(c2, { frets: main[0].frets, fingers: main[0].fingers, barre: false, fsrc: 'teacher', src: 'teacher' });
     });
     return lib;
   }
@@ -325,6 +354,8 @@ PD.curriculum = (() => {
     /** Georgian rhythms that are not the teacher's (Tushuri): their own list, so his four stay his */
     regionalRhythms: () => rhythmsWithTiming(REGIONAL_RHYTHMS),
     setRhythmTiming(id, timing) { const ov = PD.store.get(RH_KEY, {}); ov[id] = Object.assign({}, timing, { src: 'teacher' }); PD.store.set(RH_KEY, ov); PD.bus.emit('rhythms'); },
+    /** the teacher's own fingers for a position he gave by hand, or null */
+    teacherShapeFingers,
     chords() { const a = active(); return (a.chords && a.chords.length) ? a.chords : library(); },
     get chordsAreDemo() { const a = active(); return !!(a.chords && a.chords.some(c => c.demo)); },
     /** replace the whole curriculum with a teacher package (validated) */

@@ -936,7 +936,8 @@ PD.lessonEditor = (() => {
   function voicingPick(c, k) {
     const R = ML().parse ? ML().parse(c.chord || '') : null; if (!R || R.root == null) return null;
     const T = PD.theory, q = (PD.theory.CHORD_TYPES || []).find(x => x.k === R.q) || (PD.theory.CHORD_TYPES || []).find(x => x.k === (/^m(?!aj)/.test(R.q) ? 'm' : '')); if (!q) return null;
-    const vs = T.voicings(R.root, q).slice(0, 10); if (!vs.length) return h('p', { class: 'notice warn', 'data-t': 'le.noShape' });
+    const lc = PD.curriculum.chords().find(x => x.root === R.root && x.q === q.k && !x.none), mine = ((lc && lc.voicings) || []).filter(v => v.fsrc === 'teacher');
+    const vs = mine.concat(T.voicings(R.root, q).filter(v => !mine.some(m => m.frets.join() === v.frets.join()))).slice(0, 10); if (!vs.length) return h('p', { class: 'notice warn', 'data-t': 'le.noShape' });
     const box = h('div', { class: 'le-vc' }, [h('b', { 'data-t': 'le.voicing' })]);
     vs.forEach(v => { const info = T.voicingInfo(R.root, q, v.frets), on = c.v && c.v.join() === v.frets.join(), miss = info.missing.map(iv => NAMES[(R.root + iv) % 12]);
       box.append(h('button', { class: 'le-vb' + (on ? ' on' : ''), title: v.frets.join(' ') + (miss.length ? ' · ' + t('le.missing', { n: miss.join(' ') }) : ''), onclick: () => change(t('le.voicing'), () => { const x = S.D.chords[k]; if (on) delete x.v; else x.v = v.frets.slice(); }) },
