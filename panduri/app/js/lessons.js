@@ -151,7 +151,7 @@ PD.lessons = (() => {
     const d = r.timing.durations, per = d.reduce((a, b) => a + b, 0), ev = [], secs = [];
     for (let c = 0; c < cycles; c++) {
       let tt = c * per;
-      r.strokes.forEach((s, i) => { ev.push(...strum(tt, s.direction, d[i], s.accent)); tt += d[i]; });
+      r.strokes.forEach((s, i) => { ev.push(...strum(tt, s.direction, r.rest && r.rest.after === i ? d[i] * (1 - r.rest.frac) : d[i], s.accent)); tt += d[i]; });   // a rhythm's pause is the end of a stroke's time without sound
       secs.push(sec('ციკლი ' + (c + 1), 'Cycle ' + (c + 1), c * per, (c + 1) * per));
     }
     const per4 = Math.max(1, Math.round(per * 1000) / 1000);
@@ -197,7 +197,7 @@ PD.lessons = (() => {
     all, get PATHS() { return PATHS; }, STAGES, stagesOf, fromRhythm, fromRecording, progression, steps, rhythmOf, songChanges, songRhythm, songPart, transition, normalize, bpb, timeOf, end, autoSections, progress: P,
     get: lid => all.find(l => l.id === lid) || (/^rhythm-/.test(lid || '') ? rhythmLesson(lid.slice(7)) : undefined),
     /** lessons generated from the teacher rhythms (not stored; rebuilt from curriculum data) */
-    rhythmLessons: () => (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).concat(PD.curriculum.commonRhythms ? PD.curriculum.commonRhythms() : []).map(r => fromRhythm(r)),
+    rhythmLessons: () => (PD.curriculum.rhythms ? PD.curriculum.rhythms() : []).concat(PD.curriculum.regionalRhythms ? PD.curriculum.regionalRhythms() : [], PD.curriculum.commonRhythms ? PD.curriculum.commonRhythms() : []).map(r => fromRhythm(r)),
     add(l) { const n = normalize(Object.assign({ user: true }, l)); const i = all.findIndex(x => x.id === n.id); if (i >= 0) all[i] = n; else all.push(n); saveUser(); PD.bus.emit('lessons'); return n; },
     update(l) { const i = all.findIndex(x => x.id === l.id); if (i >= 0) { all[i] = l; if (l.user) saveUser(); PD.bus.emit('lessons'); } },
     remove(lid) { const i = all.findIndex(x => x.id === lid && x.user); if (i < 0) return; if (all[i].builtinUser) { all[i].events = []; all[i].sections = autoSections(all[i]); } else all.splice(i, 1); saveUser(); PD.bus.emit('lessons'); },

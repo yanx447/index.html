@@ -694,7 +694,7 @@ PD.i18n.add({
   'sm.aiKey': ['ტონალობა: {k} · ტემპი დაახლოებით {b} BPM', 'Key: {k} · tempo about {b} BPM'],
   'sm.aiCycle': ['მეორდება წრე: {c}', 'The repeating cycle: {c}'],
   'sm.aiTop': ['ყველაზე ხშირი აკორდები: {c}', 'The chords heard most: {c}'],
-  'sm.aiCheck': ['ეს AI-ის შეფასებაა — შეამოწმე ყურით. ჩანართში „ისწავლე" მისგან გაკვეთილს გააკეთებ.', 'This is an AI estimate — check it by ear. In the “Learn it” tab you can make a lesson of it.'],
+  'sm.aiCheck': ['ჩანართში „ისწავლე" მისგან გაკვეთილს გააკეთებ.', 'In the “Learn it” tab you can make a lesson of it.'],
   'sm.howLearnT': ['როგორ ვისწავლოთ ფანდურზე დაკვრა', 'How to learn the fanduri'],
   'sm.howLearn': ['სწავლის გვერდზე გზები ამ რიგითაა; თითოეულს თავისი ნაბიჯები აქვს:', 'On the learn page the roads come in this order; each has its own steps:'],
   'sm.howSong': ['სიმღერა ასე ისწავლება: ჯერ მოსმენა, მერე მხოლოდ რითმი მარჯვენა ხელით, მერე აკორდები რითმით, ნელა, და ბოლოს მთელი სიმღერა. მაგალითად, {t}: {c}, რითმი — {s}.', 'A song is learned like this: listen first, then the rhythm alone with the right hand, then the chords with the rhythm, slowly, and finally the whole song. For example, {t}: {c}, rhythm — {s}.'],

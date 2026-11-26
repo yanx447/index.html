@@ -163,7 +163,7 @@ PD.app = (() => {
   // on the phone, screens whose tab is not in the dock light the tab they are reached from
   const DOCK_OF = { chords: 'learn', ai: 'home', mtheory: 'learn', chats: 'community' };
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'mtheory', mtheory: 'mtheory', adv: 'mtheory', pstudio: 'learn', tips: 'learn', solfege: 'mtheory', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
-    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', checkout: 'profile', market: 'community' };
+    songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', songadmin: 'profile', checkout: 'profile', market: 'community' };
   if (PD.studio3) { Object.assign(TOP, PD.studio3.top); Object.assign(DOCK_OF, PD.studio3.dock); }
   if (PD.games) { Object.assign(TOP, PD.games.top); Object.assign(DOCK_OF, PD.games.dock); }
   let route = 'home', param = null;
@@ -366,7 +366,7 @@ PD.app = (() => {
     PD.bus.emit('route', route);
     // the helper rides along on every screen, and keeps out of the way inside a lesson
     try { if (PD.sima) { PD.sima.close(); if (route === 'practice' || PD.practice.active) { const f = document.querySelector('button.sm-fab'); if (f) { f.remove(); PD.bus.emit('sima-nav'); } } else { PD.sima.mount(); setTimeout(() => PD.sima.nudge(), 1800); } } } catch (_) {}
-    (PD.games && PD.games.route(route, wrap, param)) || (PD.studio3 && PD.studio3.route(route, wrap, param)) || ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
+    (PD.games && PD.games.route(route, wrap, param)) || (PD.musicLib && PD.musicLib.route(route, wrap, param)) || (PD.studio3 && PD.studio3.route(route, wrap, param)) || ({ rhythms: () => PD.rhythmsUI.list(wrap), rhythm: () => PD.rhythmsUI.detail(wrap, param), home, learn, songs, path: pathView, lesson: lessonView, practice: practiceHub,
       daily: () => PD.daily.page(wrap), trainer: () => PD.trainer.page(wrap, param), metronome: () => PD.metronome.page(wrap),
       tuner: () => tunerTab(wrap), chords: () => PD.tools.chords(wrap, param), fretboard: () => PD.tools.fretboard(wrap), explore: () => PD.tools.explore(wrap, param),
       community: () => PD.community.page(wrap, param), inbox: () => PD.notify.page(wrap), cert: () => PD.exam.certPage(wrap), scales: () => PD.shapes.scales(wrap, param), circle: () => PD.circle.page(wrap, param), mtheory: () => PD.mtheory.page(wrap, param), chordhow: () => PD.shapes.chordHow(wrap, param), exams: () => PD.exam.page(wrap, null), exam: () => PD.exam.page(wrap, param), drill: () => PD.exam.drill(wrap, param), theory: () => PD.theoryBook.page(wrap, param), music: () => PD.genres.page(wrap, param), book: () => PD.book.page(wrap, param), install: () => PD.install.page(wrap), tips: () => PD.tips.page(wrap, param), solfege: () => PD.solfege.page(wrap, param), ai: () => PD.ai.page(wrap, param), pmadmin: () => PD.premium.manage(wrap), checkout: () => PD.checkout.page(wrap, param), market: () => PD.market ? PD.market.page(wrap, param) : home(wrap), adv: () => PD.advTheory ? PD.advTheory.page(wrap, param) : PD.mtheory.page(wrap), pstudio: () => PD.pstudio ? PD.pstudio.page(wrap, param) : practiceHub(wrap), progress, settings, profile }[route] || home)(wrap);
@@ -506,7 +506,7 @@ PD.app = (() => {
   function songRow(l) {
     const p = LS.progress.lesson(l.id), m = Math.round((p.mastery || 0) * 100), art = h('span', { class: 'srow-art', html: coverSVG(l) }), open = () => { if (l.rhythm) return go('rhythm', l.rhythm); PD.motion.share(art); go('lesson', l.id); };
     return h('button', { class: 'srow', onclick: open }, [art,
-      h('span', { class: 'grow' }, [h('b', { text: PD.i18n.pick(l.title) }), h('small', { text: t('lvl.' + (l.level || 1)) + (l.demo ? ' · ' + t('demo.badge') : '') + (l.ai ? ' · AI' : '') + (m ? ' · ' + m + '%' : '') })]),
+      h('span', { class: 'grow' }, [h('b', { text: PD.i18n.pick(l.title) }), h('small', { text: t('lvl.' + (l.level || 1)) + (l.demo ? ' · ' + t('demo.badge') : '') + (l.artist ? ' · ' + PD.i18n.pick(l.artist) : '') + (m ? ' · ' + m + '%' : '') })]),
       h('span', { class: 'srow-t', text: l.events.length ? PD.fmtTime(durSec(l)) : '' }), h('span', { class: 'srow-play', html: '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>' })]);
   }
   function card(l, wide) {
@@ -930,7 +930,8 @@ PD.app = (() => {
     w.append(h('div', { class: 'ls-actions lx-actions' }, [
       h('button', { class: 'btn primary big', text: t(p.plays ? 'hx.go' : 'home.start') + ' · ' + t(NAME[next]), onclick: () => startStage(l, next) }),
       h('button', { class: 'btn camb', html: ic.camera + '<span data-t="cam.title"></span>', onclick: () => PD.camera.launcher() })]), chips);
-    if (l.ai) w.append(h('p', { class: 'notice', 'data-t': 'al.est' }), h('button', { class: 'btn small ghost', 'data-t': 'ai.title', onclick: () => go('ai') }));
+    if (l.ai) w.append(h('button', { class: 'btn small ghost', 'data-t': 'ai.title', onclick: () => go('ai') }));
+    if (l.musiclib && PD.musicLib) { const sh = PD.musicLib.sheet(l); if (sh) w.append(sh); }   // the MUSIC library's song: facts, the recording, lyrics/chords, melody, the owner's editor
     // the progression on one line: chord · how many rhythms · every stroke
     if (l.cycle) {
       const runs = []; l.cycle.forEach(c => { const r = runs[runs.length - 1]; if (r && r.c === c) r.n++; else runs.push({ c, n: 1 }); });
@@ -1099,6 +1100,7 @@ PD.app = (() => {
       item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', C.session && C.profile?.nickname ? '@' + C.profile.nickname : null, () => go('community', 'me')),
       PD.market ? item(I('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.4"/>'), 'mk.title', t('mk.lead'), () => go('market'), 'accent') : null,
       C.isOwner ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'pa.title', null, () => go('pmadmin')) : null,
+      C.isOwner && PD.musicLib ? item(I('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'), 'ml.dash', null, () => go('songadmin')) : null,
       C.isOwner && PD.market ? item(I('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>'), 'mk.sl.title', t('mk.sl.premium') + ' · ' + t('mk.title'), () => go('market', 'sales'), 'accent') : null,
       C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => signOut())
         : item(I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'), 'pf.signin', t('au.guestD'), () => PD.auth.open(), 'accent')].filter(Boolean)));

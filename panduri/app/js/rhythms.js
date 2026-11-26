@@ -10,7 +10,7 @@
    ===================================================================== */
 PD.i18n.add({
   'nav.rhythms': ['რიტმები', 'Rhythms'], 'rh.lead': ['მარჯვენა ხელის რიტმები — მასწავლებლის მიერ მოწოდებული.', 'Right-hand rhythms — supplied by the teacher.'],
-  'rh.teacherSec': ['ფანდურის რითმები (მასწავლებლისგან)', 'Fanduri rhythms (from the teacher)'], 'rh.commonSec': ['ცნობილი რითმები', 'Famous rhythms'],
+  'rh.teacherSec': ['ფანდურის რითმები (მასწავლებლისგან)', 'Fanduri rhythms (from the teacher)'], 'rh.regionSec': ['ქართული რითმები', 'Georgian rhythms'], 'rh.regionD': ['რითმები, რომლებიც მასწავლებლის სიაში ჯერ არ არის. დარტყმების ადგილი ჩანაწერებიდან არის გაზომილი; „·“ — მოკლე პაუზა, რომლის ხანგრძლივობა სიმღერის ტემპს მიჰყვება.', 'Rhythms not yet in the teacher\'s list. Where the strokes fall is measured from recordings; “·” is a short pause whose length follows the song\'s tempo.'], 'rh.draft': ['ჯერ დაუდასტურებელი', 'Not yet confirmed'], 'rh.pause': ['პაუზა', 'Pause'], 'rh.pauseD': ['მოკლე პაუზა', 'Short pause'], 'rh.commonSec': ['ცნობილი რითმები', 'Famous rhythms'],
   'rh.commonD': ['ზოგადი რითმები, რომლებიც გიტარიდან და პოპულარული მუსიკიდანაა ცნობილი. დალაგებულია მარტივიდან რთულისკენ. ციფრი = დათვლა (1 2 3 4), „&“ = „და“ ორ დათვლას შორის.', 'General strumming patterns known from the guitar and popular music, easy to hard. A number = the count (1 2 3 4), “&” = “and” between two counts.'],
   'rh.gen': ['ზოგადი · გიტარიდან ცნობილი', 'General · known from guitar'], 'rh.genNote': ['ეს არ არის მასწავლებლის რითმი — ზოგადი, ცნობილი ნიმუშია. ისრის ზემოთ წერია, სად ეცემა დარტყმა თვლაში. სადაც თვლა გამოტოვებულია, ხელი მაინც მოძრაობს ჰაერში, სიმს არ ეხება.', 'This is not the teacher\'s rhythm — it is a general, well-known pattern. Above each arrow is where the stroke falls in the count. Where a count is skipped the hand still moves in the air without touching the strings.'],
   'rh.teacher': ['მასწავლებლის მონაცემი', "Teacher's data"], 'rh.usage': ['გამოიყენება: {u}', 'Used in: {u}'], 'rh.strokes': ['{n} დარტყმა', '{n} strokes'],
@@ -72,9 +72,12 @@ PD.rhythmsUI = (() => {
   }
   function patternRow(r, big) {
     const cn = counts(r);
-    return h('div', { class: 'rh-row' + (big ? ' big' : '') + (cn ? ' counted' : ''), role: 'list' }, r.strokes.map((s, i) => h('div', { class: 'rh-card' + (s.accent ? ' acc' : '') + (cn && cn[i] && /\d/.test(cn[i]) ? ' onbeat' : ''), role: 'listitem', 'data-i': String(i), 'aria-label': (i + 1) + ': ' + t(s.direction === 'down' ? 'w.down' : 'w.up') + ' · ' + t(s.accent ? 'rh.accent' : 'rh.normal') }, [
+    const row = h('div', { class: 'rh-row' + (big ? ' big' : '') + (cn ? ' counted' : ''), role: 'list' }, r.strokes.map((s, i) => h('div', { class: 'rh-card' + (s.accent ? ' acc' : '') + (cn && cn[i] && /\d/.test(cn[i]) ? ' onbeat' : ''), role: 'listitem', 'data-i': String(i), 'aria-label': (i + 1) + ': ' + t(s.direction === 'down' ? 'w.down' : 'w.up') + ' · ' + t(s.accent ? 'rh.accent' : 'rh.normal') }, [
       h('span', { class: 'mono rh-n', text: cn ? cn[i] : String(i + 1) }), h('span', { class: 'rh-ar', html: arrowSVG(s.direction, s.accent, big ? 64 : 40) }),
       h('b', { text: (s.direction === 'down' ? '↓ ' : '↑ ') + t(s.direction === 'down' ? 'w.down' : 'w.up') }), h('small', { text: t(s.accent ? 'rh.accent' : 'rh.normal') })])));
+    // a rhythm with a pause (Tushuri ↓ ↑ ·): the pause is a card of its own, after the stroke it follows
+    if (r.rest) { const at = row.children[r.rest.after]; if (at) at.after(h('div', { class: 'rh-card rh-rest', role: 'listitem', 'data-rest': '1', 'aria-label': t('rh.pauseD') }, [h('span', { class: 'mono rh-n', text: '·' }), h('span', { class: 'rh-ar', style: 'display:flex;align-items:center;justify-content:center;font-size:' + (big ? 44 : 30) + 'px;opacity:.7', text: '·' }), h('b', { text: '· ' + t('rh.pause') }), h('small', { text: t('rh.pauseD') })])); }
+    return row;
   }
 
   /** which stroke of a recording is sounding at second `pos` of it: { j: cycle, i: stroke } (null before it starts).
@@ -118,6 +121,8 @@ PD.rhythmsUI = (() => {
     const box = h('div', { class: 'paths' });
     C.rhythms().forEach(r => { const pv = preview(r.id); box.append(pv ? h('div', { class: 'rh-item' }, [item(r, t('rh.teacher')), pv]) : item(r, t('rh.teacher'))); });
     w.append(h('h2', { class: 'rh-sec', 'data-t': 'rh.teacherSec' }), box);
+    const RG = C.regionalRhythms ? C.regionalRhythms() : [];
+    if (RG.length) { const box3 = h('div', { class: 'paths' }); RG.forEach(r => box3.append(item(r, t('rh.draft')))); w.append(h('h2', { class: 'rh-sec', 'data-t': 'rh.regionSec' }), h('p', { class: 'muted', style: 'margin-top:-4px', 'data-t': 'rh.regionD' }), box3); }
     const box2 = h('div', { class: 'paths' });
     (C.commonRhythms ? C.commonRhythms() : []).slice().sort((a, b) => a.level - b.level).forEach(r => box2.append(item(r, t('lvl.' + Math.min(4, r.level)))));
     w.append(h('h2', { class: 'rh-sec', 'data-t': 'rh.commonSec' }), h('p', { class: 'muted', style: 'margin-top:-4px', 'data-t': 'rh.commonD' }), box2);
@@ -128,7 +133,7 @@ PD.rhythmsUI = (() => {
     const L = LS.fromRhythm(r);
     w.append(h('div', { class: 'row' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('rhythms') })]),
       h('div', { style: 'display:flex;flex-direction:column;gap:6px' }, [h('span', { class: 'kicker', text: t('nav.rhythms') + ' · ' + t('rh.strokes', { n: r.strokes.length }) }), h('h1', { text: PD.i18n.pick(r.name) }),
-        h('div', { class: 'row' }, [(gen ? null : h('span', { class: 'tag', text: t('rh.teacher') })), h('span', { class: 'muted', text: t('rh.usage', { u: PD.i18n.pick(r.usage).join(' · ') }) })])]));
+        h('div', { class: 'row' }, [(gen ? null : h('span', { class: 'tag' + (r.source === 'draft' ? ' warn' : ''), text: t(r.source === 'draft' ? 'rh.draft' : 'rh.teacher') })), h('span', { class: 'muted', text: t('rh.usage', { u: PD.i18n.pick(r.usage).join(' · ') }) })])]));
     if (r.timing.src === 'default') w.append(h('p', { class: 'tag warn', style: 'display:block;padding:10px 12px;line-height:1.5', text: t('rh.timingDefault') }));
     /* live preview: pattern + current/next + right-hand animation */
     const row = patternRow(r, true);
@@ -284,8 +289,9 @@ PD.rhythmsUI = (() => {
     function stop() { meterStops.forEach(f => f()); stopMusic(); if (muBox._sync) setTimeout(muBox._sync, 0); if (!run) return; clearInterval(run.iv); if (run.lp) run.lp.stop(); run = null; cancelAnimationFrame(raf); play.textContent = t('rh.listen'); draw(-1); mark(-1); }
     play.onclick = () => run ? stop() : start();
     tempo.oninput = () => { bpmOut.textContent = tempo.value + ' BPM'; if (run && !run.rec) { stop(); start(); } };
-    function mark(i) {
-      row.querySelectorAll('.rh-card').forEach((c, k) => { c.classList.toggle('cur', k === i); c.classList.toggle('nx', i >= 0 && k === (i + 1) % r.strokes.length); });
+    function mark(i, resting) {
+      row.querySelectorAll('.rh-card:not(.rh-rest)').forEach((c, k) => { c.classList.toggle('cur', k === i && !resting); c.classList.toggle('nx', i >= 0 && k === (i + 1) % r.strokes.length); });
+      const rc = row.querySelector('.rh-rest'); if (rc) rc.classList.toggle('cur', !!resting);
       const lab = k => k < 0 ? '—' : (r.strokes[k].direction === 'down' ? '↓ ' : '↑ ') + t(r.strokes[k].direction === 'down' ? 'w.down' : 'w.up') + (r.strokes[k].accent ? ' · ' + t('rh.accent') : '');
       now.querySelector('.rn').textContent = lab(i); now.querySelector('.rn').style.color = i < 0 ? '' : r.strokes[i].accent ? RED : BLUE;
       now.querySelector('.rx').textContent = i < 0 ? lab(0) : lab((i + 1) % r.strokes.length);
@@ -305,8 +311,9 @@ PD.rhythmsUI = (() => {
       else {
         const bt = (PD.audio.now() - run.t0) * run.bps; if (bt < 0) return;
         const inC = ((bt % per) + per) % per; for (let k = 0; k < starts.length; k++) if (inC >= starts[k] - 1e-6) i = k;
+        if (r.rest && i === r.rest.after && inC >= starts[i] + r.timing.durations[i] * (1 - r.rest.frac)) i = -2 - i;   // in the pause after stroke i
       }
-      if (row._i !== i) { row._i = i; mark(i); draw(i); }
+      if (row._i !== i) { row._i = i; if (i <= -2) { mark(-2 - i, true); draw(-1); } else { mark(i); draw(i); } }
     }
     /* ---- play along with a recording of his own ----
        The file is decoded here and never leaves the device. The tempo comes from the same beat

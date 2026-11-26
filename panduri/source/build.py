@@ -3,11 +3,11 @@ Module order = dependency order. three3d.js is embedded as inert text and parsed
 import base64, os, re, json, hashlib, shutil
 from io import BytesIO
 from PIL import Image
-ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','music-community','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','guard','social','cmprofile','market','mixrack','vedit','stickers','chatkit','chatui','voicewave','messenger','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','advdata','advjazz','advtheory','pstcore','pstudio','book','install','simatheory','sima','simaplus','aiworker','aispl','aideck','aiscore','aipiano','airoll','aitab3d','aimus','ailesson','aistage','songbook','ai','s3core','studio-sync','studio3','samisimi','studio','authortools','onboard','intro','pwa','practice-streak','gamecore','gameaudio','gameplay','games','app','boot']
+ORDER = ['core','instrument','theory','geom','songdata','sounddata','pianodata','curriculum','lessons','audio','samples','media','music-community','detector','engine','coach','ui','motion','fx','cloud','devices','auth','billing','premium','checkout','tv','rhythms','neck','lanes','trainers','three3d','practice','camera','community','guard','social','cmprofile','market','mixrack','vedit','stickers','chatkit','chatui','voicewave','messenger','tools','notesart','simple','notes','fig','tips','solfege','exam','notify','shapes','circle','genres','mtheory','advdata','advjazz','advtheory','pstcore','pstudio','book','install','simatheory','sima','simaplus','aiworker','aispl','aideck','aiscore','aipiano','airoll','aitab3d','aimus','ailesson','aistage','songbook','musiclib','lessoned','ai','s3core','studio-sync','studio3','samisimi','studio','authortools','onboard','intro','pwa','practice-streak','gamecore','gameaudio','gameplay','games','app','boot']
 LAZY = {'three3d'}
 # in the installable app only, never in the single files: the marketplace needs the server and payments anyway, and the
 # single file must stay under 16 MiB (it is within a few KB of it). The app hides its entrances when PD.market is absent.
-APP_ONLY = {'market', 'simatheory', 'simaplus', 'aistage', 'airoll', 'aitab3d', 'advdata', 'advjazz', 'advtheory', 'pstcore', 'pstudio', 's3core', 'studio-sync', 'studio3', 'gamecore', 'gameaudio', 'gameplay', 'games'}   # Sima's theory engine and player (70 KB): the single file is at its 16 MB limit; there she answers from the app's material
+APP_ONLY = {'musiclib', 'lessoned', 'market', 'simatheory', 'simaplus', 'aistage', 'airoll', 'aitab3d', 'advdata', 'advjazz', 'advtheory', 'pstcore', 'pstudio', 's3core', 'studio-sync', 'studio3', 'gamecore', 'gameaudio', 'gameplay', 'games'}   # Sima's theory engine and player (70 KB): the single file is at its 16 MB limit; there she answers from the app's material
 src = lambda n: open(f'src/{n}').read()
 # The stylesheet is two cascade layers: the earlier screens' rules (app.css) in `legacy`, and the design
 # system (design.css) after it. A later layer wins whatever the selector, so the design system never has to
@@ -215,6 +215,8 @@ for m in MEDIA: os.makedirs(os.path.dirname(app + '/media/' + m), exist_ok=True)
 if FIG_NAMES: shutil.copytree('assets/fig', app + '/fig')
 if STICKER_FILES: shutil.copytree('assets/stickers', app + '/stickers')
 if os.path.isdir('assets/chat-fonts'): shutil.copytree('assets/chat-fonts', app + '/chat-fonts')
+# the song lessons from the MUSIC library (sounds/lessons/build-data.py): songs.json for everyone, review.json for the owner's editor
+if os.path.isdir('lessons'): shutil.copytree('lessons', app + '/lessons')
 # The 3D renderer's code is fetched at start (fetch goes through the service worker, so it comes from the cache
 # offline — a synchronous XHR does not, and offline it used to stop the whole app at the welcome screen) and parsed
 # only when 3D is first used. Code that runs before the fetch is back waits for PD.R3Dready.
@@ -270,9 +272,10 @@ tuner_files = sorted(str(p).replace('\\', '/') for p in __import__('pathlib').Pa
 shell += [p.replace('ext/sami-simi/', 'tuner/') for p in tuner_files]
 shell += ['stickers/'+f for f in STICKER_FILES]
 if os.path.isdir('assets/chat-fonts'): shell += ['chat-fonts/'+f for f in sorted(os.listdir('assets/chat-fonts'))]
+if os.path.exists('lessons/songs.json'): shell += ['lessons/songs.json']   # offline, and refreshed with every build
 tuner_digest = hashlib.sha1(b''.join(open(p, 'rb').read() for p in tuner_files)).hexdigest()
 shell += [f'js/{n}.js?v={ASSET_REV}' for n in ORDER if n not in LAZY] + [f'js/assets.js?v={ASSET_REV}', f'js/config.js?v={ASSET_REV}', f'app.css?v={ASSET_REV}']
-version = hashlib.sha1((tuner_digest + css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read() + ''.join(LANG_JSON.values()) + index + json.dumps(shell)).encode()).hexdigest()[:10]
+version = hashlib.sha1((tuner_digest + (open('lessons/songs.json').read() if os.path.exists('lessons/songs.json') else '') + css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read() + ''.join(LANG_JSON.values()) + index + json.dumps(shell)).encode()).hexdigest()[:10]
 sound_digest = hashlib.sha1(b''.join(open(p, 'rb').read() for p in ['src/sounddata.js', 'src/pianodata.js'] + sorted(str(q) for q in __import__('pathlib').Path('ext/sami-simi/audio').glob('*.mp3')) if os.path.exists(p))).hexdigest()[:10]
 open(app + '/sw.js', 'w').write(open('pwa/sw.js').read().replace('__VERSION__', version).replace('__SHELL__', json.dumps(shell)).replace('__SOUND__', sound_digest))
 # the running build's version, so Settings can show it and ask for an update

@@ -17,3 +17,6 @@ panduri/desktop/out/
 საინსტალაციო/**/*.jks
 საინსტალაციო/**/გასაღები/
 საინსტალაციო/ios/Panduri-iOS/
+
+# the song-lesson pipeline's stems (sounds/lessons, several GB)
+panduri/source/sounds/lessons/cache/

@@ -69,5 +69,11 @@ PD.SONGS = {
    attack / level: how strong the attack and the level are at each of the three stroke places of a beat (mean 1). */
 PD.RHYTHM_REFS = [
   { rhythm: 'acharuli', src: 'teacher', from: { ka: 'ბანი-აჭარული (მასწავლებლის ჩანაწერი)', en: 'Bani-Acharuli (the teacher\u2019s recording)' },
-    per: 3, bpm: 99.4, compound: true, attack: [1.753, 0.611, 0.636], level: [1.197, 0.892, 0.911] }
+    per: 3, bpm: 99.4, compound: true, attack: [1.753, 0.611, 0.636], level: [1.197, 0.892, 0.911] },
+  /* Tushuri (the owner's rhythm, not the teacher's): two Tushetian recordings from MUSIC/, measured the same way
+     (qa/rhythm-print.cjs, 2026-11-25). The studio names Tushuri for an upload only when it is clearly nearer to these. */
+  { rhythm: 'tushuri', src: 'recording', from: { ka: '„შენამ ვინ გკითხავს დიაცო“ (მეუფე ზენონი და „კესანე“)', en: 'Shenam Vin Gkitkhavs Diatso (Metropolitan Zenon & Kesane)' },
+    per: 3, bpm: 132.5, compound: true, attack: [1.957, 0.525, 0.518], level: [1.319, 0.871, 0.81] },
+  { rhythm: 'tushuri', src: 'recording', from: { ka: '„შენ ალაზანო“ (ლელა ნაყეური და „ჩვენებურები“)', en: 'Shen Alazano (Lela Nakeuri & Chveneburebi)' },
+    per: 3, bpm: 101.3, compound: true, attack: [1.632, 0.518, 0.85], level: [1.107, 0.882, 1.011] }
 ];

@@ -218,6 +218,16 @@ PD.curriculum = (() => {
     { id: 'acharuli', name: { ka: 'აჭარული', en: 'Acharuli' }, usage: { ka: ['მელოდიები', 'სიმღერები'], en: ['Melodies', 'Songs'] },
       strokes: [S('down', false), S('down', true), S('up', true)], source: 'teacher' }
   ].map(r => Object.assign({ timing: { bpm: 60, durations: r.strokes.map(() => 1), src: 'default' } }, r));
+  /* ---- Tushuri: the owner's description (25 Nov 2026) — ↓ ↑ and a short pause, again and again. It is not one of the
+     teacher's rhythms (his own list names Kazbeguri for Tushetian melodies), so it is marked draft until he confirms it.
+     Where the strokes fall is measured from the two Tushetian recordings in MUSIC/ (sounds/lessons/analyze.py): ↑ at
+     0.38–0.40 of the beat after ↓, the pause from 2/3 of the beat to the next ↓ — a third of the beat, so its length in
+     milliseconds follows each song's tempo. No accent was described, so none is shown. ---- */
+  const REGIONAL_RHYTHMS = [
+    { id: 'tushuri', name: { ka: 'თუშური', en: 'Tushuri' }, usage: { ka: ['თუშური სიმღერები და მელოდიები'], en: ['Tushetian songs and melodies'] },
+      strokes: [S('down', false), S('up', false)], source: 'draft', origin: 'owner', level: 1,
+      timing: { bpm: 100, durations: [.386, .614], src: 'recording' }, rest: { after: 1, frac: .543 } }
+  ];
   /* ---- The teacher's own exercise: moving the bass.
      In Gm the thumb holds the bass at fret 1 (A♯3); to move the bass the middle finger is added two frets up,
      on the bass string, and the same rhythm is played again. His words, his shapes, his rhythm. ---- */
@@ -311,7 +321,9 @@ PD.curriculum = (() => {
     /** teacher rhythms (a package may carry its own list; the teacher-supplied four are the default) */
     rhythms() { const a = active(); return rhythmsWithTiming(a.rhythms && a.rhythms.length ? a.rhythms : TEACHER_RHYTHMS); },
     commonRhythms: () => COMMON_RHYTHMS,
-    anyRhythm(id) { return PD.curriculum.rhythms().find(r => r.id === id) || COMMON_RHYTHMS.find(r => r.id === id); },
+    anyRhythm(id) { return PD.curriculum.rhythms().find(r => r.id === id) || PD.curriculum.regionalRhythms().find(r => r.id === id) || COMMON_RHYTHMS.find(r => r.id === id); },
+    /** Georgian rhythms that are not the teacher's (Tushuri): their own list, so his four stay his */
+    regionalRhythms: () => rhythmsWithTiming(REGIONAL_RHYTHMS),
     setRhythmTiming(id, timing) { const ov = PD.store.get(RH_KEY, {}); ov[id] = Object.assign({}, timing, { src: 'teacher' }); PD.store.set(RH_KEY, ov); PD.bus.emit('rhythms'); },
     chords() { const a = active(); return (a.chords && a.chords.length) ? a.chords : library(); },
     get chordsAreDemo() { const a = active(); return !!(a.chords && a.chords.some(c => c.demo)); },

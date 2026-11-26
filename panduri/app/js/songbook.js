@@ -176,6 +176,7 @@ PD.songbook = (() => {
     const rhOpts = [];
     if (S.rhythm) rhOpts.push({ group: t('sb.grpSrc'), items: [['src', t('sb.rhSrc')]] });
     rhOpts.push({ group: t('sb.grpT'), items: PD.curriculum.rhythms().map(r => [r.id, pick(r.name)]) });
+    if (PD.curriculum.regionalRhythms) rhOpts.push({ group: t('rh.regionSec'), items: PD.curriculum.regionalRhythms().map(r => [r.id, pick(r.name)]) });
     rhOpts.push({ group: t('sb.grpG'), items: PD.curriculum.commonRhythms().map(r => [r.id, pick(r.name)]) });
     const srcBadge = R.id === 'src' ? null : R.src === 'teacher' ? 'tp.src.teacher' : 'tp.src.general';
     wrap.append(h('section', { class: 'sx-block sb-rh' + (R.id === 'src' ? ' noacc' : '') }, [

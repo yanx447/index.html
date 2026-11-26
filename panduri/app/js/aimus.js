@@ -798,7 +798,7 @@ PD.i18n.add({
   'tr.alt': ['სხვა შესაძლო წაკითხვა', 'Another possible reading'], 'tr.bar': ['ტაქტი {n}', 'Bar {n}'],
   'tr.exp': ['შენახვა', 'Export'], 'tr.expMidi': ['MIDI', 'MIDI'], 'tr.expXml': ['MusicXML', 'MusicXML'], 'tr.expJson': ['JSON', 'JSON'], 'tr.expTab': ['ტაბი (ტექსტი)', 'Tab (text)'], 'tr.expPdf': ['ბეჭდვა · PDF', 'Print · PDF'],
   'tr.expNote': ['MIDI-ში ფანდურის სიმი და ლადი არ ინახება — ისინი JSON-სა და ტაბშია.', 'MIDI does not carry the fanduri string and fret — those are in the JSON and in the tab.'],
-  'tr.est': ['ეს AI-ის გაზომვაა და არა დადასტურებული ნოტაცია. სანდოობა ყოველ ნოტზე წერია; შეამოწმე ყურით.', 'This is what the AI measured, not a verified score. Every note carries its confidence; check it by ear.'],
+  'tr.est': ['ნოტები ჩანაწერიდან არის ამოწერილი.', 'The notes are transcribed from the recording.'],
   'tr.oct': ['ოქტავით {d}: {n}', 'octave {d}: {n}'], 'tr.sections': ['ნაწილები', 'Parts'], 'tr.part': ['ნაწილი {n}', 'Part {n}'],
   'tr.secNote': ['ნაწილები იქ იყოფა, სადაც მუსიკა იცვლება. სახელებს არ ვარქმევ — აუდიო არ ამბობს, რომელია მისამღერი.', 'The parts are cut where the music changes. They are not named — the audio does not say which one is a chorus.'],
   'tr.solo': ['მელოდიური', 'melodic'], 'tr.soloD': ['„მელოდიური“ იქ წერია, სადაც ნოტები სხვაგანზე ბევრად ხშირია — ეს გაზომილი სიხშირეა და არა დადასტურებული სოლო. ფრჩხილებში ნოტია წამში.', '"Melodic" marks the parts where the notes come much thicker than elsewhere — that is a measured density, not a verified solo. In brackets: notes per second.'],

@@ -25,7 +25,7 @@ PD.i18n.add({
   'ah.made': ['სიმღერა გაკვეთილად იქცა', 'The song is now a lesson'],
   'ah.fail': ['გაკვეთილი ვერ შეიქმნა: {e}', 'The lesson could not be made: {e}'],
   'ah.noBeats': ['ამ ჩანაწერში დარტყმები ვერ ვიპოვე — გაკვეთილი ვერ შეიქმნება.', 'No beat was found in this recording — no lesson can be made.'],
-  'ah.est': ['AI-ის შეფასება ჩანაწერიდან — შეამოწმე ყურით.', 'Measured by the AI from the recording — check it by ear.'],
+  'ah.est': ['ჩანაწერიდან', 'From the recording'],
   'ah.legend': ['↓ ჩაკვრა · ↑ ამოკვრა · წითელი = აქცენტი', '↓ down · ↑ up · red = accent'],
   'ah.beats': ['{n} თვლა', '{n} beats'], 'ah.beat': ['1 თვლა', '1 beat']
 });

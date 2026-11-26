@@ -20,18 +20,18 @@
    · the stroke pattern — chosen by the learner. Down or up cannot be heard
      in a recording; the AI only suggests one, and says so.
    · chord shapes — the app's own library, computed from the tuning.
-   Nothing here is the teacher's: every lesson is marked as an AI estimate.
+   Nothing here is the teacher's: the lesson is a measurement (source 'ai'), and the games keep it as practice.
    Only compact data is stored (ai.lessons); the lesson is rebuilt on load.
    ===================================================================== */
 PD.i18n.add({
   'al.tab': ['ისწავლე', 'Learn it'],
   'al.title': ['ისწავლე ეს სიმღერა', 'Learn this song'],
-  'al.lead': ['AI ამ სიმღერას ისეთ გაკვეთილად აქცევს, როგორიც ბანი-აჭარულია: აკორდები რითმით, გრიფი, შენელება, ნაწილების გამეორება და მიკროფონი, რომელიც შენს დაკვრას ელოდება.', 'The AI turns this song into a lesson like Bani-Acharuli: the chords with a rhythm, the neck, slowing down, looping parts and the microphone that waits for your playing.'],
-  'al.cycle': ['AI-მ იპოვა მეორებადი წრე — ემთხვევა სიმღერის {p}%-ს', 'The AI found a repeating cycle — it matches {p}% of the song'],
-  'al.cycleD': ['სადაც სიმღერა მკაფიოდ სხვა წრეს მიჰყვება, იქ ის წრე იქნება. შეეხე აკორდს და შეცვალე, თუ ყურით სხვა ისმის.', 'Where the song clearly follows a different cycle, that cycle is used. Tap a chord to change it if your ear hears something else.'],
+  'al.lead': ['ეს სიმღერა ისეთ გაკვეთილად იქცევა, როგორიც ბანი-აჭარულია: აკორდები რითმით, გრიფი, შენელება, ნაწილების გამეორება და მიკროფონი, რომელიც შენს დაკვრას ელოდება.', 'This song becomes a lesson like Bani-Acharuli: the chords with a rhythm, the neck, slowing down, looping parts and the microphone that waits for your playing.'],
+  'al.cycle': ['მეორებადი წრე — ემთხვევა სიმღერის {p}%-ს', 'Repeating cycle — it matches {p}% of the song'],
+  'al.cycleD': ['სადაც სიმღერა მკაფიოდ სხვა წრეს მიჰყვება, იქ ის წრე იქნება. შეეხე აკორდს, რომ შეცვალო.', 'Where the song clearly follows a different cycle, that cycle is used. Tap a chord to change it.'],
   'al.noCycle': ['მეორებადი წრე ვერ ვიპოვე — აკორდები ისე გადავა, როგორც ჩანაწერში გაიზომა.', 'No repeating cycle was found — the chords follow what was measured in the recording.'],
   'al.rhythms': ['{n} რითმი', '{n} rhythm(s)'],
-  'al.unsure': ['{n} თვლაზე ({p}%) ჩანაწერი ბუნდოვანია (მაგ. სოლო ან ხმაური) — იქ წრე გრძელდება. შეამოწმე ყურით.', 'On {n} beats ({p}%) the recording is unclear (a solo or a busy mix, for example) — the cycle goes on there. Check it by ear.'],
+  'al.unsure': ['{n} თვლაზე ({p}%) ჩანაწერი ბუნდოვანია (მაგ. სოლო ან ხმაური) — იქ წრე გრძელდება.', 'On {n} beats ({p}%) the recording is unclear (a solo or a busy mix, for example) — the cycle goes on there.'],
   'al.chords': ['აკორდები ფანდურზე', 'The chords on the fanduri'],
   'al.noShape': ['ამ აკორდს სამ სიმზე ფორმა არ აქვს — გაკვეთილში გამოტოვდება', 'This chord has no three-string shape — the lesson leaves it out'],
   'al.rhythm': ['რითმი (ერთი თვლა)', 'Rhythm (one beat)'],
@@ -41,7 +41,7 @@ PD.i18n.add({
   'al.sound': ['ჩანაწერი', 'The recording'],
   'al.stemsYes': ['მთელი სიმღერა დაყოფილია — გაკვეთილში იქნება „ვოკალით", „ვოკალის გარეშე" და „მხოლოდ ვოკალი".', 'The whole song has been split — the lesson will have “with vocals”, “no vocals” and “vocals only”.'],
   'al.stemsNo': ['გაკვეთილი ორიგინალ ჩანაწერთან ერთად დაიკვრება. „ვოკალის გარეშე" ვერსიისთვის ჯერ „ინსტრუმენტებში" დაყავი მთელი სიმღერა.', 'The lesson plays along with the original recording. For a “no vocals” version, first split the whole song under “Instruments”.'],
-  'al.est': ['ეს AI-ის შეფასებაა და არა მასწავლებლის ჩარტი: აკორდები და დრო ჩანაწერიდან გაიზომა. შეამოწმე ყურით და საჭიროებისას შეასწორე.', 'This is an AI estimate, not the teacher\'s chart: the chords and timing were measured from the recording. Check it by ear and correct it where needed.'],
+  'al.est': ['აკორდები და დრო ჩანაწერიდან არის გაზომილი. საჭიროებისას შეასწორე.', 'The chords and timing are measured from the recording. Correct them where needed.'],
   'al.make': ['გაკვეთილის შექმნა', 'Make the lesson'], 'al.remake': ['გაკვეთილის განახლება', 'Update the lesson'],
   'al.open': ['გაკვეთილის გახსნა', 'Open the lesson'], 'al.del': ['გაკვეთილის წაშლა', 'Delete the lesson'],
   'al.delQ': ['წავშალო გაკვეთილი „{s}“? შენი პროგრესიც წაიშლება. სიმღერა AI სტუდიაში რჩება — გაკვეთილს იქიდან ხელახლა შექმნი.', 'Delete the lesson “{s}”? Your progress on it goes too. The song stays in the AI studio — you can make the lesson again from there.'],
@@ -155,6 +155,7 @@ PD.aiLessons = (() => {
   function patterns() {
     const T = (PD.curriculum.rhythms && PD.curriculum.rhythms()) || [], out = [];
     ['acharuli', 'kazbeguri'].forEach(id => { const r = T.find(x => x.id === id); if (r && r.strokes.length <= 4) out.push({ id, name: r.name, strokes: r.strokes, src: 'teacher' }); });
+    ((PD.curriculum.regionalRhythms && PD.curriculum.regionalRhythms()) || []).forEach(r => out.push({ id: r.id, name: r.name, strokes: r.strokes, src: r.source }));
     out.push({ id: 'down', name: { ka: 'ჩაკვრა ყოველ თვლაზე', en: 'One down per beat' }, key: 'al.pDown', strokes: [{ direction: 'down', accent: false }], src: 'general' });
     out.push({ id: 'du', name: { ka: 'ჩაკვრა · ამოკვრა', en: 'Down · up' }, key: 'al.pDU', strokes: [{ direction: 'down', accent: false }, { direction: 'up', accent: false }], src: 'general' });
     return out;
@@ -180,8 +181,7 @@ PD.aiLessons = (() => {
     return {
       id: D.id, sid: D.sid, v: 2, type: 'song', level: 1, demo: false, ai: true, source: 'ai', chartSrc: 'ai',
       title: { ka: D.title, en: D.title },
-      desc: { ka: 'AI-მ ჩანაწერიდან ამოიცნო: ' + list + ' · ' + Math.round(D.bpm) + ' BPM. ეს AI-ის შეფასებაა და არა მასწავლებლის ჩარტი — შეამოწმე ყურით.',
-        en: 'Measured by the AI from the recording: ' + list + ' · ' + Math.round(D.bpm) + ' BPM. An AI estimate, not the teacher\'s chart — check it by ear.' },
+      desc: { ka: list + ' · ' + Math.round(D.bpm) + ' BPM', en: list + ' · ' + Math.round(D.bpm) + ' BPM' },
       bpm: D.bpm, meter: [D.bpb || 4, 4], song: D.id, stems: D.stems, refOffset: 0, beatMap: D.beats, countIn: 4,
       cycle: D.cycle || null, songRhythm: pat.id, beatStrokes: pat.strokes, shapes: D.shapes, events: ev, sections: secs,
       stages: ['demo', 'technique', 'chords', 'slow', 'perform'], technique: { kind: 'rhythm' }, skills: ['chords', 'strumming', 'rhythm']

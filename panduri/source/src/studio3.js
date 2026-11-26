@@ -24,7 +24,7 @@ PD.i18n.add({
   's3.flow': ['როგორ მუშაობს', 'How it works'],
   's3.f1': ['ატვირთვა', 'Import'], 's3.f1d': ['აუდიო ან ვიდეო ფაილი — იკითხება ამ მოწყობილობაზე', 'An audio or video file — read on this device'],
   's3.f2': ['ხმების გაყოფა', 'Separate'], 's3.f2d': ['ვოკალი · დრამი · ბასი · დანარჩენი — ამ მოწყობილობაზე', 'Vocals · drums · bass · other — on this device'],
-  's3.f3': ['ამოცნობა', 'Transcribe'], 's3.f3d': ['აკორდები, ტონალობა, ტემპი, რითმი; მელოდიის ნოტები Premium-შია. ყველაფერი AI-ის შეფასებაა', 'Chords, key, tempo, rhythm; the melody notes are Premium. All of it is an AI estimate'],
+  's3.f3': ['ამოცნობა', 'Transcribe'], 's3.f3d': ['აკორდები, ტონალობა, ტემპი, რითმი; მელოდიის ნოტები Premium-შია', 'Chords, key, tempo, rhythm; the melody notes are Premium'],
   's3.f4': ['ფანდურზე გადაწყობა', 'Adapt to fanduri'], 's3.f4d': ['ნოტი იღებს სიმს და ლადს; ნოტი, რომელიც ფანდურს არ აქვს, მოინიშნება და ჩუმად არ გადაინაცვლებს', 'Each note gets a string and a fret; a note the fanduri lacks is marked, never moved silently'],
   's3.f5': ['სწავლა · შექმნა', 'Learn · Create'], 's3.f5d': ['სიმღერა გაკვეთილად (Premium); ნოტები, რითმები, ტრეკები, MIDI', 'The song as a lesson (Premium); notes, rhythms, tracks, MIDI'],
   's3.ok': ['მუშაობს', 'Works'], 's3.part': ['ნაწილობრივ', 'Partly'], 's3.pm': ['Premium', 'Premium'],
