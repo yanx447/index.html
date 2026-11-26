@@ -541,7 +541,8 @@ PD.cloud = (() => {
   /* ---------- GIFs: through the server's gifs function (it keeps the GIPHY key) ---------- */
   const gifs = {
     probe: () => http('/functions/v1/gifs?probe=1', { auth: false, timeout: 8000 }),
-    search: (q, lang) => http('/functions/v1/gifs?q=' + encodeURIComponent(q || '') + '&lang=' + encodeURIComponent(lang || 'en'), { timeout: 12000 })
+    /** use: chat | avatar | banner (the server keeps only GIFs fit for it); page: 0, 1, … */
+    search: (q, lang, use, page) => http('/functions/v1/gifs?q=' + encodeURIComponent(q || '') + '&lang=' + encodeURIComponent(lang || 'en') + '&use=' + (use || 'chat') + '&page=' + (page | 0), { timeout: 12000 })
   };
   const signal = {
     ice: conv => http('/functions/v1/call-ice', { method:'POST',body:{conv},timeout:5000 }),

@@ -33,6 +33,8 @@ PD.i18n.add({
   'cp.photoD': ['ფოტო ან GIF — GIF მოძრაობს, 4 MB-მდე.', 'A photo or a GIF — a GIF moves, up to 4 MB.'],
   'cp.tooBig': ['ფაილი ძალიან დიდია: მაქსიმუმ {n} MB.', 'The file is too large: {n} MB at most.'], 'cp.tooLong': ['ვიდეო ძალიან გრძელია: მაქსიმუმ 15 წამი.', 'The video is too long: 15 seconds at most.'],
   'cp.badFile': ['ეს ფაილი არ გამოდგება: აირჩიე ფოტო, GIF ან MP4/WebM ვიდეო.', 'This file will not do: choose a photo, a GIF or an MP4/WebM video.'],
+  'cp.banner': ['ბანერი', 'Banner'], 'cp.fromDevice': ['ფოტო მოწყობილობიდან', 'A photo from this device'], 'cp.fromDeviceB': ['ფოტო ან ვიდეო მოწყობილობიდან', 'A photo or video from this device'],
+  'cp.fromGiphy': ['GIF — GIPHY-დან', 'A GIF from GIPHY'], 'cp.gifFail': ['ეს GIF ვერ ჩამოიტვირთა — სცადე სხვა.', 'This GIF could not be fetched — try another.'],
   'cp.photo': ['პროფილის ფოტო', 'Profile photo'], 'cp.photoChange': ['ფოტოს შეცვლა', 'Change photo'], 'cp.photoRemove': ['ფოტოს წაშლა', 'Remove photo'], 'cp.photoUp': ['ფოტო იტვირთება…', 'Uploading the photo…'],
   'cp.name': ['სახელი', 'Name'], 'cp.nick': ['nickname', 'Nickname'], 'cp.bio': ['ბიო', 'Bio'], 'cp.bioPh': ['რამდენიმე სიტყვა შენზე — რას უკრავ, საიდან ხარ…', 'A few words about you — what you play, where you are from…'],
   'cp.save': ['შენახვა', 'Save'], 'cp.saved': ['შენახულია', 'Saved'], 'cp.bioBad': ['ბიოში ისეთი სიტყვაა, რომელიც აქ არ დაიშვება.', 'The bio has a word that is not allowed here.'],
@@ -236,6 +238,7 @@ PD.cmp = (() => {
     const bn = card.banner_url ? h('div', { class: 'cp-banner' }, [bannerMedia(card.banner_url),
       self && !legacy ? h('button', { class: 'cp-bncam', 'aria-label': t('cp.bannerChange'), title: t('cp.bannerChange'), html: IC.cam, onclick: () => pickBanner(url => { card.banner_url = url; refresh(); }) }) : null].filter(Boolean)) : null;
     // the photo, in a ring of the app's brass; mine has a camera to change it
+    if (self && PD.chatkit) PD.chatkit.gifsAvailable();   // the photo / banner chooser then knows at once whether GIPHY is on
     const av = h('div', { class: 'cp-avw' }, [h('div', { class: 'cp-ring' }, [avatar(card.avatar_url, nameOf(card), 'cp-av')]),
       self ? h('button', { class: 'cp-avcam', 'aria-label': t('cp.photoChange'), html: IC.cam, onclick: () => pickPhoto(url => { card.avatar_url = url; refresh(); }) }) : null].filter(Boolean));
     const chips = h('div', { class: 'cp-chips' }, [card.level ? h('span', { class: 'cp-chip lv', text: '🪕 ' + t('cp.lv', { n: card.level }) }) : null, card.vip ? h('span', { class: 'cp-chip vip', text: 'VIP' }) : null,
@@ -419,9 +422,54 @@ PD.cmp = (() => {
     });
   }
   const MB = 1048576, upErr = e => /mime|type|415|422|invalid_mime|bucket|not.?found|404/i.test((e && e.message) || '') ? t('cp.needServer') : /too-large|413/.test((e && (e.code || e.message)) || '') ? t('cp.tooBig', { n: 10 }) : err(e);
+  /** upload a ready picture (or GIF, or short video) and make it my photo or banner */
+  async function savePic(use, blob, done) {
+    const banner = use === 'banner', was = C.profile && C.profile[banner ? 'banner_url' : 'avatar_url'];
+    const url = await C.storage.avatar(blob, banner ? 'banner-' : '');
+    await (banner ? C.social.setBanner(url) : C.social.setAvatar(url));
+    if (was && was !== url) C.storage.dropAvatar(was);
+    if (!banner) PD.account.setProfile({ avatar: url });
+    await C.loadProfile().catch(() => {});
+    buzz('success'); PD.ui.toast(t('cp.saved'), 1800); done && done(url);
+  }
+  const vidLength = blob => new Promise((res, rej) => { const v = document.createElement('video'), u = URL.createObjectURL(blob); v.preload = 'metadata'; v.muted = true; v.onloadedmetadata = () => { URL.revokeObjectURL(u); res(v.duration); }; v.onerror = () => { URL.revokeObjectURL(u); rej(new Error('bad-file')); }; v.src = u; });
+  /** where the new photo or banner comes from: this device, or a GIF found on GIPHY */
+  function pickFrom(use, fromFile, done) {
+    if (!PD.chatkit || !C.gifs || PD.chatkit.gifState === false) { PD.chatkit && PD.chatkit.gifsAvailable(); return fromFile(done); }
+    PD.ui.sheet((b, close) => {
+      const row = (icon, key, fn) => h('button', { class: 'cp-mrow', type: 'button', onclick: () => { close(); fn(); } }, [h('span', { html: icon }), h('span', { class: 'grow', 'data-t': key }), h('span', { class: 'cp-chev', html: ic.chevron })]);
+      b.append(h('h2', { 'data-t': use === 'banner' ? 'cp.banner' : 'cp.photo' }), h('div', { class: 'cp-menu' }, [
+        row(IC.cam, use === 'banner' ? 'cp.fromDeviceB' : 'cp.fromDevice', () => fromFile(done)),
+        row('<b class="cp-gific">GIF</b>', 'cp.fromGiphy', () => fromGiphy(use, done))]));
+    });
+  }
+  /** a GIPHY GIF: the device fetches the best copy that fits (a GIF for the photo, an MP4 or GIF for the banner) and uploads it as its own */
+  function fromGiphy(use, done) {
+    PD.chatkit.gifSheet(use, async r => {
+      const banner = use === 'banner', max = (banner ? 10 : 4) * MB;
+      let srcs = banner ? [r.mp4 && { ...r.mp4, type: 'video/mp4' }, r.big && { ...r.big, type: 'image/gif' }, r.gif && { ...r.gif, type: 'image/gif' }] : [r.gif && { ...r.gif, type: 'image/gif' }];
+      srcs = srcs.filter(x => x && x.url && (!x.size || x.size <= max));
+      if (!srcs.length) { PD.ui.toast(t('cp.tooBig', { n: banner ? 10 : 4 }), 4000); return; }
+      PD.ui.toast(t(banner ? 'cp.bannerUp' : 'cp.photoUp'), 10000);
+      try {
+        let blob = null;
+        for (const x of srcs) {
+          const res = await fetch(x.url, { credentials: 'omit' }).catch(() => null);
+          if (!res || !res.ok) continue;
+          const b = new Blob([await res.blob()], { type: x.type });
+          if (!b.size || b.size > max) continue;
+          if (x.type === 'video/mp4') { const d = await vidLength(b).catch(() => 0); if (!(d > 0) || d > 15.5) continue; }
+          blob = b; break;
+        }
+        if (!blob) throw new Error('bad-file');
+        await savePic(use, blob, done);
+      } catch (e) { PD.ui.toast(/bad-file/.test((e && e.message) || '') ? t('cp.gifFail') : upErr(e), 5000); }
+    });
+  }
+  const pickPhoto = done => pickFrom('avatar', photoFile, done), pickBanner = done => pickFrom('banner', bannerFile, done);
   /** choose a photo, cut its middle square, make it 512 px, upload it, and make it the profile photo.
       A GIF goes up as it is (cutting it would stop it moving); the round frame shows its middle. */
-  function pickPhoto(done) {
+  function photoFile(done) {
     const inp = h('input', { type: 'file', accept: 'image/*', hidden: true });
     inp.onchange = async () => {
       const f = inp.files && inp.files[0]; inp.remove(); if (!f) return;
@@ -429,16 +477,7 @@ PD.cmp = (() => {
       const gif = f.type === 'image/gif';
       if (gif && f.size > 4 * MB) { PD.ui.toast(t('cp.tooBig', { n: 4 }), 4000); return; }
       PD.ui.toast(t('cp.photoUp'), 8000);
-      try {
-        const blob = gif ? f : await squarePhoto(f);
-        const was = C.profile && C.profile.avatar_url;
-        const url = await C.storage.avatar(blob);
-        await C.social.setAvatar(url);
-        if (was && was !== url) C.storage.dropAvatar(was);
-        PD.account.setProfile({ avatar: url });
-        await C.loadProfile().catch(() => {});
-        buzz('success'); PD.ui.toast(t('cp.saved'), 1800); done && done(url);
-      } catch (e) { PD.ui.toast(upErr(e), 5000); }
+      try { await savePic('avatar', gif ? f : await squarePhoto(f), done); } catch (e) { PD.ui.toast(upErr(e), 5000); }
     };
     document.body.appendChild(inp); inp.click();
   }
@@ -449,7 +488,7 @@ PD.cmp = (() => {
     return new Promise(r => cv.toBlob(r, 'image/jpeg', .88));
   }
   /** the banner: a photo is cut to 5 : 2 and made at most 1500 px wide; a GIF or a short silent video goes up as it is */
-  function pickBanner(done) {
+  function bannerFile(done) {
     const inp = h('input', { type: 'file', accept: 'image/*,video/mp4,video/webm', hidden: true });
     inp.onchange = async () => {
       const f = inp.files && inp.files[0]; inp.remove(); if (!f) return;
@@ -458,7 +497,7 @@ PD.cmp = (() => {
       if (moving && f.size > 10 * MB) { PD.ui.toast(t('cp.tooBig', { n: 10 }), 4000); return; }
       try {
         if (vid) {   // its length, read on the device
-          const dur = await new Promise((res, rej) => { const v = document.createElement('video'), u = URL.createObjectURL(f); v.preload = 'metadata'; v.onloadedmetadata = () => { URL.revokeObjectURL(u); res(v.duration); }; v.onerror = () => { URL.revokeObjectURL(u); rej(new Error('bad-file')); }; v.src = u; });
+          const dur = await vidLength(f);
           if (!(dur > 0) || dur > 15.5) { PD.ui.toast(t(dur > 15.5 ? 'cp.tooLong' : 'cp.badFile'), 4000); return; }
         }
         PD.ui.toast(t('cp.bannerUp'), 8000);
@@ -470,12 +509,7 @@ PD.cmp = (() => {
           cv.getContext('2d').drawImage(bmp, (bmp.width - sw) / 2, (bmp.height - sh) / 2, sw, sh, 0, 0, cv.width, cv.height);
           blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', .86));
         }
-        const was = C.profile && C.profile.banner_url;
-        const url = await C.storage.avatar(blob, 'banner-');
-        await C.social.setBanner(url);
-        if (was && was !== url) C.storage.dropAvatar(was);
-        await C.loadProfile().catch(() => {});
-        buzz('success'); PD.ui.toast(t('cp.saved'), 1800); done && done(url);
+        await savePic('banner', blob, done);
       } catch (e) { PD.ui.toast(/bad-file/.test((e && e.message) || '') ? t('cp.badFile') : upErr(e), 5000); }
     };
     document.body.appendChild(inp); inp.click();

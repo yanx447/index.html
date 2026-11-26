@@ -3512,10 +3512,24 @@ body.exam-on .rail,body.exam-on .tabbar{display:none!important}
 .cm-msg.is-sticker{background:none!important;padding:0 0 2px;box-shadow:none}.cm-msg.is-sticker > small{text-align:center;color:var(--muted);opacity:1}
 .cm-msg.is-sticker .ck-art{width:132px;height:132px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
 .cm-gif{position:relative;display:block}.cm-gif i{position:absolute;left:8px;bottom:8px;padding:1px 6px;border-radius:6px;background:rgba(0,0,0,.6);color:#ffffff;font-size:10.5px;font-weight:800;font-style:normal}
-.ck-gifbox{display:flex;flex-direction:column;gap:8px}
-.ck-gifs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px}
-.ck-gif{border:0;padding:0;border-radius:8px;overflow:hidden;background:var(--surface2);aspect-ratio:1}.ck-gif img{width:100%;height:100%;object-fit:cover;display:block}
-.ck-by{font-size:11px;text-align:right}
+/* GIFs: three columns, every tile at its GIF's own shape, a shimmer until it arrives */
+.ck-gifbox{display:flex;flex-direction:column;gap:10px;min-height:100%}
+.ck-gifq{position:sticky;top:0;z-index:2;background-color:var(--surface2);box-shadow:0 8px 14px -8px #000a}
+.ck-gifs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;align-items:start}
+.ck-gcol{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ck-gif,.ck-gsk{display:block;width:100%;border:0;padding:0;border-radius:10px;overflow:hidden;background:linear-gradient(100deg,#ffffff0d 30%,#ffffff1c 50%,#ffffff0d 70%) 0 0/220% 100%;animation:ck-shim 1.25s ease-in-out infinite;cursor:pointer}
+.ck-gif.in{animation:none;background:var(--surface2)}
+.ck-gif img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .2s}
+.ck-gif.in img{opacity:1}
+.ck-gif{transition:transform .14s var(--ease,ease)}.ck-gif:hover,.ck-gif:active{transform:scale(.96)}
+.ck-gif:focus-visible{outline:2px solid var(--brass2);outline-offset:2px}
+@keyframes ck-shim{from{background-position:180% 0}to{background-position:-80% 0}}
+@media (prefers-reduced-motion:reduce){.ck-gif,.ck-gsk{animation:none}.ck-gif{transition:none}}
+.ck-gstate{display:grid;gap:10px;justify-items:center;align-content:center;min-height:140px;padding:18px 12px;text-align:center;color:var(--muted)}
+.ck-gstate[hidden]{display:none}.ck-gstate p{max-width:32ch;margin:0;line-height:1.5;text-wrap:balance}
+.ck-gend{height:1px}
+.ck-by{font-size:11px;text-align:right;margin-top:auto}
+.sheet.ck-gsheet{width:min(560px,100%);height:min(86vh,86dvh,760px)}
 .ck-pop{position:fixed;z-index:130;max-height:min(320px,46vh);overflow-y:auto;padding:4px 8px 8px;border-radius:16px;border:1px solid var(--line2);background:var(--surface3);box-shadow:0 14px 40px rgba(0,0,0,.55);animation:fadeUp .14s var(--ease)}
 .ck-eb{font-size:21px;width:40px;height:40px}
 .ck-field{position:relative;display:flex;gap:6px;align-items:flex-start}.ck-field > textarea{flex:1;min-width:0}

@@ -4,7 +4,8 @@
    · Stickers are the app's own drawings (the panduri, Sima, a metronome…),
      sent by name — nothing is uploaded, every device draws them itself.
    · GIFs come from GIPHY through the server (the key never reaches the
-     app). The GIF tab appears only when the server says it is set up.
+     app). The server says whether it is set up; the same search picks a
+     GIF profile photo or banner (gifSheet).
    ===================================================================== */
 PD.i18n.add({
   'ck.panduri': ['ფანდური', 'Fanduri'],
@@ -46,7 +47,9 @@ PD.i18n.add({
 
   'ck.emoji': ['ემოჯი', 'Emoji'], 'ck.stickers': ['სტიკერები', 'Stickers'], 'ck.gif': ['GIF', 'GIF'], 'ck.recent': ['ბოლოს გამოყენებული', 'Recently used'],
   'ck.attach': ['მიმაგრება', 'Attach'], 'ck.media': ['ფოტო ან ვიდეო', 'Photo or video'], 'ck.audio': ['აუდიო ან მუსიკა', 'Audio or music'],
-  'ck.gifSearch': ['მოძებნე GIF…', 'Search GIFs…'], 'ck.gifNone': ['ვერაფერი მოიძებნა.', 'Nothing found.'], 'ck.gifBy': ['GIF-ები: GIPHY', 'GIFs by GIPHY'],
+  'ck.gifSearch': ['მოძებნე GIF…', 'Search GIFs…'], 'ck.retry': ['ხელახლა ცდა', 'Try again'],
+  'ck.gifErr': ['GIF-ები ახლა ვერ ჩაიტვირთა.', 'The GIFs could not be loaded just now.'], 'ck.gifRate': ['ძალიან ბევრი ძიება ერთად — სცადე ცოტა ხანში.', 'Too many searches at once — try again in a moment.'],
+  'ck.gifAvatar': ['GIF პროფილის ფოტოდ', 'A GIF as your profile photo'], 'ck.gifBanner': ['GIF ბანერად', 'A GIF as your banner'], 'ck.gifNone': ['ვერაფერი მოიძებნა.', 'Nothing found.'], 'ck.gifBy': ['GIF-ები: GIPHY', 'GIFs by GIPHY'],
   'ck.cat.smile': ['სახეები', 'Faces'], 'ck.cat.hand': ['ჟესტები და გულები', 'Gestures and hearts'], 'ck.cat.music': ['მუსიკა', 'Music'], 'ck.cat.food': ['ბუნება და სუფრა', 'Nature and food'], 'ck.cat.misc': ['სხვა', 'Other'],
   'ck.st.panduri': ['ფანდური', 'Fanduri'], 'ck.st.love': ['მიყვარს', 'Love it'], 'ck.st.bravo': ['ყოჩაღ!', 'Well done!'], 'ck.st.play': ['ვუკრავ', 'Playing'],
   'ck.st.again': ['კიდევ ერთხელ!', 'Once more!'], 'ck.st.string': ['სიმი გამიწყდა', 'A string broke'], 'ck.st.fire': ['ცეცხლი!', 'Fire!'], 'ck.st.hi': ['გამარჯობა!', 'Hello!'],
@@ -162,30 +165,70 @@ authorization of the copyright holder.
   const stickerIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v8Zm0 0v-5a2 2 0 0 1 2-2h5M7 8h.01M14 8h.01M8 12q3 3 6 0"/></svg>';
 
   /* ---------------- GIFs (through the server) ---------------- */
-  let gifOn = null;
+  let gifOn = null, gifAt = 0;
   async function gifsAvailable() {
-    if (gifOn != null) return gifOn;
+    if (gifOn === true || (gifOn === false && Date.now() - gifAt < 60e3)) return gifOn;
     try { const j = await C.gifs.probe(); gifOn = !!(j && j.on); } catch (_) { gifOn = false; }
-    return gifOn;
+    gifAt = Date.now(); return gifOn;
   }
-  function gifGrid(onPick) {
-    const q = h('input', { class: 'input', type: 'search', placeholder: t('ck.gifSearch'), 'aria-label': t('ck.gifSearch') });
-    const grid = h('div', { class: 'ck-gifs' }), by = h('small', { class: 'muted ck-by', 'data-t': 'ck.gifBy' });
-    let tm = 0, seq = 0;
-    async function load() {
-      const my = ++seq; grid.innerHTML = '';
-      try {
-        if(!await gifsAvailable()){if(my===seq){q.disabled=true;grid.append(h('p',{class:'muted',text:t('ck.gifOff')}));}return;}
-        const rows = (await C.gifs.search(q.value.trim(), PD.i18n.lang)) || [];
-        if (my !== seq) return;
-        if (!rows.length) { grid.appendChild(h('p', { class: 'muted', 'data-t': 'ck.gifNone' })); PD.i18n.apply(grid); return; }
-        rows.forEach(r => { const b = h('button', { type: 'button', class: 'ck-gif', 'aria-label': r.title || 'GIF' }, [h('img', { alt: '', src: r.preview || r.url, loading: 'lazy' })]); b.onclick = () => onPick(r); grid.appendChild(b); });
-      } catch (e) { if (my === seq) grid.textContent = PD.community.util.err(e); }
+  /** three columns, each GIF at its own shape (the next one goes under the shortest column), more as you scroll.
+      use: chat | avatar | banner. onPick(row, button) */
+  function gifGrid(onPick, use) {
+    const q = h('input', { class: 'input ck-gifq', type: 'search', enterkeyhint: 'search', placeholder: t('ck.gifSearch'), 'aria-label': t('ck.gifSearch') });
+    const cols = [0, 1, 2].map(() => h('div', { class: 'ck-gcol' })), grid = h('div', { class: 'ck-gifs' }, cols);
+    const state = h('div', { class: 'ck-gstate', hidden: true }), end = h('div', { class: 'ck-gend', 'aria-hidden': 'true' });
+    const by = h('small', { class: 'muted ck-by', 'data-t': 'ck.gifBy' });
+    let tm = 0, seq = 0, page = 0, done = false, busy = false, tall = [0, 0, 0];
+    const seen = new Set(), clear = () => cols.forEach(c => c.replaceChildren());
+    const io = typeof IntersectionObserver === 'function' ? new IntersectionObserver(e => { if (e.some(x => x.isIntersecting)) load(true); }) : null;
+    const watch = () => { if (io && !done) { io.unobserve(end); io.observe(end); } };
+    function say(key, retry) {
+      state.hidden = false;
+      state.replaceChildren(h('p', { text: t(key) }), ...(retry ? [h('button', { type: 'button', class: 'btn small', text: t('ck.retry'), onclick: () => load() })] : []));
     }
-    q.oninput = () => { clearTimeout(tm); tm = setTimeout(load, 350); };
+    function add(rows) {
+      rows.forEach(r => {
+        if (!r || !r.id || seen.has(r.id)) return; seen.add(r.id);
+        const ratio = r.pw && r.ph ? r.ph / r.pw : r.w && r.h ? r.h / r.w : 1, i = tall.indexOf(Math.min(...tall)); tall[i] += ratio;
+        const b = h('button', { type: 'button', class: 'ck-gif', style: 'aspect-ratio:' + (1 / ratio).toFixed(4), 'aria-label': r.title || 'GIF', title: r.title || '' });
+        const img = h('img', { alt: '', src: r.preview || r.url, loading: 'lazy', decoding: 'async' });
+        img.onload = () => b.classList.add('in'); b.append(img); b.onclick = () => onPick(r, b); cols[i].append(b);
+      });
+    }
+    async function load(more) {
+      if (more && (busy || done || !seen.size)) return;
+      const my = more ? seq : ++seq;
+      if (!more) {
+        page = 0; done = false; tall = [0, 0, 0]; seen.clear(); state.hidden = true;
+        cols.forEach((c, i) => c.replaceChildren(...[0, 1, 2].map(k => h('span', { class: 'ck-gsk', style: 'aspect-ratio:' + [1, 1.35, .8][(i + k) % 3] }))));
+      }
+      busy = true;
+      try {
+        if (!await gifsAvailable()) { if (my === seq) { clear(); q.disabled = true; say('ck.gifOff'); } return; }
+        q.disabled = false;
+        const rows = await C.gifs.search(q.value.trim(), PD.i18n.lang, use, page);
+        if (my !== seq) return;
+        if (!more) clear();
+        page++; add(Array.isArray(rows) ? rows : []);
+        if (!Array.isArray(rows) || !rows.length || page >= 10) done = true;
+        if (!seen.size) say('ck.gifNone');
+      } catch (e) {
+        if (my !== seq) return;
+        if (more) done = true; else { clear(); say(e && e.code === 'gifs-rate-limit' ? 'ck.gifRate' : e && e.code === 'not-configured' ? 'ck.gifOff' : 'ck.gifErr', true); }
+      } finally { if (my === seq) { busy = false; watch(); } }
+    }
+    q.oninput = () => { clearTimeout(tm); tm = setTimeout(() => load(), 380); };
+    q.onkeydown = e => { if (e.key === 'Enter') { clearTimeout(tm); load(); } };
     load();
-    const box = h('div', { class: 'ck-gifbox' }, [q, grid, by]); PD.i18n.apply(box);
+    const box = h('div', { class: 'ck-gifbox' }, [q, grid, state, end, by]); PD.i18n.apply(box);
     return box;
+  }
+  /** a GIF from GIPHY as a profile photo or a banner: a sheet with the search, onPick(row) */
+  function gifSheet(use, onPick) {
+    PD.ui.sheet((b, close) => {
+      b.classList.add('ck-gsheet');
+      b.append(h('h2', { text: t(use === 'banner' ? 'ck.gifBanner' : 'ck.gifAvatar') }), gifGrid(r => { close(); onPick(r); }, use));
+    });
   }
 
   /* ---------------- the panel above a chat's input ---------------- */
@@ -204,8 +247,8 @@ authorization of the copyright holder.
       const r=opts.input.getBoundingClientRect(),vx=vv?vv.offsetLeft:0,vy=vv?vv.offsetTop:0,vw=vv?vv.width:innerWidth,vh=vv?vv.height:innerHeight;
       const composer=opts.input.closest('.ms-composer'),cr=composer?.getBoundingClientRect(),chat=opts.input.closest('.ms-chat'),header=chat?.querySelector('.ms-head')?.getBoundingClientRect();
       const gap=vw<600?10:12,ceiling=Math.max(vy+gap,header?header.bottom+gap:vy+gap),anchor=Math.min(cr?cr.top:r.top,vy+vh-gap);
-      const room=Math.max(100,anchor-ceiling-gap),height=Math.min(cur==='stickers'?520:420,Math.round(vh*.64),room),width=Math.min(cur==='stickers'?500:440,vw-gap*2);
-      el.style.width=width+'px';el.style.left=Math.max(vx+gap,Math.min(vx+vw-width-gap,cr?cr.left:r.left))+'px';
+      const room=Math.max(100,anchor-ceiling-gap),height=Math.min(cur==='emoji'?420:520,Math.round(vh*.64),room),width=Math.min(cur==='stickers'?500:cur==='gif'?480:440,vw-gap*2);
+      const area=chat?.getBoundingClientRect()||cr||r;el.style.width=width+'px';el.style.left=Math.round(Math.max(vx+gap,Math.min(vx+vw-width-gap,area.left+(area.width-width)/2)))+'px';
       el.style.top=Math.max(vy+gap,anchor-height-gap)+'px';el.style.height=height+'px';el.classList.toggle('ck-compact',height<330);
 
     }
@@ -215,7 +258,7 @@ authorization of the copyright holder.
     }
     function show(k) {
       cur=k;el.dataset.tab=k; const token=++revision;
-      body.replaceChildren(k==='emoji' ? emojiGrid(e=>insert(opts.input,e)) : k==='stickers' ? stickerGrid(id=>{close();opts.onSticker(id);}) : gifGrid(r=>{close();opts.onGif(r);}));
+      body.replaceChildren(k==='emoji' ? emojiGrid(e=>insert(opts.input,e)) : k==='stickers' ? stickerGrid(id=>{close();opts.onSticker(id);}) : gifGrid(r=>{close();opts.onGif(r);},'chat'));
       paintTabs(gifOn === true); position(); body.scrollTop=0;
       if(opts.onGif) gifsAvailable().then(ok=>{if(token===revision && !el.hidden)paintTabs(ok);});
     }
@@ -254,5 +297,5 @@ authorization of the copyright holder.
       else if (part) el.append(document.createTextNode(part));
     });
   }
-  return { emojiGrid, appendEmoji, isEmojiMessage, panel, emojiButton, sticker, stickerIcon, STICKERS, insert, gifsAvailable, get gifReady() { return gifOn === true; } };
+  return { emojiGrid, appendEmoji, isEmojiMessage, panel, emojiButton, sticker, stickerIcon, STICKERS, insert, gifsAvailable, gifGrid, gifSheet, get gifReady() { return gifOn === true; }, get gifState() { return gifOn; } };
 })();

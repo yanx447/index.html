@@ -628,3 +628,6 @@
 .cp-lchev svg { width: 18px; height: 18px; }
 .cp-mapp { margin-top: 14px; }
 .cp-mapp .pf2-menu { border: 0; background: none; padding: 0; }
+
+/* the GIPHY row in the photo / banner chooser */
+.cp-gific { display: inline-grid; place-items: center; width: 22px; height: 22px; font-size: 8.5px; font-weight: 800; letter-spacing: .02em; border: 1.6px solid currentColor; border-radius: 5px; }
