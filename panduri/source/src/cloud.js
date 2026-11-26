@@ -385,7 +385,8 @@ PD.cloud = (() => {
     musicConnections: term => db.rpc('music_connections', { term }),
     tags: term => db.rpc('tag_search', { term: term || '', lim: 20 }),
     setBio: bio => db.rpc('set_bio', { new_bio: bio }),
-    setAvatar: url => db.rpc('set_avatar', { url: url || null })
+    setAvatar: url => db.rpc('set_avatar', { url: url || null }),
+    setBanner: url => db.rpc('set_banner', { url: url || null })
   };
   /* ---------- the members' photos, videos and audio (the private 'social' bucket; the server decides who may read each file) ---------- */
   const BUCKET = 'social', signed = new Map();   // path → { url, until }
@@ -486,10 +487,11 @@ PD.cloud = (() => {
       if (!r.ok) throw err('http-' + r.status);
       return r.blob();
     },
-    /** a profile photo: public, in my own folder of the 'avatars' bucket; answers its address */
-    async avatar(blob) {
+    /** a profile photo (or GIF) or a banner (picture, GIF or short video): public, in my own folder of the 'avatars' bucket; answers its address */
+    async avatar(blob, prefix) {
       const me = uid(); if (!me) throw err('no-session');
-      const path = me + '/' + Date.now().toString(36) + '.jpg';
+      const ext = { 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'video/mp4': 'mp4', 'video/webm': 'webm' }[blob.type] || 'jpg';
+      const path = me + '/' + (prefix || '') + Date.now().toString(36) + '.' + ext;
       await storage.upload(path, blob, null, 'avatars');
       return conf().url + '/storage/v1/object/public/avatars/' + path;
     },

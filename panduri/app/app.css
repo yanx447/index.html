@@ -5925,6 +5925,25 @@ button.xp-tile:active { background: var(--surface2); }
   }
 }
 
+/* ---- the banner above the photo (a picture, a GIF or a silent looping video) ---- */
+.cp-head.has-bn { padding-top: 0; overflow: hidden; }
+.cp-banner { position: relative; align-self: stretch; margin: 0 -14px; aspect-ratio: 3 / 1; min-height: 104px; max-height: 240px; overflow: hidden;
+  background: linear-gradient(120deg, rgba(213,167,120,.24), rgba(122,78,47,.16) 60%, rgba(0,0,0,.2)); }
+.cp-banner.empty { aspect-ratio: auto; height: 96px; min-height: 0; }
+.cp-banner .cp-bnm { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.cp-banner::after { content: ''; position: absolute; inset: auto 0 0; height: 45%; background: linear-gradient(transparent, rgba(0,0,0,.35)); pointer-events: none; }
+.cp-bncam { position: absolute; top: 10px; right: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 6px; min-width: 36px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 999px;
+  background: rgba(0,0,0,.55); color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.cp-bncam svg { width: 17px; height: 17px; flex: none; }
+.cp-head.has-bn .cp-avw { z-index: 1; margin-top: -54px; }
+.cp-ebnrow { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 6px; }
+.cp-ebn { position: relative; aspect-ratio: 3 / 1; overflow: hidden; border-radius: 12px; background: linear-gradient(120deg, rgba(213,167,120,.24), rgba(122,78,47,.16) 60%, rgba(0,0,0,.2)); }
+.cp-ebn .cp-bnm { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cp-ebtns.row { flex-direction: row; flex-wrap: wrap; }
+.cp-ephd { display: block; margin: -6px 0 12px; }
+/* what I learn, on my own profile */
+.cp-learn { display: flex; flex-direction: column; gap: 12px; margin: 0 0 16px; }
+
 /* Messenger styles follow the shell layer so a composer has one visual boundary. */
 @layer ds {
 .ms-chat{--chat-accent:#d8b38b;--chat-wash:#d8b38b12;--chat-out:#302a25;--chat-font:var(--f-ui);position:relative}

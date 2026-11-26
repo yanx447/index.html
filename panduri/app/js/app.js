@@ -1071,8 +1071,11 @@ PD.app = (() => {
     return [['firstMelody', melodyDone], ['sessions10', ss.length >= 10], ['perfectRhythm', perfectRhythm], ['notes100', notes >= 100], ['fullSong', fullSong], ['week', sk.longest >= 7]];
   }
   const pcGear = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v3m0 13v3M2.5 12h3m13 0h3M5.3 5.3l2.1 2.1m9.2 9.2 2.1 2.1m0-13.4-2.1 2.1m-9.2 9.2-2.1 2.1"/></svg>';
+  /** the community is ready for me: then my profile is one page — the community's, with what I learn on it */
+  const oneProfile = () => { const C = PD.cloud; return !!(PD.cmp && C.configured && C.session && C.profile && C.profile.display_name && C.profile.nickname && PD.store.get('md.rules.' + C.uid, false)); };
   function profile(w) {
-    const prof = PD.account.profile, sk = streaks(), C = PD.cloud, PM = PD.premium, lp = PD.levels.progress;
+    if (oneProfile()) return PD.cmp.profile(w, 'me', PD.pageScope());
+    const prof = PD.account.profile, C = PD.cloud, PM = PD.premium;
     const avatar = prof.avatar || C.profile?.avatar_url;
     const photo = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async e => { const f = e.target.files[0]; if (!f) return; const url = await shrink(f); PD.account.setProfile({ avatar: url }); render(); } });
     const name = h('input', { class: 'pf-name', value: prof.name || C.profile?.display_name || '', placeholder: t('acct.guest'), 'aria-label': t('acct.name'), onchange: e => { const v = e.target.value.trim(); PD.account.setProfile({ name: v }); if (v && C.session) C.db.update('profiles', { id: 'eq.' + C.uid }, { display_name: v }).then(() => C.loadProfile()).catch(() => {}); } });
@@ -1082,24 +1085,29 @@ PD.app = (() => {
     w.append(h('div', { class: 'pf2-head' }, [h('button', { class: 'pf2-av', 'aria-label': t('pf.photo'), onclick: () => photo.click(), html: avatar ? '<img alt="" src="' + PD.esc(avatar) + '">' : ic.user }), photo,
       h('div', { class: 'grow' }, [name, h('small', { text: role })]),
       h('button', { class: 'btn small pf-quick-settings', 'aria-label': t('more.settings'), title: t('more.settings'), html: pcGear, onclick: () => go('settings') })]));
+    w.append(...profileExtras(false));
+  }
+  /** what I learn, on my profile: three numbers, one menu, the saved lessons (merged = on the community profile) */
+  function profileExtras(merged) {
+    const sk = streaks(), C = PD.cloud, PM = PD.premium, lp = PD.levels.progress, out = [];
     // three numbers
     const done = LS.all.filter(l => visible(l) && LS.progress.lesson(l.id).mastery >= .9).length;
     const pp = (() => { let n = 0, d = 0; LS.PATHS.forEach(p2 => p2.steps.forEach(st2 => { n++; if (stepDone(st2)) d++; })); return n ? Math.round(d / n * 100) : 0; })();
-    w.append(h('section', { class: 'pf2-stats' }, [
+    out.push(h('section', { class: 'pf2-stats' }, [
       h('div', {}, [h('small', { 'data-t': 'pf.level' }), h('b', { text: String(lp.level) })]),
       h('div', {}, [h('small', { 'data-t': 'pf.lessons' }), h('b', { text: String(done) })]),
       h('div', {}, [h('small', { 'data-t': 'pf.progress' }), h('b', { text: pp + '%' }), h('div', { class: 'hx-bar' }, [h('i', { style: 'width:' + pp + '%' })])])]));
     // one menu
     const I = d => '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
     const item = (icon, k, sub, fn, cls) => h('button', { class: 'pf2-i' + (cls ? ' ' + cls : ''), onclick: fn }, [h('span', { class: 'pf2-ic', html: icon }), h('span', { class: 'grow' }, [h('span', { text: t(k) }), sub ? h('small', { text: sub }) : null]), h('span', { class: 'chev', html: ic.chevron })]);
-    w.append(h('section', { class: 'pf2-menu' }, [
+    out.push(h('section', { class: 'pf2-menu' }, [
       item(I('<path d="M4 5a2 2 0 0 1 2-2h4v18H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-4v18h4a2 2 0 0 1 2 2z"/><path d="M10 3v18M14 3v18"/>'), 'bk.profile', t('bk.profileD'), () => go('book'), 'accent'),
       PD.install && !PD.install.standalone() ? item(I('<path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>'), 'ins.title', t('ins.lead').split(':')[0], () => go('install')) : null,
       item(I('<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'), 'nav.progress', t('hm.streak', { n: sk.cur }), () => go('progress')),
       item(pcGear, 'more.settings', t('more.settingsD'), () => go('settings')),   // the gear in the corner alone was easy to miss
       item(I('<path d="M3 18h18l-1.5-10-4.5 4-3-6-3 6-4.5-4z"/>'), PM.vip ? 'pm.vip' : 'pm.title', PM.active ? PM.status() : t('pm.lead'), () => PM.paywall()),
       PD.exam.graduated() ? item(I('<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>'), 'ex.cert', t('ex.grad'), () => go('cert'), 'accent') : null,
-      item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', C.session && C.profile?.nickname ? '@' + C.profile.nickname : null, () => go('community', 'me')),
+      merged ? null : item(I('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'), 'cm.title', C.session && C.profile?.nickname ? '@' + C.profile.nickname : null, () => go('community', 'me')),
       PD.market ? item(I('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.4"/>'), 'mk.title', t('mk.lead'), () => go('market'), 'accent') : null,
       C.isOwner ? item(I('<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/>'), 'pa.title', null, () => go('pmadmin')) : null,
       C.isOwner && PD.creator ? item(I('<path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="3" y="15" width="18" height="6" rx="2"/>'), 'cr.title', null, () => go('creator')) : null,
@@ -1108,7 +1116,8 @@ PD.app = (() => {
       C.session ? item(I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'), 'au.signout', (C.profile && (C.profile.email || C.profile.phone)) || '', () => signOut())
         : item(I('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'), 'pf.signin', t('au.guestD'), () => PD.auth.open(), 'accent')].filter(Boolean)));
     const favs = LS.progress.favorites().map(id => LS.get(id)).filter(Boolean);
-    if (favs.length) w.append(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.saved' }), h('div', { class: 'list' }, favs.map(lessonRow))]));
+    if (favs.length) out.push(h('section', { class: 'set-sec' }, [h('h2', { 'data-t': 'pf.saved' }), h('div', { class: 'list' }, favs.map(lessonRow))]));
+    return out;
   }
   function shrink(file) { return new Promise(res => { const img = new Image(), r = new FileReader(); r.onload = () => { img.onload = () => { const c = document.createElement('canvas'), k = 160 / Math.max(img.width, img.height); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', .85)); }; img.src = r.result; }; r.readAsDataURL(file); }); }
 
@@ -1386,5 +1395,5 @@ PD.app = (() => {
     return h('div', { class: 'ls-foot' }, [h('button', { class: 'btn ls-path', html: ic.learn + '<span data-t="ls.path"></span>', onclick: () => go('learn', pn ? pn.path : null) }),
       pn && pn.next ? h('button', { class: 'btn primary ls-next', onclick: () => { if (markDone) markDone(); pn.next.go(); } }, [h('small', { 'data-t': 'ls.next' }), h('b', { text: pn.next.title })]) : null]);
   }
-  return { shell, go, back, signOut, render, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, pathNav, pathBar, stepDone, stepTitle, stepGo, get route() { return route; }, get param() { return param; } };
+  return { shell, go, back, signOut, render, profileExtras, oneProfile, glyph, meta, lessonRow, startStage, coverSVG, theoryProgram, pathNav, pathBar, stepDone, stepTitle, stepGo, get route() { return route; }, get param() { return param; } };
 })();

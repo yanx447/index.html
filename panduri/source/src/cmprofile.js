@@ -28,6 +28,11 @@ PD.i18n.add({
   'cp.clearH': ['ისტორიის გასუფთავება', 'Clear history'], 'cp.clearHQ': ['წაიშალოს ნანახი ვიდეოების ისტორია? ნახვები ავტორებს დათვლილი რჩებათ.', 'Clear your watch history? The authors keep the views they were counted.'], 'cp.cleared': ['ისტორია გასუფთავდა', 'History cleared'],
   'cp.notFound': ['ეს პროფილი ვერ მოიძებნა.', 'This profile could not be found.'], 'cp.blocked': ['ეს პროფილი შენთვის დახურულია.', 'This profile is not available to you.'],
   'cp.needServer': ['ეს ნაწილი სერვერის განახლების შემდეგ ჩაირთვება.', 'This part switches on once the server has been updated.'],
+  'cp.bannerAdd': ['ბანერის დამატება', 'Add a banner'], 'cp.bannerChange': ['ბანერის შეცვლა', 'Change banner'], 'cp.bannerRemove': ['ბანერის წაშლა', 'Remove banner'], 'cp.bannerUp': ['ბანერი იტვირთება…', 'Uploading the banner…'],
+  'cp.bannerD': ['ფოტო, GIF ან მოკლე ვიდეო (MP4/WebM, უხმოდ, 15 წამამდე) — 10 MB-მდე.', 'A photo, a GIF or a short video (MP4/WebM, silent, up to 15 seconds) — up to 10 MB.'],
+  'cp.photoD': ['ფოტო ან GIF — GIF მოძრაობს, 4 MB-მდე.', 'A photo or a GIF — a GIF moves, up to 4 MB.'],
+  'cp.tooBig': ['ფაილი ძალიან დიდია: მაქსიმუმ {n} MB.', 'The file is too large: {n} MB at most.'], 'cp.tooLong': ['ვიდეო ძალიან გრძელია: მაქსიმუმ 15 წამი.', 'The video is too long: 15 seconds at most.'],
+  'cp.badFile': ['ეს ფაილი არ გამოდგება: აირჩიე ფოტო, GIF ან MP4/WebM ვიდეო.', 'This file will not do: choose a photo, a GIF or an MP4/WebM video.'],
   'cp.photo': ['პროფილის ფოტო', 'Profile photo'], 'cp.photoChange': ['ფოტოს შეცვლა', 'Change photo'], 'cp.photoRemove': ['ფოტოს წაშლა', 'Remove photo'], 'cp.photoUp': ['ფოტო იტვირთება…', 'Uploading the photo…'],
   'cp.name': ['სახელი', 'Name'], 'cp.nick': ['nickname', 'Nickname'], 'cp.bio': ['ბიო', 'Bio'], 'cp.bioPh': ['რამდენიმე სიტყვა შენზე — რას უკრავ, საიდან ხარ…', 'A few words about you — what you play, where you are from…'],
   'cp.save': ['შენახვა', 'Save'], 'cp.saved': ['შენახულია', 'Saved'], 'cp.bioBad': ['ბიოში ისეთი სიტყვაა, რომელიც აქ არ დაიშვება.', 'The bio has a word that is not allowed here.'],
@@ -58,6 +63,14 @@ PD.cmp = (() => {
   const nf = n => { n = +n || 0; return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, '') + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e4 ? 0 : 1).replace(/\.0$/, '') + 'K' : String(n); };
   const initial = n => U().initial(n);
   const avatar = (url, name, cls) => h('span', { class: 'avatar' + (cls ? ' ' + cls : ''), html: url ? '<img alt="" src="' + PD.esc(url) + '">' : initial(name) });
+  /** a banner: a video loops silently; a picture or GIF is an image (a GIF moves by itself) */
+  const isVid = url => /\.(mp4|webm)(\?|$)/i.test(url || '');
+  const bannerMedia = url => {
+    if (!isVid(url)) return h('img', { class: 'cp-bnm', alt: '', src: url, decoding: 'async' });
+    const v = h('video', { class: 'cp-bnm', muted: true, loop: true, playsinline: true, preload: 'metadata', 'aria-hidden': 'true', disablepictureinpicture: true });
+    v.muted = true; v.defaultMuted = true; v.autoplay = !!(PD.motion && PD.motion.ok()); v.src = url;   // silent always; still when motion is reduced
+    return v;
+  };
   const nameOf = r => (r && (r.display_name || (r.nickname ? '@' + r.nickname : ''))) || '—';
   const old = e => /could not find the function|PGRST202|404|does not exist/i.test((e && (e.message || e.code)) || '');
   const err = e => old(e) ? t('cp.needServer') : U().err(e);
@@ -209,7 +222,7 @@ PD.cmp = (() => {
     } catch (e) { wrap.append(topBar(null, false), h('div', { class: 'cp-empty' }, [h('p', { text: err(e) })])); }
   }
   function topBar(card, self) {
-    const back = !self || (PD.app.param !== 'me');
+    const back = !self || (PD.app.route === 'community' && PD.app.param !== 'me');
     return h('div', { class: 'cp-top' }, [
       back ? h('button', { class: 'cp-ib', 'aria-label': t('back'), html: IC.exit, onclick: () => PD.app.back('community') }) : h('button', { class: 'cp-ib', 'aria-label': t('cp.addFriend'), title: t('cp.addFriend'), html: IC.addUser, onclick: () => PD.app.go('community', 'friends') }),
       h('b', { class: 'cp-toptitle', text: card ? (card.nickname ? '@' + card.nickname : nameOf(card)) : '' }),
@@ -218,7 +231,10 @@ PD.cmp = (() => {
         : [h('button', { class: 'cp-ib', 'aria-label': t('cp.shareP'), html: IC.share, onclick: () => shareProfile(card) }), h('button', { class: 'cp-ib', 'aria-label': t('md.more'), html: IC.dots, onclick: () => U().userActions(card.id, nameOf(card)) })]) : [])]);
   }
   function render(wrap, card, self, own, legacy) {
-    const head = h('header', { class: 'cp-head' });
+    const head = h('header', { class: 'cp-head' + (card.banner_url || self ? ' has-bn' : '') });
+    // the banner: anyone's, as they chose it; mine has a button to change it (an empty one invites me to add one)
+    const bn = card.banner_url || self ? h('div', { class: 'cp-banner' + (card.banner_url ? '' : ' empty') }, [card.banner_url ? bannerMedia(card.banner_url) : null,
+      self && !legacy ? h('button', { class: 'cp-bncam', 'aria-label': t(card.banner_url ? 'cp.bannerChange' : 'cp.bannerAdd'), title: t(card.banner_url ? 'cp.bannerChange' : 'cp.bannerAdd'), html: IC.cam + (card.banner_url ? '' : '<span data-t="cp.bannerAdd"></span>'), onclick: () => pickBanner(url => { card.banner_url = url; refresh(); }) }) : null].filter(Boolean)) : null;
     // the photo, in a ring of the app's brass; mine has a camera to change it
     const av = h('div', { class: 'cp-avw' }, [h('div', { class: 'cp-ring' }, [avatar(card.avatar_url, nameOf(card), 'cp-av')]),
       self ? h('button', { class: 'cp-avcam', 'aria-label': t('cp.photoChange'), html: IC.cam, onclick: () => pickPhoto(url => { card.avatar_url = url; refresh(); }) }) : null].filter(Boolean));
@@ -247,7 +263,7 @@ PD.cmp = (() => {
       PD.i18n.apply(acts);
     }
     paintActs();
-    head.append(...[av, h('h1', { class: 'cp-name', text: nameOf(card) }), card.nickname ? h('small', { class: 'cp-nick', text: '@' + card.nickname }) : null, chips, stats, bio, acts].filter(Boolean));
+    head.append(...[bn, av, h('h1', { class: 'cp-name', text: nameOf(card) }), card.nickname ? h('small', { class: 'cp-nick', text: '@' + card.nickname }) : null, chips, stats, bio, acts].filter(Boolean));
     // the tabs: videos and reposts for everyone; saved, liked and history are mine alone
     const tabs = TABS.filter(x => self || !x[3]);
     let cur = self ? PD.store.get('cp.tab', 'user') : 'user'; if (!tabs.some(x => x[0] === cur)) cur = 'user';   // someone else's page always opens on their videos
@@ -273,14 +289,16 @@ PD.cmp = (() => {
       if (d && moves()) body.animate([{ transform: 'translateX(' + (d * 28) + 'px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 280, easing: OUTQ });
     }
     function refresh() { PD.app.render(true); }
-    wrap.append(topBar(card, self), head, bar, body);
+    // my profile is the app's one profile: what I learn sits under the header (app.js profileExtras)
+    const learn = self && PD.app.profileExtras ? h('div', { class: 'cp-learn' }, PD.app.profileExtras(true)) : null;
+    wrap.append(...[topBar(card, self), head, learn, bar, body].filter(Boolean));
     PD.i18n.apply(wrap);
     requestAnimationFrame(() => placeInd(true));
     show(0);
     // the header arrives in order: the photo grows in, the numbers count up
     if (moves()) {
       av.animate([{ transform: 'scale(.82)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: 'cubic-bezier(.34,1.56,.64,1)' });
-      [...head.children].slice(1).forEach((x, i) => x.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, delay: 80 + i * 45, easing: OUTQ, fill: 'backwards' }));
+      [...head.children].filter(x => x !== av && x !== bn).forEach((x, i) => x.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, delay: 80 + i * 45, easing: OUTQ, fill: 'backwards' }));
       stats.querySelectorAll('.cp-stat b').forEach((b, i) => { if ([card.following, card.followers, card.likes][i] > 0 && PD.ui.countUp) PD.ui.countUp(b, 700); });
     }
   }
@@ -367,6 +385,12 @@ PD.cmp = (() => {
       const photoRow = h('div', { class: 'cp-erow' }, [av, h('div', { class: 'cp-ebtns' }, [
         h('button', { class: 'btn small', html: IC.cam + '<span data-t="cp.photoChange"></span>', onclick: () => pickPhoto(url => { card.avatar_url = url; av.replaceChildren(h('div', { class: 'cp-ring' }, [avatar(url, nameOf(card), 'cp-av')])); }) }),
         card.avatar_url ? h('button', { class: 'btn small quiet', 'data-t': 'cp.photoRemove', onclick: async e => { const btn = e.currentTarget; try { const was = card.avatar_url; await C.social.setAvatar(null); C.storage.dropAvatar(was); card.avatar_url = null; PD.account.setProfile({ avatar: '' }); av.replaceChildren(h('div', { class: 'cp-ring' }, [avatar(null, nameOf(card), 'cp-av')])); btn.remove(); await C.loadProfile().catch(() => {}); } catch (er) { PD.ui.toast(err(er)); } } }) : null].filter(Boolean))]);
+      const bnBox = h('div', { class: 'cp-ebn' + (card.banner_url ? '' : ' empty') }, card.banner_url ? [bannerMedia(card.banner_url)] : []);
+      const paintBn = () => { bnBox.className = 'cp-ebn' + (card.banner_url ? '' : ' empty'); bnBox.replaceChildren(...(card.banner_url ? [bannerMedia(card.banner_url)] : [])); bnBtns.replaceChildren(...bnButtons()); PD.i18n.apply(bnBtns); };
+      const bnButtons = () => [h('button', { class: 'btn small', html: IC.cam + '<span data-t="' + (card.banner_url ? 'cp.bannerChange' : 'cp.bannerAdd') + '"></span>', onclick: () => pickBanner(url => { card.banner_url = url; paintBn(); }) }),
+        card.banner_url ? h('button', { class: 'btn small quiet', 'data-t': 'cp.bannerRemove', onclick: async () => { try { const was = card.banner_url; await C.social.setBanner(null); C.storage.dropAvatar(was); card.banner_url = null; paintBn(); await C.loadProfile().catch(() => {}); } catch (er) { PD.ui.toast(err(er)); } } }) : null].filter(Boolean);
+      const bnBtns = h('div', { class: 'cp-ebtns row' }, bnButtons());
+      const bannerRow = h('div', { class: 'cp-ebnrow' }, [bnBox, bnBtns, h('small', { class: 'muted', 'data-t': 'cp.bannerD' })]);
       const name = h('input', { class: 'input', maxlength: '40', autocomplete: 'name', value: card.display_name || '', 'aria-label': t('cp.name') });
       const nick = h('input', { class: 'input', maxlength: '25', autocapitalize: 'none', spellcheck: 'false', value: card.nickname || '', 'aria-label': t('cp.nick') });
       const bio = h('textarea', { class: 'input cp-ebio', maxlength: '160', rows: '3', placeholder: t('cp.bioPh'), 'aria-label': t('cp.bio') }); bio.value = card.bio || '';
@@ -388,20 +412,22 @@ PD.cmp = (() => {
         }
       };
       const field = (key, el, extra) => h('label', { class: 'cp-field' }, [h('small', { 'data-t': key }), el, extra].filter(Boolean));
-      b.append(h('h2', { 'data-t': 'cp.edit' }), photoRow, field('cp.name', name), field('cp.nick', h('div', { class: 'cp-at' }, [h('span', { text: '@' }), nick])), field('cp.bio', bio, cnt), msg, save);
+      b.append(h('h2', { 'data-t': 'cp.edit' }), bannerRow, photoRow, h('small', { class: 'muted cp-ephd', 'data-t': 'cp.photoD' }), field('cp.name', name), field('cp.nick', h('div', { class: 'cp-at' }, [h('span', { text: '@' }), nick])), field('cp.bio', bio, cnt), msg, save);
     });
   }
-  /** choose a photo, cut its middle square, make it 512 px, upload it, and make it the profile photo */
+  const MB = 1048576, upErr = e => /mime|type|415|422|invalid_mime|bucket|not.?found|404/i.test((e && e.message) || '') ? t('cp.needServer') : /too-large|413/.test((e && (e.code || e.message)) || '') ? t('cp.tooBig', { n: 10 }) : err(e);
+  /** choose a photo, cut its middle square, make it 512 px, upload it, and make it the profile photo.
+      A GIF goes up as it is (cutting it would stop it moving); the round frame shows its middle. */
   function pickPhoto(done) {
     const inp = h('input', { type: 'file', accept: 'image/*', hidden: true });
     inp.onchange = async () => {
       const f = inp.files && inp.files[0]; inp.remove(); if (!f) return;
+      if (!/^image\//.test(f.type)) { PD.ui.toast(t('cp.badFile'), 4000); return; }
+      const gif = f.type === 'image/gif';
+      if (gif && f.size > 4 * MB) { PD.ui.toast(t('cp.tooBig', { n: 4 }), 4000); return; }
       PD.ui.toast(t('cp.photoUp'), 8000);
       try {
-        const bmp = window.createImageBitmap ? await createImageBitmap(f) : await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(f); });
-        const s = Math.min(bmp.width, bmp.height), N = Math.min(512, s), cv = document.createElement('canvas'); cv.width = cv.height = N;
-        cv.getContext('2d').drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, N, N);
-        const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', .88));
+        const blob = gif ? f : await squarePhoto(f);
         const was = C.profile && C.profile.avatar_url;
         const url = await C.storage.avatar(blob);
         await C.social.setAvatar(url);
@@ -409,7 +435,45 @@ PD.cmp = (() => {
         PD.account.setProfile({ avatar: url });
         await C.loadProfile().catch(() => {});
         buzz('success'); PD.ui.toast(t('cp.saved'), 1800); done && done(url);
-      } catch (e) { PD.ui.toast(/bucket|not.?found|404/i.test((e && e.message) || '') ? t('cp.needServer') : err(e), 5000); }
+      } catch (e) { PD.ui.toast(upErr(e), 5000); }
+    };
+    document.body.appendChild(inp); inp.click();
+  }
+  async function squarePhoto(f) {
+    const bmp = window.createImageBitmap ? await createImageBitmap(f) : await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(f); });
+    const s = Math.min(bmp.width, bmp.height), N = Math.min(512, s), cv = document.createElement('canvas'); cv.width = cv.height = N;
+    cv.getContext('2d').drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, N, N);
+    return new Promise(r => cv.toBlob(r, 'image/jpeg', .88));
+  }
+  /** the banner: a photo is cut to 3 : 1 and made at most 1500 px wide; a GIF or a short silent video goes up as it is */
+  function pickBanner(done) {
+    const inp = h('input', { type: 'file', accept: 'image/*,video/mp4,video/webm', hidden: true });
+    inp.onchange = async () => {
+      const f = inp.files && inp.files[0]; inp.remove(); if (!f) return;
+      const vid = /^video\/(mp4|webm)$/.test(f.type), moving = vid || f.type === 'image/gif';
+      if (!vid && !/^image\//.test(f.type)) { PD.ui.toast(t('cp.badFile'), 4000); return; }
+      if (moving && f.size > 10 * MB) { PD.ui.toast(t('cp.tooBig', { n: 10 }), 4000); return; }
+      try {
+        if (vid) {   // its length, read on the device
+          const dur = await new Promise((res, rej) => { const v = document.createElement('video'), u = URL.createObjectURL(f); v.preload = 'metadata'; v.onloadedmetadata = () => { URL.revokeObjectURL(u); res(v.duration); }; v.onerror = () => { URL.revokeObjectURL(u); rej(new Error('bad-file')); }; v.src = u; });
+          if (!(dur > 0) || dur > 15.5) { PD.ui.toast(t(dur > 15.5 ? 'cp.tooLong' : 'cp.badFile'), 4000); return; }
+        }
+        PD.ui.toast(t('cp.bannerUp'), 8000);
+        let blob = f;
+        if (!moving) {
+          const bmp = window.createImageBitmap ? await createImageBitmap(f) : await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(f); });
+          const sw = Math.min(bmp.width, bmp.height * 3), sh = sw / 3, W = Math.min(1500, Math.round(sw)), cv = document.createElement('canvas');
+          cv.width = W; cv.height = Math.round(W / 3);
+          cv.getContext('2d').drawImage(bmp, (bmp.width - sw) / 2, (bmp.height - sh) / 2, sw, sh, 0, 0, cv.width, cv.height);
+          blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', .86));
+        }
+        const was = C.profile && C.profile.banner_url;
+        const url = await C.storage.avatar(blob, 'banner-');
+        await C.social.setBanner(url);
+        if (was && was !== url) C.storage.dropAvatar(was);
+        await C.loadProfile().catch(() => {});
+        buzz('success'); PD.ui.toast(t('cp.saved'), 1800); done && done(url);
+      } catch (e) { PD.ui.toast(/bad-file/.test((e && e.message) || '') ? t('cp.badFile') : upErr(e), 5000); }
     };
     document.body.appendChild(inp); inp.click();
   }

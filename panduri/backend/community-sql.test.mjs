@@ -213,4 +213,26 @@ test('profiles, following, reposts, history, hashtags and search', async () => {
   await refused(A, media('audio', 'wrong.mp3', 20), /audio-format/);
   assert.ok((await as(B, `select * from public.feed('one', 1, ${old})`)).length, 'older posts remain readable');
 
+  // one profile with a moving picture: a GIF photo, a still or moving banner (only from my own folder)
+  const banner = await mig('202611260001_profile_banner.sql');
+  await db.exec(banner);
+  await db.exec(banner);   // running it twice changes nothing
+  const bucket = await one(`select file_size_limit, allowed_mime_types from storage.buckets where id = 'avatars'`);
+  assert.equal(Number(bucket.file_size_limit), 10485760);
+  for (const m of ['image/gif', 'video/mp4', 'video/webm', 'image/jpeg']) assert.ok(bucket.allowed_mime_types.includes(m), m);
+  await as(A, `select public.set_avatar('https://x.supabase.co/storage/v1/object/public/avatars/${A}/a.gif')`);
+  await refused(A, `select public.set_banner('https://x.supabase.co/storage/v1/object/public/avatars/${B}/b.mp4')`, /not-your-file/);
+  await refused(A, `select public.set_banner('https://evil.example/b.gif')`, /not-your-file/);
+  await refused(A, `select public.set_banner('https://x.supabase.co/storage/v1/object/public/avatars/${A}/' || repeat('b', 500))`, /not-your-file/);
+  const bUrl = `https://x.supabase.co/storage/v1/object/public/avatars/${A}/banner-1.mp4`;
+  assert.equal((await as(A, `select public.set_banner('${bUrl}') as u`))[0].u, bUrl);
+  assert.equal((await as(A, `select * from public.profile_card()`))[0].banner_url, bUrl);
+  assert.equal((await as(B, `select * from public.profile_card('${A}')`))[0].banner_url, bUrl);
+  assert.equal((await as(B, `select * from public.profile_card('${A}')`))[0].avatar_url.endsWith('a.gif'), true);
+  const seenByD = (await as(D, `select * from public.profile_card('${A}')`))[0];
+  assert.equal(seenByD.blocked, true); assert.equal(seenByD.banner_url, null);
+  await refused('', `select public.set_banner(null)`, /not-authenticated|permission denied/);
+  assert.equal((await as(A, `select public.set_banner(null) as u`))[0].u, null);
+  assert.equal((await as(A, `select * from public.profile_card()`))[0].banner_url, null);
+
 });
