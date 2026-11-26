@@ -112,7 +112,7 @@ PD.community = (() => {
     }
     if (param === 'friends') {
       const body = h('div', { class: 'cm-body fr' });
-      w.append(h('div', { class: 'cm-top' }, [h('span', { class: 'pz-ic', 'aria-hidden': 'true' }), h('h1', { class: 'cm-h1', 'data-t': 'cm.friends' }), h('button', { class: 'pz-ic', 'aria-label': t('cn.search'), html: ic.search, onclick: () => PD.app.go('community', 's') })]), body);
+      w.append(h('div', { class: 'cm-top' }, [h('span', { class: 'cm-spacer', 'aria-hidden': 'true' }), h('h1', { class: 'cm-h1', 'data-t': 'cm.friends' }), h('button', { class: 'pz-ic', 'aria-label': t('cn.search'), html: ic.search, onclick: () => PD.app.go('community', 's') })]), body);
       PD.social.friends(body);
       w.append(h('div', { class: 'cm-links' }, [
         h('button', { class: 'cm-link', html: ic.video + '<span data-t="fd.friendsV"></span>' + CHEV, onclick: () => PD.app.go('community', 'ff') }),
@@ -150,7 +150,7 @@ PD.community = (() => {
     const q = h('input', { class: 'input cm-search', type: 'search', placeholder: t('cm.searchChats'), 'aria-label': t('cm.searchChats'), autocomplete: 'off' });
     const strip = h('div', { class: 'cm-strip', role: 'list' }), list = h('div', { class: 'cm-clist', role: 'list' }, skRows(4));
     const newB = h('button', { class: 'pz-ic', 'aria-label': t('cm.newChat'), title: t('cm.newChat'), html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>', onclick: () => pickFriend() });
-    w.append(h('div', { class: 'cm-top' }, [h('span', { class: 'pz-ic', 'aria-hidden': 'true' }), h('h1', { class: 'cm-h1', 'data-t': 'cn.inbox' }), newB]));
+    w.append(h('div', { class: 'cm-top' }, [h('span', { class: 'cm-spacer', 'aria-hidden': 'true' }), h('h1', { class: 'cm-h1', 'data-t': 'cn.inbox' }), newB]));
     PD.cmp.inboxSeg(w, 'chats');
     w.classList.add('cm-inbox');
     w.append(h('label', { class: 'cm-sbox' }, [h('span', { html: ic.search }), q]), strip);
