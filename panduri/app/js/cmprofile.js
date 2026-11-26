@@ -309,10 +309,12 @@ PD.cmp = (() => {
     }
   }
   const setNum = (el, txt) => { if (!el || el.textContent === txt) return; el.textContent = txt; if (moves()) el.animate([{ transform: 'translateY(40%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: OUTQ }); };
-  function richText(s) {
+  /** people: only @nicknames become links (chat messages, comments), not #tags */
+  function richText(s, people) {
     const out = [], links = /#([\p{L}\p{N}_]{1,50})|(?<![\p{L}\p{N}_.@])@([a-zA-Z0-9][a-zA-Z0-9_.]{1,22}[a-zA-Z0-9])(?![a-zA-Z0-9_]|\.[a-zA-Z0-9])/gu;
     let at = 0;
     for (const match of s.matchAll(links)) {
+      if (people && match[1]) continue;
       if (match.index > at) out.push(document.createTextNode(s.slice(at, match.index)));
       const target = match[1] ? 't:' + match[1].toLowerCase() : '@' + match[2].toLowerCase();
       out.push(h('button', { class: 'cp-tag', type: 'button', text: match[0], onclick: event => {

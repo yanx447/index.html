@@ -640,3 +640,15 @@
 .fd-cmtface .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .fd-cmtname { padding: 0; border: 0; background: none; color: var(--fg); font: inherit; font-weight: 700; cursor: pointer; }
 .fd-cmtname:hover { text-decoration: underline; }
+
+/* a chat row: its photo opens the person's profile */
+.cm-toprof { display: contents; }
+.cm-toprof > * { cursor: pointer; }
+
+/* a notification: who did it — their photo, the kind's icon as a badge on it; the photo opens their profile */
+.nt-who { display: none; }
+.nt-who.on { position: relative; flex: none; display: block; width: 44px; height: 44px; cursor: pointer; }
+.nt-whopic { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: var(--surface2); color: var(--fg); font-weight: 700; }
+.nt-whopic img { width: 100%; height: 100%; object-fit: cover; }
+.nt-row.cm .nt-who .nt-ic { position: absolute; right: -5px; bottom: -5px; width: 22px; height: 22px; border: 2px solid var(--bg, #111); }
+.nt-row.cm .nt-who .nt-ic svg { width: 12px; height: 12px; }

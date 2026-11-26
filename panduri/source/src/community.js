@@ -167,7 +167,7 @@ PD.community = (() => {
       shown.forEach(r => {
         const what = r.last_body || (r.last_kind ? t({ file:'ms.file', photo: 'cm.mPhoto', video: 'cm.mVideo', audio: 'cm.mAudio', post: 'cm.mPost', sticker: 'cm.mSticker', gif: 'cm.mGif' }[r.last_kind] || 'cm.mPost') : '');
         list.appendChild(h('button', { class: 'cm-crow' + (r.unread ? ' new' : ''), role: 'listitem', onclick: () => PD.app.go('community', 'c:' + r.id + ':' + (r.other_name || r.other_nick || '')) }, [
-          face(r.other_avatar, r.other_name || r.other_nick, online(seen.get(r.other))),
+          r.other ? h('span', { class: 'cm-toprof', title: t('ms.viewProfile'), onclick: e => { e.stopPropagation(); PD.app.go('community', 'u:' + r.other); } }, [face(r.other_avatar, r.other_name || r.other_nick, online(seen.get(r.other)))]) : face(r.other_avatar, r.other_name || r.other_nick, online(seen.get(r.other))),   // the photo opens the profile, the row the chat
           h('span', { class: 'grow' }, [h('b', { text: r.other_name || (r.other_nick ? '@' + r.other_nick : '—') }), h('small', {}, [h('span', { class: 'cm-last', text: (r.last_sender === C.uid ? t('cm.you') + ': ' : '') + what.replace(/:(panduri|doli|salamuri):/g, (_, name) => t('ck.' + name)) }), h('span', { class: 'cm-ago', text: ' · ' + ago(r.last_at) })])]),
           r.unread ? h('i', { class: 'cm-udot', 'aria-label': t('cm.unread', { n: r.unread }) }) : h('span', { class: 'cm-cam', 'aria-hidden': 'true', html: ic.chevron })]));
       });

@@ -26,7 +26,7 @@ PD.i18n.add({
   'ms.camera':['კამერის გახსნა','Open camera'], 'ms.photo':['ფოტოს გადაღება','Take photo'], 'ms.video':['ვიდეოს ჩაწერა','Record video'], 'ms.use':['გამოყენება','Use'],
   'ms.file':['ფაილის გაგზავნა','Send file'], 'ms.fileLimit':['აირჩიე PDF, დოკუმენტი, ტექსტი ან ZIP, მაქსიმუმ 50 MB.','Choose a PDF, document, text or ZIP up to 50 MB.'],
   'ms.loading':['იტვირთება…','Loading…'], 'ms.retry':['ხელახლა ცდა','Try again'], 'ms.older':['ძველი შეტყობინებები','Older messages'], 'ms.empty':['აქ დაიწყება თქვენი საუბარი','Your conversation starts here'],
-  'ms.sent':['გაგზავნილია','Sent'], 'ms.read':['წაკითხულია','Read'], 'ms.today':['დღეს','Today'], 'ms.members':['{n} მონაწილე','{n} members'], 'ms.conversation':['პირადი მიმოწერა','Direct conversation'],
+  'ms.viewProfile':['პროფილის ნახვა','View profile'], 'ms.membersT':['წევრები','Members'], 'ms.sent':['გაგზავნილია','Sent'], 'ms.read':['წაკითხულია','Read'], 'ms.today':['დღეს','Today'], 'ms.members':['{n} მონაწილე','{n} members'], 'ms.conversation':['პირადი მიმოწერა','Direct conversation'],
   'ms.noItems':['ჯერ არაფერია','Nothing here yet'], 'ms.saved':['შენახულია','Saved'], 'ms.copy':['კოპირება','Copy'], 'ms.copied':['დაკოპირებულია','Copied'],
   'ms.cameraError':['კამერის გახსნა ვერ მოხერხდა. შეამოწმე კამერის ნებართვა.','Could not open the camera. Check camera permission.'],
   'ms.voiceShort':['ჩაწერე მინიმუმ ერთი წამი.','Record at least one second.'], 'ms.uploading':['იგზავნება…','Sending…'],
@@ -374,8 +374,12 @@ PD.messenger = (() => {
     async function update(patch){try{const saved=await C.chat.settings(id,patch);if(!alive)return false;prefs={...defaults,...saved};appearance();await refreshState();return true;}catch(e){PD.ui.toast(err(e));return false;}}
     function action(key,icon,fn,cls=''){return h('button',{class:'ms-setting '+cls,type:'button',onclick:fn},[h('span',{class:'ms-setting-icon','aria-hidden':'true',html:icon}),h('span',{text:t(key)}),h('span',{class:'ms-chevron',text:'›','aria-hidden':'true'})]);}
     function toggle(key,prop,hint){const input=h('input',{type:'checkbox',role:'switch','aria-label':t(key),checked:!!prefs[prop]});input.checked=!!prefs[prop];input.onchange=async()=>{const before=!input.checked;input.disabled=true;if(!await update({[prop]:input.checked}))input.checked=before;input.disabled=false;};return h('label',{class:'ms-setting ms-switch'},[h('span',{class:'grow'},[h('span',{text:t(key)}),...(hint?[h('small',{text:t(hint)})]:[])]),input]);}
-    function details(){kit.close();sheet((b,close)=>{b.classList.add('ms-sheet');const intro=h('div',{class:'ms-details-person'},[avatar.cloneNode(true),h('h2',{text:name||t('ms.details')}),h('small',{text:state?.group_name?t('ms.members',{n:state.members?.length||0}):t('ms.conversation')})]);
-      b.append(h('div',{class:'ms-sheet-head'},[h('b',{text:t('ms.details')}),button('ck.close',ic.close,close)]),intro,
+    function details(){kit.close();sheet((b,close)=>{b.classList.add('ms-sheet');const toProfile=uid=>{close();PD.app.go('community','u:'+uid);};
+      const intro=h('div',{class:'ms-details-person'},[avatar.cloneNode(true),h('h2',{text:name||t('ms.details')}),h('small',{text:state?.group_name?t('ms.members',{n:state.members?.length||0}):t('ms.conversation')}),
+        ...(state?.other?[h('button',{type:'button',class:'btn small ms-viewprof',text:t('ms.viewProfile'),onclick:()=>toProfile(state.other)})]:[])]);
+      const people=state?.group_name?h('div',{class:'ms-setting-list ms-members'},(state.members||[]).map(m=>{const nm=m.id===C.uid?t('cm.you'):m.name||(m.nickname?'@'+m.nickname:'—');
+        return h('button',{type:'button',class:'ms-member',onclick:()=>toProfile(m.id)},[h('span',{class:'ms-fromav',html:m.avatar?'<img alt="" src="'+PD.esc(m.avatar)+'">':PD.esc([...nm.replace(/^@/,'')][0]||'?')}),h('span',{class:'grow',text:nm}),m.nickname?h('small',{text:'@'+m.nickname}):null].filter(Boolean));})):null;
+      b.append(h('div',{class:'ms-sheet-head'},[h('b',{text:t('ms.details')}),button('ck.close',ic.close,close)]),intro,...(people?[h('h3',{class:'ms-section-title',text:t('ms.membersT')}),people]:[]),
         h('h3',{class:'ms-section-title',text:t('ms.personalize')}),h('div',{class:'ms-setting-list'},[
           action('ms.theme',icons.emoji,()=>choose('theme',UI.themes)),action('ms.font',icons.file,()=>choose('font',UI.fonts)),action('ms.quick',UI.glyph(prefs.quick_reaction),quick)]),
         h('div',{class:'ms-setting-list'},[action('ms.find',icons.search,searchChat),action('ms.shared',PD.social.IC.photo,()=>library('media')),action('ms.pins',icons.pin,()=>library('pins')),action('ms.group',icons.group,()=>createGroup(state?.other)),...(!state?.group_name?[action('ms.share',icons.link,shareContact)]:[])]),

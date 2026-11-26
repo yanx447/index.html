@@ -6007,6 +6007,18 @@ button.xp-tile:active { background: var(--surface2); }
 .fd-cmtname { padding: 0; border: 0; background: none; color: var(--fg); font: inherit; font-weight: 700; cursor: pointer; }
 .fd-cmtname:hover { text-decoration: underline; }
 
+/* a chat row: its photo opens the person's profile */
+.cm-toprof { display: contents; }
+.cm-toprof > * { cursor: pointer; }
+
+/* a notification: who did it — their photo, the kind's icon as a badge on it; the photo opens their profile */
+.nt-who { display: none; }
+.nt-who.on { position: relative; flex: none; display: block; width: 44px; height: 44px; cursor: pointer; }
+.nt-whopic { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: var(--surface2); color: var(--fg); font-weight: 700; }
+.nt-whopic img { width: 100%; height: 100%; object-fit: cover; }
+.nt-row.cm .nt-who .nt-ic { position: absolute; right: -5px; bottom: -5px; width: 22px; height: 22px; border: 2px solid var(--bg, #111); }
+.nt-row.cm .nt-who .nt-ic svg { width: 12px; height: 12px; }
+
 /* Messenger styles follow the shell layer so a composer has one visual boundary. */
 @layer ds {
 .ms-chat{--chat-accent:#d8b38b;--chat-wash:#d8b38b12;--chat-out:#302a25;--chat-font:var(--f-ui);position:relative}
@@ -6435,6 +6447,12 @@ button.ms-avatar{padding:0;font:inherit;cursor:pointer}
 .ms-fromav{display:grid;place-items:center;flex:none;width:20px;height:20px;border-radius:50%;overflow:hidden;background:var(--surface2);font-size:10px;font-weight:700}
 .ms-fromav img{width:100%;height:100%;object-fit:cover}
 .call .call-avatar{overflow:hidden}.call .call-avatar img{width:100%;height:100%;object-fit:cover}
+
+/* chat details: the person's profile; a group's members, each opening theirs */
+.ms-details-person .ms-viewprof{grid-column:2;justify-self:start;margin-top:4px}
+.ms-members{display:flex;flex-direction:column}
+.ms-member{display:flex;align-items:center;gap:12px;min-height:50px;padding:6px 12px;border:0;background:none;color:var(--fg);font:inherit;text-align:left;cursor:pointer}
+.ms-member .ms-fromav{width:34px;height:34px;font-size:14px}.ms-member small{color:var(--muted)}
 
 @layer ds {
 :root {

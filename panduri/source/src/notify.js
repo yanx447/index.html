@@ -281,7 +281,7 @@ PD.notify = (() => {
       rows.sort((a, b) => a.id - b.id);
       const first = !last, all = raw(), have = new Set(all.filter(x => x.srv).map(x => x.srv)), add = [];
       rows.forEach(r => { if (have.has(r.id)) return; const w = words(r);
-        add.push({ id: 'n' + r.id, srv: r.id, uid: me, kind: CAT[r.kind] || 'news', sk: r.kind, title: w.title, body: w.body, go: r.go, tag: r.tag, at: Date.parse(r.created_at) || Date.now(), read: !!r.read_at }); });
+        add.push({ id: 'n' + r.id, srv: r.id, uid: me, kind: CAT[r.kind] || 'news', sk: r.kind, title: w.title, body: w.body, go: r.go, tag: r.tag, actor: r.actor || null, at: Date.parse(r.created_at) || Date.now(), read: !!r.read_at }); });
       // a newer one with the same tag replaces the older unread one, as on the server (one row per chat, per post)
       const tags = new Set(); const next = add.slice().reverse().concat(all).filter(x => { if (!x.srv || !x.tag || x.read) return true; const key = x.uid + '|' + x.tag; if (tags.has(key)) return false; tags.add(key); return true; });
       PD.store.set(LOG, next.slice(0, 150));
@@ -559,12 +559,29 @@ PD.notify = (() => {
     if (!all.length) { w.append(h('p', { class: 'muted' + (cm ? ' nt-empty' : ''), 'data-t': cm ? 'nt.noneCm' : 'nt.none' })); PD.i18n.apply(w); return; }
     w.append(h('div', { class: 'row', style: 'gap:8px' }, [h('button', { class: 'btn small', 'data-t': 'nt.readAll', onclick: () => { markRead(null, only); PD.app.render(); } }),
       h('button', { class: 'btn small ghost', 'data-t': 'nt.clear', onclick: () => { clear(only); PD.app.render(); } })]));
-    const list = h('div', { class: 'nt-list' });
+    const list = h('div', { class: 'nt-list' }), faces = [];
+    // who did it: their current photo over the kind's icon; the photo opens their profile
+    const who = x => { if (!cm || !x.srv || x.actor === null || (x.actor && x.actor === C().uid)) return null;
+      const el = h('span', { class: 'nt-who', title: t('ms.viewProfile'), onclick: e => { if (!el.dataset.u) return; e.stopPropagation(); PD.app.go('community', 'u:' + el.dataset.u); } });
+      faces.push([x, el]); return el; };
     all.forEach(x => list.append(h('button', { class: 'nt-row' + (x.read ? '' : ' new') + (cm ? ' cm k-' + (x.sk || '') : ''), onclick: () => { markRead(x.id); if (x.go) openFrom(x.go); else PD.app.render(); } }, [
-      cm ? h('span', { class: 'nt-ic', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + cmIcon(x.sk) + '</svg>' })
+      who(x), cm ? h('span', { class: 'nt-ic', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + cmIcon(x.sk) + '</svg>' })
         : x.srv ? h('span', { class: 'sn-av', 'aria-hidden': 'true', text: t('sn.sima')[0] }) : h('span', { class: 'nt-dot', 'aria-hidden': 'true' }),
       h('span', { class: 'grow' }, [h('b', { text: cm ? noSima(x.title) : x.title }), x.body ? h('small', { text: x.body }) : null, h('small', { class: 'muted', text: PD.ui.daysAgo(x.at) })].filter(Boolean))])));
     w.append(list);
+    if (faces.length && PD.social && PD.social.faces) (async () => {
+      const need = faces.filter(([x]) => x.actor === undefined).map(([x]) => x.srv);   // kept from before actors were saved: asked once
+      if (need.length) try {
+        const rows = (await C().db.select('notifications', { id: 'in.(' + need.join(',') + ')', select: 'id,actor' })) || [], by = new Map(rows.map(r => [r.id, r.actor || null]));
+        const logged = raw(); logged.forEach(x => { if (x.srv && need.includes(x.srv)) x.actor = by.get(x.srv) || null; }); PD.store.set(LOG, logged);
+        faces.forEach(([x]) => { if (x.actor === undefined) x.actor = by.get(x.srv) || null; });
+      } catch (_) { return; }
+      const live = faces.filter(([x]) => x.actor && x.actor !== C().uid), got = await PD.social.faces(live.map(([x]) => x.actor)).catch(() => new Map());
+      faces.forEach(([x, el]) => { if (!x.actor || x.actor === C().uid) { el.remove(); return; } const f = got.get(x.actor), nm = (f && (f.name || f.nick)) || '?';
+        el.dataset.u = x.actor; el.classList.add('on'); const ic = el.nextElementSibling;
+        el.append(h('span', { class: 'nt-whopic' }, [f && f.avatar ? h('img', { alt: '', src: f.avatar }) : document.createTextNode([...nm][0] || '?')]));
+        if (ic && ic.classList.contains('nt-ic')) el.append(ic); });
+    })();
     markRead(null, only);   // seen: the badge goes, on every device
     PD.i18n.apply(w);
   }

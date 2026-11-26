@@ -702,7 +702,8 @@ PD.market = (() => {
     if (!r || !r.seller) return;
     const s = r.seller;
     top.append(h('span', { class: 'avatar big', html: s.avatar ? '<img alt="" src="' + PD.esc(s.avatar) + '">' : PD.esc((s.name || '?').slice(0, 1).toUpperCase()) }),
-      h('div', {}, [h('b', { text: s.name || '—' }), s.nick ? h('small', { class: 'muted', text: ' @' + s.nick }) : null, s.since ? h('p', { class: 'muted', text: t('mk.since', { d: new Date(s.since).getFullYear() }) }) : null]));
+      h('div', {}, [h('b', { text: s.name || '—' }), s.nick ? h('small', { class: 'muted', text: ' @' + s.nick }) : null, s.since ? h('p', { class: 'muted', text: t('mk.since', { d: new Date(s.since).getFullYear() }) }) : null,
+        s.nick ? h('button', { class: 'btn small', type: 'button', text: t('ms.viewProfile'), onclick: () => PD.app.go('community', 'u:' + id) }) : null]));
   }
 
   /* ======================================================== messages about listings */

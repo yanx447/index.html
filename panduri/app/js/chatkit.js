@@ -294,7 +294,7 @@ authorization of the copyright holder.
     parts.forEach((part, i) => {
       if (i % 2) el.append(h('span', { class: part === 'panduri' ? 'ck-fanduri' : 'ck-fanduri ck-local-emoji',
         role: 'img', 'aria-label': t(labelFor(part)), html: art(part) }));
-      else if (part) el.append(document.createTextNode(part));
+      else if (part) el.append(...(PD.cmp && PD.cmp.richText ? PD.cmp.richText(part, true) : [document.createTextNode(part)]));   // @nickname opens that profile
     });
   }
   return { emojiGrid, appendEmoji, isEmojiMessage, panel, emojiButton, sticker, stickerIcon, STICKERS, insert, gifsAvailable, gifGrid, gifSheet, get gifReady() { return gifOn === true; }, get gifState() { return gifOn; } };
