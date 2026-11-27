@@ -146,8 +146,9 @@ PD.i18n.add({
 });
 PD.app = (() => {
   const $ = PD.$, h = PD.h, LS = PD.lessons, TH = PD.theory, ic = PD.ic;
-  /* the navigation: every destination on the side bar (tablet, desktop); the phone dock keeps the five used most —
-     chords and the AI studio are a tap away from Home and Learn there (`wide`), and their screens light the tab they belong to */
+  /* the navigation: the same destinations, in the same order, on the side bar (tablet, desktop) and in the phone dock.
+     The dock scrolls sideways when they do not all fit; Sima stays pinned at its right end. `wide` marks the ones that
+     need that scroll on a narrow phone */
   const NI = (o, f) => '<svg class="o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + o + '</svg><svg class="f" viewBox="0 0 24 24" aria-hidden="true">' + f + '</svg>';
   const NAV = [
     ['home', 'nav.home', NI('<path d="M4 10.4 12 4l8 6.4V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.2H9v5.2H5.5A1.5 1.5 0 0 1 4 19z"/>', '<path fill="currentColor" d="M3.3 9.8 12 2.9l8.7 6.9V19a2.2 2.2 0 0 1-2.2 2.2h-4.2v-5.6H9.7v5.6H5.5A2.2 2.2 0 0 1 3.3 19z"/>')],
@@ -160,7 +161,7 @@ PD.app = (() => {
     PD.studio3 ? PD.studio3.nav(NI) : ['ai', 'ai.title', NI('<path d="M11 3.8l1.7 4.6 4.6 1.7-4.6 1.7L11 16.4l-1.7-4.6-4.6-1.7 4.6-1.7z"/><path d="M18 14.6l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8z"/>', '<path fill="currentColor" d="M11 2.6l2.1 5.7 5.7 2.1-5.7 2.1L11 18.2l-2.1-5.7-5.7-2.1 5.7-2.1zM18 13.6l1 2.6 2.6 1-2.6 1-1 2.6-1-2.6-2.6-1 2.6-1z"/>'), 'wide'],
     ['chats', 'cm.chats', NI('<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>', '<path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 1-2z"/>'), 'wide'],
     ['profile', 'nav.profile', NI('<circle cx="12" cy="8.4" r="3.9"/><path d="M4.6 20.2c.9-3.7 3.8-5.7 7.4-5.7s6.5 2 7.4 5.7"/>', '<circle fill="currentColor" cx="12" cy="8.2" r="4.5"/><path fill="currentColor" d="M3.8 20.4c.9-4.2 4.1-6.6 8.2-6.6s7.3 2.4 8.2 6.6c.1.5-.3 1-.8 1H4.6c-.5 0-.9-.5-.8-1z"/>')]].filter(Boolean);
-  // on the phone, screens whose tab is not in the dock light the tab they are reached from
+  // a screen whose own tab is hidden lights the tab it is reached from (every tab is shown now; kept for a hidden one)
   const DOCK_OF = { chords: 'learn', ai: 'home', mtheory: 'learn', chats: 'community' };
   const TOP = { home: 'home', learn: 'learn', path: 'learn', theory: 'mtheory', mtheory: 'mtheory', adv: 'mtheory', pstudio: 'learn', tips: 'learn', solfege: 'mtheory', practice: 'learn', daily: 'learn', trainer: 'learn', metronome: 'learn', rhythms: 'learn', rhythm: 'learn', tuner: 'tuner', chords: 'chords', fretboard: 'learn', explore: 'learn', tools: 'learn',
     songs: 'learn', library: 'learn', lesson: 'learn', exams: 'learn', exam: 'learn', drill: 'learn', scales: 'mtheory', circle: 'mtheory', chordhow: 'mtheory', music: 'mtheory', book: 'profile', install: 'profile', inbox: 'profile', cert: 'profile', ai: 'ai', profile: 'profile', progress: 'profile', settings: 'profile', more: 'profile', community: 'community', pmadmin: 'profile', songadmin: 'profile', creator: 'profile', checkout: 'profile', market: 'community' };
@@ -232,10 +233,14 @@ PD.app = (() => {
     const ts = PD.store.get('textSize', 'm'); if (ts !== 'm') document.documentElement.classList.add('ts-' + ts);
     document.documentElement.dataset.ds = '1';
     const side = h('nav', { class: 'side', 'data-t-aria': 'nav.main' }, [h('div', { class: 'side-brand' }, [h('b', { 'data-t': 'app.name' }), h('small', { text: 'A · C♯ · E' })])]);
-    const dock = h('nav', { class: 'dock', 'data-t-aria': 'nav.main' });
+    const dock = h('nav', { class: 'dock', 'data-t-aria': 'nav.main' }), row = h('div', { class: 'dock-row' });
+    dock.append(row);
     const mk = ([id, key, icon, wide]) => h('button', { class: 'nv', type: 'button', 'data-go': id, 'data-wide': wide ? '' : null, html: '<span class="nv-ic">' + icon + '</span><span class="nv-l" data-t="' + key + '"></span>', onclick: () => id === 'chats' ? go('community', 'chats') : go(id) });
-    NAV.forEach(n => { side.appendChild(mk(n)); dock.appendChild(mk(n)); });
-    side.append(h('span', { class: 'nv-ind', 'aria-hidden': 'true' })); dock.append(h('span', { class: 'nv-ind', 'aria-hidden': 'true' }));
+    NAV.forEach(n => { side.appendChild(mk(n)); row.appendChild(mk(n)); });
+    side.append(h('span', { class: 'nv-ind', 'aria-hidden': 'true' })); row.append(h('span', { class: 'nv-ind', 'aria-hidden': 'true' }));
+    // the row fades at an edge only where more tabs wait behind it
+    const edges = () => { const m = row.scrollWidth - row.clientWidth; row.classList.toggle('more-l', row.scrollLeft > 2); row.classList.toggle('more-r', m > 2 && row.scrollLeft < m - 2); };
+    row.addEventListener('scroll', edges, { passive: true }); window.addEventListener('resize', edges); requestAnimationFrame(edges);
     const main = h('main', { class: 'main', id: 'main' });
     document.body.append(h('div', { class: 'shell', id: 'shell' }, [side, main]), dock);
     navigationGlass(dock); navigationGlass(side);
@@ -436,6 +441,7 @@ PD.app = (() => {
       if (side) { ind.style.width = ''; ind.style.height = b.offsetHeight + 'px'; ind.style.transform = 'translateY(' + b.offsetTop + 'px)'; }
       else { const w = Math.min(b.offsetWidth - 8, 96); ind.style.height = ''; ind.style.width = w + 'px'; ind.style.transform = 'translateX(' + (b.offsetLeft + (b.offsetWidth - w) / 2) + 'px)'; }
       ind.style.opacity = '1';
+      if (!side) { const row = b.parentElement, l = b.offsetLeft, r = l + b.offsetWidth; if (row.scrollWidth > row.clientWidth && (l < row.scrollLeft || r > row.scrollLeft + row.clientWidth)) row.scrollTo({ left: Math.max(0, l - (row.clientWidth - b.offsetWidth) / 2), behavior: fresh ? 'auto' : 'smooth' }); }
       if (fresh) requestAnimationFrame(() => requestAnimationFrame(() => ind.classList.remove('jump')));
       if (!fresh && tabNow && tabNow !== top && PD.motion) PD.motion.spring(b.querySelector('.nv-ic'));
     });

@@ -52,8 +52,10 @@ const path = require('node:path');
     await page.screenshot({ path: path.resolve(__dirname, '../../../docs/v2-review/navigation/clear-glass-home.png'), clip: { x: 0, y: 780, width: 600, height: 120 } });
     for (const width of [320, 390, 780]) {
       await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(80);
-      const r = await nav.boundingBox(); assert(r.x >= 0 && r.x + r.width <= width && r.width <= 561);
-      assert.equal(await nav.locator('.nv:visible').count(), 5);
+      const r = await nav.boundingBox(); assert(r.x >= 0 && r.x + r.width <= width && r.width <= 721);
+      // the phone dock carries every tab the side bar does, in the same order
+      assert.deepEqual(await nav.locator('.nv').evaluateAll(b => b.filter(x => getComputedStyle(x).display !== 'none').map(x => x.dataset.go)),
+        await page.locator('.side .nv').evaluateAll(b => b.map(x => x.dataset.go)));
     }
     await page.emulateMedia({ reducedMotion: 'reduce' });
     assert.equal(await nav.locator('.nv-glass-track').evaluate(e => getComputedStyle(e).display), 'none');
