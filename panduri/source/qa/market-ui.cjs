@@ -214,3 +214,28 @@ test('true comparisons, struck out: thirty one-day advertisements for the monthl
     }
   } finally { await browser.close(); }
 });
+
+test('Public terms and privacy pages are linked in both languages even with an empty checkout catalog', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const { context, page, errors } = await open(browser, 390, 'ka', {});
+    await page.route(SB + '/functions/v1/billing', route => route.fulfill({ json: { providers: [], stores: {}, policies: {} } }));
+    await page.evaluate(() => PD.app.go('checkout', 'monthly'));
+    const links = page.locator('.pay-foot a');
+    await links.first().waitFor();
+    assert.deepEqual(await links.evaluateAll(items => items.map(a => a.getAttribute('href'))), ['terms.html', 'privacy.html']);
+
+    await page.goto(APP + 'terms.html');
+    assert.equal(await page.locator('h1:visible').innerText(), 'მომსახურების პირობები');
+    assert.match(await page.locator('article:visible').innerText(), /14\.99 ₾/);
+    await page.getByRole('link', { name: 'EN', exact: true }).click();
+    assert.equal(await page.locator('h1:visible').innerText(), 'Terms of Use');
+    assert.match(await page.locator('article:visible').innerText(), /Draft refund policy/);
+    await page.getByRole('link', { name: 'Privacy Policy', exact: true }).click();
+    assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+    await page.getByRole('link', { name: 'Terms of Use and refund policy', exact: true }).click();
+    assert.equal(await page.locator('h1:visible').innerText(), 'Terms of Use');
+    assert.deepEqual(errors, []);
+    await context.close();
+  } finally { await browser.close(); }
+});

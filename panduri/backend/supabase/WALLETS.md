@@ -13,6 +13,14 @@
 `_shared/billing.js` → `WALLET_PROCESSORS = []` და `wallet-session` / `wallet-pay` აბრუნებს
 `billing-not-configured`-ს. ჩასართავად საჭიროა ქვემოთ ჩამოთვლილი ყველაფერი.
 
+## TBC Checkout-ის ჩართვა
+
+1. [TBC-ის Go LIVE მოთხოვნების](https://developers.tbcbank.ge/docs/checkout-go-live) მიხედვით შეავსე `source/pwa/terms.html`-ში მიმწოდებლის მონაცემები, დაადასტურე დაბრუნების წესი და გამოაქვეყნე Terms და Privacy გვერდები. ბანკთან დაადასტურე, მიიღებს თუ არა ამ საიტის `github.io` მისამართს.
+2. TBC-ის [Merchant Dashboard](https://developers.tbcbank.ge/docs/checkout-merchant-dashboard-and-credentials)-ში მიუთითე callback URL. Premium-ის return URL-ს სერვერი ადგენს `APP_URL`-იდან პარამეტრით `?payment=tbc`, ბაზრობის რეკლამისთვის კი იყენებს `?payment=market-tbc`. Callback URL არის `<SUPABASE_URL>/functions/v1/payment-callback?provider=tbc`.
+3. [Developer Portal](https://developers.tbcbank.ge/docs/get-apikey-and-secret)-ის developer app-ის `apikey` ჩაწერე Supabase-ის **Edge Functions → Secrets**-ში სახელით `TBC_API_KEY`. Merchant Dashboard-ის მონაცემები ჩაწერე სახელებით `TBC_CLIENT_ID` და `TBC_CLIENT_SECRET`. `TBC_WALLETS`-ში მძიმით ჩამოწერე მხოლოდ ბანკის მიერ ჩართული მეთოდები: `apple_pay`, `google_pay`.
+4. მიუთითე `TERMS_URL` და `PRIVACY_URL`. ორივე URL უნდა იყოს საჯარო და HTTPS. ამჟამინდელი ჰოსტინგის მისამართებია `https://yanx447.github.io/index.html/panduri/app/terms.html` და `https://yanx447.github.io/index.html/panduri/app/privacy.html`. სხვა დომენზე გადასვლისას განაახლე ასევე `APP_URL` და ბანკთან რეგისტრირებული მისამართები.
+5. მფლობელის თანხმობის შემდეგ გაუშვი `supabase functions deploy billing market payment-callback`. ბანკთან შეთანხმებულ გარემოში გადაამოწმე checkout, callback და ანგარიშის Premium ვადა. `billing_orders` ინახავს შეკვეთას. წარმატებული აქტივაციის ჩანაწერი არის `purchases`-ში (`provider = 'tbc'`, `payment_id = billing_orders.provider_id`).
+
 ## 1. ჯერ გადასაწყვეტია: ვინ ჩამოჭრის token-ს (processor)
 
 Apple Pay ან Google Pay ფულს თვითონ არ ჩამოჭრის. ის გვერდს **დაშიფრულ token-ს** აძლევს და მას processor-ი (ბანკი ან gateway) ამუშავებს.

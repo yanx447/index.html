@@ -180,7 +180,10 @@ app = 'dist/app'
 if os.path.exists(app): shutil.rmtree(app)
 shutil.copytree('assets/emoji', app + '/emoji'); os.makedirs(app + '/js'); shutil.copytree('pwa/icons', app + '/icons')
 shutil.copy('pwa/manifest.webmanifest', app + '/manifest.webmanifest')
-shutil.copy('pwa/privacy.html', app + '/privacy.html')   # the privacy policy and data-deletion page Google and Meta link to
+# Public policy pages are readable without an account or the app shell.
+policies = ('terms.html', 'privacy.html')
+for policy in policies:
+    shutil.copy('pwa/' + policy, app + '/' + policy)
 # the install prompt on Android, Windows and macOS shows these; without them it is a bare line of text
 if os.path.isdir('pwa/shots'):
     shutil.rmtree(app + '/shots', ignore_errors=True)
@@ -266,7 +269,7 @@ open(app + '/index.html', 'w').write(index)
 shutil.copy('ARCHITECTURE.md', app + '/ARCHITECTURE.md')
 # the teacher's own tuner app „სამი სიმი“, served beside the app at tuner/; it speaks the app's language
 if os.path.exists('ext/sami-simi'): shutil.copytree('ext/sami-simi', app + '/tuner')
-shell = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'] + [f'js/{n}.js' for n in ORDER if n in LAZY]
+shell = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'] + list(policies) + [f'js/{n}.js' for n in ORDER if n in LAZY]
 # The integrated tuner must work offline, and its engine changes must invalidate the app shell.
 tuner_files = sorted(str(p).replace('\\', '/') for p in __import__('pathlib').Path('ext/sami-simi').rglob('*') if p.is_file() and p.suffix in ('.js', '.css', '.html', '.woff', '.woff2'))
 shell += [p.replace('ext/sami-simi/', 'tuner/') for p in tuner_files]
@@ -275,7 +278,7 @@ if os.path.isdir('assets/chat-fonts'): shell += ['chat-fonts/'+f for f in sorted
 if os.path.exists('lessons/songs.json'): shell += ['lessons/songs.json']   # offline, and refreshed with every build
 tuner_digest = hashlib.sha1(b''.join(open(p, 'rb').read() for p in tuner_files)).hexdigest()
 shell += [f'js/{n}.js?v={ASSET_REV}' for n in ORDER if n not in LAZY] + [f'js/assets.js?v={ASSET_REV}', f'js/config.js?v={ASSET_REV}', f'app.css?v={ASSET_REV}']
-version = hashlib.sha1((tuner_digest + (open('lessons/songs.json').read() if os.path.exists('lessons/songs.json') else '') + css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read() + ''.join(LANG_JSON.values()) + index + json.dumps(shell)).encode()).hexdigest()[:10]
+version = hashlib.sha1((tuner_digest + (open('lessons/songs.json').read() if os.path.exists('lessons/songs.json') else '') + css + ''.join(src(n + '.js') for n in ORDER) + open('pwa/sw.js').read() + open(app + '/js/config.js').read() + ''.join(LANG_JSON.values()) + index + ''.join(open('pwa/' + p).read() for p in policies) + json.dumps(shell)).encode()).hexdigest()[:10]
 sound_digest = hashlib.sha1(b''.join(open(p, 'rb').read() for p in ['src/sounddata.js', 'src/pianodata.js'] + sorted(str(q) for q in __import__('pathlib').Path('ext/sami-simi/audio').glob('*.mp3')) if os.path.exists(p))).hexdigest()[:10]
 open(app + '/sw.js', 'w').write(open('pwa/sw.js').read().replace('__VERSION__', version).replace('__SHELL__', json.dumps(shell)).replace('__SOUND__', sound_digest))
 # the running build's version, so Settings can show it and ask for an update

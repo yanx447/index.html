@@ -124,13 +124,19 @@ PD.checkout = (() => {
     w.classList.add('pay');
     w.append(h('div', { class: 'row pg-head' }, [h('button', { class: 'btn small backbtn', html: PD.ic.back + '<span class="sr" data-t="back"></span>', onclick: () => PD.app.back('profile') }), h('h1', { 'data-t': 'pay.title', style: 'margin:0' })]));
     if (B.native) { w.append(h('p', { class: 'notice', 'data-t': 'pay.store' }), h('button', { class: 'btn primary', 'data-t': 'pay.open', onclick: () => PD.premium.paywall() })); return; }
-    if (!C.session) { w.append(h('p', { class: 'notice', 'data-t': 'pm.needAccount' }), h('button', { class: 'btn primary', 'data-t': 'pay.signin', onclick: () => PD.auth.open() })); return; }
+    const foot = h('div', { class: 'pay-foot' });
+    // The standalone build has no adjacent policy pages.
+    const base = PD.BUILD ? '' : 'https://yanx447.github.io/index.html/panduri/app/';
+    const policyLinks = { terms: h('a', { class: 'btn quiet', href: base + 'terms.html', target: '_blank', rel: 'noopener noreferrer', 'data-t': 'pm.termsLink' }),
+      privacy: h('a', { class: 'btn quiet', href: base + 'privacy.html', target: '_blank', rel: 'noopener noreferrer', 'data-t': 'pm.privacyLink' }) };
+    foot.append(policyLinks.terms, policyLinks.privacy);
+    if (!C.session) { w.append(h('p', { class: 'notice', 'data-t': 'pm.needAccount' }), h('button', { class: 'btn primary', 'data-t': 'pay.signin', onclick: () => PD.auth.open() }), foot); return; }
 
     // Back from the hosted page: say what is known, and only what is known.
     const back = !shownReturn && B.returned; shownReturn = true;
-    if (param === 'return' || back) { returnState(w, B, back || 'paypal'); return; }
+    if (param === 'return' || back) { returnState(w, B, back || 'paypal'); w.append(foot); return; }
     // 'paid' only right after the server answered a wallet payment with paid — never from a typed address
-    if (param === 'paid' && walletPaid) { walletPaid = false; returnState(w, B, 'paid'); return; }
+    if (param === 'paid' && walletPaid) { walletPaid = false; returnState(w, B, 'paid'); w.append(foot); return; }
 
     const pending = B.pending && B.pending();
     let plan = param === 'monthly' ? 'monthly' : param === 'yearly' ? 'yearly' : (pending && pending.plan) || 'yearly';
@@ -138,7 +144,7 @@ PD.checkout = (() => {
     const ready = {};   // direct wallet id → undefined (not asked) | 'wait' | true | false
     w.append(hero());
     if (PD.premium.active) w.append(h('p', { class: 'pay-active', text: PD.premium.status() }));
-    if (PD.premium.banned) { w.append(h('p', { class: 'notice', 'data-t': 'pm.blocked' })); return; }
+    if (PD.premium.banned) { w.append(h('p', { class: 'notice', 'data-t': 'pm.blocked' }), foot); return; }
 
     const plans = h('div', { class: 'pay-plans', role: 'radiogroup', 'aria-label': t('pay.plan') });
     const summary = h('div', { class: 'pay-sum' });
@@ -149,7 +155,6 @@ PD.checkout = (() => {
     const msg = h('p', { class: 'ag-msg info', text: t('pm.loadingPay') });
     const go = h('button', { class: 'btn primary big pay-go', disabled: true, onclick: () => pay() });
     const safe = h('p', { class: 'pay-safe' });
-    const foot = h('div', { class: 'pay-foot' });
     w.append(h('h2', { class: 'pay-h', 'data-t': 'pay.plan' }), plans,
       h('h2', { class: 'pay-h', 'data-t': 'pay.summary' }), summary,
       h('h2', { class: 'pay-h', 'data-t': 'pay.method' }),
@@ -159,7 +164,7 @@ PD.checkout = (() => {
       restore.disabled = true;
       try { if (await B.restore()) PD.app.render(); else say(t('pm.noneFound')); } catch (_) { say(t('pm.payError')); } finally { restore.disabled = false; }
     } });
-    foot.append(restore);
+    foot.prepend(restore);
     const say = (text, info) => { msg.hidden = false; msg.className = 'ag-msg' + (info ? ' info' : ''); msg.textContent = text; };
     const provider = () => options && options.providers.find(p => p.id === method);
     const direct = () => (options && options.express) || [];
@@ -288,9 +293,9 @@ PD.checkout = (() => {
       const priced = result.providers.concat(result.express || []);
       if (!priced.some(p => p.prices.monthly || p.prices.yearly)) { say(t('pm.noPay')); return; }
       msg.hidden = true;
-      for (const [kind, key] of [['terms', 'pm.termsLink'], ['privacy', 'pm.privacyLink']]) {
-        const link = result.policies && result.policies[kind];
-        if (link && /^https:\/\//.test(link)) foot.append(h('a', { class: 'btn quiet', href: link, target: '_blank', rel: 'noopener noreferrer', 'data-t': key }));
+      for (const [kind, anchor] of Object.entries(policyLinks)) {
+        const link = result.policies?.[kind];
+        if (link && /^https:\/\//.test(link)) anchor.href = link;
       }
       drawExpress(); draw();
     }).catch(() => { if (w.isConnected) say(t('pm.noPay')); });
