@@ -91,6 +91,19 @@ PD.aiScore = (() => {
     const k = Math.max(0, Math.min(beats.length - 2, Math.floor(b)));
     return beats[k] + (b - k) * (beats[k + 1] - beats[k]);
   }
+  function practiceEvents(M) {
+    const notes = map(M.notes || []).filter(n => n.reach);
+    if (!notes.length) return [];
+    const beat = t => beatAt(t, M.beats, M.bpm);
+    const origin = beat(notes[0].t0), events = [];
+    let group;
+    for (const n of notes) {
+      if (!group || group.start !== n.t0) group = { start: n.t0, id: PD.build.newChordId() };
+      const t = beat(n.t0), duration = Math.max(.04, beat(n.t1) - t);
+      events.push({ ...PD.build.N(t - origin, n.s, n.f, n.fi, 'down', duration, false), chordId: group.id });
+    }
+    return events;
+  }
   /** Complete metric voices on a sixteenth grid, split/tied at bars. Preserves
       every polyphonic voice and inserts rests, including silent bars. */
   function score(M) {
@@ -139,7 +152,7 @@ PD.aiScore = (() => {
     }
     return new Blob([xml + '</part></score-partwise>'], { type: 'application/vnd.recordare.musicxml+xml' });
   }
-  return { normalise, places, shape, map, melody, arrange, score, musicXML, beatAt, secondsAt };
+  return { normalise, places, shape, map, melody, arrange, score, musicXML, beatAt, secondsAt, practiceEvents };
 })();
 
 PD.i18n.add({

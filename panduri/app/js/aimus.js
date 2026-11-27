@@ -478,11 +478,41 @@ PD.aimus = (() => {
       for (let c = 0; c < f.n; c++) if (c % step !== 0) { extra = Math.max(extra, f.mean[c]); nExtra++; }
       if (nExtra && extra > f.mx * .5 && f.corr > G.corr - .06) G = f;
     }
+    // A loud section or an evenly played pulse should not make every cell an
+    // accent. Compare each attack with the other strokes of the same bar.
+    const accentVotes = new Float32Array(G.n), levelSum = new Float32Array(G.n), seen = new Uint32Array(G.n);
+    if (on.lev) for (const k of barStarts) {
+      const strokes = [];
+      for (let c = 0; c < G.n; c++) {
+        const t = tAt(k + c / G.sub), beat = k + Math.floor(c / G.sub);
+        const win = Math.max(dt * 1.5, (beats[beat + 1] - beats[beat]) / G.sub * .34);
+        let attack = 0, peakAt = t;
+        for (let x = t - win; x <= t + win; x += dt) {
+          const value = at(x);
+          if (value > attack) { attack = value; peakAt = x; }
+        }
+        const index = Math.round((peakAt + .02 - t0off) / dt);
+        strokes.push({ c, attack, level: on.lev[index] || 0 });
+      }
+      const max = Math.max(...strokes.map(s => s.attack));
+      if (!max) continue;
+      const present = strokes.filter(s => s.attack >= max * .25 && s.level > 0);
+      if (present.length < 2) continue;
+      const meanAttack = present.reduce((sum, s) => sum + s.attack, 0) / present.length;
+      const meanLevel = present.reduce((sum, s) => sum + s.level, 0) / present.length;
+      for (const s of present) {
+        seen[s.c]++;
+        levelSum[s.c] += s.level / meanLevel;
+        if (s.attack >= meanAttack * 1.18 && s.level >= meanLevel * 1.15) accentVotes[s.c]++;
+      }
+    }
     const hi = G.mx;
     const cells = [];
     for (let c = 0; c < G.n; c++) {
       const rel = G.mean[c] / hi, strong = rel >= .3 && G.cons[c] >= .33, weak = !strong && rel >= .12 && G.cons[c] >= .28;
-      cells.push({ i: c, beat: Math.floor(c / G.sub) + 1, off: c % G.sub, on: strong, weak, acc: strong && rel >= .72, v: +rel.toFixed(2), cons: +G.cons[c].toFixed(2) });
+      const acc = strong && accentVotes[c] >= Math.max(2, barStarts.length * .5);
+      const level = seen[c] ? +(levelSum[c] / seen[c]).toFixed(2) : null;
+      cells.push({ i: c, beat: Math.floor(c / G.sub) + 1, off: c % G.sub, on: strong, weak, acc, level, v: +rel.toFixed(2), cons: +G.cons[c].toFixed(2) });
     }
     // does the pattern run over one bar or two? compare the odd bars with the even ones
     let span = 1;
@@ -1023,7 +1053,7 @@ PD.aimus.panel = function (o) {
     const row = h('div', { class: 'as-controls' });
     const choose = mode => {
       if (!M.originalNotes) M.originalNotes = M.notes.map(n => ({ ...n }));
-      const result = PD.aiScore.arrange(M.originalNotes, mode, M.chords || []);
+      const result = PD.aiScore.arrange(M.originalNotes, mode, o.res.chords || M.chords || []);
       M.notes = result.notes; M.omitted = result.omitted.length; M.arrangement = mode;
       A.quantise(M.notes, M.beats, M.metre); o.save && o.save(M); cur = -1; lastCur = -2; render();
     };
@@ -1032,6 +1062,7 @@ PD.aimus.panel = function (o) {
     row.append(select, h('button', { class: 'btn small', text: t('as.convert'), onclick: () => { A.mapNotes(M.notes); A.quantise(M.notes, M.beats, M.metre); view = 'tab'; o.save && o.save(M); render(); } }),
       h('button', { class: 'btn small', text: t('as.fingers'), onclick: () => { A.mapNotes(M.notes); view = 'tab'; onNeck = true; o.save && o.save(M); render(); el.querySelector('.as-neck')?.scrollIntoView({ block: 'nearest' }); } }),
       h('button', { class: 'btn small', text: t('as.fingerstyle'), onclick: () => choose('fingerstyle') }),
+      o.practice ? h('button', { class: 'btn small', text: t('ai.practicePart'), onclick: () => o.practice(M) }) : null,
       h('button', { class: 'btn small', text: t('as.add'), onclick: () => { if (!can('proEdit')) return lock('ai.edit'); const start = Math.min(M.dur - .05, Math.max(0, o.pos())); M.notes.push(PD.aiScore.normalise({ m: TH.open(3), t0: start, t1: Math.min(M.dur, start + .5), conf: 1, corrected: true, id: 'manual-' + Date.now() })); changedNotes(); } }));
     return row;
   }

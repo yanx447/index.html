@@ -39,6 +39,16 @@ test('arrangements remain playable and preserve original input', () => {
   }
   assert.equal(JSON.stringify(original), copy);
 });
+test('part practice starts at the first playable note and groups simultaneous strings', () => {
+  let id = 0;
+  PD.build = { newChordId: () => 'c' + ++id, N: (t, s, f, fi, st, d) => ({ id: 'n' + ++id, t, s, f, fi, st, d, technique: 'pluck' }) };
+  const events = A.practiceEvents(M([note(40, 0, .3), note(57, .5, 1), note(64, .5, 1), note(66, 1.25, 1.5)]));
+  assert.deepEqual(Array.from(events, e => e.t), [0, 0, 1.5]);
+  assert.equal(events[0].chordId, events[1].chordId);
+  assert.notEqual(events[1].chordId, events[2].chordId);
+  assert.notEqual(events[0].s, events[1].s);
+  assert.deepEqual(Array.from(events, e => Math.round(PD.theory.midi(e.s, e.f))).sort((a, b) => a - b), [57, 64, 66]);
+});
 test('metric voices have complete bars, rests and cross-bar ties', () => {
   const s = A.score(M([note(57, .5, 3), note(64, 1, 1.5)])); assert.equal(s.bars, 2); assert.ok(s.events.some(e => e.tieIn)); assert.ok(s.events.some(e => e.tieOut));
   for (let b = 0; b < s.bars; b++) for (let v = 1; v <= s.voices; v++) assert.equal(s.events.filter(e => e.bar === b && e.voice === v).reduce((n, e) => n + e.len, 0), 4);

@@ -176,9 +176,13 @@ PD.cloud = (() => {
   async function loadProfile() {
     if (!S) return null;
     if (!S.user) { S.user = await http('/auth/v1/user'); PD.store.set(KEY, S); }
-    const rows = await db.select('profiles', { id: 'eq.' + uid(), select: '*' });
-    profile = rows && rows[0] || null;
-    if (profile) { try { profile.owner = !!(await db.rpc('is_owner', {})); } catch (_) { profile.owner = false; } }   // the server decides who the owner is
+    // a sign-out or another account while this was on its way: its answer is not this account's profile
+    const owner = uid();
+    const rows = await db.select('profiles', { id: 'eq.' + owner, select: '*' });
+    const next = rows && rows[0] || null;
+    if (next) { try { next.owner = !!(await db.rpc('is_owner', {})); } catch (_) { next.owner = false; } }   // the server decides who the owner is
+    if (owner !== uid()) return null;
+    profile = next;
     if (profile && profile.display_name && profile.display_name !== PD.account.profile.name) PD.account.setProfile({ name: profile.display_name });
     if (profile) {   // signed in, the photo is the server's (what everyone sees); one kept only on this device goes up once
       const mine = PD.account.profile.avatar || '';
