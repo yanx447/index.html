@@ -173,7 +173,7 @@ PD.premium = (() => {
       box.append(h('ul', { class: 'pw-list' }, LIST.map(k => h('li', { 'data-t': k }))));
       box.append(h('details', { class: 'pw-free' }, [h('summary', { 'data-t': 'pm.freeT' }), h('p', { class: 'fg2', text: t('pm.free', { n: FREE_AI_HOURS }) })]));
       let plan = 'yearly', provider = null, paymentOptions = null;
-      const plans = h('div', { class: 'pw-plans' });
+      const plans = h('div', { class: 'pw-plans' }), fxn = h('p', { class: 'muted pw-fx', hidden: true });
       const methods = h('div', { class: 'chips-row', role: 'group', 'aria-label': t('pm.buy') });
       const msg = h('p', { class: 'ag-msg info', text: t('pm.loadingPay') });
       const terms = h('p', { class: 'muted', text: t(B.native ? 'pm.renew' : 'pm.once') });
@@ -185,10 +185,11 @@ PD.premium = (() => {
         for (const k of ['monthly', 'yearly']) {
           const price = current.prices[k];
           if (!price) continue;
-          const label = price.display || new Intl.NumberFormat((PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US')), { style: 'currency', currency: price.currency }).format(Number(price.value));
+          // in the language's currency at the official rate, marked ≈; the charged price is named under the plans (fxn)
+          const shown = B.shown(price), label = (shown.approx ? '≈ ' : '') + shown.text;
           // a running sale: the regular price struck out beside the sale price the server charges (never on a store price)
           // the yearly plan: twelve monthly payments, struck out (a true comparison); a running sale wins over it
-          const sl = PD.billing.sale(price), fmt = x => new Intl.NumberFormat((PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US')), { style: 'currency', currency: x.currency }).format(Number(x.value));
+          const sl = PD.billing.sale(price), fmt = x => B.shown(x).text;
           const cmp = !sl && k === 'yearly' ? PD.billing.compare(price, current.prices.monthly, 12) : null, was = sl || cmp;
           plans.append(h('button', { class: 'pw-plan', 'aria-pressed': String(plan === k), onclick: () => { plan = k; drawPlans(); } }, [
             was ? h('em', { class: 'pay-off', text: t('pay.off', { n: was.pct }) }) : null,
@@ -196,7 +197,9 @@ PD.premium = (() => {
             cmp ? h('small', { class: 'pw-sub', text: t('pay.cmpYear', { p: fmt(cmp.regular) }) }) : null,
             h('small', { text: t(k === 'monthly' ? 'pm.perMonth' : 'pm.perYear') })]));
         }
-        if (!current.prices[plan]) { plan = current.prices.yearly ? 'yearly' : 'monthly'; drawPlans(); }
+        if (!current.prices[plan]) { plan = current.prices.yearly ? 'yearly' : 'monthly'; drawPlans(); return; }
+        const s = current.prices[plan] && B.shown(current.prices[plan]);
+        fxn.hidden = !(s && s.approx); if (s && s.approx) fxn.textContent = t('pay.fxS', { p: s.exact, d: s.date });
       }
       const buy = h('button', { class: 'btn primary big', disabled: true, 'data-t': B.native ? 'pm.buy' : 'pay.continue', onclick: async () => {
         if (!C.session) { close(); PD.auth.open(); return; }
@@ -220,7 +223,7 @@ PD.premium = (() => {
         catch (_) { say(t('pm.payError')); }
         finally { restore.disabled = false; }
       } });
-      box.append(...[B.native ? methods : null, plans, terms, buy, msg, restore].filter(Boolean));
+      box.append(...[B.native ? methods : null, plans, fxn, terms, buy, msg, restore].filter(Boolean));
       if (B.native) box.append(h('button', { class: 'btn quiet', 'data-t': 'pm.manageSub', onclick: () => {
         const cap = window.Capacitor, url = cap.getPlatform() === 'ios' ? 'https://apps.apple.com/account/subscriptions' : 'https://play.google.com/store/account/subscriptions';
         const browser = cap.Plugins && cap.Plugins.Browser;
@@ -241,6 +244,7 @@ PD.premium = (() => {
           provider = p.id; methods.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.textContent === t('pm.' + p.id)))); drawPlans();
         } })));
         drawPlans(); buy.disabled = api.banned; msg.hidden = true;
+        B.rates().then(() => { if (box.isConnected) drawPlans(); });
       }).catch(() => { if (box.isConnected) say(t('pm.noPay')); });
 
     });

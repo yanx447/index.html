@@ -128,6 +128,32 @@ PD.billing = (() => {
     if (!(v > 0 && r > v)) return null;
     return { regular: { value: r.toFixed(2), currency: p.currency }, pct: Math.round((1 - v / r) * 100) };
   }
+  /* Prices are shown in the currency of the learner's language, at the National Bank of Georgia's official rate (GEL per
+     unit), read on the device and kept 12 h. Only what is shown changes: the charge stays in the provider's currency and
+     is always shown beside it. No rate (offline, the bank's page down, older than a week): the charged price alone. */
+  const CUR = { ka: 'GEL', en: 'USD', ru: 'RUB', es: 'EUR', fr: 'EUR', de: 'EUR', it: 'EUR', pt: 'EUR', tr: 'TRY', uk: 'UAH', pl: 'PLN', ar: 'AED', hi: 'INR', zh: 'CNY', ja: 'JPY', ko: 'KRW' };
+  let fx = PD.store.get('fx.nbg', null), fxLoad = null;
+  function rates() {
+    if (fx && Date.now() - fx.at < 432e5) return Promise.resolve(fx);
+    return fxLoad || (fxLoad = fetch('https://nbg.gov.ge/gw/api/ct/monetarypolicy/currencies/en/json', { cache: 'no-store' }).then(r => r.json()).then(d => {
+      const r = { GEL: 1 };
+      for (const c of (d[0] && d[0].currencies) || []) if (c.quantity > 0 && c.rate > 0) r[c.code] = c.rate / c.quantity;
+      if (!r.EUR || !r.USD) throw new Error('fx');
+      fx = { at: Date.now(), date: String(d[0].date).slice(0, 10), r }; PD.store.set('fx.nbg', fx); return fx;
+    }).catch(() => fx).finally(() => { fxLoad = null; }));
+  }
+  // lari always as "14.69 ₾": Chrome's ICU has no Georgian currency data and writes "GEL 14.69"
+  const fmt = (v, c) => { const L = PD.i18n.locale || 'en-GB';
+    if (c === 'GEL') return new Intl.NumberFormat(L, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v) + ' ₾';
+    try { return new Intl.NumberFormat(L, { style: 'currency', currency: c, currencyDisplay: 'narrowSymbol' }).format(v); } catch (_) { return new Intl.NumberFormat(L, { style: 'currency', currency: c }).format(v); } };
+  /** a price as shown: text (in the language's currency when a rate is known), exact (what is charged), approx, date (the rate's) */
+  function shown(p) {
+    if (p.display) return { text: p.display, exact: p.display, approx: false };
+    const exact = fmt(Number(p.value), p.currency), to = CUR[PD.i18n.lang] || p.currency, r = fx && Date.now() - fx.at < 7 * 864e5 && fx.r;
+    if (to === p.currency || !r || !r[to] || !r[p.currency]) return { text: exact, exact, approx: false };
+    const [y, m, d] = fx.date.split('-');
+    return { text: fmt(Number(p.value) * r[p.currency] / r[to], to), exact, approx: true, date: d + '.' + m + '.' + y };
+  }
   async function restore() {
     if (!C.session) throw new Error('sign-in-required');
     if (native()) { const purchases = await store(); await purchases.restorePurchases(); await syncStore(); }
@@ -159,5 +185,5 @@ PD.billing = (() => {
   PD.bus.on('cloud', () => { if (lastUser !== C.uid) { lastUser = C.uid; catalogPromise = null; setTimeout(() => refresh(true), 0); } });
   const pending = () => { const uid = C.uid; return uid && PD.store.get(pendingKey(uid), null); };
   // `returned`: the buyer came back from a hosted checkout ('tbc' | 'paypal' | 'cancelled'). It is a hint for the screen, not a receipt.
-  return { options, purchase, restore, refresh, verifyPending, pending, consumable, consumablePrices, sale, compare, returned: ['tbc', 'paypal', 'success', 'cancelled'].includes(returned) ? returned : null, get native() { return native(); } };
+  return { options, purchase, restore, refresh, verifyPending, pending, consumable, consumablePrices, sale, compare, rates, shown, returned: ['tbc', 'paypal', 'success', 'cancelled'].includes(returned) ? returned : null, get native() { return native(); } };
 })();

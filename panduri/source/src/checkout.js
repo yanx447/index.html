@@ -23,6 +23,9 @@ PD.i18n.add({
   'pay.extend': ['ახლანდელ ვადას დაემატება', 'Added to your current period'],
   'pay.fx': ['ფასი {c}-შია. თუ ბარათი სხვა ვალუტისაა, კონვერტაციას შენი ბანკი აკეთებს.', 'The price is in {c}. If your card is in another currency, your bank converts it.'],
   'pay.go': ['გადახდა · {p}', 'Pay {p}'],
+  'pay.charged': ['ჩამოგეჭრება', 'You are charged'],
+  'pay.fxL': ['{a} მიახლოებითი თანხაა, საქართველოს ეროვნული ბანკის {d}-ის კურსით. ჩამოგეჭრება ზუსტად {p}; თუ ბარათი სხვა ვალუტისაა, კონვერტაციას შენი ბანკი აკეთებს თავისი კურსით.', '{a} is approximate, at the National Bank of Georgia rate of {d}. You are charged exactly {p}; if your card is in another currency, your bank converts it at its own rate.'],
+  'pay.fxS': ['ჩამოგეჭრება {p} · ფასი მიახლოებითია, ეროვნული ბანკის {d}-ის კურსით', 'You are charged {p} · the price shown is approximate, at the National Bank of Georgia rate of {d}'],
   'pay.safe': ['ბარათის მონაცემებს ფანდური ვერ ხედავს და არ ინახავს — მათ შეიყვან {w} დაცულ გვერდზე.', 'Fanduri never sees or stores your card details — you type them on {w} secure page.'],
   'pay.safeTBC': ['TBC ბანკის', "TBC Bank's"], 'pay.safePP': ['PayPal-ის', "PayPal's"],
   'pay.how': ['როგორ მუშაობს', 'How it works'],
@@ -80,7 +83,8 @@ PD.checkout = (() => {
     ok: SVG('<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.6 2.5L16 9.5"/>', 40)
   };
   const loc = () => PD.i18n.locale || (PD.i18n.lang === 'ka' ? 'ka-GE' : 'en-US');
-  const money = p => p.display || new Intl.NumberFormat(loc(), { style: 'currency', currency: p.currency }).format(Number(p.value));
+  // in the language's currency at the official rate (PD.billing.shown); `main` marks a converted amount with ≈
+  const money = p => PD.billing.shown(p).text, main = p => { const s = PD.billing.shown(p); return (s.approx ? '≈ ' : '') + s.text; };
   const KA_M = ['იანვრამდე', 'თებერვლამდე', 'მარტამდე', 'აპრილამდე', 'მაისამდე', 'ივნისამდე', 'ივლისამდე', 'აგვისტომდე', 'სექტემბრამდე', 'ოქტომბრამდე', 'ნოემბრამდე', 'დეკემბრამდე'];
   // The same rule as the server's fulfil_web_purchase: from the later of now and the current paid end, plus one month or year.
   function validUntil(plan) {
@@ -222,7 +226,7 @@ PD.checkout = (() => {
         const sl = PD.billing.sale(price), cmp = !sl && k === 'yearly' ? PD.billing.compare(price, priced.prices.monthly, 12) : null, was = sl || cmp;
         plans.append(h('button', { class: 'pay-plan', role: 'radio', type: 'button', 'aria-checked': String(plan === k), onclick: () => { plan = k; draw(); } }, [
           was ? h('em', { class: 'pay-off', text: t('pay.off', { n: was.pct }) }) : k === 'yearly' && sub ? h('em', { 'data-t': 'pm.best' }) : null,
-          h('b', { 'data-t': 'pm.' + k }), h('span', { class: 'pay-price' }, [was ? h('s', { class: 'price-was', 'aria-label': sl ? t('pay.was') : t('pay.cmpYear', { p: money(cmp.regular) }), text: money(was.regular) }) : null, money(price)]),
+          h('b', { 'data-t': 'pm.' + k }), h('span', { class: 'pay-price' }, [was ? h('s', { class: 'price-was', 'aria-label': sl ? t('pay.was') : t('pay.cmpYear', { p: money(cmp.regular) }), text: money(was.regular) }) : null, main(price)]),
           cmp ? h('small', { class: 'pay-cmp', text: t('pay.cmpYear', { p: money(cmp.regular) }) }) : null,
           h('small', { text: sub || t(k === 'monthly' ? 'pm.perMonth' : 'pm.perYear') })]));
       }
@@ -230,20 +234,22 @@ PD.checkout = (() => {
 
       summary.innerHTML = '';
       if (priced) {
-        const price = priced.prices[plan], v = validUntil(plan), sl = PD.billing.sale(price);
+        const price = priced.prices[plan], v = validUntil(plan), sl = PD.billing.sale(price), shown = PD.billing.shown(price);
         summary.append(...[
           sl ? h('div', { class: 'pay-line sub' }, [h('span', { 'data-t': 'pay.was' }), h('s', { class: 'price-was', text: money(sl.regular) })]) : null,
           sl ? h('div', { class: 'pay-line pay-disc' }, [h('span', { text: t('pay.discount') + ' ' + t('pay.off', { n: sl.pct }) }), h('span', { text: '−' + money({ value: (Number(sl.regular.value) - Number(price.value)).toFixed(2), currency: price.currency }) })]) : null,
-          h('div', { class: 'pay-line' }, [h('span', { text: t('pay.item', { p: t('pm.' + plan) }) }), h('span', { text: money(price) })]),
+          h('div', { class: 'pay-line' }, [h('span', { text: t('pay.item', { p: t('pm.' + plan) }) }), h('span', { text: main(price) })]),
           h('div', { class: 'pay-line sub' }, [h('span', { text: t('pay.valid', { d: fmtValid(v.d) }) }), v.extends ? h('span', { 'data-t': 'pay.extend' }) : null]),
-          h('div', { class: 'pay-line total' }, [h('b', { 'data-t': 'pay.total' }), h('b', { text: money(price) })]),
+          h('div', { class: 'pay-line total' }, [h('b', { 'data-t': 'pay.total' }), h('b', { text: main(price) })]),
+          shown.approx ? h('div', { class: 'pay-line sub' }, [h('span', { 'data-t': 'pay.charged' }), h('span', { text: shown.exact })]) : null,
           h('p', { class: 'muted pay-note', 'data-t': 'pm.once' }),
           sl ? h('p', { class: 'pay-note pay-sale-end', text: t('pay.saleEnds', { d: PD.i18n.lang === 'ka' ? sl.until.getDate() + ' ' + ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'][sl.until.getMonth()] + ', ' + String(sl.until.getHours()).padStart(2, '0') + ':' + String(sl.until.getMinutes()).padStart(2, '0') : sl.until.toLocaleString(loc(), { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }), p: money(sl.regular) }) }) : null,
-          price.currency !== 'GEL' ? h('p', { class: 'muted pay-note', text: t('pay.fx', { c: price.currency }) }) : null].filter(Boolean));
+          shown.approx ? h('p', { class: 'muted pay-note', text: t('pay.fxL', { a: main(price), d: shown.date, p: shown.exact }) })
+            : price.currency !== 'GEL' ? h('p', { class: 'muted pay-note', text: t('pay.fx', { c: price.currency }) }) : null].filter(Boolean));
       }
       go.hidden = safe.hidden = !cur;
       if (cur) {
-        go.innerHTML = IC.lock + '<span>' + PD.esc(t('pay.go', { p: money(cur.prices[plan]) })) + '</span>';
+        go.innerHTML = IC.lock + '<span>' + PD.esc(t('pay.go', { p: PD.billing.shown(cur.prices[plan]).exact })) + '</span>';   // the button names what is charged
         go.disabled = busy;
         safe.innerHTML = IC.shield + '<span>' + PD.esc(t('pay.safe', { w: t(cur.id === 'tbc' ? 'pay.safeTBC' : 'pay.safePP') })) + '</span>';
       }
@@ -288,6 +294,7 @@ PD.checkout = (() => {
       }
       drawExpress(); draw();
     }).catch(() => { if (w.isConnected) say(t('pm.noPay')); });
+    B.rates().then(() => { if (w.isConnected && options) draw(); });
   }
 
   function returnState(w, B, how) {
