@@ -598,7 +598,7 @@ PD.sima = (() => {
 
   const miniNav = matchMedia('(max-width: 820px)');
   function positionLauncher() {
-    const b = fab(), container = miniNav.matches ? document.querySelector('.dock') : document.body;   // in the dock it sits after the scrolling row, pinned at the end
+    const b = fab(), container = miniNav.matches ? document.querySelector('.dock') : document.body;   // in the dock it sits after the row of tabs
     if (b && container && b.parentElement !== container) { container.append(b); PD.bus.emit('sima-nav'); }
   }
   miniNav.addEventListener?.('change', positionLauncher);
